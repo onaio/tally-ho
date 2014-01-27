@@ -15,6 +15,7 @@ Record, verify, and report data concerning election results.
 Support the entry of results and reconciliation forms, correction, and comments.
 
 * Match entered serial number to stored form serial numbers.
+* Enter form data.
 * Select correct version of data.
 * Record issues and comments about data.
 
