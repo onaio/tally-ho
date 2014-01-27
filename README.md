@@ -12,10 +12,11 @@ Record, verify, and report data concerning election results.
 
 #### Data entry interface
 
-Support the entry of results and reconciliation forms
+Support the entry of results and reconciliation forms, correction, and comments.
 
 * Match entered serial number to stored form serial numbers.
-* When reviewing this can be used to store an updated record.
+* Select correct version of data.
+* Record issues and comments about data.
 
 #### Records
     
@@ -34,7 +35,8 @@ Store the form data entered into the system.
 * Transitions: the possible transitions from the current state.
 * Actions: the actions a user can perform.
     * Transitioning the form to a new state.
-    * Updating the record by entering new data.
+    * Select correct version of field data.
+    * Enter comments and select options.
     * Printing a cover sheet for the record.
 
 #### User permissions system
