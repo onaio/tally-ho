@@ -36,14 +36,6 @@ Store the form data entered into the system.
     * Updating the record by entering new data.
     * Printing a cover sheet for the record.
 
-#### Alerts
-    
-Run "quarantine checks" to ensure that entered data is credible.
-
-* The system runs checks after a record passes the "quality control" state.
-* If the quarantine checks fail a record goes to auditing.
-* Admins can modify the quarantine checks.
-
 #### User permissions system
 
 Assign roles for all users limiting their actions.
@@ -54,6 +46,14 @@ Assign roles for all users limiting their actions.
     * Admins can reset passwords to temporary passwords.
 * Roles determine the actions that a user can perform.
 * There are a fixed set of roles with predetermined actions.
+
+#### Alerts
+    
+Run "quarantine checks" to ensure that entered data is credible.
+
+* The system runs checks after a record passes the "quality control" state.
+* If the quarantine checks fail a record goes to auditing.
+* Admins can modify the quarantine checks.
 
 #### Reporting
 
