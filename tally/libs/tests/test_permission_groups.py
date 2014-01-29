@@ -12,4 +12,4 @@ class TestPermissionsGroup(TestCase):
         count = Group.objects.count()
         create_permission_groups()
         diff_count = Group.objects.count() - count
-        self.assertEqual(diff_count, 12)
+        self.assertEqual(diff_count, 13)
