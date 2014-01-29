@@ -95,7 +95,15 @@ AUTHENTICATION_BACKENDS = (
 ANONYMOUS_USER_ID = -1
 
 TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'libs/templates'),
+    os.path.join(BASE_DIR, 'tally/libs/templates'),
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+NOSE_PLUGINS = [
+    'tally.libs.nose_plugins.SilenceSouth'
+]
+
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+)
