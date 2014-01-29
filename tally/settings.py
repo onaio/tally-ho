@@ -36,7 +36,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'reversion',
     'tally.apps.main',
+    'south',
 )
 
 MIDDLEWARE_CLASSES = (
