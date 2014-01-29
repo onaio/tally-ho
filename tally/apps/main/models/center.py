@@ -1,4 +1,4 @@
-import revision
+from django.db import models
 
 from tally.libs.models.base_model import BaseModel
 
@@ -16,6 +16,3 @@ class Center(BaseModel):
     region = models.CharField()
     center_type = models.TextField()
     village = models.CharField()
-
-
-revision.register(Centre)
