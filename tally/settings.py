@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_nose',
     'guardian',
     'reversion',
     'tally.apps.main',
@@ -96,3 +97,5 @@ ANONYMOUS_USER_ID = -1
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'libs/templates'),
 )
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
