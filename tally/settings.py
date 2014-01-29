@@ -122,3 +122,8 @@ TEMPLATE_LOADERS = (
 )
 
 SITE_ID = 1
+
+NOSE_ARGS = [
+    '--with-coverage',
+    '--cover-package=tally'
+]
