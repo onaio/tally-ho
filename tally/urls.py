@@ -3,10 +3,12 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'tally.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
+from tally.apps.main.views.home_view import HomeView
+
+
+urlpatterns = patterns(
+    '',
+    url(r'^$', HomeView.as_view(), name='home'),
 
     url(r'^admin/', include(admin.site.urls)),
 )
