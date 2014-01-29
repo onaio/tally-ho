@@ -1,5 +1,7 @@
 django==1.6.1
-django-reversion==1.8.0
-south==0.8.4
+django-enumfield
 django-guardian==1.1.1
 django_nose
+django-reversion==1.8.0
+psycopg2
+south==0.8.4
