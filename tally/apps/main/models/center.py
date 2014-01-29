@@ -5,14 +5,14 @@ from tally.libs.models.enums.center_type import CenterType
 
 
 class Center(BaseModel):
-    code = models.IntegerField(unique=True)
+    center_type = models.EnumField(CenterType)
+    code = models.PositiveIntegerField(unique=True)
+    female_registrants = models.PositiveIntegerField()
     latitude = models.FloatField()
     longitutde = models.FloatField()
-    female_registrants = models.IntegerField()
     mahalla = models.CharField()
-    male_registrants = models.IntegerField()
+    male_registrants = models.PositiveIntegerField()
     name = models.CharField(unique=True)
-    number = models.IntegerField(unique=True)
+    number = models.PositiveIntegerField(unique=True)
     region = models.CharField()
-    center_type = models.EnumField(CenterType)
     village = models.CharField()

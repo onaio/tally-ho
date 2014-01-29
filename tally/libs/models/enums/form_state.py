@@ -12,3 +12,15 @@ class FormState(enum.Enum):
     INTAKE = 7
     QUALITY_CONTROL = 8
     UNSUBMITTED = 9
+
+    _transitions = {
+        ARCHIVED: (ARCHIVING, AUDIT),
+        ARCHIVING: (QUALITY_CONTROL,),
+        AUDIT: (ARCHIVING,),
+        CLEARANCE: (INTAKE,),
+        CORRECTION: (DATA_ENTRY_2),
+        DATA_ENTRY_1: (AUDIT, CORRECTION, INTAKE, QUALITY_CONTROL),
+        DATA_ENTRY_2: (DATA_ENTRY_1),
+        INTAKE: (CLEARANCE, UNSUBMITTED,),
+        QUALITY_CONTROL: (CORRECTION),
+    }
