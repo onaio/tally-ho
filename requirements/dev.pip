@@ -1,0 +1,4 @@
+-r common.pip
+coverage
+ipython
+ipdb
