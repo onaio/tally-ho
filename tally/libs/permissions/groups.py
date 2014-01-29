@@ -23,3 +23,8 @@ GROUPS = [ADMINISTRATOR, ARCHIVING_CLERK, ARCHIVE_SUPERVISOR, AUDIT_CLERK,
 def create_permission_groups():
     for group in GROUPS:
         Group.objects.get_or_create(name=group)
+
+
+def add_user_to_group(user, name):
+    group = Group.objects.get(name=name)
+    user.groups.add(group)
