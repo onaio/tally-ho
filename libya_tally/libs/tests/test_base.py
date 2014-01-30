@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.test import TestCase
 from django.test import RequestFactory
 
-from tally.libs.permissions.groups import create_permission_groups, \
+from libya_tally.libs.permissions.groups import create_permission_groups, \
     add_user_to_group
 
 

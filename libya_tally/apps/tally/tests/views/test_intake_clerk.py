@@ -2,9 +2,9 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
-from tally.apps.main.views.intake_clerk import IntakeClerkView
-from tally.libs.permissions import groups
-from tally.libs.tests.test_base import TestBase
+from libya_tally.apps.tally.views.intake_clerk import IntakeClerkView
+from libya_tally.libs.permissions import groups
+from libya_tally.libs.tests.test_base import TestBase
 
 
 class TestIntakeClerkView(TestBase):

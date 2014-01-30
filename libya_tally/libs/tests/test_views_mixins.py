@@ -1,8 +1,8 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic.base import View
 
-from tally.libs.tests.test_base import TestBase
-from tally.libs.views.mixins import GroupRequiredMixin
+from libya_tally.libs.tests.test_base import TestBase
+from libya_tally.libs.views.mixins import GroupRequiredMixin
 
 
 class ViewGroupRequired(GroupRequiredMixin, View):

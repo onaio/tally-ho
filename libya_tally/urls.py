@@ -3,7 +3,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 admin.autodiscover()
 
-from tally.apps.main.views.home import HomeView
+from libya_tally.apps.tally.views.home import HomeView
 
 
 urlpatterns = patterns(

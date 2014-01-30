@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Group
 from django.test import TestCase
 
-from tally.libs.permissions.groups import create_permission_groups
+from libya_tally.libs.permissions.groups import create_permission_groups
 
 
 class TestPermissionsGroup(TestCase):

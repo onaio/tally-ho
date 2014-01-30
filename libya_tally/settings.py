@@ -1,5 +1,5 @@
 """
-Django settings for tally project.
+Django settings for libya tally project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -40,7 +40,7 @@ INSTALLED_APPS = (
     'django_nose',
     'guardian',
     'reversion',
-    'tally.apps.main',
+    'libya_tally.apps.tally',
     'south',
 )
 
@@ -62,13 +62,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.static',
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
-    'tally.libs.utils.context_processors.site_name',
+    'libya_tally.libs.utils.context_processors.site_name',
 )
 
 
-ROOT_URLCONF = 'tally.urls'
+ROOT_URLCONF = 'libya_tally.urls'
 
-WSGI_APPLICATION = 'tally.wsgi.application'
+WSGI_APPLICATION = 'libya_tally.wsgi.application'
 
 
 # Database
@@ -111,12 +111,12 @@ AUTHENTICATION_BACKENDS = (
 ANONYMOUS_USER_ID = -1
 
 TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'tally/libs/templates'),
+    os.path.join(BASE_DIR, 'libya_tally/libs/templates'),
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 NOSE_PLUGINS = [
-    'tally.libs.nose_plugins.SilenceSouth'
+    'libya_tally.libs.nose_plugins.SilenceSouth'
 ]
 
 TEMPLATE_LOADERS = (
@@ -128,5 +128,5 @@ SITE_ID = 1
 
 NOSE_ARGS = [
     '--with-coverage',
-    '--cover-package=tally'
+    '--cover-package=libya_tally'
 ]

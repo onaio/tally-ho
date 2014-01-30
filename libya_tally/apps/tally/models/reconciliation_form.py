@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext as _
 
-from tally.libs.models.base_model import BaseModel
+from libya_tally.libs.models.base_model import BaseModel
 
 
 class ReconciliationForm(BaseModel):

@@ -1,7 +1,7 @@
 from django.db import models
 
-from tally.libs.models.base_model import BaseModel
-from tally.libs.models.enums.center_type import CenterType
+from libya_tally.libs.models.base_model import BaseModel
+from libya_tally.libs.models.enums.center_type import CenterType
 
 
 class Center(BaseModel):

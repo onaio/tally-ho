@@ -1,8 +1,8 @@
 from django.db import models
 
-from tally.libs.models.base_model import BaseModel
-from tally.libs.models.enum.form_state import FormState
-from tally.libs.models.enum.form_type import FormType
+from libya_tally.libs.models.base_model import BaseModel
+from libya_tally.libs.models.enum.form_state import FormState
+from libya_tally.libs.models.enum.form_type import FormType
 
 
 class ResultForm(BaseModel):

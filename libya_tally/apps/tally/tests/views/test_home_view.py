@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.test import RequestFactory
 
-from tally.apps.main.views.home import HomeView
+from libya_tally.apps.tally.views.home import HomeView
 
 
 class TestHomeView(TestCase):
