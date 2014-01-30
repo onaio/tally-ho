@@ -16,7 +16,7 @@
     <body>
 
     {% block topbar %}
-    <div id="topbar"><a id="logout_link" href="{% url 'logout' %}">{% trans "logout" %}</a></div>
+    {% if user.is_authenticated %}<div id="topbar"><a id="logout_link" href="{% url 'logout' %}">{% trans "logout" %}</a></div>{% endif %}
     {% endblock %}
 
     {% block content %}
