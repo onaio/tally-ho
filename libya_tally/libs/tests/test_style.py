@@ -6,5 +6,5 @@ from django.test import TestCase
 class TestStyle(TestCase):
 
     def test_flake8(self):
-        result = call(['flake8', '.'])
+        result = call(['flake8', '--exclude', 'migrations', '.'])
         self.assertEqual(result, 0, "Code is not flake8.")

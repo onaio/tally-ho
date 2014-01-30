@@ -1,11 +1,15 @@
 from django.db import models
+from django_enumfield import enum
 
 from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.race_type import RaceType
 
 
 class Race(BaseModel):
-    sub_district = models.ManyToManyField('SubDistrict')
+    class Meta:
+        app_label = 'tally'
 
-    name = models.CharField()
-    race_type = models.EnumField(RaceType)
+    sub_constituency = models.ManyToManyField('SubConstituency')
+
+    name = models.CharField(max_length=256)
+    race_type = enum.EnumField(RaceType)

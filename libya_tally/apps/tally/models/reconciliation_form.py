@@ -5,6 +5,9 @@ from libya_tally.libs.models.base_model import BaseModel
 
 
 class ReconciliationForm(BaseModel):
+    class Meta:
+        app_label = 'tally'
+
     result_form = models.OneToOneField('ResultForm')
 
     ballot_number_from = models.PositiveIntegerField(
