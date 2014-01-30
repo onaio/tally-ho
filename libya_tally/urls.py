@@ -3,7 +3,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
-from libya_tally.apps.tally.views.home import HomeView
+from libya_tally.apps.tally import views as tally_views
 
 admin.autodiscover()
 
@@ -17,7 +17,8 @@ accounts_urls = patterns(
 
 urlpatterns = patterns(
     '',
-    url(r'^$', HomeView.as_view(), name='home'),
+    url(r'^$', tally_views.HomeView.as_view(), name='home'),
+    url(r'^$', tally_views.IntakeClerkView.as_view(), name='intake-clerk'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),
