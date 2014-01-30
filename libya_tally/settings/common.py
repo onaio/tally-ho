@@ -111,7 +111,7 @@ AUTHENTICATION_BACKENDS = (
 ANONYMOUS_USER_ID = -1
 
 TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'libya_tally/libs/templates'),
+    os.path.join(BASE_DIR, 'libs', 'templates'),
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
