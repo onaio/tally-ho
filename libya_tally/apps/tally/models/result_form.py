@@ -6,7 +6,6 @@ from libya_tally.libs.models.enum.form_type import FormType
 
 
 class ResultForm(BaseModel):
-    center = models.ForeignKey('Center')
     race1 = models.ForeignKey('Race')
     race2 = models.ForeignKey('Race')
     station = models.ForeignKey('Station')

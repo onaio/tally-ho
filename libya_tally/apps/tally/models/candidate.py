@@ -6,6 +6,7 @@ from libya_tally.libs.models.enums.race_type import RaceType
 
 class Candidate(BaseModel):
     race = models.OneToOneField('Race')
+    sub_district = models.ManyToManyField('SubDistrict')
 
     candidate_id = models.PositiveIntegerField()
     duplicate = models.BooleanField()
@@ -16,5 +17,4 @@ class Candidate(BaseModel):
     national_id = models.PositiveIntegerField()
     office_id = models.PositiveIntegerField()
     race_type = models.EnumField(RaceType)
-    sub_district_id = models.PositiveIntegerField()
     voting_district = models.PositiveIntegerField()
