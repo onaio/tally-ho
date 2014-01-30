@@ -11,7 +11,13 @@
     {% endblock %}
   </head>
 
+{% load i18n %}
+
     <body>
+
+    {% block topbar %}
+    <div id="topbar"><a id="logout_link" href="{% url 'logout' %}">{% trans "logout" %}</a></div>
+    {% endblock %}
 
     {% block content %}
 

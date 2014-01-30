@@ -25,3 +25,4 @@ class TestIntakeClerkView(TestBase):
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         response = self.view(request)
         self.assertContains(response, '<h1>Intake Dashboard</h1>')
+        self.assertIn('/accounts/logout/', response.content)

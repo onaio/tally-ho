@@ -14,3 +14,4 @@ class TestHomeView(TestBase):
         self._create_and_login_user()
         response = self.view(self.request)
         self.assertContains(response, 'Home')
+        self.assertIn('/accounts/logout/', response.content)
