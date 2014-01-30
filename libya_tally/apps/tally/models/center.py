@@ -2,21 +2,21 @@ from django.db import models
 from django_enumfield import enum
 
 from libya_tally.libs.models.base_model import BaseModel
-from libya_tally.libs.models.enums.form_type import FormType
+from libya_tally.libs.models.enums.center_type import CenterType
 
 
 class Center(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    sub_constituency = models.ForeignKey('SubConstituency')
+    sub_constituency = models.ForeignKey('SubConstituency', null=True)
 
-    center_type = enum.EnumField(FormType)
+    center_type = enum.EnumField(CenterType)
     code = models.PositiveIntegerField(unique=True)
-    latitude = models.FloatField()
-    longitutde = models.FloatField()
+    latitude = models.FloatField(null=True)
+    longitude = models.FloatField(null=True)
     mahalla = models.TextField()
-    name = models.TextField(unique=True)
+    name = models.TextField()
     office = models.TextField()
     region = models.TextField()
     village = models.TextField()
