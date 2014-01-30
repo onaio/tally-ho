@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, AnonymousUser
 
 from django.test import TestCase
 from django.test import RequestFactory
@@ -11,6 +11,13 @@ class TestBase(TestCase):
     @classmethod
     def _create_user(cls, username='bob', password='bob'):
         return User.objects.create(username=username, password=password)
+
+    @classmethod
+    def _get_request(cls, user=None):
+        request = RequestFactory().get('/')
+        request.user = user \
+            if user is not None and isinstance(user, User) else AnonymousUser()
+        return request
 
     def _create_and_login_user(self, username='bob', password='bob'):
         self.user = self._create_user(username, password)
