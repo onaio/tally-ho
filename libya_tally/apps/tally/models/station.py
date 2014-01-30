@@ -6,7 +6,9 @@ from tally.libs.models.enums.gender import Gender
 
 class Station(BaseModel):
     center = models.ForeignKey('Center')
+    sub_constituency = models.ForeignKey('SubConstituency')
 
+    code = models.PositiveSmallIntegerField()  # aka number
     gender = models.EnumField(Gender)
-    number = models.PositiveIntegerField()
     registrants = models.PositiveIntegerField()
+    station_number = models.PositiveIntegerField()

@@ -5,14 +5,14 @@ from libya_tally.libs.models.enums.center_type import CenterType
 
 
 class Center(BaseModel):
+    sub_constituency = models.ForeignKey('SubConstituency')
+
     center_type = models.EnumField(CenterType)
     code = models.PositiveIntegerField(unique=True)
-    female_registrants = models.PositiveIntegerField()
     latitude = models.FloatField()
     longitutde = models.FloatField()
     mahalla = models.CharField()
-    male_registrants = models.PositiveIntegerField()
     name = models.CharField(unique=True)
-    number = models.PositiveIntegerField(unique=True)
+    office = models.CharField()
     region = models.CharField()
     village = models.CharField()
