@@ -130,3 +130,8 @@ NOSE_ARGS = [
     '--with-coverage',
     '--cover-package=libya_tally'
 ]
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
