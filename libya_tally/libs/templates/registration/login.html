@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+
+    <form method="post" action=".">
+    <table>
+        {{ form.as_table }}
+        <tfoot>
+        <tr>
+            <td>&nbsp;</td>
+            <td><input type="submit"  value="{% trans 'Sign in' %}" /></td>
+        </tr>
+        </tfoot>
+    </table>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}" />
+    </form>
+{% endblock %}
