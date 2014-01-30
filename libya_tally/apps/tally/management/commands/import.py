@@ -8,18 +8,25 @@ from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy
 
 from libya_tally.apps.tally.models.center import Center
+from libya_tally.apps.tally.models.station import Station
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
 from libya_tally.libs.models.enums.center_type import CenterType
+from libya_tally.libs.models.enums.gender import Gender
 
 CENTERS_PATH = 'data/centers.csv'
+STATIONS_PATH = 'data/stations.csv'
 SUB_CONSTITUENCIES_PATH = 'data/sub_constituencies.csv'
 
 SPECIAL_VOTING = 'Special Voting'
 
 
+def empty_string_to(value, default):
+    return value if len(value) else default
+
+
 def empty_strings_to_zero(row):
     """Convert all empty strings in row to 0."""
-    return [f if len(f) else 0 for f in row]
+    return [empty_string_to(f, 0) for f in row]
 
 
 def invalid_line(row):
@@ -44,6 +51,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.import_sub_constituencies()
         self.import_centers()
+        self.import_stations()
 
     def import_sub_constituencies(self):
         with open(SUB_CONSTITUENCIES_PATH, 'rU') as f:
@@ -99,3 +107,37 @@ class Command(BaseCommand):
                         center_type=center_type,
                         longitude=strip_non_numeric(row[12]),
                         latitude=strip_non_numeric(row[13]))
+
+    def import_stations(self):
+        with open(STATIONS_PATH, 'rU') as f:
+            reader = csv.reader(f)
+            reader.next()  # ignore header
+
+            for row in reader:
+                center_code = row[0]
+
+                try:
+                    center = Center.objects.get(code=center_code)
+                except Center.DoesNotExist:
+                    center, created = Center.objects.get_or_create(
+                        code=center_code,
+                        name=row[1])
+
+                # ensure that SC is converted to a number
+                sc_code = int(float(row[2]))
+
+                try:
+                    sub_constituency = SubConstituency.objects.get(
+                        code=sc_code)
+                except SubConstituency.DoesNotExist:
+                    print('[WARNING] SubConstituency "%s" does not exist' %
+                          sc_code)
+
+                gender = getattr(Gender, row[4].upper())
+
+                _, created = Station.objects.get_or_create(
+                    center=center,
+                    sub_constituency=sub_constituency,
+                    gender=gender,
+                    registrants=empty_string_to(row[5], None),
+                    station_number=row[3])

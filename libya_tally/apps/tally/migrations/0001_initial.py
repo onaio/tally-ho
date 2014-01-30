@@ -131,10 +131,9 @@ class Migration(SchemaMigration):
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('center', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Center'])),
             ('sub_constituency', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.SubConstituency'])),
-            ('code', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
             ('gender', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
-            ('registrants', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('station_number', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('registrants', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
+            ('station_number', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
         ))
         db.send_create_signal('tally', ['Station'])
 
@@ -253,13 +252,12 @@ class Migration(SchemaMigration):
         'tally.station': {
             'Meta': {'object_name': 'Station'},
             'center': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Center']"}),
-            'code': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'gender': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'registrants': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'station_number': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'registrants': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
+            'station_number': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'sub_constituency': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.SubConstituency']"})
         },
         'tally.subconstituency': {

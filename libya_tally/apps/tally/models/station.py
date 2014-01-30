@@ -12,7 +12,6 @@ class Station(BaseModel):
     center = models.ForeignKey('Center')
     sub_constituency = models.ForeignKey('SubConstituency')
 
-    code = models.PositiveSmallIntegerField()  # aka number
     gender = enum.EnumField(Gender)
-    registrants = models.PositiveIntegerField()
-    station_number = models.PositiveIntegerField()
+    registrants = models.PositiveIntegerField(null=True)
+    station_number = models.PositiveSmallIntegerField()
