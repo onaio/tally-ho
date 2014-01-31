@@ -14,8 +14,15 @@
     </tr>
     <tr>
         <td>
-            <form id="barcode_form">
-                <table>{{ form.as_table}}</table>
+            <form id="barcode_form" method="post" action="">
+                <table>{{ form.as_table}}
+                    <tr>
+                        <td>
+                            <button type="submit" name="submit">{% trans "Submit" %}</button>
+                        </td>
+                    </tr>
+                    {% csrf_token %}
+                </table>
             </form>
         </td>
         <td>&nbsp;</td>

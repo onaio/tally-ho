@@ -18,11 +18,11 @@ accounts_urls = patterns(
 urlpatterns = patterns(
     '',
     url(r'^$', tally_views.HomeView.as_view(), name='home'),
-    url(r'^Intake$', tally_views.IntakeClerkView.as_view(),
+    url(r'^intake$', tally_views.IntakeClerkView.as_view(),
         name='intake-clerk'),
-    url(r'^Intake/CenterDetails$', tally_views.CenterDetailView.as_view(),
+    url(r'^intake/center-details$', tally_views.CenterDetailView.as_view(),
         name='center-details'),
-    url(r'^Intake/CheckCenterDetails/(?P<barcode>[^/]+)$',
+    url(r'^Intake/check-center-details/(?P<barcode>[^/]+)$',
         tally_views.CheckCenterDetailView.as_view(),
         name='check-center-details'),
 

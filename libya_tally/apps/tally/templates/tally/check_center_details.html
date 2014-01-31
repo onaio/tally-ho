@@ -8,8 +8,11 @@
 
 <h2>{% trans 'Check Centre Details Against Form' %}</h2>
 
-<form id="barcode_form">
-    <table>{{ form.as_table}}</table>
-</form>
-
+<ul>
+    <li>{{ result_form.center.name }} :{% trans 'Center Name' %}</li>
+    <li>{{ result_form.center.office }} :{% trans 'Office Name' %}</li>
+    <li>{{ result_form.center.code }} :{% trans 'Center Code' %}</li>
+    <li>{{ result_form.station_code_number }} :{% trans 'Station Code' %}</li>
+    <li>{{ result_form.race_type }} :{% trans 'Form Race Type' %}</li>
+</ul>
 {% endblock %}
