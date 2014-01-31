@@ -22,6 +22,9 @@ urlpatterns = patterns(
         name='intake-clerk'),
     url(r'^Intake/CenterDetails$', tally_views.CenterDetailView.as_view(),
         name='center-details'),
+    url(r'^Intake/CheckCenterDetails$',
+        tally_views.CheckCenterDetailView.as_view(),
+        name='check-center-details'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),

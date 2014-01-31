@@ -37,4 +37,21 @@ class TestIntakeClerkView(TestBase):
         self.view = views.CenterDetailView.as_view()
         response = self._common_view_tests()
         self.assertContains(response, 'Double Enter Center Details')
-        self.assertIn('<form id="barcode_form"', response)
+        self.assertIn('<form id="barcode_form"', response.content)
+
+    def test_center_detail_barcode_form(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        self.view = views.CenterDetailView.as_view()
+        short_length_barcode_data = {'barcode': '1223', 'barcode_copy': '1223'}
+        request = self.factory.post('/', data=short_length_barcode_data)
+        request.user = self.user
+        response = self.view(request)
+        self.assertContains(response,
+                            u'Ensure this value has at least 9 characters')
+        barcode_data = {'barcode': '123456789', 'barcode_copy': '123456789'}
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        response = self.view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/Intake/CheckCenterDetails', response['location'])

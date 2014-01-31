@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>Intake</h1>
+
+<h2>{% trans 'Check Centre Details Against Form' %}</h2>
+
+<form id="barcode_form">
+    <table>{{ form.as_table}}</table>
+</form>
+
+{% endblock %}
