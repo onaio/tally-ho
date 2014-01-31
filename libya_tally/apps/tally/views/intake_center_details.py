@@ -22,6 +22,15 @@ class CenterDetailView(mixins.GroupRequiredMixin,
     # success_url = "/Intake/CheckCenterDetails"
     success_url = 'check-center-details'
 
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            return self.form_valid()
+        else:
+            return self.form_invalid(form)
+
 
 class CheckCenterDetailView(mixins.GroupRequiredMixin,
                             ReverseSuccessURLMixin,
