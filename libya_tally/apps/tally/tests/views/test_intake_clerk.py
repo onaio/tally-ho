@@ -39,7 +39,7 @@ class TestIntakeClerkView(TestBase):
         self.assertContains(response, 'Double Enter Center Details')
         self.assertIn('<form id="barcode_form"', response.content)
 
-    def test_center_detail_barcode_form(self):
+    def test_center_detail_barcode_length(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         self.view = views.CenterDetailView.as_view()
@@ -49,9 +49,23 @@ class TestIntakeClerkView(TestBase):
         response = self.view(request)
         self.assertContains(response,
                             u'Ensure this value has at least 9 characters')
+
+    def test_center_detail_barcode_not_equal(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        self.view = views.CenterDetailView.as_view()
+        barcode_data = {'barcode': '123453789', 'barcode_copy': '123456789'}
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        response = self.view(request)
+        self.assertContains(response, 'Barcodes do not match')
+
+    def test_center_detail_barcode_does_not_exist(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        self.view = views.CenterDetailView.as_view()
         barcode_data = {'barcode': '123456789', 'barcode_copy': '123456789'}
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         response = self.view(request)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/Intake/CheckCenterDetails', response['location'])
+        self.assertContains(response, 'Barcode does not exist')
