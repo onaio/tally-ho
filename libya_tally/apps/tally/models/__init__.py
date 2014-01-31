@@ -1,4 +1,5 @@
-from libya_tally.apps.tally.models.candidate import Candidate  # flake8:noqa
+from libya_tally.apps.tally.models.ballot import Ballot  # flake8:noqa
+from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.race import Race
 from libya_tally.apps.tally.models.reconciliation_form import\

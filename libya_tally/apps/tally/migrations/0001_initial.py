@@ -8,12 +8,22 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'Ballot'
+        db.create_table(u'tally_ballot', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('number', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('race_type', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
+        ))
+        db.send_create_signal('tally', ['Ballot'])
+
         # Adding model 'Candidate'
         db.create_table(u'tally_candidate', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('sub_constituency', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.SubConstituency'])),
+            ('ballot', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Ballot'])),
             ('full_name', self.gf('django.db.models.fields.TextField')()),
             ('race_type', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
         ))
@@ -96,15 +106,16 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('race1', self.gf('django.db.models.fields.related.ForeignKey')(related_name='race1', to=orm['tally.Race'])),
-            ('race2', self.gf('django.db.models.fields.related.ForeignKey')(related_name='race2', to=orm['tally.Race'])),
-            ('center', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Center'])),
+            ('ballot', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Ballot'], null=True)),
+            ('center', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Center'], null=True)),
             ('barcode', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('office', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('serial_number', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('station_number', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('form_stamped', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
             ('form_state', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
+            ('gender', self.gf('django.db.models.fields.IntegerField')(default=0, null=True, db_index=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
+            ('office', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
+            ('serial_number', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('station_number', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
         ))
         db.send_create_signal('tally', ['ResultForm'])
 
@@ -113,13 +124,13 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('ballot_number_general', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('ballot_number_women', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('ballot_general', self.gf('django.db.models.fields.related.ForeignKey')(related_name='ballot_general', null=True, to=orm['tally.Ballot'])),
+            ('ballot_women', self.gf('django.db.models.fields.related.ForeignKey')(related_name='ballot_women', null=True, to=orm['tally.Ballot'])),
             ('code', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
             ('component_ballot', self.gf('django.db.models.fields.BooleanField')()),
             ('field_office', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('number_of_ballots', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('races', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('number_of_ballots', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('races', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
         ))
         db.send_create_signal('tally', ['SubConstituency'])
 
@@ -138,6 +149,9 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Deleting model 'Ballot'
+        db.delete_table(u'tally_ballot')
+
         # Deleting model 'Candidate'
         db.delete_table(u'tally_candidate')
 
@@ -167,14 +181,22 @@ class Migration(SchemaMigration):
 
 
     models = {
+        'tally.ballot': {
+            'Meta': {'object_name': 'Ballot'},
+            'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'number': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
+            'race_type': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'})
+        },
         'tally.candidate': {
             'Meta': {'object_name': 'Candidate'},
+            'ballot': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Ballot']"}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'full_name': ('django.db.models.fields.TextField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'race_type': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
-            'sub_constituency': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.SubConstituency']"})
+            'race_type': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'})
         },
         'tally.center': {
             'Meta': {'object_name': 'Center'},
@@ -234,18 +256,19 @@ class Migration(SchemaMigration):
         },
         'tally.resultform': {
             'Meta': {'object_name': 'ResultForm'},
+            'ballot': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Ballot']", 'null': 'True'}),
             'barcode': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'center': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Center']"}),
+            'center': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Center']", 'null': 'True'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'form_stamped': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
             'form_state': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
+            'gender': ('django.db.models.fields.IntegerField', [], {'default': '0', 'null': 'True', 'db_index': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'office': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'race1': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'race1'", 'to': "orm['tally.Race']"}),
-            'race2': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'race2'", 'to': "orm['tally.Race']"}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
+            'office': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
             'serial_number': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'station_number': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
+            'station_number': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'})
         },
         'tally.station': {
             'Meta': {'object_name': 'Station'},
@@ -260,16 +283,16 @@ class Migration(SchemaMigration):
         },
         'tally.subconstituency': {
             'Meta': {'object_name': 'SubConstituency'},
-            'ballot_number_general': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'ballot_number_women': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
+            'ballot_general': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'ballot_general'", 'null': 'True', 'to': "orm['tally.Ballot']"}),
+            'ballot_women': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'ballot_women'", 'null': 'True', 'to': "orm['tally.Ballot']"}),
             'code': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'component_ballot': ('django.db.models.fields.BooleanField', [], {}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'field_office': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'number_of_ballots': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'races': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
+            'number_of_ballots': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'races': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'})
         }
     }
 
