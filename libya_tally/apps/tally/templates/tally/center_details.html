@@ -8,14 +8,18 @@
 
 <table style="width: 100%; border: none">
     <tr>
-        <th>Enter Barcode</th>
-        <th>OR</th>
-        <th>Double Enter Center Details</th>
+        <th>{% trans 'Enter Barcode' %}</th>
+        <th>{% trans 'OR' %}</th>
+        <th>{% trans 'Double Enter Center Details' %}</th>
     </tr>
     <tr>
-        <td>{{ barcode_form.as_table}}</td>
+        <td>
+            <form id="barcode_form">
+                <table>{{ form.as_table}}</table>
+            </form>
+        </td>
         <td>&nbsp;</td>
-        <td>{{ center_deatils_form }}</td>
+        <td>{{ center_detail_form }}</td>
     </tr>
 </table>
 
