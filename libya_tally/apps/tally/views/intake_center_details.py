@@ -1,4 +1,5 @@
 from django.core.urlresolvers import reverse
+from django.shortcuts import redirect
 from django.views.generic import FormView
 
 from libya_tally.apps.tally import forms
@@ -27,7 +28,8 @@ class CenterDetailView(mixins.GroupRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
-            return self.form_valid(form)
+            barcode = form.cleaned_data['barcode']
+            return redirect(self.success_url, barcode=barcode)
         else:
             return self.form_invalid(form)
 

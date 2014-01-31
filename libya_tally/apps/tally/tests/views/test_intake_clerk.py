@@ -85,4 +85,5 @@ class TestIntakeClerkView(TestBase):
         request.user = self.user
         response = self.view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/Intake/CheckCenterDetails', response['location'])
+        self.assertIn('/Intake/CheckCenterDetails/%s' % barcode,
+                      response['location'])
