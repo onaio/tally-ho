@@ -8,8 +8,19 @@ from libya_tally.libs.permissions import groups
 
 
 GROUP_URLS = {
-    groups.DATA_ENTRY_CLERK: 'data-entry-clerk',
-    groups.INTAKE_CLERK: 'intake-clerk',
+    groups.ADMINISTRATOR: "administrator",
+    groups.ARCHIVING_CLERK: "archiving-clerk",
+    groups.ARCHIVE_SUPERVISOR: "archive-supervisor",
+    groups.AUDIT_CLERK: "audit-clerk",
+    groups.AUDIT_SUPERVISOR: "audit-supervisor",
+    groups.CLEARANCE_CLERK: "clearance-clerk",
+    groups.CLEARANCE_SUPERVISOR: "clearance-supervisor",
+    groups.CORRECTIONS_CLERK: "corrections-clerk",
+    groups.DATA_ENTRY_CLERK: "data-entry-clerk",
+    groups.INTAKE_CLERK: "intake-clerk",
+    groups.INTAKE_SUPERVISOR: "intake-supervisor",
+    groups.QUALITY_CONTROL_CLERK: "quality-control-clerk",
+    groups.SUPER_ADMINISTRATOR: "super-administrator",
 }
 
 
