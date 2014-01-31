@@ -1,3 +1,4 @@
+from libya_tally.libs.permissions import groups
 from libya_tally.apps.tally.views.home import HomeView
 from libya_tally.libs.tests.test_base import TestBase
 
@@ -15,3 +16,10 @@ class TestHomeView(TestBase):
         response = self.view(self.request)
         self.assertContains(response, 'Dashboard')
         self.assertIn('/accounts/logout/', response.content)
+
+    def test_intake_clerk_is_redirected(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        response = self.view(self.request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/Intake', response['location'])

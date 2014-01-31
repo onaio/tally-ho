@@ -13,7 +13,7 @@ class TestIntakeClerkView(TestBase):
         self.view = IntakeClerkView.as_view()
         self._create_permission_groups()
 
-    def test_home_page(self):
+    def test_intake_page(self):
         request = self.factory.get('/')
         request.user = AnonymousUser()
         with self.assertRaises(PermissionDenied):

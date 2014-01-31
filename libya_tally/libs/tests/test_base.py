@@ -33,6 +33,8 @@ class TestBase(TestCase):
         self.assertEqual(diff_count, 13)
 
     def _add_user_to_group(self, user, name):
+        if Group.objects.count() == 0:
+            self._create_permission_groups()
         count = user.groups.count()
         add_user_to_group(user, name)
         self.assertTrue(user.groups.count() > count)

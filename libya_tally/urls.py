@@ -18,7 +18,8 @@ accounts_urls = patterns(
 urlpatterns = patterns(
     '',
     url(r'^$', tally_views.HomeView.as_view(), name='home'),
-    url(r'^$', tally_views.IntakeClerkView.as_view(), name='intake-clerk'),
+    url(r'^Intake$', tally_views.IntakeClerkView.as_view(),
+        name='intake-clerk'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),
