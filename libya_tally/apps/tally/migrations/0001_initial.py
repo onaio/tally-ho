@@ -13,7 +13,6 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('race', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['tally.Race'], unique=True)),
             ('sub_constituency', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.SubConstituency'])),
             ('full_name', self.gf('django.db.models.fields.TextField')()),
             ('race_type', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
@@ -174,7 +173,6 @@ class Migration(SchemaMigration):
             'full_name': ('django.db.models.fields.TextField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'race': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['tally.Race']", 'unique': 'True'}),
             'race_type': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
             'sub_constituency': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.SubConstituency']"})
         },

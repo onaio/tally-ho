@@ -9,7 +9,6 @@ class Candidate(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    race = models.OneToOneField('Race')
     sub_constituency = models.ForeignKey('SubConstituency')
 
     full_name = models.TextField()
