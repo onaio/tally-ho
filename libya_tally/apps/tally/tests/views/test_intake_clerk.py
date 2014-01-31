@@ -5,6 +5,8 @@ from django.test import RequestFactory
 from libya_tally.apps.tally import views
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import TestBase
+from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.libs.models.enums.form_state import FormState
 
 
 class TestIntakeClerkView(TestBase):
@@ -69,3 +71,18 @@ class TestIntakeClerkView(TestBase):
         request.user = self.user
         response = self.view(request)
         self.assertContains(response, 'Barcode does not exist')
+
+    def test_center_detail_redirects_to_check_center_details(self):
+        barcode = '123456789'
+        ResultForm.objects.get_or_create(
+            barcode=barcode, serial_number=0,
+            form_state=FormState.UNSUBMITTED)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        self.view = views.CenterDetailView.as_view()
+        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        response = self.view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/Intake/CheckCenterDetails', response['location'])
