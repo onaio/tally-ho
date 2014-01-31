@@ -27,7 +27,7 @@ class CenterDetailView(mixins.GroupRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
-            return self.form_valid()
+            return self.form_valid(form)
         else:
             return self.form_invalid(form)
 
