@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>Intake</h1>
+
+<table style="width: 100%; border: none">
+    <tr>
+        <th>Enter Barcode</th>
+        <th>OR</th>
+        <th>Double Enter Center Details</th>
+    </tr>
+    <tr>
+        <td>{{ barcode_form.as_table}}</td>
+        <td>&nbsp;</td>
+        <td>{{ center_deatils_form }}</td>
+    </tr>
+</table>
+
+{% endblock %}
