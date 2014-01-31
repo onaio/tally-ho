@@ -55,12 +55,12 @@ class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
 
     def handle(self, *args, **kwargs):
-#        print '[INFO] import sub constituencies'
-#        self.import_sub_constituencies_and_ballots()
-#        print '[INFO] import centers'
-#        self.import_centers()
-#        print '[INFO] import stations'
-#        self.import_stations()
+        print '[INFO] import sub constituencies'
+        self.import_sub_constituencies_and_ballots()
+        print '[INFO] import centers'
+        self.import_centers()
+        print '[INFO] import stations'
+        self.import_stations()
         print '[INFO] import candidates'
         self.import_candidates()
         print '[INFO] import result forms'
