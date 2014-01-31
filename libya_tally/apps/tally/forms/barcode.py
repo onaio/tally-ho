@@ -9,15 +9,17 @@ class IntakeBarcodeForm(forms.Form):
     barcode_copy = forms.CharField(max_length=9, min_length=9)
 
     def clean(self):
-        cleaned_data = super(IntakeBarcodeForm, self).clean()
-        barcode = cleaned_data.get('barcode')
-        barcode_copy = cleaned_data.get('barcode_copy')
+        if self.is_valid():
+            cleaned_data = super(IntakeBarcodeForm, self).clean()
+            barcode = cleaned_data.get('barcode')
+            barcode_copy = cleaned_data.get('barcode_copy')
 
-        if barcode != barcode_copy:
-            raise forms.ValidationError(_(u"Barcodes do not match!"))
+            if barcode != barcode_copy:
+                raise forms.ValidationError(_(u"Barcodes do not match!"))
 
-        try:
-            ResultForm.objects.get(barcode=barcode)
-        except ResultForm.DoesNotExist:
-            raise forms.ValidationError(u"Barcode does not exist")
-        return cleaned_data
+            try:
+                ResultForm.objects.get(barcode=barcode)
+            except ResultForm.DoesNotExist:
+                raise forms.ValidationError(u"Barcode does not exist")
+
+            return cleaned_data
