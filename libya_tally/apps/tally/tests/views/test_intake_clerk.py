@@ -33,7 +33,7 @@ class TestIntakeClerkView(TestBase):
     def test_intake_page(self):
         response = self._common_view_tests()
         self.assertContains(response, '<h1>Intake Dashboard</h1>')
-        self.assertIn('"/Intake/CenterDetails"', response.content)
+        self.assertIn('"/intake/center-details"', response.content)
 
     def test_center_detail_view(self):
         self.view = views.CenterDetailView.as_view()
@@ -85,5 +85,22 @@ class TestIntakeClerkView(TestBase):
         request.user = self.user
         response = self.view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/Intake/CheckCenterDetails/%s' % barcode,
+        self.assertIn('intake/check-center-details/%s' % barcode,
                       response['location'])
+
+    def test_check_center_details(self):
+        barcode = '123456789'
+        ResultForm.objects.get_or_create(
+            barcode=barcode, serial_number=0,
+            form_state=FormState.UNSUBMITTED)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        self.view = views.CheckCenterDetailView.as_view()
+        barcode_data = {'barcode': barcode}
+        request = self.factory.get('/', data=barcode_data)
+        request.user = self.user
+        response = self.view(request)
+        self.assertContains(response, 'Check Centre Details Against Form')
+        self.assertIn('result_form', response.context_data)
+        self.assertEqual(int(barcode),
+                         response.context_data['result_form'].barcode)

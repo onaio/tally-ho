@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.views.generic import FormView
 
 from libya_tally.apps.tally import forms
+from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
 
@@ -41,3 +42,9 @@ class CheckCenterDetailView(mixins.GroupRequiredMixin,
     group_required = groups.INTAKE_CLERK
     template_name = "tally/check_center_details.html"
     success_url = "intake-check-center-details"
+
+    def get(self, *args, **kwargs):
+        barcode = self.request.GET.get('barcode')
+        result_form = ResultForm.objects.get(barcode=barcode)
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))

@@ -22,4 +22,4 @@ class TestHomeView(TestBase):
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         response = self.view(self.request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/Intake', response['location'])
+        self.assertIn('/intake', response['location'])

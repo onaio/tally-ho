@@ -22,7 +22,7 @@ urlpatterns = patterns(
         name='intake-clerk'),
     url(r'^intake/center-details$', tally_views.CenterDetailView.as_view(),
         name='center-details'),
-    url(r'^Intake/check-center-details/(?P<barcode>[^/]+)$',
+    url(r'^intake/check-center-details/(?P<barcode>[^/]+)$',
         tally_views.CheckCenterDetailView.as_view(),
         name='check-center-details'),
 
