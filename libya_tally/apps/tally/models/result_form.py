@@ -13,11 +13,11 @@ class ResultForm(BaseModel):
     ballot = models.ForeignKey('Ballot', null=True)
     center = models.ForeignKey('Center', null=True)
 
-    barcode = models.PositiveIntegerField()
+    barcode = models.PositiveIntegerField(unique=True)
     form_stamped = models.NullBooleanField()
     form_state = enum.EnumField(FormState)
     gender = enum.EnumField(Gender, null=True)
     name = models.CharField(max_length=256, null=True)
     office = models.CharField(max_length=256, null=True)
-    serial_number = models.PositiveIntegerField()
+    serial_number = models.PositiveIntegerField(unique=True)
     station_number = models.PositiveSmallIntegerField(null=True)

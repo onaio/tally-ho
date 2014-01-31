@@ -108,13 +108,13 @@ class Migration(SchemaMigration):
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('ballot', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Ballot'], null=True)),
             ('center', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Center'], null=True)),
-            ('barcode', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('barcode', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True)),
             ('form_stamped', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
             ('form_state', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
             ('gender', self.gf('django.db.models.fields.IntegerField')(default=0, null=True, db_index=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
             ('office', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
-            ('serial_number', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('serial_number', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True)),
             ('station_number', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
         ))
         db.send_create_signal('tally', ['ResultForm'])
@@ -257,7 +257,7 @@ class Migration(SchemaMigration):
         'tally.resultform': {
             'Meta': {'object_name': 'ResultForm'},
             'ballot': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Ballot']", 'null': 'True'}),
-            'barcode': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'barcode': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True'}),
             'center': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Center']", 'null': 'True'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'form_stamped': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
@@ -267,7 +267,7 @@ class Migration(SchemaMigration):
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
             'office': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
-            'serial_number': ('django.db.models.fields.PositiveIntegerField', [], {}),
+            'serial_number': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True'}),
             'station_number': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'})
         },
         'tally.station': {
