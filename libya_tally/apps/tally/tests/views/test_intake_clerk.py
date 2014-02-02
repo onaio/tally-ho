@@ -88,10 +88,12 @@ class TestIntakeClerkView(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('intake/check-center-details',
                       response['location'])
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self.assertEqual(result_form.form_state, FormState.INTAKE)
 
     def test_check_center_details(self):
         barcode = '123456789'
-        ResultForm.objects.get_or_create(
+        result_form, c = ResultForm.objects.get_or_create(
             barcode=barcode, serial_number=0,
             form_state=FormState.UNSUBMITTED)
         self._create_and_login_user()
@@ -101,6 +103,10 @@ class TestIntakeClerkView(TestBase):
         request = self.factory.get('/', data=barcode_data)
         request.user = self.user
         request.session = {'barcode': barcode}
+        with self.assertRaises(Exception):
+            response = self.view(request)
+        result_form.form_state = FormState.INTAKE
+        result_form.save()
         response = self.view(request)
         self.assertContains(response, 'Check Centre Details Against Form')
         self.assertIn('result_form', response.context_data)

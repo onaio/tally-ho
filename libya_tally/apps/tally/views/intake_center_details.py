@@ -1,11 +1,13 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView
+from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally import forms
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
+from libya_tally.libs.models.enums.form_state import FormState
 
 
 class ReverseSuccessURLMixin(object):
@@ -28,7 +30,11 @@ class CenterDetailView(mixins.GroupRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
-            self.request.session['barcode'] = form.cleaned_data['barcode']
+            barcode = form.cleaned_data['barcode']
+            self.request.session['barcode'] = barcode
+            result_form = get_object_or_404(ResultForm, barcode=barcode)
+            result_form.form_state = FormState.INTAKE
+            result_form.save()
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
@@ -45,6 +51,10 @@ class CheckCenterDetailView(mixins.GroupRequiredMixin,
     def get(self, *args, **kwargs):
         barcode = self.request.session.get('barcode')
         result_form = get_object_or_404(ResultForm, barcode=barcode)
+        if result_form.form_state != FormState.INTAKE:
+            raise Exception(
+                _(u"Result Form not in intake state, form in state '%s'" %
+                  result_form.form_state_name))
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))

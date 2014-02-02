@@ -21,3 +21,7 @@ class ResultForm(BaseModel):
     office = models.CharField(max_length=256, null=True)
     serial_number = models.PositiveIntegerField(unique=True)
     station_number = models.PositiveSmallIntegerField(null=True)
+
+    @property
+    def form_state_name(self):
+        return dict(FormState.choices())[self.form_state]
