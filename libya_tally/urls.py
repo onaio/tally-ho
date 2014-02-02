@@ -4,7 +4,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 from libya_tally.apps.tally import views as tally_views
-from libya_tally.apps.tally.views import data_entry
+from libya_tally.apps.tally.views.data_entry import CenterDetailsView,\
+    CheckCenterDetailView, EnterResultsView
 
 admin.autodiscover()
 
@@ -19,13 +20,13 @@ accounts_urls = patterns(
 urlpatterns = patterns(
     '',
     url(r'^$', tally_views.HomeView.as_view(), name='home'),
-    url(r'^data-entry$', data_entry.CenterDetailView.as_view(),
+    url(r'^data-entry$', CenterDetailsView.as_view(),
         name='data-entry-clerk'),
     url(r'^data-entry/check-center-details$',
-        data_entry.CheckCenterDetailView.as_view(),
-        name='check-center-details'),
+        CheckCenterDetailView.as_view(),
+        name='data-entry-check-center-details'),
     url(r'^data-entry/enter-results',
-        data_entry.EnterResultsView.as_view(),
+        EnterResultsView.as_view(),
         name='enter-results'),
     url(r'^intake$', tally_views.IntakeClerkView.as_view(),
         name='intake-clerk'),

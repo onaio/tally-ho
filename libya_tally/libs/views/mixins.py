@@ -1,6 +1,7 @@
 import six
 
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.core.urlresolvers import reverse
 
 
 # from django-braces
@@ -33,3 +34,10 @@ class GroupRequiredMixin(object):
             raise PermissionDenied
         return super(GroupRequiredMixin, self).dispatch(
             request, *args, **kwargs)
+
+
+class ReverseSuccessURLMixin(object):
+    def get_success_url(self):
+        if self.success_url:
+            self.success_url = reverse(self.success_url)
+        return super(ReverseSuccessURLMixin, self).get_success_url()

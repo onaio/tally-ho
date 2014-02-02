@@ -1,34 +1,16 @@
-from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
-from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally import forms
 from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
-from libya_tally.libs.models.enums.form_state import FormState
-
-
-def form_in_intake_state(result_form):
-
-    if result_form.form_state != FormState.INTAKE:
-        raise Exception(
-            _(u"Result Form not in intake state, form in state '%s'" %
-                result_form.form_state_name))
-
-    return True
-
-
-class ReverseSuccessURLMixin(object):
-    def get_success_url(self):
-        if self.success_url:
-            self.success_url = reverse(self.success_url)
-        return super(ReverseSuccessURLMixin, self).get_success_url()
+from libya_tally.libs.views.form_state import form_in_intake_state
 
 
 class CenterDetailView(mixins.GroupRequiredMixin,
-                       ReverseSuccessURLMixin,
+                       mixins.ReverseSuccessURLMixin,
                        FormView):
     form_class = forms.IntakeBarcodeForm
     group_required = groups.INTAKE_CLERK
@@ -51,7 +33,7 @@ class CenterDetailView(mixins.GroupRequiredMixin,
 
 
 class CheckCenterDetailView(mixins.GroupRequiredMixin,
-                            ReverseSuccessURLMixin,
+                            mixins.ReverseSuccessURLMixin,
                             FormView):
     form_class = forms.IntakeBarcodeForm
     group_required = groups.INTAKE_CLERK
