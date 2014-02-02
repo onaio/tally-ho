@@ -25,6 +25,12 @@ urlpatterns = patterns(
     url(r'^intake/check-center-details$',
         tally_views.CheckCenterDetailView.as_view(),
         name='check-center-details'),
+    url(r'^intake/printcover$',
+        tally_views.IntakePrintCoverView.as_view(),
+        name='intake-printcover'),
+    url(r'^intake/clearance$',
+        tally_views.IntakeClearanceView.as_view(),
+        name='intake-clearance'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),

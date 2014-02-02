@@ -1,6 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally import forms
@@ -8,6 +8,16 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
 from libya_tally.libs.models.enums.form_state import FormState
+
+
+def form_in_intake_state(result_form):
+
+    if result_form.form_state != FormState.INTAKE:
+        raise Exception(
+            _(u"Result Form not in intake state, form in state '%s'" %
+                result_form.form_state_name))
+
+    return True
 
 
 class ReverseSuccessURLMixin(object):
@@ -31,10 +41,10 @@ class CenterDetailView(mixins.GroupRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            self.request.session['barcode'] = barcode
             result_form = get_object_or_404(ResultForm, barcode=barcode)
             result_form.form_state = FormState.INTAKE
             result_form.save()
+            self.request.session['result_form'] = result_form.pk
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
@@ -49,30 +59,64 @@ class CheckCenterDetailView(mixins.GroupRequiredMixin,
     success_url = "intake-check-center-details"
 
     def get(self, *args, **kwargs):
-        barcode = self.request.session.get('barcode')
-        result_form = get_object_or_404(ResultForm, barcode=barcode)
-        if result_form.form_state != FormState.INTAKE:
-            raise Exception(
-                _(u"Result Form not in intake state, form in state '%s'" %
-                  result_form.form_state_name))
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_intake_state(result_form)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
+
         if 'match' in post_data:
-            # send to data clerk 1
-            barcode = post_data['match']
-            result_form = get_object_or_404(ResultForm, barcode=barcode)
-            result_form.form_state = FormState.DATA_ENTRY_1
-            result_form.save()
-            return redirect('data-entry-1')
+            # send to print cover
+            pk = post_data['match']
+            result_form = get_object_or_404(ResultForm, pk=pk)
+            form_in_intake_state(result_form)
+            self.request.session['result_form'] = pk
+
+            return redirect('intake-printcover')
         elif 'no_match' in post_data:
             # send to clearance
-            barcode = post_data['no_match']
-            result_form = get_object_or_404(ResultForm, barcode=barcode)
+            pk = post_data['no_match']
+            result_form = get_object_or_404(ResultForm, pk=pk)
             result_form.form_state = FormState.CLEARANCE
             result_form.save()
-            return redirect('clearance')
+
+            return redirect('intake-clearance')
+
         return redirect('intake-check-center-details')
+
+
+class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
+    group_required = groups.INTAKE_CLERK
+    template_name = "tally/intake_print_cover.html"
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_intake_state(result_form)
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))
+
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+        success = False
+
+        if 'result_form' in post_data:
+            pk = post_data['result_form']
+            result_form = get_object_or_404(ResultForm, pk=pk)
+            form_in_intake_state(result_form)
+            result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.save()
+            success = True
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form, success=success))
+
+
+class IntakeClearanceView(mixins.GroupRequiredMixin, TemplateView):
+    template_name = "tally/intake_clearance.html"
+    group_required = groups.INTAKE_CLERK

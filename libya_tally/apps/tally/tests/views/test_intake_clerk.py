@@ -99,10 +99,9 @@ class TestIntakeClerkView(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         self.view = views.CheckCenterDetailView.as_view()
-        barcode_data = {'barcode': barcode}
-        request = self.factory.get('/', data=barcode_data)
+        request = self.factory.get('/')
         request.user = self.user
-        request.session = {'barcode': barcode}
+        request.session = {'result_form': result_form.pk}
         with self.assertRaises(Exception):
             response = self.view(request)
         result_form.form_state = FormState.INTAKE
@@ -112,3 +111,43 @@ class TestIntakeClerkView(TestBase):
         self.assertIn('result_form', response.context_data)
         self.assertEqual(int(barcode),
                          response.context_data['result_form'].barcode)
+
+    def test_intake_clerk_selects_matches(self):
+        barcode = '123456789'
+        result_form, c = ResultForm.objects.get_or_create(
+            barcode=barcode, serial_number=0,
+            form_state=FormState.UNSUBMITTED)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        self.view = views.CheckCenterDetailView.as_view()
+        post_data = {'match': result_form.pk}
+        request = self.factory.post('/', data=post_data)
+        request.user = self.user
+        request.session = {}
+        with self.assertRaises(Exception):
+            response = self.view(request)
+        result_form.form_state = FormState.INTAKE
+        result_form.save()
+        response = self.view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/intake/printcover', response['location'])
+
+    def test_intake_clerk_selects_no_matches(self):
+        barcode = '123456789'
+        result_form, c = ResultForm.objects.get_or_create(
+            barcode=barcode, serial_number=0,
+            form_state=FormState.UNSUBMITTED)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        self.view = views.CheckCenterDetailView.as_view()
+        post_data = {'no_match': result_form.pk}
+        request = self.factory.post('/', data=post_data)
+        request.user = self.user
+        request.session = {}
+        with self.assertRaises(Exception):
+            response = self.view(request)
+        result_form.form_state = FormState.INTAKE
+        result_form.save()
+        response = self.view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/intake/clearance', response['location'])
