@@ -4,9 +4,7 @@
 
 {% block content %}
 
-<h1>Intake</h1>
-
-<h2>{% trans 'Check Center Details Against Form' %}</h2>
+<h1>{% trans 'Data Entry' %} 1</h1>
 
 <ul>
     <li>{{ result_form.center.name }} :{% trans 'Center Name' %}</li>
@@ -16,14 +14,34 @@
     <li>{{ result_form.gender }} :{% trans 'Gender' %}</li>
     <li>{{ result_form.ballot.race_type_name }} :{% trans 'Form Race Type' %}</li>
 </ul>
+
+<h2>{% trans 'Reconciliation Section' %}</h2>
+w
+<h2>{% trans 'Results Section' %}</h2>
+
+<table>
+    <tr>
+        <th>Votes</th>
+        <th>Candidate</th>
+        <th>No.</th>
+    </tr>
+{% for candidate in candidates %}
+    <tr>
+        <td>
+            Input Form
+        </td>
+        <td>
+            {{ candidate.full_name }}
+        </td>
+        <td>
+            {{ candidate.number }}
+        </td>
+    </tr>
+{% endfor %}
+</table>
+
 <form name="form_match" method="post" action="">
-    <input type="hidden" name="match" value="{{ result_form.pk }}">
-    <button type="submit" name="match_submit">{% trans "Match" %}</button>
-    {% csrf_token %}
-</form>
-<form name="form_no_match" method="post" action="">
-    <input type="hidden" name="no_match" value="{{ result_form.pk }}">
-    <button type="submit" name="no_match_submit">{% trans "Name Does Not  Match / Code Correct" %}</button>
+    <button type="submit" name="submit">{% trans "Submit" %}</button>
     {% csrf_token %}
 </form>
 {% endblock %}

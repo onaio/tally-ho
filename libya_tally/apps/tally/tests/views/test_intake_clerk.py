@@ -105,7 +105,7 @@ class TestIntakeClerkView(TestBase):
         result_form.form_state = FormState.INTAKE
         result_form.save()
         response = view(request)
-        self.assertContains(response, 'Check Centre Details Against Form')
+        self.assertContains(response, 'Check Center Details Against Form')
         self.assertIn('result_form', response.context_data)
         self.assertEqual(int(barcode),
                          response.context_data['result_form'].barcode)

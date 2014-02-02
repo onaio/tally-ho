@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 
-from libya_tally.apps.tally import forms
+from libya_tally.apps.tally.forms.intake_barcode_form import\
+    IntakeBarcodeForm
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
@@ -17,7 +18,7 @@ class IntakeClerkView(mixins.GroupRequiredMixin, TemplateView):
 class CenterDetailsView(mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
-    form_class = forms.IntakeBarcodeForm
+    form_class = IntakeBarcodeForm
     group_required = groups.INTAKE_CLERK
     template_name = "tally/center_details.html"
     success_url = 'check-center-details'
@@ -40,7 +41,7 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
 class CheckCenterDetailsView(mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
-    form_class = forms.IntakeBarcodeForm
+    form_class = IntakeBarcodeForm
     group_required = groups.INTAKE_CLERK
     template_name = "tally/check_center_details.html"
     success_url = "intake-check-center-details"

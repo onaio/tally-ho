@@ -10,7 +10,8 @@ class Candidate(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    ballot = models.ForeignKey(Ballot)
+    ballot = models.ForeignKey(Ballot, related_name='candidates')
 
+    number = models.IntegerField()
     full_name = models.TextField()
     race_type = enum.EnumField(RaceType)

@@ -212,6 +212,7 @@ class Command(BaseCommand):
 
                 _, created = Candidate.objects.get_or_create(
                     full_name=row[14],
+                    number=row[35],
                     race_type=race_type,
                     ballot=ballot)
 
