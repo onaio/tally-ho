@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans Data Entry %} {{ result_form.form_state_name }}</h1>
+
+{% trans 'Double Enter Center Details' %}
+{{ form.as_table }}
+
+{% endblock %}

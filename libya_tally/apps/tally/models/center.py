@@ -13,7 +13,7 @@ class Center(BaseModel):
     sub_constituency = models.ForeignKey(SubConstituency, null=True)
 
     center_type = enum.EnumField(CenterType)
-    code = models.PositiveIntegerField(unique=True)
+    code = models.PositiveIntegerField(unique=True)  # a.k.a. Center Number
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
     mahalla = models.TextField()

@@ -2,5 +2,6 @@
 
 .coverage
 local_settings.py
-data*
+data.tgz
+data/*
 db.sqlite3
