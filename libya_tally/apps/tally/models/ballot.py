@@ -11,3 +11,7 @@ class Ballot(BaseModel):
 
     number = models.PositiveSmallIntegerField()
     race_type = enum.EnumField(RaceType)
+
+    @property
+    def race_type_name(self):
+        return dict(RaceType.choices())[self.race_type]
