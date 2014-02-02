@@ -83,9 +83,10 @@ class TestIntakeClerkView(TestBase):
         barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
+        request.session = {}
         response = self.view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('intake/check-center-details/%s' % barcode,
+        self.assertIn('intake/check-center-details',
                       response['location'])
 
     def test_check_center_details(self):
@@ -99,6 +100,7 @@ class TestIntakeClerkView(TestBase):
         barcode_data = {'barcode': barcode}
         request = self.factory.get('/', data=barcode_data)
         request.user = self.user
+        request.session = {'barcode': barcode}
         response = self.view(request)
         self.assertContains(response, 'Check Centre Details Against Form')
         self.assertIn('result_form', response.context_data)

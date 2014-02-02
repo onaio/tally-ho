@@ -1,5 +1,5 @@
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView
 
 from libya_tally.apps.tally import forms
@@ -21,7 +21,6 @@ class CenterDetailView(mixins.GroupRequiredMixin,
     form_class = forms.IntakeBarcodeForm
     group_required = groups.INTAKE_CLERK
     template_name = "tally/center_details.html"
-    # success_url = "/Intake/CheckCenterDetails"
     success_url = 'check-center-details'
 
     def post(self, *args, **kwargs):
@@ -29,8 +28,8 @@ class CenterDetailView(mixins.GroupRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
-            barcode = form.cleaned_data['barcode']
-            return redirect(self.success_url, barcode=barcode)
+            self.request.session['barcode'] = form.cleaned_data['barcode']
+            return redirect(self.success_url)
         else:
             return self.form_invalid(form)
 
@@ -44,7 +43,8 @@ class CheckCenterDetailView(mixins.GroupRequiredMixin,
     success_url = "intake-check-center-details"
 
     def get(self, *args, **kwargs):
-        barcode = self.request.GET.get('barcode')
-        result_form = ResultForm.objects.get(barcode=barcode)
+        barcode = self.request.session.get('barcode')
+        result_form = get_object_or_404(ResultForm, barcode=barcode)
+
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
