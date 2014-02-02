@@ -11,7 +11,8 @@ from libya_tally.libs.models.enums.form_state import FormState
 
 
 def check_form_state_data_entry(result_form):
-    if result_form.form_state != FormState.DATA_ENTRY_1:
+    if not result_form.form_state in [
+            FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_1]:
         raise Exception(
             _(u"Result Form not in DATA_ENTRY_1 state, form in state '%s'"
               % result_form.form_state_name))
@@ -24,9 +25,9 @@ class ReverseSuccessURLMixin(object):
         return super(ReverseSuccessURLMixin, self).get_success_url()
 
 
-class DataEntryView(mixins.GroupRequiredMixin,
-                    ReverseSuccessURLMixin,
-                    FormView):
+class CenterDetailsView(mixins.GroupRequiredMixin,
+                        ReverseSuccessURLMixin,
+                        FormView):
     form_class = forms.DataEntryCenterDetailsForm
     group_required = groups.DATA_ENTRY_CLERK
     template_name = "tally/center_details.html"
@@ -51,6 +52,26 @@ class CheckCenterDetailView(mixins.GroupRequiredMixin,
     success_url = "result-entry"
 
     def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        check_form_state_data_entry(result_form)
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))
+
+
+class EnterResultsView(mixins.GroupRequiredMixin,
+                       ReverseSuccessURLMixin,
+                       FormView):
+    form_class = forms.IntakeBarcodeForm
+    group_required = groups.DATA_ENTRY_CLERK
+    template_name = "tally/check_center_details.html"
+    success_url = "result-entry"
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        check_form_state_data_entry(result_form)
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         check_form_state_data_entry(result_form)
