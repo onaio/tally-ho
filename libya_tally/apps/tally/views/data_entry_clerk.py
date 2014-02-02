@@ -26,9 +26,9 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             return self.form_invalid(form)
 
 
-class CheckCenterDetailView(mixins.GroupRequiredMixin,
-                            mixins.ReverseSuccessURLMixin,
-                            FormView):
+class CheckCenterDetailsView(mixins.GroupRequiredMixin,
+                             mixins.ReverseSuccessURLMixin,
+                             FormView):
     form_class = forms.IntakeBarcodeForm
     group_required = groups.DATA_ENTRY_CLERK
     template_name = "tally/check_center_details.html"

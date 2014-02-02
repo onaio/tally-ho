@@ -26,8 +26,8 @@ class DataEntryCenterDetailsForm(forms.Form):
 
             try:
                 center = Center.objects.get(code=center_number)
-                stations = center.stations
-                valid_station_numbers = [s.station_numer for s in stations]
+                stations = center.stations.all()
+                valid_station_numbers = [s.station_number for s in stations]
 
                 if not int(station_number) in valid_station_numbers:
                     raise forms.ValidationError(_(

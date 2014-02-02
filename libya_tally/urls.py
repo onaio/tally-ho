@@ -3,9 +3,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
-from libya_tally.apps.tally import views as tally_views
-from libya_tally.apps.tally.views.data_entry import CenterDetailsView,\
-    CheckCenterDetailView, EnterResultsView
+from libya_tally.apps.tally.views import data_entry_clerk, home, intake_clerk
 
 admin.autodiscover()
 
@@ -19,27 +17,27 @@ accounts_urls = patterns(
 
 urlpatterns = patterns(
     '',
-    url(r'^$', tally_views.HomeView.as_view(), name='home'),
-    url(r'^data-entry$', CenterDetailsView.as_view(),
+    url(r'^$', home.HomeView.as_view(), name='home'),
+    url(r'^data-entry$', data_entry_clerk.CenterDetailsView.as_view(),
         name='data-entry-clerk'),
     url(r'^data-entry/check-center-details$',
-        CheckCenterDetailView.as_view(),
+        data_entry_clerk.CheckCenterDetailsView.as_view(),
         name='data-entry-check-center-details'),
     url(r'^data-entry/enter-results',
-        EnterResultsView.as_view(),
+        data_entry_clerk.EnterResultsView.as_view(),
         name='enter-results'),
-    url(r'^intake$', tally_views.IntakeClerkView.as_view(),
+    url(r'^intake$', intake_clerk.IntakeClerkView.as_view(),
         name='intake-clerk'),
-    url(r'^intake/center-details$', tally_views.CenterDetailView.as_view(),
+    url(r'^intake/center-details$', intake_clerk.CenterDetailsView.as_view(),
         name='center-details'),
     url(r'^intake/check-center-details$',
-        tally_views.CheckCenterDetailView.as_view(),
+        intake_clerk.CheckCenterDetailsView.as_view(),
         name='check-center-details'),
     url(r'^intake/printcover$',
-        tally_views.IntakePrintCoverView.as_view(),
+        intake_clerk.IntakePrintCoverView.as_view(),
         name='intake-printcover'),
     url(r'^intake/clearance$',
-        tally_views.IntakeClearanceView.as_view(),
+        intake_clerk.IntakeClearanceView.as_view(),
         name='intake-clearance'),
 
     url(r'^accounts/', include(accounts_urls)),

@@ -10,7 +10,8 @@ class Center(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    sub_constituency = models.ForeignKey(SubConstituency, null=True)
+    sub_constituency = models.ForeignKey(SubConstituency,
+                                         related_name='centers', null=True)
 
     center_type = enum.EnumField(CenterType)
     code = models.PositiveIntegerField(unique=True)  # a.k.a. Center Number

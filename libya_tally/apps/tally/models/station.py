@@ -11,8 +11,9 @@ class Station(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    center = models.ForeignKey(Center)
-    sub_constituency = models.ForeignKey(SubConstituency)
+    center = models.ForeignKey(Center, related_name='stations')
+    sub_constituency = models.ForeignKey(SubConstituency,
+                                         related_name='stations')
 
     gender = enum.EnumField(Gender)
     registrants = models.PositiveIntegerField(null=True)
