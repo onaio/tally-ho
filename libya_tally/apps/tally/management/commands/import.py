@@ -16,6 +16,7 @@ from libya_tally.libs.models.enums.center_type import CenterType
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.gender import Gender
 from libya_tally.libs.models.enums.race_type import RaceType
+from libya_tally.libs.permissions.groups import create_permission_groups
 
 CANDIDATES_PATH = 'data/candidates.csv'
 CENTERS_PATH = 'data/centers.csv'
@@ -55,14 +56,21 @@ class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
 
     def handle(self, *args, **kwargs):
+        print '[INFO] creating groups'
+        create_permission_groups()
+
         print '[INFO] import sub constituencies'
         self.import_sub_constituencies_and_ballots()
+
         print '[INFO] import centers'
         self.import_centers()
+
         print '[INFO] import stations'
         self.import_stations()
+
         print '[INFO] import candidates'
         self.import_candidates()
+
         print '[INFO] import result forms'
         self.import_result_forms()
 
