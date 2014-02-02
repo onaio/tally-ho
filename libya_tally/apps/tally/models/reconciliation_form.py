@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext as _
 
+from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.base_model import BaseModel
 
 
@@ -8,7 +9,7 @@ class ReconciliationForm(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    result_form = models.OneToOneField('ResultForm')
+    result_form = models.OneToOneField(ResultForm)
 
     ballot_number_from = models.PositiveIntegerField(
         help_text=_('Serial number of ballots received by the polling station'

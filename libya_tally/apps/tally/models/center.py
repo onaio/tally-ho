@@ -1,6 +1,7 @@
 from django.db import models
 from django_enumfield import enum
 
+from libya_tally.apps.tally.models.sub_constituency import SubConstituency
 from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.center_type import CenterType
 
@@ -9,7 +10,7 @@ class Center(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    sub_constituency = models.ForeignKey('SubConstituency', null=True)
+    sub_constituency = models.ForeignKey(SubConstituency, null=True)
 
     center_type = enum.EnumField(CenterType)
     code = models.PositiveIntegerField(unique=True)

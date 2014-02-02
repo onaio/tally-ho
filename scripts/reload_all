@@ -1,1 +1,4 @@
-rm -r libya_tally/apps/tally/migrations/0001_initial.py && python manage.py schemamigration tally --initial && ./scripts/create_database tally && python manage.py import
+rm -r libya_tally/apps/tally/migrations/0001_initial.py
+python manage.py schemamigration tally --initial
+./scripts/create_database tally
+python manage.py import

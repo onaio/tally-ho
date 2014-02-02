@@ -1,5 +1,6 @@
 from django.db import models
 
+from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.libs.models.base_model import BaseModel
 
 
@@ -7,9 +8,9 @@ class SubConstituency(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    ballot_general = models.ForeignKey('Ballot', null=True,
+    ballot_general = models.ForeignKey(Ballot, null=True,
                                        related_name='ballot_general')
-    ballot_women = models.ForeignKey('Ballot', null=True,
+    ballot_women = models.ForeignKey(Ballot, null=True,
                                      related_name='ballot_women')
     code = models.PositiveSmallIntegerField()  # aka SubCon number
     component_ballot = models.BooleanField()
