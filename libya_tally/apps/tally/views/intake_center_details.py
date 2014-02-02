@@ -58,3 +58,21 @@ class CheckCenterDetailView(mixins.GroupRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
+
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+        if 'match' in post_data:
+            # send to data clerk 1
+            barcode = post_data['match']
+            result_form = get_object_or_404(ResultForm, barcode=barcode)
+            result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.save()
+            return redirect('data-entry-1')
+        elif 'no_match' in post_data:
+            # send to clearance
+            barcode = post_data['no_match']
+            result_form = get_object_or_404(ResultForm, barcode=barcode)
+            result_form.form_state = FormState.CLEARANCE
+            result_form.save()
+            return redirect('clearance')
+        return redirect('intake-check-center-details')
