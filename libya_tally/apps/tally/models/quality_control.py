@@ -13,6 +13,7 @@ class QualityControl(BaseModel):
     result_form = models.OneToOneField(ResultForm)
     user = models.ForeignKey(User)
 
+    active = models.BooleanField(default=True)
     passed_general = models.NullBooleanField()
     passed_reconciliation = models.NullBooleanField()
     passed_womens = models.NullBooleanField()

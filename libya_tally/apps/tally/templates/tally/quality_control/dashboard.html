@@ -11,6 +11,7 @@
 {{ result_form.qualitycontrol.reviews_required_text }}
 
 <table>
+    {% if result_form.reconciliationform %}
     <tr>
         <td>
             <a href="{% url 'quality-control-reconciliation' %}">{% trans 'Reconciliation Section' %}</a>
@@ -23,6 +24,7 @@
             {% endif %}
         </td>
     </tr>
+    {% endif %}
     <tr>
         <td>
             <a href="{% url 'quality-control-general' %}">{% trans 'General Section' %}</a>

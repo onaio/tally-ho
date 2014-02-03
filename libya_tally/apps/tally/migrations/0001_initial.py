@@ -136,6 +136,7 @@ class Migration(SchemaMigration):
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('result_form', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['tally.ResultForm'], unique=True)),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('passed_general', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
             ('passed_reconciliation', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
             ('passed_womens', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
@@ -362,6 +363,7 @@ class Migration(SchemaMigration):
         },
         'tally.qualitycontrol': {
             'Meta': {'object_name': 'QualityControl'},
+            'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),

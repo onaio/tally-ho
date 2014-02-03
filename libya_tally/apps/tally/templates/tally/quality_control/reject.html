@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Quality Control' %}</h1>
+
+<h2>{% trans 'Form Rejected: Send to Data Entry 1' %}</h1>
+
+<a href="{% url 'quality-control-home' %}">{% trans 'OK' %}</a></li>
+
+{% endblock %}
