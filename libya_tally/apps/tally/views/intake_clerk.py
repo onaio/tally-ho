@@ -85,13 +85,15 @@ class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_intake_state(result_form)
+        print_success = self.request.session.get('print_success')
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form,
+                                  success=print_success))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
-        success = False
+        print_success = False
 
         if 'result_form' in post_data:
             pk = post_data['result_form']
@@ -99,10 +101,14 @@ class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
             form_in_intake_state(result_form)
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
-            success = True
+            self.request.session['result_form'] = result_form.pk
+            self.request.session['print_success'] = True
+
+            return redirect('intake-printcover')
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form, success=success))
+            self.get_context_data(result_form=result_form,
+                                  success=print_success))
 
 
 class IntakeClearanceView(mixins.GroupRequiredMixin, TemplateView):

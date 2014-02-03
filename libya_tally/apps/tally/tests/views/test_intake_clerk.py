@@ -169,3 +169,12 @@ class TestIntakeClerkView(TestBase):
         ]
         for test_string in expected_strings:
             self.assertContains(response, test_string)
+        request = self.factory.post('/', data={'result_form': result_form.pk})
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('', response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.DATA_ENTRY_1)
