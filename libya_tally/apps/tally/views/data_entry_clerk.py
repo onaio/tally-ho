@@ -9,9 +9,10 @@ from libya_tally.apps.tally.forms.reconciliation_form import ReconciliationForm
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
-from libya_tally.libs.permissions import groups
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
+from libya_tally.libs.permissions import groups
+from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_data_entry_state
 
@@ -82,13 +83,14 @@ class EnterResultsView(mixins.GroupRequiredMixin,
                                   candidates=candidates))
 
     def post(self, *args, **kwargs):
-        pk = self.post_data['result_form']
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_data_entry_state(result_form)
         candidates = result_form.ballot.candidates.order_by('number')
         CandidateFormSet = formset_factory(CandidateForm,
                                            extra=len(candidates))
-        formset = CandidateFormSet(self.post_data)
+        formset = CandidateFormSet(post_data)
 
         if formset.is_valid():
             entry_version = None

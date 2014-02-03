@@ -11,14 +11,17 @@ from libya_tally.libs.permissions.groups import create_permission_groups, \
     add_user_to_group
 
 
-def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED):
+def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
+                       **kwargs):
     ballot, _ = Ballot.objects.get_or_create(number=1,
                                              race_type=RaceType.GENERAL)
     result_form, _ = ResultForm.objects.get_or_create(
         ballot=ballot,
         barcode=barcode,
         serial_number=0,
-        form_state=form_state)
+        form_state=form_state,
+        station_number=kwargs.get('station_number'),
+        center=kwargs.get('center'))
 
     return result_form
 

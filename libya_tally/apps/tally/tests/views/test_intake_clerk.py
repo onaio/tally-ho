@@ -174,7 +174,7 @@ class TestIntakeClerkView(TestBase):
             self.assertContains(response, test_string)
         request = self.factory.post('/', data={'result_form': result_form.pk})
         request.user = self.user
-        request.session = {}
+        request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 302)
         self.assertIn('', response['location'])

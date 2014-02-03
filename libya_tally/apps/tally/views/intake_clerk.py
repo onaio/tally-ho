@@ -1,5 +1,4 @@
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
 
 from libya_tally.apps.tally.forms.intake_barcode_form import\
@@ -7,8 +6,9 @@ from libya_tally.apps.tally.forms.intake_barcode_form import\
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
+from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.form_state import form_in_intake_state, \
+from libya_tally.libs.views.form_state import form_in_intake_state,\
     form_in_state
 
 
@@ -58,15 +58,9 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
-        pk = self.request.session.get('result_form')
+        pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_intake_state(result_form)
-
-        if 'result_form' not in post_data:
-            raise Exception(_(u"Error: Missing result form!"))
-        elif int(post_data['result_form']) != pk:
-            raise Exception(
-                _(u"Session result_form does not match submitted data."))
 
         if 'is_match' in post_data:
             # send to print cover
@@ -89,31 +83,27 @@ class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
+
         form_in_intake_state(result_form)
-        print_success = self.request.session.get('print_success')
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  success=print_success))
+            self.get_context_data(result_form=result_form))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
-        print_success = False
 
         if 'result_form' in post_data:
-            pk = post_data['result_form']
+            pk = session_matches_post_result_form(post_data, self.request)
+
             result_form = get_object_or_404(ResultForm, pk=pk)
-            form_in_intake_state(result_form)
+            #form_in_intake_state(result_form)
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
-            self.request.session['result_form'] = result_form.pk
-            self.request.session['print_success'] = True
 
-            return redirect('intake-printcover')
+            return redirect('intaken')
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  success=print_success))
+            self.get_context_data(result_form=result_form))
 
 
 class IntakeClearanceView(mixins.GroupRequiredMixin, TemplateView):

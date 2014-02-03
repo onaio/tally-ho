@@ -13,14 +13,14 @@ from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.gender import Gender
 
 
-def center_data(code1, code2=None):
+def center_data(code1, code2=None, station_number=1):
     if not code2:
         code2 = code1
 
     return {'center_number': code1,
             'center_number_copy': code2,
-            'station_number': '1',
-            'station_number_copy': '1'}
+            'station_number': station_number,
+            'station_number_copy': station_number}
 
 
 def create_center(code):
@@ -69,7 +69,7 @@ class TestDataEntryClerk(TestBase):
     def test_center_detail_view(self):
         response = self._common_view_tests(views.CenterDetailsView.as_view())
         self.assertContains(response, 'Double Enter Center Details')
-        self.assertIn('<form id="barcode_form"', response.content)
+        self.assertIn('<form id="result_form"', response.content)
 
     def test_center_detail_center_number_length(self):
         self._create_and_login_user()
@@ -117,12 +117,16 @@ class TestDataEntryClerk(TestBase):
 
     def test_center_detail_redirects_to_check_center_details(self):
         code = '12345'
+        station_number = 1
         center = create_center(code)
         create_station(center)
+        create_result_form(form_state=FormState.DATA_ENTRY_1,
+                           center=center,
+                           station_number=station_number)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.CenterDetailsView.as_view()
-        data = center_data(code)
+        data = center_data(code, station_number=station_number)
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {}

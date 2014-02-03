@@ -36,12 +36,21 @@
     <tr>
         <td rowspan="2">{% trans 'Corrections:' %}</td>
         <td>{% trans 'To Quality Control [ ]  Name' %}</td>
+    <tr>
+        <td>{% trans 'To Data Entry One [ ]  Name' %}</td>
+    </tr>
+    <tr>
+        <td rowspan="2">{% trans 'Quality Control:' %}</td>
+        <td>{% trans 'To Archive [ ]  Name' %}</td>
+    <tr>
         <td>{% trans 'To Data Entry One [ ]  Name' %}</td>
     </tr>
 </table>
 
 <form name="print_cover_form" method='post' action="">
+    {% csrf_token %}
     <input type="hidden" name="result_form" value="{{result_form.pk}}" />
-    <button type="submit" name="submit_cover_from">{% trans 'Print' %}</button>
+    <button type="button" name="print_cover_from">{% trans 'Print' %}</button>
+    <button type="submit" name="submit_cover_from">{% trans 'Print Successful' %}</button>
 </form>
 {% endblock %}
