@@ -54,6 +54,15 @@ urlpatterns = patterns(
         TemplateView.as_view(
             template_name='tally/quality-control/reject.html'),
         name='quality-control-reject'),
+    url(r'^quality-control/reconciliation',
+        quality_control.QualityControlReconciliationView.as_view(),
+        name='quality-control-reconciliation'),
+    url(r'^quality-control/general',
+        quality_control.QualityControlGeneralView.as_view(),
+        name='quality-control-general'),
+    url(r'^quality-control/women',
+        quality_control.QualityControlWomenView.as_view(),
+        name='quality-control-women'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),

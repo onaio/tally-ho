@@ -3,6 +3,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
 from libya_tally.apps.tally.views import quality_control as views
+from libya_tally.apps.tally.models.quality_control import QualityControl
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
@@ -52,3 +53,41 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertEqual(result_form.qualitycontrol.user, self.user)
+
+    def test_dashboard_post(self):
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/home',
+                      response['location'])
+        self.assertEqual(request.session, {})
+
+    def test_dashboard_get(self):
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self._create_and_login_user()
+        QualityControl.objects.create(result_form=result_form,
+                                      user=self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.get('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        response.render()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(str(result_form.gender_name), response.content)
+        self.assertIn('Reviews Required', response.content)

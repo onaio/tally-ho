@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Quality Control' %}</h1>
+
+{% include 'tally/center_details.html' %}
+
+{{ result_form.qualitycontrol.reviews_required_text }}
+
+<table>
+    <tr>
+        <td>
+            <a href="{% url 'quality-control-reconciliation' %}">{% trans 'Reconciliation Section' %}</a>
+        </td>
+        <td>
+            {% if result_form.qualitycontrol.passed_reconciliation %}
+                {% trans 'Reviewed' %}
+            {% else %}
+                {% trans 'Review Pending' %}
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <a href="{% url 'quality-control-general' %}">{% trans 'General Section' %}</a>
+        </td>
+        <td>
+            {% if result_form.qualitycontrol.passed_general %}
+                {% trans 'Reviewed' %}
+            {% else %}
+                {% trans 'Review Pending' %}
+            {% endif %}
+        </td>
+    <tr>
+    </tr>
+        <td>
+            <a href="{% url 'quality-control-women' %}">{% trans 'Women Section' %}</a>
+        </td>
+        <td>
+            {% if result_form.qualitycontrol.passed_womens %}
+                {% trans 'Reviewed' %}
+            {% else %}
+                {% trans 'Review Pending' %}
+            {% endif %}
+        </td>
+    </tr>
+<table>
+
+{% endblock %}
