@@ -29,7 +29,8 @@ def center_data(code1, code2=None, station_number=1):
 def create_candidate(ballot, candidate_name):
     Candidate.objects.create(ballot=ballot,
                              full_name=candidate_name,
-                             number=1,
+                             candidate_id=1,
+                             order=1,
                              race_type=RaceType.GENERAL)
 
 
@@ -183,11 +184,7 @@ class TestDataEntryClerk(TestBase):
         result_form = create_result_form(form_state=FormState.DATA_ENTRY_1)
         ballot = result_form.ballot
         candidate_name = 'candidate name'
-
-        Candidate.objects.create(ballot=ballot,
-                                 full_name=candidate_name,
-                                 number=1,
-                                 race_type=RaceType.GENERAL)
+        create_candidate(ballot, candidate_name)
 
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)

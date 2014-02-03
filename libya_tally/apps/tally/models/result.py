@@ -1,6 +1,8 @@
 from django.db import models
 from django_enumfield import enum
 
+from libya_tally.apps.tally.models.candidate import Candidate
+from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 
@@ -9,8 +11,9 @@ class Result(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    candidate = models.ForeignKey('Candidate', related_name='candidates')
-    result_form = models.ForeignKey('ResultForm', related_name='results')
+    candidate = models.ForeignKey(Candidate, related_name='candidates')
+    result_form = models.ForeignKey(ResultForm, related_name='results')
 
+    active = models.BooleanField(default=True)
     entry_version = enum.EnumField(EntryVersion)
     votes = models.PositiveIntegerField()

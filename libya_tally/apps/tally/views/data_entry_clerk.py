@@ -133,7 +133,7 @@ class EnterResultsView(mixins.GroupRequiredMixin,
         reconciliation_form = ReconciliationForm(post_data)
         data_entry_number = get_data_entry_number(result_form.form_state)
 
-        candidates = result_form.ballot.candidates.order_by('number')
+        candidates = result_form.ballot.candidates.order_by('order')
         CandidateFormSet = formset_factory(CandidateForm,
                                            extra=len(candidates),
                                            formset=BaseCandidateFormSet)

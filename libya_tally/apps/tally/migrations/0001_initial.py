@@ -133,6 +133,7 @@ class Migration(SchemaMigration):
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('candidate', self.gf('django.db.models.fields.related.ForeignKey')(related_name='candidates', to=orm['tally.Candidate'])),
             ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(related_name='results', to=orm['tally.ResultForm'])),
+            ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('entry_version', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
             ('votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
         ))
@@ -289,6 +290,7 @@ class Migration(SchemaMigration):
         },
         'tally.result': {
             'Meta': {'object_name': 'Result'},
+            'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'candidate': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'candidates'", 'to': "orm['tally.Candidate']"}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'entry_version': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
