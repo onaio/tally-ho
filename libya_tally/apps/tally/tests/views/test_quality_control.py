@@ -51,4 +51,4 @@ class TestQualityControl(TestBase):
                       response['location'])
         result_form = ResultForm.objects.get(barcode=barcode)
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
-        self.assertEqual(result_form.quality_control.user, self.user)
+        self.assertEqual(result_form.qualitycontrol.user, self.user)

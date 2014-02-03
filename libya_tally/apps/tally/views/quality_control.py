@@ -37,7 +37,7 @@ class QualityControlView(mixins.GroupRequiredMixin,
             return self.form_invalid(form)
 
 
-class QualityControlDashBoardView(mixins.GroupRequiredMixin,
+class QualityControlDashboardView(mixins.GroupRequiredMixin,
                                   mixins.ReverseSuccessURLMixin,
                                   FormView):
     group_required = groups.QUALITY_CONTROL_CLERK
