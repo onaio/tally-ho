@@ -12,6 +12,7 @@ class Candidate(BaseModel):
 
     ballot = models.ForeignKey(Ballot, related_name='candidates')
 
-    number = models.TextField()
+    candidate_id = models.PositiveIntegerField()
     full_name = models.TextField()
+    order = models.PositiveSmallIntegerField()
     race_type = enum.EnumField(RaceType)

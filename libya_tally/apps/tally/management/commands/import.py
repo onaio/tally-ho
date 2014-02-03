@@ -18,6 +18,7 @@ from libya_tally.libs.models.enums.gender import Gender
 from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions.groups import create_permission_groups
 
+BALLOT_ORDER_PATH = 'data/ballot_order.csv'
 CANDIDATES_PATH = 'data/candidates.csv'
 CENTERS_PATH = 'data/centers.csv'
 RESULT_FORMS_PATH = 'data/result_forms.csv'
@@ -187,6 +188,15 @@ class Command(BaseCommand):
                     station_number=row[3])
 
     def import_candidates(self):
+        id_to_ballot_order = {}
+
+        with open(BALLOT_ORDER_PATH, 'rU') as f:
+            reader = csv.reader(f)
+            reader.next()  # ignore header
+
+            for row in reader:
+                id_to_ballot_order[row[0]] = row[1]
+
         with open(CANDIDATES_PATH, 'rU') as f:
             reader = csv.reader(f)
             reader.next()  # ignore header
@@ -202,6 +212,7 @@ class Command(BaseCommand):
                     4: RaceType.COMPONENT_TEBU
                 }[int(race_code)]
 
+                candidate_id = row[0]
                 sub_constituency = SubConstituency.objects.get(
                     code=row[7])
 
@@ -211,10 +222,11 @@ class Command(BaseCommand):
                     ballot = sub_constituency.ballot_women
 
                 _, created = Candidate.objects.get_or_create(
+                    ballot=ballot,
+                    candidate_id=candidate_id,
                     full_name=row[14],
-                    number=row[35],
-                    race_type=race_type,
-                    ballot=ballot)
+                    order=id_to_ballot_order[candidate_id],
+                    race_type=race_type)
 
     def import_result_forms(self):
         with open(RESULT_FORMS_PATH, 'rU') as f:

@@ -25,7 +25,7 @@ def get_data_entry_number(form_state):
 
 
 def get_formset_and_candidates(result_form, post_data=None):
-    candidates = result_form.ballot.candidates.order_by('number')
+    candidates = result_form.ballot.candidates.order_by('order')
     CandidateFormSet = formset_factory(CandidateForm,
                                        extra=len(candidates),
                                        formset=BaseCandidateFormSet)
