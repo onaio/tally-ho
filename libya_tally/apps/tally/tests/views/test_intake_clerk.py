@@ -72,9 +72,8 @@ class TestIntakeClerkView(TestBase):
 
     def test_center_detail_redirects_to_check_center_details(self):
         barcode = '123456789'
-        ResultForm.objects.get_or_create(
-            barcode=barcode, serial_number=0,
-            form_state=FormState.UNSUBMITTED)
+        create_result_form(barcode,
+                           form_state=FormState.UNSUBMITTED)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
@@ -91,9 +90,8 @@ class TestIntakeClerkView(TestBase):
 
     def test_check_center_details(self):
         barcode = '123456789'
-        result_form, c = ResultForm.objects.get_or_create(
-            barcode=barcode, serial_number=0,
-            form_state=FormState.UNSUBMITTED)
+        result_form = create_result_form(barcode,
+                                         form_state=FormState.UNSUBMITTED)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CheckCenterDetailsView.as_view()

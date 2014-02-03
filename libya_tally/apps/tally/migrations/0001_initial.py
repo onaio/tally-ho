@@ -87,7 +87,7 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('ballot', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Ballot'], null=True)),
+            ('ballot', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Ballot'])),
             ('center', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Center'], null=True)),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True)),
             ('barcode', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True)),
@@ -297,7 +297,7 @@ class Migration(SchemaMigration):
         },
         'tally.resultform': {
             'Meta': {'object_name': 'ResultForm'},
-            'ballot': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Ballot']", 'null': 'True'}),
+            'ballot': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Ballot']"}),
             'barcode': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True'}),
             'center': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Center']", 'null': 'True'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),

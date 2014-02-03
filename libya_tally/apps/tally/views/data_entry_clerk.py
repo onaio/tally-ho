@@ -5,6 +5,7 @@ from django.views.generic import FormView
 from libya_tally.apps.tally.forms.data_entry_center_details_form import\
     DataEntryCenterDetailsForm
 from libya_tally.apps.tally.forms.candidate_form import CandidateForm
+from libya_tally.apps.tally.forms.reconciliation_form import ReconciliationForm
 from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.permissions import groups
@@ -63,9 +64,11 @@ class EnterResultsView(mixins.GroupRequiredMixin,
         CandidateFormSet = formset_factory(CandidateForm,
                                            extra=len(candidates))
         formset = CandidateFormSet()
+        reconciliation_form = ReconciliationForm()
 
         return self.render_to_response(
             self.get_context_data(formset=formset,
+                                  reconciliation_form=reconciliation_form,
                                   result_form=result_form,
                                   candidates=candidates))
 
