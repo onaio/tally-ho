@@ -1,5 +1,7 @@
+from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
 from django.forms.formsets import formset_factory
+from django.forms.util import ErrorList
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
@@ -54,7 +56,14 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             station_number = form.cleaned_data['station_number']
             result_form = get_object_or_404(
                 ResultForm, center=center, station_number=station_number)
-            form_in_data_entry_state(result_form)
+
+            try:
+                form_in_data_entry_state(result_form)
+            except SuspiciousOperation:
+                errors = form._errors.setdefault("__all__", ErrorList())
+                errors.append(_(u"Form not in Data Entry"))
+                return self.form_invalid(form)
+
             self.request.session['result_form'] = result_form.pk
 
             return redirect(self.success_url)
