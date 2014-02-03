@@ -9,7 +9,7 @@ class Result(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    candidate = models.ForeignKey('Candidate')
-    result_form = models.ForeignKey('ResultForm')
+    candidate = models.ForeignKey('Candidate', related_name='candidates')
+    result_form = models.ForeignKey('ResultForm', related_name='results')
 
     entry_version = enum.EnumField(EntryVersion)

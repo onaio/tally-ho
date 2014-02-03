@@ -41,7 +41,6 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
 class CheckCenterDetailsView(mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
-    form_class = IntakeBarcodeForm
     group_required = groups.INTAKE_CLERK
     template_name = "tally/check_center_details.html"
     success_url = "intake-check-center-details"

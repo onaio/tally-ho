@@ -19,28 +19,30 @@
 w
 <h2>{% trans 'Results Section' %}</h2>
 
-<table>
-    <tr>
-        <th>Votes</th>
-        <th>Candidate</th>
-        <th>No.</th>
-    </tr>
-{% for candidate in candidates %}
-    <tr>
-        <td>
-            Input Form
-        </td>
-        <td>
-            {{ candidate.full_name }}
-        </td>
-        <td>
-            {{ candidate.number }}
-        </td>
-    </tr>
-{% endfor %}
-</table>
+<form name="results" method="post" action="">
+    {{ formset.management_form }}
+    <table>
+        <tr>
+            <th>Votes</th>
+            <th>Candidate</th>
+            <th>No.</th>
+        </tr>
+    {% for form in formset %}
+        <tr>
+            <td>
+                {{ form }}
+            </td>
+            <td>
+                {{ candidates[forloop.counter0].full_name }}
+            </td>
+            <td>
+                {{ candidates[forloop.counter0].number }}
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
 
-<form name="form_match" method="post" action="">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <button type="submit" name="submit">{% trans "Submit" %}</button>
     {% csrf_token %}
 </form>

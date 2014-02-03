@@ -1,10 +1,10 @@
+from django.forms.formsets import formset_factory
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView
 
 from libya_tally.apps.tally.forms.data_entry_center_details_form import\
     DataEntryCenterDetailsForm
-from libya_tally.apps.tally.forms.intake_barcode_form import\
-    IntakeBarcodeForm
+from libya_tally.apps.tally.forms.candidate_form import CandidateForm
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
@@ -32,7 +32,6 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
 class CheckCenterDetailsView(mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
-    form_class = IntakeBarcodeForm
     group_required = groups.DATA_ENTRY_CLERK
     template_name = "tally/check_center_details.html"
     success_url = "result-entry"
@@ -49,7 +48,6 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
 class EnterResultsView(mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
-    form_class = IntakeBarcodeForm
     group_required = groups.DATA_ENTRY_CLERK
     template_name = "tally/enter_results_view.html"
     success_url = "data-entry-clerk"
@@ -57,9 +55,27 @@ class EnterResultsView(mixins.GroupRequiredMixin,
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
-        candidates = result_form.ballot.candidates.order_by('number')
         form_in_data_entry_state(result_form)
+        candidates = result_form.ballot.candidates.order_by('number')
+        CandidateFormSet = formset_factory(CandidateForm,
+                                           extra=len(candidates))
+        formset = CandidateFormSet()
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form,
+            self.get_context_data(formset=formset,
+                                  result_form=result_form,
                                   candidates=candidates))
+
+    def post(self, *args, **kwargs):
+        pk = self.post_data['result_form']
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_data_entry_state(result_form)
+        candidates = result_form.ballot.candidates.order_by('number')
+        CandidateFormSet = formset_factory(CandidateForm,
+                                           extra=len(candidates))
+        formset = CandidateFormSet(self.post_data)
+
+        if formset.is_valid():
+            return redirect(self.success_url)
+        else:
+            return self.formset_invalid(formset)
