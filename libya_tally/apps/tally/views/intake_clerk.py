@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
 
 from libya_tally.apps.tally.forms.intake_barcode_form import\
@@ -57,25 +58,28 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_intake_state(result_form)
 
-        if 'match' in post_data:
+        if 'result_form' not in post_data:
+            raise Exception(_(u"Error: Missing result form!"))
+        elif int(post_data['result_form']) != pk:
+            raise Exception(
+                _(u"Session result_form does not match submitted data."))
+
+        if 'is_match' in post_data:
             # send to print cover
-            pk = post_data['match']
-            result_form = get_object_or_404(ResultForm, pk=pk)
-            form_in_intake_state(result_form)
             self.request.session['result_form'] = pk
-
             return redirect('intake-printcover')
-        elif 'no_match' in post_data:
+        elif 'is_not_match' in post_data:
             # send to clearance
-            pk = post_data['no_match']
-            result_form = get_object_or_404(ResultForm, pk=pk)
             result_form.form_state = FormState.CLEARANCE
             result_form.save()
 
             return redirect('intake-clearance')
 
-        return redirect('intake-check-center-details')
+        return redirect('check-center-details')
 
 
 class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):

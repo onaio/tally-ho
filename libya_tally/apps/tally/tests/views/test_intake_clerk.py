@@ -115,10 +115,10 @@ class TestIntakeClerkView(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CheckCenterDetailsView.as_view()
-        post_data = {'match': result_form.pk}
+        post_data = {'result_form': result_form.pk, 'is_match': 'true'}
         request = self.factory.post('/', data=post_data)
         request.user = self.user
-        request.session = {}
+        request.session = {'result_form': result_form.pk}
         with self.assertRaises(Exception):
             response = view(request)
         result_form.form_state = FormState.INTAKE
@@ -140,10 +140,10 @@ class TestIntakeClerkView(TestBase):
         result_form = self._create_result_form_in_unsubmitted_state()
         self._create_or_login_intake_clerk()
         view = views.CheckCenterDetailsView.as_view()
-        post_data = {'no_match': result_form.pk}
+        post_data = {'result_form': result_form.pk, 'is_not_match': 'true'}
         request = self.factory.post('/', data=post_data)
         request.user = self.user
-        request.session = {}
+        request.session = {'result_form': result_form.pk}
         with self.assertRaises(Exception):
             response = view(request)
         result_form.form_state = FormState.INTAKE
@@ -154,20 +154,6 @@ class TestIntakeClerkView(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.CLEARANCE)
-
-    def test_intake_clearance(self):
-        result_form = self._create_result_form_in_unsubmitted_state()
-        self._create_or_login_intake_clerk()
-        view = views.IntakeClearanceView.as_view()
-        self.request.user = self.user
-        self.request.session = {}
-        with self.assertRaises(Exception):
-            response = view(self.request)
-        result_form.form_state = FormState.CLEARANCE
-        result_form.save()
-        response = view(self.request)
-        self.assertContains(response,
-                            'Form Sent to Clearance. Pass to Supervisor')
 
     def test_intake_clerk_print_cover(self):
         result_form = self._create_result_form_in_unsubmitted_state()
@@ -201,9 +187,11 @@ class TestIntakeClerkView(TestBase):
         self._create_or_login_intake_clerk()
         view = views.IntakeClearanceView.as_view()
         self.request.user = self.user
-        self.request.session = {}
+        self.request.session = {'result_form': result_form.pk}
         with self.assertRaises(Exception):
             response = view(self.request)
+        result_form.form_state = FormState.INTAKE
+        result_form.save()
         result_form.form_state = FormState.CLEARANCE
         result_form.save()
         response = view(self.request)
