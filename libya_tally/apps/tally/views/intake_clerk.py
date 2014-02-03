@@ -98,9 +98,10 @@ class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
             pk = session_matches_post_result_form(post_data, self.request)
 
             result_form = get_object_or_404(ResultForm, pk=pk)
-            #form_in_intake_state(result_form)
+            form_in_intake_state(result_form)
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
+            del self.request.session['result_form']
 
             return redirect('intaken')
 

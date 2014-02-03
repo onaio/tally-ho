@@ -1,4 +1,4 @@
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
@@ -9,7 +9,7 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 
 
-class TestIntakeClerkView(TestBase):
+class TestIntakeClerk(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
@@ -127,17 +127,12 @@ class TestIntakeClerkView(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/printcover', response['location'])
 
-    def _create_result_form_in_unsubmitted_state(self):
-        barcode = '123456789'
-        result_form = create_result_form(barcode)
-        return result_form
-
     def _create_or_login_intake_clerk(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
 
-    def test_intake_clerk_selects_no_matches(self):
-        result_form = self._create_result_form_in_unsubmitted_state()
+    def test_selects_no_matches(self):
+        result_form = create_result_form()
         self._create_or_login_intake_clerk()
         view = views.CheckCenterDetailsView.as_view()
         post_data = {'result_form': result_form.pk, 'is_not_match': 'true'}
@@ -155,14 +150,21 @@ class TestIntakeClerkView(TestBase):
         self.assertEqual(updated_result_form.form_state,
                          FormState.CLEARANCE)
 
-    def test_intake_clerk_print_cover(self):
-        result_form = self._create_result_form_in_unsubmitted_state()
+    def test_print_cover_invalid_state(self):
+        result_form = create_result_form()
         self._create_or_login_intake_clerk()
         view = views.IntakePrintCoverView.as_view()
         self.request.user = self.user
         self.request.session = {'result_form': result_form.pk}
-        with self.assertRaises(Exception):
-            response = view(self.request)
+        with self.assertRaises(SuspiciousOperation):
+            view(self.request)
+
+    def test_print_cover_get(self):
+        result_form = create_result_form()
+        self._create_or_login_intake_clerk()
+        view = views.IntakePrintCoverView.as_view()
+        self.request.user = self.user
+        self.request.session = {'result_form': result_form.pk}
         result_form.form_state = FormState.INTAKE
         result_form.save()
         response = view(self.request)
@@ -172,6 +174,14 @@ class TestIntakeClerkView(TestBase):
         ]
         for test_string in expected_strings:
             self.assertContains(response, test_string)
+
+    def test_print_cover_post(self):
+        result_form = create_result_form()
+        result_form.form_state = FormState.INTAKE
+        result_form.save()
+        self._create_or_login_intake_clerk()
+        view = views.IntakePrintCoverView.as_view()
+
         request = self.factory.post('/', data={'result_form': result_form.pk})
         request.user = self.user
         request.session = {'result_form': result_form.pk}
@@ -179,11 +189,13 @@ class TestIntakeClerkView(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(request.session.get('result_form'),
+                         None)
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_1)
 
-    def test_intake_clearance(self):
-        result_form = self._create_result_form_in_unsubmitted_state()
+    def test_clearance(self):
+        result_form = create_result_form()
         self._create_or_login_intake_clerk()
         view = views.IntakeClearanceView.as_view()
         self.request.user = self.user

@@ -44,6 +44,13 @@ urlpatterns = patterns(
     url(r'^intake/intaken',
         TemplateView.as_view(template_name='tally/intake/success.html'),
         name='intaken'),
+    url(r'^quality-control/home',
+        TemplateView.as_view(template_name='tally/quality-control/home.html'),
+        name='quality-control-home'),
+    url(r'^quality-control/dashboard',
+        TemplateView.as_view(
+            template_name='tally/quality-control/dashboard.html'),
+        name='quality-control-dashboard'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),
