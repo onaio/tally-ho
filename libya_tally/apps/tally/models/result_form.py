@@ -13,7 +13,7 @@ class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    ballot = models.ForeignKey(Ballot, null=True)
+    ballot = models.ForeignKey(Ballot)
     center = models.ForeignKey(Center, null=True)
     user = models.ForeignKey(User, null=True)
 
@@ -28,4 +28,4 @@ class ResultForm(BaseModel):
 
     @property
     def form_state_name(self):
-        return dict(FormState.choices())[self.form_state]
+        return FormState.to_name(self.form_state)

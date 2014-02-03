@@ -3,8 +3,24 @@ from django.contrib.auth.models import User, Group, AnonymousUser
 from django.test import TestCase
 from django.test import RequestFactory
 
+from libya_tally.apps.tally.models.ballot import Ballot
+from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.libs.models.enums.form_state import FormState
+from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions.groups import create_permission_groups, \
     add_user_to_group
+
+
+def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED):
+    ballot, _ = Ballot.objects.get_or_create(number=1,
+                                             race_type=RaceType.GENERAL)
+    result_form, _ = ResultForm.objects.get_or_create(
+        ballot=ballot,
+        barcode=barcode,
+        serial_number=0,
+        form_state=form_state)
+
+    return result_form
 
 
 class TestBase(TestCase):

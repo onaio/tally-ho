@@ -4,7 +4,7 @@ from django.test import RequestFactory
 
 from libya_tally.apps.tally.views import intake_clerk as views
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import TestBase
+from libya_tally.libs.tests.test_base import create_result_form, TestBase
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 
@@ -112,9 +112,7 @@ class TestIntakeClerkView(TestBase):
 
     def test_intake_clerk_selects_matches(self):
         barcode = '123456789'
-        result_form, c = ResultForm.objects.get_or_create(
-            barcode=barcode, serial_number=0,
-            form_state=FormState.UNSUBMITTED)
+        result_form = create_result_form(barcode)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CheckCenterDetailsView.as_view()
@@ -132,9 +130,7 @@ class TestIntakeClerkView(TestBase):
 
     def test_intake_clerk_selects_no_matches(self):
         barcode = '123456789'
-        result_form, c = ResultForm.objects.get_or_create(
-            barcode=barcode, serial_number=0,
-            form_state=FormState.UNSUBMITTED)
+        result_form = create_result_form(barcode)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CheckCenterDetailsView.as_view()

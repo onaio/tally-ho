@@ -4,12 +4,23 @@ from django.test import RequestFactory
 
 from libya_tally.apps.tally.views import data_entry_clerk as views
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import TestBase
+from libya_tally.libs.tests.test_base import create_result_form, TestBase
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.station import Station
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
 from libya_tally.libs.models.enums.center_type import CenterType
+from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.gender import Gender
+
+
+def center_data(code1, code2=None):
+    if not code2:
+        code2 = code1
+
+    return {'center_number': code1,
+            'center_number_copy': code2,
+            'station_number': '1',
+            'station_number_copy': '1'}
 
 
 def create_center(code):
@@ -75,10 +86,7 @@ class TestDataEntryClerk(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.CenterDetailsView.as_view()
-        data = {'center_number': '12345',
-                'center_number_copy': '12346',
-                'station_number': '1',
-                'station_number_copy': '1'}
+        data = center_data('12345', '12346')
         request = self.factory.post('/', data=data)
         request.user = self.user
         response = view(request)
@@ -88,10 +96,7 @@ class TestDataEntryClerk(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.CenterDetailsView.as_view()
-        data = {'center_number': '12345',
-                'center_number_copy': '12345',
-                'station_number': '1',
-                'station_number_copy': '1'}
+        data = center_data('12345')
         request = self.factory.post('/', data=data)
         request.user = self.user
         response = view(request)
@@ -103,10 +108,7 @@ class TestDataEntryClerk(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.CenterDetailsView.as_view()
-        data = {'center_number': code,
-                'center_number_copy': code,
-                'station_number': '1',
-                'station_number_copy': '1'}
+        data = center_data(code)
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {}
@@ -120,10 +122,7 @@ class TestDataEntryClerk(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.CenterDetailsView.as_view()
-        data = {'center_number': code,
-                'center_number_copy': code,
-                'station_number': '1',
-                'station_number_copy': '1'}
+        data = center_data(code)
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {}
@@ -131,3 +130,19 @@ class TestDataEntryClerk(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('data-entry/check-center-details',
                       response['location'])
+
+    def test_enter_results_has_candidates(self):
+        code = '12345'
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        view = views.EnterResultsView.as_view()
+        data = center_data(code)
+        request = self.factory.get('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Data Entry')

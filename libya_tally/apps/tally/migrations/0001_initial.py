@@ -24,7 +24,7 @@ class Migration(SchemaMigration):
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('ballot', self.gf('django.db.models.fields.related.ForeignKey')(related_name='candidates', to=orm['tally.Ballot'])),
-            ('number', self.gf('django.db.models.fields.IntegerField')()),
+            ('number', self.gf('django.db.models.fields.TextField')()),
             ('full_name', self.gf('django.db.models.fields.TextField')()),
             ('race_type', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
         ))
@@ -235,7 +235,7 @@ class Migration(SchemaMigration):
             'full_name': ('django.db.models.fields.TextField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'number': ('django.db.models.fields.IntegerField', [], {}),
+            'number': ('django.db.models.fields.TextField', [], {}),
             'race_type': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'})
         },
         'tally.center': {
