@@ -18,19 +18,6 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('tally', ['Ballot'])
 
-        # Adding model 'Candidate'
-        db.create_table(u'tally_candidate', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('ballot', self.gf('django.db.models.fields.related.ForeignKey')(related_name='candidates', to=orm['tally.Ballot'])),
-            ('candidate_id', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('full_name', self.gf('django.db.models.fields.TextField')()),
-            ('order', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('race_type', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
-        ))
-        db.send_create_signal('tally', ['Candidate'])
-
         # Adding model 'SubConstituency'
         db.create_table(u'tally_subconstituency', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -64,25 +51,6 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('tally', ['Center'])
 
-        # Adding model 'Race'
-        db.create_table(u'tally_race', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
-            ('race_type', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
-        ))
-        db.send_create_signal('tally', ['Race'])
-
-        # Adding M2M table for field sub_constituency on 'Race'
-        m2m_table_name = db.shorten_name(u'tally_race_sub_constituency')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('race', models.ForeignKey(orm['tally.race'], null=False)),
-            ('subconstituency', models.ForeignKey(orm['tally.subconstituency'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['race_id', 'subconstituency_id'])
-
         # Adding model 'ResultForm'
         db.create_table(u'tally_resultform', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -101,6 +69,97 @@ class Migration(SchemaMigration):
             ('station_number', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
         ))
         db.send_create_signal('tally', ['ResultForm'])
+
+        # Adding model 'Archive'
+        db.create_table(u'tally_archive', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.ResultForm'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+        ))
+        db.send_create_signal('tally', ['Archive'])
+
+        # Adding model 'QuarantineCheck'
+        db.create_table(u'tally_quarantinecheck', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
+            ('rule', self.gf('django.db.models.fields.CharField')(max_length=256)),
+        ))
+        db.send_create_signal('tally', ['QuarantineCheck'])
+
+        # Adding model 'Audit'
+        db.create_table(u'tally_audit', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('quarantine_check', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.QuarantineCheck'])),
+            ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.ResultForm'])),
+            ('supervisor', self.gf('django.db.models.fields.related.ForeignKey')(related_name='audit_user', to=orm['auth.User'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('recommendation', self.gf('django.db.models.fields.TextField')()),
+        ))
+        db.send_create_signal('tally', ['Audit'])
+
+        # Adding model 'Candidate'
+        db.create_table(u'tally_candidate', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('ballot', self.gf('django.db.models.fields.related.ForeignKey')(related_name='candidates', to=orm['tally.Ballot'])),
+            ('candidate_id', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('full_name', self.gf('django.db.models.fields.TextField')()),
+            ('order', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('race_type', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
+        ))
+        db.send_create_signal('tally', ['Candidate'])
+
+        # Adding model 'Clearance'
+        db.create_table(u'tally_clearance', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.ResultForm'])),
+            ('supervisor', self.gf('django.db.models.fields.related.ForeignKey')(related_name='clearance_user', null=True, to=orm['auth.User'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('recommendation', self.gf('django.db.models.fields.TextField')()),
+        ))
+        db.send_create_signal('tally', ['Clearance'])
+
+        # Adding model 'QualityControl'
+        db.create_table(u'tally_qualitycontrol', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('result_form', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['tally.ResultForm'], unique=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('passed_general', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
+            ('passed_reconciliation', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
+            ('passed_womens', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
+        ))
+        db.send_create_signal('tally', ['QualityControl'])
+
+        # Adding model 'Race'
+        db.create_table(u'tally_race', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
+            ('race_type', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
+        ))
+        db.send_create_signal('tally', ['Race'])
+
+        # Adding M2M table for field sub_constituency on 'Race'
+        m2m_table_name = db.shorten_name(u'tally_race_sub_constituency')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('race', models.ForeignKey(orm['tally.race'], null=False)),
+            ('subconstituency', models.ForeignKey(orm['tally.subconstituency'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['race_id', 'subconstituency_id'])
 
         # Adding model 'ReconciliationForm'
         db.create_table(u'tally_reconciliationform', (
@@ -157,23 +216,38 @@ class Migration(SchemaMigration):
         # Deleting model 'Ballot'
         db.delete_table(u'tally_ballot')
 
-        # Deleting model 'Candidate'
-        db.delete_table(u'tally_candidate')
-
         # Deleting model 'SubConstituency'
         db.delete_table(u'tally_subconstituency')
 
         # Deleting model 'Center'
         db.delete_table(u'tally_center')
 
+        # Deleting model 'ResultForm'
+        db.delete_table(u'tally_resultform')
+
+        # Deleting model 'Archive'
+        db.delete_table(u'tally_archive')
+
+        # Deleting model 'QuarantineCheck'
+        db.delete_table(u'tally_quarantinecheck')
+
+        # Deleting model 'Audit'
+        db.delete_table(u'tally_audit')
+
+        # Deleting model 'Candidate'
+        db.delete_table(u'tally_candidate')
+
+        # Deleting model 'Clearance'
+        db.delete_table(u'tally_clearance')
+
+        # Deleting model 'QualityControl'
+        db.delete_table(u'tally_qualitycontrol')
+
         # Deleting model 'Race'
         db.delete_table(u'tally_race')
 
         # Removing M2M table for field sub_constituency on 'Race'
         db.delete_table(db.shorten_name(u'tally_race_sub_constituency'))
-
-        # Deleting model 'ResultForm'
-        db.delete_table(u'tally_resultform')
 
         # Deleting model 'ReconciliationForm'
         db.delete_table(u'tally_reconciliationform')
@@ -222,6 +296,25 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
+        'tally.archive': {
+            'Meta': {'object_name': 'Archive'},
+            'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'result_form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.ResultForm']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        'tally.audit': {
+            'Meta': {'object_name': 'Audit'},
+            'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'quarantine_check': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.QuarantineCheck']"}),
+            'recommendation': ('django.db.models.fields.TextField', [], {}),
+            'result_form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.ResultForm']"}),
+            'supervisor': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'audit_user'", 'to': u"orm['auth.User']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
         'tally.ballot': {
             'Meta': {'object_name': 'Ballot'},
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
@@ -256,6 +349,36 @@ class Migration(SchemaMigration):
             'region': ('django.db.models.fields.TextField', [], {}),
             'sub_constituency': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'centers'", 'null': 'True', 'to': "orm['tally.SubConstituency']"}),
             'village': ('django.db.models.fields.TextField', [], {})
+        },
+        'tally.clearance': {
+            'Meta': {'object_name': 'Clearance'},
+            'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'recommendation': ('django.db.models.fields.TextField', [], {}),
+            'result_form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.ResultForm']"}),
+            'supervisor': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'clearance_user'", 'null': 'True', 'to': u"orm['auth.User']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        'tally.qualitycontrol': {
+            'Meta': {'object_name': 'QualityControl'},
+            'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'passed_general': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'passed_reconciliation': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'passed_womens': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'result_form': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['tally.ResultForm']", 'unique': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        'tally.quarantinecheck': {
+            'Meta': {'object_name': 'QuarantineCheck'},
+            'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
+            'rule': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         'tally.race': {
             'Meta': {'object_name': 'Race'},

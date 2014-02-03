@@ -12,7 +12,7 @@ class Audit(BaseModel):
 
     quarantine_check = models.ForeignKey(QuarantineCheck)
     result_form = models.ForeignKey(ResultForm)
-    supervisor = models.ForeignKey(User, related_name='supervisor')
+    supervisor = models.ForeignKey(User, related_name='audit_user')
     user = models.ForeignKey(User)
 
     recommendation = models.TextField()

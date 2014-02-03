@@ -2,11 +2,11 @@ from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
+from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.views import intake_clerk as views
+from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form, TestBase
-from libya_tally.apps.tally.models.result_form import ResultForm
-from libya_tally.libs.models.enums.form_state import FormState
 
 
 class TestIntakeClerk(TestBase):

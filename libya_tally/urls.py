@@ -5,7 +5,7 @@ from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
 from libya_tally.apps.tally.views import data_entry_clerk, home,\
-    intake_clerk
+    intake_clerk, quality_control
 
 admin.autodiscover()
 
@@ -44,13 +44,16 @@ urlpatterns = patterns(
     url(r'^intake/intaken',
         TemplateView.as_view(template_name='tally/intake/success.html'),
         name='intaken'),
-    url(r'^quality-control/home',
+    url(r'^quality-control/home$',
         TemplateView.as_view(template_name='tally/quality-control/home.html'),
         name='quality-control-home'),
-    url(r'^quality-control/dashboard',
-        TemplateView.as_view(
-            template_name='tally/quality-control/dashboard.html'),
+    url(r'^quality-control/dashboard$',
+        quality_control.QualityControlDashboardView.as_view(),
         name='quality-control-dashboard'),
+    url(r'^quality-control/reject',
+        TemplateView.as_view(
+            template_name='tally/quality-control/reject.html'),
+        name='quality-control-reject'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),

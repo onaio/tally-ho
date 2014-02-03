@@ -10,7 +10,8 @@ class Clearance(BaseModel):
         app_label = 'tally'
 
     result_form = models.ForeignKey(ResultForm)
-    supervisor = models.ForeignKey(User, null=True, related_name='supervisor')
+    supervisor = models.ForeignKey(User, null=True,
+                                   related_name='clearance_user')
     user = models.ForeignKey(User)
 
     recommendation = models.TextField()

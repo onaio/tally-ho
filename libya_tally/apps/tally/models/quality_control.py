@@ -9,7 +9,7 @@ class QualityControl(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    result_form = models.ForeignKey(ResultForm)
+    result_form = models.OneToOneField(ResultForm)
     user = models.ForeignKey(User)
 
     passed_general = models.NullBooleanField()

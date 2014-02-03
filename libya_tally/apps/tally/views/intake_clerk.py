@@ -37,6 +37,7 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             result_form.user = self.request.user
             result_form.save()
             self.request.session['result_form'] = result_form.pk
+
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
@@ -66,7 +67,6 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
 
         if 'is_match' in post_data:
             # send to print cover
-            self.request.session['result_form'] = pk
             return redirect('intake-printcover')
         elif 'is_not_match' in post_data:
             # send to clearance
