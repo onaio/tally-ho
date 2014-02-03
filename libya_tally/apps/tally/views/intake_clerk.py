@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
 
 from libya_tally.apps.tally.forms.intake_barcode_form import\
@@ -54,7 +55,8 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
         form_in_intake_state(result_form)
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form,
+                                  header_text=_('Intake')))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST

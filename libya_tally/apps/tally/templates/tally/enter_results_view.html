@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1>{% trans 'Data Entry' %} {{ result_form.form_state_name }}</h1>
+<h1>{% trans 'Data Entry' %} {{ data_entry_number }}</h1>
 
 <ul>
     <li>{{ result_form.center.name }} {% trans 'Center Name:' %}</li>
@@ -19,16 +19,11 @@
     <h2>{% trans 'Reconciliation Section' %}</h2>
 
     <table>{{ reconciliation_form.as_table}}
-        <tr>
-            <td>
-                <button type="submit" name="submit">{% trans "Submit" %}</button>
-            </td>
-        </tr>
-        {% csrf_token %}
     </table>
 
     <h2>{% trans 'Results Section' %}</h2>
 
+    {{ formset.non_form_errors }}
     {{ formset.management_form }}
     <table>
         <tr>
@@ -36,16 +31,16 @@
             <th>Candidate</th>
             <th>No.</th>
         </tr>
-    {% for form in formset %}
+    {% for form, candidate in forms_and_candidates %}
         <tr>
             <td>
-                {{ form }}
+                {{ form.as_p }}
             </td>
             <td>
-                {{ candidates.forloop.counter0.full_name }}
+                {{ candidate.full_name }}
             </td>
             <td>
-                {{ candidates.forloop.counter0.number }}
+                {{ candidate.number }}
             </td>
         </tr>
     {% endfor %}
