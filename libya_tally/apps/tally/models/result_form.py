@@ -29,3 +29,7 @@ class ResultForm(BaseModel):
     @property
     def form_state_name(self):
         return FormState.to_name(self.form_state)
+
+    @property
+    def gender_name(self):
+        return dict(Gender.choices())[self.gender]
