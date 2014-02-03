@@ -7,7 +7,8 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.form_state import form_in_intake_state
+from libya_tally.libs.views.form_state import form_in_intake_state, \
+    form_in_state
 
 
 class IntakeClerkView(mixins.GroupRequiredMixin, TemplateView):
@@ -114,3 +115,11 @@ class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
 class IntakeClearanceView(mixins.GroupRequiredMixin, TemplateView):
     template_name = "tally/intake_clearance.html"
     group_required = groups.INTAKE_CLERK
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CLEARANCE])
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))

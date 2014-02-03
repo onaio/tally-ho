@@ -151,6 +151,23 @@ class TestIntakeClerkView(TestBase):
         response = view(request)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/clearance', response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.CLEARANCE)
+
+    def test_intake_clearance(self):
+        result_form = self._create_result_form_in_unsubmitted_state()
+        self._create_or_login_intake_clerk()
+        view = views.IntakeClearanceView.as_view()
+        self.request.user = self.user
+        self.request.session = {}
+        with self.assertRaises(Exception):
+            response = view(self.request)
+        result_form.form_state = FormState.CLEARANCE
+        result_form.save()
+        response = view(self.request)
+        self.assertContains(response,
+                            'Form Sent to Clearance. Pass to Supervisor')
 
     def test_intake_clerk_print_cover(self):
         result_form = self._create_result_form_in_unsubmitted_state()
@@ -178,3 +195,17 @@ class TestIntakeClerkView(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_1)
+
+    def test_intake_clearance(self):
+        result_form = self._create_result_form_in_unsubmitted_state()
+        self._create_or_login_intake_clerk()
+        view = views.IntakeClearanceView.as_view()
+        self.request.user = self.user
+        self.request.session = {}
+        with self.assertRaises(Exception):
+            response = view(self.request)
+        result_form.form_state = FormState.CLEARANCE
+        result_form.save()
+        response = view(self.request)
+        self.assertContains(response,
+                            'Form Sent to Clearance. Pass to Supervisor')
