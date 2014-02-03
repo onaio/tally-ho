@@ -9,6 +9,7 @@ from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.models.enums.entry_version import EntryVersion
+from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_data_entry_state
 
@@ -78,13 +79,26 @@ class EnterResultsView(mixins.GroupRequiredMixin,
         formset = CandidateFormSet(self.post_data)
 
         if formset.is_valid():
+            entry_version = None
+            new_state = None
+
+            if result_form.form_state == FormState.DATA_ENTRY_1:
+                entry_version = EntryVersion.DATA_ENTRY_1
+                new_state = FormState.DATA_ENTRY_2
+            else:
+                entry_version = EntryVersion.DATA_ENTRY_2
+                new_state = FormState.CORRECTIONS
+
             for i, form in enumerate(formset.ordered_forms):
                 votes = form.cleaned_data['votes']
                 Result.create(
                     candidate=candidates[i],
                     result_form=result_form,
-                    entry_version=EntryVersion.XXX,
+                    entry_version=entry_version,
                     votes=votes)
+
+            result_form.form_state = new_state
+            result_form.save()
 
             return redirect(self.success_url)
         else:
