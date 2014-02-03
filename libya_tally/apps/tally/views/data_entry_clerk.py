@@ -149,7 +149,7 @@ class EnterResultsView(mixins.GroupRequiredMixin,
                 new_state = FormState.DATA_ENTRY_2
             else:
                 entry_version = EntryVersion.DATA_ENTRY_2
-                new_state = FormState.CORRECTIONS
+                new_state = FormState.CORRECTION
 
             for i, form in enumerate(formset.forms):
                 votes = form.cleaned_data['votes']

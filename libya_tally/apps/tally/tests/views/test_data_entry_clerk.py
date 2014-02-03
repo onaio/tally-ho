@@ -7,6 +7,7 @@ from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form, TestBase
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.center import Center
+from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.models.station import Station
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
 from libya_tally.libs.models.enums.center_type import CenterType
@@ -55,12 +56,35 @@ def create_station(center):
         station_number=1)
 
 
-def result_form_data(result_form):
+def result_form_data_blank(result_form):
     return {'result_form': result_form.pk,
             'form-TOTAL_FORMS': [u'1'],
             'form-MAX_NUM_FORMS': [u'1000'],
             'form-INITIAL_FORMS': [u'0'],
             'form-0-votes': [u'']}
+
+
+def result_form_data(result_form):
+    data = result_form_data_blank(result_form)
+    data.update({
+        u'number_unstamped_ballots': [u'1'],
+        u'number_ballots_inside_box': [u'1'],
+        u'number_ballots_inside_and_outside_box': [u'1'],
+        u'number_valid_votes': [u'1'],
+        u'number_unused_ballots': [u'1'],
+        u'number_spoiled_ballots': [u'1'],
+        u'number_ballots_received': [u'1'],
+        u'number_cancelled_ballots': [u'1'],
+        u'ballot_number_from': [u'1'],
+        u'number_ballots_outside_box': [u'1'],
+        u'number_sorted_and_counted': [u'1'],
+        u'number_invalid_votes': [u'1'],
+        u'number_signatures_in_vr': [u'1'],
+        u'ballot_number_to': [u'1'],
+        u'form-0-votes': [u'1']
+    })
+
+    return data
 
 
 class TestDataEntryClerk(TestBase):
@@ -188,7 +212,7 @@ class TestDataEntryClerk(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.EnterResultsView.as_view()
-        data = result_form_data(result_form)
+        data = result_form_data_blank(result_form)
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
@@ -196,7 +220,7 @@ class TestDataEntryClerk(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Missing votes')
 
-    def test_enter_results_success(self):
+    def test_enter_results_success_data_entry_one(self):
         code = '12345'
         center = create_center(code)
         create_station(center)
@@ -209,23 +233,6 @@ class TestDataEntryClerk(TestBase):
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.EnterResultsView.as_view()
         data = result_form_data(result_form)
-        data.update({
-            u'number_unstamped_ballots': [u'1'],
-            u'number_ballots_inside_box': [u'1'],
-            u'number_ballots_inside_and_outside_box': [u'1'],
-            u'number_valid_votes': [u'1'],
-            u'number_unused_ballots': [u'1'],
-            u'number_spoiled_ballots': [u'1'],
-            u'number_ballots_received': [u'1'],
-            u'number_cancelled_ballots': [u'1'],
-            u'ballot_number_from': [u'1'],
-            u'number_ballots_outside_box': [u'1'],
-            u'number_sorted_and_counted': [u'1'],
-            u'number_invalid_votes': [u'1'],
-            u'number_signatures_in_vr': [u'1'],
-            u'ballot_number_to': [u'1'],
-            u'form-0-votes': [u'1']
-        })
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
@@ -233,3 +240,30 @@ class TestDataEntryClerk(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('data-entry',
                       response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.DATA_ENTRY_2)
+
+    def test_enter_results_success_data_entry_two(self):
+        code = '12345'
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_2)
+        ballot = result_form.ballot
+        candidate_name = 'candidate name'
+        create_candidate(ballot, candidate_name)
+
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        view = views.EnterResultsView.as_view()
+        data = result_form_data(result_form)
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('data-entry',
+                      response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.CORRECTION)
