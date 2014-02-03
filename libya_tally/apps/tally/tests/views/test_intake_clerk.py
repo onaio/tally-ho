@@ -87,6 +87,7 @@ class TestIntakeClerkView(TestBase):
                       response['location'])
         result_form = ResultForm.objects.get(barcode=barcode)
         self.assertEqual(result_form.form_state, FormState.INTAKE)
+        self.assertEqual(result_form.user, self.user)
 
     def test_check_center_details(self):
         barcode = '123456789'

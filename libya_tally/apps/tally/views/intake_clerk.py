@@ -31,6 +31,7 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
             result_form.form_state = FormState.INTAKE
+            result_form.user = self.request.user
             result_form.save()
             self.request.session['result_form'] = result_form.pk
             return redirect(self.success_url)
