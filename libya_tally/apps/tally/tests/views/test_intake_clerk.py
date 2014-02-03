@@ -127,11 +127,18 @@ class TestIntakeClerkView(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/printcover', response['location'])
 
-    def test_intake_clerk_selects_no_matches(self):
+    def _create_result_form_in_unsubmitted_state(self):
         barcode = '123456789'
         result_form = create_result_form(barcode)
+        return result_form
+
+    def _create_or_login_intake_clerk(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+
+    def test_intake_clerk_selects_no_matches(self):
+        result_form = self._create_result_form_in_unsubmitted_state()
+        self._create_or_login_intake_clerk()
         view = views.CheckCenterDetailsView.as_view()
         post_data = {'no_match': result_form.pk}
         request = self.factory.post('/', data=post_data)
@@ -144,3 +151,6 @@ class TestIntakeClerkView(TestBase):
         response = view(request)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/clearance', response['location'])
+
+    def test_intake_clerk_print_cover(self):
+        pass
