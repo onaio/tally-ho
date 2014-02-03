@@ -4,7 +4,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
-from libya_tally.apps.tally.views import data_entry_clerk, home, intake_clerk
+from libya_tally.apps.tally.views import data_entry_clerk, home,\
+    intake_clerk
 
 admin.autodiscover()
 
@@ -41,7 +42,7 @@ urlpatterns = patterns(
         intake_clerk.IntakeClearanceView.as_view(),
         name='intake-clearance'),
     url(r'^intake/intaken',
-        TemplateView.as_view(template_name='tally/intake_success.html'),
+        TemplateView.as_view(template_name='tally/intake/success.html'),
         name='intaken'),
 
     url(r'^accounts/', include(accounts_urls)),

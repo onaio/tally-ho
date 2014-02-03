@@ -41,7 +41,7 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
                         FormView):
     form_class = DataEntryCenterDetailsForm
     group_required = groups.DATA_ENTRY_CLERK
-    template_name = "tally/data_entry_center_details.html"
+    template_name = "tally/data_entry/center_details.html"
     success_url = 'data-entry-check-center-details'
 
     def post(self, *args, **kwargs):
@@ -104,7 +104,7 @@ class EnterResultsView(mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
     group_required = groups.DATA_ENTRY_CLERK
-    template_name = "tally/enter_results_view.html"
+    template_name = "tally/data_entry/enter_results_view.html"
     success_url = "data-entry-clerk"
 
     def get(self, *args, **kwargs):

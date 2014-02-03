@@ -15,7 +15,7 @@ from libya_tally.libs.views.form_state import form_in_intake_state,\
 
 class IntakeClerkView(mixins.GroupRequiredMixin, TemplateView):
     group_required = groups.INTAKE_CLERK
-    template_name = "tally/intake_clerk.html"
+    template_name = "tally/intake/home.html"
 
 
 class CenterDetailsView(mixins.GroupRequiredMixin,
@@ -23,7 +23,7 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
                         FormView):
     form_class = IntakeBarcodeForm
     group_required = groups.INTAKE_CLERK
-    template_name = "tally/center_details.html"
+    template_name = "tally/intake/center_details.html"
     success_url = 'check-center-details'
 
     def post(self, *args, **kwargs):
@@ -80,7 +80,7 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
 
 class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
     group_required = groups.INTAKE_CLERK
-    template_name = "tally/intake_print_cover.html"
+    template_name = "tally/intake/print_cover.html"
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -109,7 +109,7 @@ class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
 
 
 class IntakeClearanceView(mixins.GroupRequiredMixin, TemplateView):
-    template_name = "tally/intake_clearance.html"
+    template_name = "tally/intake/clearance.html"
     group_required = groups.INTAKE_CLERK
 
     def get(self, *args, **kwargs):
