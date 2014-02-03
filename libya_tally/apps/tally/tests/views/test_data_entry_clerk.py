@@ -231,5 +231,5 @@ class TestDataEntryClerk(TestBase):
         request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('data-entry/check-center-details',
+        self.assertIn('data-entry',
                       response['location'])

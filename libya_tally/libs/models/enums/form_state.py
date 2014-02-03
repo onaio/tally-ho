@@ -18,11 +18,11 @@ class FormState(enum.Enum):
         ARCHIVING: (QUALITY_CONTROL,),
         AUDIT: (ARCHIVING,),
         CLEARANCE: (INTAKE,),
-        CORRECTION: (DATA_ENTRY_2),
+        CORRECTION: (DATA_ENTRY_2,),
         DATA_ENTRY_1: (AUDIT, CORRECTION, INTAKE, QUALITY_CONTROL),
-        DATA_ENTRY_2: (DATA_ENTRY_1),
+        DATA_ENTRY_2: (DATA_ENTRY_1,),
         INTAKE: (CLEARANCE, UNSUBMITTED,),
-        QUALITY_CONTROL: (CORRECTION),
+        QUALITY_CONTROL: (CORRECTION,),
     }
 
     @classmethod
