@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 
 ADMINISTRATOR = "Administrator"
 ARCHIVING_CLERK = "Archiving Clerk"
@@ -28,3 +28,14 @@ def create_permission_groups():
 def add_user_to_group(user, name):
     group = Group.objects.get(name=name)
     user.groups.add(group)
+
+
+def create_demo_users_with_groups(password='data'):
+    for group in GROUPS:
+        obj, created = Group.objects.get_or_create(name=group)
+        username = group.replace(' ', '_').lower()
+        user, created = User.objects.get_or_create(
+            username=username, first_name=group)
+        user.set_password(password)
+        user.save()
+        user.groups.add(obj)
