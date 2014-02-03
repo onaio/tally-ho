@@ -13,3 +13,4 @@ class Result(BaseModel):
     result_form = models.ForeignKey('ResultForm', related_name='results')
 
     entry_version = enum.EnumField(EntryVersion)
+    votes = models.PositiveIntegerField()

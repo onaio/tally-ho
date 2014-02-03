@@ -5,8 +5,10 @@ from django.views.generic import FormView
 from libya_tally.apps.tally.forms.data_entry_center_details_form import\
     DataEntryCenterDetailsForm
 from libya_tally.apps.tally.forms.candidate_form import CandidateForm
+from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.permissions import groups
+from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_data_entry_state
 
@@ -76,6 +78,14 @@ class EnterResultsView(mixins.GroupRequiredMixin,
         formset = CandidateFormSet(self.post_data)
 
         if formset.is_valid():
+            for i, form in enumerate(formset.ordered_forms):
+                votes = form.cleaned_data['votes']
+                Result.create(
+                    candidate=candidates[i],
+                    result_form=result_form,
+                    entry_version=EntryVersion.XXX,
+                    votes=votes)
+
             return redirect(self.success_url)
         else:
             return self.formset_invalid(formset)
