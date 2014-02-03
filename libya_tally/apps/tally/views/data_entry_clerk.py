@@ -6,6 +6,7 @@ from libya_tally.apps.tally.forms.data_entry_center_details_form import\
     DataEntryCenterDetailsForm
 from libya_tally.apps.tally.forms.candidate_form import CandidateForm
 from libya_tally.apps.tally.forms.reconciliation_form import ReconciliationForm
+from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.permissions import groups
@@ -20,7 +21,7 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
                         FormView):
     form_class = DataEntryCenterDetailsForm
     group_required = groups.DATA_ENTRY_CLERK
-    template_name = "tally/center_details.html"
+    template_name = "tally/data_entry_center_details.html"
     success_url = 'data-entry-check-center-details'
 
     def post(self, *args, **kwargs):
@@ -28,6 +29,14 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
+            center_number = form.cleaned_data['center_number']
+            center = Center.objects.get(code=center_number)
+            station_number = form.cleaned_data['station_number']
+            result_form = get_object_or_404(
+                ResultForm, center=center, station_number=station_number)
+            form_in_data_entry_state(result_form)
+            self.request.session['result_form'] = result_form.pk
+
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)

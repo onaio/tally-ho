@@ -15,11 +15,20 @@
     <li>{{ result_form.ballot.race_type_name }} {% trans 'Form Race Type:' %}</li>
 </ul>
 
-<h2>{% trans 'Reconciliation Section' %}</h2>
-w
-<h2>{% trans 'Results Section' %}</h2>
-
 <form name="results" method="post" action="">
+    <h2>{% trans 'Reconciliation Section' %}</h2>
+
+    <table>{{ reconciliation_form.as_table}}
+        <tr>
+            <td>
+                <button type="submit" name="submit">{% trans "Submit" %}</button>
+            </td>
+        </tr>
+        {% csrf_token %}
+    </table>
+
+    <h2>{% trans 'Results Section' %}</h2>
+
     {{ formset.management_form }}
     <table>
         <tr>

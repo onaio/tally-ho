@@ -7,6 +7,16 @@
 <h1>{% trans 'Data Entry' %} {{ result_form.form_state_name }}</h1>
 
 {% trans 'Double Enter Center Details' %}
-{{ form.as_table }}
+
+<form id="result_form" method="post" action="">
+    <table>{{ form.as_table }}
+        <tr>
+            <td>
+                <button type="submit" name="submit">{% trans "Submit" %}</button>
+            </td>
+        </tr>
+        {% csrf_token %}
+    </table>
+</form>
 
 {% endblock %}
