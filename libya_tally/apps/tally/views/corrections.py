@@ -46,8 +46,11 @@ class CorrectionView(mixins.GroupRequiredMixin,
     success_url = 'corrections-match'
 
     def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
         return self.render_to_response(
-            self.get_context_data(header_text=_('Correction')))
+            self.get_context_data(form=form, header_text=_('Correction')))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -131,13 +134,11 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CORRECTION])
 
-        candidates = []
+        candidates = {}
         for result in result_form.results.order_by('candidate__order'):
-
-            if result.candidate not in candidates:
-                candidates.append(result.candidate)
-            else:
-                pass
+                candidates.update({
+                    result.candidate: {result.entry_version: result.votes}})
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form,
+                                  candidates=candidates))
