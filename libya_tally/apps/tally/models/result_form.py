@@ -28,7 +28,8 @@ class ResultForm(BaseModel):
 
     @property
     def qualitycontrol(self):
-        return self.qualitycontrol_set.filter(active=True)[0]
+        quality_controls = self.qualitycontrol_set.filter(active=True)
+        return quality_controls[0] if len(quality_controls) else None
 
     @property
     def form_state_name(self):

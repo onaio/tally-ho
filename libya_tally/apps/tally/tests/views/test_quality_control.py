@@ -200,7 +200,7 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/reject',
                       response['location'])
         result_form = ResultForm.objects.get(pk=result_form.pk)
-        quality_control = result_form.qualitycontrol
+        quality_control = result_form.qualitycontrol_set.all()[0]
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(quality_control.active, False)
@@ -223,8 +223,7 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/home',
                       response['location'])
-        quality_control = QualityControl.objects.get(
-            pk=result_form.qualitycontrol.pk)
+        quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertEqual(quality_control.active, False)
 
     def test_general_get(self):
@@ -292,7 +291,7 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/reject',
                       response['location'])
         result_form = ResultForm.objects.get(pk=result_form.pk)
-        quality_control = result_form.qualitycontrol
+        quality_control = result_form.qualitycontrol_set.all()[0]
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(quality_control.active, False)
@@ -315,8 +314,7 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/home',
                       response['location'])
-        quality_control = QualityControl.objects.get(
-            pk=result_form.qualitycontrol.pk)
+        quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertEqual(quality_control.active, False)
 
     def test_women_get(self):
@@ -362,8 +360,7 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/dashboard',
                       response['location'])
-        quality_control = QualityControl.objects.get(
-            pk=result_form.qualitycontrol.pk)
+        quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertTrue(quality_control.passed_women, True)
 
     def test_women_post_incorrect(self):
@@ -384,7 +381,7 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/reject',
                       response['location'])
         result_form = ResultForm.objects.get(pk=result_form.pk)
-        quality_control = result_form.qualitycontrol
+        quality_control = result_form.qualitycontrol_set.all()[0]
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(quality_control.active, False)
@@ -407,6 +404,5 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/home',
                       response['location'])
-        quality_control = QualityControl.objects.get(
-            pk=result_form.qualitycontrol.pk)
+        quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertEqual(quality_control.active, False)

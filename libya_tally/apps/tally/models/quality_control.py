@@ -25,5 +25,5 @@ class QualityControl(BaseModel):
 
     @property
     def reviews_required_text(self):
-        return _('Reviews Completed') if self.reviews_complete() else\
+        return _('Reviews Completed') if self.reviews_complete else\
             _('Reviews Required')
