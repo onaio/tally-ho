@@ -1,7 +1,8 @@
 import six
-
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.urlresolvers import reverse
+
+from libya_tally.libs.permissions import groups
 
 
 # from django-braces
@@ -21,6 +22,10 @@ class GroupRequiredMixin(object):
 
     def check_membership(self, group):
         """ Check required group(s) """
+        # super admin skips group check
+        if group == groups.SUPER_ADMINISTRATOR:
+            return True
+
         return group in self.request.user.groups.values_list(
             "name", flat=True)
 
