@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
-from libya_tally.apps.tally.views import data_entry_clerk, home,\
+from libya_tally.apps.tally.views import archive, data_entry_clerk, home,\
     intake_clerk, quality_control, corrections
 
 admin.autodiscover()
@@ -72,6 +72,9 @@ urlpatterns = patterns(
     url(r'^corrections/required$',
         corrections.CorrectionRequiredView.as_view(),
         name='corrections-required'),
+    url(r'^archive',
+        archive.ArchiveView.as_view(),
+        name='archive-clerk'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),

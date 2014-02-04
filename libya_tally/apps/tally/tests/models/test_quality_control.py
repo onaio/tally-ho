@@ -6,22 +6,22 @@ class TestQualityControl(TestBase):
     def setUp(self):
         self._create_and_login_user()
 
-    def test_reviews_complete(self):
+    def test_reviews_passed(self):
         result_form = create_result_form()
         quality_control = QualityControl.objects.create(
             result_form=result_form,
             user=self.user)
 
-        self.assertFalse(quality_control.reviews_complete)
+        self.assertFalse(quality_control.reviews_passed)
 
         quality_control.passed_general = True
         quality_control.save()
-        self.assertFalse(quality_control.reviews_complete)
+        self.assertFalse(quality_control.reviews_passed)
 
         quality_control.passed_reconciliation = True
         quality_control.save()
-        self.assertFalse(quality_control.reviews_complete)
+        self.assertFalse(quality_control.reviews_passed)
 
         quality_control.passed_women = True
         quality_control.save()
-        self.assertTrue(quality_control.reviews_complete)
+        self.assertTrue(quality_control.reviews_passed)

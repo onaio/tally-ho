@@ -17,8 +17,8 @@ from libya_tally.libs.tests.test_base import create_result_form, TestBase
 
 
 def create_quality_control(result_form, user):
-    QualityControl.objects.create(result_form=result_form,
-                                  user=user)
+    return QualityControl.objects.create(result_form=result_form,
+                                         user=user)
 
 
 def create_candidates(result_form, user, name, votes, women_name):
@@ -89,22 +89,51 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertEqual(result_form.qualitycontrol.user, self.user)
 
-    def test_dashboard_post(self):
+    def test_dashboard_abort_post(self):
         barcode = '123456789'
         create_result_form(barcode,
                            form_state=FormState.QUALITY_CONTROL)
-        result_form = ResultForm.objects.get(barcode=barcode)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
         view = views.QualityControlDashboardView.as_view()
-        data = {'barcode': barcode, 'barcode_copy': barcode}
+        data = {'result_form': result_form.pk}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
+
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/home',
                       response['location'])
+        self.assertEqual(request.session, {})
+
+    def test_dashboard_submit_post(self):
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        self._create_and_login_user()
+        result_form = ResultForm.objects.get(barcode=barcode)
+        quality_control = create_quality_control(result_form, self.user)
+        quality_control.passed_general = True
+        quality_control.passed_reconciliation = True
+        quality_control.passed_women = True
+        quality_control.save()
+
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {'result_form': result_form.pk}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/home',
+                      response['location'])
+        self.assertEqual(result_form.form_state, FormState.ARCHIVING)
         self.assertEqual(request.session, {})
 
     def test_dashboard_get(self):

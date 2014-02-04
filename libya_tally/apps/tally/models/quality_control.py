@@ -19,11 +19,11 @@ class QualityControl(BaseModel):
     passed_women = models.NullBooleanField()
 
     @property
-    def reviews_complete(self):
+    def reviews_passed(self):
         return self.passed_general and self.passed_reconciliation and\
             self.passed_women
 
     @property
     def reviews_required_text(self):
-        return _('Reviews Completed') if self.reviews_complete else\
+        return _('Reviews Completed') if self.reviews_passed else\
             _('Reviews Required')

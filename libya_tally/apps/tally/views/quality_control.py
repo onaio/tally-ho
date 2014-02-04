@@ -112,7 +112,14 @@ class QualityControlDashboardView(mixins.GroupRequiredMixin,
             self.get_context_data(result_form=result_form))
 
     def post(self, *args, **kwargs):
-        # abort
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        quality_control = result_form.qualitycontrol
+
+        if quality_control.reviews_passed:
+            result_form.form_state = FormState.ARCHIVING
+            result_form.save()
+
         del self.request.session['result_form']
         return redirect(self.success_url)
 

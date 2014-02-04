@@ -9,7 +9,7 @@ from libya_tally.libs.permissions import groups
 
 GROUP_URLS = {
     groups.ADMINISTRATOR: "administrator",
-    groups.ARCHIVING_CLERK: "archiving-clerk",
+    groups.ARCHIVE_CLERK: "archive-clerk",
     groups.ARCHIVE_SUPERVISOR: "archive-supervisor",
     groups.AUDIT_CLERK: "audit-clerk",
     groups.AUDIT_SUPERVISOR: "audit-supervisor",
