@@ -4,9 +4,11 @@ from django.test import RequestFactory
 
 from libya_tally.apps.tally.views import data_entry_clerk as views
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_result_form, \
+from libya_tally.libs.tests.test_base import create_result_form,\
     create_candidate, create_center, create_station, center_data,\
     result_form_data, result_form_data_blank, TestBase
+from libya_tally.apps.tally.models.reconciliation_form import\
+    ReconciliationForm
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.entry_version import EntryVersion
@@ -164,10 +166,18 @@ class TestDataEntryClerk(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_2)
+
+        try:
+            updated_result_form.reconciliationform
+        except ReconciliationForm.DoesNotExist:
+            self.fail("Should save a reconciliation form.")
+
         results = updated_result_form.results.filter(
             entry_version=EntryVersion.DATA_ENTRY_1)
         self.assertTrue(results.count() > 0)
-        self.assertEqual(results[0].user, self.user)
+
+        for result in results:
+            self.assertEqual(result.user, self.user)
 
     def test_enter_results_success_data_entry_two(self):
         code = '12345'
@@ -192,6 +202,12 @@ class TestDataEntryClerk(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.CORRECTION)
+
+        try:
+            updated_result_form.reconciliationform
+        except ReconciliationForm.DoesNotExist:
+            self.fail("Should save a reconciliation form.")
+
         results = updated_result_form.results.filter(
             entry_version=EntryVersion.DATA_ENTRY_2)
         self.assertTrue(results.count() > 0)
@@ -214,16 +230,6 @@ class TestDataEntryClerk(TestBase):
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('data-entry',
-                      response['location'])
-        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
-        self.assertEqual(updated_result_form.form_state,
-                         FormState.DATA_ENTRY_2)
-        results = updated_result_form.results.filter(
-            entry_version=EntryVersion.DATA_ENTRY_1)
-        self.assertTrue(results.count() > 0)
-        self.assertEqual(results[0].user, self.user)
 
         data_entry_1 = self.user
 
@@ -249,5 +255,7 @@ class TestDataEntryClerk(TestBase):
         results = updated_result_form.results.filter(
             entry_version=EntryVersion.DATA_ENTRY_2)
         self.assertTrue(results.count() > 0)
-        self.assertEqual(results[0].user, self.user)
-        self.assertNotEqual(results[0].user, data_entry_1)
+
+        for result in results:
+            self.assertEqual(result.user, self.user)
+            self.assertNotEqual(result.user, data_entry_1)

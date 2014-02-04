@@ -9,7 +9,7 @@ from libya_tally.apps.tally.forms.data_entry_center_details_form import\
     DataEntryCenterDetailsForm
 from libya_tally.apps.tally.forms.candidate_form import CandidateForm
 from libya_tally.apps.tally.forms.candidate_formset import BaseCandidateFormSet
-from libya_tally.apps.tally.forms.reconciliation_form import ReconciliationForm
+from libya_tally.apps.tally.forms.recon_form import ReconForm
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -133,7 +133,7 @@ class EnterResultsView(mixins.GroupRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_data_entry_state(result_form)
         formset, forms_and_candidates = get_formset_and_candidates(result_form)
-        reconciliation_form = ReconciliationForm()
+        reconciliation_form = ReconForm()
         data_entry_number = get_data_entry_number(result_form.form_state)
 
         return self.render_to_response(
@@ -151,7 +151,7 @@ class EnterResultsView(mixins.GroupRequiredMixin,
         form_in_data_entry_state(result_form)
         formset, forms_and_candidates = get_formset_and_candidates(result_form,
                                                                    post_data)
-        reconciliation_form = ReconciliationForm(post_data)
+        recon_form = ReconForm(post_data)
         data_entry_number = get_data_entry_number(result_form.form_state)
 
         candidates = result_form.ballot.candidates.order_by('order')
@@ -160,10 +160,14 @@ class EnterResultsView(mixins.GroupRequiredMixin,
                                            formset=BaseCandidateFormSet)
         formset = CandidateFormSet(post_data)
 
-        if reconciliation_form.is_valid() and formset.is_valid():
+        if recon_form.is_valid() and formset.is_valid():
 
             entry_version = None
             new_state = None
+
+            re_form = recon_form.save(commit=False)
+            re_form.result_form = result_form
+            re_form.save()
 
             if result_form.form_state == FormState.DATA_ENTRY_1:
                 entry_version = EntryVersion.DATA_ENTRY_1
@@ -190,6 +194,6 @@ class EnterResultsView(mixins.GroupRequiredMixin,
             return self.render_to_response(self.get_context_data(
                 formset=formset,
                 forms_and_candidates=forms_and_candidates,
-                reconciliation_form=reconciliation_form,
+                reconciliation_form=recon_form,
                 result_form=result_form,
                 data_entry_number=data_entry_number))

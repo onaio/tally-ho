@@ -2,7 +2,7 @@ from django.forms import ModelForm
 from libya_tally.apps.tally.models import ReconciliationForm
 
 
-class ReconciliationForm(ModelForm):
+class ReconForm(ModelForm):
     class Meta:
         model = ReconciliationForm
         fields = ['ballot_number_from',
