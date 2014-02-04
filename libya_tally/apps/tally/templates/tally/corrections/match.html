@@ -4,10 +4,24 @@
 
 {% block content %}
 
-<h1>{% trans 'Intake' %}</h1>
+<h1>{% trans 'Corrections' %}</h1>
 
-<h2>{% trans 'Form Successfully Intaken' %}</h2>
+<ul>
+    <li>{{ result_form.center.name }} {% trans 'Center Name:' %}</li>
+    <li>{{ result_form.center.office }} {% trans 'Office Name:' %}</li>
+    <li>{{ result_form.center.code }} {% trans 'Center Code:' %}</li>
+    <li>{{ result_form.station_number }} {% trans 'Station Code:' %}</li>
+    <li>{{ result_form.gender }} {% trans 'Gender:' %}</li>
+    <li>{{ result_form.ballot.race_type_name }} {% trans 'Form Race Type:' %}</li>
+</ul>
 
-<a href="{% url 'intake-clerk' %}">{% trans 'Start new form' %}</a>
+<h2>{% trans 'Form Entries Match' %}</h2>
+{% if form.errors %}<p class='errors'>{{ form.errors }}</p>{% endif %}
+<form name="pass_to_qa" action-="" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <input type="hidden" name="pass_to_quality_control" value="true">
+    <button name="submit" type="submit">{% trans 'Pass to Quality Control' %}</button>
+</form>
 {% endblock %}
 
