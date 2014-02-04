@@ -10,7 +10,7 @@ class QualityControl(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    result_form = models.OneToOneField(ResultForm)
+    result_form = models.ForeignKey(ResultForm)
     user = models.ForeignKey(User)
 
     active = models.BooleanField(default=True)
@@ -18,10 +18,12 @@ class QualityControl(BaseModel):
     passed_reconciliation = models.NullBooleanField()
     passed_women = models.NullBooleanField()
 
+    @property
     def reviews_complete(self):
         return self.passed_general and self.passed_reconciliation and\
-            self.passed_womens
+            self.passed_women
 
+    @property
     def reviews_required_text(self):
         return _('Reviews Completed') if self.reviews_complete() else\
             _('Reviews Required')

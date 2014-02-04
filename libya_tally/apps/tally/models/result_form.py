@@ -27,6 +27,10 @@ class ResultForm(BaseModel):
     station_number = models.PositiveSmallIntegerField(null=True)
 
     @property
+    def qualitycontrol(self):
+        return self.qualitycontrol_set.filter(active=True)[0]
+
+    @property
     def form_state_name(self):
         return FormState.to_name(self.form_state)
 
