@@ -139,7 +139,7 @@ class Migration(SchemaMigration):
             ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('passed_general', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
             ('passed_reconciliation', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-            ('passed_womens', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
+            ('passed_women', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
         ))
         db.send_create_signal('tally', ['QualityControl'])
 
@@ -193,6 +193,7 @@ class Migration(SchemaMigration):
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('candidate', self.gf('django.db.models.fields.related.ForeignKey')(related_name='candidates', to=orm['tally.Candidate'])),
             ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(related_name='results', to=orm['tally.ResultForm'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True)),
             ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('entry_version', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
             ('votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
@@ -369,7 +370,7 @@ class Migration(SchemaMigration):
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'passed_general': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
             'passed_reconciliation': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            'passed_womens': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'passed_women': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
             'result_form': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['tally.ResultForm']", 'unique': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
@@ -422,6 +423,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'result_form': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'results'", 'to': "orm['tally.ResultForm']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True'}),
             'votes': ('django.db.models.fields.PositiveIntegerField', [], {})
         },
         'tally.resultform': {

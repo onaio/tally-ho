@@ -10,10 +10,47 @@ from libya_tally.apps.tally.forms.reconciliation_form import\
 from libya_tally.apps.tally.models.quality_control import QualityControl
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
+from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_state
+
+
+class AbstractQualityControl(object):
+    def quality_control_post_actions(self, field):
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, FormState.QUALITY_CONTROL)
+
+        if 'correct' in post_data:
+            # send to dashboard
+            quality_control = result_form.qualitycontrol
+            quality_control.__dict__[field] = True
+            quality_control.save()
+
+            return redirect(self.success_url)
+        elif 'incorrect' in post_data:
+            # send to reject page
+            quality_control = result_form.qualitycontrol
+            quality_control.__dict__[field] = False
+            quality_control.active = False
+            quality_control.save()
+            result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.save()
+
+            return redirect('quality-control-reject')
+        elif 'abort' in post_data:
+            # send to entry
+            del self.request.session['result_form']
+            quality_control = result_form.qualitycontrol
+            quality_control.active = False
+            quality_control.save()
+
+            return redirect('quality-control-home')
+
+        raise SuspiciousOperation('Missing expected POST data')
 
 
 class QualityControlView(mixins.GroupRequiredMixin,
@@ -73,9 +110,9 @@ class QualityControlReconciliationView(mixins.GroupRequiredMixin,
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, FormState.QUALITY_CONTROL)
         reconciliation_form = ReconciliationForm(data=model_to_dict(
             result_form.reconciliationform))
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
@@ -118,41 +155,51 @@ class QualityControlReconciliationView(mixins.GroupRequiredMixin,
 
 class QualityControlGeneralView(mixins.GroupRequiredMixin,
                                 mixins.ReverseSuccessURLMixin,
-                                FormView):
+                                FormView,
+                                AbstractQualityControl):
     group_required = groups.QUALITY_CONTROL_CLERK
-    template_name = "tally/quality_control/reconciliation.html"
+    template_name = "tally/quality_control/general.html"
     success_url = 'quality-control-dashboard'
 
     def get(self, *args, **kwargs):
+        header_text = 'General'
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
 
+        results = result_form.results.filter(
+            candidate__race_type=RaceType.GENERAL)
+
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form,
+                                  results=results,
+                                  header_text=header_text))
 
     def post(self, *args, **kwargs):
-        # abort
-        del self.request.session['result_form']
-        return redirect(self.success_url)
+        return self.quality_control_post_actions('passed_general')
 
 
 class QualityControlWomenView(mixins.GroupRequiredMixin,
                               mixins.ReverseSuccessURLMixin,
-                              FormView):
+                              FormView,
+                              AbstractQualityControl):
     group_required = groups.QUALITY_CONTROL_CLERK
-    template_name = "tally/quality_control/reconciliation.html"
+    template_name = "tally/quality_control/general.html"
     success_url = 'quality-control-dashboard'
 
     def get(self, *args, **kwargs):
+        header_text = 'Women'
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
 
+        results = result_form.results.filter(
+            candidate__race_type=RaceType.WOMEN)
+
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form,
+                                  results=results,
+                                  header_text=header_text))
 
     def post(self, *args, **kwargs):
-        # abort
-        del self.request.session['result_form']
-        return redirect(self.success_url)
+        return self.quality_control_post_actions('passed_women')

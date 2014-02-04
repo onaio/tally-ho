@@ -16,7 +16,7 @@ class QualityControl(BaseModel):
     active = models.BooleanField(default=True)
     passed_general = models.NullBooleanField()
     passed_reconciliation = models.NullBooleanField()
-    passed_womens = models.NullBooleanField()
+    passed_women = models.NullBooleanField()
 
     def reviews_complete(self):
         return self.passed_general and self.passed_reconciliation and\

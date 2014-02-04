@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Quality Control' %}</h1>
+
+{% include 'tally/center_details.html' %}
+
+<h2>{{ header_text }} {% trans 'Results Section' %}</h2>
+
+<table>
+    <tr>
+        <th>Votes</th>
+        <th>Candidate</th>
+        <th>No.</th>
+    </tr>
+{% for result in results %}
+    <tr>
+        <td>
+            {{ result.votes }}
+        </td>
+        <td>
+            {{ result.candidate.full_name }}
+        </td>
+        <td>
+            {{ result.candidate.order }}
+        </td>
+    </tr>
+{% endfor %}
+</table>
+
+<form name="form_correct" method="post" action="">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <input type="hidden" name="correct" value="true">
+    <button type="submit" name="submit">{% trans "Correct" %}</button>
+    {% csrf_token %}
+</form>
+
+<form name="form_incorrect" method="post" action="">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <input type="hidden" name="incorrect" value="true">
+    <button type="submit" name="submit">{% trans "Incorrect" %}</button>
+    {% csrf_token %}
+</form>
+
+<form name="form_abort" method="post" action="">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <input type="hidden" name="abort" value="true">
+    <button type="submit" name="submit">{% trans "Abort" %}</button>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

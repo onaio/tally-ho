@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django_enumfield import enum
 
@@ -13,6 +14,7 @@ class Result(BaseModel):
 
     candidate = models.ForeignKey(Candidate, related_name='candidates')
     result_form = models.ForeignKey(ResultForm, related_name='results')
+    user = models.ForeignKey(User, null=True)
 
     active = models.BooleanField(default=True)
     entry_version = enum.EnumField(EntryVersion)

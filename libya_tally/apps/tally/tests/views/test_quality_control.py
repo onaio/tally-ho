@@ -6,8 +6,12 @@ from libya_tally.apps.tally.views import quality_control as views
 from libya_tally.apps.tally.models.quality_control import QualityControl
 from libya_tally.apps.tally.models.reconciliation_form import\
     ReconciliationForm
+from libya_tally.apps.tally.models.candidate import Candidate
+from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
+from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form, TestBase
 
@@ -15,6 +19,30 @@ from libya_tally.libs.tests.test_base import create_result_form, TestBase
 def create_quality_control(result_form, user):
     QualityControl.objects.create(result_form=result_form,
                                   user=user)
+
+
+def create_candidates(result_form, user, name, votes, women_name):
+    for i in xrange(10):
+        candidate = Candidate.objects.create(ballot=result_form.ballot,
+                                             candidate_id=1,
+                                             full_name=name,
+                                             order=0,
+                                             race_type=RaceType.GENERAL)
+        candidate_f = Candidate.objects.create(ballot=result_form.ballot,
+                                               candidate_id=1,
+                                               full_name=women_name,
+                                               order=0,
+                                               race_type=RaceType.WOMEN)
+        create_result(result_form, candidate, user, votes)
+        create_result(result_form, candidate_f, user, votes)
+
+
+def create_result(result_form, candidate, user, votes):
+    Result.objects.create(result_form=result_form,
+                          user=user,
+                          candidate=candidate,
+                          votes=votes,
+                          entry_version=EntryVersion.FINAL)
 
 
 class TestQualityControl(TestBase):
@@ -187,6 +215,190 @@ class TestQualityControl(TestBase):
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlReconciliationView.as_view()
+        data = {'result_form': result_form.pk, 'abort': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/home',
+                      response['location'])
+        quality_control = QualityControl.objects.get(
+            pk=result_form.qualitycontrol.pk)
+        self.assertEqual(quality_control.active, False)
+
+    def test_general_get(self):
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self._create_and_login_user()
+        name = 'the candidate name'
+        women_name = 'women candidate name'
+        votes = 123
+
+        create_candidates(result_form, self.user, name, votes, women_name)
+
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlGeneralView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        response.render()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(str(result_form.gender_name), response.content)
+        self.assertIn('General', response.content)
+        self.assertIn(name, response.content)
+        self.assertNotIn(women_name, response.content)
+        self.assertIn(str(votes), response.content)
+
+    def test_general_post_correct(self):
+        self._create_and_login_user()
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlGeneralView.as_view()
+        data = {'result_form': result_form.pk, 'correct': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/dashboard',
+                      response['location'])
+        quality_control = QualityControl.objects.get(
+            pk=result_form.qualitycontrol.pk)
+        self.assertTrue(quality_control.passed_general, True)
+
+    def test_general_post_incorrect(self):
+        self._create_and_login_user()
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlGeneralView.as_view()
+        data = {'result_form': result_form.pk, 'incorrect': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/reject',
+                      response['location'])
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+        quality_control = result_form.qualitycontrol
+
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertEqual(quality_control.active, False)
+        self.assertEqual(quality_control.passed_general, False)
+
+    def test_general_post_abort(self):
+        self._create_and_login_user()
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlGeneralView.as_view()
+        data = {'result_form': result_form.pk, 'abort': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/home',
+                      response['location'])
+        quality_control = QualityControl.objects.get(
+            pk=result_form.qualitycontrol.pk)
+        self.assertEqual(quality_control.active, False)
+
+    def test_women_get(self):
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self._create_and_login_user()
+        name = 'general candidate name'
+        women_name = 'women candidate name'
+        votes = 123
+
+        create_candidates(result_form, self.user, name, votes, women_name)
+
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlWomenView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        response.render()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(str(result_form.gender_name), response.content)
+        self.assertIn('Women', response.content)
+        self.assertIn(women_name, response.content)
+        self.assertNotIn(name, response.content)
+        self.assertIn(str(votes), response.content)
+
+    def test_women_post_correct(self):
+        self._create_and_login_user()
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlWomenView.as_view()
+        data = {'result_form': result_form.pk, 'correct': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/dashboard',
+                      response['location'])
+        quality_control = QualityControl.objects.get(
+            pk=result_form.qualitycontrol.pk)
+        self.assertTrue(quality_control.passed_women, True)
+
+    def test_women_post_incorrect(self):
+        self._create_and_login_user()
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlWomenView.as_view()
+        data = {'result_form': result_form.pk, 'incorrect': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/reject',
+                      response['location'])
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+        quality_control = result_form.qualitycontrol
+
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertEqual(quality_control.active, False)
+        self.assertEqual(quality_control.passed_women, False)
+
+    def test_women_post_abort(self):
+        self._create_and_login_user()
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlWomenView.as_view()
         data = {'result_form': result_form.pk, 'abort': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
