@@ -209,7 +209,10 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
                     self.request.session['corrections-done'] = {
                         'result_form': result_form.pk}
 
-            return redirect('corrections-required')
+            result_form.form_state = FormState.QUALITY_CONTROL
+            result_form.save()
+
+            return redirect('corrections-clerk')
         elif 'reject_submit' in self.request.POST:
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
