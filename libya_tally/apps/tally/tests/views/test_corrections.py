@@ -156,3 +156,20 @@ class TestCorrectionView(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.QUALITY_CONTROL)
+
+    def test_corrections_required(self):
+        view = views.CorrectionRequiredView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_results(result_form, vote1=2, vote2=3)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2)
+        session = {'result_form': result_form.pk}
+        # data = {'result_form': result_form.pk,
+        #         'pass_to_quality_control': 'true'}
+        request = self.factory.get('/')
+        request.session = session
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 200)

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<form name="corrections_form" action-="" method="post">
+{% if form.errors %}<p class='errors'>{{ form.errors }}</p>{% endif %}
+    {% csrf_token %}
+    {{ formset.non_form_errors }}
+    {{ formset.management_form }}
+
+    <table>
+        <tr>
+            <th>{% trans 'Corrections Required?' %}</th>
+            <th>{% trans 'Select' %}</th>
+            <th>{% trans 'Entry 1' %}</th>
+            <th>{% trans 'Select' %}</th>
+            <th>{% trans 'Entry 2' %}</th>
+            <th>Candidate</th>
+            <th>No.</th>
+        </tr>
+    {% for candidate, result1, result2, field in candidates %}
+        <tr>
+            <td>
+                {% if result1.votes == result2.votes %}
+                {% trans 'No' %}
+                {% else %}{% trans 'Yes' %}{% endif %}</td>
+            <td>
+                {% if result1.votes != result2.votes %}
+                <input type="radio" name="candidate_{{ candidate.pk }}" value="{{ result1.votes }}" />
+                {% else %}-{% endif %}</td>
+            </td>
+            <td>
+                {{ result1.votes }}
+            </td>
+            <td>
+                {% if result1.votes != result2.votes %}
+                <input type="radio" name="candidate_{{ candidate.pk }}" value="{{ result2.votes }}" />
+                {% else %}-{% endif %}</td>
+            </td>
+            <td>
+                {{ result2.votes }}
+            </td>
+            <td>
+                {{ candidate.full_name }}
+            </td>
+            <td>
+                {{ candidate.order }}
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+
+
+<h1>{% trans 'Corrections' %}</h1>
+<h2>{% trans 'Corrections Required' %}</h2>
+
+<ul>
+    <li>{{ result_form.center.name }} {% trans 'Center Name:' %}</li>
+    <li>{{ result_form.center.office }} {% trans 'Office Name:' %}</li>
+    <li>{{ result_form.center.code }} {% trans 'Center Code:' %}</li>
+    <li>{{ result_form.station_number }} {% trans 'Station Code:' %}</li>
+    <li>{{ result_form.gender }} {% trans 'Gender:' %}</li>
+    <li>{{ result_form.ballot.race_type_name }} {% trans 'Form Race Type:' %}</li>
+</ul>
+
+<h2>{% trans 'Form Entries Match' %}</h2>
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <button name="submit_corrections" type="submit" value="submit corrections">{% trans 'Submit Corrections' %}</button>
+    <button name="reject_submit" type="submit" value="reject">{% trans 'No Correct - Reject' %}</button>
+    <button name="abort_submit" type="submit" value="abort">{% trans 'Abort' %}</button>
+
+</form>
+{% endblock %}
+
