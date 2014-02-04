@@ -5,7 +5,7 @@ from libya_tally.libs.permissions.groups import create_permission_groups, \
     create_demo_users_with_groups
 
 
-class TestPermissionsGroup(TestCase):
+class TestGroups(TestCase):
     def setUp(self):
         pass
 
