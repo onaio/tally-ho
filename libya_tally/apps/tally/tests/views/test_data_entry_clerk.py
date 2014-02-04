@@ -32,6 +32,14 @@ class TestDataEntryClerk(TestBase):
         self.assertIn('/accounts/logout/', response.content)
         return response
 
+    def _post_enter_results(self, result_form):
+        view = views.EnterResultsView.as_view()
+        data = result_form_data(result_form)
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        return view(request)
+
     def test_center_detail_view(self):
         response = self._common_view_tests(views.CenterDetailsView.as_view())
         self.assertContains(response, 'Double Enter Center Details')
@@ -152,12 +160,9 @@ class TestDataEntryClerk(TestBase):
 
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
-        view = views.EnterResultsView.as_view()
-        data = result_form_data(result_form)
-        request = self.factory.post('/', data=data)
-        request.user = self.user
-        request.session = {'result_form': result_form.pk}
-        response = view(request)
+
+        response = self._post_enter_results(result_form)
+
         self.assertEqual(response.status_code, 302)
         self.assertIn('data-entry',
                       response['location'])
@@ -165,11 +170,14 @@ class TestDataEntryClerk(TestBase):
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_2)
 
-        self.assertEqual(updated_result_form.reconciliationform_set.count(), 1)
+        reconciliation_forms = updated_result_form.reconciliationform_set.all()
+        self.assertEqual(len(reconciliation_forms), 1)
+        self.assertEqual(reconciliation_forms[0].entry_version,
+                         EntryVersion.DATA_ENTRY_1)
 
-        results = updated_result_form.results.filter(
-            entry_version=EntryVersion.DATA_ENTRY_1)
-        self.assertTrue(results.count() > 0)
+        results = updated_result_form.results.all()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].entry_version, EntryVersion.DATA_ENTRY_1)
 
         for result in results:
             self.assertEqual(result.user, self.user)
@@ -185,12 +193,9 @@ class TestDataEntryClerk(TestBase):
 
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
-        view = views.EnterResultsView.as_view()
-        data = result_form_data(result_form)
-        request = self.factory.post('/', data=data)
-        request.user = self.user
-        request.session = {'result_form': result_form.pk}
-        response = view(request)
+
+        response = self._post_enter_results(result_form)
+
         self.assertEqual(response.status_code, 302)
         self.assertIn('data-entry',
                       response['location'])
@@ -198,11 +203,15 @@ class TestDataEntryClerk(TestBase):
         self.assertEqual(updated_result_form.form_state,
                          FormState.CORRECTION)
 
-        self.assertEqual(updated_result_form.reconciliationform_set.count(), 1)
+        reconciliation_forms = updated_result_form.reconciliationform_set.all()
+        self.assertEqual(len(reconciliation_forms), 1)
 
-        results = updated_result_form.results.filter(
-            entry_version=EntryVersion.DATA_ENTRY_2)
-        self.assertTrue(results.count() > 0)
+        self.assertEqual(reconciliation_forms[0].entry_version,
+                         EntryVersion.DATA_ENTRY_2)
+
+        results = updated_result_form.results.all()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].entry_version, EntryVersion.DATA_ENTRY_2)
         self.assertEqual(results[0].user, self.user)
 
     def test_enter_results_success_data_entry(self):

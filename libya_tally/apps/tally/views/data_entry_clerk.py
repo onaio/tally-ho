@@ -165,10 +165,6 @@ class EnterResultsView(mixins.GroupRequiredMixin,
             entry_version = None
             new_state = None
 
-            re_form = recon_form.save(commit=False)
-            re_form.result_form = result_form
-            re_form.save()
-
             if result_form.form_state == FormState.DATA_ENTRY_1:
                 entry_version = EntryVersion.DATA_ENTRY_1
                 new_state = FormState.DATA_ENTRY_2
@@ -185,6 +181,11 @@ class EnterResultsView(mixins.GroupRequiredMixin,
                     votes=votes,
                     user=self.request.user
                 )
+
+            re_form = recon_form.save(commit=False)
+            re_form.entry_version = entry_version
+            re_form.result_form = result_form
+            re_form.save()
 
             result_form.form_state = new_state
             result_form.save()

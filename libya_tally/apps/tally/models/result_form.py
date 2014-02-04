@@ -28,14 +28,24 @@ class ResultForm(BaseModel):
     station_number = models.PositiveSmallIntegerField(null=True)
 
     @property
-    def has_general_results(self):
+    def general_results(self):
         return self.results.filter(
-            candidate__race_type=RaceType.GENERAL).count() > 0
+            active=True,
+            candidate__race_type=RaceType.GENERAL)
+
+    @property
+    def women_results(self):
+        return self.results.filter(
+            active=True,
+            candidate__race_type=RaceType.GENERAL)
+
+    @property
+    def has_general_results(self):
+        return self.general_results.count() > 0
 
     @property
     def has_women_results(self):
-        return self.results.filter(
-            candidate__race_type=RaceType.WOMEN).count() > 0
+        return self.women_results.count() > 0
 
     @property
     def qualitycontrol(self):

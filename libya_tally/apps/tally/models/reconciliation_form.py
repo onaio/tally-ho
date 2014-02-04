@@ -1,8 +1,10 @@
 from django.db import models
+from django_enumfield import enum
 from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.base_model import BaseModel
+from libya_tally.libs.models.enums.entry_version import EntryVersion
 
 
 class ReconciliationForm(BaseModel):
@@ -11,6 +13,8 @@ class ReconciliationForm(BaseModel):
 
     result_form = models.ForeignKey(ResultForm)
 
+    active = models.BooleanField(default=True)
+    entry_version = enum.EnumField(EntryVersion)
     ballot_number_from = models.PositiveIntegerField(
         help_text=_('Serial number of ballots received by the polling station'
                     'from'))
