@@ -6,43 +6,16 @@ from libya_tally.apps.tally.views import quality_control as views
 from libya_tally.apps.tally.models.quality_control import QualityControl
 from libya_tally.apps.tally.models.reconciliation_form import\
     ReconciliationForm
-from libya_tally.apps.tally.models.candidate import Candidate
-from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
-from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
-from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_result_form, TestBase
+from libya_tally.libs.tests.test_base import create_candidates,\
+    create_result_form, TestBase
 
 
 def create_quality_control(result_form, user):
     return QualityControl.objects.create(result_form=result_form,
                                          user=user)
-
-
-def create_candidates(result_form, user, name, votes, women_name):
-    for i in xrange(10):
-        candidate = Candidate.objects.create(ballot=result_form.ballot,
-                                             candidate_id=1,
-                                             full_name=name,
-                                             order=0,
-                                             race_type=RaceType.GENERAL)
-        candidate_f = Candidate.objects.create(ballot=result_form.ballot,
-                                               candidate_id=1,
-                                               full_name=women_name,
-                                               order=0,
-                                               race_type=RaceType.WOMEN)
-        create_result(result_form, candidate, user, votes)
-        create_result(result_form, candidate_f, user, votes)
-
-
-def create_result(result_form, candidate, user, votes):
-    Result.objects.create(result_form=result_form,
-                          user=user,
-                          candidate=candidate,
-                          votes=votes,
-                          entry_version=EntryVersion.FINAL)
 
 
 class TestQualityControl(TestBase):
@@ -138,10 +111,11 @@ class TestQualityControl(TestBase):
 
     def test_dashboard_get(self):
         barcode = '123456789'
+        self._create_and_login_user()
         create_result_form(barcode,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
-        self._create_and_login_user()
+        create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
@@ -154,6 +128,31 @@ class TestQualityControl(TestBase):
         self.assertIn(str(result_form.gender_name), response.content)
         self.assertIn('Reviews Required', response.content)
         self.assertNotIn('Reconciliation', response.content)
+        self.assertIn('Abort', response.content)
+
+    def test_dashboard_get_reviewed(self):
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self._create_and_login_user()
+        qc = create_quality_control(result_form, self.user)
+        qc.passed_general = True
+        qc.passed_womens = True
+        qc.save()
+
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        response.render()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(str(result_form.gender_name), response.content)
+        result_form.qualitycontrol.reviews_passed
+        self.assertIn('Reviews Complete', response.content)
+        self.assertIn('Submit', response.content)
 
     def test_reconciliation_get(self):
         barcode = '123456789'

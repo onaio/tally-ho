@@ -7,6 +7,7 @@ from libya_tally.apps.tally.models.center import Center
 from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.gender import Gender
+from libya_tally.libs.models.enums.race_type import RaceType
 
 
 class ResultForm(BaseModel):
@@ -25,6 +26,16 @@ class ResultForm(BaseModel):
     office = models.CharField(max_length=256, null=True)
     serial_number = models.PositiveIntegerField(unique=True)
     station_number = models.PositiveSmallIntegerField(null=True)
+
+    @property
+    def has_general_results(self):
+        return self.results.filter(
+            candidate__race_type=RaceType.GENERAL).count() > 0
+
+    @property
+    def has_women_results(self):
+        return self.results.filter(
+            candidate__race_type=RaceType.WOMEN).count() > 0
 
     @property
     def qualitycontrol(self):

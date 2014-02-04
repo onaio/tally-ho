@@ -9,7 +9,7 @@ class ReconciliationForm(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    result_form = models.OneToOneField(ResultForm)
+    result_form = models.ForeignKey(ResultForm)
 
     ballot_number_from = models.PositiveIntegerField(
         help_text=_('Serial number of ballots received by the polling station'

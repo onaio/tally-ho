@@ -176,7 +176,7 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('result_form', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['tally.ResultForm'], unique=True)),
+            ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.ResultForm'])),
             ('ballot_number_from', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('ballot_number_to', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('number_ballots_received', self.gf('django.db.models.fields.PositiveIntegerField')()),
@@ -425,7 +425,7 @@ class Migration(SchemaMigration):
             'number_unused_ballots': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'number_valid_votes': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'remarks': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'result_form': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['tally.ResultForm']", 'unique': 'True'})
+            'result_form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.ResultForm']"})
         },
         'tally.result': {
             'Meta': {'object_name': 'Result'},

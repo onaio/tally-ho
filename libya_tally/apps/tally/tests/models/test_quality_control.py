@@ -1,5 +1,6 @@
 from libya_tally.apps.tally.models.quality_control import QualityControl
-from libya_tally.libs.tests.test_base import create_result_form, TestBase
+from libya_tally.libs.tests.test_base import create_candidates,\
+    create_result_form, TestBase
 
 
 class TestQualityControl(TestBase):
@@ -8,6 +9,7 @@ class TestQualityControl(TestBase):
 
     def test_reviews_passed(self):
         result_form = create_result_form()
+        create_candidates(result_form, self.user)
         quality_control = QualityControl.objects.create(
             result_form=result_form,
             user=self.user)

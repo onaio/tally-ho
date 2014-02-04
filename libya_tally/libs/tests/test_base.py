@@ -6,15 +6,43 @@ from django.test import RequestFactory
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.center import Center
+from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.station import Station
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
 from libya_tally.libs.models.enums.center_type import CenterType
 from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.models.enums.gender import Gender
 from libya_tally.libs.permissions.groups import create_permission_groups, \
     add_user_to_group
+
+
+def create_result(result_form, candidate, user, votes):
+    Result.objects.create(result_form=result_form,
+                          user=user,
+                          candidate=candidate,
+                          votes=votes,
+                          entry_version=EntryVersion.FINAL)
+
+
+def create_candidates(result_form, user,
+                      name='the candidate name', votes=123,
+                      women_name='women candidate name'):
+    for i in xrange(10):
+        candidate = Candidate.objects.create(ballot=result_form.ballot,
+                                             candidate_id=1,
+                                             full_name=name,
+                                             order=0,
+                                             race_type=RaceType.GENERAL)
+        candidate_f = Candidate.objects.create(ballot=result_form.ballot,
+                                               candidate_id=1,
+                                               full_name=women_name,
+                                               order=0,
+                                               race_type=RaceType.WOMEN)
+        create_result(result_form, candidate, user, votes)
+        create_result(result_form, candidate_f, user, votes)
 
 
 def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
