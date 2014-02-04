@@ -31,8 +31,8 @@ class TestIntakeClerk(TestBase):
 
     def test_center_detail_view(self):
         response = self._common_view_tests(views.CenterDetailsView.as_view())
-        self.assertContains(response, 'Double Enter Center Details')
-        self.assertIn('<form id="barcode_form"', response.content)
+        self.assertContains(response, 'Intake')
+        self.assertContains(response, '<form id="result_form"')
 
     def test_center_detail_barcode_length(self):
         self._create_and_login_user()
