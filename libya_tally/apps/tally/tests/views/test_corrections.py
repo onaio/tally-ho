@@ -192,3 +192,30 @@ class TestCorrectionView(TestBase):
         response = view(request)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections', response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.QUALITY_CONTROL)
+
+    def test_corrections_required_post_reject(self):
+        view = views.CorrectionRequiredView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_results(result_form, vote1=2, vote2=3)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2)
+        session = {'result_form': result_form.pk}
+        post_data = {
+            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            'result_form': result_form.pk,
+            'reject_submit': 'reject'
+        }
+        request = self.factory.post('/', post_data)
+        request.session = session
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/corrections', response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.DATA_ENTRY_1)
