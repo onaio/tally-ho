@@ -6,7 +6,8 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.views import intake_clerk as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_result_form, TestBase
+from libya_tally.libs.tests.test_base import create_center,\
+    create_result_form, TestBase
 
 
 class TestIntakeClerk(TestBase):
@@ -67,8 +68,10 @@ class TestIntakeClerk(TestBase):
 
     def test_center_detail_redirects_to_check_center_details(self):
         barcode = '123456789'
+        center = create_center()
         create_result_form(barcode,
-                           form_state=FormState.UNSUBMITTED)
+                           form_state=FormState.UNSUBMITTED,
+                           center=center)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()

@@ -47,7 +47,10 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             result_form.save()
             self.request.session['result_form'] = result_form.pk
 
-            return redirect(self.success_url)
+            if result_form.center:
+                return redirect(self.success_url)
+            else:
+                raise Exception('Unimplemented: handle unassigned forms')
         else:
             return self.form_invalid(form)
 
@@ -56,7 +59,7 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     group_required = groups.INTAKE_CLERK
-    template_name = "tally/check_center_details.html"
+    template_name = "tally/intake/check_details.html"
     success_url = "intake-check-center-details"
 
     def get(self, *args, **kwargs):

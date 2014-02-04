@@ -78,7 +78,7 @@ def create_candidate(ballot, candidate_name):
                                     race_type=RaceType.GENERAL)
 
 
-def create_center(code):
+def create_center(code='1'):
     return Center.objects.get_or_create(
         code=code,
         mahalla='1',
