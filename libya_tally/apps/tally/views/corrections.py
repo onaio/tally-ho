@@ -74,7 +74,7 @@ class CorrectionMatchView(mixins.GroupRequiredMixin,
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
     template_name = "tally/corrections/match.html"
-    success_url = 'corrections'
+    success_url = 'corrections-clerk'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -116,3 +116,28 @@ class CorrectionMatchView(mixins.GroupRequiredMixin,
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
+
+
+class CorrectionRequiredView(mixins.GroupRequiredMixin,
+                             mixins.ReverseSuccessURLMixin,
+                             FormView):
+    form_class = PassToQualityControlForm
+    group_required = groups.CORRECTIONS_CLERK
+    template_name = "tally/corrections/required.html"
+    success_url = 'corrections-clerk'
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
+
+        candidates = []
+        for result in result_form.results.order_by('candidate__order'):
+
+            if result.candidate not in candidates:
+                candidates.append(result.candidate)
+            else:
+                pass
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))
