@@ -32,6 +32,11 @@ class ResultForm(BaseModel):
         return quality_controls[0] if len(quality_controls) else None
 
     @property
+    def audit(self):
+        audits = self.audit_set.filter(active=True)
+        return audits[0] if len(audits) else None
+
+    @property
     def form_state_name(self):
         return FormState.to_name(self.form_state)
 

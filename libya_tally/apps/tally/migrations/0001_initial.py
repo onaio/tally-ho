@@ -96,13 +96,22 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('quarantine_check', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.QuarantineCheck'])),
             ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.ResultForm'])),
-            ('supervisor', self.gf('django.db.models.fields.related.ForeignKey')(related_name='audit_user', to=orm['auth.User'])),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('recommendation', self.gf('django.db.models.fields.TextField')()),
+            ('supervisor', self.gf('django.db.models.fields.related.ForeignKey')(related_name='audit_user', null=True, to=orm['auth.User'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True)),
+            ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
+            ('recommendation', self.gf('django.db.models.fields.TextField')(null=True)),
         ))
         db.send_create_signal('tally', ['Audit'])
+
+        # Adding M2M table for field quarantine_checks on 'Audit'
+        m2m_table_name = db.shorten_name(u'tally_audit_quarantine_checks')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('audit', models.ForeignKey(orm['tally.audit'], null=False)),
+            ('quarantinecheck', models.ForeignKey(orm['tally.quarantinecheck'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['audit_id', 'quarantinecheck_id'])
 
         # Adding model 'Candidate'
         db.create_table(u'tally_candidate', (
@@ -236,6 +245,9 @@ class Migration(SchemaMigration):
         # Deleting model 'Audit'
         db.delete_table(u'tally_audit')
 
+        # Removing M2M table for field quarantine_checks on 'Audit'
+        db.delete_table(db.shorten_name(u'tally_audit_quarantine_checks'))
+
         # Deleting model 'Candidate'
         db.delete_table(u'tally_candidate')
 
@@ -308,14 +320,15 @@ class Migration(SchemaMigration):
         },
         'tally.audit': {
             'Meta': {'object_name': 'Audit'},
+            'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'quarantine_check': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.QuarantineCheck']"}),
-            'recommendation': ('django.db.models.fields.TextField', [], {}),
+            'quarantine_checks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['tally.QuarantineCheck']", 'symmetrical': 'False'}),
+            'recommendation': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             'result_form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.ResultForm']"}),
-            'supervisor': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'audit_user'", 'to': u"orm['auth.User']"}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+            'supervisor': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'audit_user'", 'null': 'True', 'to': u"orm['auth.User']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True'})
         },
         'tally.ballot': {
             'Meta': {'object_name': 'Ballot'},

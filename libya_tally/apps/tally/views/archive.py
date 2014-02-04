@@ -63,23 +63,34 @@ class ArchiveView(mixins.GroupRequiredMixin,
 
 
 class ArchivePrintView(mixins.GroupRequiredMixin,
-                       mixins.ReverseSuccessURLMixin):
+                       mixins.ReverseSuccessURLMixin,
+                       FormView):
     group_required = groups.ARCHIVE_CLERK
-    template_name = "tally/archive/print.html"
+    template_name = "tally/archive/print_cover.html"
     success_url = 'archive-clerk'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.ARCHIVING])
+        form_in_state(result_form, FormState.ARCHIVING)
+
+        if result_form.audit:
+            cover_type = _('Quarantined')
+            form_state = _('QUARANTINED FORM')
+        else:
+            cover_type = _('Successful Archive')
+            form_state = _('ARCHIVED FORM')
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form,
+                                  cover_type=cover_type,
+                                  form_state=form_state))
 
     @transaction.atomic
     def post(self, *args, **kwargs):
+        post_data = self.request.POST
         pk = session_matches_post_result_form(
-            self.post_data, self.request)
+            post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.ARCHIVING)
 

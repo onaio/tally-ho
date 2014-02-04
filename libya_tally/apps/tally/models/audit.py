@@ -10,9 +10,10 @@ class Audit(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    quarantine_check = models.ForeignKey(QuarantineCheck)
+    quarantine_checks = models.ManyToManyField(QuarantineCheck)
     result_form = models.ForeignKey(ResultForm)
-    supervisor = models.ForeignKey(User, related_name='audit_user')
-    user = models.ForeignKey(User)
+    supervisor = models.ForeignKey(User, related_name='audit_user', null=True)
+    user = models.ForeignKey(User, null=True)
 
-    recommendation = models.TextField()
+    active = models.BooleanField(default=True)
+    recommendation = models.TextField(null=True)
