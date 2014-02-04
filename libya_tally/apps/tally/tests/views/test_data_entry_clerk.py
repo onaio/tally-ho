@@ -7,8 +7,6 @@ from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form,\
     create_candidate, create_center, create_station, center_data,\
     result_form_data, result_form_data_blank, TestBase
-from libya_tally.apps.tally.models.reconciliation_form import\
-    ReconciliationForm
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.entry_version import EntryVersion
@@ -167,10 +165,7 @@ class TestDataEntryClerk(TestBase):
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_2)
 
-        try:
-            updated_result_form.reconciliationform
-        except ReconciliationForm.DoesNotExist:
-            self.fail("Should save a reconciliation form.")
+        self.assertEqual(updated_result_form.reconciliationform_set.count(), 1)
 
         results = updated_result_form.results.filter(
             entry_version=EntryVersion.DATA_ENTRY_1)
@@ -203,10 +198,7 @@ class TestDataEntryClerk(TestBase):
         self.assertEqual(updated_result_form.form_state,
                          FormState.CORRECTION)
 
-        try:
-            updated_result_form.reconciliationform
-        except ReconciliationForm.DoesNotExist:
-            self.fail("Should save a reconciliation form.")
+        self.assertEqual(updated_result_form.reconciliationform_set.count(), 1)
 
         results = updated_result_form.results.filter(
             entry_version=EntryVersion.DATA_ENTRY_2)

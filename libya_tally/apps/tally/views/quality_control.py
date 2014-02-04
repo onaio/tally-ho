@@ -145,7 +145,7 @@ class QualityControlReconciliationView(mixins.GroupRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
         reconciliation_form = ReconciliationForm(data=model_to_dict(
-            result_form.reconciliationform))
+            result_form.reconciliationform_set.all()[0]))
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
