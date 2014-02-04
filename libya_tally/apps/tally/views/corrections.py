@@ -42,8 +42,12 @@ class CorrectionView(mixins.GroupRequiredMixin,
                      FormView):
     form_class = IntakeBarcodeForm
     group_required = groups.CORRECTIONS_CLERK
-    template_name = "tally/corrections/correction.html"
+    template_name = "tally/barcode_verify.html"
     success_url = 'corrections-match'
+
+    def get(self, *args, **kwargs):
+        return self.render_to_response(
+            self.get_context_data(header_text=_('Correction')))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()

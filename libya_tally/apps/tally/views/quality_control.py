@@ -2,6 +2,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView
+from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.forms.intake_barcode_form import\
     IntakeBarcodeForm
@@ -60,7 +61,7 @@ class AbstractQualityControl(object):
             quality_control.active = False
             quality_control.save()
 
-            return redirect('quality-control-home')
+            return redirect('quality-control-clerk')
 
         raise SuspiciousOperation('Missing expected POST data')
 
@@ -70,8 +71,12 @@ class QualityControlView(mixins.GroupRequiredMixin,
                          FormView):
     form_class = IntakeBarcodeForm
     group_required = groups.QUALITY_CONTROL_CLERK
-    template_name = "tally/quality_control/home.html"
+    template_name = "tally/barcode_verify.html"
     success_url = 'quality-control-dashboard'
+
+    def get(self, *args, **kwargs):
+        return self.render_to_response(
+            self.get_context_data(header_text=_('Quality Control')))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -96,7 +101,7 @@ class QualityControlDashboardView(mixins.GroupRequiredMixin,
                                   FormView):
     group_required = groups.QUALITY_CONTROL_CLERK
     template_name = "tally/quality_control/dashboard.html"
-    success_url = 'quality-control-home'
+    success_url = 'quality-control-clerk'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -160,7 +165,7 @@ class QualityControlReconciliationView(mixins.GroupRequiredMixin,
             quality_control.active = False
             quality_control.save()
 
-            return redirect('quality-control-home')
+            return redirect('quality-control-clerk')
 
         raise SuspiciousOperation('Missing expected POST data')
 
