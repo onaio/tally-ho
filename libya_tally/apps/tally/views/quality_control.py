@@ -18,7 +18,19 @@ from libya_tally.libs.views.form_state import form_in_state
 
 
 class AbstractQualityControl(object):
-    def quality_control_post_actions(self, field):
+    def quality_control_get_action(self, header_text, race_type):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, FormState.QUALITY_CONTROL)
+
+        results = result_form.results.filter(candidate__race_type=race_type)
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  results=results,
+                                  header_text=header_text))
+
+    def quality_control_post_action(self, field):
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
@@ -162,21 +174,10 @@ class QualityControlGeneralView(mixins.GroupRequiredMixin,
     success_url = 'quality-control-dashboard'
 
     def get(self, *args, **kwargs):
-        header_text = 'General'
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
-
-        results = result_form.results.filter(
-            candidate__race_type=RaceType.GENERAL)
-
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  results=results,
-                                  header_text=header_text))
+        return self.quality_control_get_action('General', RaceType.GENERAL)
 
     def post(self, *args, **kwargs):
-        return self.quality_control_post_actions('passed_general')
+        return self.quality_control_post_action('passed_general')
 
 
 class QualityControlWomenView(mixins.GroupRequiredMixin,
@@ -188,18 +189,7 @@ class QualityControlWomenView(mixins.GroupRequiredMixin,
     success_url = 'quality-control-dashboard'
 
     def get(self, *args, **kwargs):
-        header_text = 'Women'
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
-
-        results = result_form.results.filter(
-            candidate__race_type=RaceType.WOMEN)
-
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  results=results,
-                                  header_text=header_text))
+        return self.quality_control_get_action('Women', RaceType.WOMEN)
 
     def post(self, *args, **kwargs):
-        return self.quality_control_post_actions('passed_women')
+        return self.quality_control_post_action('passed_women')
