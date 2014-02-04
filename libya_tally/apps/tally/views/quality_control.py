@@ -50,6 +50,11 @@ class AbstractQualityControl(object):
             quality_control.__dict__[field] = False
             quality_control.active = False
             quality_control.save()
+
+            for result in result_form.results.all():
+                result.active = False
+                result.save()
+
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
 
@@ -135,7 +140,8 @@ class QualityControlDashboardView(mixins.GroupRequiredMixin,
 
 class QualityControlReconciliationView(mixins.GroupRequiredMixin,
                                        mixins.ReverseSuccessURLMixin,
-                                       FormView):
+                                       FormView,
+                                       AbstractQualityControl):
     group_required = groups.QUALITY_CONTROL_CLERK
     template_name = "tally/quality_control/reconciliation.html"
     success_url = 'quality-control-dashboard'
@@ -152,38 +158,7 @@ class QualityControlReconciliationView(mixins.GroupRequiredMixin,
                                   reconciliation_form=reconciliation_form))
 
     def post(self, *args, **kwargs):
-        post_data = self.request.POST
-        pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
-
-        if 'correct' in post_data:
-            # send to dashboard
-            quality_control = result_form.qualitycontrol
-            quality_control.passed_reconciliation = True
-            quality_control.save()
-
-            return redirect(self.success_url)
-        elif 'incorrect' in post_data:
-            # send to reject page
-            quality_control = result_form.qualitycontrol
-            quality_control.passed_reconciliation = False
-            quality_control.active = False
-            quality_control.save()
-            result_form.form_state = FormState.DATA_ENTRY_1
-            result_form.save()
-
-            return redirect('quality-control-reject')
-        elif 'abort' in post_data:
-            # send to entry
-            del self.request.session['result_form']
-            quality_control = result_form.qualitycontrol
-            quality_control.active = False
-            quality_control.save()
-
-            return redirect('quality-control-clerk')
-
-        raise SuspiciousOperation('Missing expected POST data')
+        return self.post_action('passed_reconciliation')
 
 
 class QualityControlGeneralView(mixins.GroupRequiredMixin,

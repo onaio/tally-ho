@@ -216,6 +216,7 @@ class TestQualityControl(TestBase):
         create_result_form(barcode,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
+        create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlReconciliationView.as_view()
@@ -229,6 +230,12 @@ class TestQualityControl(TestBase):
                       response['location'])
         result_form = ResultForm.objects.get(pk=result_form.pk)
         quality_control = result_form.qualitycontrol_set.all()[0]
+
+        results = result_form.results.all()
+        self.assertTrue(len(results) > 0)
+
+        for result in results:
+            self.assertEqual(result.active, False)
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(quality_control.active, False)
@@ -308,6 +315,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlGeneralView.as_view()
         data = {'result_form': result_form.pk, 'incorrect': 1}
@@ -320,6 +328,12 @@ class TestQualityControl(TestBase):
                       response['location'])
         result_form = ResultForm.objects.get(pk=result_form.pk)
         quality_control = result_form.qualitycontrol_set.all()[0]
+
+        results = result_form.results.all()
+        self.assertTrue(len(results) > 0)
+
+        for result in results:
+            self.assertEqual(result.active, False)
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(quality_control.active, False)
@@ -398,6 +412,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlWomenView.as_view()
         data = {'result_form': result_form.pk, 'incorrect': 1}
@@ -410,6 +425,12 @@ class TestQualityControl(TestBase):
                       response['location'])
         result_form = ResultForm.objects.get(pk=result_form.pk)
         quality_control = result_form.qualitycontrol_set.all()[0]
+
+        results = result_form.results.all()
+        self.assertTrue(len(results) > 0)
+
+        for result in results:
+            self.assertEqual(result.active, False)
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(quality_control.active, False)
