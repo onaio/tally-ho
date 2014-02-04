@@ -5,7 +5,7 @@ from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
 from libya_tally.apps.tally.views import data_entry_clerk, home,\
-    intake_clerk, quality_control
+    intake_clerk, quality_control, corrections
 
 admin.autodiscover()
 
@@ -63,6 +63,15 @@ urlpatterns = patterns(
     url(r'^quality-control/women',
         quality_control.QualityControlWomenView.as_view(),
         name='quality-control-women'),
+    url(r'^corrections$',
+        corrections.CorrectionView.as_view(),
+        name='corrections'),
+    url(r'^corrections/match$',
+        corrections.CorrectionMatchView.as_view(),
+        name='corrections-match'),
+    url(r'^corrections/required$',
+        corrections.CorrectionView.as_view(),
+        name='corrections-required'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),

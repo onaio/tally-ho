@@ -1,9 +1,12 @@
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.translation import ugettext as _
 from django.views.generic import FormView
 
 from libya_tally.apps.tally.forms.intake_barcode_form import\
     IntakeBarcodeForm
+from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
@@ -11,8 +14,23 @@ from libya_tally.libs.views.form_state import form_in_state
 
 
 def match_forms(result_form):
-    match = False
-    return match
+    results_v1 = Result.objects.filter(
+        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1)\
+        .values('candidate', 'votes')
+    results_v2 = Result.objects.filter(
+        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_2)\
+        .values('candidate', 'votes')
+
+    if not results_v1 or not results_v2:
+        raise Exception(_(u"Result Form has no double entries."))
+
+    if results_v1.count() != results_v2.count():
+        return False
+
+    tuple_list = [i.items() for i in results_v1]
+    matches = [rec for rec in results_v2 if rec.items() in tuple_list]
+
+    return len(matches) == results_v1.count()
 
 
 class CorrectionView(mixins.GroupRequiredMixin,
@@ -20,8 +38,8 @@ class CorrectionView(mixins.GroupRequiredMixin,
                      FormView):
     form_class = IntakeBarcodeForm
     group_required = groups.CORRECTIONS_CLERK
-    template_name = "tally/corrections.html"
-    success_url = 'check-center-details'
+    template_name = "tally/corrections/correction.html"
+    success_url = 'corrections'
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -35,10 +53,19 @@ class CorrectionView(mixins.GroupRequiredMixin,
             self.request.session['result_form'] = result_form.pk
 
             if forms_match:
-                redirect('corrections-match')
+                return redirect('corrections-match')
             else:
-                redirect('corrections-required')
+                return redirect('corrections-required')
 
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
+
+
+class CorrectionMatchView(mixins.GroupRequiredMixin,
+                          mixins.ReverseSuccessURLMixin,
+                          FormView):
+    form_class = IntakeBarcodeForm
+    group_required = groups.CORRECTIONS_CLERK
+    template_name = "tally/corrections/match.html"
+    success_url = 'corrections'
