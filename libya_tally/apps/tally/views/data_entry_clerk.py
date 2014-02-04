@@ -159,6 +159,13 @@ class EnterResultsView(mixins.GroupRequiredMixin,
             else:
                 entry_version = EntryVersion.DATA_ENTRY_2
                 new_state = FormState.CORRECTION
+                results = Result.objects.filter(
+                    result_form=result_form,
+                    entry_version=EntryVersion.DATA_ENTRY_1)
+
+                if results.count() and results[0].user == self.request.user:
+                    raise Exception(_(u"You have already entered this form "
+                                      "as Data Entry Clerk 1."))
 
             for i, form in enumerate(formset.forms):
                 votes = form.cleaned_data['votes']
@@ -166,7 +173,9 @@ class EnterResultsView(mixins.GroupRequiredMixin,
                     candidate=candidates[i],
                     result_form=result_form,
                     entry_version=entry_version,
-                    votes=votes)
+                    votes=votes,
+                    user=self.request.user
+                )
 
             result_form.form_state = new_state
             result_form.save()
