@@ -29,11 +29,6 @@ class TestIntakeClerk(TestBase):
         self.assertIn('/accounts/logout/', response.content)
         return response
 
-    def test_intake_page(self):
-        response = self._common_view_tests(views.IntakeClerkView.as_view())
-        self.assertContains(response, '<h1>Intake Dashboard</h1>')
-        self.assertIn('"/intake/center-details"', response.content)
-
     def test_center_detail_view(self):
         response = self._common_view_tests(views.CenterDetailsView.as_view())
         self.assertContains(response, 'Double Enter Center Details')

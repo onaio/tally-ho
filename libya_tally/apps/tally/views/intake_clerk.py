@@ -13,11 +13,6 @@ from libya_tally.libs.views.form_state import form_in_intake_state,\
     form_in_state
 
 
-class IntakeClerkView(mixins.GroupRequiredMixin, TemplateView):
-    group_required = groups.INTAKE_CLERK
-    template_name = "tally/intake/home.html"
-
-
 class CenterDetailsView(mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
@@ -74,8 +69,11 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
             result_form.save()
 
             return redirect('intake-clearance')
+        else:
+            result_form.form_state = FormState.UNSUBMITTED
+            result_form.save()
 
-        return redirect('check-center-details')
+            return redirect('intake-clerk')
 
 
 class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
