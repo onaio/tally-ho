@@ -23,11 +23,12 @@ class GroupRequiredMixin(object):
     def check_membership(self, group):
         """ Check required group(s) """
         # super admin skips group check
-        if group == groups.SUPER_ADMINISTRATOR:
+        user_groups = self.request.user.groups.values_list("name", flat=True)
+
+        if groups.SUPER_ADMINISTRATOR in user_groups:
             return True
 
-        return group in self.request.user.groups.values_list(
-            "name", flat=True)
+        return group in user_groups
 
     def dispatch(self, request, *args, **kwargs):
         self.request = request

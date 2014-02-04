@@ -20,6 +20,9 @@ accounts_urls = patterns(
 urlpatterns = patterns(
     '',
     url(r'^$', home.HomeView.as_view(), name='home'),
+    url(r'^super-administrator',
+        TemplateView.as_view(template_name='tally/super_admin/home.html'),
+        name='super-administrator'),
     url(r'^data-entry$', data_entry_clerk.CenterDetailsView.as_view(),
         name='data-entry-clerk'),
     url(r'^data-entry/check-center-details$',

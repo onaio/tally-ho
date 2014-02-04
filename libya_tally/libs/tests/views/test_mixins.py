@@ -24,7 +24,10 @@ class TestGroupRequired(TestBase):
     def test_super_admin(self):
         view = ViewGroupRequired.as_view()
         self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
 
-        self.assertFalse(view.check_membership(groups.ARCHIVE_CLERK))
-        self.assertTrue(view.check_membership(groups.INTAKE_CLERK))
-        self.assertTrue(view.check_membership(groups.SUPER_ADMINISTRATOR))
+        try:
+            view(self.request)
+        except ImproperlyConfigured:
+            self.fail('view(self.request) raised ImproperlyConfigure'
+                      'unexpectedly')
