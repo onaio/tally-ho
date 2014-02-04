@@ -15,7 +15,7 @@ from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.form_state import form_in_state
+from libya_tally.libs.views.form_state import safe_form_in_state, form_in_state
 
 
 class AbstractQualityControl(object):
@@ -75,8 +75,11 @@ class QualityControlView(mixins.GroupRequiredMixin,
     success_url = 'quality-control-dashboard'
 
     def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
         return self.render_to_response(
-            self.get_context_data(header_text=_('Quality Control')))
+            self.get_context_data(form=form, header_text=_('Quality Control')))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -85,7 +88,13 @@ class QualityControlView(mixins.GroupRequiredMixin,
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
-            form_in_state(result_form, FormState.QUALITY_CONTROL)
+
+            form = safe_form_in_state(result_form, FormState.QUALITY_CONTROL,
+                                      form)
+
+            if form:
+                return self.form_invalid(form)
+
             self.request.session['result_form'] = result_form.pk
 
             QualityControl.objects.create(result_form=result_form,

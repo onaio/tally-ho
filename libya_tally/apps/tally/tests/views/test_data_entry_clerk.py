@@ -231,8 +231,7 @@ class TestDataEntryClerk(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        with self.assertRaises(Exception):
-            response = view(request)
+
         self._create_and_login_user('data_entry_2')
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         request.user = self.user

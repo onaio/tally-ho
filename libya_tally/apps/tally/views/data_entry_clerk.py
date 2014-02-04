@@ -1,4 +1,3 @@
-from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
 from django.forms.formsets import formset_factory
 from django.forms.util import ErrorList
@@ -19,7 +18,8 @@ from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.form_state import form_in_data_entry_state
+from libya_tally.libs.views.form_state import form_in_data_entry_state,\
+    safe_form_in_state
 
 
 def get_data_entry_number(form_state):
@@ -57,11 +57,23 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             result_form = get_object_or_404(
                 ResultForm, center=center, station_number=station_number)
 
-            try:
-                form_in_data_entry_state(result_form)
-            except SuspiciousOperation:
-                errors = form._errors.setdefault("__all__", ErrorList())
-                errors.append(_(u"Form not in Data Entry"))
+            check_form = safe_form_in_state(
+                result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
+                form)
+
+            if check_form:
+                return self.form_invalid(check_form)
+
+            results = Result.objects.filter(
+                result_form=result_form,
+                entry_version=EntryVersion.DATA_ENTRY_1)
+
+            if results.count() and results[0].user == self.request.user:
+                errors = form._errors.setdefault(
+                    "__all__", ErrorList())
+                errors.append(_(u"You have already entered this form "
+                              "as Data Entry Clerk 1."))
+
                 return self.form_invalid(form)
 
             self.request.session['result_form'] = result_form.pk
@@ -159,13 +171,6 @@ class EnterResultsView(mixins.GroupRequiredMixin,
             else:
                 entry_version = EntryVersion.DATA_ENTRY_2
                 new_state = FormState.CORRECTION
-                results = Result.objects.filter(
-                    result_form=result_form,
-                    entry_version=EntryVersion.DATA_ENTRY_1)
-
-                if results.count() and results[0].user == self.request.user:
-                    raise Exception(_(u"You have already entered this form "
-                                      "as Data Entry Clerk 1."))
 
             for i, form in enumerate(formset.forms):
                 votes = form.cleaned_data['votes']

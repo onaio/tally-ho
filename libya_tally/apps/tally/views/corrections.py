@@ -14,7 +14,7 @@ from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.form_state import form_in_state
+from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
 def match_forms(result_form):
@@ -59,7 +59,13 @@ class CorrectionView(mixins.GroupRequiredMixin,
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
-            form_in_state(result_form, [FormState.CORRECTION])
+
+            form = safe_form_in_state(result_form, FormState.CORRECTION,
+                                      form)
+
+            if form:
+                return self.form_invalid(form)
+
             forms_match = match_forms(result_form)
             self.request.session['result_form'] = result_form.pk
 

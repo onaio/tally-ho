@@ -12,7 +12,7 @@ from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.form_state import form_in_state
+from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
 def match_forms(result_form):
@@ -44,8 +44,11 @@ class ArchiveView(mixins.GroupRequiredMixin,
     success_url = 'archive-print'
 
     def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
         return self.render_to_response(
-            self.get_context_data(header_text=_('Archiving')))
+            self.get_context_data(form=form, header_text=_('Archiving')))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -54,7 +57,13 @@ class ArchiveView(mixins.GroupRequiredMixin,
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
-            form_in_state(result_form, [FormState.ARCHIVING])
+
+            form = safe_form_in_state(result_form, FormState.ARCHIVING,
+                                      form)
+
+            if form:
+                return self.form_invalid(form)
+
             self.request.session['result_form'] = result_form.pk
 
             return redirect('archive-print')

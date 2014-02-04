@@ -35,6 +35,7 @@ class TestArchive(TestBase):
 
     def test_archive_get(self):
         response = self._common_view_tests(views.ArchiveView.as_view())
+
         self.assertContains(response, 'Archiving')
         self.assertIn('<form id="result_form"', response.content)
 

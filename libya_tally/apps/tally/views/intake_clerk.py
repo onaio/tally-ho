@@ -10,7 +10,7 @@ from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_intake_state,\
-    form_in_state
+    safe_form_in_state, form_in_state
 
 
 class CenterDetailsView(mixins.GroupRequiredMixin,
@@ -28,6 +28,13 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
+
+            form = safe_form_in_state(result_form, FormState.UNSUBMITTED,
+                                      form)
+
+            if form:
+                return self.form_invalid(form)
+
             result_form.form_state = FormState.INTAKE
             result_form.user = self.request.user
             result_form.save()
