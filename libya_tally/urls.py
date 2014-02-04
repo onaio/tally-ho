@@ -75,6 +75,9 @@ urlpatterns = patterns(
     url(r'^archive',
         archive.ArchiveView.as_view(),
         name='archive-clerk'),
+    url(r'^archive/print',
+        archive.ArchiveView.as_view(),
+        name='archive-print'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),
