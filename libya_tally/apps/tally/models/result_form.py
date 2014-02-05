@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.translation import ugettext as _
 from django_enumfield import enum
 
 from libya_tally.apps.tally.models.ballot import Ballot
@@ -8,6 +9,7 @@ from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.gender import Gender
 from libya_tally.libs.models.enums.race_type import RaceType
+from libya_tally.libs.utils.common import match_results
 
 
 class ResultForm(BaseModel):
@@ -38,7 +40,7 @@ class ResultForm(BaseModel):
     def women_results(self):
         return self.results.filter(
             active=True,
-            candidate__race_type=RaceType.GENERAL)
+            candidate__race_type=RaceType.WOMEN)
 
     @property
     def has_general_results(self):
@@ -74,3 +76,11 @@ class ResultForm(BaseModel):
         self.rejected_count = self.rejected_count + 1
         self.form_state = FormState.DATA_ENTRY_1
         self.save()
+
+    @property
+    def corrections_required_text(self):
+        return _(u"Corrections Required!")
+
+    @property
+    def general_match(self):
+        return match_results(self, self.general_results)
