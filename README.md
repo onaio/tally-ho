@@ -1,71 +1,22 @@
-## Tally System Design Documentation
+## Quick install
 
-### Objective
+### Checkout the repos
 
-Record, verify, and report data concerning election results.
+```bash
+git clone git@github.com:onaio/tally-system.git
+git clone git@github.com:onaio/libya-data.git data
+```
 
-* Record election results and reconcilliation data.
-* Allow for verification and confirmation of election data.
-* Produce reports and statistics regarding the election outcome.
+### Make a virutal environment and install requirements
 
-### System Modules
+```bash
+mkvirtualenv tally --python=python2.7
+pip install -r requirements/dev.pip 
+```
 
-#### Data entry interface
+### Load the data and demo users
 
-Support the entry of results and reconciliation forms, correction, and comments.
-
-* Match entered serial number to stored form serial numbers.
-* Enter form data.
-* Select correct version of data.
-* Record issues and comments about data.
-
-#### Records
-    
-Store the form data entered into the system.
-
-* State: store the current progress of the record through validation steps.
-    * Intake
-    * Clearance
-    * Data Entry 1
-    * Data Entry 2
-    * Corrections
-    * Quality Control
-    * Auditing: failed quarantine checks
-    * Archiving: passed quality control and quarantine checks but cover sheet not yet printed
-    * Archived: final state
-* Transitions: the possible transitions from the current state.
-* Actions: the actions a user can perform.
-    * Transitioning the form to a new state.
-    * Select correct version of field data.
-    * Enter comments and select options.
-    * Printing a cover sheet for the record.
-
-#### User permissions system
-
-Assign roles for all users limiting their actions.
-
-* All users must login with a name and password to access the tally system.
-    * Each user is assigned a role.
-    * Admins can reassign roles.
-    * Admins can reset passwords to temporary passwords.
-* Roles determine the actions that a user can perform.
-* There are a fixed set of roles with predetermined actions.
-
-#### Alerts
-    
-Run "quarantine checks" to ensure that entered data is credible.
-
-* The system runs checks after a record passes the "quality control" state.
-* If the quarantine checks fail a record goes to auditing.
-* Admins can modify the quarantine checks.
-
-#### Reporting
-
-Display entry progress and the tally results.
-
-* Display the percentage of forms entered to form expected.
-    * Group by region and other metadata?
-* Display the current state of all entered forms.
-    * Group by region and other metadata?
-* Display the sum of votes for each candidate in each election.
-    *  Display the percentage of votes. 
+```bash
+./script/reload_all
+python manage.py create_demo_users
+```
