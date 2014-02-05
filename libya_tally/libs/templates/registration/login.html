@@ -3,14 +3,14 @@
 {% load i18n %}
 
 {% block content %}
-
+    <h1>{% trans 'Libya Vote Tally' %}</h1>
     <form method="post" action=".">
     <table id="login_table">
         {{ form.as_table }}
         <tfoot>
         <tr>
             <td>&nbsp;</td>
-            <td><input type="submit"  value="{% trans 'Sign in' %}" /></td>
+            <td><input type="submit" class="btn btn-warning" value="{% trans 'Sign in' %}" /></td>
         </tr>
         </tfoot>
     </table>
