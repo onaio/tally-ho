@@ -94,16 +94,18 @@ class TestDataEntryClerk(TestBase):
         station_number = 1
         center = create_center(code)
         create_station(center)
-        create_result_form(form_state=FormState.DATA_ENTRY_1,
-                           center=center,
-                           station_number=station_number)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1,
+                                         center=center,
+                                         station_number=station_number)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.CenterDetailsView.as_view()
+        result_form_data = {'result_form': result_form.pk}
         data = center_data(code, station_number=station_number)
+        data.update(result_form_data)
         request = self.factory.post('/', data=data)
         request.user = self.user
-        request.session = {}
+        request.session = result_form_data
         response = view(request)
         self.assertEqual(response.status_code, 302)
         self.assertIn('data-entry/enter-results',
