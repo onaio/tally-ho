@@ -71,15 +71,6 @@ class ResultForm(BaseModel):
     def gender_name(self):
         return Gender.to_name(self.gender)
 
-    def reject(self):
-        for result in self.results.all():
-            result.active = False
-            result.save()
-
-        self.rejected_count = self.rejected_count + 1
-        self.form_state = FormState.DATA_ENTRY_1
-        self.save()
-
     @property
     def corrections_required_text(self):
         return _(u"Corrections Required!")
@@ -137,3 +128,12 @@ class ResultForm(BaseModel):
             (not self.has_general_results or self.general_match) and
             (not has_recon_form or self.reconciliation_match) and
             (not self.has_women_results or self.women_match))
+
+    def reject(self):
+        for result in self.results.all():
+            result.active = False
+            result.save()
+
+        self.rejected_count = self.rejected_count + 1
+        self.form_state = FormState.DATA_ENTRY_1
+        self.save()

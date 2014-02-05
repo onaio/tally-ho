@@ -4,13 +4,26 @@ from django.test import RequestFactory
 
 from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.apps.tally.models.reconciliation_form import\
+    ReconciliationForm
 from libya_tally.apps.tally.views import corrections as views
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_result_form, \
-    create_candidate, create_center, create_station, TestBase
+from libya_tally.libs.tests.test_base import create_result_form,\
+    create_candidate, create_center, create_station, TestBase,\
+    create_reconciliation_form
+
+
+def create_recon_forms(result_form):
+    recon1 = create_reconciliation_form(result_form)
+    recon1.entry_version = EntryVersion.DATA_ENTRY_1
+    recon1.save()
+
+    recon2 = create_reconciliation_form(result_form)
+    recon2.entry_version = EntryVersion.DATA_ENTRY_2
+    recon2.save()
 
 
 def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL):
@@ -34,7 +47,7 @@ def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL):
         votes=vote2)
 
 
-class TestCorrectionView(TestBase):
+class TestCorrections(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
@@ -200,8 +213,40 @@ class TestCorrectionView(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+
+        for result in updated_result_form.results.all():
+            self.assertEqual(result.active, False)
+
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_1)
+
+    def test_corrections_general_post_abort(self):
+        view = views.CorrectionGeneralView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_results(result_form, vote1=2, vote2=3)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2)
+        session = {'result_form': result_form.pk}
+        post_data = {
+            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            'result_form': result_form.pk,
+            'abort_submit': 'reject'
+        }
+        request = self.factory.post('/', post_data)
+        request.session = session
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/corrections', response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+
+        for result in updated_result_form.results.all():
+            self.assertNotEqual(result.entry_version, EntryVersion.FINAL)
+
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.CORRECTION)
 
     def test_corrections_women_post_corrections(self):
         view = views.CorrectionWomenView.as_view()
@@ -247,3 +292,43 @@ class TestCorrectionView(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_1)
+
+    def test_recon_get(self):
+        view = views.CorrectionReconciliationView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
+        create_recon_forms(result_form)
+
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2)
+        session = {'result_form': result_form.pk}
+        request = self.factory.get('/')
+        request.session = session
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Reconciliation')
+
+    def test_recon_post(self):
+        view = views.CorrectionReconciliationView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
+        create_recon_forms(result_form)
+
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(ReconciliationForm.objects.filter(
+            result_form=result_form).count(), 2)
+
+        session = {'result_form': result_form.pk}
+        data = {'submit_corrections': 1}
+        data.update(session)
+        request = self.factory.post('/', data=data)
+        request.session = session
+        request.user = self.user
+        response = view(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('corrections/dashboard', response['location'])

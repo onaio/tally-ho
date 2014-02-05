@@ -4,13 +4,11 @@ from django.test import RequestFactory
 
 from libya_tally.apps.tally.views import quality_control as views
 from libya_tally.apps.tally.models.quality_control import QualityControl
-from libya_tally.apps.tally.models.reconciliation_form import\
-    ReconciliationForm
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_candidates,\
-    create_result_form, TestBase
+    create_reconciliation_form, create_result_form, TestBase
 
 
 def create_quality_control(result_form, user):
@@ -160,22 +158,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         self._create_and_login_user()
-        ReconciliationForm.objects.create(
-            result_form=result_form,
-            ballot_number_from=1,
-            ballot_number_to=1,
-            number_ballots_received=1,
-            number_signatures_in_vr=1,
-            number_unused_ballots=1,
-            number_spoiled_ballots=1,
-            number_cancelled_ballots=1,
-            number_ballots_outside_box=1,
-            number_ballots_inside_box=1,
-            number_ballots_inside_and_outside_box=1,
-            number_unstamped_ballots=1,
-            number_invalid_votes=1,
-            number_valid_votes=1,
-            number_sorted_and_counted=1)
+        create_reconciliation_form(result_form)
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlReconciliationView.as_view()

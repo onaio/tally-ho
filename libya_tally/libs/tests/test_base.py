@@ -6,6 +6,8 @@ from django.test import RequestFactory
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.center import Center
+from libya_tally.apps.tally.models.reconciliation_form import\
+    ReconciliationForm
 from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.station import Station
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
@@ -87,6 +89,25 @@ def create_center(code='1'):
         region='1',
         village='1',
         center_type=CenterType.GENERAL)[0]
+
+
+def create_reconciliation_form(result_form):
+    return ReconciliationForm.objects.create(
+        result_form=result_form,
+        ballot_number_from=1,
+        ballot_number_to=1,
+        number_ballots_received=1,
+        number_signatures_in_vr=1,
+        number_unused_ballots=1,
+        number_spoiled_ballots=1,
+        number_cancelled_ballots=1,
+        number_ballots_outside_box=1,
+        number_ballots_inside_box=1,
+        number_ballots_inside_and_outside_box=1,
+        number_unstamped_ballots=1,
+        number_invalid_votes=1,
+        number_valid_votes=1,
+        number_sorted_and_counted=1)
 
 
 def create_station(center):

@@ -23,6 +23,23 @@ from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
+def abort(result_form):
+    for result in result_form.results.filter(entry_version=EntryVersion.FINAL):
+        result.active = False
+        result.save()
+
+
+def incorrect_checks(post_data, result_form, success_url):
+    if 'reject_submit' in post_data:
+        result_form.reject()
+    elif 'abort_submit' in post_data:
+        abort(result_form)
+    else:
+        raise SuspiciousOperation('Unknown POST response type')
+
+    return redirect(success_url)
+
+
 def get_matched_forms(result_form):
     results_v1 = Result.objects.filter(
         result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1)\
@@ -183,30 +200,25 @@ class AbstractCorrectionView(mixins.GroupRequiredMixin,
         results = []
         for c, r in candidates.iteritems():
             results.append((c, r[0], r[1]))
+
         return self.render_to_response(
             self.get_context_data(header_text=header_text,
                                   result_form=result_form,
                                   candidates=results))
 
-        results = []
-        for c, r in candidates.iteritems():
-            results.append((c, r[0], r[1]))
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  candidates=results))
-
     @transaction.atomic
     def post_action(self, race_type):
-        pk = session_matches_post_result_form(self.request.POST, self.request)
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CORRECTION])
         candidate_fields = [
-            f for f in self.request.POST if f.startswith('candidate_')]
+            f for f in post_data if f.startswith('candidate_')]
 
         results = result_form.results.filter(candidate__race_type=race_type)
         matches, no_match = get_matched_results(result_form, results)
 
-        if 'submit_corrections' in self.request.POST:
+        if 'submit_corrections' in post_data:
             if len(candidate_fields) != len(no_match):
                 raise Exception(
                     _(u"Please select correct results for all"
@@ -217,7 +229,7 @@ class AbstractCorrectionView(mixins.GroupRequiredMixin,
             for field in candidate_fields:
                 candidate_pk = field.replace('candidate_', '')
                 candidate = Candidate.objects.get(pk=candidate_pk)
-                votes = self.request.POST[field]
+                votes = post_data[field]
                 Result.objects.create(
                     candidate=candidate,
                     result_form=result_form,
@@ -230,6 +242,7 @@ class AbstractCorrectionView(mixins.GroupRequiredMixin,
             results_v2 = results.filter(
                 result_form=result_form,
                 entry_version=EntryVersion.DATA_ENTRY_2)
+
             for result in results_v2:
                 if result.candidate not in changed_candidates:
                     Result.objects.create(
@@ -241,16 +254,11 @@ class AbstractCorrectionView(mixins.GroupRequiredMixin,
                     )
 
             return redirect(self.success_url)
-        elif 'reject_submit' in self.request.POST:
-            result_form.reject()
-
-            return redirect(self.success_url)
         else:
-            return redirect(self.success_url)
+            return incorrect_checks(post_data, result_form, self.success_url)
 
 
 class CorrectionGeneralView(AbstractCorrectionView):
-
     def get(self, *args, **kwargs):
         return self.get_action(_(u"General"), RaceType.GENERAL)
 
@@ -260,7 +268,6 @@ class CorrectionGeneralView(AbstractCorrectionView):
 
 
 class CorrectionWomenView(AbstractCorrectionView):
-
     def get(self, *args, **kwargs):
         return self.get_action(_(u"General"), RaceType.WOMEN)
 
@@ -270,6 +277,10 @@ class CorrectionWomenView(AbstractCorrectionView):
 
 
 class CorrectionReconciliationView(AbstractCorrectionView):
+    form_class = PassToQualityControlForm
+    group_required = groups.CORRECTIONS_CLERK
+    template_name = "tally/corrections/required.html"
+    success_url = 'corrections-dashboard'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -277,8 +288,8 @@ class CorrectionReconciliationView(AbstractCorrectionView):
         form_in_state(result_form, [FormState.CORRECTION])
         results = result_form.reconciliationform_set.filter(active=True)
 
-        if results.count() < 2:
-            raise SuspiciousOperation(_(u"There should be atleast two "
+        if results.count() != 2:
+            raise SuspiciousOperation(_(u"There should be exactly two "
                                         u"reconciliation results."))
         reconciliation_form_1 = ReconciliationForm(data=model_to_dict(
             results.filter(entry_version=EntryVersion.DATA_ENTRY_1)[0]))
@@ -296,8 +307,14 @@ class CorrectionReconciliationView(AbstractCorrectionView):
         ))
 
     @transaction.atomic
-    def post_action(self, race_type):
-        pk = session_matches_post_result_form(self.request.POST, self.request)
+    def post(self, race_type):
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
-        # TODO complete this
+        form_in_state(result_form, FormState.CORRECTION)
+
+        if 'submit_corrections' in post_data:
+            # TODO complete this
+            return redirect(self.success_url)
+        else:
+            return incorrect_checks(post_data, result_form, self.success_url)
