@@ -33,9 +33,8 @@
                     <div class="locales">
                         <a href="/?locale=ar">العربية</a> |
                         <a href="/?locale=en">English</a><br/>
-
-					<span>Signed in as {{user.username}} - <a id="logout_link" href="/accounts/logout/">logout</a><br/>
-					</span>
+                
+                        {% if user.is_authenticated %}<span>Signed in as {{user.username}} - <a id="logout_link" href="/accounts/logout/">logout</a><br/></span>{% endif %}
 
                     </div>
                 </div>
