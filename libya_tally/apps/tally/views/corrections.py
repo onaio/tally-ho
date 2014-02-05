@@ -3,8 +3,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
 
-from libya_tally.apps.tally.forms.intake_barcode_form import\
-    IntakeBarcodeForm
+from libya_tally.apps.tally.forms.barcode_form import\
+    BarcodeForm
 from libya_tally.apps.tally.forms.pass_to_quality_control_form import \
     PassToQualityControlForm
 from libya_tally.apps.tally.models.result import Result
@@ -47,7 +47,7 @@ def match_forms(result_form):
 class CorrectionView(mixins.GroupRequiredMixin,
                      mixins.ReverseSuccessURLMixin,
                      FormView):
-    form_class = IntakeBarcodeForm
+    form_class = BarcodeForm
     group_required = groups.CORRECTIONS_CLERK
     template_name = "tally/barcode_verify.html"
     success_url = 'corrections-match'

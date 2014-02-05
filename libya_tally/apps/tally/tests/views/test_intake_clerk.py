@@ -87,6 +87,25 @@ class TestIntakeClerk(TestBase):
         self.assertEqual(result_form.form_state, FormState.INTAKE)
         self.assertEqual(result_form.user, self.user)
 
+    def test_center_detail_redirects_no_center(self):
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.UNSUBMITTED)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.CenterDetailsView.as_view()
+        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('intake/enter-center',
+                      response['location'])
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self.assertEqual(result_form.form_state, FormState.INTAKE)
+        self.assertEqual(result_form.user, self.user)
+
     def test_check_center_details(self):
         barcode = '123456789'
         result_form = create_result_form(barcode,
@@ -151,7 +170,7 @@ class TestIntakeClerk(TestBase):
     def test_print_cover_invalid_state(self):
         result_form = create_result_form()
         self._create_or_login_intake_clerk()
-        view = views.IntakePrintCoverView.as_view()
+        view = views.PrintCoverView.as_view()
         self.request.user = self.user
         self.request.session = {'result_form': result_form.pk}
         with self.assertRaises(SuspiciousOperation):
@@ -160,7 +179,7 @@ class TestIntakeClerk(TestBase):
     def test_print_cover_get(self):
         result_form = create_result_form()
         self._create_or_login_intake_clerk()
-        view = views.IntakePrintCoverView.as_view()
+        view = views.PrintCoverView.as_view()
         self.request.user = self.user
         self.request.session = {'result_form': result_form.pk}
         result_form.form_state = FormState.INTAKE
@@ -178,7 +197,7 @@ class TestIntakeClerk(TestBase):
         result_form.form_state = FormState.INTAKE
         result_form.save()
         self._create_or_login_intake_clerk()
-        view = views.IntakePrintCoverView.as_view()
+        view = views.PrintCoverView.as_view()
 
         request = self.factory.post('/', data={'result_form': result_form.pk})
         request.user = self.user
@@ -195,7 +214,7 @@ class TestIntakeClerk(TestBase):
     def test_clearance(self):
         result_form = create_result_form()
         self._create_or_login_intake_clerk()
-        view = views.IntakeClearanceView.as_view()
+        view = views.ClearanceView.as_view()
         self.request.user = self.user
         self.request.session = {'result_form': result_form.pk}
         with self.assertRaises(Exception):

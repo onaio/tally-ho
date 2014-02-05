@@ -4,13 +4,13 @@ from django.utils.translation import ugettext as _
 from libya_tally.apps.tally.models.result_form import ResultForm
 
 
-class IntakeBarcodeForm(forms.Form):
+class BarcodeForm(forms.Form):
     barcode = forms.CharField(max_length=9, min_length=9)
     barcode_copy = forms.CharField(max_length=9, min_length=9)
 
     def clean(self):
         if self.is_valid():
-            cleaned_data = super(IntakeBarcodeForm, self).clean()
+            cleaned_data = super(BarcodeForm, self).clean()
             barcode = cleaned_data.get('barcode')
             barcode_copy = cleaned_data.get('barcode_copy')
 

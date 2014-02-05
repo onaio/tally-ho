@@ -2,8 +2,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
 
-from libya_tally.apps.tally.forms.intake_barcode_form import\
-    IntakeBarcodeForm
+from libya_tally.apps.tally.forms.center_details_form import\
+    CenterDetailsForm
+from libya_tally.apps.tally.forms.barcode_form import\
+    BarcodeForm
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
@@ -16,7 +18,7 @@ from libya_tally.libs.views.form_state import form_in_intake_state,\
 class CenterDetailsView(mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
-    form_class = IntakeBarcodeForm
+    form_class = BarcodeForm
     group_required = groups.INTAKE_CLERK
     template_name = "tally/barcode_verify.html"
     success_url = 'check-center-details'
@@ -50,7 +52,49 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             if result_form.center:
                 return redirect(self.success_url)
             else:
-                raise Exception('Unimplemented: handle unassigned forms')
+                return redirect('intake-enter-center')
+        else:
+            return self.form_invalid(form)
+
+
+class EnterCenterView(mixins.GroupRequiredMixin,
+                      mixins.ReverseSuccessURLMixin,
+                      FormView):
+    form_class = CenterDetailsForm
+    group_required = groups.INTAKE_CLERK
+    template_name = "tally/center-de.html"
+    success_url = 'check-center-details'
+
+    def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form, header_text=_('Intake')))
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            barcode = form.cleaned_data['barcode']
+            result_form = get_object_or_404(ResultForm, barcode=barcode)
+
+            form = safe_form_in_state(result_form, FormState.UNSUBMITTED,
+                                      form)
+
+            if form:
+                return self.form_invalid(form)
+
+            result_form.form_state = FormState.INTAKE
+            result_form.user = self.request.user
+            result_form.save()
+            self.request.session['result_form'] = result_form.pk
+
+            if result_form.center:
+                return redirect(self.success_url)
+            else:
+                return redirect('intake-enter-center')
         else:
             return self.form_invalid(form)
 
@@ -93,7 +137,7 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
             return redirect('intake-clerk')
 
 
-class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
+class PrintCoverView(mixins.GroupRequiredMixin, TemplateView):
     group_required = groups.INTAKE_CLERK
     template_name = "tally/intake/print_cover.html"
 
@@ -124,7 +168,7 @@ class IntakePrintCoverView(mixins.GroupRequiredMixin, TemplateView):
             self.get_context_data(result_form=result_form))
 
 
-class IntakeClearanceView(mixins.GroupRequiredMixin, TemplateView):
+class ClearanceView(mixins.GroupRequiredMixin, TemplateView):
     template_name = "tally/intake/clearance.html"
     group_required = groups.INTAKE_CLERK
 

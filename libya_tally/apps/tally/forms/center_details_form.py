@@ -4,7 +4,7 @@ from django.utils.translation import ugettext as _
 from libya_tally.apps.tally.models.center import Center
 
 
-class DataEntryCenterDetailsForm(forms.Form):
+class CenterDetailsForm(forms.Form):
     center_number = forms.CharField(min_length=5, max_length=5)
     center_number_copy = forms.CharField(min_length=5, max_length=5)
     station_number = forms.IntegerField(min_value=1, max_value=8)
@@ -12,7 +12,7 @@ class DataEntryCenterDetailsForm(forms.Form):
 
     def clean(self):
         if self.is_valid():
-            cleaned_data = super(DataEntryCenterDetailsForm, self).clean()
+            cleaned_data = super(CenterDetailsForm, self).clean()
             center_number = cleaned_data.get('center_number')
             center_number_copy = cleaned_data.get('center_number_copy')
             station_number = cleaned_data.get('station_number')

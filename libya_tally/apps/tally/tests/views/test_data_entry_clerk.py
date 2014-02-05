@@ -40,9 +40,9 @@ class TestDataEntryClerk(TestBase):
         request.session = {'result_form': result_form.pk}
         return view(request)
 
-    def test_center_detail_view(self):
-        response = self._common_view_tests(views.CenterDetailsView.as_view())
-        self.assertContains(response, 'Double Enter Center Details')
+    def test_data_entry_view(self):
+        response = self._common_view_tests(views.DataEntryView.as_view())
+        self.assertContains(response, 'Data Entry')
         self.assertIn('<form id="result_form"', response.content)
 
     def test_center_detail_center_number_length(self):

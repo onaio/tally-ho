@@ -5,8 +5,9 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
 
-from libya_tally.apps.tally.forms.data_entry_center_details_form import\
-    DataEntryCenterDetailsForm
+from libya_tally.apps.tally.forms.center_details_form import\
+    CenterDetailsForm
+from libya_tally.apps.tally.forms.barcode_form import BarcodeForm
 from libya_tally.apps.tally.forms.candidate_form import CandidateForm
 from libya_tally.apps.tally.forms.candidate_formset import BaseCandidateFormSet
 from libya_tally.apps.tally.forms.recon_form import ReconForm
@@ -38,13 +39,64 @@ def get_formset_and_candidates(result_form, post_data=None):
     return [formset, forms_and_candidates]
 
 
+def get_header_text(result_form):
+    data_entry_number = get_data_entry_number(result_form.form_state)
+    return _('Data Entry') + ' %s' % data_entry_number
+
+
+class DataEntryView(mixins.GroupRequiredMixin,
+                    mixins.ReverseSuccessURLMixin,
+                    FormView):
+    form_class = BarcodeForm
+    group_required = groups.DATA_ENTRY_CLERK
+    template_name = "tally/barcode_verify.html"
+    success_url = 'data-entry-enter-center-details'
+
+    def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form, header_text=_('Data Entry')))
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            barcode = form.cleaned_data['barcode']
+            result_form = get_object_or_404(ResultForm, barcode=barcode)
+
+            form = safe_form_in_state(
+                result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
+                form)
+
+            if form:
+                return self.form_invalid(form)
+
+            self.request.session['result_form'] = result_form.pk
+
+            return redirect(self.success_url)
+        else:
+            return self.form_invalid(form)
+
+
 class CenterDetailsView(mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
-    form_class = DataEntryCenterDetailsForm
+    form_class = CenterDetailsForm
     group_required = groups.DATA_ENTRY_CLERK
-    template_name = "tally/data_entry/center_details.html"
+    template_name = "tally/enter_center_details.html"
     success_url = 'data-entry-check-center-details'
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_data_entry_state(result_form)
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  header_text=get_header_text(result_form)))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -95,12 +147,9 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_data_entry_state(result_form)
 
-        data_entry_number = get_data_entry_number(result_form.form_state)
-
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
-                                  header_text=_('Data Entry') + ' %s' %
-                                  data_entry_number))
+                                  header_text=get_header_text(result_form)))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST

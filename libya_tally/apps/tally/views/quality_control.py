@@ -4,8 +4,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView
 from django.utils.translation import ugettext as _
 
-from libya_tally.apps.tally.forms.intake_barcode_form import\
-    IntakeBarcodeForm
+from libya_tally.apps.tally.forms.barcode_form import\
+    BarcodeForm
 from libya_tally.apps.tally.forms.reconciliation_form import\
     ReconciliationForm
 from libya_tally.apps.tally.models.quality_control import QualityControl
@@ -74,7 +74,7 @@ class AbstractQualityControl(object):
 class QualityControlView(mixins.GroupRequiredMixin,
                          mixins.ReverseSuccessURLMixin,
                          FormView):
-    form_class = IntakeBarcodeForm
+    form_class = BarcodeForm
     group_required = groups.QUALITY_CONTROL_CLERK
     template_name = "tally/barcode_verify.html"
     success_url = 'quality-control-dashboard'
