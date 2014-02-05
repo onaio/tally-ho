@@ -13,7 +13,8 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.utils.common import session_matches_post_result_form
+from libya_tally.libs.utils.common import session_matches_post_result_form, \
+    get_matched_results
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
@@ -152,7 +153,7 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
     template_name = "tally/corrections/required.html"
-    success_url = 'corrections-clerk'
+    success_url = 'corrections-dashboard'
 
     def get_candidates(self, result_form, results=None):
         candidates = {}
@@ -182,14 +183,11 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
                                   candidates=results))
 
     @transaction.atomic
-    def post(self, *args, **kwargs):
-        pk = session_matches_post_result_form(self.request.POST, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
+    def post_corrections(self, result_form, results):
         candidate_fields = [
             f for f in self.request.POST if f.startswith('candidate_')]
 
-        matches, no_match = get_matched_forms(result_form)
+        matches, no_match = get_matched_results(result_form, results)
 
         if 'submit_corrections' in self.request.POST:
             if len(candidate_fields) != len(no_match):
@@ -207,26 +205,25 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
                     candidate=candidate,
                     result_form=result_form,
                     entry_version=EntryVersion.FINAL,
-                    votes=votes)
+                    votes=votes,
+                    user=self.request.user
+                )
                 changed_candidates.append(candidate)
 
-            results = Result.objects.filter(
+            results_v2 = results.filter(
                 result_form=result_form,
                 entry_version=EntryVersion.DATA_ENTRY_2)
-            for result in results:
+            for result in results_v2:
                 if result.candidate not in changed_candidates:
                     Result.objects.create(
                         candidate=result.candidate,
                         result_form=result_form,
                         entry_version=EntryVersion.FINAL,
-                        votes=result.votes)
-                    self.request.session['corrections-done'] = {
-                        'result_form': result_form.pk}
+                        votes=result.votes,
+                        user=self.request.user
+                    )
 
-            result_form.form_state = FormState.QUALITY_CONTROL
-            result_form.save()
-
-            return redirect('corrections-clerk')
+            return redirect(self.success_url)
         elif 'reject_submit' in self.request.POST:
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
@@ -253,6 +250,13 @@ class CorrectionGeneralView(CorrectionRequiredView):
             self.get_context_data(header_text=_(u"Corrections Header"),
                                   result_form=result_form,
                                   candidates=results))
+
+    @transaction.atomic
+    def post(self, *args, **kwargs):
+        pk = session_matches_post_result_form(self.request.POST, self.request)
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
+        return self.post_corrections(result_form, result_form.general_results)
 
 
 class CorrectionWomenView(CorrectionRequiredView):

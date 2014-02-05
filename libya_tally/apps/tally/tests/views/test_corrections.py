@@ -103,7 +103,7 @@ class TestCorrectionView(TestBase):
         request.session = {}
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('corrections/match', response['location'])
+        self.assertIn('corrections/dashboard', response['location'])
 
     def test_corrections_redirects_to_corrections_required(self):
         barcode = '123456789'
@@ -118,7 +118,7 @@ class TestCorrectionView(TestBase):
         request.session = {}
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('corrections/required', response['location'])
+        self.assertIn('corrections/dashboard', response['location'])
 
     def test_corrections_match_page(self):
         result_form = create_result_form(form_state=FormState.CORRECTION)
@@ -172,8 +172,8 @@ class TestCorrectionView(TestBase):
         response = view(request)
         self.assertContains(response, 'Corrections Required')
 
-    def test_corrections_required_post_corrections(self):
-        view = views.CorrectionRequiredView.as_view()
+    def test_corrections_general_post_corrections(self):
+        view = views.CorrectionGeneralView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
         create_results(result_form, vote1=2, vote2=3)
         self._create_and_login_user()
@@ -191,13 +191,10 @@ class TestCorrectionView(TestBase):
         request.user = self.user
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/corrections', response['location'])
-        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
-        self.assertEqual(updated_result_form.form_state,
-                         FormState.QUALITY_CONTROL)
+        self.assertIn('/corrections/dashboard', response['location'])
 
     def test_corrections_required_post_reject(self):
-        view = views.CorrectionRequiredView.as_view()
+        view = views.CorrectionGeneralView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
         create_results(result_form, vote1=2, vote2=3)
         self._create_and_login_user()
