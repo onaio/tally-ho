@@ -4,8 +4,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
-from libya_tally.apps.tally.views import archive, data_entry_clerk, home,\
-    intake_clerk, quality_control, super_admin, corrections
+from libya_tally.apps.tally.views import archive, clearance, corrections,\
+    data_entry_clerk, home, intake_clerk, quality_control, super_admin
 
 admin.autodiscover()
 
@@ -20,6 +20,7 @@ accounts_urls = patterns(
 urlpatterns = patterns(
     '',
     url(r'^$', home.HomeView.as_view(), name='home'),
+
     url(r'^super-administrator$',
         super_admin.DashboardView.as_view(), name='super-administrator'),
     url(r'^super-administrator/center-list$',
@@ -31,6 +32,7 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-progress',
         super_admin.FormProgressView.as_view(),
         name='form-progress'),
+
     url(r'^data-entry$', data_entry_clerk.DataEntryView.as_view(),
         name='data-entry-clerk'),
     url(r'^data-entry/enter-center-details$',
@@ -42,6 +44,7 @@ urlpatterns = patterns(
     url(r'^data-entry/enter-results',
         data_entry_clerk.EnterResultsView.as_view(),
         name='enter-results'),
+
     url(r'^intake/center-details$', intake_clerk.CenterDetailsView.as_view(),
         name='intake-clerk'),
     url(r'^intake/enter-center', intake_clerk.EnterCenterView.as_view(),
@@ -58,6 +61,7 @@ urlpatterns = patterns(
     url(r'^intake/intaken',
         TemplateView.as_view(template_name='tally/intake/success.html'),
         name='intaken'),
+
     url(r'^quality-control/home$',
         quality_control.QualityControlView.as_view(),
         name='quality-control-clerk'),
@@ -77,6 +81,7 @@ urlpatterns = patterns(
     url(r'^quality-control/women',
         quality_control.QualityControlWomenView.as_view(),
         name='quality-control-women'),
+
     url(r'^corrections$',
         corrections.CorrectionView.as_view(),
         name='corrections-clerk'),
@@ -95,12 +100,20 @@ urlpatterns = patterns(
     url(r'^corrections/reconciliation$',
         corrections.CorrectionReconciliationView.as_view(),
         name='corrections-reconciliation'),
+
     url(r'^archive',
         archive.ArchiveView.as_view(),
         name='archive-clerk'),
     url(r'^archive/print',
         archive.ArchiveView.as_view(),
         name='archive-print'),
+
+    url(r'^clearance',
+        clearance.ClearanceDashboardView.as_view(),
+        name='clearance-clerk'),
+    url(r'^cwclearance/review',
+        clearance.ClearanceReviewView.as_view(),
+        name='clearance-review'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),
