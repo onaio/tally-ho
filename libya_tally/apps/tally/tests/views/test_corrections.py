@@ -7,18 +7,19 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.views import corrections as views
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
+from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form, \
     create_candidate, create_center, create_station, TestBase
 
 
-def create_results(result_form, vote1=1, vote2=1):
+def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL):
     code = '12345'
     center = create_center(code)
     create_station(center)
     ballot = result_form.ballot
     candidate_name = 'candidate name'
-    candidate = create_candidate(ballot, candidate_name)
+    candidate = create_candidate(ballot, candidate_name, race_type)
 
     Result.objects.create(
         candidate=candidate,
@@ -193,7 +194,7 @@ class TestCorrectionView(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections/dashboard', response['location'])
 
-    def test_corrections_required_post_reject(self):
+    def test_corrections_general_post_reject(self):
         view = views.CorrectionGeneralView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
         create_results(result_form, vote1=2, vote2=3)
@@ -213,6 +214,51 @@ class TestCorrectionView(TestBase):
         response = view(request)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections', response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.DATA_ENTRY_1)
+
+    def test_corrections_women_post_corrections(self):
+        view = views.CorrectionWomenView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2)
+        session = {'result_form': result_form.pk}
+        post_data = {
+            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            'result_form': result_form.pk,
+            'submit_corrections': 'submit corrections'
+        }
+        request = self.factory.post('/', post_data)
+        request.session = session
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/corrections/dashboard', response['location'])
+
+    def test_corrections_women_post_reject(self):
+        view = views.CorrectionWomenView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2)
+        session = {'result_form': result_form.pk}
+        post_data = {
+            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            'result_form': result_form.pk,
+            'reject_submit': 'reject'
+        }
+        request = self.factory.post('/', post_data)
+        request.session = session
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/corrections/dashboard', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_1)

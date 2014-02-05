@@ -260,7 +260,29 @@ class CorrectionGeneralView(CorrectionRequiredView):
 
 
 class CorrectionWomenView(CorrectionRequiredView):
-    pass
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
+
+        candidates = self.get_candidates(result_form,
+                                         result_form.women_results)
+
+        results = []
+        for c, r in candidates.iteritems():
+            results.append((c, r[0], r[1]))
+        return self.render_to_response(
+            self.get_context_data(header_text=_(u"Corrections Header"),
+                                  result_form=result_form,
+                                  candidates=results))
+
+    @transaction.atomic
+    def post(self, *args, **kwargs):
+        pk = session_matches_post_result_form(self.request.POST, self.request)
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
+        return self.post_corrections(result_form, result_form.women_results)
 
 
 class CorrectionReconciliationView(CorrectionRequiredView):
