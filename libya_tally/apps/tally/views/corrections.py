@@ -174,8 +174,8 @@ class AbstractCorrectionView(mixins.GroupRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CORRECTION])
 
-        candidates = self.get_candidates(result_form,
-                                         result_form.general_results)
+        results = result_form.results.filter(candidate__race_type=race_type)
+        candidates = self.get_candidates(result_form, results)
 
         results = []
         for c, r in candidates.iteritems():
@@ -193,10 +193,14 @@ class AbstractCorrectionView(mixins.GroupRequiredMixin,
                                   candidates=results))
 
     @transaction.atomic
-    def post_corrections(self, result_form, results):
+    def post_action(self, race_type):
+        pk = session_matches_post_result_form(self.request.POST, self.request)
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
         candidate_fields = [
             f for f in self.request.POST if f.startswith('candidate_')]
 
+        results = result_form.results.filter(candidate__race_type=race_type)
         matches, no_match = get_matched_results(result_form, results)
 
         if 'submit_corrections' in self.request.POST:
@@ -249,10 +253,7 @@ class CorrectionGeneralView(AbstractCorrectionView):
 
     @transaction.atomic
     def post(self, *args, **kwargs):
-        pk = session_matches_post_result_form(self.request.POST, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
-        return self.post_corrections(result_form, result_form.general_results)
+        return self.post_action(RaceType.GENERAL)
 
 
 class CorrectionWomenView(AbstractCorrectionView):
@@ -262,10 +263,7 @@ class CorrectionWomenView(AbstractCorrectionView):
 
     @transaction.atomic
     def post(self, *args, **kwargs):
-        pk = session_matches_post_result_form(self.request.POST, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
-        return self.post_corrections(result_form, result_form.women_results)
+        return self.post_action(RaceType.WOMEN)
 
 
 class CorrectionReconciliationView(AbstractCorrectionView):
