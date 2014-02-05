@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.translation import ugettext as _
 from django_enumfield import enum
 
 from libya_tally.apps.tally.models.ballot import Ballot
@@ -63,4 +64,5 @@ class ResultForm(BaseModel):
 
     @property
     def gender_name(self):
-        return dict(Gender.choices())[self.gender]
+        gender = self.gender
+        return dict(Gender.choices())[gender] if gender else _('Undefined')

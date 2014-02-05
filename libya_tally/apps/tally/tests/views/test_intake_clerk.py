@@ -7,7 +7,7 @@ from libya_tally.apps.tally.views import intake_clerk as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_center,\
-    create_result_form, TestBase
+    create_result_form, create_station, TestBase
 
 
 class TestIntakeClerk(TestBase):
@@ -105,6 +105,51 @@ class TestIntakeClerk(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         self.assertEqual(result_form.form_state, FormState.INTAKE)
         self.assertEqual(result_form.user, self.user)
+
+    def test_enter_center_get(self):
+        result_form = create_result_form(form_state=FormState.INTAKE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.EnterCenterView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Double Enter Center Details')
+
+    def test_enter_center_post_invalid(self):
+        result_form = create_result_form(form_state=FormState.INTAKE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.EnterCenterView.as_view()
+        request = self.factory.post('/',
+                                    data={'result_form': result_form.pk})
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Double Enter Center Details')
+
+    def test_enter_center_post_valid(self):
+        center = create_center(code='11111')
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.INTAKE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.EnterCenterView.as_view()
+        data = {'result_form': result_form.pk,
+                'center_number': center.code,
+                'center_number_copy': center.code,
+                'station_number': 1,
+                'station_number_copy': 1}
+        request = self.factory.post('/',
+                                    data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/intake/check-center-details', response['location'])
 
     def test_check_center_details(self):
         barcode = '123456789'

@@ -9,6 +9,7 @@
 {% trans 'Double Enter Center Details' %}
 
 <form id="result_form" method="post" action="">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <table>{{ form.as_table }}
         <tr>
             <td>
