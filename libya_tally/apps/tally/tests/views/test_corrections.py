@@ -288,7 +288,7 @@ class TestCorrections(TestBase):
         request.user = self.user
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/corrections/dashboard', response['location'])
+        self.assertIn('/corrections', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_1)

@@ -46,46 +46,65 @@ class TestDataEntryClerk(TestBase):
         self.assertIn('<form id="result_form"', response.content)
 
     def test_center_detail_center_number_length(self):
+        code = '12345'
+        station_number = 1
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1,
+                                         center=center,
+                                         station_number=station_number)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.CenterDetailsView.as_view()
-        data = {'center_number': '1223', 'center_number': '1223'}
+        data = {'center_number': '1234', 'center_number': '1234'}
+        session = {'result_form': result_form.pk}
+        data.update(session)
         request = self.factory.post('/', data=data)
         request.user = self.user
+        request.session = session
         response = view(request)
+
         self.assertContains(response,
                             u'Ensure this value has at least 5 characters')
 
     def test_center_detail_center_not_equal(self):
+        code = '12345'
+        station_number = 1
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1,
+                                         center=center,
+                                         station_number=station_number)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.CenterDetailsView.as_view()
         data = center_data('12345', '12346')
+        session = {'result_form': result_form.pk}
+        data.update(session)
         request = self.factory.post('/', data=data)
         request.user = self.user
+        request.session = session
         response = view(request)
         self.assertContains(response, 'Center Numbers do not match')
 
-    def test_center_detail_does_not_exist(self):
-        self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
-        view = views.CenterDetailsView.as_view()
-        data = center_data('12345')
-        request = self.factory.post('/', data=data)
-        request.user = self.user
-        response = view(request)
-        self.assertContains(response, 'Center Number does not exist')
-
     def test_center_detail_no_station(self):
         code = '12345'
-        create_center(code)
+        station_number = 1
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1,
+                                         center=center,
+                                         station_number=station_number)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
         view = views.CenterDetailsView.as_view()
+        session = {'result_form': result_form.pk}
         data = center_data(code)
+        data.update(session)
+        data.update({'station_number': 3, 'station_number_copy': 3})
         request = self.factory.post('/', data=data)
         request.user = self.user
-        request.session = {}
+        request.session = session
         response = view(request)
         self.assertContains(response, 'Invalid Station Number for this Center')
 

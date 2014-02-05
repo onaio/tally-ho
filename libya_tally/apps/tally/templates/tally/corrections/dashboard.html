@@ -66,7 +66,7 @@
     {% if result_form.corrections_passed %}
         <button type="submit" name="submit">{% trans "Submit" %}</button>
     {% else %}
-        <button type="submit" name="submit">{% trans "Abort" %}</button>
+        <button type="abort" name="abort">{% trans "Abort" %}</button>
     {% endif %}
     {% csrf_token %}
 </form>

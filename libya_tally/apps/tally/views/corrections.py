@@ -167,6 +167,16 @@ class CorrectionDashboardView(mixins.GroupRequiredMixin,
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
 
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
+        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        if 'abort' in post_data:
+            abort(result_form)
+
+        return redirect(self.success_url)
+
 
 class AbstractCorrectionView(mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
@@ -255,7 +265,8 @@ class AbstractCorrectionView(mixins.GroupRequiredMixin,
 
             return redirect(self.success_url)
         else:
-            return incorrect_checks(post_data, result_form, self.success_url)
+            return incorrect_checks(post_data, result_form,
+                                    'corrections-clerk')
 
 
 class CorrectionGeneralView(AbstractCorrectionView):
@@ -314,7 +325,13 @@ class CorrectionReconciliationView(AbstractCorrectionView):
         form_in_state(result_form, FormState.CORRECTION)
 
         if 'submit_corrections' in post_data:
+            recon_form1 = result_form.reconciliationform_set.filter(
+                entry_version=EntryVersion.DATA_ENTRY_1)
+
             # TODO complete this
+            for field in recon_form1:
+                pass
+
             return redirect(self.success_url)
         else:
             return incorrect_checks(post_data, result_form, self.success_url)

@@ -45,6 +45,27 @@ def get_header_text(result_form):
     return _('Data Entry') + ' %s' % data_entry_number
 
 
+def check_double_enter(result_form, user, form):
+    results = Result.objects.filter(
+        result_form=result_form,
+        entry_version=EntryVersion.DATA_ENTRY_1)
+
+    if results.count() and results[0].user == user:
+        errors = form._errors.setdefault(
+            "__all__", ErrorList())
+        errors.append(_(u"You have already entered this form "
+                      "as Data Entry Clerk 1."))
+
+        return form
+
+
+def check_form_for_center_station(center, station_number, result_form):
+    if not result_form in ResultForm.objects.filter(
+            center=center, station_number=station_number):
+        raise SuspiciousOperation(
+            'Center and station numbers do not match')
+
+
 class DataEntryView(mixins.GroupRequiredMixin,
                     mixins.ReverseSuccessURLMixin,
                     FormView):
@@ -68,12 +89,17 @@ class DataEntryView(mixins.GroupRequiredMixin,
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
 
-            form = safe_form_in_state(
+            check_form = safe_form_in_state(
                 result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
                 form)
 
-            if form:
-                return self.form_invalid(form)
+            if not check_form:
+                check_form = check_double_enter(result_form, self.user, form)
+
+            if check_form:
+                check_form = check_double_enter(result_form, self.user,
+                                                check_form)
+                return self.form_invalid(check_form)
 
             self.request.session['result_form'] = result_form.pk
 
@@ -106,45 +132,30 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
+        result_form = get_object_or_404(ResultForm, pk=pk)
 
         if form.is_valid():
-            post_data = self.request.POST
-            pk = session_matches_post_result_form(post_data, self.request)
-            result_form = get_object_or_404(ResultForm, pk=pk)
-
             center_number = form.cleaned_data['center_number']
             center = Center.objects.get(code=center_number)
             station_number = form.cleaned_data['station_number']
 
-            if not result_form in ResultForm.objects.filter(
-                    center=center, station_number=station_number):
-                raise SuspiciousOperation(
-                    'Center and station numbers do not match')
+            check_form_for_center_station(center, station_number,
+                                          result_form)
 
             check_form = safe_form_in_state(
                 result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
                 form)
 
             if check_form:
-                return self.form_invalid(check_form)
-
-            results = Result.objects.filter(
-                result_form=result_form,
-                entry_version=EntryVersion.DATA_ENTRY_1)
-
-            if results.count() and results[0].user == self.request.user:
-                errors = form._errors.setdefault(
-                    "__all__", ErrorList())
-                errors.append(_(u"You have already entered this form "
-                              "as Data Entry Clerk 1."))
-
-                return self.form_invalid(form)
-
-            self.request.session['result_form'] = result_form.pk
+                return self.render_to_response(self.get_context_data(
+                    form=check_form, result_form=result_form))
 
             return redirect(self.success_url)
         else:
-            return self.form_invalid(form)
+            return self.render_to_response(self.get_context_data(form=form,
+                                           result_form=result_form))
 
 
 class CheckCenterDetailsView(mixins.GroupRequiredMixin,
