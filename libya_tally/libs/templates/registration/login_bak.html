@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+
+<div class="container">
+
+    <form class="form-signin" role="form" method="post" action=".">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <input type="email" class="form-control" placeholder="Email address" required autofocus>
+        <input type="password" class="form-control" placeholder="Password" required>
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">{% trans 'Sign in' %}</button>
+    </form>
+
+</div> <!-- /container -->
+
+
+<form method="post" action=".">
+    <table id="login_table">
+        {{ form.as_table }}
+        <tfoot>
+        <tr>
+            <td>&nbsp;</td>
+            <td><input type="submit"  value="{% trans 'Sign in' %}" /></td>
+        </tr>
+        </tfoot>
+    </table>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}" />
+</form>
+
+{% endblock %}
