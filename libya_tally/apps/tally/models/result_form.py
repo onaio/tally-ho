@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
+from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
 
@@ -107,9 +108,21 @@ class ResultForm(BaseModel):
         return reconciliationforms[0]
 
     @property
+    def reconciliationform_exists(self):
+        return self.reconciliationform_set.filter(active=True).count()
+
+    @property
     def reconciliation_match(self):
-        # TODO: implement this
-        return True
+        results = self.reconciliationform_set.filter(active=True)
+        if results and results.count() > 1:
+            v1 = model_to_dict(results[0])
+            v2 = model_to_dict(results[1])
+            tuple_list = [i.items() for i in v1]
+            no_match = [rec for rec in v2 if rec.items() not in tuple_list]
+
+            return len(no_match) == 0
+
+        return False
 
     @property
     def corrections_passed(self):
