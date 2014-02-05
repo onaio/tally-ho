@@ -70,12 +70,12 @@ def center_data(code1, code2=None, station_number=1):
             'station_number_copy': station_number}
 
 
-def create_candidate(ballot, candidate_name):
+def create_candidate(ballot, candidate_name, race_type=RaceType.GENERAL):
     return Candidate.objects.create(ballot=ballot,
                                     full_name=candidate_name,
                                     candidate_id=1,
                                     order=1,
-                                    race_type=RaceType.GENERAL)
+                                    race_type=race_type)
 
 
 def create_center(code='1'):
