@@ -225,8 +225,7 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
 
             return redirect(self.success_url)
         elif 'reject_submit' in self.request.POST:
-            result_form.form_state = FormState.DATA_ENTRY_1
-            result_form.save()
+            result_form.reject()
 
             return redirect(self.success_url)
         else:
