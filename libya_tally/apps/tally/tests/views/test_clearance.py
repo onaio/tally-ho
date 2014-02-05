@@ -62,3 +62,30 @@ class TestClearance(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('clearance/review',
                       response['location'])
+
+    def test_review_get(self):
+        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.ClearanceReviewView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_review_post(self):
+        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.ClearanceReviewView.as_view()
+        data = {'result_form': result_form.pk}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('clearance',
+                      response['location'])

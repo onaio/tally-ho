@@ -52,21 +52,11 @@ class ClearanceReviewView(mixins.GroupRequiredMixin,
     success_url = 'clearance-review'
 
     def get(self, *args, **kwargs):
-        form_list = ResultForm.objects.filter(form_state=FormState.CLEARANCE)
-        paginator = Paginator(form_list, 100)
-        page = self.request.GET.get('page')
-
-        try:
-            forms = paginator.page(page)
-        except PageNotAnInteger:
-            # If page is not an integer, deliver first page.
-            forms = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page.
-            forms = paginator.page(paginator.num_pages)
+        pk = self.request.session['result_form']
+        result_form = get_object_or_404(ResultForm, pk=pk)
 
         return self.render_to_response(self.get_context_data(
-            forms=forms))
+            result_form=result_form))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
