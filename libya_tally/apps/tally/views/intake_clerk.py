@@ -108,7 +108,7 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     group_required = groups.INTAKE_CLERK
-    template_name = "tally/intake/check_details.html"
+    template_name = "tally/check_center_details.html"
     success_url = "intake-check-center-details"
 
     def get(self, *args, **kwargs):
