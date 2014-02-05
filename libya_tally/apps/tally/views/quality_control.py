@@ -51,12 +51,7 @@ class AbstractQualityControl(object):
             quality_control.active = False
             quality_control.save()
 
-            for result in result_form.results.all():
-                result.active = False
-                result.save()
-
-            result_form.form_state = FormState.DATA_ENTRY_1
-            result_form.save()
+            result_form.reject()
 
             return redirect('quality-control-reject')
         elif 'abort' in post_data:

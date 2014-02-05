@@ -22,11 +22,26 @@
         <td>{{ station.sub_constituency.code }}</td>
         <td>{{ station.center.name }}</td>
         <td>{{ station.center.code }}</td>
-        <td>{{ station.gender }}</td>
+        <td>{{ station.gender_name }}</td>
         <td>{{ station.registrants }}</td>
         <td>{{ station.modified_date }}</td>
     </tr>
 {% endfor %}
 </table>
 
+<div class="pagination">
+    <span class="step-links">
+        {% if stations.has_previous %}
+            <a href="?page={{ stations.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ stations.number }} of {{ stations.paginator.num_pages }}.
+        </span>
+
+        {% if stations.has_next %}
+            <a href="?page={{ stations.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
 {% endblock %}

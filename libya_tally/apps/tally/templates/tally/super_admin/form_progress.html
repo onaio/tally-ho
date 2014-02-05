@@ -8,16 +8,20 @@
 
 <table>
     <tr>
-        <th>{% trans 'Barcode' %}</th>
-        <th>{% trans 'Voting district' %}</th>
+        <th>{% trans 'Center Number' %}</th>
+        <th>{% trans 'Station Number' %}</th>
         <th>{% trans 'Race Type' %}</th>
+        <th>{% trans 'Form State' %}</th>
+        <th>{% trans 'Number of times rejected to DE1' %}</th>
         <th>{% trans 'Last Modified' %}</th>
     </tr>
 {% for form in forms %}
     <tr>
-        <td>{{ form.barcode }}</td>
-        <td>{{ form.ballot.number }}</td>
+        <td>{{ form.center.code }}</td>
+        <td>{{ form.station_number }}</td>
         <td>{{ form.ballot.race_type_name }}</td>
+        <td>{{ form.form_state_name }}</td>
+        <td>{{ form.rejected_count }}</td>
         <td>{{ form.modified_date }}</td>
     </tr>
 {% endfor %}

@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils.translation import ugettext as _
 from django_enumfield import enum
 
 from libya_tally.apps.tally.models.ballot import Ballot
@@ -25,6 +24,7 @@ class ResultForm(BaseModel):
     gender = enum.EnumField(Gender, null=True)
     name = models.CharField(max_length=256, null=True)
     office = models.CharField(max_length=256, null=True)
+    rejected_count = models.PositiveIntegerField(default=0)
     serial_number = models.PositiveIntegerField(unique=True)
     station_number = models.PositiveSmallIntegerField(null=True)
 
@@ -64,5 +64,13 @@ class ResultForm(BaseModel):
 
     @property
     def gender_name(self):
-        gender = self.gender
-        return dict(Gender.choices())[gender] if gender else _('Undefined')
+        return Gender.to_name(self.gender)
+
+    def reject(self):
+        for result in self.results.all():
+            result.active = False
+            result.save()
+
+        self.rejected_count = self.rejected_count + 1
+        self.form_state = FormState.DATA_ENTRY_1
+        self.save()

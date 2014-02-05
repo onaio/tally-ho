@@ -228,6 +228,7 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/reject',
                       response['location'])
+        self.assertEqual(result_form.rejected_count, 0)
         result_form = ResultForm.objects.get(pk=result_form.pk)
         quality_control = result_form.qualitycontrol_set.all()[0]
 
@@ -238,6 +239,7 @@ class TestQualityControl(TestBase):
             self.assertEqual(result.active, False)
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertEqual(result_form.rejected_count, 1)
         self.assertEqual(quality_control.active, False)
         self.assertEqual(quality_control.passed_reconciliation, False)
 
@@ -326,6 +328,7 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/reject',
                       response['location'])
+        self.assertEqual(result_form.rejected_count, 0)
         result_form = ResultForm.objects.get(pk=result_form.pk)
         quality_control = result_form.qualitycontrol_set.all()[0]
 
@@ -336,6 +339,7 @@ class TestQualityControl(TestBase):
             self.assertEqual(result.active, False)
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertEqual(result_form.rejected_count, 1)
         self.assertEqual(quality_control.active, False)
         self.assertEqual(quality_control.passed_general, False)
 
@@ -423,6 +427,7 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/reject',
                       response['location'])
+        self.assertEqual(result_form.rejected_count, 0)
         result_form = ResultForm.objects.get(pk=result_form.pk)
         quality_control = result_form.qualitycontrol_set.all()[0]
 
@@ -433,6 +438,7 @@ class TestQualityControl(TestBase):
             self.assertEqual(result.active, False)
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertEqual(result_form.rejected_count, 1)
         self.assertEqual(quality_control.active, False)
         self.assertEqual(quality_control.passed_women, False)
 

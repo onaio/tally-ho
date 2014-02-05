@@ -18,3 +18,7 @@ class Station(BaseModel):
     gender = enum.EnumField(Gender)
     registrants = models.PositiveIntegerField(null=True)
     station_number = models.PositiveSmallIntegerField()
+
+    @property
+    def gender_name(self):
+        return Gender.to_name(self.gender)

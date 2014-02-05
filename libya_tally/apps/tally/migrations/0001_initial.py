@@ -23,8 +23,8 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('ballot_general', self.gf('django.db.models.fields.related.ForeignKey')(related_name='ballot_general', null=True, to=orm['tally.Ballot'])),
-            ('ballot_women', self.gf('django.db.models.fields.related.ForeignKey')(related_name='ballot_women', null=True, to=orm['tally.Ballot'])),
+            ('ballot_general', self.gf('django.db.models.fields.related.ForeignKey')(related_name='sc_general', null=True, to=orm['tally.Ballot'])),
+            ('ballot_women', self.gf('django.db.models.fields.related.ForeignKey')(related_name='sc_women', null=True, to=orm['tally.Ballot'])),
             ('code', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
             ('component_ballot', self.gf('django.db.models.fields.BooleanField')()),
             ('field_office', self.gf('django.db.models.fields.CharField')(max_length=256)),
@@ -65,6 +65,7 @@ class Migration(SchemaMigration):
             ('gender', self.gf('django.db.models.fields.IntegerField')(default=0, null=True, db_index=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
             ('office', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
+            ('rejected_count', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
             ('serial_number', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True)),
             ('station_number', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
         ))
@@ -456,6 +457,7 @@ class Migration(SchemaMigration):
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
             'office': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
+            'rejected_count': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'serial_number': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True'}),
             'station_number': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True'})
@@ -473,8 +475,8 @@ class Migration(SchemaMigration):
         },
         'tally.subconstituency': {
             'Meta': {'object_name': 'SubConstituency'},
-            'ballot_general': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'ballot_general'", 'null': 'True', 'to': "orm['tally.Ballot']"}),
-            'ballot_women': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'ballot_women'", 'null': 'True', 'to': "orm['tally.Ballot']"}),
+            'ballot_general': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'sc_general'", 'null': 'True', 'to': "orm['tally.Ballot']"}),
+            'ballot_women': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'sc_women'", 'null': 'True', 'to': "orm['tally.Ballot']"}),
             'code': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'component_ballot': ('django.db.models.fields.BooleanField', [], {}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),

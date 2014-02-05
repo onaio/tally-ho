@@ -10,9 +10,9 @@ class SubConstituency(BaseModel):
         app_label = 'tally'
 
     ballot_general = models.ForeignKey(Ballot, null=True,
-                                       related_name='ballot_general')
+                                       related_name='sc_general')
     ballot_women = models.ForeignKey(Ballot, null=True,
-                                     related_name='ballot_women')
+                                     related_name='sc_women')
     code = models.PositiveSmallIntegerField()  # aka SubCon number
     component_ballot = models.BooleanField()
     field_office = models.CharField(max_length=256)
@@ -21,9 +21,14 @@ class SubConstituency(BaseModel):
 
     @property
     def form_type(self):
-        if self.ballot_women:
+        ballot = self.ballot
+
+        if ballot.ballot_women.first():
             return _('General and Women')
-        elif self.component_ballot:
-            return _('General and Component')
-        else:
+        elif ballot.ballot_general.first():
+            if ballot.ballot_general.first().component_ballot:
+                return _('General and Component')
+
             return _('General')
+        else:
+            return _('Undefined')
