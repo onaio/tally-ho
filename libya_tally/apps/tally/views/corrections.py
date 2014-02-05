@@ -12,6 +12,7 @@ from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
+from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.common import session_matches_post_result_form, \
     get_matched_results
@@ -147,7 +148,7 @@ class CorrectionDashboardView(mixins.GroupRequiredMixin,
             self.get_context_data(result_form=result_form))
 
 
-class CorrectionRequiredView(mixins.GroupRequiredMixin,
+class AbstractCorrectionView(mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     form_class = PassToQualityControlForm
@@ -168,12 +169,21 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
                     result.candidate: [result]})
         return candidates
 
-    def get(self, *args, **kwargs):
+    def get_action(self, header_text, race_type):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CORRECTION])
 
-        candidates = self.get_candidates(result_form)
+        candidates = self.get_candidates(result_form,
+                                         result_form.general_results)
+
+        results = []
+        for c, r in candidates.iteritems():
+            results.append((c, r[0], r[1]))
+        return self.render_to_response(
+            self.get_context_data(header_text=header_text,
+                                  result_form=result_form,
+                                  candidates=results))
 
         results = []
         for c, r in candidates.iteritems():
@@ -232,23 +242,10 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
             return redirect(self.success_url)
 
 
-class CorrectionGeneralView(CorrectionRequiredView):
+class CorrectionGeneralView(AbstractCorrectionView):
 
     def get(self, *args, **kwargs):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
-
-        candidates = self.get_candidates(result_form,
-                                         result_form.general_results)
-
-        results = []
-        for c, r in candidates.iteritems():
-            results.append((c, r[0], r[1]))
-        return self.render_to_response(
-            self.get_context_data(header_text=_(u"Corrections Header"),
-                                  result_form=result_form,
-                                  candidates=results))
+        return self.get_action(_(u"General"), RaceType.GENERAL)
 
     @transaction.atomic
     def post(self, *args, **kwargs):
@@ -258,23 +255,10 @@ class CorrectionGeneralView(CorrectionRequiredView):
         return self.post_corrections(result_form, result_form.general_results)
 
 
-class CorrectionWomenView(CorrectionRequiredView):
+class CorrectionWomenView(AbstractCorrectionView):
 
     def get(self, *args, **kwargs):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
-
-        candidates = self.get_candidates(result_form,
-                                         result_form.women_results)
-
-        results = []
-        for c, r in candidates.iteritems():
-            results.append((c, r[0], r[1]))
-        return self.render_to_response(
-            self.get_context_data(header_text=_(u"Corrections Header"),
-                                  result_form=result_form,
-                                  candidates=results))
+        return self.get_action(_(u"General"), RaceType.WOMEN)
 
     @transaction.atomic
     def post(self, *args, **kwargs):
@@ -284,5 +268,5 @@ class CorrectionWomenView(CorrectionRequiredView):
         return self.post_corrections(result_form, result_form.women_results)
 
 
-class CorrectionReconciliationView(CorrectionRequiredView):
+class CorrectionReconciliationView(AbstractCorrectionView):
     pass
