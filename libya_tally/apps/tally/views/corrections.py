@@ -1,4 +1,6 @@
+from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
+from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
@@ -7,6 +9,7 @@ from libya_tally.apps.tally.forms.barcode_form import\
     BarcodeForm
 from libya_tally.apps.tally.forms.pass_to_quality_control_form import \
     PassToQualityControlForm
+from libya_tally.apps.tally.forms.reconciliation_form import ReconciliationForm
 from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -267,4 +270,34 @@ class CorrectionWomenView(AbstractCorrectionView):
 
 
 class CorrectionReconciliationView(AbstractCorrectionView):
-    pass
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
+        results = result_form.reconciliationform_set.filter(active=True)
+
+        if results.count() < 2:
+            raise SuspiciousOperation(_(u"There should be atleast two "
+                                        u"reconciliation results."))
+        reconciliation_form_1 = ReconciliationForm(data=model_to_dict(
+            results.filter(entry_version=EntryVersion.DATA_ENTRY_1)[0]))
+        reconciliation_form_2 = ReconciliationForm(data=model_to_dict(
+            results.filter(entry_version=EntryVersion.DATA_ENTRY_2)[0]))
+
+        recon = []
+        for field in reconciliation_form_1:
+            recon.append((field, reconciliation_form_2[field.name]))
+
+        return self.render_to_response(self.get_context_data(
+            result_form=result_form,
+            header_text=_(u"Reconciliation"),
+            reconciliation_form=recon
+        ))
+
+    @transaction.atomic
+    def post_action(self, race_type):
+        pk = session_matches_post_result_form(self.request.POST, self.request)
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
+        # TODO complete this

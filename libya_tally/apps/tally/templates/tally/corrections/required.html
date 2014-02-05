@@ -50,6 +50,37 @@
             </td>
         </tr>
     {% endfor %}
+{% for field1, field2 in reconciliation_form %}
+ <tr>
+            <td>
+                {% if field1.data == field2.data %}
+                {% trans 'No' %}
+                {% else %}{% trans 'Yes' %}{% endif %}</td>
+            <td>
+                {% if field1.data != field2.data %}
+                <input type="radio" name="{{ field1.name }}" value="{{ field1.data }}" />
+                {% else %}-{% endif %}</td>
+            </td>
+            <td>
+                {{ field1.data }}
+            </td>
+            <td>
+                {% if field1.data != field2.data %}
+                <input type="radio" name="{{ field1.name }}" value="{{ field2.data }}" />
+                {% else %}-{% endif %}</td>
+            </td>
+            <td>
+                {{ field2.data }}
+            </td>
+            <td>
+                {{ field1.label }}
+            </td>
+            <td>
+                &nbsp;
+            </td>
+        </tr>
+    {% endfor %}
+
     </table>
 
 

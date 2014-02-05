@@ -11,7 +11,7 @@
 <h4>{{ result_form.corrections_required_text }}</h4>
 
 <table>
-    {% if result_form.reconciliationform %}
+    {% if result_form.reconciliationform_exists %}
     <tr>
         <td>
             <a href="{% url 'corrections-reconciliation' %}">{% trans 'Reconciliation Section' %}</a>
