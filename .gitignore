@@ -1,6 +1,7 @@
 *.pyc
 
 .coverage
+.idea
 local_settings.py
 data.tgz
 data/*

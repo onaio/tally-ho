@@ -6,14 +6,17 @@
 
 <h1>{{ header_text }}</h1>
 
-{% trans 'Enter Barcode' %}
+<h4 class="headertxt">{% trans 'Enter Barcode' %}</h4>
+
 <form id="result_form" method="post" action="">
-    <table>{{ form.as_table}}
+    <table class="formtable">{{ form.as_table}}
         <tr>
+            <td></td>
             <td>
-                <button type="submit" name="submit">{% trans "Submit" %}</button>
+                <button type="submit" name="submit" class="btn btn-warning">{% trans "Submit" %}</button>
             </td>
         </tr>
+
         {% csrf_token %}
     </table>
 </form>
