@@ -83,4 +83,29 @@ class ResultForm(BaseModel):
 
     @property
     def general_match(self):
-        return match_results(self, self.general_results)
+        return match_results(self, self.general_results) \
+            if self.general_results else False
+
+    @property
+    def women_match(self):
+        return match_results(self, self.women_results) \
+            if self.women_results else True
+
+    @property
+    def reconciliation_match(self):
+        # TODO: implement this
+        return True
+
+    @property
+    def corrections_passed(self):
+        has_recon_form = True
+
+        try:
+            self.reconciliationform
+        except Exception:
+            has_recon_form = False
+
+        return (
+            (not self.has_general_results or self.general_match) and
+            (not has_recon_form or self.reconciliation_match) and
+            (not self.has_women_results or self.women_match))
