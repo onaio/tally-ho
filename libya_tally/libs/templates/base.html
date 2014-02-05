@@ -7,7 +7,11 @@
     <meta name="author" content="">
 
     {% block styles %}
+      {% if arabic %}
       <link href="{{STATIC_URL}}css/bootstrap-rtl.css" rel="stylesheet" type="text/css" />
+      {% else %}
+      <link href="{{STATIC_URL}}css/bootstrap.css" rel="stylesheet" type="text/css" />
+      {% endif %}
       <link href="{{STATIC_URL}}css/default.css" rel="stylesheet" type="text/css" />
     {% endblock %}
   </head>
