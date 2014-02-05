@@ -61,7 +61,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.media',
     'django.core.context_processors.static',
     'django.core.context_processors.tz',
+    'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
+    'libya_tally.libs.utils.context_processors.locale',
     'libya_tally.libs.utils.context_processors.site_name',
 )
 

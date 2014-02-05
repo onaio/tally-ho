@@ -11,3 +11,15 @@ def site_name(request):
     else:
         site_name = site.name
     return {'SITE_NAME': site_name}
+
+
+def locale(request):
+    arabic = None
+
+    if hasattr(request, 'session'):
+        locale = request.session.get('locale')
+
+        if (locale and locale == 'ar'):
+            arabic = 'true'
+
+    return {'arabic': arabic}

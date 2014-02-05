@@ -20,6 +20,7 @@ accounts_urls = patterns(
 urlpatterns = patterns(
     '',
     url(r'^$', home.HomeView.as_view(), name='home'),
+    url(r'^locale$', home.LocaleView.as_view(), name='home-locale'),
 
     url(r'^super-administrator$',
         super_admin.DashboardView.as_view(), name='super-administrator'),
@@ -111,7 +112,7 @@ urlpatterns = patterns(
     url(r'^clearance',
         clearance.ClearanceDashboardView.as_view(),
         name='clearance-clerk'),
-    url(r'^cwclearance/review',
+    url(r'^clearance/review',
         clearance.ClearanceReviewView.as_view(),
         name='clearance-review'),
 

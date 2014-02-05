@@ -46,3 +46,19 @@ class HomeView(LoginRequiredMixin, TemplateView):
         if redirect_response:
             return redirect_response
         return super(HomeView, self).dispatch(request, *args, **kwargs)
+
+
+class LocaleView(LoginRequiredMixin, TemplateView):
+    def get(self, *args, **kwargs):
+        get_data = self.request.GET
+        locale = get_data.get('locale')
+
+        if locale:
+            self.request.session['locale'] = locale
+
+        next_url = get_data.get('next', 'home')
+
+        if not len(next_url) or next_url.startswith('locale'):
+            next_url = 'home'
+
+        return redirect(next_url)
