@@ -5,3 +5,4 @@ local_settings.py
 data.tgz
 data/*
 db.sqlite3
+libya_tally/static
