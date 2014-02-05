@@ -94,10 +94,11 @@ class DataEntryView(mixins.GroupRequiredMixin,
                 form)
 
             if not check_form:
-                check_form = check_double_enter(result_form, self.user, form)
+                check_form = check_double_enter(result_form,
+                                                self.request.user, form)
 
             if check_form:
-                check_form = check_double_enter(result_form, self.user,
+                check_form = check_double_enter(result_form, self.request.user,
                                                 check_form)
                 return self.form_invalid(check_form)
 
