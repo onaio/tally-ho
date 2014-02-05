@@ -6,8 +6,8 @@ from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.forms.barcode_form import\
     BarcodeForm
-from libya_tally.apps.tally.forms.reconciliation_form import\
-    ReconciliationForm
+from libya_tally.apps.tally.forms.recon_form import\
+    ReconForm
 from libya_tally.apps.tally.models.quality_control import QualityControl
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
@@ -145,7 +145,7 @@ class QualityControlReconciliationView(mixins.GroupRequiredMixin,
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
-        reconciliation_form = ReconciliationForm(data=model_to_dict(
+        reconciliation_form = ReconForm(data=model_to_dict(
             result_form.reconciliationform_set.all()[0]))
 
         return self.render_to_response(
