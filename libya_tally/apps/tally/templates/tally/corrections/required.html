@@ -53,8 +53,8 @@
     </table>
 
 
-<h1>{% trans 'Corrections' %}</h1>
-<h2>{% trans 'Corrections Required' %}</h2>
+    <h1>{{ header_text }}</h1>
+    <h2>{{ result_form.corrections_required_text }}</h2>
 
 <ul>
     <li>{{ result_form.center.name }} {% trans 'Center Name:' %}</li>
@@ -65,7 +65,6 @@
     <li>{{ result_form.ballot.race_type_name }} {% trans 'Form Race Type:' %}</li>
 </ul>
 
-<h2>{% trans 'Form Entries Match' %}</h2>
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <button name="submit_corrections" type="submit" value="submit corrections">{% trans 'Submit Corrections' %}</button>
     <button name="reject_submit" type="submit" value="reject">{% trans 'No Correct - Reject' %}</button>

@@ -154,10 +154,12 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
     template_name = "tally/corrections/required.html"
     success_url = 'corrections-clerk'
 
-    def get_candidates(self, result_form):
+    def get_candidates(self, result_form, results=None):
         candidates = {}
-        for result in result_form.results.order_by('candidate__order',
-                                                   'entry_version'):
+        if results is None:
+            results = result_form.results
+        for result in results.order_by('candidate__order',
+                                       'entry_version'):
             if result.candidate in candidates.keys():
                 candidates[result.candidate].append(result)
             else:
@@ -232,3 +234,30 @@ class CorrectionRequiredView(mixins.GroupRequiredMixin,
             return redirect(self.success_url)
         else:
             return redirect(self.success_url)
+
+
+class CorrectionGeneralView(CorrectionRequiredView):
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
+
+        candidates = self.get_candidates(result_form,
+                                         result_form.general_results)
+
+        results = []
+        for c, r in candidates.iteritems():
+            results.append((c, r[0], r[1]))
+        return self.render_to_response(
+            self.get_context_data(header_text=_(u"Corrections Header"),
+                                  result_form=result_form,
+                                  candidates=results))
+
+
+class CorrectionWomenView(CorrectionRequiredView):
+    pass
+
+
+class CorrectionReconciliationView(CorrectionRequiredView):
+    pass

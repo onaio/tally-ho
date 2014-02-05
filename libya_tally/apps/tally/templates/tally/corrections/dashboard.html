@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Corrections' %}</h1>
+
+{% include 'tally/center_details.html' %}
+
+<h4>{{ result_form.corrections_required_text }}</h4>
+
+<table>
+    {% if result_form.reconciliationform %}
+    <tr>
+        <td>
+            <a href="{% url 'corrections-reconciliation' %}">{% trans 'Reconciliation Section' %}</a>
+        </td>
+        <td>
+            {% if result_form.reconciliation_match %}
+                {% trans 'Match' %}
+            {% elif result_form.reconciliation_corrected %}
+                {% trans 'Corrected' %}
+            {% else %}
+                {% trans 'Mis-Match' %}
+            {% endif %}
+        </td>
+    </tr>
+    {% endif %}
+    {% if result_form.has_general_results %}
+    <tr>
+        <td>
+            <a href="{% url 'corrections-general' %}">{% trans 'General Section' %}</a>
+        </td>
+        <td>
+            {% if result_form.general_match %}
+                {% trans 'Match' %}
+            {% elif result_form.general_corrected %}
+                {% trans 'Corrected' %}
+            {% else %}
+            {% trans 'Mis-Match' %}
+            {% endif %}
+        </td>
+    <tr>
+    {% endif %}
+    {% if result_form.has_women_results %}
+    </tr>
+        <td>
+            <a href="{% url 'corrections-women' %}">{% trans 'Women Section' %}</a>
+        </td>
+        <td>
+            {% if result_form.women_match %}
+                {% trans 'Match' %}
+            {% elif result_form.women_corrected %}
+                {% trans 'Corrected' %}
+            {% else %}
+                {% trans 'Mis-Match' %}
+            {% endif %}
+        </td>
+    </tr>
+    {% endif %}
+<table>
+
+<form name="form" method="post" action="">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    {% if result_form.corrections_passed %}
+        <button type="submit" name="submit">{% trans "Submit" %}</button>
+    {% else %}
+        <button type="submit" name="submit">{% trans "Abort" %}</button>
+    {% endif %}
+    {% csrf_token %}
+</form>
+
+{% endblock %}
