@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.exceptions import SuspiciousOperation
 from django.db import models
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
@@ -7,6 +8,7 @@ from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.form_state import FormState
+from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.gender import Gender
 from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.utils.common import match_results
@@ -90,6 +92,19 @@ class ResultForm(BaseModel):
     def women_match(self):
         return match_results(self, self.women_results) \
             if self.women_results else True
+
+    @property
+    def reconciliationform(self):
+        reconciliationforms = self.reconciliationform_set.filter(
+            active=True, entry_version=EntryVersion.FINAL)
+
+        if len(reconciliationforms) > 1:
+            raise SuspiciousOperation(_(
+                'Unexpected number of reconciliation forms'))
+        elif len(reconciliationforms) == 0:
+            return False
+
+        return reconciliationforms[0]
 
     @property
     def reconciliation_match(self):
