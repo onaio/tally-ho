@@ -73,13 +73,8 @@ class CorrectionView(mixins.GroupRequiredMixin,
             if form:
                 return self.form_invalid(form)
 
-            forms_match = match_forms(result_form)
             self.request.session['result_form'] = result_form.pk
-
-            if forms_match:
-                return redirect('corrections-match')
-            else:
-                return redirect('corrections-required')
+            return redirect('corrections-dashboard')
         else:
             return self.form_invalid(form)
 
@@ -90,7 +85,7 @@ class CorrectionMatchView(mixins.GroupRequiredMixin,
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
     template_name = "tally/corrections/match.html"
-    success_url = 'corrections-clerk'
+    success_url = 'corrections-dashboard'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -132,6 +127,23 @@ class CorrectionMatchView(mixins.GroupRequiredMixin,
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
+
+
+class CorrectionDashboardView(mixins.GroupRequiredMixin,
+                              mixins.ReverseSuccessURLMixin,
+                              FormView):
+    form_class = PassToQualityControlForm
+    group_required = groups.CORRECTIONS_CLERK
+    template_name = "tally/corrections/dashboard.html"
+    success_url = 'corrections-clerk'
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))
 
 
 class CorrectionRequiredView(mixins.GroupRequiredMixin,
