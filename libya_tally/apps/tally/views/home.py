@@ -48,7 +48,7 @@ class HomeView(LoginRequiredMixin, TemplateView):
         return super(HomeView, self).dispatch(request, *args, **kwargs)
 
 
-class LocaleView(LoginRequiredMixin, TemplateView):
+class LocaleView(TemplateView):
     def get(self, *args, **kwargs):
         get_data = self.request.GET
         locale = get_data.get('locale')
