@@ -7,6 +7,7 @@
 <form name="corrections_form" action-="" method="post">
 {% if form.errors %}<p class='errors'>{{ form.errors }}</p>{% endif %}
     {% csrf_token %}
+
     <table>
         <tr>
             <th>{% trans 'Corrections Required?' %}</th>
@@ -14,39 +15,38 @@
             <th>{% trans 'Entry 1' %}</th>
             <th>{% trans 'Select' %}</th>
             <th>{% trans 'Entry 2' %}</th>
-            <th>Candidate</th>
-            <th>No.</th>
+            <th>Label</th>
         </tr>
-    {% for candidate, result1, result2, field in candidates %}
-        <tr>
+        {% for field1, field2 in reconciliation_form %}
+         <tr>
             <td>
-                {% if result1.votes == result2.votes %}
+                {% if field1.data == field2.data %}
                 {% trans 'No' %}
                 {% else %}{% trans 'Yes' %}{% endif %}</td>
             <td>
-                {% if result1.votes != result2.votes %}
-                <input type="radio" name="candidate_{{ candidate.pk }}" value="{{ result1.votes }}" />
+                {% if field1.data != field2.data %}
+                <input type="radio" name="{{ field1.name }}" value="{{ field1.data }}" />
                 {% else %}-{% endif %}</td>
             </td>
             <td>
-                {{ result1.votes }}
+                {{ field1.data }}
             </td>
             <td>
-                {% if result1.votes != result2.votes %}
-                <input type="radio" name="candidate_{{ candidate.pk }}" value="{{ result2.votes }}" />
+                {% if field1.data != field2.data %}
+                <input type="radio" name="{{ field1.name }}" value="{{ field2.data }}" />
                 {% else %}-{% endif %}</td>
             </td>
             <td>
-                {{ result2.votes }}
+                {{ field2.data }}
             </td>
             <td>
-                {{ candidate.full_name }}
+                {{ field1.label }}
             </td>
             <td>
-                {{ candidate.order }}
+                &nbsp;
             </td>
         </tr>
-    {% endfor %}
+        {% endfor %}
     </table>
 
 

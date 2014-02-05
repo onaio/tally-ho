@@ -9,7 +9,7 @@ from libya_tally.apps.tally.forms.barcode_form import\
     BarcodeForm
 from libya_tally.apps.tally.forms.pass_to_quality_control_form import \
     PassToQualityControlForm
-from libya_tally.apps.tally.forms.reconciliation_form import ReconciliationForm
+from libya_tally.apps.tally.forms.recon_form import ReconForm
 from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -279,7 +279,7 @@ class CorrectionWomenView(AbstractCorrectionView):
 class CorrectionReconciliationView(AbstractCorrectionView):
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
-    template_name = "tally/corrections/required.html"
+    template_name = "tally/corrections/recon_corrections.html"
     success_url = 'corrections-dashboard'
 
     def get(self, *args, **kwargs):
@@ -291,9 +291,9 @@ class CorrectionReconciliationView(AbstractCorrectionView):
         if results.count() != 2:
             raise SuspiciousOperation(_(u"There should be exactly two "
                                         u"reconciliation results."))
-        reconciliation_form_1 = ReconciliationForm(data=model_to_dict(
+        reconciliation_form_1 = ReconForm(data=model_to_dict(
             results.filter(entry_version=EntryVersion.DATA_ENTRY_1)[0]))
-        reconciliation_form_2 = ReconciliationForm(data=model_to_dict(
+        reconciliation_form_2 = ReconForm(data=model_to_dict(
             results.filter(entry_version=EntryVersion.DATA_ENTRY_2)[0]))
 
         recon = []
