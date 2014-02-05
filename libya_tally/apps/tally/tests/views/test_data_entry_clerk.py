@@ -89,7 +89,7 @@ class TestDataEntryClerk(TestBase):
         response = view(request)
         self.assertContains(response, 'Invalid Station Number for this Center')
 
-    def test_center_detail_redirects_to_check_center_details(self):
+    def test_center_detail_redirects_to_enter_results(self):
         code = '12345'
         station_number = 1
         center = create_center(code)
@@ -106,7 +106,7 @@ class TestDataEntryClerk(TestBase):
         request.session = {}
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('data-entry/check-center-details',
+        self.assertIn('data-entry/enter-results',
                       response['location'])
 
     def test_enter_results_has_candidates(self):

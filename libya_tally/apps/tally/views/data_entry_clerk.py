@@ -87,7 +87,7 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
     form_class = CenterDetailsForm
     group_required = groups.DATA_ENTRY_CLERK
     template_name = "tally/enter_center_details.html"
-    success_url = 'data-entry-check-center-details'
+    success_url = 'enter-results'
 
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
