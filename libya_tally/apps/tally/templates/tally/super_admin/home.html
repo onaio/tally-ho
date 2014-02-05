@@ -6,6 +6,13 @@
 
 <h1>{% trans 'Dashboard' %}</h1>
 
+<h2>Data views</h2>
+<ul>
+    <li><a href="{% url 'center-list' %}">{% trans 'Center List' %}</a></li>
+    <li><a href="{% url 'form-list' %}">{% trans 'Form List' %}</a></li>
+</ul>
+
+<h2>Other user views</h2>
 <ul>
     <li><a href="{% url 'intake-clerk' %}">{% trans 'Intake Clerk' %}</a></li>
     <li><a href="{% url 'data-entry-clerk' %}">{% trans 'Data Entry Clerk' %}</a></li>

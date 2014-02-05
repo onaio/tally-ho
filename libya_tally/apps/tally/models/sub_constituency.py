@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.libs.models.base_model import BaseModel
@@ -17,3 +18,12 @@ class SubConstituency(BaseModel):
     field_office = models.CharField(max_length=256)
     number_of_ballots = models.PositiveSmallIntegerField(null=True)
     races = models.PositiveSmallIntegerField(null=True)
+
+    @property
+    def form_type(self):
+        if self.ballot_women:
+            return _('General and Women')
+        elif self.component_ballot:
+            return _('General and Component')
+        else:
+            return _('General')

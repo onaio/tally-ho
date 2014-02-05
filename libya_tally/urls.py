@@ -5,7 +5,7 @@ from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
 from libya_tally.apps.tally.views import archive, data_entry_clerk, home,\
-    intake_clerk, quality_control, corrections
+    intake_clerk, quality_control, super_admin, corrections
 
 admin.autodiscover()
 
@@ -20,9 +20,14 @@ accounts_urls = patterns(
 urlpatterns = patterns(
     '',
     url(r'^$', home.HomeView.as_view(), name='home'),
-    url(r'^super-administrator',
-        TemplateView.as_view(template_name='tally/super_admin/home.html'),
-        name='super-administrator'),
+    url(r'^super-administrator$',
+        super_admin.DashboardView.as_view(), name='super-administrator'),
+    url(r'^super-administrator/center-list$',
+        super_admin.CenterListView.as_view(),
+        name='center-list'),
+    url(r'^super-administrator/form-list$',
+        super_admin.FormListView.as_view(),
+        name='form-list'),
     url(r'^data-entry$', data_entry_clerk.DataEntryView.as_view(),
         name='data-entry-clerk'),
     url(r'^data-entry/enter-center-details$',

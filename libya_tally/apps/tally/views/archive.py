@@ -5,34 +5,12 @@ from django.views.generic import FormView
 
 from libya_tally.apps.tally.forms.barcode_form import\
     BarcodeForm
-from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
-from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
-
-
-def match_forms(result_form):
-    results_v1 = Result.objects.filter(
-        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1)\
-        .values('candidate', 'votes')
-    results_v2 = Result.objects.filter(
-        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_2)\
-        .values('candidate', 'votes')
-
-    if not results_v1 or not results_v2:
-        raise Exception(_(u"Result Form has no double entries."))
-
-    if results_v1.count() != results_v2.count():
-        return False
-
-    tuple_list = [i.items() for i in results_v1]
-    matches = [rec for rec in results_v2 if rec.items() in tuple_list]
-
-    return len(matches) == results_v1.count()
 
 
 class ArchiveView(mixins.GroupRequiredMixin,

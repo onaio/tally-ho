@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Form List' %}</h1>
+
+<table>
+    <tr>
+        <th>{% trans 'Form Number' %}</th>
+        <th>{% trans 'Voting district' %}</th>
+        <th>{% trans 'Form Type' %}</th>
+        <th>{% trans 'No Races on Form' %}</th>
+        <th>{% trans 'Last Modified' %}</th>
+    </tr>
+{% for sc in scs %}
+    <tr>
+        <td>{{ sc.code }}</td>
+        <td>{{ sc.code }}</td>
+        <td>{{ sc.form_type }}</td>
+        <td>{{ sc.number_of_ballots }}</td>
+        <td>{{ sc.modified_date }}</td>
+    </tr>
+{% endfor %}
+</table>
+
+{% endblock %}
