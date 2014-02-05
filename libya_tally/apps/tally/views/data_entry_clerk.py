@@ -1,3 +1,4 @@
+from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
 from django.forms.formsets import formset_factory
 from django.forms.util import ErrorList
@@ -107,11 +108,18 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
+            post_data = self.request.POST
+            pk = session_matches_post_result_form(post_data, self.request)
+            result_form = get_object_or_404(ResultForm, pk=pk)
+
             center_number = form.cleaned_data['center_number']
             center = Center.objects.get(code=center_number)
             station_number = form.cleaned_data['station_number']
-            result_form = get_object_or_404(
-                ResultForm, center=center, station_number=station_number)
+
+            if not result_form in ResultForm.objects.filter(
+                    center=center, station_number=station_number):
+                raise SuspiciousOperation(
+                    'Center and station numbers do not match')
 
             check_form = safe_form_in_state(
                 result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
