@@ -90,12 +90,16 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
     success_url = 'data-entry-check-center-details'
 
     def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_data_entry_state(result_form)
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form,
+            self.get_context_data(form=form,
+                                  result_form=result_form,
                                   header_text=get_header_text(result_form)))
 
     def post(self, *args, **kwargs):
