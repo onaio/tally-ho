@@ -9,17 +9,53 @@ body {
     font-size: 14px;
     line-height: 1.42857143;
     color: #222222;
-    background-color: #e2ebf0;
+    background-color: #E3EAF0;
+}
+.hnec-logo{
+	margin-left:1em;
 }
 
+.righter{
+	float:right;
+}
+.container{
+	padding:.3em;
+}
 .top-header{
     background-color: #ffffff;
+	border-bottom:1px solid #CFCFCF;
+	padding-bottom:.7em;
+	padding-left:1.2em;
+	padding-right:1.2em;
 }
 .main-container {
     background-color: #ffffff;
-    padding-left: 25px;
-    padding-bottom: 25px;
-    padding-right: 25px;
+    padding:1em;
+	max-width:840px;
+}
+.locales{
+	font-size:.9em;
+}
+
+h1.headertxt{
+	border-bottom:1px solid #CFCFCF;
+	font-weight:bold;
+	font-size:2em;
+	margin-bottom:1em;
+	padding-bottom:1em;
+}
+h4.headertxt{
+	color:#F67225;
+	font-weight:bold;
+	font-size:1.5em;
+}
+.formtable tr td{
+	padding:.6em;
+}
+.formtable label{
+	display:block;
+	font-weight:bold;
+	text-align:right;
 }
 
 .navbar {
@@ -43,3 +79,8 @@ label {
 .form-instructions {
     font-weight:bold;
 }
+footer{
+	font-size:0.9em;
+	margin-top:5em;
+}
+

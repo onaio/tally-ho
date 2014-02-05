@@ -20,19 +20,28 @@
 
     <body>
     {% block topbar %}
-    <div class='container top-header'>
-        <div class="row">
-            <div class="col-md-8"> <img alt="Hnec-logo" class="hnec-logo" src="{{STATIC_URL}}img/hnec-logo.png" /></div>
-            <div class="col-md-4">
-                <div class='locales'>
-                <a href="/?locale=ar">العربية</a>
-                <a href="/?locale=en">English</a>
-            </div>
-                <a id="home_link" href="{% url 'home' %}">{% trans "home" %}</a>
-                <a id="logout_link" href="{% url 'logout' %}">({% trans "logout" %})</a>
+
+    <div class="container main-container">
+
+        <div class="container top-header">
+            <div class="row">
+                <div class="col-md-4 righter" dir="rtl">
+                    <img alt="Hnec-logo" class="hnec-logo" src="{{STATIC_URL}}img/hnec-logo.png">
+                </div>
+
+                <div class="col-md-4">
+                    <div class="locales">
+                        <a href="/?locale=ar">العربية</a> |
+                        <a href="/?locale=en">English</a><br/>
+                
+                        {% if user.is_authenticated %}<span>Signed in as {{user.username}} - <a id="logout_link" href="/accounts/logout/">logout</a><br/></span>{% endif %}
+
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+
+
     {% endblock %}
 
         <div class='container main-container'>
@@ -54,16 +63,13 @@
         <footer>
             <div class="row">
                 <div class="col-lg-12">
-
                     <ul class="list-unstyled">
-                        <li class="pull-right"><a href="#top">Back to top</a></li>
-
+                        <li class="pull-right"><a href="http://127.0.0.1:8000/intake/center-details#top">Back to top</a></li>
                     </ul>
 
-                    <p>&copy; Libya 2014</p>
+                    <p>© 2013 High National Election Commission - Libya 2014</p>
                 </div>
             </div>
-
         </footer>
 
 
