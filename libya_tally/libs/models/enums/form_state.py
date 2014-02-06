@@ -23,6 +23,7 @@ class FormState(enum.Enum):
         DATA_ENTRY_2: (DATA_ENTRY_1,),
         INTAKE: (CLEARANCE, UNSUBMITTED,),
         QUALITY_CONTROL: (CORRECTION,),
+        UNSUBMITTED: (INTAKE,),
     }
 
     @classmethod

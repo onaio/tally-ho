@@ -13,13 +13,18 @@
 <form name="form_match" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <input type="hidden" name="is_match" value="true">
-    <button type="submit" name="match_submit">{% trans "Match" %}</button>
+    <button type="submit" name="match_submit">{% trans "Accept" %}</button>
+    {% csrf_token %}
+</form>
+<form name="form_no_match" method="post" action="">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <button type="submit" name="no_match_submit">{% trans "Name Does Not Match and Code Incorrect - Go back and try again" %}</button>
     {% csrf_token %}
 </form>
 <form name="form_no_match" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <input type="hidden" name="is_not_match" value="true">
-    <button type="submit" name="no_match_submit">{% trans "Name Does Not  Match / Code Correct" %}</button>
+    <button type="submit" name="no_match_submit">{% trans "Name Does Not Match and Code Correct - Send to Clearance" %}</button>
     {% csrf_token %}
 </form>
 {% endblock %}
