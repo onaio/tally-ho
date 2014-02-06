@@ -38,8 +38,9 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
 
-            form = safe_form_in_state(result_form, FormState.UNSUBMITTED,
-                                      form)
+            form = safe_form_in_state(
+                result_form, [FormState.INTAKE, FormState.UNSUBMITTED],
+                form)
 
             if form:
                 return self.form_invalid(form)
