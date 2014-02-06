@@ -8,6 +8,7 @@
 
 <table class="table table-striped">
     <tr>
+        <th>{% trans 'Barcode' %}</th>
         <th>{% trans 'Center Number' %}</th>
         <th>{% trans 'Station Number' %}</th>
         <th>{% trans 'Race Type' %}</th>
@@ -17,6 +18,7 @@
     </tr>
 {% for form in forms %}
     <tr>
+        <td>{{ form.barcode }}</td>
         <td>{{ form.center.code }}</td>
         <td>{{ form.station_number }}</td>
         <td>{{ form.ballot.race_type_name }}</td>

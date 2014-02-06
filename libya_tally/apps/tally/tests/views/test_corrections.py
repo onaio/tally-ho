@@ -94,7 +94,7 @@ class TestCorrections(TestBase):
         response = view(request)
         self.assertContains(response, 'Barcodes do not match')
 
-    def test_ccorrections_barcode_does_not_exist(self):
+    def test_corrections_barcode_does_not_exist(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         view = views.CorrectionView.as_view()
@@ -323,12 +323,25 @@ class TestCorrections(TestBase):
             result_form=result_form).count(), 2)
 
         session = {'result_form': result_form.pk}
-        data = {'submit_corrections': 1}
+        ballot_from_val = 2
+        sorted_counted_val = 3
+        data = {'submit_corrections': 1,
+                'ballot_number_from': ballot_from_val,
+                'number_sorted_and_counted': sorted_counted_val}
         data.update(session)
         request = self.factory.post('/', data=data)
         request.session = session
         request.user = self.user
         response = view(request)
+        final_form = ReconciliationForm.objects.filter(
+            result_form=result_form, entry_version=EntryVersion.FINAL)[0]
 
+        self.assertEqual(final_form.ballot_number_from, ballot_from_val)
+        self.assertEqual(final_form.number_sorted_and_counted,
+                         sorted_counted_val)
+        self.assertEqual(final_form.result_form, result_form)
+        self.assertEqual(final_form.entry_version,
+                         EntryVersion.FINAL)
+        self.assertEqual(final_form.user, self.user)
         self.assertEqual(response.status_code, 302)
         self.assertIn('corrections/dashboard', response['location'])

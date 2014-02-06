@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django_enumfield import enum
 from django.utils.translation import ugettext as _
@@ -12,6 +13,7 @@ class ReconciliationForm(BaseModel):
         app_label = 'tally'
 
     result_form = models.ForeignKey(ResultForm)
+    user = models.ForeignKey(User, null=True)
 
     active = models.BooleanField(default=True)
     entry_version = enum.EnumField(EntryVersion)

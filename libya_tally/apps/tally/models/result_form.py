@@ -105,9 +105,8 @@ class ResultForm(BaseModel):
     @property
     def reconciliation_match(self):
         results = self.reconciliationform_set.filter(active=True)
-        if results and results.count() > 1:
-            v1 = model_to_dict(results[0])
-            v2 = model_to_dict(results[1])
+        if results and results.count() == 2:
+            v1, v2 = [model_to_dict(result) for result in results]
             tuple_list = [i.items() for i in v1]
             no_match = [rec for rec in v2 if rec.items() not in tuple_list]
 
@@ -117,16 +116,10 @@ class ResultForm(BaseModel):
 
     @property
     def corrections_passed(self):
-        has_recon_form = True
-
-        try:
-            self.reconciliationform
-        except Exception:
-            has_recon_form = False
-
         return (
             (not self.has_general_results or self.general_match) and
-            (not has_recon_form or self.reconciliation_match) and
+            (not self.reconciliationform_exists or
+             self.reconciliation_match) and
             (not self.has_women_results or self.women_match))
 
     def reject(self):

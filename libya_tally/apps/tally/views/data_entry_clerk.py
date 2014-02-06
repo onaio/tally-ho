@@ -89,18 +89,14 @@ class DataEntryView(mixins.GroupRequiredMixin,
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
 
-            check_form = safe_form_in_state(
+            check_state = safe_form_in_state(
                 result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
                 form)
+            check_double = check_double_enter(
+                result_form, self.request.user, check_state or form)
 
-            if not check_form:
-                check_form = check_double_enter(result_form,
-                                                self.request.user, form)
-
-            if check_form:
-                check_form = check_double_enter(result_form, self.request.user,
-                                                check_form)
-                return self.form_invalid(check_form)
+            if check_state or check_double:
+                return self.form_invalid(check_state or check_double)
 
             self.request.session['result_form'] = result_form.pk
 
