@@ -35,7 +35,7 @@
                         <a href="{% url 'home-locale' %}?locale=ar&next={{request.path}}">العربية</a> |
                         <a href="{% url 'home-locale' %}?locale=en&next={{request.path}}">English</a>
                         <br/>
-                
+
                         {% if user.is_authenticated %}<span><a href="/">Home</a> | Signed in as {{user.username}} - <a id="logout_link" href="/accounts/logout/">logout</a><br/></span>{% endif %}
 
                     </div>
@@ -66,7 +66,7 @@
             <div class="row">
                 <div class="col-lg-12">
                     <ul class="list-unstyled">
-                        <li class="pull-right"><a href="http://127.0.0.1:8000/intake/center-details#top">Back to top</a></li>
+                        <li class="pull-right"><a href="#top">Back to top</a></li>
                     </ul>
 
                     <p>© 2013-2014 High National Election Commission - Libya 2014</p>
