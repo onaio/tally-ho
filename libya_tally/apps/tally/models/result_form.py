@@ -34,6 +34,11 @@ class ResultForm(BaseModel):
     station_number = models.PositiveSmallIntegerField(null=True)
 
     @property
+    def barcode_padded(self):
+        barcode = str(self.barcode)
+        return barcode if len(barcode) == 9 else '0%s' % barcode
+
+    @property
     def general_results(self):
         return self.results.filter(
             active=True,
