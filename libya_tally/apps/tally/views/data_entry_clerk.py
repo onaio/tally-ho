@@ -63,7 +63,7 @@ def check_form_for_center_station(center, station_number, result_form):
     if not result_form in ResultForm.objects.filter(
             center=center, station_number=station_number):
         raise SuspiciousOperation(
-            'Center and station numbers do not match')
+            _('Center and station numbers do not match'))
 
 
 class DataEntryView(mixins.GroupRequiredMixin,
@@ -138,8 +138,16 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             center = Center.objects.get(code=center_number)
             station_number = form.cleaned_data['station_number']
 
-            check_form_for_center_station(center, station_number,
-                                          result_form)
+            try:
+                check_form_for_center_station(center, station_number,
+                                              result_form)
+            except SuspiciousOperation as e:
+                errors = form._errors.setdefault(
+                    "__all__", ErrorList())
+                errors.append(e.message)
+
+                return self.render_to_response(self.get_context_data(
+                    form=form, result_form=result_form))
 
             check_form = safe_form_in_state(
                 result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
