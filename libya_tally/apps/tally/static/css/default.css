@@ -15,8 +15,9 @@ body {
 	margin-left:1em;
 }
 
-
-
+form{
+	padding:.5em;
+}
 .righter{
 	float:right;
 }
