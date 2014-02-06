@@ -1,5 +1,7 @@
 from libya_tally.apps.tally.models.quality_control import QualityControl
-from libya_tally.libs.tests.test_base import create_result_form, TestBase
+from libya_tally.libs.models.enums.entry_version import EntryVersion
+from libya_tally.libs.tests.test_base import create_reconciliation_form,\
+    create_result_form, TestBase
 
 
 class TestResultForm(TestBase):
@@ -17,3 +19,12 @@ class TestResultForm(TestBase):
             active=False)
 
         self.assertEqual(result_form.qualitycontrol, quality_control)
+
+    def test_reconciliation_match(self):
+        result_form = create_result_form()
+        create_reconciliation_form(result_form)
+        re_form = create_reconciliation_form(result_form)
+        re_form.entry_version = EntryVersion.DATA_ENTRY_2
+        re_form.save()
+
+        self.assertTrue(result_form.reconciliation_match)

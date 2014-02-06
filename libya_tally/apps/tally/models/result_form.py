@@ -107,10 +107,16 @@ class ResultForm(BaseModel):
         results = self.reconciliationform_set.filter(active=True)
         if results and results.count() == 2:
             v1, v2 = [model_to_dict(result) for result in results]
-            tuple_list = [i.items() for i in v1]
-            no_match = [rec for rec in v2 if rec.items() not in tuple_list]
 
-            return len(no_match) == 0
+            # remove keys that should differ
+            del v1['id']
+            del v1['entry_version']
+
+            for k, v in v1.items():
+                if v != v2[k]:
+                    return False
+
+            return True
 
         return False
 
