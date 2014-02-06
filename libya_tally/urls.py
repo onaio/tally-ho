@@ -17,6 +17,11 @@ accounts_urls = patterns(
     url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
 )
 
+handler403 = 'libya_tally.apps.tally.views.home.permission_denied'
+handler404 = 'libya_tally.apps.tally.views.home.not_found'
+handler400 = 'libya_tally.apps.tally.views.home.bad_request'
+handler500 = 'libya_tally.apps.tally.views.home.server_error'
+
 urlpatterns = patterns(
     '',
     url(r'^$', home.HomeView.as_view(), name='home'),

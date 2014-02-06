@@ -1,5 +1,6 @@
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render_to_response
+from django.template import RequestContext
 from django.views.generic import TemplateView
 
 from guardian.mixins import LoginRequiredMixin
@@ -22,6 +23,30 @@ GROUP_URLS = {
     groups.QUALITY_CONTROL_CLERK: "quality-control-clerk",
     groups.SUPER_ADMINISTRATOR: "super-administrator",
 }
+
+
+def permission_denied(request):
+    context = RequestContext(request)
+    return render_to_response('tally/errors/403.html',
+                              context_instance=context)
+
+
+def not_found(request):
+    context = RequestContext(request)
+    return render_to_response('tally/errors/404.html',
+                              context_instance=context)
+
+
+def bad_request(request):
+    context = RequestContext(request)
+    return render_to_response('tally/errors/400.html',
+                              context_instance=context)
+
+
+def server_error(request):
+    context = RequestContext(request)
+    return render_to_response('tally/errors/500.html',
+                              context_instance=context)
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
