@@ -45,16 +45,16 @@ def get_header_text(result_form):
     return _('Data Entry') + ' %s' % data_entry_number
 
 
-def check_double_enter(result_form, user, form):
-    results = Result.objects.filter(
-        result_form=result_form,
-        entry_version=EntryVersion.DATA_ENTRY_1)
+def check_group_for_state(result_form, user, form):
+    user_groups = user.groups.values_list("name", flat=True)
 
-    if results.count() and results[0].user == user:
+    if ((result_form.form_state == FormState.DATA_ENTRY_1 and
+       groups.DATA_ENTRY_1_CLERK not in user_groups) or
+       (result_form.form_state == FormState.DATA_ENTRY_2 and
+            groups.DATA_ENTRY_2_CLERK not in user_groups)):
         errors = form._errors.setdefault(
             "__all__", ErrorList())
-        errors.append(_(u"You have already entered this form "
-                      "as Data Entry Clerk 1."))
+        errors.append(_(u"Return form to %s" % result_form.form_state_name))
 
         return form
 
@@ -66,11 +66,20 @@ def check_form_for_center_station(center, station_number, result_form):
             _('Center and station numbers do not match'))
 
 
+def check_state_and_group(result_form, user, form):
+    check_state = safe_form_in_state(
+        result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2], form)
+
+    check_group = check_group_for_state(result_form, user, form)
+
+    return check_state or check_group
+
+
 class DataEntryView(mixins.GroupRequiredMixin,
                     mixins.ReverseSuccessURLMixin,
                     FormView):
     form_class = BarcodeForm
-    group_required = groups.DATA_ENTRY_CLERK
+    group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
     template_name = "tally/barcode_verify.html"
     success_url = 'data-entry-enter-center-details'
 
@@ -89,14 +98,11 @@ class DataEntryView(mixins.GroupRequiredMixin,
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
 
-            check_state = safe_form_in_state(
-                result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
-                form)
-            check_double = check_double_enter(
-                result_form, self.request.user, check_state or form)
+            check_form = check_state_and_group(
+                result_form, self.request.user, form)
 
-            if check_state or check_double:
-                return self.form_invalid(check_state or check_double)
+            if check_form:
+                return self.form_invalid(check_form)
 
             self.request.session['result_form'] = result_form.pk
 
@@ -109,7 +115,7 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
     form_class = CenterDetailsForm
-    group_required = groups.DATA_ENTRY_CLERK
+    group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
     template_name = "tally/enter_center_details.html"
     success_url = 'enter-results'
 
@@ -134,6 +140,12 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
 
         if form.is_valid():
+            check_form = check_state_and_group(
+                result_form, self.request.user, form)
+
+            if check_form:
+                return self.form_invalid(check_form)
+
             center_number = form.cleaned_data['center_number']
             center = Center.objects.get(code=center_number)
             station_number = form.cleaned_data['station_number']
@@ -149,13 +161,11 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
                 return self.render_to_response(self.get_context_data(
                     form=form, result_form=result_form))
 
-            check_form = safe_form_in_state(
-                result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
-                form)
+            check_form = check_state_and_group(
+                result_form, self.request.user, form)
 
             if check_form:
-                return self.render_to_response(self.get_context_data(
-                    form=check_form, result_form=result_form))
+                return self.form_invalid(check_form)
 
             return redirect(self.success_url)
         else:
@@ -166,7 +176,7 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
 class CheckCenterDetailsView(mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
-    group_required = groups.DATA_ENTRY_CLERK
+    group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
     template_name = "tally/enter_center_details.html"
     success_url = "result-entry"
 
@@ -201,7 +211,7 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
 class EnterResultsView(mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
-    group_required = groups.DATA_ENTRY_CLERK
+    group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
     template_name = "tally/data_entry/enter_results_view.html"
     success_url = "data-entry-clerk"
 
@@ -238,6 +248,11 @@ class EnterResultsView(mixins.GroupRequiredMixin,
         formset = CandidateFormSet(post_data)
 
         if recon_form.is_valid() and formset.is_valid():
+            check_form = check_state_and_group(
+                result_form, self.request.user, recon_form)
+
+            if check_form:
+                return self.form_invalid(check_form)
 
             entry_version = None
             new_state = None

@@ -26,7 +26,7 @@ class TestDataEntryClerk(TestBase):
         request.user = self.user
         with self.assertRaises(PermissionDenied):
             view(request)
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         response = view(request)
         response.render()
         self.assertIn('/accounts/logout/', response.content)
@@ -54,7 +54,7 @@ class TestDataEntryClerk(TestBase):
                                          center=center,
                                          station_number=station_number)
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         view = views.CenterDetailsView.as_view()
         data = {'center_number': '1234', 'center_number': '1234'}
         session = {'result_form': result_form.pk}
@@ -76,7 +76,7 @@ class TestDataEntryClerk(TestBase):
                                          center=center,
                                          station_number=station_number)
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         view = views.CenterDetailsView.as_view()
         data = center_data('12345', '12346')
         session = {'result_form': result_form.pk}
@@ -96,7 +96,7 @@ class TestDataEntryClerk(TestBase):
                                          center=center,
                                          station_number=station_number)
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         view = views.CenterDetailsView.as_view()
         session = {'result_form': result_form.pk}
         data = center_data(code)
@@ -117,7 +117,7 @@ class TestDataEntryClerk(TestBase):
                                          center=center,
                                          station_number=station_number)
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         view = views.CenterDetailsView.as_view()
         result_form_data = {'result_form': result_form.pk}
         data = center_data(code, station_number=station_number)
@@ -130,6 +130,27 @@ class TestDataEntryClerk(TestBase):
         self.assertIn('data-entry/enter-results',
                       response['location'])
 
+    def test_center_detail_validates_clerk(self):
+        code = '12345'
+        station_number = 1
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_2,
+                                         center=center,
+                                         station_number=station_number)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
+        view = views.CenterDetailsView.as_view()
+        result_form_data = {'result_form': result_form.pk}
+        data = center_data(code, station_number=station_number)
+        data.update(result_form_data)
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = result_form_data
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Data Entry 2')
+
     def test_enter_results_has_candidates(self):
         code = '12345'
         center = create_center(code)
@@ -140,7 +161,7 @@ class TestDataEntryClerk(TestBase):
         create_candidate(ballot, candidate_name)
 
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         view = views.EnterResultsView.as_view()
         data = center_data(code)
         request = self.factory.get('/', data=data)
@@ -160,7 +181,7 @@ class TestDataEntryClerk(TestBase):
         create_candidate(ballot, candidate_name)
 
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         view = views.EnterResultsView.as_view()
         data = result_form_data_blank(result_form)
         request = self.factory.post('/', data=data)
@@ -180,7 +201,7 @@ class TestDataEntryClerk(TestBase):
         create_candidate(ballot, candidate_name)
 
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
 
         response = self._post_enter_results(result_form)
 
@@ -213,7 +234,7 @@ class TestDataEntryClerk(TestBase):
         create_candidate(ballot, candidate_name)
 
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_2_CLERK)
 
         response = self._post_enter_results(result_form)
 
@@ -245,7 +266,7 @@ class TestDataEntryClerk(TestBase):
         create_candidate(ballot, candidate_name)
 
         self._create_and_login_user('data_entry_1')
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         view = views.EnterResultsView.as_view()
         data = result_form_data(result_form)
         request = self.factory.post('/', data=data)
@@ -256,7 +277,7 @@ class TestDataEntryClerk(TestBase):
         data_entry_1 = self.user
 
         self._create_and_login_user('data_entry_2')
-        self._add_user_to_group(self.user, groups.DATA_ENTRY_CLERK)
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_2_CLERK)
         request.user = self.user
         response = view(request)
         self.assertEqual(response.status_code, 302)

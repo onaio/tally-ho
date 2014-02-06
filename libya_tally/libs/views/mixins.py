@@ -20,7 +20,7 @@ class GroupRequiredMixin(object):
                 "following types: string, unicode, list, or tuple.")
         return self.group_required
 
-    def check_membership(self, group):
+    def check_membership(self, allowed_groups):
         """ Check required group(s) """
         # super admin skips group check
         user_groups = self.request.user.groups.values_list("name", flat=True)
@@ -28,7 +28,14 @@ class GroupRequiredMixin(object):
         if groups.SUPER_ADMINISTRATOR in user_groups:
             return True
 
-        return group in user_groups
+        if not isinstance(allowed_groups, list):
+            allowed_groups = [allowed_groups]
+
+        for group in allowed_groups:
+            if group in user_groups:
+                return True
+
+        return False
 
     def dispatch(self, request, *args, **kwargs):
         self.request = request
