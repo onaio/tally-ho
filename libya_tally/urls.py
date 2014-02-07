@@ -107,17 +107,17 @@ urlpatterns = patterns(
         corrections.CorrectionReconciliationView.as_view(),
         name='corrections-reconciliation'),
 
-    url(r'^archive',
+    url(r'^archive$',
         archive.ArchiveView.as_view(),
         name='archive-clerk'),
-    url(r'^archive/print',
-        archive.ArchiveView.as_view(),
+    url(r'^archive/print$',
+        archive.ArchivePrintView.as_view(),
         name='archive-print'),
 
-    url(r'^clearance',
+    url(r'^clearance$',
         clearance.ClearanceDashboardView.as_view(),
         name='clearance-clerk'),
-    url(r'^clearance/review',
+    url(r'^clearance/review$',
         clearance.ClearanceReviewView.as_view(),
         name='clearance-review'),
 

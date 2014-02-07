@@ -44,7 +44,7 @@ class ArchiveView(mixins.GroupRequiredMixin,
 
             self.request.session['result_form'] = result_form.pk
 
-            return redirect('archive-print')
+            return redirect(self.success_url)
         else:
             return self.form_invalid(form)
 
