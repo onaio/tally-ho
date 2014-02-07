@@ -13,7 +13,10 @@ class DashboardView(mixins.GroupRequiredMixin, TemplateView):
     template_name = "tally/super_admin/home.html"
 
     def get(self, *args, **kwargs):
-        return self.render_to_response(self.get_context_data())
+        group_logins = [g.lower().replace(' ', '_') for g in groups.GROUPS]
+
+        return self.render_to_response(self.get_context_data(
+            groups=group_logins))
 
 
 class CenterListView(mixins.GroupRequiredMixin, TemplateView):
