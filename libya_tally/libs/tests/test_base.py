@@ -31,8 +31,8 @@ def create_result(result_form, candidate, user, votes):
 
 def create_candidates(result_form, user,
                       name='the candidate name', votes=123,
-                      women_name='women candidate name'):
-    for i in xrange(10):
+                      women_name='women candidate name', num_results=10):
+    for i in xrange(num_results):
         candidate = Candidate.objects.create(ballot=result_form.ballot,
                                              candidate_id=1,
                                              full_name=name,

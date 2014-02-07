@@ -39,6 +39,12 @@ class ResultForm(BaseModel):
         return barcode if len(barcode) == 9 else '0%s' % barcode
 
     @property
+    def results_final(self):
+        return self.results.filter(
+            active=True,
+            entry_version=EntryVersion.FINAL)
+
+    @property
     def general_results(self):
         return self.results.filter(
             active=True,

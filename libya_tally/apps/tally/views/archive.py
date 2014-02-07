@@ -13,6 +13,16 @@ from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
+def quarantine_checks(result_form):
+    """Run quarantine checks.  Create an audit with links to the failed
+    quarantine checks if any fail.
+
+    :param result_form: The result form to run quarantine checks on.
+    """
+    # TODO run quarantine checks and create audit
+    pass
+
+
 class ArchiveView(mixins.GroupRequiredMixin,
                   mixins.ReverseSuccessURLMixin,
                   FormView):
@@ -41,6 +51,8 @@ class ArchiveView(mixins.GroupRequiredMixin,
 
             if form:
                 return self.form_invalid(form)
+
+            quarantine_checks(result_form)
 
             self.request.session['result_form'] = result_form.pk
 
@@ -81,7 +93,8 @@ class ArchivePrintView(mixins.GroupRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.ARCHIVING)
 
-        result_form.form_state = FormState.ARCHIVED
+        result_form.form_state = FormState.AUDIT if result_form.audit else\
+            FormState.ARCHIVED
         result_form.save()
 
         del self.request.session['result_form']

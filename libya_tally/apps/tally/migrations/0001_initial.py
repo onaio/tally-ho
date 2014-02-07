@@ -81,6 +81,33 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('tally', ['Archive'])
 
+        # Adding model 'ReconciliationForm'
+        db.create_table(u'tally_reconciliationform', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.ResultForm'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True)),
+            ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
+            ('entry_version', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
+            ('ballot_number_from', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('ballot_number_to', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_ballots_received', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_signatures_in_vr', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_unused_ballots', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_spoiled_ballots', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_cancelled_ballots', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_ballots_outside_box', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_ballots_inside_box', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_ballots_inside_and_outside_box', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_unstamped_ballots', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_invalid_votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_valid_votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('number_sorted_and_counted', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('remarks', self.gf('django.db.models.fields.TextField')(blank=True)),
+        ))
+        db.send_create_signal('tally', ['ReconciliationForm'])
+
         # Adding model 'QuarantineCheck'
         db.create_table(u'tally_quarantinecheck', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -89,6 +116,7 @@ class Migration(SchemaMigration):
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=256)),
             ('rule', self.gf('django.db.models.fields.CharField')(max_length=256)),
+            ('value', self.gf('django.db.models.fields.FloatField')()),
         ))
         db.send_create_signal('tally', ['QuarantineCheck'])
 
@@ -172,33 +200,6 @@ class Migration(SchemaMigration):
         ))
         db.create_unique(m2m_table_name, ['race_id', 'subconstituency_id'])
 
-        # Adding model 'ReconciliationForm'
-        db.create_table(u'tally_reconciliationform', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.ResultForm'])),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True)),
-            ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('entry_version', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
-            ('ballot_number_from', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('ballot_number_to', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_ballots_received', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_signatures_in_vr', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_unused_ballots', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_spoiled_ballots', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_cancelled_ballots', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_ballots_outside_box', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_ballots_inside_box', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_ballots_inside_and_outside_box', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_unstamped_ballots', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_invalid_votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_valid_votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('number_sorted_and_counted', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('remarks', self.gf('django.db.models.fields.TextField')(blank=True)),
-        ))
-        db.send_create_signal('tally', ['ReconciliationForm'])
-
         # Adding model 'Result'
         db.create_table(u'tally_result', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -243,6 +244,9 @@ class Migration(SchemaMigration):
         # Deleting model 'Archive'
         db.delete_table(u'tally_archive')
 
+        # Deleting model 'ReconciliationForm'
+        db.delete_table(u'tally_reconciliationform')
+
         # Deleting model 'QuarantineCheck'
         db.delete_table(u'tally_quarantinecheck')
 
@@ -266,9 +270,6 @@ class Migration(SchemaMigration):
 
         # Removing M2M table for field sub_constituency on 'Race'
         db.delete_table(db.shorten_name(u'tally_race_sub_constituency'))
-
-        # Deleting model 'ReconciliationForm'
-        db.delete_table(u'tally_reconciliationform')
 
         # Deleting model 'Result'
         db.delete_table(u'tally_result')
@@ -398,7 +399,8 @@ class Migration(SchemaMigration):
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'rule': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
+            'value': ('django.db.models.fields.FloatField', [], {})
         },
         'tally.race': {
             'Meta': {'object_name': 'Race'},

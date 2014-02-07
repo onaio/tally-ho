@@ -49,3 +49,12 @@ class ReconciliationForm(BaseModel):
         help_text=_('Total number of the sorted and counted ballots'))
     remarks = models.TextField(blank=True, help_text=_(
         'You may use this space for any necessary remarks'))
+
+    @property
+    def number_ballots_used(self):
+        votes = sum([r.votes for r in self.result_form.results_final])
+
+        return (self.number_cancelled_ballots +
+                self.number_unstamped_ballots +
+                self.number_invalid_votes +
+                votes)
