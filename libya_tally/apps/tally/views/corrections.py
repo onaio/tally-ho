@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
 from django.forms.models import model_to_dict
@@ -194,7 +196,7 @@ class AbstractCorrectionView(mixins.GroupRequiredMixin,
     success_url = 'corrections-dashboard'
 
     def get_candidates(self, result_form, results=None):
-        candidates = {}
+        candidates = OrderedDict()
         if results is None:
             results = result_form.results
         for result in results.order_by('candidate__order',
