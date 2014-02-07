@@ -52,9 +52,15 @@ class ReconciliationForm(BaseModel):
 
     @property
     def number_ballots_used(self):
-        votes = sum([r.votes for r in self.result_form.results_final])
+        votes = self.result_form.num_votes
 
         return (self.number_cancelled_ballots +
                 self.number_unstamped_ballots +
                 self.number_invalid_votes +
                 votes)
+
+    @property
+    def number_ballots_expected(self):
+        return (self.number_ballots_inside_box -
+                self.number_unstamped_ballots -
+                self.number_invalid_votes)

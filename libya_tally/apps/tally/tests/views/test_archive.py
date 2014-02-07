@@ -85,9 +85,9 @@ class TestArchive(TestBase):
         quarantine_check = QuarantineCheck.objects.create(
             user=self.user,
             name='1',
-            rule='1',
+            method='1',
             value=1)
-        audit = Audit.objects.create(result_form=result_form)
+        audit = Audit.objects.create(user=self.user, result_form=result_form)
         audit.quarantine_checks.add(quarantine_check)
 
         self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)

@@ -45,6 +45,10 @@ class ResultForm(BaseModel):
             entry_version=EntryVersion.FINAL)
 
     @property
+    def station(self):
+        return self.center.stations.filter(gender=self.gender)
+
+    @property
     def general_results(self):
         return self.results.filter(
             active=True,
@@ -81,6 +85,10 @@ class ResultForm(BaseModel):
     @property
     def gender_name(self):
         return Gender.to_name(self.gender)
+
+    @property
+    def num_votes(self):
+        return sum([r.votes for r in self.results_final])
 
     @property
     def corrections_required_text(self):
