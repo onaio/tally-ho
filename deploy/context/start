@@ -1,0 +1,85 @@
+#!/bin/bash
+
+DB_NAME=tally
+DB_USERNAME=tally
+DB_PASS=tally
+DB_HOST=127.0.0.1
+APP_DIR=/var/www/tally-system
+DJANGO_SETTINGS_MODULE=libya_tally.settings.local_settings
+SUPERVISOR_CONF=/opt/supervisor.conf
+DATADIR="/var/lib/postgres/data"
+CONF="/var/lib/postgres/data/postgresql.conf"
+POSTGRES="/usr/lib/postgresql/9.3/bin/postgres"
+INITDB="/usr/lib/postgresql/9.3/bin/initdb"
+
+# test if DATADIR is existent
+if [ ! -d $DATADIR ]; then
+  echo "Creating Postgres data at $DATADIR"
+  mkdir -p $DATADIR
+fi
+
+# test if DATADIR has content
+if [ ! "$(ls -A $DATADIR)" ]; then
+  echo "Initializing Postgres Database at $DATADIR"
+  chown -R postgres $DATADIR
+  su postgres sh -c "$INITDB --locale en_US.UTF-8 -E UTF8 -D $DATADIR"
+  su postgres sh -c "$POSTGRES --single -D $DATADIR -c config_file=$CONF" <<< "CREATE USER $DB_USERNAME WITH SUPERUSER PASSWORD '$DB_PASS';"
+  su postgres sh -c "$POSTGRES --single -D $DATADIR -c config_file=$CONF" <<< "CREATE DATABASE $DB_USERNAME OWNER $DB_USERNAME;"
+  cp /data/postgres/pg_hba.conf $DATADIR/
+  cp /data/postgres/postgresql.conf $DATADIR/postgresql.conf
+  chown -R postgres:postgres $DATADIR
+fi
+
+service postgresql start
+
+trap "echo \"Sending SIGTERM to postgres\"; killall -s SIGTERM postgres" SIGTERM
+
+# su postgres sh -c "$POSTGRES -D $DATADIR -c config_file=$CONF" &
+
+# supervisor
+cat << EOF > $SUPERVISOR_CONF
+[supervisord]
+nodaemon=false
+
+[unix_http_server]
+file=/var/run//supervisor.sock
+chmod=0700
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl=unix:///var/run//supervisor.sock
+
+[program:app]
+priority=10
+directory=/var/www/tally-system
+command=/usr/local/bin/uwsgi
+    --http-socket 0.0.0.0:8000
+    -p 4
+    -b 32768
+    -T
+    --master
+    --max-requests 5000
+    --static-map /static=/var/www/tally-system/libya_tally/static
+    --static-map /static=/usr/local/lib/python2.7/dist-packages/django/contrib/admin/static
+    --module libya_tally.wsgi:application
+user=root
+autostart=true
+autorestart=true
+stopsignal=QUIT
+stdout_logfile=/var/log/tally-system/app.log
+stderr_logfile=/var/log/tally-system/app.err
+
+EOF
+
+(cd $APP_DIR && pip install --upgrade -r requirements/common.pip)
+(cd $APP_DIR && python manage.py syncdb --noinput)
+(cd $APP_DIR && python manage.py migrate)
+(cd $APP_DIR && python manage.py collectstatic --noinput)
+(cd $APP_DIR && python manage.py create_demo_users)
+(cd $APP_DIR && ./scripts/reload_all)
+
+supervisord -c $SUPERVISOR_CONF -n
+
+# wait $!
