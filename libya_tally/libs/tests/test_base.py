@@ -57,7 +57,8 @@ def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
         serial_number=0,
         form_state=form_state,
         station_number=kwargs.get('station_number'),
-        center=kwargs.get('center'))
+        center=kwargs.get('center'),
+        gender=Gender.MALE)
 
     return result_form
 
@@ -91,7 +92,10 @@ def create_center(code='1'):
         center_type=CenterType.GENERAL)[0]
 
 
-def create_reconciliation_form(result_form):
+def create_reconciliation_form(
+        result_form,
+        entry_version=EntryVersion.FINAL,
+        number_unstamped_ballots=1):
     return ReconciliationForm.objects.create(
         result_form=result_form,
         ballot_number_from=1,
@@ -104,13 +108,14 @@ def create_reconciliation_form(result_form):
         number_ballots_outside_box=1,
         number_ballots_inside_box=1,
         number_ballots_inside_and_outside_box=1,
-        number_unstamped_ballots=1,
+        number_unstamped_ballots=number_unstamped_ballots,
         number_invalid_votes=1,
         number_valid_votes=1,
-        number_sorted_and_counted=1)
+        number_sorted_and_counted=1,
+        entry_version=entry_version)
 
 
-def create_station(center):
+def create_station(center, registrants=None):
     sc, _ = SubConstituency.objects.get_or_create(code=1,
                                                   component_ballot=False,
                                                   field_office='1')
@@ -119,7 +124,8 @@ def create_station(center):
         center=center,
         sub_constituency=sc,
         gender=Gender.MALE,
-        station_number=1)
+        station_number=1,
+        registrants=registrants)
 
 
 def result_form_data_blank(result_form):

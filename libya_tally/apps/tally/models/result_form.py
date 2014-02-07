@@ -46,7 +46,7 @@ class ResultForm(BaseModel):
 
     @property
     def station(self):
-        return self.center.stations.filter(gender=self.gender)
+        return self.center.stations.filter(gender=self.gender)[0]
 
     @property
     def general_results(self):
