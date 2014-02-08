@@ -6,3 +6,4 @@ django-reversion==1.8.0
 psycopg2
 south==0.8.4
 six
+mock
