@@ -52,6 +52,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'reversion.middleware.RevisionMiddleware',
+    'libya_tally.libs.middleware.idle_timeout.IdleTimeout',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -140,3 +141,9 @@ STATICFILES_FINDERS = (
 )
 
 LOGIN_REDIRECT_URL = '/'
+
+# TODO: switch to True on production?
+SESSION_COOKIE_SECURE = False
+
+# in minutes
+IDLE_TIMEOUT = 60
