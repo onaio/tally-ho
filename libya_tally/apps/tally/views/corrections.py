@@ -6,6 +6,7 @@ from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
+from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.barcode_form import\
     BarcodeForm
@@ -75,7 +76,8 @@ def recon_form_for_version(results, entry_version):
         results.filter(entry_version=entry_version)[0]))
 
 
-class CorrectionView(mixins.GroupRequiredMixin,
+class CorrectionView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
                      mixins.ReverseSuccessURLMixin,
                      FormView):
     form_class = BarcodeForm
@@ -110,7 +112,8 @@ class CorrectionView(mixins.GroupRequiredMixin,
             return self.form_invalid(form)
 
 
-class CorrectionMatchView(mixins.GroupRequiredMixin,
+class CorrectionMatchView(LoginRequiredMixin,
+                          mixins.GroupRequiredMixin,
                           mixins.ReverseSuccessURLMixin,
                           FormView):
     form_class = PassToQualityControlForm
@@ -160,7 +163,8 @@ class CorrectionMatchView(mixins.GroupRequiredMixin,
             return self.form_invalid(form)
 
 
-class CorrectionDashboardView(mixins.GroupRequiredMixin,
+class CorrectionDashboardView(LoginRequiredMixin,
+                              mixins.GroupRequiredMixin,
                               mixins.ReverseSuccessURLMixin,
                               FormView):
     form_class = PassToQualityControlForm
@@ -187,7 +191,8 @@ class CorrectionDashboardView(mixins.GroupRequiredMixin,
         return redirect(self.success_url)
 
 
-class AbstractCorrectionView(mixins.GroupRequiredMixin,
+class AbstractCorrectionView(LoginRequiredMixin,
+                             mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     form_class = PassToQualityControlForm

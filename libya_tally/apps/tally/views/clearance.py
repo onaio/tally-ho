@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import FormView
 from django.shortcuts import get_object_or_404, redirect
+from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
@@ -9,7 +10,8 @@ from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_state
 
 
-class ClearanceDashboardView(mixins.GroupRequiredMixin,
+class ClearanceDashboardView(LoginRequiredMixin,
+                             mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     group_required = groups.CLEARANCE_CLERK
@@ -44,7 +46,8 @@ class ClearanceDashboardView(mixins.GroupRequiredMixin,
         return redirect(self.success_url)
 
 
-class ClearanceReviewView(mixins.GroupRequiredMixin,
+class ClearanceReviewView(LoginRequiredMixin,
+                          mixins.GroupRequiredMixin,
                           mixins.ReverseSuccessURLMixin,
                           FormView):
     group_required = groups.CLEARANCE_CLERK

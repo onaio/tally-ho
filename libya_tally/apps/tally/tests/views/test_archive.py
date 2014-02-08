@@ -20,8 +20,9 @@ class TestArchive(TestBase):
     def _common_view_tests(self, view, session={}):
         request = self.factory.get('/')
         request.user = AnonymousUser()
-        with self.assertRaises(PermissionDenied):
-            view(request)
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual('/accounts/login/?next=/', response['location'])
         self._create_and_login_user()
         request.user = self.user
         with self.assertRaises(PermissionDenied):
