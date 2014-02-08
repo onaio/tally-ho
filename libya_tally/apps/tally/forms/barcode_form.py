@@ -4,9 +4,22 @@ from django.utils.translation import ugettext as _
 from libya_tally.apps.tally.models.result_form import ResultForm
 
 
+disable_copy_input = {
+    'onCopy': 'return false;',
+    'onDrag': 'return false;',
+    'onDrop': 'return false;',
+    'onPaste': 'return false;',
+    'autocomplete': 'off'
+}
+
+
 class BarcodeForm(forms.Form):
-    barcode = forms.CharField(max_length=9, min_length=9)
-    barcode_copy = forms.CharField(max_length=9, min_length=9)
+    barcode = forms.CharField(max_length=9, min_length=9,
+                              widget=forms.TextInput(
+                                  attrs=disable_copy_input))
+    barcode_copy = forms.CharField(max_length=9, min_length=9,
+                                   widget=forms.TextInput(
+                                       attrs=disable_copy_input))
 
     def clean(self):
         if self.is_valid():
