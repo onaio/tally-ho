@@ -9,7 +9,8 @@ disable_copy_input = {
     'onDrag': 'return false;',
     'onDrop': 'return false;',
     'onPaste': 'return false;',
-    'autocomplete': 'off'
+    'autocomplete': 'off',
+    'class': 'form-control'
 }
 
 
@@ -20,6 +21,10 @@ class BarcodeForm(forms.Form):
     barcode_copy = forms.CharField(max_length=9, min_length=9,
                                    widget=forms.TextInput(
                                        attrs=disable_copy_input))
+
+    def __init__(self, *args, **kwargs):
+        super(BarcodeForm, self).__init__(*args, **kwargs)
+        self.fields['barcode'].widget.attrs['autofocus'] = 'on'
 
     def clean(self):
         if self.is_valid():

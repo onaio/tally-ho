@@ -9,7 +9,8 @@ disable_copy_input = {
     'onDrag': 'return false;',
     'onDrop': 'return false;',
     'onPaste': 'return false;',
-    'autocomplete': 'off'
+    'autocomplete': 'off',
+    'class': 'form-control'
 }
 
 
@@ -26,6 +27,10 @@ class CenterDetailsForm(forms.Form):
     station_number_copy = forms.IntegerField(min_value=1, max_value=8,
                                              widget=forms.TextInput(
                                                  attrs=disable_copy_input))
+
+    def __init__(self, *args, **kwargs):
+        super(CenterDetailsForm, self).__init__(*args, **kwargs)
+        self.fields['center_number'].widget.attrs['autofocus'] = 'on'
 
     def clean(self):
         if self.is_valid():
