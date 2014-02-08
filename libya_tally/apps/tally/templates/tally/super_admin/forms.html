@@ -11,6 +11,7 @@
         <th>{% trans 'Barcode' %}</th>
         <th>{% trans 'Center Code' %}</th>
         <th>{% trans 'Station Number' %}</th>
+        <th>{% trans 'Office' %}</th>
         <th>{% trans 'Voting district' %}</th>
         <th>{% trans 'Race Type' %}</th>
         <th>{% trans 'Last Modified' %}</th>
@@ -20,6 +21,7 @@
         <td>{{ form.barcode_padded }}</td>
         <td>{{ form.center.code }}</td>
         <td>{{ form.station_number }}</td>
+        <td>{{ form.center.office }}</td>
         <td>{{ form.ballot.number }}</td>
         <td>{{ form.ballot.race_type_name }}</td>
         <td>{{ form.modified_date }}</td>
