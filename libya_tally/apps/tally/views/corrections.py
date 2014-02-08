@@ -45,6 +45,20 @@ def incorrect_checks(post_data, result_form, success_url):
     return redirect(success_url)
 
 
+def get_candidates(result_form, results=None):
+    candidates = OrderedDict()
+    if results is None:
+        results = result_form.results
+    for result in results.order_by('candidate__order',
+                                   'entry_version'):
+        if result.candidate in candidates.keys():
+            candidates[result.candidate].append(result)
+        else:
+            candidates.update({
+                result.candidate: [result]})
+    return candidates
+
+
 def get_matched_forms(result_form):
     results_v1 = Result.objects.filter(
         result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1)\
@@ -66,6 +80,25 @@ def get_matched_forms(result_form):
     return matches, no_match
 
 
+def get_recon_form(result_form):
+    results = result_form.reconciliationform_set.filter(active=True)
+
+    if results.count() != 2:
+        raise SuspiciousOperation(_(u"There should be exactly two "
+                                    u"reconciliation results."))
+
+    reconciliation_form_1 = recon_form_for_version(
+        results, EntryVersion.DATA_ENTRY_1)
+    reconciliation_form_2 = recon_form_for_version(
+        results, EntryVersion.DATA_ENTRY_2)
+
+    recon = []
+    for field in reconciliation_form_1:
+        recon.append((field, reconciliation_form_2[field.name]))
+
+    return recon
+
+
 def match_forms(result_form):
     matches, no_match = get_matched_forms(result_form)
     return len(no_match) == 0
@@ -74,6 +107,26 @@ def match_forms(result_form):
 def recon_form_for_version(results, entry_version):
     return ReconForm(data=model_to_dict(
         results.filter(entry_version=entry_version)[0]))
+
+
+def save_recon_corrections(post_data, user, result_form):
+        recon_forms = result_form.reconciliationform_set
+        recon_form1 = recon_form_for_version(
+            recon_forms, EntryVersion.DATA_ENTRY_1)
+
+        recon_form_corrections = ReconForm(post_data)
+
+        corrections = {f.name: f.value() for f in recon_form_corrections
+                       if f.value() is not None}
+
+        updated = {f.name: f.value() for f in recon_form1}
+        updated.update(corrections)
+
+        recon_form_final = ReconciliationForm(**updated)
+        recon_form_final.user = user
+        recon_form_final.result_form = result_form
+        recon_form_final.entry_version = EntryVersion.FINAL
+        recon_form_final.save()
 
 
 class CorrectionView(LoginRequiredMixin,
@@ -107,7 +160,11 @@ class CorrectionView(LoginRequiredMixin,
                 return self.form_invalid(form)
 
             self.request.session['result_form'] = result_form.pk
-            return redirect('corrections-dashboard')
+
+            if result_form.corrections_passed(result_form):
+                return redirect('corrections-required')
+            else:
+                return redirect(self.success_url)
         else:
             return self.form_invalid(form)
 
@@ -119,7 +176,7 @@ class CorrectionMatchView(LoginRequiredMixin,
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
     template_name = "tally/corrections/match.html"
-    success_url = 'corrections-dashboard'
+    success_url = 'corrections-clerk'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -191,35 +248,23 @@ class CorrectionDashboardView(LoginRequiredMixin,
         return redirect(self.success_url)
 
 
-class AbstractCorrectionView(LoginRequiredMixin,
+class CorrectionRequiredView(LoginRequiredMixin,
                              mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
     template_name = "tally/corrections/required.html"
-    success_url = 'corrections-dashboard'
+    success_url = 'corrections-clerk'
 
-    def get_candidates(self, result_form, results=None):
-        candidates = OrderedDict()
-        if results is None:
-            results = result_form.results
-        for result in results.order_by('candidate__order',
-                                       'entry_version'):
-            if result.candidate in candidates.keys():
-                candidates[result.candidate].append(result)
-            else:
-                candidates.update({
-                    result.candidate: [result]})
-        return candidates
-
-    def get_action(self, header_text, race_type):
+    def get(self, header_text, race_type):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CORRECTION])
 
         results = result_form.results.filter(candidate__race_type=race_type)
-        candidates = self.get_candidates(result_form, results)
+        candidates = get_candidates(result_form, results)
+        recon = get_recon_form(result_form)
 
         results = []
         for c, r in candidates.iteritems():
@@ -228,10 +273,11 @@ class AbstractCorrectionView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(header_text=header_text,
                                   result_form=result_form,
+                                  reconciliation_form=recon,
                                   candidates=results))
 
     @transaction.atomic
-    def post_action(self, race_type):
+    def post(self, race_type):
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
@@ -243,6 +289,8 @@ class AbstractCorrectionView(LoginRequiredMixin,
         matches, no_match = get_matched_results(result_form, results)
 
         if 'submit_corrections' in post_data:
+            save_recon_corrections(post_data)
+
             if len(candidate_fields) != len(no_match):
                 raise Exception(
                     _(u"Please select correct results for all"
@@ -283,24 +331,6 @@ class AbstractCorrectionView(LoginRequiredMixin,
                                     'corrections-clerk')
 
 
-class CorrectionGeneralView(AbstractCorrectionView):
-    def get(self, *args, **kwargs):
-        return self.get_action(_(u"General"), RaceType.GENERAL)
-
-    @transaction.atomic
-    def post(self, *args, **kwargs):
-        return self.post_action(RaceType.GENERAL)
-
-
-class CorrectionWomenView(AbstractCorrectionView):
-    def get(self, *args, **kwargs):
-        return self.get_action(_(u"General"), RaceType.WOMEN)
-
-    @transaction.atomic
-    def post(self, *args, **kwargs):
-        return self.post_action(RaceType.WOMEN)
-
-
 class CorrectionReconciliationView(AbstractCorrectionView):
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
@@ -311,20 +341,6 @@ class CorrectionReconciliationView(AbstractCorrectionView):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CORRECTION])
-        results = result_form.reconciliationform_set.filter(active=True)
-
-        if results.count() != 2:
-            raise SuspiciousOperation(_(u"There should be exactly two "
-                                        u"reconciliation results."))
-
-        reconciliation_form_1 = recon_form_for_version(
-            results, EntryVersion.DATA_ENTRY_1)
-        reconciliation_form_2 = recon_form_for_version(
-            results, EntryVersion.DATA_ENTRY_2)
-
-        recon = []
-        for field in reconciliation_form_1:
-            recon.append((field, reconciliation_form_2[field.name]))
 
         return self.render_to_response(self.get_context_data(
             result_form=result_form,
@@ -340,23 +356,6 @@ class CorrectionReconciliationView(AbstractCorrectionView):
         form_in_state(result_form, FormState.CORRECTION)
 
         if 'submit_corrections' in post_data:
-            recon_forms = result_form.reconciliationform_set
-            recon_form1 = recon_form_for_version(
-                recon_forms, EntryVersion.DATA_ENTRY_1)
-
-            recon_form_corrections = ReconForm(post_data)
-
-            corrections = {f.name: f.value() for f in recon_form_corrections
-                           if f.value() is not None}
-
-            updated = {f.name: f.value() for f in recon_form1}
-            updated.update(corrections)
-
-            recon_form_final = ReconciliationForm(**updated)
-            recon_form_final.user = self.request.user
-            recon_form_final.result_form = result_form
-            recon_form_final.entry_version = EntryVersion.FINAL
-            recon_form_final.save()
 
             return redirect(self.success_url)
         else:
