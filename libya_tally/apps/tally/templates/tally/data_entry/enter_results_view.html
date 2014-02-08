@@ -9,7 +9,7 @@
 
 {% include 'tally/center_details.html' %}
 
-<form name="results" method="post" action="">
+<form name="results" method="post" action="" onsubmit="return validate_results();">
     <h2>{% trans 'Reconciliation Section' %}</h2>
 
     <table>{{ reconciliation_form.as_table}}
@@ -44,4 +44,36 @@
     <button type="submit" name="submit">{% trans "Submit" %}</button>
     {% csrf_token %}
 </form>
+{% endblock %}
+
+{% block javascript %}
+
+<script type="text/javascript">
+
+    function validate_results() {
+        var required_fields = Array.filter(
+            document.getElementsByClassName('required'),
+            function(el){
+                return el.nodeName == 'INPUT';
+            }
+        );
+
+        var valid = true;
+        var i = 0;
+        for(i = 0; i < required_fields.length; i++) {
+            var elem = required_fields[i];
+            if(elem.value == ""){
+                valid = false;
+                elem.parentNode.setAttribute('class', 'has-error');
+            } else {
+                elem.parentNode.setAttribute('class', 'has-success');
+            }
+        }
+        if(valid === false) {
+            alert('{% trans "Some fields are blank!" %}');
+        }
+        return valid;
+    }
+
+</script>
 {% endblock %}

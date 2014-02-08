@@ -29,8 +29,8 @@
 <script type="text/javascript">
 
     function barcodes_match() {
-        barcode = document.getElementById('id_barcode');
-        barcode_copy = document.getElementById('id_barcode_copy');
+        var barcode = document.getElementById('id_barcode');
+        var barcode_copy = document.getElementById('id_barcode_copy');
         if(barcode.value == barcode_copy.value){
             barcode_copy.parentNode.setAttribute('class', 'has-success');
             return true;

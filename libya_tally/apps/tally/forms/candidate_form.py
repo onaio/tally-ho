@@ -7,7 +7,7 @@ disable_copy_input = {
     'onDrop': 'return false;',
     'onPaste': 'return false;',
     'autocomplete': 'off',
-    'class': 'form-control'
+    'class': 'form-control required'
 }
 
 
