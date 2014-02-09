@@ -26,9 +26,9 @@ class AbstractQualityControl(object):
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
 
-        results = result_form.results.filter(candidate__race_type=race_type,
-                                             active=True,
-                                             entry_version=EntryVersion.FINAL)
+        results = result_form.results.filter(
+            candidate__race_type=race_type, active=True,
+            entry_version=EntryVersion.FINAL).order_by('candidate__order')
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
