@@ -13,18 +13,17 @@ from libya_tally.apps.tally.forms.barcode_form import\
 from libya_tally.apps.tally.forms.pass_to_quality_control_form import\
     PassToQualityControlForm
 from libya_tally.apps.tally.forms.recon_form import ReconForm
-from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.reconciliation_form import\
     ReconciliationForm
-from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.utils.common import session_matches_post_result_form,\
-    get_matched_results
+from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
+from libya_tally.libs.views.corrections import get_matched_forms,\
+    save_final_results, save_general_results, save_women_results
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
@@ -59,27 +58,6 @@ def get_candidates(result_form, results=None):
     return candidates
 
 
-def get_matched_forms(result_form):
-    results_v1 = Result.objects.filter(
-        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1)\
-        .values('candidate', 'votes')
-    results_v2 = Result.objects.filter(
-        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_2)\
-        .values('candidate', 'votes')
-
-    if not results_v1 or not results_v2:
-        raise Exception(_(u"Result Form has no double entries."))
-
-    if results_v1.count() != results_v2.count():
-        return False
-
-    tuple_list = [i.items() for i in results_v1]
-    matches = [rec for rec in results_v2 if rec.items() in tuple_list]
-    no_match = [rec for rec in results_v2 if rec.items() not in tuple_list]
-
-    return matches, no_match
-
-
 def get_recon_form(result_form):
     results = result_form.reconciliationform_set.filter(active=True)
 
@@ -99,6 +77,13 @@ def get_recon_form(result_form):
     return recon
 
 
+def get_results_for_race_type(result_form, race_type):
+    results = result_form.results.filter(candidate__race_type=race_type)
+    candidates = get_candidates(result_form, results)
+
+    return [(c, r[0], r[1]) for c, r in candidates.iteritems()]
+
+
 def match_forms(result_form):
     matches, no_match = get_matched_forms(result_form)
     return len(no_match) == 0
@@ -109,7 +94,7 @@ def recon_form_for_version(results, entry_version):
         results.filter(entry_version=entry_version)[0]))
 
 
-def save_recon_corrections(post_data, user, result_form):
+def save_recon(post_data, user, result_form):
         recon_forms = result_form.reconciliationform_set
         recon_form1 = recon_form_for_version(
             recon_forms, EntryVersion.DATA_ENTRY_1)
@@ -200,15 +185,7 @@ class CorrectionMatchView(LoginRequiredMixin,
             if not match_forms(result_form):
                 raise Exception(_(u"Results do not match."))
 
-            results = Result.objects.filter(
-                result_form=result_form,
-                entry_version=EntryVersion.DATA_ENTRY_2)
-            for result in results:
-                Result.objects.create(
-                    candidate=result.candidate,
-                    result_form=result_form,
-                    entry_version=EntryVersion.FINAL,
-                    votes=result.votes)
+            save_final_results(result_form, self.request.user)
 
             result_form.form_state = FormState.QUALITY_CONTROL
             result_form.save()
@@ -257,106 +234,37 @@ class CorrectionRequiredView(LoginRequiredMixin,
     template_name = "tally/corrections/required.html"
     success_url = 'corrections-clerk'
 
-    def get(self, header_text, race_type):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
-
-        results = result_form.results.filter(candidate__race_type=race_type)
-        candidates = get_candidates(result_form, results)
-        recon = get_recon_form(result_form)
-
-        results = []
-        for c, r in candidates.iteritems():
-            results.append((c, r[0], r[1]))
-
-        return self.render_to_response(
-            self.get_context_data(header_text=header_text,
-                                  result_form=result_form,
-                                  reconciliation_form=recon,
-                                  candidates=results))
-
-    @transaction.atomic
-    def post(self, race_type):
-        post_data = self.request.POST
-        pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
-        candidate_fields = [
-            f for f in post_data if f.startswith('candidate_')]
-
-        results = result_form.results.filter(candidate__race_type=race_type)
-        matches, no_match = get_matched_results(result_form, results)
-
-        if 'submit_corrections' in post_data:
-            save_recon_corrections(post_data)
-
-            if len(candidate_fields) != len(no_match):
-                raise Exception(
-                    _(u"Please select correct results for all"
-                      u" mis-matched votes."))
-
-            changed_candidates = []
-
-            for field in candidate_fields:
-                candidate_pk = field.replace('candidate_', '')
-                candidate = Candidate.objects.get(pk=candidate_pk)
-                votes = post_data[field]
-                Result.objects.create(
-                    candidate=candidate,
-                    result_form=result_form,
-                    entry_version=EntryVersion.FINAL,
-                    votes=votes,
-                    user=self.request.user
-                )
-                changed_candidates.append(candidate)
-
-            results_v2 = results.filter(
-                result_form=result_form,
-                entry_version=EntryVersion.DATA_ENTRY_2)
-
-            for result in results_v2:
-                if result.candidate not in changed_candidates:
-                    Result.objects.create(
-                        candidate=result.candidate,
-                        result_form=result_form,
-                        entry_version=EntryVersion.FINAL,
-                        votes=result.votes,
-                        user=self.request.user
-                    )
-
-            return redirect(self.success_url)
-        else:
-            return incorrect_checks(post_data, result_form,
-                                    'corrections-clerk')
-
-
-class CorrectionReconciliationView(AbstractCorrectionView):
-    form_class = PassToQualityControlForm
-    group_required = groups.CORRECTIONS_CLERK
-    template_name = "tally/corrections/recon_corrections.html"
-    success_url = 'corrections-dashboard'
-
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CORRECTION])
 
-        return self.render_to_response(self.get_context_data(
-            result_form=result_form,
-            header_text=_(u"Reconciliation"),
-            reconciliation_form=recon
-        ))
+        recon = get_recon_form(result_form)
+        results_general = get_results_for_race_type(RaceType.GENERAL)
+        results_women = get_results_for_race_type(RaceType.WOMEN)
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  reconciliation_form=recon,
+                                  candidates_general=results_general,
+                                  candidates_women=results_women))
 
     @transaction.atomic
     def post(self, race_type):
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.CORRECTION)
+        form_in_state(result_form, [FormState.CORRECTION])
 
         if 'submit_corrections' in post_data:
+            user = self.request.user
+            save_general_results(result_form, post_data, user)
+            save_women_results(result_form, post_data, user)
+
+            if result_form.reconciliationform_set.all():
+                save_recon(post_data, user, result_form)
 
             return redirect(self.success_url)
         else:
-            return incorrect_checks(post_data, result_form, self.success_url)
+            return incorrect_checks(post_data, result_form,
+                                    'corrections-clerk')
