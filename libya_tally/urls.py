@@ -76,7 +76,7 @@ urlpatterns = patterns(
         name='quality-control-dashboard'),
     url(r'^quality-control/reject',
         TemplateView.as_view(
-            template_name='tally/quality-control/reject.html'),
+            template_name='tally/quality_control/reject.html'),
         name='quality-control-reject'),
     url(r'^quality-control/reconciliation',
         quality_control.QualityControlReconciliationView.as_view(),
