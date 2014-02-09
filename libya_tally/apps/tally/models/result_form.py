@@ -177,6 +177,10 @@ class ResultForm(BaseModel):
             result.active = False
             result.save()
 
+        for recon in self.reconciliationform_set.all():
+            recon.active = False
+            recon.save()
+
         self.rejected_count = self.rejected_count + 1
         self.form_state = FormState.DATA_ENTRY_1
         self.save()

@@ -13,17 +13,7 @@ from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form,\
     create_candidate, create_center, create_station, TestBase,\
-    create_reconciliation_form
-
-
-def create_recon_forms(result_form):
-    recon1 = create_reconciliation_form(result_form)
-    recon1.entry_version = EntryVersion.DATA_ENTRY_1
-    recon1.save()
-
-    recon2 = create_reconciliation_form(result_form)
-    recon2.entry_version = EntryVersion.DATA_ENTRY_2
-    recon2.save()
+    create_recon_forms
 
 
 def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL):
@@ -201,6 +191,7 @@ class TestCorrections(TestBase):
     def test_corrections_general_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_recon_forms(result_form)
         create_results(result_form, vote1=2, vote2=3)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
@@ -222,6 +213,9 @@ class TestCorrections(TestBase):
 
         for result in updated_result_form.results.all():
             self.assertEqual(result.active, False)
+
+        for recon in updated_result_form.reconciliationform_set.all():
+            self.assertEqual(recon.active, False)
 
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_1)

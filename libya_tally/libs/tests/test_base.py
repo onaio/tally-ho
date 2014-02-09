@@ -115,6 +115,16 @@ def create_reconciliation_form(
         entry_version=entry_version)
 
 
+def create_recon_forms(result_form):
+    recon1 = create_reconciliation_form(result_form)
+    recon1.entry_version = EntryVersion.DATA_ENTRY_1
+    recon1.save()
+
+    recon2 = create_reconciliation_form(result_form)
+    recon2.entry_version = EntryVersion.DATA_ENTRY_2
+    recon2.save()
+
+
 def create_station(center, registrants=None):
     sc, _ = SubConstituency.objects.get_or_create(code=1,
                                                   component_ballot=False,

@@ -30,6 +30,8 @@ from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 def incorrect_checks(post_data, result_form, success_url):
     if 'reject_submit' in post_data:
         result_form.reject()
+    elif 'abort_submit' in post_data:
+        pass
     else:
         raise SuspiciousOperation('Unknown POST response type')
 

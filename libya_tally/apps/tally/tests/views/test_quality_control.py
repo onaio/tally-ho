@@ -8,7 +8,8 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_candidates,\
-    create_reconciliation_form, create_result_form, TestBase
+    create_reconciliation_form, create_recon_forms, create_result_form,\
+    TestBase
 
 
 def create_quality_control(result_form, user):
@@ -200,6 +201,7 @@ class TestQualityControl(TestBase):
         create_result_form(barcode,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
+        create_recon_forms(result_form)
         create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -221,6 +223,12 @@ class TestQualityControl(TestBase):
 
         for result in results:
             self.assertEqual(result.active, False)
+
+        recon_forms = result_form.reconciliationform_set.all()
+        self.assertTrue(len(recon_forms) > 0)
+
+        for recon in recon_forms:
+            self.assertEqual(recon.active, False)
 
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(result_form.rejected_count, 1)
