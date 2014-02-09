@@ -1,5 +1,6 @@
 from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
+from django.forms import ValidationError
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
@@ -222,9 +223,14 @@ class CorrectionRequiredView(LoginRequiredMixin,
                                                     RaceType.GENERAL)
         results_women = get_results_for_race_type(result_form,
                                                   RaceType.WOMEN)
+        errors = self.request.session.get('errors')
+
+        if errors:
+            del self.request.session['errors']
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form,
+            self.get_context_data(errors=errors,
+                                  result_form=result_form,
                                   reconciliation_form=recon,
                                   candidates_general=results_general,
                                   candidates_women=results_women))
@@ -238,8 +244,13 @@ class CorrectionRequiredView(LoginRequiredMixin,
 
         if 'submit_corrections' in post_data:
             user = self.request.user
-            save_general_results(result_form, post_data, user)
-            save_women_results(result_form, post_data, user)
+
+            try:
+                save_general_results(result_form, post_data, user)
+                save_women_results(result_form, post_data, user)
+            except ValidationError as e:
+                self.request.session['errors'] = e.message
+                return redirect('corrections-required')
 
             if result_form.reconciliationform_set.all():
                 save_recon(post_data, user, result_form)

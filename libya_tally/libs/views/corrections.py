@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.forms import ValidationError
 from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.models.candidate import Candidate
@@ -61,7 +62,7 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
     matches, no_match = get_matched_results(result_form, results)
 
     if len(candidate_fields) != len(no_match):
-        raise Exception(
+        raise ValidationError(
             _(u"Please select correct results for all mis-matched votes."))
 
     changed_candidates = []
