@@ -10,7 +10,12 @@
         <th>Candidate</th>
         <th>No.</th>
     </tr>
-{% for candidate, result1, result2, field in candidates %}
+{% for candidate, race_type_name, result1, result2, field in candidates %}
+    {% if race_type_name %}
+    <tr>
+        <td colspan="7"><h3>{{ race_type_name }}</h3></td>
+    </tr>
+    {% endif %}
     <tr>
         <td>
             {% if result1.votes == result2.votes %}
