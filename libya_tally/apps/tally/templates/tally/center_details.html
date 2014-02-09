@@ -1,6 +1,8 @@
 {% load i18n %}
 
 <ul>
+    <li>{{ result_form.barcode }} {% trans 'Barcode:' %}</li>
+    <li>{{ result_form.center.sub_constituency.code }} {% trans 'Voting District:' %}</li>
     <li>{{ result_form.center.name }} {% trans 'Center Name:' %}</li>
     <li>{{ result_form.center.office }} {% trans 'Office Name:' %}</li>
     <li>{{ result_form.center.code }} {% trans 'Center Code:' %}</li>
