@@ -17,6 +17,7 @@ class ReconForm(ModelForm):
         model = ReconciliationForm
         fields = ['ballot_number_from',
                   'ballot_number_to',
+                  'is_stamped',
                   'number_ballots_received',
                   'number_signatures_in_vr',
                   'number_unused_ballots',
@@ -28,7 +29,11 @@ class ReconForm(ModelForm):
                   'number_unstamped_ballots',
                   'number_invalid_votes',
                   'number_valid_votes',
-                  'number_sorted_and_counted']
+                  'number_sorted_and_counted',
+                  'signature_polling_officer_1',
+                  'signature_polling_officer_2',
+                  'signature_polling_station_chair',
+                  'signature_dated']
         localized_fields = '__all__'
 
     def __init__(self, *args, **kwargs):

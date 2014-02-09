@@ -112,6 +112,11 @@ def create_reconciliation_form(
         number_invalid_votes=1,
         number_valid_votes=1,
         number_sorted_and_counted=1,
+        is_stamped=True,
+        signature_polling_officer_1=True,
+        signature_polling_officer_2=True,
+        signature_polling_station_chair=True,
+        signature_dated=True,
         entry_version=entry_version)
 
 
