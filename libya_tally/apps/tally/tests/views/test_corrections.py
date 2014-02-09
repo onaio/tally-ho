@@ -191,6 +191,10 @@ class TestCorrections(TestBase):
         request.session = session
         request.user = self.user
         response = view(request)
+
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.QUALITY_CONTROL)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections', response['location'])
 
@@ -269,6 +273,10 @@ class TestCorrections(TestBase):
         request.session = session
         request.user = self.user
         response = view(request)
+
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.QUALITY_CONTROL)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections', response['location'])
 
@@ -348,4 +356,8 @@ class TestCorrections(TestBase):
                          EntryVersion.FINAL)
         self.assertEqual(final_form.user, self.user)
         self.assertEqual(response.status_code, 302)
+
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.QUALITY_CONTROL)
         self.assertIn('corrections', response['location'])

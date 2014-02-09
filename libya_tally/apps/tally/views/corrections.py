@@ -227,6 +227,9 @@ class CorrectionRequiredView(LoginRequiredMixin,
             if result_form.reconciliationform_set.all():
                 save_recon(post_data, user, result_form)
 
+            result_form.form_state = FormState.QUALITY_CONTROL
+            result_form.save()
+
             return redirect(self.success_url)
         else:
             return incorrect_checks(post_data, result_form,
