@@ -27,17 +27,9 @@ from libya_tally.libs.views.corrections import get_matched_forms,\
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
-def abort(result_form):
-    for result in result_form.results.filter(entry_version=EntryVersion.FINAL):
-        result.active = False
-        result.save()
-
-
 def incorrect_checks(post_data, result_form, success_url):
     if 'reject_submit' in post_data:
         result_form.reject()
-    elif 'abort_submit' in post_data:
-        abort(result_form)
     else:
         raise SuspiciousOperation('Unknown POST response type')
 
