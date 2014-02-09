@@ -47,7 +47,20 @@ def get_header_text(result_form):
 
 
 def check_group_for_state(result_form, user, form):
+    """Ensure only data entry 1 clerk can access forms in data entry 1 state
+    and similarly for data entry 2.
+
+    Always allow access for the super administrator.
+
+    :param result_form: The result form to check access to.
+    :param user: The user to check group of.
+    :param form: The Django form to attach an error to.
+    :returns: A form with an error if access denied, else None.
+    """
     user_groups = user.groups.values_list("name", flat=True)
+
+    if groups.SUPER_ADMINISTRATOR in user_groups:
+        return None
 
     if ((result_form.form_state == FormState.DATA_ENTRY_1 and
        groups.DATA_ENTRY_1_CLERK not in user_groups) or
