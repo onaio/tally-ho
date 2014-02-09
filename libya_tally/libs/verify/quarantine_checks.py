@@ -10,7 +10,8 @@ def create_quarantine_checks():
     ]
 
     for name, method, value in quarantine_data:
-        QuarantineCheck.objects.create(name=name, method=method, value=value)
+        QuarantineCheck.objects.get_or_create(
+            name=name, method=method, value=value)
 
 
 def quarantine_checks():

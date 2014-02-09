@@ -28,8 +28,7 @@ class ReconForm(ModelForm):
                   'number_unstamped_ballots',
                   'number_invalid_votes',
                   'number_valid_votes',
-                  'number_sorted_and_counted',
-                  'remarks']
+                  'number_sorted_and_counted']
         localized_fields = '__all__'
 
     def __init__(self, *args, **kwargs):

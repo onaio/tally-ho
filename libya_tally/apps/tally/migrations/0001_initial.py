@@ -196,7 +196,6 @@ class Migration(SchemaMigration):
             ('number_invalid_votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('number_valid_votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('number_sorted_and_counted', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('remarks', self.gf('django.db.models.fields.TextField')(blank=True)),
         ))
         db.send_create_signal('tally', ['ReconciliationForm'])
 
@@ -432,7 +431,6 @@ class Migration(SchemaMigration):
             'number_unstamped_ballots': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'number_unused_ballots': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'number_valid_votes': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'remarks': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'result_form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.ResultForm']"}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True'})
         },

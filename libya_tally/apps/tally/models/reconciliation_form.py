@@ -47,8 +47,6 @@ class ReconciliationForm(BaseModel):
         help_text=_('Number of valid votes'))
     number_sorted_and_counted = models.PositiveIntegerField(
         help_text=_('Total number of the sorted and counted ballots'))
-    remarks = models.TextField(blank=True, help_text=_(
-        'You may use this space for any necessary remarks'))
 
     @property
     def number_ballots_used(self):
