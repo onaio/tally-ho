@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.models.candidate import Candidate
@@ -26,6 +28,27 @@ def get_matched_forms(result_form):
     no_match = [rec for rec in results_v2 if rec.items() not in tuple_list]
 
     return matches, no_match
+
+
+def get_candidates(result_form, results=None):
+    candidates = OrderedDict()
+    if results is None:
+        results = result_form.results
+    for result in results.order_by('candidate__order',
+                                   'entry_version'):
+        if result.candidate in candidates.keys():
+            candidates[result.candidate].append(result)
+        else:
+            candidates.update({
+                result.candidate: [result]})
+    return candidates
+
+
+def get_results_for_race_type(result_form, race_type):
+    results = result_form.results.filter(candidate__race_type=race_type)
+    candidates = get_candidates(result_form, results)
+
+    return [(c, r[0], r[1]) for c, r in candidates.iteritems()]
 
 
 def save_candidate_results_by_prefix(prefix, result_form, post_data,

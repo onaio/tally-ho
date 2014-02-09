@@ -118,7 +118,7 @@ class TestCorrections(TestBase):
         request.session = {}
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('corrections/dashboard', response['location'])
+        self.assertIn('corrections/match', response['location'])
 
     def test_corrections_redirects_to_corrections_required(self):
         barcode = '123456789'
@@ -133,7 +133,7 @@ class TestCorrections(TestBase):
         request.session = {}
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('corrections/dashboard', response['location'])
+        self.assertIn('corrections/required', response['location'])
 
     def test_corrections_match_page(self):
         result_form = create_result_form(form_state=FormState.CORRECTION)
@@ -251,7 +251,7 @@ class TestCorrections(TestBase):
                          FormState.CORRECTION)
 
     def test_corrections_women_post_corrections(self):
-        view = views.CorrectionWomenView.as_view()
+        view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         self._create_and_login_user()
@@ -260,7 +260,8 @@ class TestCorrections(TestBase):
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
         post_data = {
-            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            'candidate_women_%s' % result_form.results.all()[
+                0].candidate.pk: 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections'
         }
@@ -269,10 +270,10 @@ class TestCorrections(TestBase):
         request.user = self.user
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/corrections/dashboard', response['location'])
+        self.assertIn('/corrections', response['location'])
 
     def test_corrections_women_post_reject(self):
-        view = views.CorrectionWomenView.as_view()
+        view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         self._create_and_login_user()
@@ -281,7 +282,8 @@ class TestCorrections(TestBase):
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
         post_data = {
-            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            'candidate_women_%s' % result_form.results.all()[
+                0].candidate.pk: 2,
             'result_form': result_form.pk,
             'reject_submit': 'reject'
         }
@@ -296,7 +298,7 @@ class TestCorrections(TestBase):
                          FormState.DATA_ENTRY_1)
 
     def test_recon_get(self):
-        view = views.CorrectionReconciliationView.as_view()
+        view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         create_recon_forms(result_form)
@@ -314,9 +316,9 @@ class TestCorrections(TestBase):
         self.assertContains(response, 'Reconciliation')
 
     def test_recon_post(self):
-        view = views.CorrectionReconciliationView.as_view()
+        view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
-        create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
+        create_results(result_form, vote1=2, vote2=2, race_type=RaceType.WOMEN)
         create_recon_forms(result_form)
 
         self._create_and_login_user()
@@ -346,4 +348,4 @@ class TestCorrections(TestBase):
                          EntryVersion.FINAL)
         self.assertEqual(final_form.user, self.user)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('corrections/dashboard', response['location'])
+        self.assertIn('corrections', response['location'])

@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
 from django.forms.models import model_to_dict
@@ -23,7 +21,8 @@ from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.corrections import get_matched_forms,\
-    save_final_results, save_general_results, save_women_results
+    get_results_for_race_type, save_final_results, save_general_results,\
+    save_women_results
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
@@ -44,20 +43,6 @@ def incorrect_checks(post_data, result_form, success_url):
     return redirect(success_url)
 
 
-def get_candidates(result_form, results=None):
-    candidates = OrderedDict()
-    if results is None:
-        results = result_form.results
-    for result in results.order_by('candidate__order',
-                                   'entry_version'):
-        if result.candidate in candidates.keys():
-            candidates[result.candidate].append(result)
-        else:
-            candidates.update({
-                result.candidate: [result]})
-    return candidates
-
-
 def get_recon_form(result_form):
     results = result_form.reconciliationform_set.filter(active=True)
 
@@ -75,13 +60,6 @@ def get_recon_form(result_form):
         recon.append((field, reconciliation_form_2[field.name]))
 
     return recon
-
-
-def get_results_for_race_type(result_form, race_type):
-    results = result_form.results.filter(candidate__race_type=race_type)
-    candidates = get_candidates(result_form, results)
-
-    return [(c, r[0], r[1]) for c, r in candidates.iteritems()]
 
 
 def match_forms(result_form):
@@ -146,10 +124,10 @@ class CorrectionView(LoginRequiredMixin,
 
             self.request.session['result_form'] = result_form.pk
 
-            if result_form.corrections_passed(result_form):
-                return redirect('corrections-required')
-            else:
+            if result_form.corrections_passed:
                 return redirect(self.success_url)
+            else:
+                return redirect('corrections-required')
         else:
             return self.form_invalid(form)
 
@@ -240,8 +218,10 @@ class CorrectionRequiredView(LoginRequiredMixin,
         form_in_state(result_form, [FormState.CORRECTION])
 
         recon = get_recon_form(result_form)
-        results_general = get_results_for_race_type(RaceType.GENERAL)
-        results_women = get_results_for_race_type(RaceType.WOMEN)
+        results_general = get_results_for_race_type(result_form,
+                                                    RaceType.GENERAL)
+        results_women = get_results_for_race_type(result_form,
+                                                  RaceType.WOMEN)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
