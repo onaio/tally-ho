@@ -1,6 +1,5 @@
 from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import ugettext as _
-from libya_tally.libs.models.enums.entry_version import EntryVersion
 
 
 def session_matches_post_result_form(post_data, request):

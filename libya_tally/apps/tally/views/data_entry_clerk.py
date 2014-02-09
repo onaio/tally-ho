@@ -19,7 +19,7 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.utils.common import session_matches_post_result_form
+from libya_tally.libs.views.session import session_matches_post_result_form
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_data_entry_state,\
     safe_form_in_state
