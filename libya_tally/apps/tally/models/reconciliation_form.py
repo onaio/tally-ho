@@ -21,6 +21,7 @@ class ReconciliationForm(BaseModel):
         help_text=_('Serial number of ballots received by the polling station'
                     'from'))
     ballot_number_to = models.PositiveIntegerField(help_text=_('To'))
+    is_stamped = models.BooleanField(help_text=_('Is the form stamped?'))
     number_ballots_received = models.PositiveIntegerField(
         help_text=_('Total number of ballots received by the polling station'))
     number_signatures_in_vr = models.PositiveIntegerField(
@@ -47,6 +48,14 @@ class ReconciliationForm(BaseModel):
         help_text=_('Number of valid votes'))
     number_sorted_and_counted = models.PositiveIntegerField(
         help_text=_('Total number of the sorted and counted ballots'))
+    signature_polling_officer_1 = models.BooleanField(
+        help_text=_('Is the form signed by polling officer 1?'))
+    signature_polling_officer_2 = models.BooleanField(
+        help_text=_('Is the form signed by polling officer 2?'))
+    signature_polling_station_chair = models.BooleanField(
+        help_text=_('Is the form signed by the polling station chair?'))
+    signature_dated = models.BooleanField(
+        help_text=_('Is the form dated?'))
 
     @property
     def number_ballots_used(self):

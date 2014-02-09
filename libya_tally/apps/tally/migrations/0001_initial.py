@@ -184,6 +184,7 @@ class Migration(SchemaMigration):
             ('entry_version', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
             ('ballot_number_from', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('ballot_number_to', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('is_stamped', self.gf('django.db.models.fields.BooleanField')()),
             ('number_ballots_received', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('number_signatures_in_vr', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('number_unused_ballots', self.gf('django.db.models.fields.PositiveIntegerField')()),
@@ -196,6 +197,10 @@ class Migration(SchemaMigration):
             ('number_invalid_votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('number_valid_votes', self.gf('django.db.models.fields.PositiveIntegerField')()),
             ('number_sorted_and_counted', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('signature_polling_officer_1', self.gf('django.db.models.fields.BooleanField')()),
+            ('signature_polling_officer_2', self.gf('django.db.models.fields.BooleanField')()),
+            ('signature_polling_station_chair', self.gf('django.db.models.fields.BooleanField')()),
+            ('signature_dated', self.gf('django.db.models.fields.BooleanField')()),
         ))
         db.send_create_signal('tally', ['ReconciliationForm'])
 
@@ -418,6 +423,7 @@ class Migration(SchemaMigration):
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'entry_version': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_stamped': ('django.db.models.fields.BooleanField', [], {}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'number_ballots_inside_and_outside_box': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'number_ballots_inside_box': ('django.db.models.fields.PositiveIntegerField', [], {}),
@@ -432,6 +438,10 @@ class Migration(SchemaMigration):
             'number_unused_ballots': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'number_valid_votes': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'result_form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.ResultForm']"}),
+            'signature_dated': ('django.db.models.fields.BooleanField', [], {}),
+            'signature_polling_officer_1': ('django.db.models.fields.BooleanField', [], {}),
+            'signature_polling_officer_2': ('django.db.models.fields.BooleanField', [], {}),
+            'signature_polling_station_chair': ('django.db.models.fields.BooleanField', [], {}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True'})
         },
         'tally.result': {
