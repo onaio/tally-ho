@@ -1,0 +1,43 @@
+{% load i18n %}
+<h2>{% trans 'Results Form Corrections' %} {% trans header %}</h2>
+<table>
+    <tr>
+        <th>{% trans 'Corrections Required?' %}</th>
+        <th>{% trans 'Select' %}</th>
+        <th>{% trans 'Entry 1' %}</th>
+        <th>{% trans 'Select' %}</th>
+        <th>{% trans 'Entry 2' %}</th>
+        <th>Candidate</th>
+        <th>No.</th>
+    </tr>
+{% for candidate, result1, result2, field in candidates %}
+    <tr>
+        <td>
+            {% if result1.votes == result2.votes %}
+            {% trans 'No' %}
+            {% else %}{% trans 'Yes' %}{% endif %}</td>
+        <td>
+            {% if result1.votes != result2.votes %}
+            <input type="radio" name="candidate_{{ header|lower }}_{{ candidate.pk }}" value="{{ result1.votes }}" />
+            {% else %}-{% endif %}</td>
+        </td>
+        <td>
+            {{ result1.votes }}
+        </td>
+        <td>
+            {% if result1.votes != result2.votes %}
+            <input type="radio" name="candidate_{{ header|lower }}_{{ candidate.pk }}" value="{{ result2.votes }}" />
+            {% else %}-{% endif %}</td>
+        </td>
+        <td>
+            {{ result2.votes }}
+        </td>
+        <td>
+            {{ candidate.full_name }}
+        </td>
+        <td>
+            {{ candidate.order }}
+        </td>
+    </tr>
+{% endfor %}
+</table>

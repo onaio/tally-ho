@@ -1,8 +1,8 @@
 from django.core.exceptions import SuspiciousOperation
-from django.forms.util import ErrorList
 from django.utils.translation import ugettext as _
 
 from libya_tally.libs.models.enums.form_state import FormState
+from libya_tally.libs.views.errors import add_generic_error
 
 
 def safe_form_in_state(result_form, states, form):
@@ -10,11 +10,9 @@ def safe_form_in_state(result_form, states, form):
         form_in_state(result_form, states)
     except SuspiciousOperation:
         state_names = get_state_names(states)
-        errors = form._errors.setdefault("__all__", ErrorList())
-        errors.append(_(u"Form not in %s.  Return form to %s"
-                        % (state_names, result_form.form_state_name)))
-
-        return form
+        message = _(u"Form not in %s.  Return form to %s"
+                    % (state_names, result_form.form_state_name))
+        return add_generic_error(form, message)
 
 
 def form_in_state(result_form, states):

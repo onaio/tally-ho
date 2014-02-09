@@ -19,10 +19,11 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.utils.common import session_matches_post_result_form
 from libya_tally.libs.views import mixins
+from libya_tally.libs.views.errors import add_generic_error
 from libya_tally.libs.views.form_state import form_in_data_entry_state,\
     safe_form_in_state
+from libya_tally.libs.views.session import session_matches_post_result_form
 
 
 def get_data_entry_number(form_state):
@@ -66,11 +67,9 @@ def check_group_for_state(result_form, user, form):
        groups.DATA_ENTRY_1_CLERK not in user_groups) or
        (result_form.form_state == FormState.DATA_ENTRY_2 and
             groups.DATA_ENTRY_2_CLERK not in user_groups)):
-        errors = form._errors.setdefault(
-            "__all__", ErrorList())
-        errors.append(_(u"Return form to %s" % result_form.form_state_name))
+        message = _(u"Return form to %s" % result_form.form_state_name)
 
-        return form
+        return add_generic_error(form, message)
 
 
 def check_form_for_center_station(center, station_number, result_form):
