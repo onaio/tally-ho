@@ -11,6 +11,7 @@ from libya_tally.apps.tally.forms.recon_form import\
     ReconForm
 from libya_tally.apps.tally.models.quality_control import QualityControl
 from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
@@ -25,7 +26,9 @@ class AbstractQualityControl(object):
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
 
-        results = result_form.results.filter(candidate__race_type=race_type)
+        results = result_form.results.filter(candidate__race_type=race_type,
+                                             active=True,
+                                             entry_version=EntryVersion.FINAL)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
@@ -150,7 +153,7 @@ class QualityControlReconciliationView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
         reconciliation_form = ReconForm(data=model_to_dict(
-            result_form.reconciliationform_set.all()[0]))
+            result_form.reconciliationform))
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
