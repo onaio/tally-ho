@@ -3,6 +3,7 @@ from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView
 from django.utils.translation import ugettext as _
+from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.barcode_form import\
     BarcodeForm
@@ -66,7 +67,8 @@ class AbstractQualityControl(object):
         raise SuspiciousOperation('Missing expected POST data')
 
 
-class QualityControlView(mixins.GroupRequiredMixin,
+class QualityControlView(LoginRequiredMixin,
+                         mixins.GroupRequiredMixin,
                          mixins.ReverseSuccessURLMixin,
                          FormView):
     form_class = BarcodeForm
@@ -105,7 +107,8 @@ class QualityControlView(mixins.GroupRequiredMixin,
             return self.form_invalid(form)
 
 
-class QualityControlDashboardView(mixins.GroupRequiredMixin,
+class QualityControlDashboardView(LoginRequiredMixin,
+                                  mixins.GroupRequiredMixin,
                                   mixins.ReverseSuccessURLMixin,
                                   FormView):
     group_required = groups.QUALITY_CONTROL_CLERK
@@ -133,7 +136,8 @@ class QualityControlDashboardView(mixins.GroupRequiredMixin,
         return redirect(self.success_url)
 
 
-class QualityControlReconciliationView(mixins.GroupRequiredMixin,
+class QualityControlReconciliationView(LoginRequiredMixin,
+                                       mixins.GroupRequiredMixin,
                                        mixins.ReverseSuccessURLMixin,
                                        FormView,
                                        AbstractQualityControl):
@@ -156,7 +160,8 @@ class QualityControlReconciliationView(mixins.GroupRequiredMixin,
         return self.post_action('passed_reconciliation')
 
 
-class QualityControlGeneralView(mixins.GroupRequiredMixin,
+class QualityControlGeneralView(LoginRequiredMixin,
+                                mixins.GroupRequiredMixin,
                                 mixins.ReverseSuccessURLMixin,
                                 FormView,
                                 AbstractQualityControl):
@@ -171,7 +176,8 @@ class QualityControlGeneralView(mixins.GroupRequiredMixin,
         return self.post_action('passed_general')
 
 
-class QualityControlWomenView(mixins.GroupRequiredMixin,
+class QualityControlWomenView(LoginRequiredMixin,
+                              mixins.GroupRequiredMixin,
                               mixins.ReverseSuccessURLMixin,
                               FormView,
                               AbstractQualityControl):

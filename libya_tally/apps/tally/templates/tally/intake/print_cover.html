@@ -27,30 +27,54 @@
     </tr>
     <tr>
         <td>{% trans 'Data Entry One:' %}</td>
-        <td>{% trans 'Name:' %}</td>
+        <td>{% trans 'Name:' %}
+            <span class='underline'>________________________________________</span>
+        </td>
     </tr>
     <tr>
         <td>{% trans 'Data Entry Two:' %}</td>
-        <td>{% trans 'Name:' %}</td>
+        <td>{% trans 'Name:' %}
+            <span class='underline'>________________________________________</span>
+        </td>
     </tr>
     <tr>
         <td rowspan="2">{% trans 'Corrections:' %}</td>
-        <td>{% trans 'To Quality Control [ ]  Name' %}</td>
+        <td>{% trans 'To Quality Control [ ]  Name' %}
+            <span class='underline'>________________________________________</span>
+        </td>
     <tr>
-        <td>{% trans 'To Data Entry One [ ]  Name' %}</td>
+        <td>{% trans 'To Data Entry One [ ]  Name' %}
+            <span class='underline'>________________________________________</span>
+        </td>
     </tr>
     <tr>
         <td rowspan="2">{% trans 'Quality Control:' %}</td>
-        <td>{% trans 'To Archive [ ]  Name' %}</td>
+        <td>{% trans 'To Archive [ ]  Name' %}
+            <span class='underline'>________________________________________</span>
+        </td>
     <tr>
-        <td>{% trans 'To Data Entry One [ ]  Name' %}</td>
+        <td>{% trans 'To Data Entry One [ ]  Name' %}
+            <span class='underline'>________________________________________</span>
+        </td>
     </tr>
 </table>
 
 <form name="print_cover_form" method='post' action="">
     {% csrf_token %}
     <input type="hidden" name="result_form" value="{{result_form.pk}}" />
-    <button type="button" name="print_cover_from" onclick="window.print()">{% trans 'Print' %}</button>
-    <button type="submit" name="submit_cover_from">{% trans 'Print Successful' %}</button>
+    <button type="button" name="print_cover_form" onclick="print_cover()">{% trans 'Print' %}</button>
+    <button type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">{% trans 'Print Successful' %}</button>
 </form>
+{% endblock %}
+
+{% block javascript %}
+
+<script type="text/javascript">
+
+    function print_cover() {
+        window.print();
+        document.getElementById('submit_cover_form').setAttribute('style', 'display: inline');
+    }
+
+</script>
 {% endblock %}

@@ -41,7 +41,19 @@
 <form name="print_cover_form" method='post' action="">
     {% csrf_token %}
     <input type="hidden" name="result_form" value="{{result_form.pk}}" />
-    <button type="button" name="print_cover_from" onclick="window.print()">{% trans 'Print' %}</button>
-    <button type="submit" name="submit_cover_from">{% trans 'Print Successful' %}</button>
+    <button type="button" name="print_cover_form" onclick="print_cover()">{% trans 'Print' %}</button>
+    <button type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">{% trans 'Print Successful' %}</button>
 </form>
+{% endblock %}
+
+{% block javascript %}
+
+<script type="text/javascript">
+
+    function print_cover() {
+        window.print();
+        document.getElementById('submit_cover_form').setAttribute('style', 'display: inline');
+    }
+
+</script>
 {% endblock %}

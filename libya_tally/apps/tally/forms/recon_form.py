@@ -2,6 +2,16 @@ from django.forms import ModelForm
 from libya_tally.apps.tally.models import ReconciliationForm
 
 
+disable_copy_input = {
+    'onCopy': 'return false;',
+    'onDrag': 'return false;',
+    'onDrop': 'return false;',
+    'onPaste': 'return false;',
+    'autocomplete': 'off',
+    'class': 'form-control'
+}
+
+
 class ReconForm(ModelForm):
     class Meta:
         model = ReconciliationForm
@@ -21,3 +31,20 @@ class ReconForm(ModelForm):
                   'number_sorted_and_counted',
                   'remarks']
         localized_fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(ReconForm, self).__init__(*args, **kwargs)
+        self.fields['ballot_number_from'].widget.attrs['autofocus'] = 'on'
+
+        for field in self.fields:
+            for k, v in disable_copy_input.iteritems():
+                self.fields[field].widget.attrs[k] = v
+
+            if self.fields[field].required:
+                class_str = 'required'
+
+                if self.fields[field].widget.attrs.get('class'):
+                    class_str = '%s %s' % (
+                        class_str,
+                        self.fields[field].widget.attrs.get('class'))
+                self.fields[field].widget.attrs['class'] = class_str

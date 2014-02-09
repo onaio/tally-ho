@@ -8,7 +8,7 @@
 
 <div class="form-instructions">{% trans 'Double Enter Center Details' %}</div>
 
-<form id="result_form" method="post" action="">
+<form id="result_form" method="post" action="" onsubmit="return center_details_match();">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <table>{{ form.as_table }}
         <tr>
@@ -20,4 +20,45 @@
     </table>
 </form>
 
+{% endblock %}
+
+
+{% block javascript %}
+
+<script type="text/javascript">
+
+    function center_details_match() {
+        var center_number = document.getElementById('id_center_number');
+        var center_number_copy = document.getElementById('id_center_number_copy');
+        var station_number = document.getElementById('id_station_number');
+        var station_number_copy = document.getElementById('id_station_number_copy');
+
+        var valid = true;
+
+        if(center_number.value == center_number_copy.value && center_number.value != "" &&  center_number_copy.value != ""){
+            center_number.parentNode.setAttribute('class', 'has-success');
+            center_number_copy.parentNode.setAttribute('class', 'has-success');
+        } else {
+            center_number.parentNode.setAttribute('class', 'has-error');
+            center_number_copy.parentNode.setAttribute('class', 'has-error');
+            valid = false;
+        }
+
+        if(station_number.value == station_number_copy.value && station_number.value != "" &&  station_number_copy.value != ""){
+            station_number.parentNode.setAttribute('class', 'has-success');
+            station_number_copy.parentNode.setAttribute('class', 'has-success');
+        } else {
+            station_number.parentNode.setAttribute('class', 'has-error');
+            station_number_copy.parentNode.setAttribute('class', 'has-error');
+            valid = false;
+        }
+
+        if (valid === false) {
+            alert('{% trans "Center Numbers do not match." %}');
+        }
+
+        return valid;
+    }
+
+</script>
 {% endblock %}

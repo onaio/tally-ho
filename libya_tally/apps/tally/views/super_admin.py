@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import TemplateView
+from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.models.station import Station
@@ -8,7 +9,9 @@ from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
 
 
-class DashboardView(mixins.GroupRequiredMixin, TemplateView):
+class DashboardView(LoginRequiredMixin,
+                    mixins.GroupRequiredMixin,
+                    TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/home.html"
 
@@ -19,7 +22,9 @@ class DashboardView(mixins.GroupRequiredMixin, TemplateView):
             groups=group_logins))
 
 
-class CenterListView(mixins.GroupRequiredMixin, TemplateView):
+class CenterListView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/centers.html"
 
@@ -41,7 +46,9 @@ class CenterListView(mixins.GroupRequiredMixin, TemplateView):
             stations=stations))
 
 
-class FormListView(mixins.GroupRequiredMixin, TemplateView):
+class FormListView(LoginRequiredMixin,
+                   mixins.GroupRequiredMixin,
+                   TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/forms.html"
 
@@ -63,7 +70,9 @@ class FormListView(mixins.GroupRequiredMixin, TemplateView):
             forms=forms))
 
 
-class FormProgressView(mixins.GroupRequiredMixin, TemplateView):
+class FormProgressView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/form_progress.html"
 

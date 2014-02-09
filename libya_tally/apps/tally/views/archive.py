@@ -2,6 +2,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
+from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.barcode_form import\
     BarcodeForm
@@ -32,7 +33,8 @@ def check_quarantine(result_form, user):
             audit.add(check)
 
 
-class ArchiveView(mixins.GroupRequiredMixin,
+class ArchiveView(LoginRequiredMixin,
+                  mixins.GroupRequiredMixin,
                   mixins.ReverseSuccessURLMixin,
                   FormView):
     form_class = BarcodeForm
@@ -70,7 +72,8 @@ class ArchiveView(mixins.GroupRequiredMixin,
             return self.form_invalid(form)
 
 
-class ArchivePrintView(mixins.GroupRequiredMixin,
+class ArchivePrintView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
     group_required = groups.ARCHIVE_CLERK

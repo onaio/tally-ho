@@ -5,6 +5,7 @@ from django.forms.util import ErrorList
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView
+from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.center_details_form import\
     CenterDetailsForm
@@ -75,7 +76,8 @@ def check_state_and_group(result_form, user, form):
     return check_state or check_group
 
 
-class DataEntryView(mixins.GroupRequiredMixin,
+class DataEntryView(LoginRequiredMixin,
+                    mixins.GroupRequiredMixin,
                     mixins.ReverseSuccessURLMixin,
                     FormView):
     form_class = BarcodeForm
@@ -111,7 +113,8 @@ class DataEntryView(mixins.GroupRequiredMixin,
             return self.form_invalid(form)
 
 
-class CenterDetailsView(mixins.GroupRequiredMixin,
+class CenterDetailsView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
     form_class = CenterDetailsForm
@@ -173,7 +176,8 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
                                            result_form=result_form))
 
 
-class CheckCenterDetailsView(mixins.GroupRequiredMixin,
+class CheckCenterDetailsView(LoginRequiredMixin,
+                             mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
@@ -208,7 +212,8 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
         return redirect('data-entry-check-center-details')
 
 
-class EnterResultsView(mixins.GroupRequiredMixin,
+class EnterResultsView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]

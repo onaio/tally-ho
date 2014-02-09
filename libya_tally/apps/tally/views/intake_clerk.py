@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
+from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.center_details_form import\
     CenterDetailsForm
@@ -15,7 +16,8 @@ from libya_tally.libs.views.form_state import form_in_intake_state,\
     safe_form_in_state, form_in_state
 
 
-class CenterDetailsView(mixins.GroupRequiredMixin,
+class CenterDetailsView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
     form_class = BarcodeForm
@@ -58,7 +60,8 @@ class CenterDetailsView(mixins.GroupRequiredMixin,
             return self.form_invalid(form)
 
 
-class EnterCenterView(mixins.GroupRequiredMixin,
+class EnterCenterView(LoginRequiredMixin,
+                      mixins.GroupRequiredMixin,
                       mixins.ReverseSuccessURLMixin,
                       FormView):
     form_class = CenterDetailsForm
@@ -105,7 +108,8 @@ class EnterCenterView(mixins.GroupRequiredMixin,
                 result_form=result_form))
 
 
-class CheckCenterDetailsView(mixins.GroupRequiredMixin,
+class CheckCenterDetailsView(LoginRequiredMixin,
+                             mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     group_required = groups.INTAKE_CLERK
@@ -143,7 +147,9 @@ class CheckCenterDetailsView(mixins.GroupRequiredMixin,
             return redirect('intake-clerk')
 
 
-class PrintCoverView(mixins.GroupRequiredMixin, TemplateView):
+class PrintCoverView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     TemplateView):
     group_required = groups.INTAKE_CLERK
     template_name = "tally/intake/print_cover.html"
 
@@ -174,7 +180,9 @@ class PrintCoverView(mixins.GroupRequiredMixin, TemplateView):
             self.get_context_data(result_form=result_form))
 
 
-class ClearanceView(mixins.GroupRequiredMixin, TemplateView):
+class ClearanceView(LoginRequiredMixin,
+                    mixins.GroupRequiredMixin,
+                    TemplateView):
     template_name = "tally/intake/clearance.html"
     group_required = groups.INTAKE_CLERK
 
