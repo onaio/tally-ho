@@ -31,13 +31,22 @@ def get_data_entry_number(form_state):
 
 
 def get_formset_and_candidates(result_form, post_data=None):
-    candidates = result_form.ballot.candidates.order_by('order')
+    candidates = result_form.ballot.candidates.order_by('race_type', 'order')
     CandidateFormSet = formset_factory(CandidateForm,
                                        extra=len(candidates),
                                        formset=BaseCandidateFormSet)
     formset = CandidateFormSet(post_data) if post_data else CandidateFormSet()
-    forms_and_candidates = [
-        (f, candidates[i]) for i, f in enumerate(formset)]
+    forms_and_candidates = []
+
+    last_race_type = None
+    for i, f in enumerate(formset):
+        candidate = candidates[i]
+        race_type = candidate.race_type_name if\
+            candidate.race_type != last_race_type else None
+        entry = [race_type, f, candidate]
+        last_race_type = candidate.race_type
+
+        forms_and_candidates.append(entry)
 
     return [formset, forms_and_candidates]
 

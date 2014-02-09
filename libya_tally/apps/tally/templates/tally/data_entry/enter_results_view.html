@@ -20,12 +20,12 @@
     {{ formset.non_form_errors }}
     {{ formset.management_form }}
     <table>
+    {% for race_type_name, form, candidate in forms_and_candidates %}
+        {% if race_type_name %}
         <tr>
-            <th>Votes</th>
-            <th>Candidate</th>
-            <th>No.</th>
+            <td colspan="3"><h3>{{ race_type_name }}</h3></td>
         </tr>
-    {% for form, candidate in forms_and_candidates %}
+        {% endif %}
         <tr>
             <td>
                 {{ form.as_p }}
