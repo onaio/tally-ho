@@ -22,7 +22,7 @@ def check_quarantine(result_form, user):
 
     :param result_form: The result form to run quarantine checks on.
     """
-    for check, passed_check in quarantine_checks():
+    for passed_check, check in quarantine_checks():
         audit = None
         if not passed_check(result_form):
             if not audit:
