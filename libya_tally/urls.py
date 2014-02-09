@@ -114,4 +114,5 @@ urlpatterns = patterns(
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^tracking/', include('tracking.urls')),
 )

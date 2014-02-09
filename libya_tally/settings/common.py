@@ -42,9 +42,11 @@ INSTALLED_APPS = (
     'reversion',
     'libya_tally.apps.tally',
     'south',
+    'tracking',
 )
 
 MIDDLEWARE_CLASSES = (
+    'tracking.middleware.VisitorTrackingMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -53,6 +55,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'libya_tally.libs.middleware.idle_timeout.IdleTimeout',
+    'libya_tally.libs.middleware.user_restrict.UserRestrictMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -147,3 +150,6 @@ SESSION_COOKIE_SECURE = False
 
 # in minutes
 IDLE_TIMEOUT = 60
+
+# individual pageviews will be tracked
+TRACK_PAGEVIEWS = True
