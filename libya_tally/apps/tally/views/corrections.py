@@ -176,34 +176,6 @@ class CorrectionMatchView(LoginRequiredMixin,
             return self.form_invalid(form)
 
 
-class CorrectionDashboardView(LoginRequiredMixin,
-                              mixins.GroupRequiredMixin,
-                              mixins.ReverseSuccessURLMixin,
-                              FormView):
-    form_class = PassToQualityControlForm
-    group_required = groups.CORRECTIONS_CLERK
-    template_name = "tally/corrections/dashboard.html"
-    success_url = 'corrections-clerk'
-
-    def get(self, *args, **kwargs):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
-
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form))
-
-    def post(self, *args, **kwargs):
-        post_data = self.request.POST
-        pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
-
-        if 'abort' in post_data:
-            abort(result_form)
-
-        return redirect(self.success_url)
-
-
 class CorrectionRequiredView(LoginRequiredMixin,
                              mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
