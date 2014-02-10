@@ -165,6 +165,20 @@ class ResultForm(BaseModel):
         return False
 
     @property
+    def clearance(self):
+        clearance = self.clearances.filter(active=True)
+        return clearance[0] if clearance else None
+
+    @property
+    def clearance_team_reviewed(self):
+        return _('Yes') if self.clearance and self.clearance.user else _('No')
+
+    @property
+    def clearance_supervisor_reviewed(self):
+        return _('Yes') if self.clearance and self.clearance.supervisor\
+            else _('No')
+
+    @property
     def corrections_passed(self):
         return (
             (not self.has_general_results or self.general_match) and

@@ -16,7 +16,7 @@ class ClearanceDashboardView(LoginRequiredMixin,
                              mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
-    group_required = groups.CLEARANCE_CLERK
+    group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     template_name = "tally/clearance/dashboard.html"
     success_url = 'clearance-review'
 
@@ -53,9 +53,9 @@ class ClearanceReviewView(LoginRequiredMixin,
                           mixins.ReverseSuccessURLMixin,
                           FormView):
     form_class = ClearanceForm
-    group_required = groups.CLEARANCE_CLERK
-    template_name = "tally/clearance/dashboard.html"
-    success_url = 'clearance-review'
+    group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
+    template_name = "tally/clearance/review.html"
+    success_url = 'clearance-clerk'
 
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -75,6 +75,25 @@ class ClearanceReviewView(LoginRequiredMixin,
         form_in_state(result_form, FormState.CLEARANCE)
 
         if form.is_valid():
+            clearance = result_form.clearance
+            user = self.request.user
+
+            if clearance:
+                clearance = ClearanceForm(
+                    post_data, instance=clearance).save(commit=False)
+
+                if groups.CLEARANCE_CLERK in user.groups.values_list(
+                        'name', flat=True):
+                    clearance.user = user
+                else:
+                    clearance.supervisor = user
+            else:
+                clearance = form.save(commit=False)
+                clearance.result_form = result_form
+                clearance.user = user
+
+            clearance.save()
+
             return redirect(self.success_url)
         else:
             return self.render_to_response(self.get_context_data(form=form,

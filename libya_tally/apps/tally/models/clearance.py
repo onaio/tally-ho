@@ -19,10 +19,12 @@ class Clearance(BaseModel):
         (3, _('Reset to Pre-Intake - Super-Supervisor to Approve')),
     )
 
-    result_form = models.ForeignKey(ResultForm)
+    result_form = models.ForeignKey(ResultForm, related_name='clearances')
     supervisor = models.ForeignKey(User, null=True,
                                    related_name='clearance_user')
     user = models.ForeignKey(User)
+
+    active = models.BooleanField(default=True)
 
     # Problem Fields
     center_name_missing = models.BooleanField(default=False)
@@ -31,13 +33,13 @@ class Clearance(BaseModel):
     center_code_mismatching = models.BooleanField(default=False)
     form_already_in_system = models.BooleanField(default=False)
     form_incorrectly_entered_into_system = models.BooleanField(default=False)
-    other = models.TextField(null=True)
+    other = models.TextField(null=True, blank=True)
 
     # Recommendations
     action_prior_to_recommendation = enum.EnumField(ActionsPrior)
     resolution_recommendation = models.PositiveSmallIntegerField(
-        choices=RESOLUTION_RECOMMENDATION)
+        choices=RESOLUTION_RECOMMENDATION, null=True, blank=True)
 
     # Comments
-    audit_review_team_comments = models.TextField(null=True)
-    supervisor_comment = models.TextField(null=True)
+    audit_review_team_comments = models.TextField(null=True, blank=True)
+    supervisor_comment = models.TextField(null=True, blank=True)

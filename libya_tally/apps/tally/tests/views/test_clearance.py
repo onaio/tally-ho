@@ -88,3 +88,52 @@ class TestClearance(TestBase):
         request.session = data
         response = view(request)
         self.assertEqual(response.status_code, 200)
+
+    def test_review_post(self):
+        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.ClearanceReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        clearance = result_form.clearance
+        self.assertEqual(clearance.user, self.user)
+        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(response.status_code, 302)
+
+    def test_review_post_supervisor(self):
+        # save clearance as clerk
+        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.ClearanceReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        # save as supervisor
+        self._create_and_login_user(username='alice')
+        self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
+
+        view = views.ClearanceReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        clearance = result_form.clearance
+        self.assertEqual(clearance.supervisor, self.user)
+        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(response.status_code, 302)

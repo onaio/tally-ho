@@ -8,6 +8,12 @@
 
 {% include 'tally/center_details.html' %}
 
-{{ form }}
+<form name="clearance" method="post" action="">
+    {{ form.as_p }}
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <button type="submit" name="save">{% trans "Save" %}</button>
+    <button type="submit" name="forward">{% trans "Forward to Supervisor and Print Cover" %}</button>
+    {% csrf_token %}
+</form>
 
 {% endblock %}
