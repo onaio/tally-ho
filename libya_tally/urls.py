@@ -4,8 +4,9 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
-from libya_tally.apps.tally.views import archive, clearance, corrections,\
-    data_entry_clerk, home, intake_clerk, quality_control, super_admin
+from libya_tally.apps.tally.views import archive, audit, clearance,\
+    corrections, data_entry_clerk, home, intake_clerk, quality_control,\
+    super_admin
 
 admin.autodiscover()
 
@@ -104,6 +105,13 @@ urlpatterns = patterns(
     url(r'^archive/print$',
         archive.ArchivePrintView.as_view(),
         name='archive-print'),
+
+    url(r'^audit$',
+        audit.AuditDashboardView.as_view(),
+        name='audit-clerk'),
+    url(r'^audit/review$',
+        audit.AuditReviewView.as_view(),
+        name='audit-review'),
 
     url(r'^clearance$',
         clearance.ClearanceDashboardView.as_view(),

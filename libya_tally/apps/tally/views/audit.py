@@ -3,7 +3,7 @@ from django.views.generic import FormView
 from django.shortcuts import get_object_or_404, redirect
 from guardian.mixins import LoginRequiredMixin
 
-from libya_tally.apps.tally.forms.clearance_form import ClearanceForm
+from libya_tally.apps.tally.forms.audit_form import AuditForm
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
@@ -12,16 +12,16 @@ from libya_tally.libs.views.form_state import form_in_state
 from libya_tally.libs.views.session import session_matches_post_result_form
 
 
-class ClearanceDashboardView(LoginRequiredMixin,
-                             mixins.GroupRequiredMixin,
-                             mixins.ReverseSuccessURLMixin,
-                             FormView):
-    group_required = groups.CLEARANCE_CLERK
-    template_name = "tally/clearance/dashboard.html"
-    success_url = 'clearance-review'
+class AuditDashboardView(LoginRequiredMixin,
+                         mixins.GroupRequiredMixin,
+                         mixins.ReverseSuccessURLMixin,
+                         FormView):
+    group_required = groups.AUDIT_CLERK
+    template_name = "tally/audit/dashboard.html"
+    success_url = 'audit-review'
 
     def get(self, *args, **kwargs):
-        form_list = ResultForm.objects.filter(form_state=FormState.CLEARANCE)
+        form_list = ResultForm.objects.filter(form_state=FormState.AUDIT)
         paginator = Paginator(form_list, 100)
         page = self.request.GET.get('page')
 
@@ -41,21 +41,21 @@ class ClearanceDashboardView(LoginRequiredMixin,
         post_data = self.request.POST
         pk = post_data['result_form']
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.CLEARANCE)
+        form_in_state(result_form, FormState.AUDIT)
 
         self.request.session['result_form'] = result_form.pk
 
         return redirect(self.success_url)
 
 
-class ClearanceReviewView(LoginRequiredMixin,
-                          mixins.GroupRequiredMixin,
-                          mixins.ReverseSuccessURLMixin,
-                          FormView):
-    form_class = ClearanceForm
-    group_required = groups.CLEARANCE_CLERK
-    template_name = "tally/clearance/dashboard.html"
-    success_url = 'clearance-review'
+class AuditReviewView(LoginRequiredMixin,
+                      mixins.GroupRequiredMixin,
+                      mixins.ReverseSuccessURLMixin,
+                      FormView):
+    form_class = AuditForm
+    group_required = groups.AUDIT_CLERK
+    template_name = "tally/audit/dashboard.html"
+    success_url = 'audit-review'
 
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -72,7 +72,7 @@ class ClearanceReviewView(LoginRequiredMixin,
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.CLEARANCE)
+        form_in_state(result_form, FormState.AUDIT)
 
         if form.is_valid():
             return redirect(self.success_url)

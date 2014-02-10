@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Audit List' %}</h1>
+
+<table>
+    <tr>
+        <th>{% trans 'Center Name' %}</th>
+        <th>{% trans 'Center ID' %}</th>
+        <th>{% trans 'Station' %}</th>
+        <th>{% trans 'Reviewed?' %}</th>
+        <th>{% trans 'Supervisor Reviewed?' %}</th>
+        <th>{% trans 'Review' %}</th>
+    </tr>
+{% for form in forms %}
+    <tr>
+        <td>{{ form.center.name }}</td>
+        <td>{{ form.center.code }}</td>
+        <td>{{ form.station_number }}</td>
+        <td>{{ form.station_number }}</td>
+        <td>{{ form.station_number }}</td>
+        <td>{{ form.modified_date }}</td>
+        <td>
+            <form name="form_{{ forloop.counter }}" method="post" action="">
+                <input type="hidden" name="result_form" value="{{ form.pk }}">
+                <button type="submit" name="submit">{% trans "Review" %}</button>
+                {% csrf_token %}
+            </form>
+        </td>
+    </tr>
+{% endfor %}
+</table>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if forms.has_previous %}
+            <a href="?page={{ forms.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ forms.number }} of {{ forms.paginator.num_pages }}.
+        </span>
+
+        {% if forms.has_next %}
+            <a href="?page={{ forms.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

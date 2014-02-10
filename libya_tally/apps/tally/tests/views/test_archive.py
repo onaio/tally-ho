@@ -2,13 +2,12 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
-from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.models.quarantine_check import QuarantineCheck
 from libya_tally.apps.tally.views import archive as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_center,\
+from libya_tally.libs.tests.test_base import create_audit, create_center,\
     create_result_form, create_station, TestBase
 
 
@@ -88,7 +87,7 @@ class TestArchive(TestBase):
             name='1',
             method='1',
             value=1)
-        audit = Audit.objects.create(user=self.user, result_form=result_form)
+        audit = create_audit(result_form, self.user)
         audit.quarantine_checks.add(quarantine_check)
 
         self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)

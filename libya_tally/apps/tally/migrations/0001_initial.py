@@ -102,7 +102,15 @@ class Migration(SchemaMigration):
             ('supervisor', self.gf('django.db.models.fields.related.ForeignKey')(related_name='audit_user', null=True, to=orm['auth.User'])),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('recommendation', self.gf('django.db.models.fields.TextField')(null=True)),
+            ('blank_reconciliation', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('blank_results', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('damaged_form', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('unclear_figures', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('other', self.gf('django.db.models.fields.TextField')(null=True)),
+            ('action_prior_to_recommendation', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
+            ('resolution_recommendation', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('audit_review_team_comments', self.gf('django.db.models.fields.TextField')(null=True)),
+            ('supervisor_comment', self.gf('django.db.models.fields.TextField')(null=True)),
         ))
         db.send_create_signal('tally', ['Audit'])
 
@@ -136,7 +144,17 @@ class Migration(SchemaMigration):
             ('result_form', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.ResultForm'])),
             ('supervisor', self.gf('django.db.models.fields.related.ForeignKey')(related_name='clearance_user', null=True, to=orm['auth.User'])),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('recommendation', self.gf('django.db.models.fields.TextField')()),
+            ('center_name_missing', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('center_name_mismatching', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('center_code_missing', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('center_code_mismatching', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('form_already_in_system', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('form_incorrectly_entered_into_system', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('other', self.gf('django.db.models.fields.TextField')(null=True)),
+            ('action_prior_to_recommendation', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
+            ('resolution_recommendation', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('audit_review_team_comments', self.gf('django.db.models.fields.TextField')(null=True)),
+            ('supervisor_comment', self.gf('django.db.models.fields.TextField')(null=True)),
         ))
         db.send_create_signal('tally', ['Clearance'])
 
@@ -329,14 +347,22 @@ class Migration(SchemaMigration):
         },
         'tally.audit': {
             'Meta': {'object_name': 'Audit'},
+            'action_prior_to_recommendation': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'audit_review_team_comments': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'blank_reconciliation': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'blank_results': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'damaged_form': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'other': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             'quarantine_checks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['tally.QuarantineCheck']", 'symmetrical': 'False'}),
-            'recommendation': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'resolution_recommendation': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'result_form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.ResultForm']"}),
             'supervisor': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'audit_user'", 'null': 'True', 'to': u"orm['auth.User']"}),
+            'supervisor_comment': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'unclear_figures': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         'tally.ballot': {
@@ -376,12 +402,22 @@ class Migration(SchemaMigration):
         },
         'tally.clearance': {
             'Meta': {'object_name': 'Clearance'},
+            'action_prior_to_recommendation': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
+            'audit_review_team_comments': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'center_code_mismatching': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'center_code_missing': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'center_name_mismatching': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'center_name_missing': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'form_already_in_system': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'form_incorrectly_entered_into_system': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'recommendation': ('django.db.models.fields.TextField', [], {}),
+            'other': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'resolution_recommendation': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'result_form': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.ResultForm']"}),
             'supervisor': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'clearance_user'", 'null': 'True', 'to': u"orm['auth.User']"}),
+            'supervisor_comment': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         'tally.qualitycontrol': {

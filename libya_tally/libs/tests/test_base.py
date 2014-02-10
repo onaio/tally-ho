@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group, AnonymousUser
 from django.test import TestCase
 from django.test import RequestFactory
 
+from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.center import Center
@@ -19,6 +20,13 @@ from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.models.enums.gender import Gender
 from libya_tally.libs.permissions.groups import create_permission_groups, \
     add_user_to_group
+
+
+def create_audit(result_form, user):
+    return Audit.objects.create(user=user,
+                                result_form=result_form,
+                                action_prior_to_recommendation=0,
+                                resolution_recommendation=0)
 
 
 def create_result(result_form, candidate, user, votes):
