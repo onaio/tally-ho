@@ -55,7 +55,7 @@ class ResultForm(BaseModel):
     name = models.CharField(max_length=256, null=True)
     office = models.CharField(max_length=256, null=True)
     rejected_count = models.PositiveIntegerField(default=0)
-    serial_number = models.PositiveIntegerField(unique=True)
+    serial_number = models.PositiveIntegerField(unique=True, null=True)
     station_number = models.PositiveSmallIntegerField(null=True)
 
     @property
