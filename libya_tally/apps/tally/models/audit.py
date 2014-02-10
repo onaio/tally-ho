@@ -28,7 +28,7 @@ class Audit(BaseModel):
     blank_results = models.BooleanField(default=False)
     damaged_form = models.BooleanField(default=False)
     unclear_figures = models.BooleanField(default=False)
-    other = models.TextField(null=True)
+    other = models.TextField(null=True, blank=True)
 
     # Recommendations
     action_prior_to_recommendation = enum.EnumField(ActionsPrior)
@@ -36,5 +36,5 @@ class Audit(BaseModel):
         AuditResolution, null=True, blank=True)
 
     # Comments
-    audit_review_team_comments = models.TextField(null=True)
-    supervisor_comment = models.TextField(null=True)
+    audit_review_team_comments = models.TextField(null=True, blank=True)
+    supervisor_comment = models.TextField(null=True, blank=True)

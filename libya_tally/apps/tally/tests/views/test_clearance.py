@@ -89,7 +89,7 @@ class TestClearance(TestBase):
         response = view(request)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Implement Recommendation')
-        self.assertContains(response, 'Return to Audit Team')
+        self.assertContains(response, 'Return to Clearance Team')
 
     def test_review_post_invalid(self):
         result_form = create_result_form(form_state=FormState.CLEARANCE)
