@@ -215,7 +215,8 @@ class TestClearance(TestBase):
 
         view = views.ClearanceReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'forward': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
