@@ -4,3 +4,4 @@ python manage.py schemamigration tally --initial
 python manage.py import
 python manage.py create_demo_users
 python manage.py create_quarantine_checks
+python manage.py loaddata libya_tally/apps/tally/fixtures/sites.json
