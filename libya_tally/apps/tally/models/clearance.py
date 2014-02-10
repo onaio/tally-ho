@@ -20,7 +20,8 @@ class Clearance(BaseModel):
 
     active = models.BooleanField(default=True)
     for_superadmin = models.BooleanField(default=False)
-    for_supervisor = models.BooleanField(default=False)
+    reviewed_supervisor = models.BooleanField(default=False)
+    reviewed_team = models.BooleanField(default=False)
 
     # Problem Fields
     center_name_missing = models.BooleanField(default=False)

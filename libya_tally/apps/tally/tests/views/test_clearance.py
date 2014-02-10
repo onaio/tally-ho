@@ -119,7 +119,7 @@ class TestClearance(TestBase):
 
         clearance = result_form.clearance
         self.assertEqual(clearance.user, self.user)
-        self.assertEqual(clearance.for_supervisor, False)
+        self.assertEqual(clearance.reviewed_team, False)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
 
@@ -139,7 +139,7 @@ class TestClearance(TestBase):
 
         clearance = result_form.clearance
         self.assertEqual(clearance.user, self.user)
-        self.assertEqual(clearance.for_supervisor, True)
+        self.assertEqual(clearance.reviewed_team, True)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
 
@@ -204,8 +204,7 @@ class TestClearance(TestBase):
         clearance = result_form.clearance
         self.assertEqual(clearance.supervisor, self.user)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
-        self.assertEqual(clearance.for_supervisor, False)
-        self.assertEqual(clearance.for_superadmin, False)
+        self.assertEqual(clearance.reviewed_team, False)
         self.assertEqual(response.status_code, 302)
 
     def test_review_post_supervisor_implement(self):
@@ -239,7 +238,8 @@ class TestClearance(TestBase):
 
         clearance = result_form.clearance
         self.assertEqual(clearance.supervisor, self.user)
-        self.assertEqual(clearance.for_supervisor, False)
+        self.assertEqual(clearance.reviewed_supervisor, True)
+        self.assertEqual(clearance.reviewed_team, True)
         self.assertEqual(clearance.for_superadmin, True)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)

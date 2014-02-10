@@ -14,6 +14,10 @@ from libya_tally.libs.views.form_state import form_in_state
 from libya_tally.libs.views.session import session_matches_post_result_form
 
 
+def is_clerk(user):
+    return groups.CLEARANCE_CLERK in user.groups.values_list('name', flat=True)
+
+
 class ClearanceDashboardView(LoginRequiredMixin,
                              mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
@@ -37,7 +41,7 @@ class ClearanceDashboardView(LoginRequiredMixin,
             forms = paginator.page(paginator.num_pages)
 
         return self.render_to_response(self.get_context_data(
-            forms=forms))
+            forms=forms, is_clerk=is_clerk(self.request.user)))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
@@ -57,7 +61,7 @@ class ClearanceReviewView(LoginRequiredMixin,
     form_class = ClearanceForm
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     template_name = "tally/clearance/review.html"
-    success_url = 'clearance-clerk'
+    success_url = 'clearance'
 
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -65,11 +69,9 @@ class ClearanceReviewView(LoginRequiredMixin,
         pk = self.request.session['result_form']
         result_form = get_object_or_404(ResultForm, pk=pk)
 
-        is_clerk = groups.CLEARANCE_CLERK in\
-            self.request.user.groups.values_list('name', flat=True)
-
         return self.render_to_response(self.get_context_data(
-            form=form, result_form=result_form, is_clerk=is_clerk))
+            form=form, result_form=result_form,
+            is_clerk=is_clerk(self.request.user)))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -99,17 +101,18 @@ class ClearanceReviewView(LoginRequiredMixin,
 
             if 'forward' in post_data:
                 # forward to supervisor
-                clearance.for_supervisor = True
+                clearance.reviewed_team = True
 
             if 'return' in post_data:
                 # return to audit team
-                clearance.for_supervisor = False
+                clearance.reviewed_team = False
 
             if 'implement' in post_data:
                 # take implementation action
+                clearance.reviewed_supervisor = True
+
                 if clearance.resolution_recommendation ==\
                         ClearanceResolution.RESET_TO_PREINTAKE:
-                    clearance.for_supervisor = False
                     clearance.for_superadmin = True
 
             clearance.save()

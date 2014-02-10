@@ -20,7 +20,8 @@ class Audit(BaseModel):
 
     active = models.BooleanField(default=True)
     for_superadmin = models.BooleanField(default=False)
-    for_supervisor = models.BooleanField(default=False)
+    reviewed_supervisor = models.BooleanField(default=False)
+    reviewed_team = models.BooleanField(default=False)
 
     # Problem fields
     blank_reconciliation = models.BooleanField(default=False)

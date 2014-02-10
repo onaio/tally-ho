@@ -25,11 +25,13 @@
         <td>{{ form.clearance_supervisor_reviewed }}</td>
         <td>{{ form.modified_date }}</td>
         <td>
+        {% if form.clearance_team_reviewed == 'No' or not is_clerk %}
             <form name="form_{{ forloop.counter }}" method="post" action="">
                 <input type="hidden" name="result_form" value="{{ form.pk }}">
                 <button type="submit" name="submit">{% trans "Review" %}</button>
                 {% csrf_token %}
             </form>
+        {% endif %}
         </td>
     </tr>
 {% endfor %}

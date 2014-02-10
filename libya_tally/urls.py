@@ -108,14 +108,14 @@ urlpatterns = patterns(
 
     url(r'^audit$',
         audit.AuditDashboardView.as_view(),
-        name='audit-clerk'),
+        name='audit'),
     url(r'^audit/review$',
         audit.AuditReviewView.as_view(),
         name='audit-review'),
 
     url(r'^clearance$',
         clearance.ClearanceDashboardView.as_view(),
-        name='clearance-clerk'),
+        name='clearance'),
     url(r'^clearance/review$',
         clearance.ClearanceReviewView.as_view(),
         name='clearance-review'),
