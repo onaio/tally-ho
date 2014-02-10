@@ -10,7 +10,30 @@
 
 <form id="result_form" method="post" action="" onsubmit="return center_details_match();">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <table>{{ form.as_table }}
+    <table>
+        <tr>
+            <td><label>{{ form.center_number.name }}</label></td>
+            <td>{{ form.center_number }}
+                <input type="text" placeholder="XXXXXXXX" name="center_number_placeholder" id="center_number_placeholder" style="display:none;">
+            </td>
+        </tr>
+        <tr>
+        <tr>
+            <td><label>{{ form.center_number_copy.name }}</label></td>
+            <td>{{ form.center_number_copy }}
+            </td>
+        </tr>
+         <tr>
+            <td><label>{{ form.station_number.name }}</label></td>
+            <td>{{ form.station_number }}
+                <input type="text" placeholder="XXXXXXXX" name="station_number_placeholder" id="station_number_placeholder" style="display:none;">
+            </td>
+        </tr>
+        <tr>
+            <td><label>{{ form.station_number_copy.name }}</label></td>
+            <td>{{ form.station_number_copy }}
+            </td>
+        </tr>
         <tr>
             <td>
                 <button type="submit" name="submit">{% trans "Submit" %}</button>
@@ -24,6 +47,7 @@
 
 
 {% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 
 <script type="text/javascript">
 
@@ -59,6 +83,90 @@
 
         return valid;
     }
+
+    function show_center_number_hide_placeholder(){
+        $("#center_number_placeholder").hide();
+        $("#id_center_number").show();
+    }
+
+    function hide_center_number_show_placeholder(){
+        $("#center_number_placeholder").show();
+        $("#id_center_number").hide();
+    }
+
+    function show_station_number_hide_placeholder(){
+        $("#station_number_placeholder").hide();
+        $("#id_station_number").show();
+    }
+
+    function hide_station_number_show_placeholder(){
+        $("#station_number_placeholder").show();
+        $("#id_station_number").hide();
+    }
+
+
+    $(document).ready(function(){
+        $("#id_center_number").focusout(function(evt){
+            if($('#id_center_number').val() != '' && $('#id_center_number_copy').val() != $('#id_center_number').val()){
+                hide_center_number_show_placeholder()
+            }
+        });
+        $("#center_number_placeholder").focusin(function(evt){
+            show_center_number_hide_placeholder();
+            $("#id_center_number").focus();
+        });
+        $("#id_center_number_copy").focusout(function(evt){
+            if($("#id_center_number_copy").val() != '' && $('#id_center_number').val() != $("#id_center_number_copy").val()){
+                show_center_number_hide_placeholder();
+            }
+        });
+        $("#id_center_number_copy").keyup(function(evt){
+            if($("#id_center_number_copy").val().length == 5 && $("#id_center_number").val() == $("#id_center_number_copy").val()){
+                show_center_number_hide_placeholder();
+                $("#id_center_number").parent().addClass('has-success');
+                $("#id_center_number_copy").parent().addClass('has-success');
+            } else if($("#id_center_number_copy").val().length == 5){
+                show_center_number_hide_placeholder();
+                $("#id_center_number").parent().addClass('has-error');
+                $("#id_center_number_copy").parent().addClass('has-error');
+            } else {
+                hide_center_number_show_placeholder();
+            }
+        });
+        $("#id_center_number_copy").focusin(function(evt){
+            hide_center_number_show_placeholder();
+        });
+
+
+        $("#id_station_number").focusout(function(evt){
+            if($('#id_station_number').val() != '' && $('#id_station_number_copy').val() != $('#id_station_number').val()){
+                hide_station_number_show_placeholder()
+            }
+        });
+        $("#station_number_placeholder").focusin(function(evt){
+            show_station_number_hide_placeholder();
+            $("#id_station_number").focus();
+        });
+        $("#d_station_number_copy").focusout(function(evt){
+            if($("#id_station_number_copy").val() != '' && $('#id_station_number').val() != $("#id_station_number_copy").val()){
+                show_station_number_hide_placeholder();
+            }
+        });
+        $("#id_station_number_copy").keyup(function(evt){
+                if($("#id_station_number_copy").val().length > 0 && $("#id_station_number").val() == $("#id_station_number_copy").val()){
+                show_station_number_hide_placeholder();
+                $("#id_station_number").parent().addClass('has-success');
+                $("#id_station_number_copy").parent().addClass('has-success');
+            } else {
+                hide_station_number_show_placeholder();
+            }
+        });
+        $("#id_station_number_copy").focusin(function(evt){
+            hide_station_number_show_placeholder();
+        });
+
+
+    });
 
 </script>
 {% endblock %}
