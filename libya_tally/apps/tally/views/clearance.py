@@ -5,6 +5,8 @@ from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.clearance_form import ClearanceForm
 from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.libs.models.enums.clearance_resolution import\
+    ClearanceResolution
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
@@ -63,8 +65,11 @@ class ClearanceReviewView(LoginRequiredMixin,
         pk = self.request.session['result_form']
         result_form = get_object_or_404(ResultForm, pk=pk)
 
+        is_clerk = groups.CLEARANCE_CLERK in\
+            self.request.user.groups.values_list('name', flat=True)
+
         return self.render_to_response(self.get_context_data(
-            form=form, result_form=result_form))
+            form=form, result_form=result_form, is_clerk=is_clerk))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -91,6 +96,21 @@ class ClearanceReviewView(LoginRequiredMixin,
                 clearance = form.save(commit=False)
                 clearance.result_form = result_form
                 clearance.user = user
+
+            if 'forward' in post_data:
+                # forward to supervisor
+                clearance.for_supervisor = True
+
+            if 'return' in post_data:
+                # return to audit team
+                clearance.for_supervisor = False
+
+            if 'implement' in post_data:
+                # take implementation action
+                if clearance.resolution_recommendation ==\
+                        ClearanceResolution.RESET_TO_PREINTAKE:
+                    clearance.for_supervisor = False
+                    clearance.for_superadmin = True
 
             clearance.save()
 

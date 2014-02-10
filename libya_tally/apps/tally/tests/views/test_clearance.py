@@ -75,6 +75,21 @@ class TestClearance(TestBase):
         request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Forward to Supervisor')
+
+    def test_review_get_supervisor(self):
+        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
+
+        view = views.ClearanceReviewView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Implement Recommendation')
+        self.assertContains(response, 'Return to Audit Team')
 
     def test_review_post_invalid(self):
         result_form = create_result_form(form_state=FormState.CLEARANCE)
@@ -104,6 +119,27 @@ class TestClearance(TestBase):
 
         clearance = result_form.clearance
         self.assertEqual(clearance.user, self.user)
+        self.assertEqual(clearance.for_supervisor, False)
+        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(response.status_code, 302)
+
+    def test_review_post_forward(self):
+        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.ClearanceReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1,
+                'forward': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        clearance = result_form.clearance
+        self.assertEqual(clearance.user, self.user)
+        self.assertEqual(clearance.for_supervisor, True)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
 
@@ -135,5 +171,75 @@ class TestClearance(TestBase):
 
         clearance = result_form.clearance
         self.assertEqual(clearance.supervisor, self.user)
+        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(response.status_code, 302)
+
+    def test_review_post_supervisor_return(self):
+        # save clearance as clerk
+        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.ClearanceReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        # save as supervisor
+        self._create_and_login_user(username='alice')
+        self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
+
+        view = views.ClearanceReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1,
+                'return': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        clearance = result_form.clearance
+        self.assertEqual(clearance.supervisor, self.user)
+        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(clearance.for_supervisor, False)
+        self.assertEqual(clearance.for_superadmin, False)
+        self.assertEqual(response.status_code, 302)
+
+    def test_review_post_supervisor_implement(self):
+        # save clearance as clerk
+        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.ClearanceReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        # save as supervisor
+        self._create_and_login_user(username='alice')
+        self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
+
+        view = views.ClearanceReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1,
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 3,
+                'implement': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        clearance = result_form.clearance
+        self.assertEqual(clearance.supervisor, self.user)
+        self.assertEqual(clearance.for_supervisor, False)
+        self.assertEqual(clearance.for_superadmin, True)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)

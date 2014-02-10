@@ -1,23 +1,17 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils.translation import ugettext as _
 from django_enumfield import enum
 
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.actions_prior import ActionsPrior
+from libya_tally.libs.models.enums.clearance_resolution import\
+    ClearanceResolution
 
 
 class Clearance(BaseModel):
     class Meta:
         app_label = 'tally'
-
-    RESOLUTION_RECOMMENDATION = (
-        (0, _('Issue Resolved - Re-sent')),
-        (1, _('Pending Field Input')),
-        (2, _('Pass to Administrator')),
-        (3, _('Reset to Pre-Intake - Super-Supervisor to Approve')),
-    )
 
     result_form = models.ForeignKey(ResultForm, related_name='clearances')
     supervisor = models.ForeignKey(User, null=True,
@@ -25,6 +19,8 @@ class Clearance(BaseModel):
     user = models.ForeignKey(User)
 
     active = models.BooleanField(default=True)
+    for_superadmin = models.BooleanField(default=False)
+    for_supervisor = models.BooleanField(default=False)
 
     # Problem Fields
     center_name_missing = models.BooleanField(default=False)
@@ -37,8 +33,8 @@ class Clearance(BaseModel):
 
     # Recommendations
     action_prior_to_recommendation = enum.EnumField(ActionsPrior)
-    resolution_recommendation = models.PositiveSmallIntegerField(
-        choices=RESOLUTION_RECOMMENDATION, null=True, blank=True)
+    resolution_recommendation = enum.EnumField(
+        ClearanceResolution, null=True, blank=True)
 
     # Comments
     audit_review_team_comments = models.TextField(null=True, blank=True)

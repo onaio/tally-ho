@@ -12,7 +12,12 @@
     {{ form.as_p }}
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <button type="submit" name="save">{% trans "Save" %}</button>
+    {% if is_clerk %}
     <button type="submit" name="forward">{% trans "Forward to Supervisor and Print Cover" %}</button>
+    {% else %}
+    <button type="submit" name="implement">{% trans "Implement Recommendation" %}</button>
+    <button type="submit" name="return">{% trans "Return to Audit Team" %}</button>
+    {% endif %}
     {% csrf_token %}
 </form>
 
