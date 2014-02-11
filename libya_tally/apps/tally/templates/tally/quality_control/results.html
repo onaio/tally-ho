@@ -1,0 +1,21 @@
+<table>
+    <tr>
+        <th>Votes</th>
+        <th>Candidate</th>
+        <th>No.</th>
+    </tr>
+{% for result in results %}
+    <tr>
+        <td>
+            {{ result.votes }}
+        </td>
+        <td>
+            {{ result.candidate.full_name }}
+        </td>
+        <td>
+            {{ result.candidate.order }}
+        </td>
+    </tr>
+{% endfor %}
+</table>
+

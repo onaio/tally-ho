@@ -14,7 +14,7 @@
 {% if form.errors %}<p class='errors'>{{ form.errors }}</p>{% endif %}
     {% csrf_token %}
     <h2>{% trans 'Reconciliation Form Corrections' %}</h2>
-    <table>
+    <table class="table table-striped">
         <tr>
             <th>{% trans 'Corrections Required?' %}</th>
             <th>{% trans 'Select' %}</th>
@@ -56,10 +56,13 @@
     </table>
 
 {% if candidates_general %}
-    {% include "tally/corrections/comparison.html" with candidates=candidates_general  header="General" %} 
+    {% include "tally/corrections/comparison.html" with candidates=candidates_general  header="General" prefix="general"%} 
+{% endif %}
+{% if candidates_component %}
+    {% include "tally/corrections/comparison.html" with candidates=candidates_component header=component_name prefix="component"%} 
 {% endif %}
 {% if candidates_women %}
-    {% include "tally/corrections/comparison.html" with candidates=candidates_women  header="Women" %} 
+    {% include "tally/corrections/comparison.html" with candidates=candidates_women  header="Women" prefix="women"%} 
 {% endif %}
 
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">

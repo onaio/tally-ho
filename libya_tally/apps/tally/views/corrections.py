@@ -22,8 +22,8 @@ from libya_tally.libs.permissions import groups
 from libya_tally.libs.views.session import session_matches_post_result_form
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.corrections import get_matched_forms,\
-    get_results_for_race_type, save_final_results, save_general_results,\
-    save_women_results
+    get_results_for_race_type, save_component_results, save_final_results,\
+    save_general_results, save_women_results
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
@@ -189,6 +189,12 @@ class CorrectionRequiredView(LoginRequiredMixin,
                                                     RaceType.GENERAL)
         results_women = get_results_for_race_type(result_form,
                                                   RaceType.WOMEN)
+        results_component = get_results_for_race_type(result_form, None)
+
+        # get name of component race type
+        component_name = results_component[0][0].race_type_name\
+            if len(results_component) else None
+
         errors = self.request.session.get('errors')
 
         if errors:
@@ -199,7 +205,9 @@ class CorrectionRequiredView(LoginRequiredMixin,
                                   result_form=result_form,
                                   reconciliation_form=recon,
                                   candidates_general=results_general,
-                                  candidates_women=results_women))
+                                  candidates_component=results_component,
+                                  candidates_women=results_women,
+                                  component_name=component_name))
 
     @transaction.atomic
     def post(self, race_type):
@@ -212,6 +220,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
             user = self.request.user
 
             try:
+                save_component_results(result_form, post_data, user)
                 save_general_results(result_form, post_data, user)
                 save_women_results(result_form, post_data, user)
             except ValidationError as e:

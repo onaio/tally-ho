@@ -8,28 +8,14 @@
 
 {% include 'tally/center_details.html' %}
 
-<h2>{{ header_text }} {% trans 'Results Section' %}</h2>
+<h2>{% trans header_text %} {% trans 'Results Section' %}</h2>
 
-<table>
-    <tr>
-        <th>Votes</th>
-        <th>Candidate</th>
-        <th>No.</th>
-    </tr>
-{% for result in results %}
-    <tr>
-        <td>
-            {{ result.votes }}
-        </td>
-        <td>
-            {{ result.candidate.full_name }}
-        </td>
-        <td>
-            {{ result.candidate.order }}
-        </td>
-    </tr>
-{% endfor %}
-</table>
+{% include 'tally/quality_control/results.html' with results=results %}
+
+{% if results_component %}
+<h2>{% trans 'Component' %} {% trans 'Results Section' %}</h2>
+{% include 'tally/quality_control/results.html' with results=results_component %}
+{% endif %}
 
 <form name="form_correct" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">

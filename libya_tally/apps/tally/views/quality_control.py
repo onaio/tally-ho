@@ -20,15 +20,26 @@ from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import safe_form_in_state, form_in_state
 
 
+def results_for_race(result_form, race_type):
+    if race_type is None:
+        results = result_form.results.filter(
+            candidate__race_type__gt=RaceType.WOMEN, active=True,
+            entry_version=EntryVersion.FINAL).order_by('candidate__order')
+    else:
+        results = result_form.results.filter(
+            candidate__race_type=race_type, active=True,
+            entry_version=EntryVersion.FINAL).order_by('candidate__order')
+
+    return results
+
+
 class AbstractQualityControl(object):
     def get_action(self, header_text, race_type):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
 
-        results = result_form.results.filter(
-            candidate__race_type=race_type, active=True,
-            entry_version=EntryVersion.FINAL).order_by('candidate__order')
+        results = results_for_race(result_form, race_type)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
@@ -173,7 +184,18 @@ class QualityControlGeneralView(LoginRequiredMixin,
     success_url = 'quality-control-dashboard'
 
     def get(self, *args, **kwargs):
-        return self.get_action('General', RaceType.GENERAL)
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, FormState.QUALITY_CONTROL)
+
+        results_general = results_for_race(result_form, RaceType.GENERAL)
+        results_component = results_for_race(result_form, None)
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  results_component=results_component,
+                                  results=results_general,
+                                  header_text='General'))
 
     def post(self, *args, **kwargs):
         return self.post_action('passed_general')

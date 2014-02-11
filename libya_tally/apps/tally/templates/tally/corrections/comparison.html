@@ -1,6 +1,6 @@
 {% load i18n %}
 <h2>{% trans 'Results Form Corrections' %} {% trans header %}</h2>
-<table>
+<table class="table table-striped">
     <tr>
         <th>{% trans 'Corrections Required?' %}</th>
         <th>{% trans 'Select' %}</th>
@@ -10,12 +10,7 @@
         <th>Candidate</th>
         <th>No.</th>
     </tr>
-{% for candidate, race_type_name, result1, result2, field in candidates %}
-    {% if race_type_name %}
-    <tr>
-        <td colspan="7"><h3>{{ race_type_name }}</h3></td>
-    </tr>
-    {% endif %}
+{% for candidate, result1, result2, field in candidates %}
     <tr>
         <td>
             {% if result1.votes == result2.votes %}
@@ -23,7 +18,7 @@
             {% else %}{% trans 'Yes' %}{% endif %}</td>
         <td>
             {% if result1.votes != result2.votes %}
-            <input type="radio" name="candidate_{{ header|lower }}_{{ candidate.pk }}" value="{{ result1.votes }}" />
+            <input type="radio" name="candidate_{{ prefix }}_{{ candidate.pk }}" value="{{ result1.votes }}" />
             {% else %}-{% endif %}</td>
         </td>
         <td>
@@ -31,7 +26,7 @@
         </td>
         <td>
             {% if result1.votes != result2.votes %}
-            <input type="radio" name="candidate_{{ header|lower }}_{{ candidate.pk }}" value="{{ result2.votes }}" />
+            <input type="radio" name="candidate_{{ prefix }}_{{ candidate.pk }}" value="{{ result2.votes }}" />
             {% else %}-{% endif %}</td>
         </td>
         <td>

@@ -267,7 +267,8 @@ class EnterResultsView(LoginRequiredMixin,
         recon_form = ReconForm(post_data)
         data_entry_number = get_data_entry_number(result_form.form_state)
 
-        candidates = result_form.ballot.candidates.order_by('order')
+        candidates = result_form.ballot.candidates.order_by('race_type',
+                                                            'order')
         CandidateFormSet = formset_factory(CandidateForm,
                                            extra=len(candidates),
                                            formset=BaseCandidateFormSet)
