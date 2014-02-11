@@ -68,13 +68,5 @@
 {% endblock %}
 
 {% block javascript %}
-
-<script type="text/javascript">
-
-    function print_cover() {
-        window.print();
-        document.getElementById('submit_cover_form').setAttribute('style', 'display: inline');
-    }
-
-</script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/print_button_check.js"></script>
 {% endblock %}
