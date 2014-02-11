@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Audit Case: Team Page' %}</h1>
+
+<table id="coverform">
+    <tr>
+        <td>{% trans 'Barcode Number:' %} {{ result_form.barcode }}</td>
+        <td>{% trans 'Center Name:' %} {{ result_form.center.name }}</td>
+    </tr>
+    <tr>
+        <td>{% trans 'Form Type:' %} {{ result_form.ballot.race_type_name }}</td>
+        <td>{% trans 'Center Office:' %} {{ result_form.center.office }}</td>
+    </tr>
+    <tr>
+        <td>{% trans 'Sub-Constituency:' %} {{ result_form.center.sub_constituency.code }}</td>
+        <td>{% trans 'Center Code:' %} {{ result_form.center.code }}</td>
+    </tr>
+    <tr>
+        <td>{% trans 'Number of Registrants:' %} {{ result_form.station.registrants }}</td>
+        <td>{% trans 'Station Code:' %} {{ result_form.station_number }}</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>{% trans 'Date Created:' %} {{ result_form.seen_date }}</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>{% trans 'Date Team Modified:' %} {{ result_form.clearance.date_team_modified }}</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>{% trans 'Date Supervisor Modified:' %} {{ result_form.clearance.date_supervisor_modified }}</td>
+    </tr>
+    <tr>
+        <td colspan="2"><h4>{% trans 'Problem' %}</h4></td>
+    {% for problem in problems %}
+    <tr>
+        <td colspan="2"><input type="checkbox" name="problem" value="problem">{% trans problem %}</h4></td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td colspan="2"><h4>{% trans 'Action Conducted' %}</h4></td>
+    <tr>
+    <tr>
+        <td colspan="2">{{ result_form.clearance.action_prior_name }}</td>
+    <tr>
+    <tr>
+        <td colspan="2"><h4>{% trans 'Resolution Recommendation' %}</h4></td>
+    <tr>
+    <tr>
+        <td colspan="2">{{ result_form.clearance.resolution_recommendation_name }}</td>
+    <tr>
+        <td colspan="2">{% trans 'Team Comment:' %} {{ result_form.clearance.team_comment }}</td>
+    </tr>
+    <tr>
+        <td colspan="2">{% trans 'Supervisor Comment:' %} {{ result_form.clearance.supervisor_comment }}</td>
+    </tr>
+</table>
+
+<form name="print_cover_form" method='post' action="">
+    {% csrf_token %}
+    <input type="hidden" name="result_form" value="{{result_form.pk}}" />
+    <button type="button" name="print_cover_form" onclick="print_cover()">{% trans 'Print' %}</button>
+    <button type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">{% trans 'Print Successful' %}</button>
+</form>
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/print_button_check.js"></script>
+{% endblock %}

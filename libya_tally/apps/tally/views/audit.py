@@ -1,5 +1,5 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
 from guardian.mixins import LoginRequiredMixin
 
@@ -84,6 +84,7 @@ class ReviewView(LoginRequiredMixin,
         if form.is_valid():
             audit = result_form.audit
             user = self.request.user
+            url = self.success_url
 
             if audit:
                 audit = AuditForm(
@@ -102,6 +103,7 @@ class ReviewView(LoginRequiredMixin,
             if 'forward' in post_data:
                 # forward to supervisor
                 audit.reviewed_team = True
+                url = 'audit-print'
 
             if 'return' in post_data:
                 # return to audit team
@@ -122,9 +124,43 @@ class ReviewView(LoginRequiredMixin,
 
             audit.save()
 
-            return redirect(self.success_url)
+            return redirect(url)
         else:
             return self.render_to_response(self.get_context_data(form=form,
                                            result_form=result_form))
 
         return redirect(self.success_url)
+
+
+class PrintCoverView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     TemplateView):
+    group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
+    template_name = "tally/audit/print_cover.html"
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        form_in_state(result_form, FormState.AUDIT)
+
+        problems = result_form.audit.get_problems()
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  problems=problems))
+
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+
+        if 'result_form' in post_data:
+            pk = session_matches_post_result_form(post_data, self.request)
+
+            result_form = get_object_or_404(ResultForm, pk=pk)
+            form_in_state(result_form, FormState.AUDIT)
+            del self.request.session['result_form']
+
+            return redirect('audit')
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))

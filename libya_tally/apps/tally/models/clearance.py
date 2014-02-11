@@ -53,7 +53,8 @@ class Clearance(BaseModel):
             _('Station Number Mismatching'): self.center_code_mismatching,
             _('Form Already in System'): self.form_already_in_system,
             _('Form Incorrectly Entered into the System'):
-            self.form_incorrectly_entered_into_system
+            self.form_incorrectly_entered_into_system,
+            _('Other'): self.other,
         }
 
         problems = []

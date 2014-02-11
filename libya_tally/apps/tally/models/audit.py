@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.translation import ugettext as _
 from django_enumfield import enum
 
 from libya_tally.apps.tally.models.quarantine_check import QuarantineCheck
@@ -38,3 +39,25 @@ class Audit(BaseModel):
     # Comments
     team_comment = models.TextField(null=True, blank=True)
     supervisor_comment = models.TextField(null=True, blank=True)
+
+    def get_problems(self):
+        problem_fields = {
+            _('Blank Reconcilliation'): self.blank_reconciliation,
+            _('Blank Results'): self.blank_results,
+            _('Damaged FOrm'): self.damaged_form,
+            _('Unclear Figures'): self.unclear_figures,
+            _('Other'): self.other,
+        }
+
+        problems = []
+        for problem_name, problem_field in problem_fields.iteritems():
+            if problem_field:
+                problems.append(problem_name)
+
+        return problems
+
+    def action_prior_name(self):
+        return ActionsPrior.label(self.action_prior_to_recommendation)
+
+    def resolution_recommendation_name(self):
+        return AuditResolution.label(self.resolution_recommendation)

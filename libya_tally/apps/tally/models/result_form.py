@@ -106,6 +106,15 @@ class ResultForm(BaseModel):
         return audits[0] if len(audits) else None
 
     @property
+    def audit_team_reviewed(self):
+        return _('Yes') if self.audit and self.audit.reviewed_team else _('No')
+
+    @property
+    def audit_supervisor_reviewed(self):
+        return _('Yes') if self.audit and self.audit.reviewed_supervisor\
+            else _('No')
+
+    @property
     def form_state_name(self):
         return FormState.label(self.form_state)
 

@@ -6,13 +6,14 @@
 
 <h1>{% trans 'Audit List' %}</h1>
 
-<table>
+<table class="table table-striped">
     <tr>
         <th>{% trans 'Center Name' %}</th>
         <th>{% trans 'Center ID' %}</th>
         <th>{% trans 'Station' %}</th>
         <th>{% trans 'Reviewed?' %}</th>
         <th>{% trans 'Supervisor Reviewed?' %}</th>
+        <th>{% trans 'Modified Date' %}</th>
         <th>{% trans 'Review' %}</th>
     </tr>
 {% for form in forms %}
@@ -20,8 +21,8 @@
         <td>{{ form.center.name }}</td>
         <td>{{ form.center.code }}</td>
         <td>{{ form.station_number }}</td>
-        <td>{{ form.station_number }}</td>
-        <td>{{ form.station_number }}</td>
+        <td>{{ form.audit_team_reviewed }}</td>
+        <td>{{ form.audit_supervisor_reviewed }}</td>
         <td>{{ form.modified_date }}</td>
         <td>
             <form name="form_{{ forloop.counter }}" method="post" action="">
