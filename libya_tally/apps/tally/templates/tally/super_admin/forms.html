@@ -35,19 +35,5 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 {% django_js %}
 {% datatables_js %}
-
-
-<script type="text/javascript">
-
-$(function(){
-    $('#formlist').dataTable({
-        "bPaginate": true,
-        "iDisplayLength": 50,
-        "bProcessing": true,
-        "bServerSide": true,
-        "sAjaxSource": Django.url('form-list-data')
-    });
-});
-</script>
-
+<script type="text/javascript" src="{{ STATIC_URL }}js/form_table.js"></script>
 {% endblock %}
