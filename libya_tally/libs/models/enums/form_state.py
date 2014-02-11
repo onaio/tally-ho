@@ -25,7 +25,3 @@ class FormState(enum.Enum):
         QUALITY_CONTROL: (CORRECTION,),
         UNSUBMITTED: (INTAKE,),
     }
-
-    @classmethod
-    def to_name(cls, enum):
-        return dict(cls.choices())[enum]

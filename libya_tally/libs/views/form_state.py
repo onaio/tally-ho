@@ -44,5 +44,5 @@ def get_state_names(states):
     if not isinstance(states, list):
         states = [states]
 
-    state_names = [str(FormState.to_name(s)) for s in states]
+    state_names = [str(FormState.label(s)) for s in states]
     return " or ".join(state_names)

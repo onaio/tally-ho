@@ -107,11 +107,11 @@ class ResultForm(BaseModel):
 
     @property
     def form_state_name(self):
-        return FormState.to_name(self.form_state)
+        return FormState.label(self.form_state)
 
     @property
     def gender_name(self):
-        return Gender.to_name(self.gender)
+        return Gender.label(self.gender)
 
     @property
     def num_votes(self):

@@ -22,7 +22,7 @@ class Station(BaseModel):
 
     @property
     def gender_name(self):
-        return Gender.to_name(self.gender)
+        return Gender.label(self.gender)
 
 
 reversion.register(Station)
