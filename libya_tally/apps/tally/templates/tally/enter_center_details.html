@@ -9,6 +9,11 @@
 <div class="form-instructions">{% trans 'Double Enter Center Details' %}</div>
 
 <form id="result_form" method="post" action="" onsubmit="return center_details_match();">
+    {% if form.non_field_errors %}
+    <div class="text-danger">
+        {{ form.non_field_errors }}<br/>
+    </div>
+    {% endif %}
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <table>
         <tr>
