@@ -17,13 +17,15 @@
     <table class="formtable">
         <tr>
             <td><label>{{ form.barcode.label }}</label></td>
-            <td>{{ form.barcode }}
+            <td>{{ form.barcode.errors }}
+                {{ form.barcode }}
                 <input type="password" class="form-control" value="XXXXXXXX" name="barcode_placeholder" id="barcode_placeholder" style="display:none;">
             </td>
         </tr>
         <tr>
             <td><label>{{ form.barcode_copy.label }}</label></td>
-            <td>{{ form.barcode_copy }}
+            <td>{{ form.barcode_copy.errors }}
+                {{ form.barcode_copy }}
             </td>
         </tr>
         <tr>

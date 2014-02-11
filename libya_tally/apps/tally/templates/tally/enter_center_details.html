@@ -18,25 +18,29 @@
     <table>
         <tr>
             <td><label>{{ form.center_number.name }}</label></td>
-            <td>{{ form.center_number }}
+            <td>{{ form.center_number.errors }}
+                {{ form.center_number }}
                 <input type="password" class="form-control" value="XXXXXXXX" name="center_number_placeholder" id="center_number_placeholder" style="display:none;">
             </td>
         </tr>
         <tr>
         <tr>
             <td><label>{{ form.center_number_copy.name }}</label></td>
-            <td>{{ form.center_number_copy }}
+            <td>{{ form.center_number_copy.errors }}
+                {{ form.center_number_copy }}
             </td>
         </tr>
          <tr>
             <td><label>{{ form.station_number.name }}</label></td>
-            <td>{{ form.station_number }}
+            <td>{{ form.station_number.errors }}
+                {{ form.station_number }}
                 <input type="password" class="form-control" value="XXXXXXXX" name="station_number_placeholder" id="station_number_placeholder" style="display:none;">
             </td>
         </tr>
         <tr>
             <td><label>{{ form.station_number_copy.name }}</label></td>
-            <td>{{ form.station_number_copy }}
+            <td>{{ form.station_number_copy.errors }}
+                {{ form.station_number_copy }}
             </td>
         </tr>
         <tr>
