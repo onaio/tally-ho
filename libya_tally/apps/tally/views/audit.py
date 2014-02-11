@@ -18,10 +18,10 @@ def is_clerk(user):
     return groups.AUDIT_CLERK in user.groups.values_list('name', flat=True)
 
 
-class AuditDashboardView(LoginRequiredMixin,
-                         mixins.GroupRequiredMixin,
-                         mixins.ReverseSuccessURLMixin,
-                         FormView):
+class DashboardView(LoginRequiredMixin,
+                    mixins.GroupRequiredMixin,
+                    mixins.ReverseSuccessURLMixin,
+                    FormView):
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
     template_name = "tally/audit/dashboard.html"
     success_url = 'audit-review'
@@ -54,10 +54,10 @@ class AuditDashboardView(LoginRequiredMixin,
         return redirect(self.success_url)
 
 
-class AuditReviewView(LoginRequiredMixin,
-                      mixins.GroupRequiredMixin,
-                      mixins.ReverseSuccessURLMixin,
-                      FormView):
+class ReviewView(LoginRequiredMixin,
+                 mixins.GroupRequiredMixin,
+                 mixins.ReverseSuccessURLMixin,
+                 FormView):
     form_class = AuditForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
     template_name = "tally/audit/review.html"

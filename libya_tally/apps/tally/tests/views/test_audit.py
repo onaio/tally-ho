@@ -37,14 +37,14 @@ class TestAudit(TestBase):
 
     def test_dashboard_get(self):
         response = self._common_view_tests(
-            views.AuditDashboardView.as_view())
+            views.DashboardView.as_view())
         self.assertContains(response, 'Audit')
 
     def test_dashboard_get_forms(self):
         create_result_form(form_state=FormState.AUDIT,
                            station_number=42)
         response = self._common_view_tests(
-            views.AuditDashboardView.as_view())
+            views.DashboardView.as_view())
 
         self.assertContains(response, 'Audit')
         self.assertContains(response, '42')
@@ -54,7 +54,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
-        view = views.AuditDashboardView.as_view()
+        view = views.DashboardView.as_view()
         data = {'result_form': result_form.pk}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -69,7 +69,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
@@ -82,7 +82,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
@@ -96,7 +96,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -109,7 +109,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1}
         request = self.factory.post('/', data=data)
@@ -128,7 +128,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'forward': 1}
@@ -149,7 +149,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1}
         request = self.factory.post('/', data=data)
@@ -161,7 +161,7 @@ class TestAudit(TestBase):
         self._create_and_login_user(username='alice')
         self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1}
         request = self.factory.post('/', data=data)
@@ -180,7 +180,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1}
         request = self.factory.post('/', data=data)
@@ -192,7 +192,7 @@ class TestAudit(TestBase):
         self._create_and_login_user(username='alice')
         self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'return': 1}
@@ -213,7 +213,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'forward': 1}
@@ -226,7 +226,7 @@ class TestAudit(TestBase):
         self._create_and_login_user(username='alice')
         self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'action_prior_to_recommendation': 1,
@@ -251,7 +251,7 @@ class TestAudit(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'forward': 1}
@@ -264,7 +264,7 @@ class TestAudit(TestBase):
         self._create_and_login_user(username='alice')
         self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
 
-        view = views.AuditReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'action_prior_to_recommendation': 1,

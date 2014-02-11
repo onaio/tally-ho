@@ -10,6 +10,7 @@ from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
+from libya_tally.libs.utils.time import now
 from libya_tally.libs.views.session import session_matches_post_result_form
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_intake_state,\
@@ -130,21 +131,23 @@ class CheckCenterDetailsView(LoginRequiredMixin,
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_intake_state(result_form)
+        url = None
 
         if 'is_match' in post_data:
             # send to print cover
-            return redirect('intake-printcover')
+            url = 'intake-printcover'
         elif 'is_not_match' in post_data:
             # send to clearance
             result_form.form_state = FormState.CLEARANCE
-            result_form.save()
-
-            return redirect('intake-clearance')
+            url = 'intake-clearance'
         else:
             result_form.form_state = FormState.UNSUBMITTED
-            result_form.save()
+            url = 'intake-clerk'
 
-            return redirect('intake-clerk')
+        result_form.date_seen = now()
+        result_form.save()
+
+        return redirect(url)
 
 
 class PrintCoverView(LoginRequiredMixin,

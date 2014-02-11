@@ -36,5 +36,5 @@ class Audit(BaseModel):
         AuditResolution, null=True, blank=True)
 
     # Comments
-    audit_review_team_comments = models.TextField(null=True, blank=True)
+    team_comment = models.TextField(null=True, blank=True)
     supervisor_comment = models.TextField(null=True, blank=True)

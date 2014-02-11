@@ -1,5 +1,5 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
 from guardian.mixins import LoginRequiredMixin
 
@@ -9,6 +9,7 @@ from libya_tally.libs.models.enums.clearance_resolution import\
     ClearanceResolution
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
+from libya_tally.libs.utils.time import now
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_state
 from libya_tally.libs.views.session import session_matches_post_result_form
@@ -18,10 +19,10 @@ def is_clerk(user):
     return groups.CLEARANCE_CLERK in user.groups.values_list('name', flat=True)
 
 
-class ClearanceDashboardView(LoginRequiredMixin,
-                             mixins.GroupRequiredMixin,
-                             mixins.ReverseSuccessURLMixin,
-                             FormView):
+class DashboardView(LoginRequiredMixin,
+                    mixins.GroupRequiredMixin,
+                    mixins.ReverseSuccessURLMixin,
+                    FormView):
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     template_name = "tally/clearance/dashboard.html"
     success_url = 'clearance-review'
@@ -54,10 +55,10 @@ class ClearanceDashboardView(LoginRequiredMixin,
         return redirect(self.success_url)
 
 
-class ClearanceReviewView(LoginRequiredMixin,
-                          mixins.GroupRequiredMixin,
-                          mixins.ReverseSuccessURLMixin,
-                          FormView):
+class ReviewView(LoginRequiredMixin,
+                 mixins.GroupRequiredMixin,
+                 mixins.ReverseSuccessURLMixin,
+                 FormView):
     form_class = ClearanceForm
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     template_name = "tally/clearance/review.html"
@@ -84,6 +85,7 @@ class ClearanceReviewView(LoginRequiredMixin,
         if form.is_valid():
             clearance = result_form.clearance
             user = self.request.user
+            url = self.success_url
 
             if clearance:
                 clearance = ClearanceForm(
@@ -99,13 +101,21 @@ class ClearanceReviewView(LoginRequiredMixin,
                 clearance.result_form = result_form
                 clearance.user = user
 
+            if groups.CLEARANCE_CLERK in user.groups.values_list(
+                    'name', flat=True):
+                clearance.date_team_modified = now()
+            else:
+                clearance.date_supervisor_modified = now()
+
             if 'forward' in post_data:
                 # forward to supervisor
                 clearance.reviewed_team = True
+                url = 'clearance-print'
 
             if 'return' in post_data:
                 # return to audit team
                 clearance.reviewed_team = False
+                clearance.reviewed_supervisor = False
 
             if 'implement' in post_data:
                 # take implementation action
@@ -117,9 +127,41 @@ class ClearanceReviewView(LoginRequiredMixin,
 
             clearance.save()
 
-            return redirect(self.success_url)
+            return redirect(url)
         else:
             return self.render_to_response(self.get_context_data(form=form,
                                            result_form=result_form))
 
         return redirect(self.success_url)
+
+
+class PrintCoverView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     TemplateView):
+    group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
+    template_name = "tally/clearance/print_cover.html"
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        form_in_state(result_form, FormState.CLEARANCE)
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))
+
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+
+        if 'result_form' in post_data:
+            pk = session_matches_post_result_form(post_data, self.request)
+
+            result_form = get_object_or_404(ResultForm, pk=pk)
+            form_in_state(result_form, FormState.CLEARANCE)
+            result_form.save()
+            del self.request.session['result_form']
+
+            return redirect('clearance')
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))

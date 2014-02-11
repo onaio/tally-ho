@@ -50,6 +50,7 @@ class ResultForm(BaseModel):
     user = models.ForeignKey(User, null=True)
 
     barcode = models.PositiveIntegerField(unique=True)
+    date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
     form_state = enum.EnumField(FormState)
     gender = enum.EnumField(Gender, null=True)
@@ -178,7 +179,7 @@ class ResultForm(BaseModel):
     @property
     def clearance_supervisor_reviewed(self):
         return _('Yes') if self.clearance and\
-            not self.clearance.reviewed_supervisor else _('No')
+            self.clearance.reviewed_supervisor else _('No')
 
     @property
     def corrections_passed(self):

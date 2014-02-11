@@ -16,5 +16,5 @@ class AuditForm(ModelForm):
             'action_prior_to_recommendation',
             'resolution_recommendation',
             # Comments
-            'audit_review_team_comments',
+            'team_comment',
             'supervisor_comment']

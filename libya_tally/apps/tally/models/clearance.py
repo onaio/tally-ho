@@ -23,6 +23,8 @@ class Clearance(BaseModel):
     for_superadmin = models.BooleanField(default=False)
     reviewed_supervisor = models.BooleanField(default=False)
     reviewed_team = models.BooleanField(default=False)
+    date_supervisor_modified = models.DateTimeField(null=True)
+    date_team_modified = models.DateTimeField(null=True)
 
     # Problem Fields
     center_name_missing = models.BooleanField(default=False)
@@ -39,7 +41,7 @@ class Clearance(BaseModel):
         ClearanceResolution, null=True, blank=True)
 
     # Comments
-    audit_review_team_comments = models.TextField(null=True, blank=True)
+    team_comment = models.TextField(null=True, blank=True)
     supervisor_comment = models.TextField(null=True, blank=True)
 
 

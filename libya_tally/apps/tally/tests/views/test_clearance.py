@@ -37,14 +37,14 @@ class TestClearance(TestBase):
 
     def test_dashboard_get(self):
         response = self._common_view_tests(
-            views.ClearanceDashboardView.as_view())
+            views.DashboardView.as_view())
         self.assertContains(response, 'Clearance')
 
     def test_dashboard_get_forms(self):
         create_result_form(form_state=FormState.CLEARANCE,
                            station_number=42)
         response = self._common_view_tests(
-            views.ClearanceDashboardView.as_view())
+            views.DashboardView.as_view())
 
         self.assertContains(response, 'Clearance')
         self.assertContains(response, '42')
@@ -54,7 +54,7 @@ class TestClearance(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
-        view = views.ClearanceDashboardView.as_view()
+        view = views.DashboardView.as_view()
         data = {'result_form': result_form.pk}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -69,7 +69,7 @@ class TestClearance(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
@@ -82,7 +82,7 @@ class TestClearance(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
@@ -96,7 +96,7 @@ class TestClearance(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -109,7 +109,7 @@ class TestClearance(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1}
         request = self.factory.post('/', data=data)
@@ -119,6 +119,7 @@ class TestClearance(TestBase):
 
         clearance = result_form.clearance
         self.assertEqual(clearance.user, self.user)
+        self.assertNotEqual(clearance.date_team_modified, None)
         self.assertEqual(clearance.reviewed_team, False)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
@@ -128,7 +129,7 @@ class TestClearance(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'forward': 1}
@@ -149,7 +150,7 @@ class TestClearance(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1}
         request = self.factory.post('/', data=data)
@@ -161,7 +162,7 @@ class TestClearance(TestBase):
         self._create_and_login_user(username='alice')
         self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1}
         request = self.factory.post('/', data=data)
@@ -171,6 +172,8 @@ class TestClearance(TestBase):
 
         clearance = result_form.clearance
         self.assertEqual(clearance.supervisor, self.user)
+        self.assertNotEqual(clearance.date_supervisor_modified, None)
+        self.assertNotEqual(clearance.date_team_modified, None)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
 
@@ -180,7 +183,7 @@ class TestClearance(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1}
         request = self.factory.post('/', data=data)
@@ -192,7 +195,7 @@ class TestClearance(TestBase):
         self._create_and_login_user(username='alice')
         self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'return': 1}
@@ -213,7 +216,7 @@ class TestClearance(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'forward': 1}
@@ -226,7 +229,7 @@ class TestClearance(TestBase):
         self._create_and_login_user(username='alice')
         self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
 
-        view = views.ClearanceReviewView.as_view()
+        view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
                 'action_prior_to_recommendation': 1,
