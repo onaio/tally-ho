@@ -147,8 +147,11 @@ class PrintCoverView(LoginRequiredMixin,
 
         form_in_state(result_form, FormState.CLEARANCE)
 
+        problems = result_form.clearance.get_problems()
+
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form,
+                                  problems=problems))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
@@ -158,7 +161,6 @@ class PrintCoverView(LoginRequiredMixin,
 
             result_form = get_object_or_404(ResultForm, pk=pk)
             form_in_state(result_form, FormState.CLEARANCE)
-            result_form.save()
             del self.request.session['result_form']
 
             return redirect('clearance')

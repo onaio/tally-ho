@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.translation import ugettext as _
 from django_enumfield import enum
 import reversion
 
@@ -43,6 +44,30 @@ class Clearance(BaseModel):
     # Comments
     team_comment = models.TextField(null=True, blank=True)
     supervisor_comment = models.TextField(null=True, blank=True)
+
+    def get_problems(self):
+        problem_fields = {
+            _('Center Name Missing'): self.center_name_missing,
+            _('Center Name Mismatching'): self.center_name_mismatching,
+            _('Center Code Missing'): self.center_code_missing,
+            _('Station Number Mismatching'): self.center_code_mismatching,
+            _('Form Already in System'): self.form_already_in_system,
+            _('Form Incorrectly Entered into the System'):
+            self.form_incorrectly_entered_into_system
+        }
+
+        problems = []
+        for problem_name, problem_field in problem_fields.iteritems():
+            if problem_field:
+                problems.append(problem_name)
+
+        return problems
+
+    def action_prior_name(self):
+        return ActionsPrior.label(self.action_prior_to_recommendation)
+
+    def resolution_recommendation_name(self):
+        return ClearanceResolution.label(self.resolution_recommendation)
 
 
 reversion.register(Clearance)

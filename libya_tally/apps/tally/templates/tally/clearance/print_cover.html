@@ -36,19 +36,28 @@
         <td>{% trans 'Date Supervisor Modified:' %} {{ result_form.clearance.date_supervisor_modified }}</td>
     </tr>
     <tr>
-        <td rowspan="2"><h4>{% trans 'Problem' %}</h4></td>
+        <td colspan="2"><h4>{% trans 'Problem' %}</h4></td>
+    {% for problem in problems %}
     <tr>
-        <td>{% trans 'To Data Entry One [ ]  Name' %}
-            <span class='underline'>________________________________________</span>
-        </td>
+        <td colspan="2"><input type="checkbox" name="problem" value="problem">{% trans problem %}</h4></td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td colspan="2"><h4>{% trans 'Action Conducted' %}</h4></td>
+    <tr>
+    <tr>
+        <td colspan="2">{{ result_form.clearance.action_prior_name }}</td>
+    <tr>
+    <tr>
+        <td colspan="2"><h4>{% trans 'Resolution Recommendation' %}</h4></td>
+    <tr>
+    <tr>
+        <td colspan="2">{{ result_form.clearance.resolution_recommendation_name }}</td>
+    <tr>
+        <td colspan="2">{% trans 'Team Comment:' %} {{ result_form.clearance.team_comment }}</td>
     </tr>
     <tr>
-        <td rowspan="2"><h4>{% trans 'Action Conducted' %}</h4></td>
-    <tr>
-        <td rowspan="2">{% trans 'Team Comment:' %} {{ result_form.clearance.team_comment }}</td>
-    </tr>
-    <tr>
-        <td rowspan="2">{% trans 'Supervisor Comment:' %} {{ result_form.clearance.supervisor_comment }}</td>
+        <td colspan="2">{% trans 'Supervisor Comment:' %} {{ result_form.clearance.supervisor_comment }}</td>
     </tr>
 </table>
 
