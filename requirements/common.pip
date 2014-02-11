@@ -8,3 +8,4 @@ psycopg2
 south==0.8.4
 six
 mock
+django-eztables

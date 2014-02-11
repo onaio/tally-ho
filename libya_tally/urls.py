@@ -36,6 +36,9 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-list$',
         super_admin.FormListView.as_view(),
         name='form-list'),
+    url(r'^super-administrator/form-list-data$',
+        super_admin.FormListDataView.as_view(),
+        name='form-list-data'),
     url(r'^super-administrator/form-progress',
         super_admin.FormProgressView.as_view(),
         name='form-progress'),
@@ -123,4 +126,5 @@ urlpatterns = patterns(
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^tracking/', include('tracking.urls')),
+    url(r'^djangojs/', include('djangojs.urls')),
 )

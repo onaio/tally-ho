@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import TemplateView
+from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -44,6 +45,19 @@ class CenterListView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             stations=stations))
+
+
+class FormListDataView(DatatablesView):
+    model = ResultForm
+    fields = (
+        'barcode',
+        'center__code',
+        'station_number',
+        'center__office',
+        'ballot__number',
+        'ballot__race_type',
+        'modified_date',
+    )
 
 
 class FormListView(LoginRequiredMixin,
