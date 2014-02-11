@@ -1,6 +1,7 @@
 *.pyc
 
 .coverage
+.DS_Store
 .idea
 build
 data.tgz
