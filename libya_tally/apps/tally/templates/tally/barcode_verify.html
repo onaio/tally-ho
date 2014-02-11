@@ -8,7 +8,7 @@
 
 <h4 class="headertxt">{% trans 'Enter Barcode' %}</h4>
 
-<form id="result_form" method="post" action="" onsubmit="return barcodes_match();">
+<form id="result_form" method="post" action="" onsubmit="return barcodes_match('{% trans 'Please enter barcodes.' %}','{% trans 'Wrong barcode length' %}','{% trans "Barcodes do not match!" %}');">
     {% if form.non_field_errors %}
     <div class="text-danger">
         {{ form.non_field_errors }}<br/>
@@ -44,71 +44,5 @@
 
 {% block javascript %}
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
-
-<script type="text/javascript">
-
-    function barcodes_match() {
-        var barcode = document.getElementById('id_barcode');
-        var barcode_copy = document.getElementById('id_barcode_copy');
-        if(barcode.value.length == 9 && barcode.value == barcode_copy.value){
-            barcode_copy.parentNode.setAttribute('class', 'has-success');
-            return true;
-        }
-        barcode_copy.parentNode.setAttribute('class', 'has-error');
-        if(barcode.value == "" || barcode_copy.value == ""){
-            barcode.parentNode.setAttribute('class', 'has-error');
-            alert("{% trans 'Please enter barcodes.' %}");
-        } else if(barcode.value.length < 9){
-            barcode.parentNode.setAttribute('class', 'has-error');
-            alert("{% trans 'Wrong barcode length' %}");
-        }
-        else {
-            alert('{% trans "Barcodes do not match!" %}');
-        }
-        return false;
-    }
-
-    function show_barcode_hide_placeholder(){
-        $("#barcode_placeholder").hide();
-        $("#id_barcode").show();
-    }
-
-    function hide_barcode_show_placeholder(){
-        $("#barcode_placeholder").show();
-        $("#id_barcode").hide();
-    }
-
-    $(document).ready(function(){
-        $("#id_barcode").focusout(function(evt){
-            if($('#id_barcode').val() != '' && $('#id_barcode_copy').val() != $('#id_barcode').val()){
-                hide_barcode_show_placeholder()
-            }
-        });
-        $("#barcode_placeholder").focusin(function(evt){
-            show_barcode_hide_placeholder();
-            $("#id_barcode").focus();
-        });
-        $("#id_barcode_copy").focusout(function(evt){
-            if($("#id_barcode_copy").val() != '' && $('#id_barcode').val() != $("#id_barcode_copy").val()){
-                show_barcode_hide_placeholder();
-            }
-        });
-        $("#id_barcode_copy").keyup(function(evt){
-            if($("#id_barcode_copy").val().length == 9 && $("#id_barcode").val() == $("#id_barcode_copy").val()){
-                show_barcode_hide_placeholder();
-                $("#id_barcode").parent().addClass('has-success');
-                $("#id_barcode_copy").parent().addClass('has-success');
-            } else if($("#id_barcode_copy").val().length == 9){
-                show_barcode_hide_placeholder();
-                $("#id_barcode").parent().addClass('has-error');
-                $("#id_barcode_copy").parent().addClass('has-error');
-            } else {
-                hide_barcode_show_placeholder();
-            }
-        });
-        $("#id_barcode_copy").focusin(function(evt){
-            hide_barcode_show_placeholder();
-        });
-    });
-</script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/barcode_verify.js"></script>
 {% endblock %}
