@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
+import reversion
 
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.base_model import BaseModel
@@ -31,3 +32,6 @@ class QualityControl(BaseModel):
     def reviews_required_text(self):
         return _('Reviews Completed') if self.reviews_passed else\
             _('Reviews Required')
+
+
+reversion.register(QualityControl)

@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext as _
+import reversion
 
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.libs.models.base_model import BaseModel
@@ -32,3 +33,6 @@ class SubConstituency(BaseModel):
             return _('General')
         else:
             return _('Undefined')
+
+
+reversion.register(SubConstituency)

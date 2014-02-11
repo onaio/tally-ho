@@ -4,6 +4,7 @@ from django.db import models
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
+import reversion
 
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.center import Center
@@ -199,3 +200,6 @@ class ResultForm(BaseModel):
         self.rejected_count = self.rejected_count + 1
         self.form_state = FormState.DATA_ENTRY_1
         self.save()
+
+
+reversion.register(ResultForm)

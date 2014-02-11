@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django_enumfield import enum
+import reversion
 
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -19,3 +20,6 @@ class Result(BaseModel):
     active = models.BooleanField(default=True)
     entry_version = enum.EnumField(EntryVersion)
     votes = models.PositiveIntegerField()
+
+
+reversion.register(Result)

@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
+import reversion
 
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.libs.models.base_model import BaseModel
@@ -27,3 +28,6 @@ class Candidate(BaseModel):
             3: _('Component Twarag'),
             4: _('Component Tebu')
         }[self.race_type]
+
+
+reversion.register(Candidate)

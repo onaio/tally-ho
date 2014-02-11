@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django_enumfield import enum
 from django.utils.translation import ugettext as _
+import reversion
 
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.base_model import BaseModel
@@ -71,3 +72,6 @@ class ReconciliationForm(BaseModel):
         return (self.number_ballots_inside_box -
                 self.number_unstamped_ballots -
                 self.number_invalid_votes)
+
+
+reversion.register(ReconciliationForm)

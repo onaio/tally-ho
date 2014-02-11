@@ -1,5 +1,6 @@
 from django.db import models
 from django_enumfield import enum
+import reversion
 
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
 from libya_tally.libs.models.base_model import BaseModel
@@ -22,3 +23,6 @@ class Center(BaseModel):
     office = models.TextField()
     region = models.TextField()
     village = models.TextField()
+
+
+reversion.register(Center)

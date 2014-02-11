@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+import reversion
 
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.base_model import BaseModel
@@ -11,3 +12,6 @@ class Archive(BaseModel):
 
     result_form = models.ForeignKey(ResultForm)
     user = models.ForeignKey(User)
+
+
+reversion.register(Archive)

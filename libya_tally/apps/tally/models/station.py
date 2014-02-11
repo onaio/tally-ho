@@ -1,5 +1,6 @@
 from django.db import models
 from django_enumfield import enum
+import reversion
 
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
@@ -22,3 +23,6 @@ class Station(BaseModel):
     @property
     def gender_name(self):
         return Gender.to_name(self.gender)
+
+
+reversion.register(Station)

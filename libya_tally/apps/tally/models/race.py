@@ -1,5 +1,6 @@
 from django.db import models
 from django_enumfield import enum
+import reversion
 
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
 from libya_tally.libs.models.base_model import BaseModel
@@ -14,3 +15,6 @@ class Race(BaseModel):
 
     name = models.CharField(max_length=256)
     race_type = enum.EnumField(RaceType)
+
+
+reversion.register(Race)

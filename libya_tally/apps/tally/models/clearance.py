@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django_enumfield import enum
+import reversion
 
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.base_model import BaseModel
@@ -40,3 +41,6 @@ class Clearance(BaseModel):
     # Comments
     audit_review_team_comments = models.TextField(null=True, blank=True)
     supervisor_comment = models.TextField(null=True, blank=True)
+
+
+reversion.register(Clearance)
