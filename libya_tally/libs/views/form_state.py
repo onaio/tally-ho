@@ -10,8 +10,9 @@ def safe_form_in_state(result_form, states, form):
         form_in_state(result_form, states)
     except SuspiciousOperation:
         state_names = get_state_names(states)
-        message = _(u"Form not in %s.  Return form to %s"
-                    % (state_names, result_form.form_state_name))
+        message = _(u"Form not in %(state_name)s.  Return form to %(state)s"
+                    % {'state_name': state_names,
+                       'state': result_form.form_state_name})
         return add_generic_error(form, message)
 
 
@@ -23,8 +24,9 @@ def form_in_state(result_form, states):
         state_names = get_state_names(states)
 
         raise SuspiciousOperation(
-            _(u"Result Form not in %s state, form in state '%s'"
-              % (state_names, result_form.form_state_name)))
+            _(u"Form not in %(state_name)s.  Return form to %(state)s"
+              % {'state_name': state_names,
+                 'state': result_form.form_state_name}))
 
     return True
 

@@ -1,0 +1,828 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-02-11 08:35+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: apps/tally/forms/barcode_form.py:36
+#: apps/tally/templates/tally/barcode_verify.html:64
+msgid "Barcodes do not match!"
+msgstr ""
+
+#: apps/tally/forms/candidate_formset.py:14
+msgid "Missing votes for candidate"
+msgstr ""
+
+#: apps/tally/forms/center_details_form.py:44
+msgid "Center Numbers do not match"
+msgstr ""
+
+#: apps/tally/forms/center_details_form.py:47
+msgid "Station Numbers do not match"
+msgstr ""
+
+#: apps/tally/forms/center_details_form.py:56
+msgid "Invalid Station Number for this Center"
+msgstr ""
+
+#: apps/tally/forms/pass_to_quality_control_form.py:20
+#, python-format
+msgid "Result Form does %s not exit."
+msgstr ""
+
+#: apps/tally/forms/pass_to_quality_control_form.py:27
+msgid "Suspicious activity detected."
+msgstr ""
+
+#: apps/tally/management/commands/create_demo_users.py:7
+#: apps/tally/management/commands/create_quarantine_checks.py:7
+msgid "Create demo users with roles/groups."
+msgstr ""
+
+#: apps/tally/management/commands/create_groups.py:7
+msgid "Create groups."
+msgstr ""
+
+#: apps/tally/management/commands/import.py:57
+msgid "Import polling data."
+msgstr ""
+
+#: apps/tally/models/candidate.py:24 apps/tally/models/sub_constituency.py:32
+msgid "General"
+msgstr ""
+
+#: apps/tally/models/candidate.py:25
+msgid "Women"
+msgstr ""
+
+#: apps/tally/models/candidate.py:26
+msgid "Component Amazigh"
+msgstr ""
+
+#: apps/tally/models/candidate.py:27
+msgid "Component Twarag"
+msgstr ""
+
+#: apps/tally/models/candidate.py:28
+msgid "Component Tebu"
+msgstr ""
+
+#: apps/tally/models/quality_control.py:32
+msgid "Reviews Completed"
+msgstr ""
+
+#: apps/tally/models/quality_control.py:33
+msgid "Reviews Required"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:21
+msgid "Serial number of ballots received by the polling stationfrom"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:23
+msgid "To"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:24
+msgid "Is the form stamped?"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:26
+msgid "Total number of ballots received by the polling station"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:28
+msgid "Number of signatures in the VR"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:30
+msgid "Number of unused ballots"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:32
+msgid "Number of spoiled ballots"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:34
+msgid "Number of cancelled ballots"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:36
+msgid "Total number of ballots remaining outside the ballot box"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:39
+msgid "Number of ballots found inside the ballot box"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:41
+msgid "Total number of ballots found inside and outside the ballot box"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:44
+msgid "Number of unstamped ballots"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:46
+msgid "Number of invalid votes (including the blanks)"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:48
+msgid "Number of valid votes"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:50
+msgid "Total number of the sorted and counted ballots"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:52
+msgid "Is the form signed by polling officer 1?"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:54
+msgid "Is the form signed by polling officer 2?"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:56
+msgid "Is the form signed by the polling station chair?"
+msgstr ""
+
+#: apps/tally/models/reconciliation_form.py:58
+msgid "Is the form dated?"
+msgstr ""
+
+#: apps/tally/models/result_form.py:26 libs/views/corrections.py:22
+msgid "Result Form has no double entries."
+msgstr ""
+
+#: apps/tally/models/result_form.py:120
+msgid "Corrections Required!"
+msgstr ""
+
+#: apps/tally/models/result_form.py:139
+msgid "Unexpected number of reconciliation forms"
+msgstr ""
+
+#: apps/tally/models/result_form.py:174 apps/tally/models/result_form.py:179
+#: apps/tally/templates/tally/corrections/comparison.html:18
+#: apps/tally/templates/tally/corrections/required.html:31
+msgid "Yes"
+msgstr ""
+
+#: apps/tally/models/result_form.py:175 apps/tally/models/result_form.py:180
+#: apps/tally/templates/tally/corrections/comparison.html:17
+#: apps/tally/templates/tally/corrections/required.html:30
+msgid "No"
+msgstr ""
+
+#: apps/tally/models/sub_constituency.py:27
+msgid "General and Women"
+msgstr ""
+
+#: apps/tally/models/sub_constituency.py:30
+msgid "General and Component"
+msgstr ""
+
+#: apps/tally/models/sub_constituency.py:34 libs/models/enums/gender.py:12
+msgid "Undefined"
+msgstr ""
+
+#: apps/tally/templates/tally/barcode_verify.html:9
+msgid "Enter Barcode"
+msgstr ""
+
+#: apps/tally/templates/tally/barcode_verify.html:32
+#: apps/tally/templates/tally/enter_center_details.html:44
+#: apps/tally/templates/tally/corrections/dashboard.html:67
+#: apps/tally/templates/tally/data_entry/enter_results_view.html:44
+#: apps/tally/templates/tally/quality_control/dashboard.html:61
+msgid "Submit"
+msgstr ""
+
+#: apps/tally/templates/tally/barcode_verify.html:58
+msgid "Please enter barcodes."
+msgstr ""
+
+#: apps/tally/templates/tally/barcode_verify.html:61
+msgid "Wrong barcode length"
+msgstr ""
+
+#: apps/tally/templates/tally/center_details.html:4
+msgid "Barcode:"
+msgstr ""
+
+#: apps/tally/templates/tally/center_details.html:5
+msgid "Voting District:"
+msgstr ""
+
+#: apps/tally/templates/tally/center_details.html:6
+#: apps/tally/templates/tally/archive/print_cover.html:19
+#: apps/tally/templates/tally/corrections/match.html:10
+#: apps/tally/templates/tally/intake/print_cover.html:13
+msgid "Center Name:"
+msgstr ""
+
+#: apps/tally/templates/tally/center_details.html:7
+#: apps/tally/templates/tally/corrections/match.html:11
+msgid "Office Name:"
+msgstr ""
+
+#: apps/tally/templates/tally/center_details.html:8
+#: apps/tally/templates/tally/corrections/match.html:12
+msgid "Center Code:"
+msgstr ""
+
+#: apps/tally/templates/tally/center_details.html:9
+#: apps/tally/templates/tally/corrections/match.html:13
+msgid "Station Code:"
+msgstr ""
+
+#: apps/tally/templates/tally/center_details.html:10
+#: apps/tally/templates/tally/archive/print_cover.html:26
+#: apps/tally/templates/tally/corrections/match.html:14
+#: apps/tally/templates/tally/intake/print_cover.html:20
+msgid "Gender:"
+msgstr ""
+
+#: apps/tally/templates/tally/center_details.html:11
+#: apps/tally/templates/tally/corrections/match.html:15
+msgid "Form Race Type:"
+msgstr ""
+
+#: apps/tally/templates/tally/check_center_details.html:9
+msgid "Check Center Details Against Form"
+msgstr ""
+
+#: apps/tally/templates/tally/check_center_details.html:16
+msgid "Accept"
+msgstr ""
+
+#: apps/tally/templates/tally/check_center_details.html:21
+msgid "Name Does Not Match and Code Incorrect - Go back and try again"
+msgstr ""
+
+#: apps/tally/templates/tally/check_center_details.html:27
+msgid "Name Does Not Match and Code Correct - Send to Clearance"
+msgstr ""
+
+#: apps/tally/templates/tally/enter_center_details.html:9
+msgid "Double Enter Center Details"
+msgstr ""
+
+#: apps/tally/templates/tally/enter_center_details.html:86
+msgid "Center Numbers do not match."
+msgstr ""
+
+#: apps/tally/templates/tally/home.html:7
+#: apps/tally/templates/tally/super_admin/home.html:7
+msgid "Dashboard"
+msgstr ""
+
+#: apps/tally/templates/tally/archive/print_cover.html:7
+#: apps/tally/templates/tally/intake/print_cover.html:7
+msgid "Print Cover"
+msgstr ""
+
+#: apps/tally/templates/tally/archive/print_cover.html:22
+#: apps/tally/templates/tally/intake/print_cover.html:16
+msgid "Center Number:"
+msgstr ""
+
+#: apps/tally/templates/tally/archive/print_cover.html:25
+#: apps/tally/templates/tally/intake/print_cover.html:19
+msgid "Station Number:"
+msgstr ""
+
+#: apps/tally/templates/tally/archive/print_cover.html:29
+#: apps/tally/templates/tally/intake/print_cover.html:23
+msgid "Form Type:"
+msgstr ""
+
+#: apps/tally/templates/tally/archive/print_cover.html:32
+msgid "Date/Time:"
+msgstr ""
+
+#: apps/tally/templates/tally/archive/print_cover.html:36
+msgid "Archived by:"
+msgstr ""
+
+#: apps/tally/templates/tally/archive/print_cover.html:44
+#: apps/tally/templates/tally/intake/print_cover.html:65
+msgid "Print"
+msgstr ""
+
+#: apps/tally/templates/tally/archive/print_cover.html:45
+#: apps/tally/templates/tally/intake/print_cover.html:66
+msgid "Print Successful"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/dashboard.html:7
+msgid "Audit List"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/dashboard.html:11
+#: apps/tally/templates/tally/clearance/dashboard.html:11
+#: apps/tally/templates/tally/super_admin/centers.html:13
+msgid "Center Name"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/dashboard.html:12
+#: apps/tally/templates/tally/clearance/dashboard.html:12
+msgid "Center ID"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/dashboard.html:13
+#: apps/tally/templates/tally/clearance/dashboard.html:13
+msgid "Station"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/dashboard.html:14
+#: apps/tally/templates/tally/clearance/dashboard.html:14
+msgid "Reviewed?"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/dashboard.html:15
+#: apps/tally/templates/tally/clearance/dashboard.html:15
+msgid "Supervisor Reviewed?"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/dashboard.html:16
+#: apps/tally/templates/tally/audit/dashboard.html:29
+#: apps/tally/templates/tally/clearance/dashboard.html:17
+#: apps/tally/templates/tally/clearance/dashboard.html:31
+msgid "Review"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/review.html:7
+msgid "Audit:"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/review.html:14
+#: apps/tally/templates/tally/clearance/review.html:14
+msgid "Save"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/review.html:16
+#: apps/tally/templates/tally/clearance/review.html:16
+msgid "Forward to Supervisor and Print Cover"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/review.html:18
+#: apps/tally/templates/tally/clearance/review.html:18
+msgid "Implement Recommendation"
+msgstr ""
+
+#: apps/tally/templates/tally/audit/review.html:19
+msgid "Return to Audit Team"
+msgstr ""
+
+#: apps/tally/templates/tally/clearance/dashboard.html:7
+msgid "Clearance List"
+msgstr ""
+
+#: apps/tally/templates/tally/clearance/dashboard.html:16
+msgid "Modified"
+msgstr ""
+
+#: apps/tally/templates/tally/clearance/review.html:7
+msgid "Clearance:"
+msgstr ""
+
+#: apps/tally/templates/tally/clearance/review.html:19
+msgid "Return to Clearance Team"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/comparison.html:2
+msgid "Results Form Corrections"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/comparison.html:5
+#: apps/tally/templates/tally/corrections/required.html:19
+msgid "Corrections Required?"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/comparison.html:6
+#: apps/tally/templates/tally/corrections/comparison.html:8
+#: apps/tally/templates/tally/corrections/required.html:20
+#: apps/tally/templates/tally/corrections/required.html:22
+msgid "Select"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/comparison.html:7
+#: apps/tally/templates/tally/corrections/required.html:21
+msgid "Entry 1"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/comparison.html:9
+#: apps/tally/templates/tally/corrections/required.html:23
+msgid "Entry 2"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/dashboard.html:7
+#: apps/tally/templates/tally/corrections/match.html:7
+msgid "Corrections"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/dashboard.html:17
+#: apps/tally/templates/tally/data_entry/enter_results_view.html:13
+#: apps/tally/templates/tally/quality_control/dashboard.html:17
+#: apps/tally/templates/tally/quality_control/reconciliation.html:11
+msgid "Reconciliation Section"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/dashboard.html:21
+#: apps/tally/templates/tally/corrections/dashboard.html:37
+#: apps/tally/templates/tally/corrections/dashboard.html:53
+msgid "Match"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/dashboard.html:23
+#: apps/tally/templates/tally/corrections/dashboard.html:39
+#: apps/tally/templates/tally/corrections/dashboard.html:55
+msgid "Corrected"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/dashboard.html:25
+#: apps/tally/templates/tally/corrections/dashboard.html:41
+#: apps/tally/templates/tally/corrections/dashboard.html:57
+msgid "Mis-Match"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/dashboard.html:33
+msgid "General Section"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/dashboard.html:49
+#: apps/tally/templates/tally/quality_control/dashboard.html:45
+msgid "Women Section"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/dashboard.html:69
+#: apps/tally/templates/tally/corrections/required.html:71
+#: apps/tally/templates/tally/quality_control/dashboard.html:63
+#: apps/tally/templates/tally/quality_control/general.html:37
+#: apps/tally/templates/tally/quality_control/reconciliation.html:36
+msgid "Abort"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/match.html:18
+msgid "Form Entries Match"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/match.html:24
+msgid "Pass to Quality Control"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/required.html:16
+msgid "Reconciliation Form Corrections"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/required.html:69
+msgid "Submit Corrections"
+msgstr ""
+
+#: apps/tally/templates/tally/corrections/required.html:70
+msgid "No Correct - Reject"
+msgstr ""
+
+#: apps/tally/templates/tally/data_entry/enter_results_view.html:7
+#: apps/tally/views/data_entry_clerk.py:56
+#: apps/tally/views/data_entry_clerk.py:114
+msgid "Data Entry"
+msgstr ""
+
+#: apps/tally/templates/tally/data_entry/enter_results_view.html:18
+#: apps/tally/templates/tally/quality_control/general.html:11
+#: apps/tally/templates/tally/quality_control/general.html:16
+msgid "Results Section"
+msgstr ""
+
+#: apps/tally/templates/tally/data_entry/enter_results_view.html:73
+msgid "Some fields are blank!"
+msgstr ""
+
+#: apps/tally/templates/tally/errors/400.html:5
+msgid "Internal system error."
+msgstr ""
+
+#: apps/tally/templates/tally/errors/403.html:5
+msgid "You do not have permission to view this page."
+msgstr ""
+
+#: apps/tally/templates/tally/errors/404.html:5
+msgid "Page not found."
+msgstr ""
+
+#: apps/tally/templates/tally/errors/500.html:5
+msgid "Internal error."
+msgstr ""
+
+#: apps/tally/templates/tally/intake/clearance.html:7
+#: apps/tally/templates/tally/intake/success.html:7
+#: apps/tally/views/intake_clerk.py:33 apps/tally/views/intake_clerk.py:79
+#: apps/tally/views/intake_clerk.py:107 apps/tally/views/intake_clerk.py:126
+msgid "Intake"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/clearance.html:8
+msgid "Form Sent to Clearance. Pass to Supervisor"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/clearance.html:9
+#: apps/tally/templates/tally/intake/success.html:11
+msgid "Start new form"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:9
+msgid "Cover Form"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:26
+msgid "Intake: Successful"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:29
+msgid "Data Entry One:"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:30
+#: apps/tally/templates/tally/intake/print_cover.html:36
+msgid "Name:"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:35
+msgid "Data Entry Two:"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:41
+msgid "Corrections:"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:42
+msgid "To Quality Control [ ]  Name"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:46
+#: apps/tally/templates/tally/intake/print_cover.html:56
+msgid "To Data Entry One [ ]  Name"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:51
+msgid "Quality Control:"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/print_cover.html:52
+msgid "To Archive [ ]  Name"
+msgstr ""
+
+#: apps/tally/templates/tally/intake/success.html:9
+msgid "Form Successfully Intaken"
+msgstr ""
+
+#: apps/tally/templates/tally/quality_control/dashboard.html:7
+#: apps/tally/templates/tally/quality_control/general.html:7
+#: apps/tally/templates/tally/quality_control/reconciliation.html:7
+#: apps/tally/templates/tally/quality_control/reject.html:7
+#: apps/tally/views/quality_control.py:98
+msgid "Quality Control"
+msgstr ""
+
+#: apps/tally/templates/tally/quality_control/dashboard.html:21
+#: apps/tally/templates/tally/quality_control/dashboard.html:35
+#: apps/tally/templates/tally/quality_control/dashboard.html:49
+msgid "Reviewed"
+msgstr ""
+
+#: apps/tally/templates/tally/quality_control/dashboard.html:23
+#: apps/tally/templates/tally/quality_control/dashboard.html:37
+#: apps/tally/templates/tally/quality_control/dashboard.html:51
+msgid "Review Pending"
+msgstr ""
+
+#: apps/tally/templates/tally/quality_control/dashboard.html:31
+msgid "General plus Component Section"
+msgstr ""
+
+#: apps/tally/templates/tally/quality_control/general.html:16
+msgid "Component"
+msgstr ""
+
+#: apps/tally/templates/tally/quality_control/general.html:23
+#: apps/tally/templates/tally/quality_control/reconciliation.html:22
+msgid "Correct"
+msgstr ""
+
+#: apps/tally/templates/tally/quality_control/general.html:30
+#: apps/tally/templates/tally/quality_control/reconciliation.html:29
+msgid "Incorrect"
+msgstr ""
+
+#: apps/tally/templates/tally/quality_control/reject.html:9
+msgid "Form Rejected: Send to Data Entry 1"
+msgstr ""
+
+#: apps/tally/templates/tally/quality_control/reject.html:11
+msgid "OK"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/centers.html:7
+msgid "Center/Station List"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/centers.html:11
+#: apps/tally/templates/tally/super_admin/forms.html:17
+msgid "Office"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/centers.html:12
+#: apps/tally/templates/tally/super_admin/forms.html:18
+msgid "Voting district"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/centers.html:14
+msgid "Center No"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/centers.html:15
+msgid "Gender"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/centers.html:16
+msgid "Regs"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/centers.html:17
+#: apps/tally/templates/tally/super_admin/form_progress.html:17
+#: apps/tally/templates/tally/super_admin/forms.html:20
+msgid "Last Modified"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/form_progress.html:7
+#: apps/tally/templates/tally/super_admin/forms.html:9
+#: apps/tally/templates/tally/super_admin/home.html:12
+msgid "Form List"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/form_progress.html:11
+#: apps/tally/templates/tally/super_admin/forms.html:14
+msgid "Barcode"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/form_progress.html:12
+msgid "Center Number"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/form_progress.html:13
+#: apps/tally/templates/tally/super_admin/forms.html:16
+msgid "Station Number"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/form_progress.html:14
+#: apps/tally/templates/tally/super_admin/forms.html:19
+msgid "Race Type"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/form_progress.html:15
+msgid "Form State"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/form_progress.html:16
+msgid "Number of times rejected to DE1"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/forms.html:15
+msgid "Center Code"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:9
+msgid "Data views"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:11
+msgid "Center List"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:15
+msgid "Form state views"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:17
+msgid "Form Progress"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:20
+msgid "Other user views"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:22
+msgid "Intake Clerk"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:23
+msgid "Clearance Clerk"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:24
+msgid "Data Entry Clerk"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:25
+msgid "Corrections Clerk"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:26
+msgid "Quality Control Clerk"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:27
+msgid "Archiving Clerk"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:28
+msgid "Audit Clerk"
+msgstr ""
+
+#: apps/tally/templates/tally/super_admin/home.html:31
+msgid "Users and groups"
+msgstr ""
+
+#: apps/tally/views/archive.py:50
+msgid "Archiving"
+msgstr ""
+
+#: apps/tally/views/archive.py:89
+msgid "Quarantined"
+msgstr ""
+
+#: apps/tally/views/archive.py:90
+msgid "QUARANTINED FORM"
+msgstr ""
+
+#: apps/tally/views/archive.py:92
+msgid "Successful Archive"
+msgstr ""
+
+#: apps/tally/views/archive.py:93
+msgid "ARCHIVED FORM"
+msgstr ""
+
+#: apps/tally/views/corrections.py:45
+msgid "There should be exactly two reconciliation results."
+msgstr ""
+
+#: apps/tally/views/corrections.py:104
+msgid "Correction"
+msgstr ""
+
+#: apps/tally/views/corrections.py:159
+msgid "Results do not match."
+msgstr ""
+
+#: apps/tally/views/data_entry_clerk.py:79
+#, python-format
+msgid "Return form to %s"
+msgstr ""
+
+#: apps/tally/views/data_entry_clerk.py:88
+msgid "Center and station numbers do not match"
+msgstr ""
+
+#: libs/templates/registration/login.html:6
+msgid "Libya Vote Tally"
+msgstr ""
+
+#: libs/templates/registration/login.html:13
+msgid "Sign in"
+msgstr ""
+
+#: libs/views/corrections.py:81
+msgid "Please select correct results for all mis-matched votes."
+msgstr ""
+
+#: libs/views/form_state.py:13 libs/views/form_state.py:27
+#, python-format
+msgid "Form not in %(state_name)s.  Return form to %(state)s"
+msgstr ""
+
+#: libs/views/session.py:9
+msgid "Error: Missing result form!"
+msgstr ""
+
+#: libs/views/session.py:12
+msgid "Session result_form does not match submitted data."
+msgstr ""
