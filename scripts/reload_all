@@ -1,7 +1,7 @@
 rm -r libya_tally/apps/tally/migrations/0001_initial.py
 python manage.py schemamigration tally --initial
 ./scripts/create_database tally $1
-python manage.py import
-python manage.py create_demo_users
-python manage.py create_quarantine_checks
-python manage.py loaddata libya_tally/apps/tally/fixtures/sites.json
+python manage.py import --settings=$2
+python manage.py create_demo_users --settings=$2
+python manage.py create_quarantine_checks --settings=$2
+python manage.py loaddata libya_tally/apps/tally/fixtures/sites.json --settings=$2

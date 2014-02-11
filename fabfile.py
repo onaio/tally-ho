@@ -76,4 +76,4 @@ def reload_all(deployment_name):
     setup_env(deployment_name)
     with cd(env.code_src):
         with source(env.virtualenv):
-            run('./scripts/reload_all tally')
+            run('./scripts/reload_all tally %s' % env.django_config_module)
