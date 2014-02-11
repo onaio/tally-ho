@@ -70,3 +70,10 @@ def deploy(deployment_name, branch='master'):
                 % config_module)
 
     run("sudo /usr/local/bin/uwsgi --reload %s" % env.pid)
+
+
+def reload_all(deployment_name):
+    setup_env(deployment_name)
+    with cd(env.code_src):
+        with source(env.virtualenv):
+            run('./scripts/reload_all tally')
