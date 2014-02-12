@@ -1,12 +1,50 @@
 {% load i18n %}
 
-<ul>
-    <li>{{ result_form.barcode }} {% trans 'Barcode:' %}</li>
-    <li>{{ result_form.center.sub_constituency.code }} {% trans 'Voting District:' %}</li>
-    <li>{{ result_form.center.name }} {% trans 'Center Name:' %}</li>
-    <li>{{ result_form.center.office }} {% trans 'Office Name:' %}</li>
-    <li>{{ result_form.center.code }} {% trans 'Center Code:' %}</li>
-    <li>{{ result_form.station_number }} {% trans 'Station Code:' %}</li>
-    <li>{{ result_form.gender_name }} {% trans 'Gender:' %}</li>
-    <li>{{ result_form.ballot.race_type_name }} {% trans 'Form Race Type:' %}</li>
-</ul>
+<div class="row">
+	<div class="container">
+		<table class="table table-bordered pull-left infotable">
+		<tr>
+            <td width="40%">Office Name:
+                {% trans 'Barcode:' %}
+            </td>
+            <td>
+                {{ result_form.barcode }}
+            </td>
+        </tr>
+		<tr>
+            <td width="40%">{% trans 'Office Name:' %}</td>
+			<td width="">{{ result_form.center.office }}</td>
+		</tr>
+		<tr>
+            <td>{% trans 'Center Name:' %}</td>
+			<td>{{ result_form.center.name }}</td>
+		</tr>
+		<tr>
+            <td>{% trans 'Form Race Type:' %}</td>
+            <td>{{ result_form.ballot.race_type_name }}</td>
+		</tr>
+		</table>
+		<table class="table table-bordered pull-right infotable">
+		<tr>
+            <td width="40%">Office Name:
+                {% trans 'Voting District:' %}
+            </td>
+            <td>
+                {{ result_form.center.sub_constituency.code }}
+            </td>
+        </tr>
+		<tr>
+            <td width="40%">{% trans 'Center Code:' %}</td>
+            <td>{{ result_form.center.code }}</td>
+		</tr>
+		<tr>
+            <td>{% trans 'Station Code:' %}</td>
+            <td>{{ result_form.station_number }}</td>
+		</tr>
+		<tr>
+            <td>{% trans 'Gender:' %}</td>
+            <td>{{ result_form.gender_name }}</td>
+		</tr>
+		</table>
+	</div>
+</div>

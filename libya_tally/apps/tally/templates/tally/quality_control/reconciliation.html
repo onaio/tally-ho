@@ -10,30 +10,33 @@
 
 <h2>{% trans 'Reconciliation Section' %}</h2>
 
-<ul>
+<table class="table table-striped table-bordered">
 {% for field in reconciliation_form %}
-    <li><b>{{ field.label }}:</b> {{ field.data }}</li>
+    <tr>
+        <th><b>{{ field.label }}:</b></th>
+        <td>{{ field.data }}</td>
+    </tr>
 {% endfor %}
-</ul>
+</table>
 
 <form name="form_correct" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <input type="hidden" name="correct" value="true">
-    <button type="submit" name="submit">{% trans "Correct" %}</button>
+    <button class="btn btn-success" type="submit" name="submit">{% trans "Correct" %}</button>
     {% csrf_token %}
 </form>
 
 <form name="form_incorrect" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <input type="hidden" name="incorrect" value="true">
-    <button type="submit" name="submit">{% trans "Incorrect" %}</button>
+    <button class="btn btn-warning" type="submit" name="submit">{% trans "Incorrect" %}</button>
     {% csrf_token %}
 </form>
 
 <form name="form_abort" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <input type="hidden" name="abort" value="true">
-    <button type="submit" name="submit">{% trans "Abort" %}</button>
+    <button class="btn btn-danger" type="submit" name="submit">{% trans "Abort" %}</button>
     {% csrf_token %}
 </form>
 

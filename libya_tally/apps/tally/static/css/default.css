@@ -6,24 +6,46 @@ table#login_table {
 
 body {
     font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 14px;
+    font-size:13px!important;
     line-height: 1.42857143;
     color: #222222;
     background-color: #E3EAF0;
 }
+
+table.mid tr td{
+	vertical-align:middle!important;
+}
+
+table.vert tr td{
+	vertical-align:text-top!important;
+}
+
+span.bignum{}
+
 .hnec-logo{
 	margin-left:1em;
+}
+
+.pinksd{
+	background:#F8ABAD;
+}
+.greysd{
+	background:#D1D3D4;
+}
+.bluesd{
+	background:#AFCCE5;
 }
 
 form{
 	padding:.5em;
 }
 .righter{
-	float:right;
+	float:right!important;
 }
 .container{
 	padding:.3em;
 }
+
 .top-header{
     background-color: #ffffff;
 	border-bottom:1px solid #CFCFCF;
@@ -38,6 +60,34 @@ form{
 }
 .locales{
 	font-size:.9em;
+}
+.grid2{
+	width:48%;
+	float:left;
+}
+.col-md-2.col-sm-1.grid2{
+	padding:0;
+}
+.infotable{
+	width:45%;
+}
+
+.border-top{
+	border-top:1px dashed #DFDFDF;
+	margin-top:1em;
+	padding-top:.6em;
+}
+
+.blue-bg{
+	background:#AFCCE5;
+}
+.gray-bg{
+	background:#D1D3D4;
+	border:1px solid #808080;
+	min-height:4em;
+	padding:.4em;
+	text-align:center;
+	vertical-align:middle!important;
 }
 
 h1.headertxt{
@@ -80,7 +130,7 @@ label {
     display: inline-block;
     margin-bottom: 5px;
     font-weight: 300;
-    font-size: 16px;
+/*    font-size: 16px;*/
     margin-right: 15px;
 }
 

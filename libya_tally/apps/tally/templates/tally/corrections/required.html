@@ -14,7 +14,7 @@
 {% if form.errors %}<p class='errors'>{{ form.errors }}</p>{% endif %}
     {% csrf_token %}
     <h2>{% trans 'Reconciliation Form Corrections' %}</h2>
-    <table class="table table-striped">
+    <table class="table table-striped table-bordered">
         <tr>
             <th>{% trans 'Corrections Required?' %}</th>
             <th>{% trans 'Select' %}</th>
@@ -48,9 +48,6 @@
             <td>
                 {{ field1.label }}
             </td>
-            <td>
-                &nbsp;
-            </td>
         </tr>
         {% endfor %}
     </table>
@@ -66,9 +63,9 @@
 {% endif %}
 
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <button name="submit_corrections" type="submit" value="submit corrections">{% trans 'Submit Corrections' %}</button>
-    <button name="reject_submit" type="submit" value="reject">{% trans 'No Correct - Reject' %}</button>
-    <button name="abort_submit" type="submit" value="abort">{% trans 'Abort' %}</button>
+    <button class="btn btn-success" name="submit_corrections" type="submit" value="submit corrections">{% trans 'Submit Corrections' %}</button>
+    <button class="btn btn-warning" name="reject_submit" type="submit" value="reject">{% trans 'No Correct - Reject' %}</button>
+    <button class="btn btn-danger" name="abort_submit" type="submit" value="abort">{% trans 'Abort' %}</button>
 
 </form>
 {% endblock %}

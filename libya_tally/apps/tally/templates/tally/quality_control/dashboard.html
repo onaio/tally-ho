@@ -58,9 +58,9 @@
 <form name="form" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     {% if result_form.qualitycontrol.reviews_passed %}
-        <button type="submit" name="submit">{% trans "Submit" %}</button>
+        <button class="btn btn-success" type="submit" name="submit">{% trans "Submit" %}</button>
     {% else %}
-        <button type="submit" name="submit">{% trans "Abort" %}</button>
+        <button class="btn btn-danger" type="submit" name="submit">{% trans "Abort" %}</button>
     {% endif %}
     {% csrf_token %}
 </form>
