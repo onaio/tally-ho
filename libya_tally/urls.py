@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
+from libya_tally.apps.tally.forms.login_form import LoginForm
 from libya_tally.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry_clerk, home, intake_clerk, quality_control,\
     super_admin
@@ -13,7 +14,8 @@ admin.autodiscover()
 accounts_urls = patterns(
     '',
     url(r'^login/$', auth_views.login,
-        {'template_name': 'registration/login.html'},
+        {'template_name': 'registration/login.html',
+         'authentication_form': LoginForm},
         name='login'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
 )
