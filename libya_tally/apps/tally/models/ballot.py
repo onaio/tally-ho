@@ -15,7 +15,7 @@ class Ballot(BaseModel):
 
     @property
     def race_type_name(self):
-        return dict(RaceType.choices())[self.race_type]
+        return RaceType.label(self.race_type)
 
 
 reversion.register(Ballot)
