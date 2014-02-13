@@ -112,11 +112,6 @@
             {% trans 'If the difference persists, write a note in the field at the bottom of the form to explain the action taken prior to proceeding to the next step.' %}
         </td>
     </tr>
-    <tr><th></th><th><label for="id_signature_polling_officer_1">{% trans 'Is the form signed by polling officer 1?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_polling_officer_1" name="signature_polling_officer_1" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
-    <tr><th></th><th><label for="id_signature_polling_officer_2">{% trans 'Is the form signed by polling officer 2?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_polling_officer_2" name="signature_polling_officer_2" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
-    <tr><th></th><th><label for="id_signature_polling_station_chair">{% trans 'Is the form signed by the polling station chair?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_polling_station_chair" name="signature_polling_station_chair" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
-    <tr><th></th><th><label for="id_signature_dated">{% trans 'Is the form dated?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_dated" name="signature_dated" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
-    <tr><th></th><th><label for="id_is_stamped">{% trans 'Is the form stamped?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_is_stamped" name="is_stamped" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /><br /></td></tr>
 	</tbody>
 	</table>
 		</div>
@@ -160,11 +155,11 @@
                 {% trans 'If  the  difference  persists,  write a note in the field  at the bottom of the form to explain the action taken prior to proceeding to the next step.' %}
 			</td>
 		</tr>
-		<tr>
-            <td colspan="3"><br/><label for="id_remarks">
-                {% trans 'You may use this space for any necessary remarks:' %}</label>
-			<textarea autocomplete="off" class="form-control" cols="40" id="id_remarks" name="remarks" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" rows="14"></textarea></td>
-		</tr>
+        <tr><th></th><th><label for="id_signature_polling_officer_1">{% trans 'Is the form signed by polling officer 1?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_polling_officer_1" name="signature_polling_officer_1" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
+        <tr><th></th><th><label for="id_signature_polling_officer_2">{% trans 'Is the form signed by polling officer 2?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_polling_officer_2" name="signature_polling_officer_2" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
+        <tr><th></th><th><label for="id_signature_polling_station_chair">{% trans 'Is the form signed by the polling station chair?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_polling_station_chair" name="signature_polling_station_chair" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
+        <tr><th></th><th><label for="id_signature_dated">{% trans 'Is the form dated?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_dated" name="signature_dated" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
+        <tr><th></th><th><label for="id_is_stamped">{% trans 'Is the form stamped?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_is_stamped" name="is_stamped" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /><br /></td></tr>
 		</tbody>
 		</table>
 		</div>
