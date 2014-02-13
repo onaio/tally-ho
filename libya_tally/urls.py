@@ -44,9 +44,12 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-list-data$',
         super_admin.FormListDataView.as_view(),
         name='form-list-data'),
-    url(r'^super-administrator/form-progress',
+    url(r'^super-administrator/form-progress$',
         super_admin.FormProgressView.as_view(),
         name='form-progress'),
+    url(r'^super-administrator/form-progress-data$',
+        super_admin.FormProgressDataView.as_view(),
+        name='form-progress-data'),
 
     url(r'^data-entry$', data_entry_clerk.DataEntryView.as_view(),
         name='data-entry-clerk'),

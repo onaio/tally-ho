@@ -1,47 +1,38 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load js %}
+{% load eztables %}
 
 {% block content %}
 
 <h1>{% trans 'Form List' %}</h1>
 
-<table class="table table-striped">
-    <tr>
-        <th>{% trans 'Barcode' %}</th>
-        <th>{% trans 'Center Number' %}</th>
-        <th>{% trans 'Station Number' %}</th>
-        <th>{% trans 'Race Type' %}</th>
-        <th>{% trans 'Form State' %}</th>
-        <th>{% trans 'Number of times rejected to DE1' %}</th>
-        <th>{% trans 'Last Modified' %}</th>
-    </tr>
-{% for form in forms %}
-    <tr>
-        <td>{{ form.barcode_padded }}</td>
-        <td>{{ form.center.code }}</td>
-        <td>{{ form.station_number }}</td>
-        <td>{{ form.ballot.race_type_name }}</td>
-        <td>{{ form.form_state_name }}</td>
-        <td>{{ form.rejected_count }}</td>
-        <td>{{ form.modified_date }}</td>
-    </tr>
-{% endfor %}
+<table id="formprogresslist">
+    <thead>
+        <tr>
+            <th>{% trans 'Barcode' %}</th>
+            <th>{% trans 'Center Number' %}</th>
+            <th>{% trans 'Station Number' %}</th>
+            <th>{% trans 'Race Type' %}</th>
+            <th>{% trans 'Form State' %}</th>
+            <th>{% trans 'Number of times rejected to DE1' %}</th>
+            <th>{% trans 'Last Modified' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
 </table>
+{% endblock %}
 
-<div class="pagination">
-    <span class="step-links">
-        {% if forms.has_previous %}
-            <a href="?page={{ forms.previous_page_number }}">previous</a>
-        {% endif %}
+{% block styles %}
+    {{ block.super }}
+      <link href="{{STATIC_URL}}css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
 
-        <span class="current">
-            Page {{ forms.number }} of {{ forms.paginator.num_pages }}.
-        </span>
+{% endblock %}
 
-        {% if forms.has_next %}
-            <a href="?page={{ forms.next_page_number }}">next</a>
-        {% endif %}
-    </span>
-</div>
+{% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
+{% django_js %}
+{% datatables_js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/formprogress_table.js"></script>
 {% endblock %}

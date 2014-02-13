@@ -146,3 +146,32 @@ class FormProgressView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             forms=forms))
+
+
+class FormProgressDataView(LoginRequiredMixin,
+                           mixins.GroupRequiredMixin,
+                           mixins.DatatablesDisplayFieldsMixin,
+                           DatatablesView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    model = ResultForm
+    queryset = ResultForm.objects.exclude(form_state=FormState.UNSUBMITTED)
+    fields = (
+        'barcode',
+        'center__code',
+        'station_number',
+        'center__office',
+        'ballot__race_type',
+        'form_state',
+        'rejected_count',
+        'modified_date',
+    )
+    display_fields = (
+        ('barcode', 'barcode_padded'),
+        ('center__code', 'center_code'),
+        ('station_number', 'station_number'),
+        ('center__office', 'center_office'),
+        ('ballot__race_type', 'ballot_race_type_name'),
+        ('form_state', 'form_state_name'),
+        ('rejected_count', 'rejected_count'),
+        ('modified_date', 'modified_date'),
+    )
