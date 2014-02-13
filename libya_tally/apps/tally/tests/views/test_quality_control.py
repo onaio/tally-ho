@@ -71,12 +71,15 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         view = views.QualityControlDashboardView.as_view()
-        data = {'result_form': result_form.pk}
+        data = {'result_form': result_form.pk,
+                'abort': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
+        quality_control = result_form.qualitycontrol_set.all()[0]
 
+        self.assertEqual(quality_control.active, False)
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/home',
                       response['location'])
@@ -96,7 +99,8 @@ class TestQualityControl(TestBase):
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        data = {'result_form': result_form.pk}
+        data = {'result_form': result_form.pk,
+                'correct': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
@@ -123,36 +127,12 @@ class TestQualityControl(TestBase):
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
-        response.render()
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(str(result_form.gender_name), response.content)
-        self.assertIn('Reviews Required', response.content)
-        self.assertNotIn('Reconciliation', response.content)
-        self.assertIn('Abort', response.content)
 
-    def test_dashboard_get_reviewed(self):
-        barcode = '123456789'
-        create_result_form(barcode,
-                           form_state=FormState.QUALITY_CONTROL)
-        result_form = ResultForm.objects.get(barcode=barcode)
-        self._create_and_login_user()
-        qc = create_quality_control(result_form, self.user)
-        qc.passed_general = True
-        qc.passed_womens = True
-        qc.save()
-
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlDashboardView.as_view()
-        request = self.factory.get('/')
-        request.user = self.user
-        request.session = {'result_form': result_form.pk}
-        response = view(request)
-        response.render()
         self.assertEqual(response.status_code, 200)
-        self.assertIn(str(result_form.gender_name), response.content)
-        result_form.qualitycontrol.reviews_passed
-        self.assertIn('Reviews Complete', response.content)
-        self.assertIn('Submit', response.content)
+        self.assertContains(response, str(result_form.gender_name))
+        self.assertContains(response, 'General Results Section')
+        self.assertNotContains(response, 'Reconciliation')
+        self.assertContains(response, 'Abort')
 
     def test_reconciliation_get(self):
         barcode = '123456789'
@@ -163,16 +143,15 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(result_form)
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlReconciliationView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
         response.render()
         self.assertEqual(response.status_code, 200)
-        self.assertIn(str(result_form.gender_name), response.content)
-        self.assertIn('Reconciliation', response.content)
-        self.assertIn('Number sorted and counted', response.content)
+        self.assertContains(response, 'Reconciliation')
+        self.assertContains(response, 'Number sorted and counted')
 
     def test_reconciliation_post_correct(self):
         self._create_and_login_user()
@@ -182,14 +161,14 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlReconciliationView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'correct': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/dashboard',
+        self.assertIn('quality-control/home',
                       response['location'])
         quality_control = QualityControl.objects.get(
             pk=result_form.qualitycontrol.pk)
@@ -205,7 +184,7 @@ class TestQualityControl(TestBase):
         create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlReconciliationView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'incorrect': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -243,7 +222,7 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlReconciliationView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'abort': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -268,18 +247,18 @@ class TestQualityControl(TestBase):
         create_candidates(result_form, self.user, name, votes, women_name)
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlGeneralView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
         response.render()
         self.assertEqual(response.status_code, 200)
-        self.assertIn(str(result_form.gender_name), response.content)
-        self.assertIn('General', response.content)
-        self.assertIn(name, response.content)
-        self.assertNotIn(women_name, response.content)
-        self.assertIn(str(votes), response.content)
+        self.assertContains(response, str(result_form.gender_name))
+        self.assertContains(response, 'General')
+        self.assertContains(response, name)
+        self.assertContains(response, women_name)
+        self.assertContains(response, str(votes))
 
     def test_general_post_correct(self):
         self._create_and_login_user()
@@ -289,14 +268,14 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlGeneralView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'correct': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/dashboard',
+        self.assertIn('quality-control/home',
                       response['location'])
         quality_control = QualityControl.objects.get(
             pk=result_form.qualitycontrol.pk)
@@ -311,7 +290,7 @@ class TestQualityControl(TestBase):
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlGeneralView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'incorrect': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -343,7 +322,7 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlGeneralView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'abort': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -368,18 +347,18 @@ class TestQualityControl(TestBase):
         create_candidates(result_form, self.user, name, votes, women_name)
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlWomenView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
         response.render()
         self.assertEqual(response.status_code, 200)
-        self.assertIn(str(result_form.gender_name), response.content)
-        self.assertIn('Women', response.content)
-        self.assertIn(women_name, response.content)
-        self.assertNotIn(name, response.content)
-        self.assertIn(str(votes), response.content)
+        self.assertContains(response, str(result_form.gender_name))
+        self.assertContains(response, 'Women')
+        self.assertContains(response, women_name)
+        self.assertContains(response, name)
+        self.assertContains(response, str(votes))
 
     def test_women_post_correct(self):
         self._create_and_login_user()
@@ -389,14 +368,14 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlWomenView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'correct': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/dashboard',
+        self.assertIn('quality-control/home',
                       response['location'])
         quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertTrue(quality_control.passed_women, True)
@@ -410,7 +389,7 @@ class TestQualityControl(TestBase):
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlWomenView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'incorrect': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -442,7 +421,7 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlWomenView.as_view()
+        view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'abort': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user

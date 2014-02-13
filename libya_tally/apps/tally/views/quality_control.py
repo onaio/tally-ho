@@ -33,54 +33,6 @@ def results_for_race(result_form, race_type):
     return results
 
 
-class AbstractQualityControl(object):
-    def get_action(self, header_text, race_type):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
-
-        results = results_for_race(result_form, race_type)
-
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  results=results,
-                                  header_text=header_text))
-
-    def post_action(self, field):
-        post_data = self.request.POST
-        pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
-
-        if 'correct' in post_data:
-            # send to dashboard
-            quality_control = result_form.qualitycontrol
-            quality_control.__dict__[field] = True
-            quality_control.save()
-
-            return redirect(self.success_url)
-        elif 'incorrect' in post_data:
-            # send to reject page
-            quality_control = result_form.qualitycontrol
-            quality_control.__dict__[field] = False
-            quality_control.active = False
-            quality_control.save()
-
-            result_form.reject()
-
-            return redirect('quality-control-reject')
-        elif 'abort' in post_data:
-            # send to entry
-            del self.request.session['result_form']
-            quality_control = result_form.qualitycontrol
-            quality_control.active = False
-            quality_control.save()
-
-            return redirect('quality-control-clerk')
-
-        raise SuspiciousOperation('Missing expected POST data')
-
-
 class QualityControlView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
                          mixins.ReverseSuccessURLMixin,
@@ -134,84 +86,52 @@ class QualityControlDashboardView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
 
+        reconciliation_form = ReconForm(data=model_to_dict(
+            result_form.reconciliationform
+        )) if result_form.reconciliationform else None
+        results_component = results_for_race(result_form, None)
+        results_general = results_for_race(result_form, RaceType.GENERAL)
+        results_women = results_for_race(result_form, RaceType.WOMEN)
+
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form,
+                                  reconciliation_form=reconciliation_form,
+                                  results_component=results_component,
+                                  results_women=results_women,
+                                  results_general=results_general))
 
     def post(self, *args, **kwargs):
-        pk = self.request.session.get('result_form')
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         quality_control = result_form.qualitycontrol
+        url = self.success_url
 
-        if quality_control.reviews_passed:
+        if 'correct' in post_data:
+            # send to dashboard
+            quality_control.passed_general = True
+            quality_control.passed_reconciliation = True
+            quality_control.passed_women = True
             result_form.form_state = FormState.ARCHIVING
             result_form.save()
+        elif 'incorrect' in post_data:
+            # send to reject page
+            quality_control.passed_general = False
+            quality_control.passed_reconciliation = False
+            quality_control.passed_women = False
+            quality_control.active = False
+            result_form.reject()
 
+            url = 'quality-control-reject'
+        elif 'abort' in post_data:
+            # send to entry
+            quality_control.active = False
+
+            url = 'quality-control-clerk'
+        else:
+            raise SuspiciousOperation('Missing expected POST data')
+
+        quality_control.save()
         del self.request.session['result_form']
-        return redirect(self.success_url)
 
-
-class QualityControlReconciliationView(LoginRequiredMixin,
-                                       mixins.GroupRequiredMixin,
-                                       mixins.ReverseSuccessURLMixin,
-                                       FormView,
-                                       AbstractQualityControl):
-    group_required = groups.QUALITY_CONTROL_CLERK
-    template_name = "tally/quality_control/reconciliation.html"
-    success_url = 'quality-control-dashboard'
-
-    def get(self, *args, **kwargs):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
-        reconciliation_form = ReconForm(data=model_to_dict(
-            result_form.reconciliationform))
-
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  reconciliation_form=reconciliation_form))
-
-    def post(self, *args, **kwargs):
-        return self.post_action('passed_reconciliation')
-
-
-class QualityControlGeneralView(LoginRequiredMixin,
-                                mixins.GroupRequiredMixin,
-                                mixins.ReverseSuccessURLMixin,
-                                FormView,
-                                AbstractQualityControl):
-    group_required = groups.QUALITY_CONTROL_CLERK
-    template_name = "tally/quality_control/general.html"
-    success_url = 'quality-control-dashboard'
-
-    def get(self, *args, **kwargs):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
-
-        results_general = results_for_race(result_form, RaceType.GENERAL)
-        results_component = results_for_race(result_form, None)
-
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  results_component=results_component,
-                                  results=results_general,
-                                  header_text='General'))
-
-    def post(self, *args, **kwargs):
-        return self.post_action('passed_general')
-
-
-class QualityControlWomenView(LoginRequiredMixin,
-                              mixins.GroupRequiredMixin,
-                              mixins.ReverseSuccessURLMixin,
-                              FormView,
-                              AbstractQualityControl):
-    group_required = groups.QUALITY_CONTROL_CLERK
-    template_name = "tally/quality_control/general.html"
-    success_url = 'quality-control-dashboard'
-
-    def get(self, *args, **kwargs):
-        return self.get_action('Women', RaceType.WOMEN)
-
-    def post(self, *args, **kwargs):
-        return self.post_action('passed_women')
+        return redirect(url)

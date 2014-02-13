@@ -90,15 +90,6 @@ urlpatterns = patterns(
         TemplateView.as_view(
             template_name='tally/quality_control/reject.html'),
         name='quality-control-reject'),
-    url(r'^quality-control/reconciliation',
-        quality_control.QualityControlReconciliationView.as_view(),
-        name='quality-control-reconciliation'),
-    url(r'^quality-control/general',
-        quality_control.QualityControlGeneralView.as_view(),
-        name='quality-control-general'),
-    url(r'^quality-control/women',
-        quality_control.QualityControlWomenView.as_view(),
-        name='quality-control-women'),
 
     url(r'^corrections$',
         corrections.CorrectionView.as_view(),

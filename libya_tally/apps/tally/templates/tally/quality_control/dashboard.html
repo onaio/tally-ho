@@ -10,58 +10,40 @@
 
 {{ result_form.qualitycontrol.reviews_required_text }}
 
-<table>
-    {% if result_form.reconciliationform %}
-    <tr>
-        <td>
-            <a href="{% url 'quality-control-reconciliation' %}">{% trans 'Reconciliation Section' %}</a>
-        </td>
-        <td>
-            {% if result_form.qualitycontrol.passed_reconciliation %}
-                {% trans 'Reviewed' %}
-            {% else %}
-                {% trans 'Review Pending' %}
-            {% endif %}
-        </td>
-    </tr>
-    {% endif %}
-    {% if result_form.has_general_results %}
-    <tr>
-        <td>
-            <a href="{% url 'quality-control-general' %}">{% trans 'General plus Component Section' %}</a>
-        </td>
-        <td>
-            {% if result_form.qualitycontrol.passed_general %}
-                {% trans 'Reviewed' %}
-            {% else %}
-                {% trans 'Review Pending' %}
-            {% endif %}
-        </td>
-    <tr>
-    {% endif %}
-    {% if result_form.has_women_results %}
-    </tr>
-        <td>
-            <a href="{% url 'quality-control-women' %}">{% trans 'Women Section' %}</a>
-        </td>
-        <td>
-            {% if result_form.qualitycontrol.passed_womens %}
-                {% trans 'Reviewed' %}
-            {% else %}
-                {% trans 'Review Pending' %}
-            {% endif %}
-        </td>
-    </tr>
-    {% endif %}
-<table>
+{% if reconciliation_form %}
+{% include 'tally/quality_control/reconciliation.html' with form=reconciliation_form %}
+{% endif %}
 
-<form name="form" method="post" action="">
+{% if results_general %}
+{% include 'tally/quality_control/results.html' with results=results_general header_text='General' %}
+{% endif %}
+
+{% if results_women %}
+{% include 'tally/quality_control/results.html' with results=results_women header_text='Women' %}
+{% endif %}
+
+{% if results_component %}
+{% include 'tally/quality_control/results.html' with results=results_component header_text='Component' %}
+{% endif %}
+
+<form name="form_correct" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    {% if result_form.qualitycontrol.reviews_passed %}
-        <button class="btn btn-success" type="submit" name="submit">{% trans "Submit" %}</button>
-    {% else %}
-        <button class="btn btn-danger" type="submit" name="submit">{% trans "Abort" %}</button>
-    {% endif %}
+    <input type="hidden" name="correct" value="true">
+    <button class="btn btn-success" type="submit" name="submit">{% trans "Correct" %}</button>
+    {% csrf_token %}
+</form>
+
+<form name="form_incorrect" method="post" action="">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <input type="hidden" name="incorrect" value="true">
+    <button class="btn btn-warning" type="submit" name="submit">{% trans "Incorrect" %}</button>
+    {% csrf_token %}
+</form>
+
+<form name="form_abort" method="post" action="">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <input type="hidden" name="abort" value="true">
+    <button class="btn btn-danger" type="submit" name="submit">{% trans "Abort" %}</button>
     {% csrf_token %}
 </form>
 

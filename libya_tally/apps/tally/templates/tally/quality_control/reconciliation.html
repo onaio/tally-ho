@@ -1,43 +1,15 @@
-{% extends 'base.html' %}
-
 {% load i18n %}
 
 {% block content %}
 
-<h1>{% trans 'Quality Control' %}</h1>
-
-{% include 'tally/center_details.html' %}
-
 <h2>{% trans 'Reconciliation Section' %}</h2>
 
 <table class="table table-striped table-bordered">
-{% for field in reconciliation_form %}
+{% for field in form %}
     <tr>
         <th><b>{{ field.label }}:</b></th>
         <td>{{ field.data }}</td>
     </tr>
 {% endfor %}
 </table>
-
-<form name="form_correct" method="post" action="">
-    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <input type="hidden" name="correct" value="true">
-    <button class="btn btn-success" type="submit" name="submit">{% trans "Correct" %}</button>
-    {% csrf_token %}
-</form>
-
-<form name="form_incorrect" method="post" action="">
-    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <input type="hidden" name="incorrect" value="true">
-    <button class="btn btn-warning" type="submit" name="submit">{% trans "Incorrect" %}</button>
-    {% csrf_token %}
-</form>
-
-<form name="form_abort" method="post" action="">
-    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <input type="hidden" name="abort" value="true">
-    <button class="btn btn-danger" type="submit" name="submit">{% trans "Abort" %}</button>
-    {% csrf_token %}
-</form>
-
 {% endblock %}

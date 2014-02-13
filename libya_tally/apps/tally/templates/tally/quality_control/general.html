@@ -17,25 +17,5 @@
 {% include 'tally/quality_control/results.html' with results=results_component %}
 {% endif %}
 
-<form name="form_correct" method="post" action="">
-    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <input type="hidden" name="correct" value="true">
-    <button class="btn btn-success" type="submit" name="submit">{% trans "Correct" %}</button>
-    {% csrf_token %}
-</form>
-
-<form name="form_incorrect" method="post" action="">
-    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <input type="hidden" name="incorrect" value="true">
-    <button class="btn btn-warning" type="submit" name="submit">{% trans "Incorrect" %}</button>
-    {% csrf_token %}
-</form>
-
-<form name="form_abort" method="post" action="">
-    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <input type="hidden" name="abort" value="true">
-    <button class="btn btn-danger" type="submit" name="submit">{% trans "Abort" %}</button>
-    {% csrf_token %}
-</form>
 
 {% endblock %}

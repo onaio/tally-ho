@@ -63,11 +63,8 @@
 
 <form name="form" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    {% if result_form.corrections_passed %}
-        <button type="submit" name="submit">{% trans "Submit" %}</button>
-    {% else %}
-        <button type="abort" name="abort">{% trans "Abort" %}</button>
-    {% endif %}
+    <button type="submit" name="submit">{% trans "Submit" %}</button>
+    <button type="abort" name="abort">{% trans "Abort" %}</button>
     {% csrf_token %}
 </form>
 
