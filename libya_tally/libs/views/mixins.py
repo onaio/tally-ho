@@ -1,9 +1,13 @@
+import copy
 import six
+
+from django.db.models import Q
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseBadRequest
 from django.utils.translation import ugettext as _
 from eztables.forms import DatatablesForm
+from operator import or_
 
 from libya_tally.libs.permissions import groups
 
@@ -84,3 +88,44 @@ class DatatablesDisplayFieldsMixin(object):
             return self.render_to_response(self.form)
         else:
             return HttpResponseBadRequest()
+
+    def global_search(self, queryset):
+        '''Filter a queryset with global search'''
+
+        qs = copy.deepcopy(queryset)
+        qs2 = copy.deepcopy(queryset)
+        zero_start_term = False
+        search = search_str = self.dt_data['sSearch']
+        if search:
+            if self.dt_data['bRegex']:
+                criterions = [Q(**{'%s__iregex' % field: search})
+                              for field in self.get_db_fields()
+                              if self.can_regex(field)]
+
+                if len(criterions) > 0:
+                    search = reduce(or_, criterions)
+                    queryset = queryset.filter(search)
+            else:
+                for term in search.split():
+                    if term.startswith(u'0'):
+                        zero_start_term = True
+                    criterions = (Q(**{'%s__icontains' % field: term})
+                                  for field in self.get_db_fields())
+                    search = reduce(or_, criterions)
+                    queryset = queryset.filter(search)
+
+            if zero_start_term:
+                for term in search_str.split():
+                    try:
+                        term = int(term)
+                    except ValueError:
+                        pass
+                    else:
+                        criterions = (Q(**{'%s__istartswith' % field: term})
+                                      for field in self.get_db_fields())
+                        search = reduce(or_, criterions)
+                        qs = qs.filter(search)
+
+                queryset = qs2.filter(Q(pk__in=qs.values('pk'))
+                                      | Q(pk__in=queryset.values('pk')))
+        return queryset
