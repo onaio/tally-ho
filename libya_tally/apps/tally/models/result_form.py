@@ -212,20 +212,28 @@ class ResultForm(BaseModel):
         self.save()
 
     @property
-    def _center_code(self):
-         return self.center.code if self.center else None
+    def center_code(self):
+        return self.center.code if self.center else None
 
     @property
-    def _center_office(self):
+    def center_office(self):
         return self.center.office if self.center else None
 
     @property
-    def _ballot_number(self):
+    def ballot_number(self):
         return self.ballot.number if self.ballot else None
 
     @property
-    def _ballot_race_type_name(self):
+    def ballot_race_type_name(self):
         return self.ballot.race_type_name if self.ballot else None
+
+    @property
+    def sub_constituency_code(self):
+        return self.sub_constituency.code if self.sub_constituency else None
+
+    @property
+    def center_name(self):
+        return self.center.name if self.center else None
 
 
 reversion.register(ResultForm)

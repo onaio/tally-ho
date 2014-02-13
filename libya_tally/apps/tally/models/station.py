@@ -24,5 +24,21 @@ class Station(BaseModel):
     def gender_name(self):
         return Gender.label(self.gender)
 
+    @property
+    def center_code(self):
+        return self.center.code if self.center else None
+
+    @property
+    def center_office(self):
+        return self.center.office if self.center else None
+
+    @property
+    def sub_constituency_code(self):
+        return self.sub_constituency.code if self.sub_constituency else None
+
+    @property
+    def center_name(self):
+        return self.center.name if self.center else None
+
 
 reversion.register(Station)
