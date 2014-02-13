@@ -211,5 +211,21 @@ class ResultForm(BaseModel):
         self.form_state = FormState.DATA_ENTRY_1
         self.save()
 
+    @property
+    def _center_code(self):
+         return self.center.code if self.center else None
+
+    @property
+    def _center_office(self):
+        return self.center.office if self.center else None
+
+    @property
+    def _ballot_number(self):
+        return self.ballot.number if self.ballot else None
+
+    @property
+    def _ballot_race_type_name(self):
+        return self.ballot.race_type_name if self.ballot else None
+
 
 reversion.register(ResultForm)
