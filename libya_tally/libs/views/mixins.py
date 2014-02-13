@@ -1,6 +1,9 @@
 import six
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.urlresolvers import reverse
+from django.http import HttpResponseBadRequest
+from django.utils.translation import ugettext as _
+from eztables.forms import DatatablesForm
 
 from libya_tally.libs.permissions import groups
 
@@ -54,3 +57,30 @@ class ReverseSuccessURLMixin(object):
         if self.success_url:
             self.success_url = reverse(self.success_url)
         return super(ReverseSuccessURLMixin, self).get_success_url()
+
+
+class DatatablesDisplayFieldsMixin(object):
+    display_fields = None
+
+    def get_row(self, row):
+        '''Format a single row (if necessary)'''
+
+        if self.display_fields is None:
+            raise ImproperlyConfigured(_(
+                u"`DatatablesDisplayMixin` requires a displa_fields tuple to"
+                " be defined."))
+
+        data = {}
+        for field, name in self.display_fields:
+            data[field] = getattr(row, name)
+        return [data[field] for field in self.fields]
+
+    def process_dt_response(self, data):
+        self.form = DatatablesForm(data)
+
+        if self.form.is_valid():
+            self.object_list = self.get_queryset()
+
+            return self.render_to_response(self.form)
+        else:
+            return HttpResponseBadRequest()

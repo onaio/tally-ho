@@ -1,7 +1,5 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import HttpResponseBadRequest
 from django.views.generic import TemplateView
-from eztables.forms import DatatablesForm
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
@@ -51,6 +49,7 @@ class CenterListView(LoginRequiredMixin,
 
 class FormListDataView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.DatatablesDisplayFieldsMixin,
                        DatatablesView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
@@ -72,22 +71,6 @@ class FormListDataView(LoginRequiredMixin,
         ('ballot__race_type', '_ballot_race_type_name'),
         ('modified_date', 'modified_date'),
     )
-
-    def get_row(self, row):
-        '''Format a single row (if necessary)'''
-
-        data = {}
-        for field, name in self.display_fields:
-            data[field] = getattr(row, name)
-        return [data[field] for field in self.fields]
-
-    def process_dt_response(self, data):
-        self.form = DatatablesForm(data)
-        if self.form.is_valid():
-            self.object_list = self.get_queryset()
-            return self.render_to_response(self.form)
-        else:
-            return HttpResponseBadRequest()
 
 
 class FormListView(LoginRequiredMixin,
