@@ -23,6 +23,32 @@ class DashboardView(LoginRequiredMixin,
             groups=group_logins))
 
 
+class CenterListDataView(LoginRequiredMixin,
+                         mixins.GroupRequiredMixin,
+                         mixins.DatatablesDisplayFieldsMixin,
+                         DatatablesView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    model = Station
+    fields = (
+        'center__office',
+        'station__sub_constituency__code',
+        'center__name',
+        'center__code',
+        'gender',
+        'registrants',
+        'modified_date',
+    )
+    display_fields = (
+        ('center__office', 'center_office'),
+        ('station__sub_constituency__code', 'sub_constituency_code'),
+        ('center__name', 'center_name'),
+        ('center__code', 'center_code'),
+        ('gender', 'gender_name'),
+        ('registrants', 'registrants'),
+        ('modified_date', 'modified_date'),
+    )
+
+
 class CenterListView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      TemplateView):
@@ -64,11 +90,11 @@ class FormListDataView(LoginRequiredMixin,
     )
     display_fields = (
         ('barcode', 'barcode_padded'),
-        ('center__code', '_center_code'),
+        ('center__code', 'center_code'),
         ('station_number', 'station_number'),
-        ('center__office', '_center_office'),
-        ('ballot__number', '_ballot_number'),
-        ('ballot__race_type', '_ballot_race_type_name'),
+        ('center__office', 'center_office'),
+        ('ballot__number', 'ballot_number'),
+        ('ballot__race_type', 'ballot_race_type_name'),
         ('modified_date', 'modified_date'),
     )
 

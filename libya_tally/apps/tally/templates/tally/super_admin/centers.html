@@ -1,47 +1,38 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load js %}
+{% load eztables %}
 
 {% block content %}
 
 <h1>{% trans 'Center/Station List' %}</h1>
 
-<table class="table table-striped">
-    <tr>
-        <th>{% trans 'Office' %}</th>
-        <th>{% trans 'Voting district' %}</th>
-        <th>{% trans 'Center Name' %}</th>
-        <th>{% trans 'Center No' %}</th>
-        <th>{% trans 'Gender' %}</th>
-        <th>{% trans 'Regs' %}</th>
-        <th>{% trans 'Last Modified' %}</th>
-    </tr>
-{% for station in stations %}
-    <tr>
-        <td>{{ station.center.office }}</td>
-        <td>{{ station.sub_constituency.code }}</td>
-        <td>{{ station.center.name }}</td>
-        <td>{{ station.center.code }}</td>
-        <td>{{ station.gender_name }}</td>
-        <td>{{ station.registrants }}</td>
-        <td>{{ station.modified_date }}</td>
-    </tr>
-{% endfor %}
+<table id="centerlist">
+    <thead>
+        <tr>
+            <th>{% trans 'Office' %}</th>
+            <th>{% trans 'Voting district' %}</th>
+            <th>{% trans 'Center Name' %}</th>
+            <th>{% trans 'Center No' %}</th>
+            <th>{% trans 'Gender' %}</th>
+            <th>{% trans 'Regs' %}</th>
+            <th>{% trans 'Last Modified' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
 </table>
+{% endblock %}
 
-<div class="pagination">
-    <span class="step-links">
-        {% if stations.has_previous %}
-            <a href="?page={{ stations.previous_page_number }}">previous</a>
-        {% endif %}
+{% block styles %}
+    {{ block.super }}
+      <link href="{{STATIC_URL}}css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
 
-        <span class="current">
-            Page {{ stations.number }} of {{ stations.paginator.num_pages }}.
-        </span>
+{% endblock %}
 
-        {% if stations.has_next %}
-            <a href="?page={{ stations.next_page_number }}">next</a>
-        {% endif %}
-    </span>
-</div>
+{% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
+{% django_js %}
+{% datatables_js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/center_table.js"></script>
 {% endblock %}
