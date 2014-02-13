@@ -31,7 +31,7 @@ class CenterListDataView(LoginRequiredMixin,
     model = Station
     fields = (
         'center__office',
-        'station__sub_constituency__code',
+        'sub_constituency__code',
         'center__name',
         'center__code',
         'gender',
@@ -40,7 +40,7 @@ class CenterListDataView(LoginRequiredMixin,
     )
     display_fields = (
         ('center__office', 'center_office'),
-        ('station__sub_constituency__code', 'sub_constituency_code'),
+        ('sub_constituency__code', 'sub_constituency_code'),
         ('center__name', 'center_name'),
         ('center__code', 'center_code'),
         ('gender', 'gender_name'),
