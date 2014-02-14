@@ -6,6 +6,7 @@
 
 <h1>{% trans 'Tally Centre Progress Report' %}</h1>
 
+<h3>{% trans 'Overview' %}</h3>
 <table class="table table-striped">
     <tr>
         <th>{% trans 'Number' %}</th>
@@ -17,6 +18,25 @@
         <td>{{ rec.numerator }}</td>
         <td>{{ rec.percentage }}</td>
         <td>{{ rec.label }}</td>
+    </tr>
+{% endfor %}
+</table>
+
+
+<h3>{% trans "Per Office" %}</h3>
+<table class="table table-striped">
+    <tr>
+        <th>{% trans 'Not Intaken' %}</th>
+        <th>{% trans 'Intaken' %}</th>
+        <th>{% trans 'Archived' %}</th>
+        <th>{% trans 'Office' %}</th>
+    </tr>
+{% for rec in per_office %}
+    <tr>
+        <td>{{ rec.not_intaken }}</td>
+        <td>{{ rec.intaken }}</td>
+        <td>{{ rec.archived }}</td>
+        <td>{{ rec.office }}</td>
     </tr>
 {% endfor %}
 </table>
