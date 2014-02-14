@@ -8,6 +8,7 @@ from libya_tally.apps.tally.forms.login_form import LoginForm
 from libya_tally.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry_clerk, home, intake_clerk, quality_control,\
     super_admin
+from libya_tally.apps.tally.views.reports import overview
 
 admin.autodiscover()
 
@@ -127,6 +128,10 @@ urlpatterns = patterns(
     url(r'^clearance/review$',
         clearance.ReviewView.as_view(),
         name='clearance-review'),
+
+    url(r'^reports/internal/overview$',
+        overview.OverviewReportView.as_view(),
+        name='reports-overview'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),

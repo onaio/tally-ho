@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Tally Centre Progress Report' %}</h1>
+
+<table class="table table-striped">
+    <tr>
+        <th>{% trans 'Number' %}</th>
+        <th>{% trans '%' %}</th>
+        <th>{% trans 'Forms' %}</th>
+    </tr>
+{% for rec in overviews %}
+    <tr>
+        <td>{{ rec.numerator }}</td>
+        <td>{{ rec.percentage }}</td>
+        <td>{{ rec.label }}</td>
+    </tr>
+{% endfor %}
+</table>
+
+{% endblock %}
