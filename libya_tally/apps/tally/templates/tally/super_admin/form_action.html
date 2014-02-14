@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load js %}
+{% load eztables %}
+
+{% block content %}
+
+<h1>{% trans 'Actionable Form List' %}</h1>
+
+<table id="formprogresslist" class="table table-striped">
+    <thead>
+        <tr>
+            <th>{% trans 'Barcode' %}</th>
+            <th>{% trans 'Center Number' %}</th>
+            <th>{% trans 'Station Number' %}</th>
+            <th>{% trans 'Race Type' %}</th>
+            <th>{% trans 'Form State' %}</th>
+            <th>{% trans 'Action Required Prior' %}</th>
+            <th>{% trans 'Last Modified' %}</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+        {% for audit in audit_forms %}
+        <td>{{ audit.result_form.barcode }}</td>
+        <td>{{ audit.result_form.center.code }}</td>
+        <td>{{ audit.result_form.station_number }}</td>
+        <td>{{ audit.result_form.ballot.race_type_name }}</td>
+        <td>{{ audit.result_form.form_state }}</td>
+        <td>{{ audit.action_prior_name }}</td>
+        <td>{{ audit.result_form.modified_date }}</td>
+        <td>
+            <form name="review_form_{{ forloop.counter }}" method="post" action="">
+                <input type="hidden" name="result_form" value="{{ form.pk }}">
+                <button class="btn btn-small" type="submit" name="review">{% trans "Review" %}</button>
+                {% csrf_token %}
+            </form>
+        </td>
+        <td>
+            <form name="confirm_form_{{ forloop.counter }}" method="post" action="">
+                <input type="hidden" name="result_form" value="{{ form.pk }}">
+                <button class="btn btn-small" type="submit" name="confirm">{% trans "Confirm" %}</button>
+                {% csrf_token %}
+            </form>
+        </td>
+        {% endfor %}
+        </tr>
+    </tbody>
+</table>
+{% endblock %}

@@ -3,8 +3,14 @@ from django.views.generic import TemplateView
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
+from libya_tally.apps.tally.models.audit import Audit
+from libya_tally.apps.tally.models.clearance import Clearance
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.models.station import Station
+from libya_tally.libs.models.enums.audit_resolution import\
+    AuditResolution
+from libya_tally.libs.models.enums.clearance_resolution import\
+    ClearanceResolution
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
@@ -175,3 +181,26 @@ class FormProgressDataView(LoginRequiredMixin,
         ('rejected_count', 'rejected_count'),
         ('modified_date', 'modified_date'),
     )
+
+
+class FormActionView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "tally/super_admin/form_action.html"
+
+    def get(self, *args, **kwargs):
+        audit_list = Audit.objects.filter(
+            active=True,
+            reviewed_supervisor=True,
+            resolution_recommendation=
+            AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE).all()
+        clearance_list = Clearance.objects.filter(
+            active=True,
+            reviewed_supervisor=True,
+            resolution_recommendation=ClearanceResolution.RESET_TO_PREINTAKE
+        ).all()
+
+        return self.render_to_response(self.get_context_data(
+            audit_forms=audit_list,
+            clearance_forms=clearance_list))
