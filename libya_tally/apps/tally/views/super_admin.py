@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
@@ -14,6 +15,7 @@ from libya_tally.libs.models.enums.clearance_resolution import\
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
+from libya_tally.libs.views.session import session_matches_post_result_form
 
 
 class DashboardView(LoginRequiredMixin,
@@ -204,3 +206,14 @@ class FormActionView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             audit_forms=audit_list,
             clearance_forms=clearance_list))
+
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
+        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        if 'review' in post_data:
+            return self.render_to_response(self.get_context_data(
+                form=result_form))
+        elif 'confirm' in post_data:
+            pass
