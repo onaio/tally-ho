@@ -64,10 +64,13 @@ class ReviewView(LoginRequiredMixin,
     success_url = 'audit'
 
     def get(self, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
         pk = self.request.session['result_form']
         result_form = get_object_or_404(ResultForm, pk=pk)
+
+        form_class = self.get_form_class()
+        audit = result_form.audit
+        form = AuditForm(instance=audit) if audit else self.get_form(
+            form_class)
 
         return self.render_to_response(self.get_context_data(
             form=form, result_form=result_form,

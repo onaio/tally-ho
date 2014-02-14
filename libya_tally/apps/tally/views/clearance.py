@@ -65,10 +65,13 @@ class ReviewView(LoginRequiredMixin,
     success_url = 'clearance'
 
     def get(self, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
         pk = self.request.session['result_form']
         result_form = get_object_or_404(ResultForm, pk=pk)
+
+        form_class = self.get_form_class()
+        clearance = result_form.clearance
+        form = ClearanceForm(instance=clearance) if clearance\
+            else self.get_form(form_class)
 
         return self.render_to_response(self.get_context_data(
             form=form, result_form=result_form,
@@ -76,14 +79,14 @@ class ReviewView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
-        form = self.get_form(form_class)
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.CLEARANCE)
+        clearance = result_form.clearance
+        form = self.get_form(form_class)
 
         if form.is_valid():
-            clearance = result_form.clearance
             user = self.request.user
             url = self.success_url
 
