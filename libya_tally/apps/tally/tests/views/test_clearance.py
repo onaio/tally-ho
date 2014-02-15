@@ -241,3 +241,16 @@ class TestClearance(TestBase):
         self.assertEqual(clearance.for_superadmin, True)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
+
+    def test_new_form_get(self):
+        # save clearance as clerk
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.NewFormView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)

@@ -10,6 +10,7 @@ from libya_tally.libs.models.enums.center_type import CenterType
 class Center(BaseModel):
     class Meta:
         app_label = 'tally'
+        ordering = ['code']
 
     sub_constituency = models.ForeignKey(SubConstituency,
                                          related_name='centers', null=True)
@@ -23,6 +24,9 @@ class Center(BaseModel):
     office = models.TextField()
     region = models.TextField()
     village = models.TextField()
+
+    def __unicode__(self):
+        return u'%s - %s' % (self.code, self.name)
 
 
 reversion.register(Center)

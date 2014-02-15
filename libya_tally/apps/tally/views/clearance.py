@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect
 from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.clearance_form import ClearanceForm
+from libya_tally.apps.tally.forms.new_result_form import NewResultForm
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.clearance_resolution import\
     ClearanceResolution
@@ -170,3 +171,18 @@ class PrintCoverView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
+
+
+class NewFormView(LoginRequiredMixin,
+                  mixins.GroupRequiredMixin,
+                  FormView):
+    form_class = NewResultForm
+    group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
+    template_name = "tally/clearance/new_form.html"
+
+    def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form))

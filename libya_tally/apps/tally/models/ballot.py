@@ -9,6 +9,7 @@ from libya_tally.libs.models.enums.race_type import RaceType
 class Ballot(BaseModel):
     class Meta:
         app_label = 'tally'
+        ordering = ['number']
 
     number = models.PositiveSmallIntegerField()
     race_type = enum.EnumField(RaceType)
@@ -16,6 +17,9 @@ class Ballot(BaseModel):
     @property
     def race_type_name(self):
         return RaceType.label(self.race_type)
+
+    def __unicode__(self):
+        return self.number
 
 
 reversion.register(Ballot)

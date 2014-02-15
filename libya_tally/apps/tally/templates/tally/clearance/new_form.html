@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Clearance: New Result Form' %}</h1>
+
+<br/>
+
+<form name="form" method="post" action="">
+    <table class="table table-bordered">
+        {{ form.as_table }}
+    </table>
+    <button class="btn btn-small" type="submit" name="submit">
+        {% trans "Create Form" %}
+    </button>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

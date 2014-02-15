@@ -45,7 +45,7 @@ class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    ballot = models.ForeignKey(Ballot)
+    ballot = models.ForeignKey(Ballot, null=True)
     center = models.ForeignKey(Center, null=True)
     user = models.ForeignKey(User, null=True)
 
