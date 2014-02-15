@@ -6,6 +6,15 @@
 
 <h1>{% trans 'Audit List' %}</h1>
 
+<form method="get" action="audit/new">
+    <button type="submit" class="btn btn-primary btn-small pull-right">
+        {% trans 'New Form Record' %}
+    </button>
+</form>
+
+<br/>
+<br/>
+
 <table class="table table-bordered table-striped">
     <tr>
         <th>{% trans 'Center Name' %}</th>
