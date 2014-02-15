@@ -81,6 +81,7 @@ class LocaleView(TemplateView):
 
         if locale:
             self.request.session['locale'] = locale
+            self.request.session['django_language'] = locale
 
         next_url = get_data.get('next', 'home')
 

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load i18n %}
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -14,6 +15,9 @@
       {% endif %}
       <link href="{{STATIC_URL}}css/default.css" rel="stylesheet" type="text/css" />
     {% endblock %}
+
+    {% get_current_language as LANGUAGE_CODE %}
+    <!-- Current language: {{ LANGUAGE_CODE }} -->
   </head>
 
 {% load i18n %}
