@@ -14,15 +14,15 @@ class ProgressReport(object):
 
     def get_queryset(self):
         if self.queryset is None or not isinstance(self.queryset, QuerySet):
-            raise ImproperlyConfigured(_(
-                u"`queryset needs to be of instance QuerySet`"))
+            raise ImproperlyConfigured(
+                u"`queryset needs to be of instance QuerySet`")
 
         return self.queryset
 
     def get_filtered_queryset(self):
         if not isinstance(self.filtered_queryset, QuerySet):
-            raise ImproperlyConfigured(_(
-                u"`queryset needs to be of instance QuerySet`"))
+            raise ImproperlyConfigured(
+                u"`queryset needs to be of instance QuerySet`")
 
         return self.filtered_queryset
 

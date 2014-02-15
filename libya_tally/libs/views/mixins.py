@@ -5,7 +5,6 @@ from django.db.models import Q
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseBadRequest
-from django.utils.translation import ugettext as _
 from eztables.forms import DatatablesForm
 from operator import or_
 
@@ -70,9 +69,9 @@ class DatatablesDisplayFieldsMixin(object):
         '''Format a single row (if necessary)'''
 
         if self.display_fields is None:
-            raise ImproperlyConfigured(_(
+            raise ImproperlyConfigured(
                 u"`DatatablesDisplayMixin` requires a displa_fields tuple to"
-                " be defined."))
+                " be defined.")
 
         data = {}
         for field, name in self.display_fields:
