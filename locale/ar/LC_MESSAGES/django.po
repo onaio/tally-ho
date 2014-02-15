@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-15 09:06+0000\n"
+"POT-Creation-Date: 2014-02-15 09:55+0000\n"
 "PO-Revision-Date: 2014-02-14 20:28+0000\n"
 "Last-Translator: marwa.r1985 <marwa.r.benissa@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -21,24 +21,64 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: libya_tally/apps/tally/forms/barcode_form.py:36
+#: libya_tally/apps/tally/forms/barcode_form.py:21
+#: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:14
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:14
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:14
+msgid "Barcode"
+msgstr "رقم التسلسل"
+
+#: libya_tally/apps/tally/forms/barcode_form.py:25
+#, fuzzy
+msgid "Barcode Copy"
+msgstr "رقم التسلسل"
+
+#: libya_tally/apps/tally/forms/barcode_form.py:38
 #: libya_tally/apps/tally/templates/tally/barcode_verify.html:11
 msgid "Barcodes do not match!"
 msgstr "الرقم التسلسلي غير مطابق"
+
+#: libya_tally/apps/tally/forms/candidate_form.py:18
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:176
+msgid "Votes"
+msgstr ""
 
 #: libya_tally/apps/tally/forms/candidate_formset.py:14
 msgid "Missing votes for candidate"
 msgstr "أصوات المترشح مفقودة"
 
-#: libya_tally/apps/tally/forms/center_details_form.py:44
+#: libya_tally/apps/tally/forms/center_details_form.py:21
+#: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:15
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:15
+msgid "Center Number"
+msgstr "رقم المركز"
+
+#: libya_tally/apps/tally/forms/center_details_form.py:25
+#, fuzzy
+msgid "Center Number Copy"
+msgstr "رقم المركز"
+
+#: libya_tally/apps/tally/forms/center_details_form.py:29
+#: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:16
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:16
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:16
+msgid "Station Number"
+msgstr "رقم المركز"
+
+#: libya_tally/apps/tally/forms/center_details_form.py:33
+#, fuzzy
+msgid "Station Number Copy"
+msgstr "رقم المركز"
+
+#: libya_tally/apps/tally/forms/center_details_form.py:48
 msgid "Center Numbers do not match"
 msgstr "أرقام المركز غير متطابقة"
 
-#: libya_tally/apps/tally/forms/center_details_form.py:47
+#: libya_tally/apps/tally/forms/center_details_form.py:51
 msgid "Station Numbers do not match"
 msgstr "رقم المحطة غير مطابق"
 
-#: libya_tally/apps/tally/forms/center_details_form.py:56
+#: libya_tally/apps/tally/forms/center_details_form.py:60
 msgid "Invalid Station Number for this Center"
 msgstr "رقم المحطة لهذا المركز غير صحيح"
 
@@ -796,10 +836,6 @@ msgstr ""
 msgid "Results Section"
 msgstr "قسم النتائج"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:176
-msgid "Votes"
-msgstr ""
-
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:177
 msgid "Candidate"
 msgstr ""
@@ -1001,23 +1037,6 @@ msgstr "التعديل الاخير"
 #, fuzzy
 msgid "Actionable Form List"
 msgstr "قائمة النمودج "
-
-#: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:14
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:14
-#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:14
-msgid "Barcode"
-msgstr "رقم التسلسل"
-
-#: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:15
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:15
-msgid "Center Number"
-msgstr "رقم المركز"
-
-#: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:16
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:16
-#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:16
-msgid "Station Number"
-msgstr "رقم المركز"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:17
 #: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:18
