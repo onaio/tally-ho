@@ -5,7 +5,7 @@
 .idea
 build
 data.tgz
-data/*
+data
 db.sqlite3
 libya_tally/static
 local_settings.py
