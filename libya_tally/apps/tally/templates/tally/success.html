@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{{ header_text }}</h1>
+
+<h4 class="headertxt">{% trans 'Form successful move to' %} {{ next_step }}</h4>
+<div class="subtitle">{% trans 'Barcode:' %} {{ result_form.barcode }}</div>
+<br>
+<a href="{% url 'intake-clerk' %}" class="btn btn-primary">{% trans 'Start new form' %}</a>
+{% endblock %}
+

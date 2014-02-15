@@ -253,7 +253,7 @@ class TestIntakeClerk(TestBase):
         self.assertIn('', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(request.session.get('result_form'),
-                         None)
+                         result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_1)
 

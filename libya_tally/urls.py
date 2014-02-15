@@ -81,7 +81,7 @@ urlpatterns = patterns(
         intake_clerk.ClearanceView.as_view(),
         name='intake-clearance'),
     url(r'^intake/intaken',
-        TemplateView.as_view(template_name='tally/intake/success.html'),
+        intake_clerk.ConfirmationView.as_view(),
         name='intaken'),
 
     url(r'^quality-control/home$',

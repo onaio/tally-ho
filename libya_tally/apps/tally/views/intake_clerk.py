@@ -175,7 +175,6 @@ class PrintCoverView(LoginRequiredMixin,
             form_in_intake_state(result_form)
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
-            del self.request.session['result_form']
 
             return redirect('intaken')
 
@@ -196,3 +195,20 @@ class ClearanceView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
+
+
+class ConfirmationView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       TemplateView):
+    template_name = "tally/success.html"
+    group_required = groups.INTAKE_CLERK
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        del self.request.session['result_form']
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  header_text=_('Intake'),
+                                  next_step=_('Data Entry 1')))
