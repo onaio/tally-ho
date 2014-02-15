@@ -27,9 +27,9 @@
 			<td width="45%">
                 <span class="helptext">{% trans 'Serial number of ballots received by the polling station</span>' %}</td>
             <td width=""><label for="id_ballot_number_from">{% trans 'From:' %}</label></td>
-			<td><input autocomplete="off" autofocus="on" class="required form-control" id="id_ballot_number_from" name="ballot_number_from" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+			<td><input tabindex="10" autocomplete="off" autofocus="on" class="required form-control" id="id_ballot_number_from" name="ballot_number_from" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 			<th><label for="id_ballot_number_to">To:</label></th>
-			<td><input autocomplete="off" class="required form-control" id="id_ballot_number_to" name="ballot_number_to" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+			<td><input tabindex="20" autocomplete="off" class="required form-control" id="id_ballot_number_to" name="ballot_number_to" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 		</tr>
 		</tbody>
 		</table>
@@ -40,7 +40,7 @@
             <th width="70%">
                 <label for="id_number_ballots_received">
                 <span class="helptext">{% trans 'Total number of ballots received by the polling station' %} </span></label></th>
-			<td width="20%"><input autocomplete="off" class="required form-control" id="id_number_ballots_received" name="number_ballots_received" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"></td>
+			<td width="20%"><input tabindex="30" autocomplete="off" class="required form-control" id="id_number_ballots_received" name="number_ballots_received" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"></td>
 		</tr>
 		</tbody>
 		</table>
@@ -55,25 +55,25 @@
 			<th width="10%"><span class="bignum">9</span></th>
             <th width="60%"><label for="id_number_unstamped_ballots">
                 {% trans 'Number of unstamped ballots:' %}</label></th>
-			<td width="30%"><input autocomplete="off" class="required form-control" id="id_number_unstamped_ballots" name="number_unstamped_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+			<td width="30%"><input tabindex="110" autocomplete="off" class="required form-control" id="id_number_unstamped_ballots" name="number_unstamped_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 		</tr>
 		<tr>
 			<th><span class="bignum">10</span></th>
             <th><label for="id_number_invalid_votes">
                 {% trans 'Number of invalid votes (including the blanks):' %}</label></th>
-			<td><input autocomplete="off" class="required form-control" id="id_number_invalid_votes" name="number_invalid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+			<td><input tabindex="120" autocomplete="off" class="required form-control" id="id_number_invalid_votes" name="number_invalid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 		</tr>
 		<tr>
 			<th><span class="bignum">11</span></th>
             <th><label for="id_number_valid_votes">
                 {% trans 'Number of valid votes:' %}</label></th>
-			<td><input autocomplete="off" class="required form-control" id="id_number_valid_votes" name="number_valid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+			<td><input tabindex="130" autocomplete="off" class="required form-control" id="id_number_valid_votes" name="number_valid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 		</tr>
 		<tr>
 			<th><span class="bignum">12</span></th>
             <th><label for="id_number_sorted_and_counted">
                 {% trans 'Total number of the sorted and counted ballots:' %}</label></th>
-			<td><input autocomplete="off" class="required form-control" id="id_number_sorted_and_counted" name="number_sorted_and_counted" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/><br/></td>
+			<td><input tabindex="140" autocomplete="off" class="required form-control" id="id_number_sorted_and_counted" name="number_sorted_and_counted" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/><br/></td>
 		</tr>
 		<tr>
 			<td colspan="3" class="blue-bg">
@@ -86,11 +86,16 @@
                 {% trans 'If  the  difference  persists,  write a note in the field  at the bottom of the form to explain the action taken prior to proceeding to the next step.' %}
 			</td>
 		</tr>
-        <tr><th></th><th><label for="id_signature_polling_officer_1">{% trans 'Is the form signed by polling officer 1?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_polling_officer_1" name="signature_polling_officer_1" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
-        <tr><th></th><th><label for="id_signature_polling_officer_2">{% trans 'Is the form signed by polling officer 2?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_polling_officer_2" name="signature_polling_officer_2" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
-        <tr><th></th><th><label for="id_signature_polling_station_chair">{% trans 'Is the form signed by the polling station chair?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_polling_station_chair" name="signature_polling_station_chair" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
-        <tr><th></th><th><label for="id_signature_dated">{% trans 'Is the form dated?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_signature_dated" name="signature_dated" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
-        <tr><th></th><th><label for="id_is_stamped">{% trans 'Is the form stamped?' %}</label></th><td><input autocomplete="off" class="form-control" id="id_is_stamped" name="is_stamped" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /><br /></td></tr>
+        <tr><th></th><th><label for="id_signature_polling_officer_1">{% trans 'Is the form signed by polling officer 1?' %}</label></th>
+            <td><input tabindex="150" autocomplete="off" class="form-control" id="id_signature_polling_officer_1" name="signature_polling_officer_1" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
+        <tr><th></th><th><label for="id_signature_polling_officer_2">{% trans 'Is the form signed by polling officer 2?' %}</label></th>
+            <td><input tabindex="160" autocomplete="off" class="form-control" id="id_signature_polling_officer_2" name="signature_polling_officer_2" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
+        <tr><th></th><th><label for="id_signature_polling_station_chair">{% trans 'Is the form signed by the polling station chair?' %}</label></th>
+            <td><input tabindex="170" autocomplete="off" class="form-control" id="id_signature_polling_station_chair" name="signature_polling_station_chair" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
+        <tr><th></th><th><label for="id_signature_dated">{% trans 'Is the form dated?' %}</label></th>
+            <td><input tabindex="180" autocomplete="off" class="form-control" id="id_signature_dated" name="signature_dated" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /></td></tr>
+        <tr><th></th><th><label for="id_is_stamped">{% trans 'Is the form stamped?' %}</label></th>
+            <td><input tabindex="190" autocomplete="off" class="form-control" id="id_is_stamped" name="is_stamped" onCopy="return false;" onDrag="return false;" onDrop="return false;" onPaste="return false;" type="checkbox" /><br /></td></tr>
 		</tbody>
 		</table>
 		</div>
@@ -106,31 +111,31 @@
         <th width="60%"><label for="id_number_signatures_in_vr">
             <span class="helptext">
                 {% trans 'Number of signatures in the VR:' %}</span></label></th>
-		<td width="30%"><input autocomplete="off" class="required form-control" id="id_number_signatures_in_vr" name="number_signatures_in_vr" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+		<td width="30%"><input tabindex="40" autocomplete="off" class="required form-control" id="id_number_signatures_in_vr" name="number_signatures_in_vr" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 	</tr>
 	<tr>
 		<th><span class="bignum">3</span></th>
         <th><label for="id_number_unused_ballots">
                 {% trans 'Number of unused ballots:' %}</label></th>
-		<td><input autocomplete="off" class="required form-control" id="id_number_unused_ballots" name="number_unused_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+		<td><input tabindex="50" autocomplete="off" class="required form-control" id="id_number_unused_ballots" name="number_unused_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 	</tr>
 	<tr>
 		<th><span class="bignum">4</span></th>
         <th><label for="id_number_spoiled_ballots">
             {% trans 'Number of spoiled ballots:' %}</label></th>
-		<td><input autocomplete="off" class="required form-control" id="id_number_spoiled_ballots" name="number_spoiled_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+		<td><input tabindex="60" autocomplete="off" class="required form-control" id="id_number_spoiled_ballots" name="number_spoiled_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 	</tr>
 	<tr>
 		<th><span class="bignum">5</span></th>
         <th><label for="id_number_cancelled_ballots">
             {% trans 'Number of cancelled ballots:' %}</label></th>
-		<td><input autocomplete="off" class="required form-control" id="id_number_cancelled_ballots" name="number_cancelled_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+		<td><input tabindex="70" autocomplete="off" class="required form-control" id="id_number_cancelled_ballots" name="number_cancelled_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 	</tr>
 	<tr>
 		<th><span class="bignum">6</span></th>
         <th><label for="id_number_ballots_outside_box">
             {% trans 'Total number of ballots remaining outside the ballot box:' %}</label></th>
-		<td><input autocomplete="off" class="required form-control" id="id_number_ballots_outside_box" name="number_ballots_outside_box" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"></td>
+		<td><input tabindex="80" autocomplete="off" class="required form-control" id="id_number_ballots_outside_box" name="number_ballots_outside_box" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"></td>
 	</tr>
 	</tbody>
 	</table>
@@ -142,13 +147,13 @@
 		<th width="10%"><span class="bignum">7</span></th>
         <th width="60%"><label for="id_number_ballots_inside_box">
             {% trans 'Number of ballots found inside the ballot box:' %}</label></th>
-		<td width="30%"><input autocomplete="off" class="required form-control" id="id_number_ballots_inside_box" name="number_ballots_inside_box" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+		<td width="30%"><input tabindex="90" autocomplete="off" class="required form-control" id="id_number_ballots_inside_box" name="number_ballots_inside_box" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 	</tr>
 	<tr>
 		<th><span class="bignum">8</span></th>
         <th><label for="id_number_ballots_inside_and_outside_box">
             {% trans 'Total number of ballots found inside and outside the ballot box:' %}</label></th>
-		<td><input autocomplete="off" class="required form-control" id="id_number_ballots_inside_and_outside_box" name="number_ballots_inside_and_outside_box" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+		<td><input tabindex="100" autocomplete="off" class="required form-control" id="id_number_ballots_inside_and_outside_box" name="number_ballots_inside_and_outside_box" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
 	</tr>
     <tr>
         <td colspan="3">
@@ -199,7 +204,7 @@
     </table>
 
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <button class="btn btn-primary" type="submit" name="submit">{% trans "Submit" %}</button>
+    <button tabindex="1000" class="btn btn-primary" type="submit" name="submit">{% trans "Submit" %}</button>
     {% csrf_token %}
 </form>
 {% endblock %}
