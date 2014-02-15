@@ -17,16 +17,20 @@ disable_copy_input = {
 class CenterDetailsForm(forms.Form):
     center_number = forms.CharField(min_length=5, max_length=5,
                                     widget=forms.TextInput(
-                                        attrs=disable_copy_input))
+                                        attrs=disable_copy_input),
+                                    label=_(u"Center Number"))
     center_number_copy = forms.CharField(min_length=5, max_length=5,
                                          widget=forms.TextInput(
-                                             attrs=disable_copy_input))
+                                             attrs=disable_copy_input),
+                                         label=_(u"Center Number Copy"))
     station_number = forms.IntegerField(min_value=1, max_value=8,
                                         widget=forms.TextInput(
-                                            attrs=disable_copy_input))
+                                            attrs=disable_copy_input),
+                                        label=_(u"Station Number"))
     station_number_copy = forms.IntegerField(min_value=1, max_value=8,
                                              widget=forms.TextInput(
-                                                 attrs=disable_copy_input))
+                                                 attrs=disable_copy_input),
+                                             label=_(u"Station Number Copy"))
 
     def __init__(self, *args, **kwargs):
         super(CenterDetailsForm, self).__init__(*args, **kwargs)

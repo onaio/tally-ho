@@ -14,4 +14,5 @@ disable_copy_input = {
 class CandidateForm(forms.Form):
     votes = forms.IntegerField(min_value=0, required=True,
                                widget=forms.TextInput(
-                                   attrs=disable_copy_input))
+                                   attrs=disable_copy_input),
+                               label=_(u"Votes"))
