@@ -21,7 +21,6 @@ class Clearance(BaseModel):
     user = models.ForeignKey(User)
 
     active = models.BooleanField(default=True)
-    for_superadmin = models.BooleanField(default=False)
     reviewed_supervisor = models.BooleanField(default=False)
     reviewed_team = models.BooleanField(default=False)
     date_supervisor_modified = models.DateTimeField(null=True)

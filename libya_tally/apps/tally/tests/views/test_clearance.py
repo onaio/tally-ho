@@ -235,13 +235,16 @@ class TestClearance(TestBase):
         request.session = data
         response = view(request)
 
-        clearance = result_form.clearance
+        clearance = result_form.clearances.all()[0]
+        result_form.reload()
+
         self.assertEqual(clearance.supervisor, self.user)
+        self.assertEqual(clearance.active, False)
         self.assertEqual(clearance.reviewed_supervisor, True)
         self.assertEqual(clearance.reviewed_team, True)
-        self.assertEqual(clearance.for_superadmin, True)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
 
     def test_new_form_get_with_form(self):
         # save clearance as clerk

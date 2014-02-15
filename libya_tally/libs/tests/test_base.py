@@ -70,14 +70,15 @@ def create_candidates(result_form, user,
 
 def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
                        ballot=None, station_number=None, center=None,
-                       gender=Gender.MALE, force_ballot=True):
+                       gender=Gender.MALE, force_ballot=True,
+                       serial_number=0):
     if force_ballot and not ballot:
         ballot = create_ballot()
 
     result_form, _ = ResultForm.objects.get_or_create(
         ballot=ballot,
         barcode=barcode,
-        serial_number=kwargs.get('serial_number', 0),
+        serial_number=serial_number,
         form_state=form_state,
         station_number=station_number,
         center=center,

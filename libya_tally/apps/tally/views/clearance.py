@@ -127,7 +127,9 @@ class ReviewView(LoginRequiredMixin,
 
                 if clearance.resolution_recommendation ==\
                         ClearanceResolution.RESET_TO_PREINTAKE:
-                    clearance.for_superadmin = True
+                    clearance.active = False
+                    result_form.form_state = FormState.UNSUBMITTED
+                    result_form.save()
 
             clearance.save()
 
