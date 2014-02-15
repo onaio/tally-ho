@@ -58,3 +58,9 @@ class TestArchive(TestBase):
         self.assertEqual(report.number, 1)
         self.assertEqual(report.total, 11)
         self.assertEqual(report.percentage, 9.090909090909092)
+
+    def test_not_receieved_progress_report(self):
+        report = progress.NotRecievedProgressReport()
+        self.assertEqual(report.number, 2)
+        self.assertEqual(report.total, 11)
+        self.assertEqual(report.percentage, 18.181818181818183)
