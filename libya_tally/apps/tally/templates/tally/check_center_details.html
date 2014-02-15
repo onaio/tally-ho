@@ -6,25 +6,26 @@
 
 <h1>{{ header_text }}</h1>
 
-<h2>{% trans 'Check Center Details Against Form' %}</h2>
+<h4 class="headertxt">{% trans 'Check Center Details Against Form' %}</h4>
 
 {% include 'tally/center_details.html' %}
 
 <form name="form_match" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <input type="hidden" name="is_match" value="true">
-    <button type="submit" name="match_submit">{% trans "Accept" %}</button>
+    <button type="submit" name="match_submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> {% trans "Accept" %}</button>
     {% csrf_token %}
 </form>
 <form name="form_no_match" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <button type="submit" name="no_match_submit">{% trans "Name Does Not Match and Code Incorrect - Go back and try again" %}</button>
+    <button type="submit" name="no_match_submit" class="btn">{% trans "Name Does Not Match and Code Incorrect - Go back and try again" %}</button>
     {% csrf_token %}
 </form>
 <form name="form_no_match" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <input type="hidden" name="is_not_match" value="true">
-    <button type="submit" name="no_match_submit">{% trans "Name Does Not Match and Code Correct - Send to Clearance" %}</button>
+    <button type="submit" name="no_match_submit" class="btn btn-warning">{% trans "Name Does Not Match and Code Correct - Send to Clearance" %}</button>
     {% csrf_token %}
 </form>
+
 {% endblock %}
