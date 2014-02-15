@@ -46,3 +46,9 @@ class TestArchive(TestBase):
         self.assertEqual(report.number, 1)
         self.assertEqual(report.total, 11)
         self.assertEqual(report.percentage, 9.090909090909092)
+
+    def test_clearance_progress_report(self):
+        report = progress.ClearanceProgressReport()
+        self.assertEqual(report.number, 1)
+        self.assertEqual(report.total, 11)
+        self.assertEqual(report.percentage, 9.090909090909092)
