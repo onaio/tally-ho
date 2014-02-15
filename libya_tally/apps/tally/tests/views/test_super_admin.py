@@ -1,9 +1,6 @@
 from django.core.exceptions import SuspiciousOperation
 from django.test import RequestFactory
 
-from libya_tally.apps.tally.models.audit import Audit
-from libya_tally.apps.tally.models.clearance import Clearance
-from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.views import super_admin as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
@@ -56,8 +53,8 @@ class TestSuperAdmin(TestBase):
         request.session = {}
         response = view(request)
 
-        audit = Audit.objects.get(pk=audit.pk)
-        result_form = ResultForm.objects.get(pk=result_form.pk)
+        audit.reload()
+        result_form.reload()
         self.assertEqual(audit.active, False)
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
 
@@ -91,8 +88,8 @@ class TestSuperAdmin(TestBase):
         request.session = {}
         response = view(request)
 
-        clearance = Clearance.objects.get(pk=clearance.pk)
-        result_form = ResultForm.objects.get(pk=result_form.pk)
+        clearance.reload()
+        result_form.reload()
         self.assertEqual(clearance.active, False)
         self.assertEqual(result_form.form_state, FormState.INTAKE)
 
