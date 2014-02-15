@@ -69,6 +69,7 @@ class Migration(SchemaMigration):
             ('office', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
             ('rejected_count', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
             ('serial_number', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True, null=True)),
+            ('skip_quarantine_checks', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('station_number', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True, blank=True)),
         ))
         db.send_create_signal('tally', ['ResultForm'])
@@ -527,6 +528,7 @@ class Migration(SchemaMigration):
             'office': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'rejected_count': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'serial_number': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True', 'null': 'True'}),
+            'skip_quarantine_checks': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'station_number': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True'})
         },

@@ -4,7 +4,7 @@ from django.test import RequestFactory
 from libya_tally.apps.tally.views import super_admin as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_audit, create_clearance,\
+from libya_tally.libs.tests.test_base import create_audit,\
     create_result_form, TestBase
 
 
@@ -35,7 +35,7 @@ class TestSuperAdmin(TestBase):
                 'review': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
-        request.session = {}
+        request.session = {'result_form': result_form.pk}
         response = view(request)
 
         self.assertEqual(response.status_code, 302)
@@ -50,48 +50,14 @@ class TestSuperAdmin(TestBase):
                 'confirm': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
-        request.session = {}
+        request.session = {'result_form': result_form.pk}
         response = view(request)
 
         audit.reload()
         result_form.reload()
-        self.assertEqual(audit.active, False)
+        self.assertFalse(audit.active)
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/super-administrator/form-action-list',
-                      response['Location'])
-
-    def test_form_action_view_post_review_clearance(self):
-        result_form = create_result_form(form_state=FormState.CLEARANCE)
-        request = self._get_request()
-        view = views.FormActionView.as_view()
-        data = {'result_form': result_form.pk,
-                'review': 1}
-        request = self.factory.post('/', data=data)
-        request.user = self.user
-        request.session = {}
-        response = view(request)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/clearance/review', response['Location'])
-
-    def test_form_action_view_post_confirm_clearance(self):
-        result_form = create_result_form(form_state=FormState.CLEARANCE)
-        clearance = create_clearance(result_form, self.user)
-        request = self._get_request()
-        view = views.FormActionView.as_view()
-        data = {'result_form': result_form.pk,
-                'confirm': 1}
-        request = self.factory.post('/', data=data)
-        request.user = self.user
-        request.session = {}
-        response = view(request)
-
-        clearance.reload()
-        result_form.reload()
-        self.assertEqual(clearance.active, False)
-        self.assertEqual(result_form.form_state, FormState.INTAKE)
+        self.assertTrue(result_form.skip_quarantine_checks)
 
         self.assertEqual(response.status_code, 302)
         self.assertIn('/super-administrator/form-action-list',

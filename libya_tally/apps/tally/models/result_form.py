@@ -60,6 +60,7 @@ class ResultForm(BaseModel):
     office = models.CharField(max_length=256, blank=True, null=True)
     rejected_count = models.PositiveIntegerField(default=0)
     serial_number = models.PositiveIntegerField(unique=True, null=True)
+    skip_quarantine_checks = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
 
     @property

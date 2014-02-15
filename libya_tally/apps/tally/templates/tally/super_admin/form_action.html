@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<h1>{% trans 'Audit Review List' %}</h1>
+<h1>{% trans 'Actionable Form List' %}</h1>
 
 <table id="formprogresslist" class="table table-striped">
     <thead>
@@ -24,7 +24,7 @@
     </thead>
     <tbody>
         <tr>
-        {% for audit in audit_forms %}
+        {% for audit in audits %}
         <td>{{ audit.result_form.barcode }}</td>
         <td>{{ audit.result_form.center.code }}</td>
         <td>{{ audit.result_form.station_number }}</td>

@@ -6,16 +6,14 @@ from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.models.audit import Audit
-from libya_tally.apps.tally.models.clearance import Clearance
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.models.station import Station
 from libya_tally.libs.models.enums.audit_resolution import\
     AuditResolution
-from libya_tally.libs.models.enums.clearance_resolution import\
-    ClearanceResolution
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
+from libya_tally.libs.views.session import session_matches_post_result_form
 
 
 class DashboardView(LoginRequiredMixin,
@@ -194,46 +192,30 @@ class FormActionView(LoginRequiredMixin,
     success_url = 'form-action-view'
 
     def get(self, *args, **kwargs):
-        audit_list = Audit.objects.filter(
+        audits = Audit.objects.filter(
             active=True,
             reviewed_supervisor=True,
             resolution_recommendation=
             AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE).all()
-        clearance_list = Clearance.objects.filter(
-            active=True,
-            reviewed_supervisor=True,
-            resolution_recommendation=ClearanceResolution.RESET_TO_PREINTAKE
-        ).all()
 
         return self.render_to_response(self.get_context_data(
-            audit_forms=audit_list,
-            clearance_forms=clearance_list))
+            audits=audits))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
-        pk = post_data.get('result_form')
+        pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
 
         if 'review' in post_data:
-            self.request.session['result_form'] = pk
-
-            if result_form.form_state == FormState.AUDIT:
-                return redirect('audit-review')
-            elif result_form.form_state == FormState.CLEARANCE:
-                return redirect('clearance-review')
+            return redirect('audit-review')
         elif 'confirm' in post_data:
-            if result_form.form_state == FormState.AUDIT:
-                result_form.form_state = FormState.DATA_ENTRY_1
-                audit = result_form.audit
-                audit.active = False
-                audit.save()
-            elif result_form.form_state == FormState.CLEARANCE:
-                result_form.form_state = FormState.INTAKE
-                clearance = result_form.clearance
-                clearance.active = False
-                clearance.save()
-
+            result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.skip_quarantine_checks = True
             result_form.save()
+
+            audit = result_form.audit
+            audit.active = False
+            audit.save()
 
             return redirect(self.success_url)
         else:
