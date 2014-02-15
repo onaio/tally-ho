@@ -3,7 +3,6 @@ from django.db.models.query import QuerySet
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext as _
 
-from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 
@@ -51,12 +50,6 @@ class ProgressReport(object):
         obj.queryset = self.get_queryset().filter(center__office=office)
 
         return obj
-
-    def per_center_office(self):
-        offices = Center.objects.order_by('office')\
-            .distinct('office').values('office')
-        return [(office['office'], self.for_center_office(office['office']))
-                for office in offices]
 
 
 class ExpectedProgressReport(ProgressReport):
