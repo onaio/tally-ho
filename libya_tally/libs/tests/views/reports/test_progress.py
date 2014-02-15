@@ -1,11 +1,13 @@
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
-from libya_tally.libs.tests.test_base import create_result_form, TestBase
+from libya_tally.libs.tests.test_base import create_result_form, \
+    create_center, TestBase
 from libya_tally.libs.reports import progress
 
 
 class TestArchive(TestBase):
     def setUp(self):
+        center = create_center()
         create_result_form(
             barcode=1, serial_number=1, form_state=FormState.UNSUBMITTED)
         create_result_form(
@@ -13,13 +15,15 @@ class TestArchive(TestBase):
         create_result_form(
             barcode=3, serial_number=3, form_state=FormState.CLEARANCE)
         create_result_form(
-            barcode=4, serial_number=4, form_state=FormState.DATA_ENTRY_1)
+            barcode=4, serial_number=4, form_state=FormState.DATA_ENTRY_1,
+            center=center)
         create_result_form(
             barcode=5, serial_number=5, form_state=FormState.DATA_ENTRY_2)
         create_result_form(
             barcode=6, serial_number=6, form_state=FormState.CORRECTION)
         create_result_form(
-            barcode=7, serial_number=7, form_state=FormState.QUALITY_CONTROL)
+            barcode=7, serial_number=7, form_state=FormState.QUALITY_CONTROL,
+            center=center)
         create_result_form(
             barcode=8, serial_number=8, form_state=FormState.AUDIT)
         create_result_form(
@@ -64,3 +68,10 @@ class TestArchive(TestBase):
         self.assertEqual(report.number, 2)
         self.assertEqual(report.total, 11)
         self.assertEqual(report.percentage, 18.181818181818183)
+
+    def test_progress_for_office(self):
+        report = progress.ExpectedProgressReport()
+        report = report.for_center_office('1')
+        self.assertEqual(report.number, 2)
+        self.assertEqual(report.total, 2)
+        self.assertEqual(report.percentage, 100.0)
