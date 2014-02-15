@@ -1,3 +1,5 @@
+from django.core.exceptions import ImproperlyConfigured
+
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.tests.test_base import create_result_form, \
@@ -32,6 +34,13 @@ class TestArchive(TestBase):
             barcode=10, serial_number=10, form_state=FormState.ARCHIVED)
         create_result_form(form_state=FormState.ARCHIVING)
         self.assertEqual(ResultForm.objects.count(), 11)
+
+    def test_progress_report(self):
+        report = progress.ExpectedProgressReport()
+        with self.assertRaises(ImproperlyConfigured):
+            report.total
+        with self.assertRaises(ImproperlyConfigured):
+            report.number
 
     def test_expected_progress_report(self):
         report = progress.ExpectedProgressReport()
