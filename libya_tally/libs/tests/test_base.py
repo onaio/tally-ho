@@ -68,7 +68,7 @@ def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
     result_form, _ = ResultForm.objects.get_or_create(
         ballot=ballot,
         barcode=barcode,
-        serial_number=0,
+        serial_number=kwargs.get('serial_number', 0),
         form_state=form_state,
         station_number=kwargs.get('station_number'),
         center=kwargs.get('center'),
