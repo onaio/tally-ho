@@ -16,7 +16,7 @@
             {% if result1.votes == result2.votes %}
             {% trans 'No' %}
             {% else %}{% trans 'Yes' %}{% endif %}</td>
-        <td>
+        <td span>
             {% if result1.votes != result2.votes %}
             <input type="radio" name="candidate_{{ prefix }}_{{ candidate.pk }}" value="{{ result1.votes }}" />
             {% else %}-{% endif %}</td>
