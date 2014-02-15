@@ -156,4 +156,4 @@ IDLE_TIMEOUT = 60
 # individual pageviews will be tracked
 TRACK_PAGEVIEWS = True
 
-LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
+LOCALE_PATHS = (os.path.join(BASE_DIR, '..', 'locale'),)
