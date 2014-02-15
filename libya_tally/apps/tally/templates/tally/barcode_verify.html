@@ -6,7 +6,7 @@
 
 <h1>{{ header_text }}</h1>
 
-<h4 class="headertxt">{% trans 'Enter Barcode' %}</h4>
+<div class="form-instructions">{% trans 'Enter Barcode' %}</div>
 
 <form id="result_form" method="post" action="" onsubmit="return barcodes_match('{% trans 'Please enter barcodes.' %}','{% trans 'Wrong barcode length' %}','{% trans "Barcodes do not match!" %}');">
     {% if form.non_field_errors %}
@@ -31,7 +31,7 @@
         <tr>
             <td></td>
             <td>
-                <button type="submit" name="submit" class="btn btn-warning">{% trans "Submit" %}</button>
+                <button type="submit" name="submit" class="btn btn-primary">{% trans "Submit" %}</button>
             </td>
         </tr>
 
