@@ -22,6 +22,7 @@ table.vert tr td{
 
 span.bignum{}
 
+
 .hnec-logo{
 	margin-left:1em;
 }
@@ -69,7 +70,7 @@ form{
 	padding:0;
 }
 .infotable{
-	width:45%;
+	width:49%;
 }
 
 .border-top{
@@ -102,6 +103,23 @@ h1.headertxt{
     border-bottom: 1px solid #CFCFCF;
 
 }
+
+.warn {
+    background-color: #f2dede!important;
+    color: #a94442;
+    border: solid 2px #ebccd1!important;
+    font-weight: bold;
+}
+
+td.thick-border-right {
+    border-right: solid 2px #666666!important;
+
+}
+td.thick-border-left {
+    border-left: solid 2px #666666!important;
+
+}
+
 
 h4.headertxt{
 	color:#F67225;
