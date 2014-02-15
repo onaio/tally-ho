@@ -9,11 +9,6 @@ from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form, TestBase
 
 
-def create_audit(result_form, user):
-    return Audit.objects.create(result_form=result_form,
-                                user=user)
-
-
 class TestAudit(TestBase):
     def setUp(self):
         self.factory = RequestFactory()

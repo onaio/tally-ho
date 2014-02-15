@@ -1,5 +1,6 @@
+from django.core.exceptions import SuspiciousOperation
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import TemplateView
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
@@ -15,7 +16,6 @@ from libya_tally.libs.models.enums.clearance_resolution import\
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.session import session_matches_post_result_form
 
 
 class DashboardView(LoginRequiredMixin,
@@ -187,9 +187,11 @@ class FormProgressDataView(LoginRequiredMixin,
 
 class FormActionView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
+                     mixins.ReverseSuccessURLMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/form_action.html"
+    success_url = 'form-action-view'
 
     def get(self, *args, **kwargs):
         audit_list = Audit.objects.filter(
@@ -209,11 +211,30 @@ class FormActionView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
-        pk = session_matches_post_result_form(post_data, self.request)
+        pk = post_data.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
 
         if 'review' in post_data:
-            return self.render_to_response(self.get_context_data(
-                form=result_form))
+            self.request.session['result_form'] = pk
+
+            if result_form.form_state == FormState.AUDIT:
+                return redirect('audit-review')
+            elif result_form.form_state == FormState.CLEARANCE:
+                return redirect('clearance-review')
         elif 'confirm' in post_data:
-            pass
+            if result_form.form_state == FormState.AUDIT:
+                result_form.form_state = FormState.DATA_ENTRY_1
+                audit = result_form.audit
+                audit.active = False
+                audit.save()
+            elif result_form.form_state == FormState.CLEARANCE:
+                result_form.form_state = FormState.INTAKE
+                clearance = result_form.clearance
+                clearance.active = False
+                clearance.save()
+
+            result_form.save()
+
+            return redirect(self.success_url)
+        else:
+            raise SuspiciousOperation('Unknown POST response type')

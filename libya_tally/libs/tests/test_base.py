@@ -7,6 +7,7 @@ from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.center import Center
+from libya_tally.apps.tally.models.clearance import Clearance
 from libya_tally.apps.tally.models.reconciliation_form import\
     ReconciliationForm
 from libya_tally.apps.tally.models.result import Result
@@ -27,6 +28,11 @@ def create_audit(result_form, user):
                                 result_form=result_form,
                                 action_prior_to_recommendation=0,
                                 resolution_recommendation=0)
+
+
+def create_clearance(result_form, user):
+    return Clearance.objects.create(result_form=result_form,
+                                    user=user)
 
 
 def create_result(result_form, candidate, user, votes):

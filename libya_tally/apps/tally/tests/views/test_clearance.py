@@ -3,15 +3,9 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
 from libya_tally.apps.tally.views import clearance as views
-from libya_tally.apps.tally.models.clearance import Clearance
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form, TestBase
-
-
-def create_clearance(result_form, user):
-    return Clearance.objects.create(result_form=result_form,
-                                    user=user)
 
 
 class TestClearance(TestBase):
