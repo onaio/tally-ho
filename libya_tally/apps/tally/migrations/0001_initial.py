@@ -59,16 +59,17 @@ class Migration(SchemaMigration):
             ('ballot', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Ballot'], null=True)),
             ('center', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Center'], null=True)),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True)),
+            ('created_user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='created_user', null=True, to=orm['auth.User'])),
             ('barcode', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True)),
             ('date_seen', self.gf('django.db.models.fields.DateTimeField')(null=True)),
             ('form_stamped', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
             ('form_state', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
             ('gender', self.gf('django.db.models.fields.IntegerField')(default=0, null=True, db_index=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
-            ('office', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
+            ('office', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
             ('rejected_count', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
             ('serial_number', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True, null=True)),
-            ('station_number', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('station_number', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True, blank=True)),
         ))
         db.send_create_signal('tally', ['ResultForm'])
 
@@ -517,6 +518,7 @@ class Migration(SchemaMigration):
             'barcode': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True'}),
             'center': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Center']", 'null': 'True'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'created_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'created_user'", 'null': 'True', 'to': u"orm['auth.User']"}),
             'date_seen': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
             'form_stamped': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
             'form_state': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
@@ -524,10 +526,10 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
-            'office': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
+            'office': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
             'rejected_count': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'serial_number': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True', 'null': 'True'}),
-            'station_number': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'station_number': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True'})
         },
         'tally.station': {

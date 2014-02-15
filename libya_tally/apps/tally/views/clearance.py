@@ -178,11 +178,40 @@ class NewFormView(LoginRequiredMixin,
                   FormView):
     form_class = NewResultForm
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
+    success_url = 'clearance'
     template_name = "tally/clearance/new_form.html"
 
     def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+
+        if pk:
+            result_form = ResultForm.objects.get(pk=pk)
+        else:
+            barcode = ResultForm.generate_barcode()
+            result_form = ResultForm.objects.create(
+                barcode=barcode,
+                form_state=FormState.CLEARANCE)
+            self.request.session['result_form'] = result_form.pk
+
+        form = NewResultForm(instance=result_form)
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
-        return self.render_to_response(
-            self.get_context_data(form=form))
+        return self.render_to_response(self.get_context_data(
+            form=form, result_form=result_form))
+
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
+        result_form = ResultForm.objects.get(pk=pk)
+        result_form.created_user = self.request.user
+        form = NewResultForm(post_data, instance=result_form)
+
+        if form.is_valid():
+            form.save()
+            del self.request.session['result_form']
+
+            return redirect(self.success_url)
+        else:
+            return self.render_to_response(self.get_context_data(
+                form=form, result_form=result_form))

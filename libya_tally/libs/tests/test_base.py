@@ -30,6 +30,13 @@ def create_audit(result_form, user):
                                 resolution_recommendation=0)
 
 
+def create_ballot():
+    ballot, _ = Ballot.objects.get_or_create(number=1,
+                                             race_type=RaceType.GENERAL)
+
+    return ballot
+
+
 def create_clearance(result_form, user):
     return Clearance.objects.create(result_form=result_form,
                                     user=user)
@@ -62,17 +69,19 @@ def create_candidates(result_form, user,
 
 
 def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
-                       **kwargs):
-    ballot, _ = Ballot.objects.get_or_create(number=1,
-                                             race_type=RaceType.GENERAL)
+                       ballot=None, station_number=None, center=None,
+                       gender=Gender.MALE, force_ballot=True):
+    if force_ballot and not ballot:
+        ballot = create_ballot()
+
     result_form, _ = ResultForm.objects.get_or_create(
         ballot=ballot,
         barcode=barcode,
         serial_number=kwargs.get('serial_number', 0),
         form_state=form_state,
-        station_number=kwargs.get('station_number'),
-        center=kwargs.get('center'),
-        gender=Gender.MALE)
+        station_number=station_number,
+        center=center,
+        gender=gender)
 
     return result_form
 

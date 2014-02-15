@@ -12,11 +12,13 @@ from libya_tally.libs.models.enums.race_type import RaceType
 
 def get_matched_forms(result_form):
     results_v1 = Result.objects.filter(
-        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1)\
-        .values('candidate', 'votes')
+        active=True,
+        result_form=result_form,
+        entry_version=EntryVersion.DATA_ENTRY_1).values('candidate', 'votes')
     results_v2 = Result.objects.filter(
-        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_2)\
-        .values('candidate', 'votes')
+        active=True,
+        result_form=result_form,
+        entry_version=EntryVersion.DATA_ENTRY_2).values('candidate', 'votes')
 
     if not results_v1 or not results_v2:
         raise Exception(_(u"Result Form has no double entries."))

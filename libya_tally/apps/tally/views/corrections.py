@@ -214,6 +214,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
+        del post_data['result_form']
         form_in_state(result_form, [FormState.CORRECTION])
 
         if 'submit_corrections' in post_data:

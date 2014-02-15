@@ -15,11 +15,8 @@ disable_copy_input = {
 class NewResultForm(ModelForm):
     class Meta:
         model = ResultForm
-        fields = ['barcode',
-                  'ballot',
-                  'center',
-                  'name',
-                  'office',
-                  'serial_number',
-                  'gender',
-                  'station_number']
+        fields = localized_fields = ['ballot',
+                                     'center',
+                                     'office',
+                                     'gender',
+                                     'station_number']

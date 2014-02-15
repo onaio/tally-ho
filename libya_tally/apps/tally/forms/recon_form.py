@@ -15,25 +15,25 @@ disable_copy_input = {
 class ReconForm(ModelForm):
     class Meta:
         model = ReconciliationForm
-        fields = ['ballot_number_from',
-                  'ballot_number_to',
-                  'is_stamped',
-                  'number_ballots_received',
-                  'number_signatures_in_vr',
-                  'number_unused_ballots',
-                  'number_spoiled_ballots',
-                  'number_cancelled_ballots',
-                  'number_ballots_outside_box',
-                  'number_ballots_inside_box',
-                  'number_ballots_inside_and_outside_box',
-                  'number_unstamped_ballots',
-                  'number_invalid_votes',
-                  'number_valid_votes',
-                  'number_sorted_and_counted',
-                  'signature_polling_officer_1',
-                  'signature_polling_officer_2',
-                  'signature_polling_station_chair',
-                  'signature_dated']
+        fields = localized_fields = ['ballot_number_from',
+                                     'ballot_number_to',
+                                     'is_stamped',
+                                     'number_ballots_received',
+                                     'number_signatures_in_vr',
+                                     'number_unused_ballots',
+                                     'number_spoiled_ballots',
+                                     'number_cancelled_ballots',
+                                     'number_ballots_outside_box',
+                                     'number_ballots_inside_box',
+                                     'number_ballots_inside_and_outside_box',
+                                     'number_unstamped_ballots',
+                                     'number_invalid_votes',
+                                     'number_valid_votes',
+                                     'number_sorted_and_counted',
+                                     'signature_polling_officer_1',
+                                     'signature_polling_officer_2',
+                                     'signature_polling_station_chair',
+                                     'signature_dated']
         localized_fields = '__all__'
 
     def __init__(self, *args, **kwargs):

@@ -46,8 +46,10 @@ class ResultForm(BaseModel):
         app_label = 'tally'
 
     ballot = models.ForeignKey(Ballot, null=True)
-    center = models.ForeignKey(Center, null=True)
+    center = models.ForeignKey(Center, blank=True, null=True)
     user = models.ForeignKey(User, null=True)
+    created_user = models.ForeignKey(User, null=True,
+                                     related_name='created_user')
 
     barcode = models.PositiveIntegerField(unique=True)
     date_seen = models.DateTimeField(null=True)
@@ -55,10 +57,10 @@ class ResultForm(BaseModel):
     form_state = enum.EnumField(FormState)
     gender = enum.EnumField(Gender, null=True)
     name = models.CharField(max_length=256, null=True)
-    office = models.CharField(max_length=256, null=True)
+    office = models.CharField(max_length=256, blank=True, null=True)
     rejected_count = models.PositiveIntegerField(default=0)
     serial_number = models.PositiveIntegerField(unique=True, null=True)
-    station_number = models.PositiveSmallIntegerField(null=True)
+    station_number = models.PositiveSmallIntegerField(blank=True, null=True)
 
     @property
     def barcode_padded(self):
@@ -234,6 +236,13 @@ class ResultForm(BaseModel):
     @property
     def center_name(self):
         return self.center.name if self.center else None
+
+    @classmethod
+    def generate_barcode(cls):
+        result_forms = cls.objects.all().order_by('-barcode')
+        highest_barcode = result_forms[0].barcode if result_forms else\
+            10000000
+        return highest_barcode + 1
 
 
 reversion.register(ResultForm)

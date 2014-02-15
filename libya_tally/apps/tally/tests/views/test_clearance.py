@@ -2,10 +2,12 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
+from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.views import clearance as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_result_form, TestBase
+from libya_tally.libs.tests.test_base import create_ballot,\
+    create_result_form, TestBase
 
 
 class TestClearance(TestBase):
@@ -226,8 +228,7 @@ class TestClearance(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
-                'action_prior_to_recommendation': 1,
-                'resolution_recommendation': 3,
+                'resolution_recommendation': 2,
                 'implement': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -242,15 +243,90 @@ class TestClearance(TestBase):
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
 
+    def test_new_form_get_with_form(self):
+        # save clearance as clerk
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+        result_form = create_result_form(form_state=FormState.UNSUBMITTED)
+
+        view = views.NewFormView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(str(response.context_data['result_form'].barcode),
+                         result_form.barcode)
+
     def test_new_form_get(self):
         # save clearance as clerk
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+        create_result_form(form_state=FormState.UNSUBMITTED)
 
         view = views.NewFormView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {}
         response = view(request)
+        pk = request.session['result_form']
 
         self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(pk)
+
+        result_form = ResultForm.objects.get(pk=pk)
+        self.assertIsNotNone(result_form.barcode)
+        self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+
+    def test_new_form_post(self):
+        # save clearance as clerk
+        result_form = create_result_form(
+            form_state=FormState.CLEARANCE,
+            force_ballot=False,
+            gender=None)
+        ballot = create_ballot()
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.NewFormView.as_view()
+        data = {'result_form': result_form.pk,
+                'gender': [u'0'],
+                'ballot': [ballot.pk]}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        result_form.reload()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(result_form.created_user, self.request.user)
+        self.assertEqual(result_form.gender, 0)
+        self.assertIn('clearance', response['location'])
+
+    def test_new_form_post_invalid(self):
+        # save clearance as clerk
+        result_form = create_result_form(
+            form_state=FormState.CLEARANCE,
+            force_ballot=False,
+            gender=None)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.NewFormView.as_view()
+        data = {'result_form': result_form.pk,
+                'gender': [u'0']}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        result_form.reload()
+
+        pk = request.session['result_form']
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(pk)
+
+        result_form = ResultForm.objects.get(pk=pk)
+        self.assertIsNotNone(result_form.barcode)
+        self.assertEqual(result_form.form_state, FormState.CLEARANCE)
