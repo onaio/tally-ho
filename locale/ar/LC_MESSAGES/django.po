@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-15 10:17+0000\n"
+"POT-Creation-Date: 2014-02-15 10:26+0000\n"
 "PO-Revision-Date: 2014-02-14 20:28+0000\n"
 "Last-Translator: marwa.r1985 <marwa.r.benissa@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -454,28 +454,28 @@ msgid "Audit List"
 msgstr "قائمة المراجعة"
 
 #: libya_tally/apps/tally/templates/tally/audit/dashboard.html:11
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:11
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:18
 #: libya_tally/apps/tally/templates/tally/super_admin/centers.html:16
 msgid "Center Name"
 msgstr "اسم المركز"
 
 #: libya_tally/apps/tally/templates/tally/audit/dashboard.html:12
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:12
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:19
 msgid "Center ID"
 msgstr "تعريف المركز"
 
 #: libya_tally/apps/tally/templates/tally/audit/dashboard.html:13
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:13
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:20
 msgid "Station"
 msgstr "محطة"
 
 #: libya_tally/apps/tally/templates/tally/audit/dashboard.html:14
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:14
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:21
 msgid "Reviewed?"
 msgstr "تمت مراجعتها"
 
 #: libya_tally/apps/tally/templates/tally/audit/dashboard.html:15
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:15
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:22
 msgid "Supervisor Reviewed?"
 msgstr "مراجعة المشرف ؟"
 
@@ -486,8 +486,8 @@ msgstr "تعديل"
 
 #: libya_tally/apps/tally/templates/tally/audit/dashboard.html:17
 #: libya_tally/apps/tally/templates/tally/audit/dashboard.html:30
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:17
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:31
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:24
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:38
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:38
 msgid "Review"
 msgstr "المراجعة"
@@ -596,9 +596,18 @@ msgstr "العودة إلى فريق التدقيق"
 msgid "Clearance List"
 msgstr ""
 
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:16
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:23
 msgid "Modified"
 msgstr "تعديل"
+
+#: libya_tally/apps/tally/templates/tally/clearance/new_form.html:7
+msgid "Clearance: New Result Form"
+msgstr ""
+
+#: libya_tally/apps/tally/templates/tally/clearance/new_form.html:16
+#, fuzzy
+msgid "Create Form"
+msgstr "غلاف الاستمارة"
 
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:7
 msgid "Clearance:"
