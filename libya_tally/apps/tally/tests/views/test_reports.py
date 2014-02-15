@@ -1,4 +1,3 @@
-from django.core.exceptions import SuspiciousOperation
 from django.test import RequestFactory
 
 from libya_tally.apps.tally.models.result_form import ResultForm
