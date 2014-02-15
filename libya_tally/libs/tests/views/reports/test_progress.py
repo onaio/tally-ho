@@ -25,7 +25,7 @@ class TestArchive(TestBase):
         create_result_form(
             barcode=9, serial_number=9, form_state=FormState.UNSUBMITTED)
         create_result_form(
-            barcode=10, serial_number=10, form_state=FormState.ARCHIVING)
+            barcode=10, serial_number=10, form_state=FormState.ARCHIVED)
         create_result_form(form_state=FormState.ARCHIVING)
         self.assertEqual(ResultForm.objects.count(), 11)
 
@@ -40,3 +40,9 @@ class TestArchive(TestBase):
         self.assertEqual(report.number, 8)
         self.assertEqual(report.total, 11)
         self.assertEqual(report.percentage, 72.72727272727273)
+
+    def test_archived_progress_report(self):
+        report = progress.ArchivedProgressReport()
+        self.assertEqual(report.number, 1)
+        self.assertEqual(report.total, 11)
+        self.assertEqual(report.percentage, 9.090909090909092)
