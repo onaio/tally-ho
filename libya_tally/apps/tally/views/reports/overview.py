@@ -16,7 +16,7 @@ class OverviewReportView(LoginRequiredMixin,
     def get_per_office_progress(self):
         data = []
 
-        for center in Center.objects.distinct('office'):
+        for center in Center.objects.ordey_by('office').distinct('office'):
             office = center.office
             intaken = p.IntakenProgressReport().for_center_office(office)
             not_intaken = p.NotRecievedProgressReport()\

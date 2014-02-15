@@ -53,7 +53,8 @@ class ProgressReport(object):
         return obj
 
     def per_center_office(self):
-        offices = Center.objects.distinct('office').values('office')
+        offices = Center.objects.order_by('office')\
+            .distinct('office').values('office')
         return [(office['office'], self.for_center_office(office['office']))
                 for office in offices]
 
