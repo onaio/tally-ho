@@ -1,16 +1,20 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
 from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.audit_form import AuditForm
+from libya_tally.apps.tally.forms.barcode_form import BarcodeForm
+from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.audit_resolution import\
     AuditResolution
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.form_state import form_in_state
+from libya_tally.libs.views.form_state import form_in_state,\
+    safe_form_in_state
 from libya_tally.libs.views.session import session_matches_post_result_form
 
 
@@ -167,3 +171,45 @@ class PrintCoverView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
+
+
+class CreateAuditView(LoginRequiredMixin,
+                      mixins.GroupRequiredMixin,
+                      mixins.ReverseSuccessURLMixin,
+                      FormView):
+    form_class = BarcodeForm
+    group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
+    template_name = "tally/barcode_verify.html"
+    success_url = 'audit'
+
+    def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form, header_text=_('Create Audit')))
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            barcode = form.cleaned_data['barcode']
+            result_form = get_object_or_404(ResultForm, barcode=barcode)
+
+            form = safe_form_in_state(
+                result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
+                form)
+
+            if form:
+                return self.form_invalid(form)
+
+            result_form.form_state = FormState.AUDIT
+            result_form.save()
+
+            Audit.objects.create(result_form=result_form,
+                                 user=self.request.user)
+
+            return redirect(self.success_url)
+        else:
+            return self.form_invalid(form)

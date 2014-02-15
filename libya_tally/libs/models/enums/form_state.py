@@ -16,7 +16,7 @@ class FormState(enum.Enum):
     _transitions = {
         ARCHIVED: (ARCHIVING, AUDIT),
         ARCHIVING: (QUALITY_CONTROL,),
-        AUDIT: (ARCHIVING,),
+        AUDIT: (ARCHIVING, DATA_ENTRY_1, DATA_ENTRY_2),
         CLEARANCE: (INTAKE,),
         CORRECTION: (DATA_ENTRY_2,),
         DATA_ENTRY_1: (AUDIT, CORRECTION, INTAKE, QUALITY_CONTROL),

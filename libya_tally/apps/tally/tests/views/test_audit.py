@@ -278,3 +278,41 @@ class TestAudit(TestBase):
         self.assertEqual(audit.result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(audit.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
+
+    def test_create_audit_get(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+
+        view = views.CreateAuditView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Create Audit')
+
+    def test_create_audit_post(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+        barcode = 123456789
+        serial_number = 0
+
+        for form_state in [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2]:
+            result_form = create_result_form(form_state=form_state,
+                                             barcode=barcode,
+                                             serial_number=serial_number)
+            view = views.CreateAuditView.as_view()
+            data = {'barcode': result_form.barcode,
+                    'barcode_copy': result_form.barcode}
+            request = self.factory.post('/', data=data)
+            request.user = self.user
+            request.session = data
+            response = view(request)
+            result_form.reload()
+
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(result_form.form_state, FormState.AUDIT)
+            self.assertEqual(result_form.audit.user, self.user)
+
+            barcode = barcode + 1
+            serial_number = serial_number + 1
