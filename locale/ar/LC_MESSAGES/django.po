@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-15 09:55+0000\n"
+"POT-Creation-Date: 2014-02-15 10:17+0000\n"
 "PO-Revision-Date: 2014-02-14 20:28+0000\n"
 "Last-Translator: marwa.r1985 <marwa.r.benissa@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -38,7 +38,7 @@ msgstr "رقم التسلسل"
 msgid "Barcodes do not match!"
 msgstr "الرقم التسلسلي غير مطابق"
 
-#: libya_tally/apps/tally/forms/candidate_form.py:18
+#: libya_tally/apps/tally/forms/candidate_form.py:19
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:176
 msgid "Votes"
 msgstr ""
@@ -1178,11 +1178,6 @@ msgstr "العودة الى النمودج  %s"
 msgid "Center and station numbers do not match"
 msgstr "المركز والمحطة غير متطابقيين"
 
-#: libya_tally/libs/reports/progress.py:18
-#: libya_tally/libs/reports/progress.py:25
-msgid "`queryset needs to be of instance QuerySet`"
-msgstr ""
-
 #: libya_tally/libs/reports/progress.py:42
 msgid "No results"
 msgstr ""
@@ -1221,10 +1216,6 @@ msgstr "يرجى تحديد النتائج الصحيحة لجميع الأصو�
 #, python-format
 msgid "Form not in %(state_name)s.  Return form to %(state)s"
 msgstr "ليس فى النمودج  %(state_name)s. العودة الى %(state)s"
-
-#: libya_tally/libs/views/mixins.py:74
-msgid "`DatatablesDisplayMixin` requires a displa_fields tuple to be defined."
-msgstr ""
 
 #: libya_tally/libs/views/session.py:9
 msgid "Error: Missing result form!"
