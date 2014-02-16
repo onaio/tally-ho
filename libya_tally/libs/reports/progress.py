@@ -39,7 +39,8 @@ class ProgressReport(object):
     def percentage_value(self):
         if self.denominator() <= 0:
             return _(u"No results")
-        return 100 * (self.numerator() / float(self.denominator()))
+        return '%s%%' % round(
+            100 * (self.numerator() / float(self.denominator())), 2)
 
     percentage = property(percentage_value)
 
