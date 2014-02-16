@@ -14,6 +14,7 @@
       <link href="{{STATIC_URL}}css/bootstrap.css" rel="stylesheet" type="text/css" />
       {% endif %}
       <link href="{{STATIC_URL}}css/default.css" rel="stylesheet" type="text/css" />
+      <link href="{{STATIC_URL}}css/print.css" rel="stylesheet" type="text/css" />
     {% endblock %}
 
     {% get_current_language as LANGUAGE_CODE %}
@@ -27,7 +28,7 @@
 
     <div class="container main-container">
 
-        <div class="container top-header">
+        <div class="container top-header print-section">
             <div class="row">
                 <div class="col-md-4 righter" dir="rtl">
                     <img alt="Hnec-logo" class="hnec-logo" src="{{STATIC_URL}}img/hnec-logo.png">
@@ -35,7 +36,7 @@
 
                 <div class="col-md-4">
 
-                    <div class="locales">
+                    <div class="locales do-not-print">
                         <a href="{% url 'home-locale' %}?locale=ar&next={{request.path}}">العربية</a> |
                         <a href="{% url 'home-locale' %}?locale=en&next={{request.path}}">English</a>
                         <br/>
@@ -50,7 +51,7 @@
 
     {% endblock %}
 
-        <div class='container main-container'>
+        <div class='container main-container print-section'>
     {% block content %}
 
 

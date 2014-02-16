@@ -1,0 +1,20 @@
+@media print {
+
+body * {
+    visibility: hidden;
+}
+
+.print-section * {
+    visibility: visible;
+}
+
+.print-section .do-not-print, input{
+    display: none;
+}
+
+a:link:after, a:visited:after {
+    content:" (" attr(href) ")";
+    font-size:90%;
+}
+
+}
