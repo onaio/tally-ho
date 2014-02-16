@@ -178,3 +178,6 @@ table.print-table{
 table.print-table td {
     padding: 10px;
 }
+table.print-table td h4 {
+    margin-top: 0;
+}

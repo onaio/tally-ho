@@ -8,7 +8,7 @@ body * {
     visibility: visible;
 }
 
-.print-section .do-not-print, input{
+.print-section .do-not-print{
     display: none;
 }
 
