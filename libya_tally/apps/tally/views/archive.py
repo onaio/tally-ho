@@ -39,12 +39,20 @@ def check_quarantine(result_form, user):
         result_form.save()
 
 
+def states_for_form(user, states, result_form):
+    if groups.ARCHIVE_SUPERVISOR in groups.user_groups(user)\
+            and result_form.form_state == FormState.ARCHIVED:
+        states.append(FormState.ARCHIVED)
+
+    return states
+
+
 class ArchiveView(LoginRequiredMixin,
                   mixins.GroupRequiredMixin,
                   mixins.ReverseSuccessURLMixin,
                   FormView):
     form_class = BarcodeForm
-    group_required = groups.ARCHIVE_CLERK
+    group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
     template_name = "tally/barcode_verify.html"
     success_url = 'archive-print'
 
@@ -63,7 +71,10 @@ class ArchiveView(LoginRequiredMixin,
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
 
-            form = safe_form_in_state(result_form, FormState.ARCHIVING,
+            possible_states = states_for_form(
+                self.request.user, [FormState.ARCHIVING], result_form)
+
+            form = safe_form_in_state(result_form, possible_states,
                                       form)
 
             if form:
@@ -82,14 +93,18 @@ class ArchivePrintView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
-    group_required = groups.ARCHIVE_CLERK
+    group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
     template_name = "tally/archive/print_cover.html"
     success_url = 'archive-success'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.ARCHIVING)
+
+        possible_states = states_for_form(
+            self.request.user, [FormState.ARCHIVING], result_form)
+
+        form_in_state(result_form, possible_states)
 
         if result_form.audit:
             cover_type = _('Quarantined')
@@ -109,7 +124,11 @@ class ArchivePrintView(LoginRequiredMixin,
         pk = session_matches_post_result_form(
             post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.ARCHIVING)
+
+        possible_states = states_for_form(
+            self.request.user, [FormState.ARCHIVING], result_form)
+
+        form_in_state(result_form, possible_states)
 
         result_form.form_state = FormState.AUDIT if result_form.audit else\
             FormState.ARCHIVED
@@ -122,7 +141,7 @@ class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
     template_name = "tally/success.html"
-    group_required = groups.ARCHIVE_CLERK
+    group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')

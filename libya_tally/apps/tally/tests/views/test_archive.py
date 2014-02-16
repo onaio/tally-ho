@@ -56,6 +56,21 @@ class TestArchive(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('archive/print', response['location'])
 
+    def test_archive_post_supervisor(self):
+        self._create_and_login_user()
+        barcode = '123456789'
+        create_result_form(form_state=FormState.ARCHIVED)
+        self._add_user_to_group(self.user, groups.ARCHIVE_SUPERVISOR)
+        view = views.ArchiveView.as_view()
+        data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=data)
+        request.session = {}
+        request.user = self.user
+        response = view(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('archive/print', response['location'])
+
     def test_archive_post_quarantine(self):
         center = create_center()
         create_station(center)
@@ -100,6 +115,25 @@ class TestArchive(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Successful Archive')
 
+    def test_print_success_get_supervisor(self):
+        self._create_and_login_user()
+        code = '12345'
+        station_number = 1
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.ARCHIVED,
+                                         center=center,
+                                         station_number=station_number)
+        self._add_user_to_group(self.user, groups.ARCHIVE_SUPERVISOR)
+        view = views.ArchivePrintView.as_view()
+        request = self.factory.get('/')
+        request.session = {'result_form': result_form.pk}
+        request.user = self.user
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Successful Archive')
+
     def test_print_quarantine_get(self):
         self._create_and_login_user()
         code = '12345'
@@ -132,6 +166,23 @@ class TestArchive(TestBase):
         self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
 
         result_form = create_result_form(form_state=FormState.ARCHIVING)
+        view = views.ArchivePrintView.as_view()
+        data = {'result_form': result_form.pk}
+        request = self.factory.post('/', data=data)
+        request.session = data
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/archive/success', response['location'])
+
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+
+    def test_print_post_supervisor(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.ARCHIVE_SUPERVISOR)
+
+        result_form = create_result_form(form_state=FormState.ARCHIVED)
         view = views.ArchivePrintView.as_view()
         data = {'result_form': result_form.pk}
         request = self.factory.post('/', data=data)
