@@ -350,3 +350,36 @@ class TestClearance(TestBase):
         result_form = ResultForm.objects.get(pk=pk)
         self.assertIsNotNone(result_form.barcode)
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+
+    def test_print_cover_supervisor(self):
+        username = 'alice'
+        self._create_and_login_user(username=username)
+        result_form = create_result_form(form_state=FormState.CLEARANCE,
+                                         station_number=42)
+        create_clearance(result_form, self.user, reviewed_team=True)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        view = views.PrintCoverView.as_view()
+        response = view(request)
+
+        self.assertContains(response, 'Clearance Case')
+        self.assertContains(response, '42')
+
+    def test_print_cover_clerk(self):
+        username = 'alice'
+        self._create_and_login_user(username=username)
+        result_form = create_result_form(form_state=FormState.CLEARANCE,
+                                         station_number=42)
+        create_clearance(result_form, self.user, reviewed_team=True)
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        view = views.PrintCoverView.as_view()
+        response = view(request)
+
+        self.assertContains(response, 'Clearance Case')
+        self.assertContains(response, '42')
