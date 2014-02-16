@@ -8,7 +8,7 @@ from libya_tally.libs.tests.test_base import create_center, \
     create_result_form, TestBase
 
 
-class TestReportViews(TestBase):
+class TestOverview(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
@@ -52,5 +52,5 @@ class TestReportViews(TestBase):
         self.assertContains(response, 'Per Office')
         self.assertContains(response, 'Tally Centre Progress Report')
         self.assertContains(response, "<td>2</td>")
-        self.assertContains(response, "<td>18.1818181818</td>")
+        self.assertContains(response, "<td>18.18%</td>")
         self.assertContains(response, "<td>Not Received</td>")

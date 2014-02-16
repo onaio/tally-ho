@@ -112,7 +112,6 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/success',
                       response['location'])
         self.assertEqual(result_form.form_state, FormState.ARCHIVING)
-        self.assertEqual(request.session, {})
 
     def test_dashboard_get(self):
         barcode = '123456789'
@@ -455,3 +454,4 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Archiving')
         self.assertContains(response, reverse('quality-control-clerk'))
+        self.assertEqual(request.session, {})

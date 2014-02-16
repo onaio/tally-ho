@@ -18,6 +18,54 @@ from libya_tally.libs.views.form_state import form_in_state,\
 from libya_tally.libs.views.session import session_matches_post_result_form
 
 
+def audit_action(audit, post_data, result_form, url):
+    if 'forward' in post_data:
+        # forward to supervisor
+        audit.reviewed_team = True
+        url = 'audit-print'
+
+    if 'return' in post_data:
+        # return to audit team
+        audit.reviewed_team = False
+
+    if 'implement' in post_data:
+        # take implementation action
+        audit.reviewed_supervisor = True
+
+        if audit.resolution_recommendation ==\
+                AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE:
+            audit.for_superadmin = True
+        else:
+            # move to data entry 1
+            audit.active = False
+            result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.save()
+
+    audit.save()
+
+    return url
+
+
+def create_or_get_audit(post_data, user, result_form, form):
+    audit = result_form.audit
+
+    if audit:
+        audit = AuditForm(
+            post_data, instance=audit).save(commit=False)
+
+        if groups.AUDIT_CLERK in user.groups.values_list(
+                'name', flat=True):
+            audit.user = user
+        else:
+            audit.supervisor = user
+    else:
+        audit = form.save(commit=False)
+        audit.result_form = result_form
+        audit.user = user
+
+    return audit
+
+
 def is_clerk(user):
     return groups.AUDIT_CLERK in user.groups.values_list('name', flat=True)
 
@@ -89,47 +137,10 @@ class ReviewView(LoginRequiredMixin,
         form_in_state(result_form, FormState.AUDIT)
 
         if form.is_valid():
-            audit = result_form.audit
             user = self.request.user
-            url = self.success_url
+            audit = create_or_get_audit(post_data, user, result_form, form)
 
-            if audit:
-                audit = AuditForm(
-                    post_data, instance=audit).save(commit=False)
-
-                if groups.AUDIT_CLERK in user.groups.values_list(
-                        'name', flat=True):
-                    audit.user = user
-                else:
-                    audit.supervisor = user
-            else:
-                audit = form.save(commit=False)
-                audit.result_form = result_form
-                audit.user = user
-
-            if 'forward' in post_data:
-                # forward to supervisor
-                audit.reviewed_team = True
-                url = 'audit-print'
-
-            if 'return' in post_data:
-                # return to audit team
-                audit.reviewed_team = False
-
-            if 'implement' in post_data:
-                # take implementation action
-                audit.reviewed_supervisor = True
-
-                if audit.resolution_recommendation ==\
-                        AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE:
-                    audit.for_superadmin = True
-                else:
-                    # move to data entry 1
-                    audit.active = False
-                    result_form.form_state = FormState.DATA_ENTRY_1
-                    result_form.save()
-
-            audit.save()
+            url = audit_action(audit, post_data, result_form, self.success_url)
 
             return redirect(url)
         else:
