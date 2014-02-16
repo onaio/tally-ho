@@ -4,69 +4,75 @@
 
 {% block content %}
 
-<h1>{% trans 'Audit Case: Team Page' %}</h1>
+<h2>{% trans 'Clearance Case: Team Page' %}</h2>
 
-<table id="coverform">
+<table id="coverform" class="print-table">
     <tr>
-        <td>{% trans 'Barcode Number:' %} {{ result_form.barcode }}</td>
-        <td>{% trans 'Center Name:' %} {{ result_form.center.name }}</td>
+        <td>{% trans 'Center Name:' %} </td><td>{{ result_form.center.name }}</td>
+        <td>{% trans 'Barcode Number:' %} </td><td>{{ result_form.barcode }}</td>
     </tr>
     <tr>
-        <td>{% trans 'Form Type:' %} {{ result_form.ballot.race_type_name }}</td>
-        <td>{% trans 'Center Office:' %} {{ result_form.center.office }}</td>
+        <td>{% trans 'Office Name:' %} </td><td>{{ result_form.center.office }}</td>
+        <td>{% trans 'Form Type:' %} </td><td>{{ result_form.ballot.race_type_name }}</td>
     </tr>
     <tr>
-        <td>{% trans 'Sub-Constituency:' %} {{ result_form.center.sub_constituency.code }}</td>
-        <td>{% trans 'Center Code:' %} {{ result_form.center.code }}</td>
+        <td>{% trans 'Sub-Constituency:' %} </td><td>{{ result_form.center.sub_constituency.code }}</td>
+        <td>{% trans 'Center Code:' %} </td><td>{{ result_form.center.code }}</td>
     </tr>
     <tr>
-        <td>{% trans 'Number of Registrants:' %} {{ result_form.station.registrants }}</td>
-        <td>{% trans 'Station Code:' %} {{ result_form.station_number }}</td>
+        <td>{% trans 'Number of Registrants:' %} </td><td>{{ result_form.station.registrants }}</td>
+        <td>{% trans 'Station Code:' %} </td><td>{{ result_form.station_number }}</td>
     </tr>
     <tr>
-        <td></td>
-        <td>{% trans 'Date Created:' %} {{ result_form.seen_date }}</td>
+
+        <td>{% trans 'Date Created:' %} </td><td colspan="3">{{ result_form.date_seen }}</td>
     </tr>
     <tr>
-        <td></td>
-        <td>{% trans 'Date Team Modified:' %} {{ result_form.clearance.date_team_modified }}</td>
+        <td>{% trans 'Date Team Modified:' %} </td><td colspan="3">{{ result_form.clearance.date_team_modified }}</td>
     </tr>
     <tr>
-        <td></td>
-        <td>{% trans 'Date Supervisor Modified:' %} {{ result_form.clearance.date_supervisor_modified }}</td>
+        <td>{% trans 'Date Supervisor Modified:' %} </td><td colspan="3">{{ result_form.clearance.date_supervisor_modified }}</td>
     </tr>
     <tr>
-        <td colspan="2"><h4>{% trans 'Problem' %}</h4></td>
+        <td colspan="4"><h4>{% trans 'Problem' %}</h4>
     {% for problem in problems %}
-    <tr>
-        <td colspan="2"><input type="checkbox" name="problem" value="problem">{% trans problem %}</h4></td>
-    </tr>
+        <input type="checkbox" checked="checked" name="problem" value="problem">&nbsp;{% trans problem %}
+    <br />
     {% endfor %}
+    {% if result_form.clearance.other %}
+    </td></tr>
     <tr>
-        <td colspan="2"><h4>{% trans 'Action Conducted' %}</h4></td>
+        <td colspan="4">{% trans 'Other:' %} {{ result_form.clearance.other }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td colspan="4">
+            <h4>{% trans 'Action Conducted' %}</h4>
+            {{ result_form.clearance.action_prior_name }}
+        </td>
     <tr>
     <tr>
-        <td colspan="2">{{ result_form.clearance.action_prior_name }}</td>
+        <td colspan="4">
+            <h4>{% trans 'Resolution Recommendation' %}</h4>
+            {{ result_form.clearance.resolution_recommendation_name }}
+        </td>
     <tr>
-    <tr>
-        <td colspan="2"><h4>{% trans 'Resolution Recommendation' %}</h4></td>
-    <tr>
-    <tr>
-        <td colspan="2">{{ result_form.clearance.resolution_recommendation_name }}</td>
-    <tr>
-        <td colspan="2">{% trans 'Team Comment:' %} {{ result_form.clearance.team_comment }}</td>
+        <td colspan="4">{% trans 'Team Comment:' %} {{ result_form.clearance.team_comment }}</td>
     </tr>
     <tr>
-        <td colspan="2">{% trans 'Supervisor Comment:' %} {{ result_form.clearance.supervisor_comment }}</td>
+        <td colspan="4">{% trans 'Supervisor Comment:' %} {{ result_form.clearance.supervisor_comment }}</td>
     </tr>
 </table>
 
+<div class="do-not-print">
 <form name="print_cover_form" method='post' action="">
     {% csrf_token %}
     <input type="hidden" name="result_form" value="{{result_form.pk}}" />
-    <button type="button" name="print_cover_form" onclick="print_cover()">{% trans 'Print' %}</button>
-    <button type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">{% trans 'Print Successful' %}</button>
+    <button class="btn" type="button" name="print_cover_form" onclick="print_cover()">{% trans 'Print' %}</button>
+    <button class="btn" type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">{% trans 'Print Successful' %}</button>
 </form>
+</div>
+
 {% endblock %}
 
 {% block javascript %}
