@@ -41,3 +41,7 @@ def create_demo_users_with_groups(password='data'):
         user.set_password(password)
         user.save()
         user.groups.add(obj)
+
+
+def user_groups(user):
+    return user.groups.values_list("name", flat=True)

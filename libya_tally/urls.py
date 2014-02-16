@@ -104,9 +104,12 @@ urlpatterns = patterns(
     url(r'^corrections/match$',
         corrections.CorrectionMatchView.as_view(),
         name='corrections-match'),
-    url(r'^corrections/required',
+    url(r'^corrections/required$',
         corrections.CorrectionRequiredView.as_view(),
         name='corrections-required'),
+    url(r'^corrections/success$',
+        corrections.ConfirmationView.as_view(),
+        name='corrections-success'),
 
     url(r'^archive$',
         archive.ArchiveView.as_view(),

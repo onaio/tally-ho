@@ -67,8 +67,8 @@
 
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <button class="btn btn-success" name="submit_corrections" type="submit" value="submit corrections">{% trans 'Submit Corrections' %}</button>
-    <button class="btn btn-warning" name="reject_submit" type="submit" value="reject">{% trans 'Not Correct - Reject' %}</button>
-    <button class="btn btn-danger" name="abort_submit" type="submit" value="abort">{% trans 'Abort' %}</button>
+    <button class="btn btn-danger" name="reject_submit" type="submit" value="reject">{% trans 'Not Correct - Reject' %}</button>
+    <button class="btn btn-default" name="abort_submit" type="submit" value="abort">{% trans 'Abort' %}</button>
 
 </form>
 {% endblock %}

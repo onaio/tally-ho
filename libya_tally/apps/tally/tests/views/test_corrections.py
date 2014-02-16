@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
@@ -186,7 +187,7 @@ class TestCorrections(TestBase):
         self.assertEqual(updated_result_form.form_state,
                          FormState.QUALITY_CONTROL)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/corrections', response['location'])
+        self.assertIn('corrections/success', response['location'])
 
     def test_corrections_general_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
@@ -272,7 +273,7 @@ class TestCorrections(TestBase):
         self.assertEqual(updated_result_form.form_state,
                          FormState.QUALITY_CONTROL)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/corrections', response['location'])
+        self.assertIn('/corrections/success', response['location'])
 
     def test_corrections_women_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
@@ -354,4 +355,17 @@ class TestCorrections(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.QUALITY_CONTROL)
-        self.assertIn('corrections', response['location'])
+        self.assertIn('corrections/success', response['location'])
+
+    def test_confirmation_get(self):
+        result_form = create_result_form(form_state=FormState.QUALITY_CONTROL)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        view = views.ConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Quality Control')
+        self.assertContains(response, reverse('corrections-clerk'))

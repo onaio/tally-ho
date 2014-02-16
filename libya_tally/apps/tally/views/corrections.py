@@ -4,7 +4,7 @@ from django.forms import ValidationError
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.barcode_form import\
@@ -177,7 +177,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
     template_name = "tally/corrections/required.html"
-    success_url = 'corrections-clerk'
+    success_url = 'corrections-success'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -214,8 +214,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
-        del post_data['result_form']
-        form_in_state(result_form, [FormState.CORRECTION])
+        form_in_state(result_form, FormState.CORRECTION)
 
         if 'submit_corrections' in post_data:
             user = self.request.user
@@ -238,3 +237,21 @@ class CorrectionRequiredView(LoginRequiredMixin,
         else:
             return incorrect_checks(post_data, result_form,
                                     'corrections-clerk')
+
+
+class ConfirmationView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       TemplateView):
+    template_name = "tally/success.html"
+    group_required = groups.CORRECTIONS_CLERK
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        del self.request.session['result_form']
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  header_text=_('Corrections'),
+                                  next_step=_('Quality Control'),
+                                  start_url='corrections-clerk'))

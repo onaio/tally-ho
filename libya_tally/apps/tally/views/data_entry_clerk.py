@@ -60,6 +60,14 @@ def get_header_text(result_form):
     return _('Data Entry') + ' %s' % data_entry_number
 
 
+def user_is_data_entry_1(user):
+    return groups.DATA_ENTRY_1_CLERK in groups.user_groups(user)
+
+
+def user_is_data_entry_2(user):
+    return groups.DATA_ENTRY_2_CLERK in groups.user_groups(user)
+
+
 def check_group_for_state(result_form, user, form):
     """Ensure only data entry 1 clerk can access forms in data entry 1 state
     and similarly for data entry 2.
@@ -71,15 +79,14 @@ def check_group_for_state(result_form, user, form):
     :param form: The Django form to attach an error to.
     :returns: A form with an error if access denied, else None.
     """
-    user_groups = user.groups.values_list("name", flat=True)
 
-    if groups.SUPER_ADMINISTRATOR in user_groups:
+    if groups.SUPER_ADMINISTRATOR in groups.user_groups(user):
         return None
 
     if ((result_form.form_state == FormState.DATA_ENTRY_1 and
-       groups.DATA_ENTRY_1_CLERK not in user_groups) or
+       not user_is_data_entry_1(user)) or
        (result_form.form_state == FormState.DATA_ENTRY_2 and
-            groups.DATA_ENTRY_2_CLERK not in user_groups)):
+            not user_is_data_entry_2(user))):
         message = _(u"Return form to %s" % result_form.form_state_name)
 
         return add_generic_error(form, message)
@@ -113,9 +120,18 @@ class DataEntryView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        user = self.request.user
+
+        if user_is_data_entry_1(user):
+            entry_type = 1
+        elif user_is_data_entry_2(user):
+            entry_type = 2
+        else:
+            entry_type = 'Admin'
 
         return self.render_to_response(
-            self.get_context_data(form=form, header_text=_('Data Entry')))
+            self.get_context_data(
+                form=form, header_text=_('Data Entry %s') % entry_type))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
