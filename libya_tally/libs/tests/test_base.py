@@ -79,7 +79,7 @@ def create_candidates(result_form, user,
 def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
                        ballot=None, station_number=None, center=None,
                        gender=Gender.MALE, force_ballot=True,
-                       serial_number=0):
+                       serial_number=0, user=None):
     if force_ballot and not ballot:
         ballot = create_ballot()
 
@@ -89,6 +89,7 @@ def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
         serial_number=serial_number,
         form_state=form_state,
         station_number=station_number,
+        user=user,
         center=center,
         gender=gender)
 

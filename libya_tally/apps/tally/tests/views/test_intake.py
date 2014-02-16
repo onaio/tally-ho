@@ -89,6 +89,30 @@ class TestIntake(TestBase):
         self.assertEqual(result_form.form_state, FormState.INTAKE)
         self.assertEqual(result_form.user, self.user)
 
+    def test_intake_supervisor(self):
+        self._create_and_login_user(username='alice')
+        form_user = self.user
+        barcode = '123456789'
+        center = create_center()
+        create_result_form(barcode,
+                           form_state=FormState.DATA_ENTRY_1,
+                           user=form_user,
+                           center=center)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_SUPERVISOR)
+        view = views.CenterDetailsView.as_view()
+        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('intake/printcover',
+                      response['location'])
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertEqual(result_form.user, form_user)
+
     def test_center_detail_redirects_no_center(self):
         barcode = '123456789'
         create_result_form(barcode,
@@ -251,11 +275,44 @@ class TestIntake(TestBase):
         for test_string in expected_strings:
             self.assertContains(response, test_string)
 
+    def test_print_cover_get_supervisor(self):
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_SUPERVISOR)
+        view = views.PrintCoverView.as_view()
+        self.request.user = self.user
+        self.request.session = {'result_form': result_form.pk}
+        response = view(self.request)
+        expected_strings = [
+            'Intake:', 'Successful', '>Print</button>',
+            'Data Entry One:', 'Data Entry Two:', 'To Quality Control [ ]'
+        ]
+        for test_string in expected_strings:
+            self.assertContains(response, test_string)
+
     def test_print_cover_post(self):
         result_form = create_result_form()
         result_form.form_state = FormState.INTAKE
         result_form.save()
         self._create_or_login_intake_clerk()
+        view = views.PrintCoverView.as_view()
+
+        request = self.factory.post('/', data={'result_form': result_form.pk})
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('', response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(request.session.get('result_form'),
+                         result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.DATA_ENTRY_1)
+
+    def test_print_cover_post_supervisor(self):
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_SUPERVISOR)
         view = views.PrintCoverView.as_view()
 
         request = self.factory.post('/', data={'result_form': result_form.pk})

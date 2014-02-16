@@ -17,12 +17,20 @@ from libya_tally.libs.views.form_state import form_in_intake_state,\
     safe_form_in_state, form_in_state
 
 
+def states_for_form(user, states, result_form):
+    if groups.INTAKE_SUPERVISOR in groups.user_groups(user)\
+            and result_form.form_state == FormState.DATA_ENTRY_1:
+        states.append(FormState.DATA_ENTRY_1)
+
+    return states
+
+
 class CenterDetailsView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
     form_class = BarcodeForm
-    group_required = groups.INTAKE_CLERK
+    group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     template_name = "tally/barcode_verify.html"
     success_url = 'check-center-details'
 
@@ -41,20 +49,30 @@ class CenterDetailsView(LoginRequiredMixin,
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
 
-            form = safe_form_in_state(
-                result_form, [FormState.INTAKE, FormState.UNSUBMITTED],
-                form)
+            url = self.success_url
+            user = self.request.user
+
+            possible_states = states_for_form(
+                user, [FormState.INTAKE, FormState.UNSUBMITTED], result_form)
+
+            if groups.INTAKE_SUPERVISOR in groups.user_groups(user) and\
+                    result_form.form_state == FormState.DATA_ENTRY_1:
+                url = 'intake-printcover'
+
+            form = safe_form_in_state(result_form, possible_states, form)
 
             if form:
                 return self.form_invalid(form)
 
-            result_form.form_state = FormState.INTAKE
-            result_form.user = self.request.user
-            result_form.save()
+            if result_form.form_state != FormState.DATA_ENTRY_1:
+                result_form.form_state = FormState.INTAKE
+                result_form.user = user
+                result_form.save()
+
             self.request.session['result_form'] = result_form.pk
 
             if result_form.center:
-                return redirect(self.success_url)
+                return redirect(url)
             else:
                 return redirect('intake-enter-center')
         else:
@@ -66,7 +84,7 @@ class EnterCenterView(LoginRequiredMixin,
                       mixins.ReverseSuccessURLMixin,
                       FormView):
     form_class = CenterDetailsForm
-    group_required = groups.INTAKE_CLERK
+    group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     template_name = "tally/enter_center_details.html"
     success_url = 'check-center-details'
 
@@ -113,7 +131,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                              mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
-    group_required = groups.INTAKE_CLERK
+    group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     template_name = "tally/check_center_details.html"
     success_url = "intake-check-center-details"
 
@@ -153,14 +171,17 @@ class CheckCenterDetailsView(LoginRequiredMixin,
 class PrintCoverView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      TemplateView):
-    group_required = groups.INTAKE_CLERK
+    group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     template_name = "tally/intake/print_cover.html"
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
 
-        form_in_intake_state(result_form)
+        possible_states = states_for_form(self.request.user,
+                                          [FormState.INTAKE], result_form)
+
+        form_in_state(result_form, possible_states)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
@@ -172,7 +193,11 @@ class PrintCoverView(LoginRequiredMixin,
             pk = session_matches_post_result_form(post_data, self.request)
 
             result_form = get_object_or_404(ResultForm, pk=pk)
-            form_in_intake_state(result_form)
+            possible_states = states_for_form(self.request.user,
+                                              [FormState.INTAKE], result_form)
+
+            form_in_state(result_form, possible_states)
+
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
 
@@ -186,7 +211,7 @@ class ClearanceView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     TemplateView):
     template_name = "tally/intake/clearance.html"
-    group_required = groups.INTAKE_CLERK
+    group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -201,7 +226,7 @@ class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
     template_name = "tally/success.html"
-    group_required = groups.INTAKE_CLERK
+    group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
