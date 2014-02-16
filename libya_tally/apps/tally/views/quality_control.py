@@ -123,16 +123,17 @@ class QualityControlDashboardView(LoginRequiredMixin,
             result_form.reject()
 
             url = 'quality-control-reject'
+            del self.request.session['result_form']
         elif 'abort' in post_data:
             # send to entry
             quality_control.active = False
 
             url = 'quality-control-clerk'
+            del self.request.session['result_form']
         else:
             raise SuspiciousOperation('Missing expected POST data')
 
         quality_control.save()
-        del self.request.session['result_form']
 
         return redirect(url)
 
