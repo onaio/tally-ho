@@ -4,14 +4,14 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
 from libya_tally.apps.tally.models.result_form import ResultForm
-from libya_tally.apps.tally.views import intake_clerk as views
+from libya_tally.apps.tally.views import intake as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_center,\
     create_result_form, create_station, TestBase
 
 
-class TestIntakeClerk(TestBase):
+class TestIntake(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
@@ -130,7 +130,7 @@ class TestIntakeClerk(TestBase):
         request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, reverse('intake-clerk'))
+        self.assertContains(response, reverse('intake'))
 
     def test_enter_center_post_invalid(self):
         result_form = create_result_form(form_state=FormState.INTAKE)

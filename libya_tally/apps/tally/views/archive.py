@@ -133,4 +133,4 @@ class ConfirmationView(LoginRequiredMixin,
             self.get_context_data(result_form=result_form,
                                   header_text=_('Archiving'),
                                   next_step=_('Archive'),
-                                  start_url='archive-clerk'))
+                                  start_url='archive'))

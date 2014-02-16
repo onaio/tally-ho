@@ -155,4 +155,4 @@ class TestArchive(TestBase):
         response = view(request)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Archive')
-        self.assertContains(response, reverse('archive-clerk'))
+        self.assertContains(response, reverse('archive'))

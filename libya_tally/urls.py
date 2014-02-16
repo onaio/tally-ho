@@ -6,7 +6,7 @@ from django.views.generic import TemplateView
 
 from libya_tally.apps.tally.forms.login_form import LoginForm
 from libya_tally.apps.tally.views import archive, audit, clearance,\
-    corrections, data_entry_clerk, home, intake_clerk, quality_control,\
+    corrections, data_entry_clerk, home, intake, quality_control,\
     super_admin
 from libya_tally.apps.tally.views.reports import overview
 
@@ -70,21 +70,21 @@ urlpatterns = patterns(
         data_entry_clerk.ConfirmationView.as_view(),
         name='data-entry-success'),
 
-    url(r'^intake/center-details$', intake_clerk.CenterDetailsView.as_view(),
-        name='intake-clerk'),
-    url(r'^intake/enter-center', intake_clerk.EnterCenterView.as_view(),
+    url(r'^intake/center-details$', intake.CenterDetailsView.as_view(),
+        name='intake'),
+    url(r'^intake/enter-center', intake.EnterCenterView.as_view(),
         name='intake-enter-center'),
     url(r'^intake/check-center-details$',
-        intake_clerk.CheckCenterDetailsView.as_view(),
+        intake.CheckCenterDetailsView.as_view(),
         name='check-center-details'),
     url(r'^intake/printcover$',
-        intake_clerk.PrintCoverView.as_view(),
+        intake.PrintCoverView.as_view(),
         name='intake-printcover'),
     url(r'^intake/clearance$',
-        intake_clerk.ClearanceView.as_view(),
+        intake.ClearanceView.as_view(),
         name='intake-clearance'),
     url(r'^intake/intaken',
-        intake_clerk.ConfirmationView.as_view(),
+        intake.ConfirmationView.as_view(),
         name='intaken'),
 
     url(r'^quality-control/home$',
@@ -116,7 +116,7 @@ urlpatterns = patterns(
 
     url(r'^archive$',
         archive.ArchiveView.as_view(),
-        name='archive-clerk'),
+        name='archive'),
     url(r'^archive/print$',
         archive.ArchivePrintView.as_view(),
         name='archive-print'),

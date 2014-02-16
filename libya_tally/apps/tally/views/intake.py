@@ -142,7 +142,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             url = 'intake-clearance'
         else:
             result_form.form_state = FormState.UNSUBMITTED
-            url = 'intake-clerk'
+            url = 'intake'
 
         result_form.date_seen = now()
         result_form.save()
@@ -212,4 +212,4 @@ class ConfirmationView(LoginRequiredMixin,
             self.get_context_data(result_form=result_form,
                                   header_text=_('Intake'),
                                   next_step=_('Data Entry 1'),
-                                  start_url='intake-clerk'))
+                                  start_url='intake'))
