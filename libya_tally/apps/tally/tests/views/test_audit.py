@@ -48,6 +48,7 @@ class TestAudit(TestBase):
         response = view(request)
 
         self.assertContains(response, 'Audit')
+        self.assertContains(response, self.user.username)
         self.assertContains(response, '42')
 
     def test_dashboard_post(self):
