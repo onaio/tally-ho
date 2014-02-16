@@ -23,8 +23,9 @@ from libya_tally.libs.permissions.groups import create_permission_groups, \
     add_user_to_group
 
 
-def create_audit(result_form, user):
+def create_audit(result_form, user, reviewed_team=False):
     return Audit.objects.create(user=user,
+                                reviewed_team=reviewed_team,
                                 result_form=result_form,
                                 action_prior_to_recommendation=0,
                                 resolution_recommendation=0)
@@ -37,8 +38,9 @@ def create_ballot():
     return ballot
 
 
-def create_clearance(result_form, user):
+def create_clearance(result_form, user, reviewed_team=False):
     return Clearance.objects.create(result_form=result_form,
+                                    reviewed_team=reviewed_team,
                                     user=user)
 
 

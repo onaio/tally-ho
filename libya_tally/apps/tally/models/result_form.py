@@ -186,8 +186,8 @@ class ResultForm(BaseModel):
 
     @property
     def clearance_team_reviewed(self):
-        return _('Yes') if self.clearance and self.clearance.reviewed_team\
-            else _('No')
+        return self.clearance.user.username if self.clearance and\
+            self.clearance.reviewed_team else _('No')
 
     @property
     def clearance_supervisor_reviewed(self):

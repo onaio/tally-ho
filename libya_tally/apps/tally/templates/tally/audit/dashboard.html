@@ -36,7 +36,7 @@
         <td>
             <form name="form_{{ forloop.counter }}" method="post" action="">
                 <input type="hidden" name="result_form" value="{{ form.pk }}">
-                <button class="btn btn-small" type="submit" name="submit">{% trans "Review" %}</button>
+                <button class="btn btn-primary btn-small" type="submit" name="submit">{% trans "Review" %}</button>
                 {% csrf_token %}
             </form>
         </td>

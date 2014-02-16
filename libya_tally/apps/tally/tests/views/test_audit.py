@@ -36,19 +36,21 @@ class TestAudit(TestBase):
             views.DashboardView.as_view())
         self.assertContains(response, 'Audit')
 
-    def test_dashboard_get_forms(self):
-        self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+    def test_dashboard_get_supervisor(self):
+        username = 'alice'
+        self._create_and_login_user(username=username)
         result_form = create_result_form(form_state=FormState.AUDIT,
                                          station_number=42)
-        create_audit(result_form, self.user)
+        create_audit(result_form, self.user, reviewed_team=True)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
         request = self.factory.get('/')
         request.user = self.user
         view = views.DashboardView.as_view()
         response = view(request)
 
         self.assertContains(response, 'Audit')
-        self.assertContains(response, self.user.username)
+        self.assertContains(response, username)
         self.assertContains(response, '42')
 
     def test_dashboard_post(self):

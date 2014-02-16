@@ -6,7 +6,7 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.views import clearance as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_ballot,\
+from libya_tally.libs.tests.test_base import create_ballot, create_clearance,\
     create_result_form, TestBase
 
 
@@ -35,6 +35,23 @@ class TestClearance(TestBase):
         response = self._common_view_tests(
             views.DashboardView.as_view())
         self.assertContains(response, 'Clearance')
+
+    def test_dashboard_get_supervisor(self):
+        username = 'alice'
+        self._create_and_login_user(username=username)
+        result_form = create_result_form(form_state=FormState.CLEARANCE,
+                                         station_number=42)
+        create_clearance(result_form, self.user, reviewed_team=True)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
+        request = self.factory.get('/')
+        request.user = self.user
+        view = views.DashboardView.as_view()
+        response = view(request)
+
+        self.assertContains(response, 'Clearance')
+        self.assertContains(response, username)
+        self.assertContains(response, '42')
 
     def test_dashboard_get_forms(self):
         create_result_form(form_state=FormState.CLEARANCE,
