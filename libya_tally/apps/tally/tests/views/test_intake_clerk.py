@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
@@ -118,6 +119,18 @@ class TestIntakeClerk(TestBase):
         response = view(request)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Double Enter Center Details')
+
+    def test_intaken_get(self):
+        result_form = create_result_form(form_state=FormState.INTAKE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.ConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse('intake-clerk'))
 
     def test_enter_center_post_invalid(self):
         result_form = create_result_form(form_state=FormState.INTAKE)

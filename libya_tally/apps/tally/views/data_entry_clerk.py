@@ -4,7 +4,7 @@ from django.forms.formsets import formset_factory
 from django.forms.util import ErrorList
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.center_details_form import\
@@ -243,7 +243,7 @@ class EnterResultsView(LoginRequiredMixin,
                        FormView):
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
     template_name = "tally/data_entry/enter_results_view.html"
-    success_url = "data-entry-clerk"
+    success_url = "data-entry-success"
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -321,3 +321,26 @@ class EnterResultsView(LoginRequiredMixin,
                 reconciliation_form=recon_form,
                 result_form=result_form,
                 data_entry_number=data_entry_number))
+
+
+class ConfirmationView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       TemplateView):
+    template_name = "tally/success.html"
+    group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        del self.request.session['result_form']
+
+        if result_form.form_state == FormState.DATA_ENTRY_2:
+            next_step = _('Data Entry 2')
+        else:
+            next_step = _('Corrections')
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  header_text=_('Data Entry'),
+                                  next_step=next_step,
+                                  start_url='data-entry-clerk'))

@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
@@ -298,3 +299,29 @@ class TestDataEntryClerk(TestBase):
         for result in results:
             self.assertEqual(result.user, self.user)
             self.assertNotEqual(result.user, data_entry_1)
+
+    def test_confirmation_get(self):
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_2)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
+        view = views.ConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Data Entry 2')
+        self.assertContains(response, reverse('data-entry-clerk'))
+
+    def test_confirmation_get_corrections(self):
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_2_CLERK)
+        view = views.ConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Corrections')
+        self.assertContains(response, reverse('data-entry-clerk'))

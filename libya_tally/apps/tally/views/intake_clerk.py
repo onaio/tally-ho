@@ -211,4 +211,5 @@ class ConfirmationView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   header_text=_('Intake'),
-                                  next_step=_('Data Entry 1')))
+                                  next_step=_('Data Entry 1'),
+                                  start_url='intake-clerk'))

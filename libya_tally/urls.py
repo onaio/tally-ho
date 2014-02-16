@@ -66,6 +66,9 @@ urlpatterns = patterns(
     url(r'^data-entry/enter-results',
         data_entry_clerk.EnterResultsView.as_view(),
         name='enter-results'),
+    url(r'^data-entry/success',
+        data_entry_clerk.ConfirmationView.as_view(),
+        name='data-entry-success'),
 
     url(r'^intake/center-details$', intake_clerk.CenterDetailsView.as_view(),
         name='intake-clerk'),
