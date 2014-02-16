@@ -1,5 +1,6 @@
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import AnonymousUser
+from django.core.urlresolvers import reverse
 from django.test import RequestFactory
 
 from libya_tally.apps.tally.views import quality_control as views
@@ -108,7 +109,7 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(pk=result_form.pk)
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/home',
+        self.assertIn('quality-control/success',
                       response['location'])
         self.assertEqual(result_form.form_state, FormState.ARCHIVING)
         self.assertEqual(request.session, {})
@@ -167,12 +168,15 @@ class TestQualityControl(TestBase):
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
+        result_form.reload()
+
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/home',
+        self.assertIn('quality-control/success',
                       response['location'])
         quality_control = QualityControl.objects.get(
             pk=result_form.qualitycontrol.pk)
-        self.assertTrue(quality_control.passed_reconciliation, True)
+        self.assertEqual(result_form.form_state, FormState.ARCHIVING)
+        self.assertTrue(quality_control.passed_reconciliation)
 
     def test_reconciliation_post_incorrect(self):
         self._create_and_login_user()
@@ -274,12 +278,15 @@ class TestQualityControl(TestBase):
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
+        result_form.reload()
+
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/home',
+        self.assertIn('quality-control/success',
                       response['location'])
         quality_control = QualityControl.objects.get(
             pk=result_form.qualitycontrol.pk)
-        self.assertTrue(quality_control.passed_general, True)
+        self.assertEqual(result_form.form_state, FormState.ARCHIVING)
+        self.assertTrue(quality_control.passed_general)
 
     def test_general_post_incorrect(self):
         self._create_and_login_user()
@@ -374,11 +381,14 @@ class TestQualityControl(TestBase):
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
+        result_form.reload()
+
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/home',
+        self.assertIn('quality-control/success',
                       response['location'])
         quality_control = result_form.qualitycontrol_set.all()[0]
-        self.assertTrue(quality_control.passed_women, True)
+        self.assertEqual(result_form.form_state, FormState.ARCHIVING)
+        self.assertTrue(quality_control.passed_women)
 
     def test_women_post_incorrect(self):
         self._create_and_login_user()
@@ -432,3 +442,16 @@ class TestQualityControl(TestBase):
                       response['location'])
         quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertEqual(quality_control.active, False)
+
+    def test_confirmation_get(self):
+        result_form = create_result_form(form_state=FormState.ARCHIVING)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.ConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Archiving')
+        self.assertContains(response, reverse('quality-control-clerk'))

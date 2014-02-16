@@ -93,10 +93,13 @@ urlpatterns = patterns(
     url(r'^quality-control/dashboard$',
         quality_control.QualityControlDashboardView.as_view(),
         name='quality-control-dashboard'),
-    url(r'^quality-control/reject',
+    url(r'^quality-control/reject$',
         TemplateView.as_view(
             template_name='tally/quality_control/reject.html'),
         name='quality-control-reject'),
+    url(r'^quality-control/success$',
+        quality_control.ConfirmationView.as_view(),
+        name='quality-control-success'),
 
     url(r'^corrections$',
         corrections.CorrectionView.as_view(),

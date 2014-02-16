@@ -1,7 +1,7 @@
 from django.core.exceptions import SuspiciousOperation
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext as _
 from guardian.mixins import LoginRequiredMixin
 
@@ -79,7 +79,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
                                   FormView):
     group_required = groups.QUALITY_CONTROL_CLERK
     template_name = "tally/quality_control/dashboard.html"
-    success_url = 'quality-control-clerk'
+    success_url = 'quality-control-success'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -135,3 +135,21 @@ class QualityControlDashboardView(LoginRequiredMixin,
         del self.request.session['result_form']
 
         return redirect(url)
+
+
+class ConfirmationView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       TemplateView):
+    template_name = "tally/success.html"
+    group_required = groups.QUALITY_CONTROL_CLERK
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        del self.request.session['result_form']
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  header_text=_('Quality Control'),
+                                  next_step=_('Archiving'),
+                                  start_url='quality-control-clerk'))
