@@ -1,5 +1,6 @@
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import AnonymousUser
+from django.template import Template, Context
 from django.test import RequestFactory
 
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -374,6 +375,8 @@ class TestClearance(TestBase):
         result_form = create_result_form(form_state=FormState.CLEARANCE,
                                          station_number=42)
         create_clearance(result_form, self.user, reviewed_team=True)
+        date_str = Template("{{k}}").render(
+            Context({'k': result_form.clearance.date_team_modified}))
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
         request = self.factory.get('/')
         request.user = self.user
@@ -383,3 +386,4 @@ class TestClearance(TestBase):
 
         self.assertContains(response, 'Clearance Case')
         self.assertContains(response, '42')
+        self.assertContains(response, date_str)

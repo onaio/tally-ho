@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User, Group, AnonymousUser
+from django.utils import timezone
 
 from django.test import TestCase
 from django.test import RequestFactory
@@ -39,9 +40,13 @@ def create_ballot():
 
 
 def create_clearance(result_form, user, reviewed_team=False):
+    date_team_modified = timezone.now() if reviewed_team else None
+
     return Clearance.objects.create(result_form=result_form,
                                     reviewed_team=reviewed_team,
-                                    user=user)
+                                    user=user,
+                                    date_team_modified=date_team_modified
+                                    )
 
 
 def create_result(result_form, candidate, user, votes):
