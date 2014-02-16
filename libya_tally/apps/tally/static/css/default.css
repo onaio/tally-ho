@@ -170,11 +170,11 @@ footer{
 .print-section h2{
 }
 
-.print-section table{
+table.print-table{
     width: 100%;
     border: 2px solid black;
 }
 
-.print-section table td {
+table.print-table td {
     padding: 10px;
 }
