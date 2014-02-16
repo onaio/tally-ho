@@ -200,7 +200,7 @@ class CenterDetailsView(LoginRequiredMixin,
             except SuspiciousOperation as e:
                 errors = form._errors.setdefault(
                     "__all__", ErrorList())
-                errors.append(e.message)
+                errors.append(e)
 
                 return self.render_to_response(self.get_context_data(
                     form=form, result_form=result_form))

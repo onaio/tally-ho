@@ -89,6 +89,32 @@ class TestDataEntryClerk(TestBase):
         response = view(request)
         self.assertContains(response, 'Center Numbers do not match')
 
+    def test_center_detail_invalid_center(self):
+        code = '12345'
+        other_code = '21345'
+        station_number = 1
+        center = create_center(code)
+        other_center = create_center(other_code)
+        create_station(center)
+        create_station(other_center)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1,
+                                         center=center,
+                                         station_number=station_number)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
+        view = views.CenterDetailsView.as_view()
+        session = {'result_form': result_form.pk}
+        data = center_data(other_code, station_number=station_number)
+        data.update(session)
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = session
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        response.render()
+        self.assertContains(response,
+                            'Center and station numbers do not match')
+
     def test_center_detail_no_station(self):
         code = '12345'
         station_number = 1
@@ -108,6 +134,7 @@ class TestDataEntryClerk(TestBase):
         request.user = self.user
         request.session = session
         response = view(request)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Invalid Station Number for this Center')
 
     def test_center_detail_redirects_to_enter_results(self):
