@@ -4,31 +4,19 @@
 
 {% block content %}
 
-<h1>{% trans 'Print Cover' %}</h1>
+<h1 class="do-not-print">{% trans 'Print Cover' %}</h1>
 
 <h2>{{ cover_type }}</h2>
 
-<table id="coverform">
+<table id="coverform" class="print-table">
     <tr>
         <td colspan="2">{{ form_state }}</td>
     </tr>
     <tr>
         <td colspan="2">{{ cover_type }}</td>
     </tr>
-    <tr>
-        <td colspan="2">{% trans 'Center Name:' %} {{ result_form.center.name }}</td>
-    </tr>
-    <tr>
-        <td colspan="2">{% trans 'Center Number:' %} {{ result_form.center.code }}</td>
-    </tr>
-    <tr>
-        <td>{% trans 'Station Number:' %} {{ result_form.center.station_number }}</td>
-        <td>{% trans 'Gender:' %} {{ result_form.gender_name }}</td>
-    </tr>
-    <tr>
-        <td colspan="2">{% trans 'Form Type:' %} {{ result_form.ballot.race_type }}</td>
-    </tr>
-    <tr>
+    {% include 'tally/print_cover_common.html' %}
+   <tr>
         <td>{% trans 'Date/Time:' %}</td>
         <td>{{ result_form.modified_date }}</td>
     </tr>
@@ -37,13 +25,14 @@
         <td>{{ user.username }}</td>
     </tr>
 </table>
-
+<div class="do-not-print">
 <form name="print_cover_form" method='post' action="">
     {% csrf_token %}
     <input type="hidden" name="result_form" value="{{result_form.pk}}" />
     <button type="button" name="print_cover_form" onclick="print_cover()">{% trans 'Print' %}</button>
     <button type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">{% trans 'Print Successful' %}</button>
 </form>
+</div>
 {% endblock %}
 
 {% block javascript %}

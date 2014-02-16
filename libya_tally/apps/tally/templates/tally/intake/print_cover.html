@@ -10,21 +10,7 @@
 <h2 class="center do-not-print">{% trans 'Cover Form' %}</h2>
 
 <table id="coverform" class="print-table">
-    <tr>
-        <td>{% trans 'Center Name:' %}</td><td>{{ result_form.center.name }}</td><td></td>
-    </tr>
-    <tr>
-        <td>{% trans 'Center Number:' %} </td><td>{{ result_form.center.code }}</td><td></td>
-    </tr>
-    <tr>
-        <td>{% trans 'Station Number:' %}</td><td> {{ result_form.station_number }}</td>
-    </tr>
-    <tr>
-        <td>{% trans 'Form Type:' %} </td><td>{{ result_form.ballot.race_type_name }}</td>
-    </tr>
-    <tr>
-        <td>{% trans 'Gender:' %} </td><td>{{ result_form.gender_name }}</td>
-    </tr>
+    {% include 'tally/print_cover_common.html' %}
     <tr>
         <td>{% trans 'Intake: ' %}</td><td>{% trans 'Successful' %}</td>
     </tr>
