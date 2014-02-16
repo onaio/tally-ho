@@ -22,16 +22,21 @@ def check_quarantine(result_form, user):
 
     :param result_form: The result form to run quarantine checks on.
     """
+    audit = None
+
     if not result_form.skip_quarantine_checks:
         for passed_check, check in quarantine_checks():
-            audit = None
             if not passed_check(result_form):
                 if not audit:
-                    audit = Audit.get_or_create(
+                    audit = Audit.objects.create(
                         user=user,
                         result_form=result_form)
 
-                audit.add(check)
+                audit.quarantine_checks.add(check)
+
+    if audit:
+        result_form.audited_count += 1
+        result_form.save()
 
 
 class ArchiveView(LoginRequiredMixin,

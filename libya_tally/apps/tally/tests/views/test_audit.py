@@ -342,6 +342,7 @@ class TestAudit(TestBase):
 
             self.assertEqual(response.status_code, 302)
             self.assertEqual(result_form.form_state, FormState.AUDIT)
+            self.assertEqual(result_form.audited_count, 1)
             self.assertEqual(result_form.audit.user, self.user)
 
             barcode = barcode + 1

@@ -9,7 +9,8 @@ from libya_tally.apps.tally.views import archive as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_audit, create_center,\
-    create_result_form, create_station, TestBase
+    create_reconciliation_form, create_result_form, create_station, TestBase
+from libya_tally.libs.verify.quarantine_checks import create_quarantine_checks
 
 
 class TestArchive(TestBase):
@@ -53,6 +54,31 @@ class TestArchive(TestBase):
         response = view(request)
 
         self.assertEqual(response.status_code, 302)
+        self.assertIn('archive/print', response['location'])
+
+    def test_archive_post_quarantine(self):
+        center = create_center()
+        create_station(center)
+        create_quarantine_checks()
+        self._create_and_login_user()
+        barcode = '123456789'
+        result_form = create_result_form(
+            form_state=FormState.ARCHIVING,
+            center=center, station_number=1)
+        create_reconciliation_form(result_form, number_unstamped_ballots=1000)
+        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        view = views.ArchiveView.as_view()
+        data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=data)
+        request.session = {}
+        request.user = self.user
+        response = view(request)
+        result_form.reload()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(result_form.audit)
+        self.assertEqual(result_form.audit.user, self.user)
+        self.assertEqual(result_form.audited_count, 1)
         self.assertIn('archive/print', response['location'])
 
     def test_print_success_get(self):

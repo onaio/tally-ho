@@ -42,7 +42,8 @@ def pass_overvote(result_form):
     if not recon_form:
         return True
 
-    registrants = result_form.station.registrants
+    registrants = result_form.station.registrants if result_form.station\
+        else None
 
     if registrants is None:
         return True

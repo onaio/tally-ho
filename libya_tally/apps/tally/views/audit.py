@@ -59,6 +59,9 @@ def create_or_get_audit(post_data, user, result_form, form):
         else:
             audit.supervisor = user
     else:
+        result_form.audited_count += 1
+        result_form.save()
+
         audit = form.save(commit=False)
         audit.result_form = result_form
         audit.user = user
@@ -221,6 +224,7 @@ class CreateAuditView(LoginRequiredMixin,
                 return self.form_invalid(form)
 
             result_form.form_state = FormState.AUDIT
+            result_form.audited_count += 1
             result_form.save()
 
             Audit.objects.create(result_form=result_form,

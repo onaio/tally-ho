@@ -156,7 +156,7 @@ def create_recon_forms(result_form):
     recon2.save()
 
 
-def create_station(center, registrants=None):
+def create_station(center, registrants=1):
     sc, _ = SubConstituency.objects.get_or_create(code=1,
                                                   component_ballot=False,
                                                   field_office='1')

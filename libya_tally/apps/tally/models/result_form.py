@@ -51,6 +51,7 @@ class ResultForm(BaseModel):
     created_user = models.ForeignKey(User, null=True,
                                      related_name='created_user')
 
+    audited_count = models.PositiveIntegerField(default=0)
     barcode = models.PositiveIntegerField(unique=True)
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
@@ -76,7 +77,12 @@ class ResultForm(BaseModel):
 
     @property
     def station(self):
-        return self.center.stations.filter(gender=self.gender)[0]
+        if self.center:
+            stations = self.center.stations.filter(gender=self.gender)
+            if stations:
+                return stations[0]
+
+        return None
 
     @property
     def general_results(self):
@@ -211,7 +217,7 @@ class ResultForm(BaseModel):
             recon.active = False
             recon.save()
 
-        self.rejected_count = self.rejected_count + 1
+        self.rejected_count += 1
         self.form_state = FormState.DATA_ENTRY_1
         self.save()
 

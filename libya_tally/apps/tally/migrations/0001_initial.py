@@ -60,6 +60,7 @@ class Migration(SchemaMigration):
             ('center', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Center'], null=True, blank=True)),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True)),
             ('created_user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='created_user', null=True, to=orm['auth.User'])),
+            ('audited_count', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
             ('barcode', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True)),
             ('date_seen', self.gf('django.db.models.fields.DateTimeField')(null=True)),
             ('form_stamped', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
@@ -513,6 +514,7 @@ class Migration(SchemaMigration):
         },
         'tally.resultform': {
             'Meta': {'object_name': 'ResultForm'},
+            'audited_count': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'ballot': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Ballot']", 'null': 'True'}),
             'barcode': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True'}),
             'center': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Center']", 'null': 'True', 'blank': 'True'}),
