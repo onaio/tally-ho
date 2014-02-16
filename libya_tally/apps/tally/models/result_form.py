@@ -110,12 +110,13 @@ class ResultForm(BaseModel):
 
     @property
     def audit_team_reviewed(self):
-        return _('Yes') if self.audit and self.audit.reviewed_team else _('No')
+        return self.audit.user.username if self.audit and\
+            self.audit.reviewed_team else _('No')
 
     @property
     def audit_supervisor_reviewed(self):
-        return _('Yes') if self.audit and self.audit.reviewed_supervisor\
-            else _('No')
+        return self.audit.supervisor.username if self.audit and\
+            self.audit.reviewed_supervisor else _('No')
 
     @property
     def form_state_name(self):

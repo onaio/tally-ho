@@ -79,7 +79,13 @@ class DashboardView(LoginRequiredMixin,
     success_url = 'audit-review'
 
     def get(self, *args, **kwargs):
+        user_is_clerk = is_clerk(self.request.user)
+
         form_list = ResultForm.objects.filter(form_state=FormState.AUDIT)
+
+        if user_is_clerk:
+            form_list = form_list.filter(audit__reviewed_team=False)
+
         paginator = Paginator(form_list, 100)
         page = self.request.GET.get('page')
 
@@ -93,7 +99,7 @@ class DashboardView(LoginRequiredMixin,
             forms = paginator.page(paginator.num_pages)
 
         return self.render_to_response(self.get_context_data(
-            forms=forms, is_clerk=is_clerk(self.request.user)))
+            forms=forms, is_clerk=user_is_clerk))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
@@ -139,7 +145,6 @@ class ReviewView(LoginRequiredMixin,
         if form.is_valid():
             user = self.request.user
             audit = create_or_get_audit(post_data, user, result_form, form)
-
             url = audit_action(audit, post_data, result_form, self.success_url)
 
             return redirect(url)

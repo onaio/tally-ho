@@ -6,7 +6,8 @@ from libya_tally.apps.tally.views import audit as views
 from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_result_form, TestBase
+from libya_tally.libs.tests.test_base import create_audit, create_result_form,\
+    TestBase
 
 
 class TestAudit(TestBase):
@@ -36,10 +37,15 @@ class TestAudit(TestBase):
         self.assertContains(response, 'Audit')
 
     def test_dashboard_get_forms(self):
-        create_result_form(form_state=FormState.AUDIT,
-                           station_number=42)
-        response = self._common_view_tests(
-            views.DashboardView.as_view())
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+        result_form = create_result_form(form_state=FormState.AUDIT,
+                                         station_number=42)
+        create_audit(result_form, self.user)
+        request = self.factory.get('/')
+        request.user = self.user
+        view = views.DashboardView.as_view()
+        response = view(request)
 
         self.assertContains(response, 'Audit')
         self.assertContains(response, '42')
@@ -101,6 +107,27 @@ class TestAudit(TestBase):
 
     def test_review_post(self):
         result_form = create_result_form(form_state=FormState.AUDIT)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+
+        view = views.ReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        audit = result_form.audit
+        self.assertEqual(audit.user, self.user)
+        self.assertEqual(audit.reviewed_team, False)
+        self.assertEqual(audit.action_prior_to_recommendation, 1)
+        self.assertEqual(response.status_code, 302)
+
+    def test_review_post_audit_exists(self):
+        self._create_and_login_user(username='alice')
+        result_form = create_result_form(form_state=FormState.AUDIT)
+        create_audit(result_form, self.user)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
