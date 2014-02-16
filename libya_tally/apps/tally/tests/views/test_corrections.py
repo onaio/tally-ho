@@ -209,7 +209,7 @@ class TestCorrections(TestBase):
         post_data = {
             'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
             'result_form': result_form.pk,
-            'reject_submit': 'reject'
+            'reject': 'reject'
         }
         request = self.factory.post('/', post_data)
         request.session = session
@@ -240,7 +240,7 @@ class TestCorrections(TestBase):
         post_data = {
             'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
             'result_form': result_form.pk,
-            'abort_submit': 'reject'
+            'abort': 'reject'
         }
         request = self.factory.post('/', post_data)
         request.session = session
@@ -295,7 +295,7 @@ class TestCorrections(TestBase):
             'candidate_women_%s' % result_form.results.all()[
                 0].candidate.pk: 2,
             'result_form': result_form.pk,
-            'reject_submit': 'reject'
+            'reject': 'reject'
         }
         request = self.factory.post('/', post_data)
         request.session = session

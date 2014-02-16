@@ -152,7 +152,7 @@ class TestQualityControl(TestBase):
         response.render()
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Reconciliation')
-        self.assertContains(response, 'Number sorted and counted')
+        self.assertContains(response, 'Total number of the sorted and counted')
 
     def test_reconciliation_post_correct(self):
         self._create_and_login_user()

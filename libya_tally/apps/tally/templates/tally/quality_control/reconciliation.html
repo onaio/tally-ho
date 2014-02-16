@@ -4,12 +4,155 @@
 
 <h2>{% trans 'Reconciliation Section' %}</h2>
 
-<table class="table table-striped table-bordered">
-{% for field in form %}
+<div class="row">
+    <table class="table table-bordered">
+    <tbody>
     <tr>
-        <th><b>{{ field.label }}:</b></th>
-        <td>{{ field.data }}</td>
+        <td width="45%">
+            <span class="helptext">{% trans 'Serial number of ballots received by the polling station</span>' %}</td>
+        <td width=""><label for="id_ballot_number_from">{% trans 'from:' %}</label></td>
+        <td>{{ form.ballot_number_from.data }}</td>
+        <th><label for="id_ballot_number_to">to:</label></th>
+        <td>{{ form.ballot_number_to.data }}</td>
     </tr>
-{% endfor %}
-</table>
+    </tbody>
+    </table>
+    <table class="table table-bordered">
+    <tbody>
+    <tr>
+        <th width="10%"><span class="bignum">1</span></th>
+        <th width="70%">
+            <label for="id_number_ballots_received">
+            <span class="helptext">{% trans 'Total number of ballots received by the polling station' %} </span></label></th>
+        <td width="20%">{{ form.number_ballots_received.data }}</td>
+    </tr>
+    </tbody>
+    </table>
+</div>
+<div class="row">
+    <div class="col-md-2 col-sm-1 grid2">
+        <p class="gray-bg">
+        {% trans 'Section (d) to be filled after the completion of the results forms' %}</p>
+        <table class="table table-bordered">
+        <tbody>
+        <tr>
+            <th width="10%"><span class="bignum">9</span></th>
+            <th width="60%"><label for="id_number_unstamped_ballots">
+                {% trans 'Number of unstamped ballots:' %}</label></th>
+            <td width="30%">{{ form.number_unstamped_ballots.data }}</td>
+        </tr>
+        <tr>
+            <th><span class="bignum">10</span></th>
+            <th><label for="id_number_invalid_votes">
+                {% trans 'Number of invalid votes (including the blanks):' %}</label></th>
+            <td>{{ form.number_invalid_votes.data }}</td>
+        </tr>
+        <tr>
+            <th><span class="bignum">11</span></th>
+            <th><label for="id_number_valid_votes">
+                {% trans 'Number of valid votes:' %}</label></th>
+            <td>{{ form.number_valid_votes.data }}</td>
+        </tr>
+        <tr>
+            <th><span class="bignum">12</span></th>
+            <th><label for="id_number_sorted_and_counted">
+                {% trans 'Total number of the sorted and counted ballots:' %}</label></th>
+            <td>{{ form.number_sorted_and_counted.data }}</td>
+        </tr>
+        <tr>
+            <td colspan="3" class="blue-bg">
+                {% trans 'If the figure in the field 12 does not equal the one in field 7, the totals of the fields  9, 10 and 11 should be recounted.' %}
+                <br/>
+                <br/>
+                {% trans 'If after recounting, the difference persists, the ballots of the fields 9, 10 and 11 should be recounted as in the manual.' %}
+                <br/>
+                <br/>
+                {% trans 'If  the  difference  persists,  write a note in the field  at the bottom of the form to explain the action taken prior to proceeding to the next step.' %}
+            </td>
+        </tr>
+        <tr><th></th><th><label for="id_signature_polling_officer_1">{% trans 'Is the form signed by polling officer 1?' %}</label></th>
+            <td>{{ form.signature_polling_officer_1.data }}</td></tr>
+        <tr><th></th><th><label for="id_signature_polling_officer_2">{% trans 'Is the form signed by polling officer 2?' %}</label></th>
+            <td>{{ form.signature_polling_officer_2.data }}</td></tr>
+        <tr><th></th><th><label for="id_signature_polling_station_chair">{% trans 'Is the form signed by the polling station chair?' %}</label></th>
+            <td>{{ form.signature_polling_station_chair.data }}</td></tr>
+        <tr><th></th><th><label for="id_signature_dated">{% trans 'Is the form dated?' %}</label></th>
+            <td>{{ form.signature_dated.data }}</td></tr>
+        <tr><th></th><th><label for="id_is_stamped">{% trans 'Is the form stamped?' %}</label></th>
+            <td>{{ form.is_stamped.data }}</td></tr>
+        </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-2 col-sm-1 grid2 righter">
+        <p class="gray-bg">
+            {% trans 'Section (B) to be filled after closure of polling station' %}
+        </p>
+        <table class="table table-bordered">
+        <tbody>
+        <tr>
+            <th width="10%"><span class="bignum">2</span></th>
+            <th width="60%"><label for="id_number_signatures_in_vr">
+                <span class="helptext">
+                    {% trans 'Number of signatures in the VR:' %}</span></label></th>
+            <td width="30%">{{ form.number_signatures_in_vr.data }}</td>
+        </tr>
+        <tr>
+            <th><span class="bignum">3</span></th>
+            <th><label for="id_number_unused_ballots">
+                    {% trans 'Number of unused ballots:' %}</label></th>
+            <td>{{ form.number_unused_ballots.data }}</td>
+        </tr>
+        <tr>
+            <th><span class="bignum">4</span></th>
+            <th><label for="id_number_spoiled_ballots">
+                {% trans 'Number of spoiled ballots:' %}</label></th>
+            <td>{{ form.number_spoiled_ballots.data }}</td>
+        </tr>
+        <tr>
+            <th><span class="bignum">5</span></th>
+            <th><label for="id_number_cancelled_ballots">
+                {% trans 'Number of cancelled ballots:' %}</label></th>
+            <td>{{ form.number_cancelled_ballots.data }}</td>
+        </tr>
+        <tr>
+            <th><span class="bignum">6</span></th>
+            <th><label for="id_number_ballots_outside_box">
+                {% trans 'Total number of ballots remaining outside the ballot box:' %}</label></th>
+            <td>{{ form.number_ballots_outside_box.data }}</td>
+        </tr>
+        </tbody>
+        </table>
+        <p class="gray-bg">
+        {% trans 'Section (C) to be filled after counting the ballots in the box' %}</p>
+        <table class="table table-bordered">
+        <tbody>
+        <tr>
+            <th width="10%"><span class="bignum">7</span></th>
+            <th width="60%"><label for="id_number_ballots_inside_box">
+                {% trans 'Number of ballots found inside the ballot box:' %}</label></th>
+            <td width="30%">{{ form.number_ballots_inside_box.data }}</td>
+        </tr>
+        <tr>
+            <th><span class="bignum">8</span></th>
+            <th><label for="id_number_ballots_inside_and_outside_box">
+                {% trans 'Total number of ballots found inside and outside the ballot box:' %}</label></th>
+            <td>{{ form.number_ballots_inside_and_outside_box.data }}</td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                {% trans 'N.B. if the figure in field 8 does not equal the figure in field 1, the calculations above should be redone.' %}
+                <br/>
+                <br/>
+                {% trans 'If the difference persists, the ballots should be recounted to verify the figures in the fields 3, 4, 5, 7.' %}
+                <br/>
+                <br/>
+                {% trans 'If the difference persists, write a note in the field at the bottom of the form to explain the action taken prior to proceeding to the next step.' %}
+            </td>
+        </tr>
+        </tbody>
+        </table>
+    </div>
+</div>
+
 {% endblock %}
