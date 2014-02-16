@@ -141,6 +141,7 @@ class TestCorrections(TestBase):
     def test_corrections_match_pass_to_quality_control(self):
         view = views.CorrectionMatchView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_recon_forms(result_form)
         create_results(result_form, vote1=3, vote2=3)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
@@ -153,12 +154,18 @@ class TestCorrections(TestBase):
         request.session = session
         request.user = self.user
         response = view(request)
+
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 3)
         self.assertEqual(
             Result.objects.filter(result_form=result_form,
                                   entry_version=EntryVersion.FINAL).count(), 1)
+        self.assertEqual(
+            ReconciliationForm.objects.filter(
+                active=True,
+                result_form=result_form,
+                entry_version=EntryVersion.FINAL).count(), 1)
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.QUALITY_CONTROL)

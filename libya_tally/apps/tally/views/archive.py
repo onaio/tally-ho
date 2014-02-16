@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.barcode_form import\
@@ -79,7 +79,7 @@ class ArchivePrintView(LoginRequiredMixin,
                        FormView):
     group_required = groups.ARCHIVE_CLERK
     template_name = "tally/archive/print_cover.html"
-    success_url = 'archive-clerk'
+    success_url = 'archive-success'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -110,6 +110,22 @@ class ArchivePrintView(LoginRequiredMixin,
             FormState.ARCHIVED
         result_form.save()
 
+        return redirect(self.success_url)
+
+
+class ConfirmationView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       TemplateView):
+    template_name = "tally/success.html"
+    group_required = groups.ARCHIVE_CLERK
+
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
         del self.request.session['result_form']
 
-        return redirect(self.success_url)
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form,
+                                  header_text=_('Archiving'),
+                                  next_step=_('Archive'),
+                                  start_url='archive-clerk'))

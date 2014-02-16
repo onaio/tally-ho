@@ -27,6 +27,21 @@ from libya_tally.libs.views.corrections import get_matched_forms,\
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
+def _get_recon_form_dict(result_form):
+    recon_forms = result_form.reconciliationform_set.filter(active=True)
+    recon_form1 = recon_form_for_version(
+        recon_forms, EntryVersion.DATA_ENTRY_1)
+    return {f.name: f.value() for f in recon_form1}
+
+
+def _save_final_recon_form(updated, user, result_form):
+    recon_form_final = ReconciliationForm(**updated)
+    recon_form_final.user = user
+    recon_form_final.result_form = result_form
+    recon_form_final.entry_version = EntryVersion.FINAL
+    recon_form_final.save()
+
+
 def incorrect_checks(post_data, result_form, success_url):
     if 'reject_submit' in post_data:
         result_form.reject()
@@ -67,24 +82,22 @@ def recon_form_for_version(results, entry_version):
         results.filter(entry_version=entry_version)[0]))
 
 
+def save_unchanged_final_recon_form(result_form, user):
+    if result_form.reconciliationform_exists:
+        updated = _get_recon_form_dict(result_form)
+        _save_final_recon_form(updated, user, result_form)
+
+
 def save_recon(post_data, user, result_form):
-        recon_forms = result_form.reconciliationform_set
-        recon_form1 = recon_form_for_version(
-            recon_forms, EntryVersion.DATA_ENTRY_1)
+    updated = _get_recon_form_dict(result_form)
 
-        recon_form_corrections = ReconForm(post_data)
+    recon_form_corrections = ReconForm(post_data)
+    corrections = {f.name: f.value() for f in recon_form_corrections
+                   if f.value() is not None}
 
-        corrections = {f.name: f.value() for f in recon_form_corrections
-                       if f.value() is not None}
+    updated.update(corrections)
 
-        updated = {f.name: f.value() for f in recon_form1}
-        updated.update(corrections)
-
-        recon_form_final = ReconciliationForm(**updated)
-        recon_form_final.user = user
-        recon_form_final.result_form = result_form
-        recon_form_final.entry_version = EntryVersion.FINAL
-        recon_form_final.save()
+    _save_final_recon_form(updated, user, result_form)
 
 
 class CorrectionView(LoginRequiredMixin,
@@ -159,6 +172,7 @@ class CorrectionMatchView(LoginRequiredMixin,
                 raise Exception(_(u"Results do not match."))
 
             save_final_results(result_form, self.request.user)
+            save_unchanged_final_recon_form(result_form, self.request.user)
 
             result_form.form_state = FormState.QUALITY_CONTROL
             result_form.save()
@@ -227,7 +241,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
                 self.request.session['errors'] = e.message
                 return redirect('corrections-required')
 
-            if result_form.reconciliationform_set.all():
+            if result_form.reconciliationform_exists:
                 save_recon(post_data, user, result_form)
 
             result_form.form_state = FormState.QUALITY_CONTROL

@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
@@ -112,7 +113,20 @@ class TestArchive(TestBase):
         request.user = self.user
         response = view(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/archive', response['location'])
+        self.assertIn('/archive/success', response['location'])
 
         result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+
+    def test_confirmation_get(self):
+        result_form = create_result_form(form_state=FormState.ARCHIVING)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        view = views.ConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Archive')
+        self.assertContains(response, reverse('archive-clerk'))

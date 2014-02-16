@@ -120,6 +120,9 @@ urlpatterns = patterns(
     url(r'^archive/print$',
         archive.ArchivePrintView.as_view(),
         name='archive-print'),
+    url(r'^archive/success$',
+        archive.ConfirmationView.as_view(),
+        name='archive-success'),
 
     url(r'^audit$',
         audit.DashboardView.as_view(),
