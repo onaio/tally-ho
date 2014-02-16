@@ -9,6 +9,7 @@ from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.clearance import Clearance
+from libya_tally.apps.tally.models.office import Office
 from libya_tally.apps.tally.models.reconciliation_form import\
     ReconciliationForm
 from libya_tally.apps.tally.models.result import Result
@@ -117,10 +118,14 @@ def create_center(code='1'):
         code=code,
         mahalla='1',
         name='1',
-        office='1',
+        office=create_office(),
         region='1',
         village='1',
         center_type=CenterType.GENERAL)[0]
+
+
+def create_office(name='office'):
+    return Office.objects.get_or_create(name=name)[0]
 
 
 def create_reconciliation_form(

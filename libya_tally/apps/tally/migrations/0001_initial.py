@@ -18,6 +18,15 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('tally', ['Ballot'])
 
+        # Adding model 'Office'
+        db.create_table(u'tally_office', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('created_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified_date', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=256)),
+        ))
+        db.send_create_signal('tally', ['Office'])
+
         # Adding model 'SubConstituency'
         db.create_table(u'tally_subconstituency', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -45,7 +54,7 @@ class Migration(SchemaMigration):
             ('longitude', self.gf('django.db.models.fields.FloatField')(null=True)),
             ('mahalla', self.gf('django.db.models.fields.TextField')()),
             ('name', self.gf('django.db.models.fields.TextField')()),
-            ('office', self.gf('django.db.models.fields.TextField')()),
+            ('office', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Office'], null=True)),
             ('region', self.gf('django.db.models.fields.TextField')()),
             ('village', self.gf('django.db.models.fields.TextField')()),
         ))
@@ -67,7 +76,7 @@ class Migration(SchemaMigration):
             ('form_state', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
             ('gender', self.gf('django.db.models.fields.IntegerField')(default=0, null=True, db_index=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=256, null=True)),
-            ('office', self.gf('django.db.models.fields.CharField')(max_length=256, null=True, blank=True)),
+            ('office', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['tally.Office'], null=True)),
             ('rejected_count', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
             ('serial_number', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True, null=True)),
             ('skip_quarantine_checks', self.gf('django.db.models.fields.BooleanField')(default=False)),
@@ -266,6 +275,9 @@ class Migration(SchemaMigration):
         # Deleting model 'Ballot'
         db.delete_table(u'tally_ballot')
 
+        # Deleting model 'Office'
+        db.delete_table(u'tally_office')
+
         # Deleting model 'SubConstituency'
         db.delete_table(u'tally_subconstituency')
 
@@ -410,7 +422,7 @@ class Migration(SchemaMigration):
             'mahalla': ('django.db.models.fields.TextField', [], {}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.TextField', [], {}),
-            'office': ('django.db.models.fields.TextField', [], {}),
+            'office': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Office']", 'null': 'True'}),
             'region': ('django.db.models.fields.TextField', [], {}),
             'sub_constituency': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'centers'", 'null': 'True', 'to': "orm['tally.SubConstituency']"}),
             'village': ('django.db.models.fields.TextField', [], {})
@@ -439,6 +451,13 @@ class Migration(SchemaMigration):
             'supervisor_comment': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'team_comment': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        'tally.office': {
+            'Meta': {'ordering': "['name']", 'object_name': 'Office'},
+            'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '256'})
         },
         'tally.qualitycontrol': {
             'Meta': {'object_name': 'QualityControl'},
@@ -527,7 +546,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True'}),
-            'office': ('django.db.models.fields.CharField', [], {'max_length': '256', 'null': 'True', 'blank': 'True'}),
+            'office': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Office']", 'null': 'True'}),
             'rejected_count': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'serial_number': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True', 'null': 'True'}),
             'skip_quarantine_checks': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),

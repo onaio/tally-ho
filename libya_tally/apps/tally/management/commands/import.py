@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.center import Center
+from libya_tally.apps.tally.models.office import Office
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.models.station import Station
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
@@ -141,10 +142,12 @@ class Command(BaseCommand):
                             code=sc_code)
                         center_type = CenterType.GENERAL
 
-                    _, created = Center.objects.get_or_create(
+                    office, _ = Office.objects.get_or_create(name=row[4])
+
+                    Center.objects.get_or_create(
                         region=row[1],
                         code=row[2],
-                        office=row[4],
+                        office=office,
                         sub_constituency=sub_constituency,
                         name=row[8],
                         mahalla=row[9],
@@ -247,6 +250,12 @@ class Command(BaseCommand):
                 except Center.DoesNotExist:
                     pass
 
+                office_name = row[5]
+                office = None
+
+                if office_name:
+                    office = Office.objects.get(name=office_name.strip())
+
                 _, created = ResultForm.objects.get_or_create(
                     barcode=row[7],
                     ballot=ballot,
@@ -254,6 +263,6 @@ class Command(BaseCommand):
                     form_state=FormState.UNSUBMITTED,
                     gender=gender,
                     name=row[4],
-                    office=row[5],
+                    office=office,
                     serial_number=row[8],
                     station_number=row[2])

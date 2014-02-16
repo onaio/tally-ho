@@ -15,7 +15,7 @@ class TestOverview(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
 
-    def test_form_action_view_post_invalid_audit(self):
+    def test_overview_report_get(self):
         center = create_center()
         create_result_form(
             barcode=1, serial_number=1, form_state=FormState.UNSUBMITTED)

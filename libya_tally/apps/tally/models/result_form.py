@@ -8,6 +8,7 @@ import reversion
 
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.center import Center
+from libya_tally.apps.tally.models.office import Office
 from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.entry_version import EntryVersion
@@ -58,7 +59,7 @@ class ResultForm(BaseModel):
     form_state = enum.EnumField(FormState)
     gender = enum.EnumField(Gender, null=True)
     name = models.CharField(max_length=256, null=True)
-    office = models.CharField(max_length=256, blank=True, null=True)
+    office = models.ForeignKey(Office, blank=True, null=True)
     rejected_count = models.PositiveIntegerField(default=0)
     serial_number = models.PositiveIntegerField(unique=True, null=True)
     skip_quarantine_checks = models.BooleanField(default=False)

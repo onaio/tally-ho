@@ -47,8 +47,8 @@ class ProgressReport(object):
     def for_center_office(self, office):
         obj = self.__class__()
         obj.filtered_queryset = \
-            self.get_filtered_queryset().filter(center__office=office)
-        obj.queryset = self.get_queryset().filter(center__office=office)
+            self.get_filtered_queryset().filter(office=office)
+        obj.queryset = self.get_queryset().filter(office=office)
 
         return obj
 
