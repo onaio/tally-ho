@@ -245,7 +245,7 @@ class TestIntakeClerk(TestBase):
         result_form.save()
         response = view(self.request)
         expected_strings = [
-            'Intake: Successful', '>Print</button>',
+            'Intake:', 'Successful', '>Print</button>',
             'Data Entry One:', 'Data Entry Two:', 'To Quality Control [ ]'
         ]
         for test_string in expected_strings:
