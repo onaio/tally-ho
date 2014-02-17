@@ -16,8 +16,8 @@ sudo useradd $USER
 
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 sudo wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
-sudo apt-get update
-sudo apt-get install nginx git python-setuptools python-dev binutils libproj-dev Postgresql-9.3-postgis libpq-dev
+sudo apt-get update -y
+sudo apt-get install -y nginx git python-setuptools python-dev binutils libproj-dev Postgresql-9.3-postgis libpq-dev
 sudo easy_install pip
 sudo pip install virtualenvwrapper uwsgi
 
@@ -25,7 +25,7 @@ sudo -u postgres psql -U postgres -d postgres -c "CREATE USER $DB_USER with pass
 sudo -u postgres psql -U postgres -d postgres -c "CREATE DATABASE $DB_USER OWNER $DB_USER;"
 
 sudo mkdir -p $PROJECT_HOME
-sudo chown -R $USER $PROJECT_HOME
+sudo chown -R $USER:$USER $PROJECT_HOME
 
 if [ GIT ]; then
     cd $PROJECT_HOME && (git clone git@github.com:onaio/tally-system.git || (cd tally-system && git fetch))
