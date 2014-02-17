@@ -89,6 +89,29 @@ class TestDataEntryClerk(TestBase):
         response = view(request)
         self.assertContains(response, 'Center Numbers do not match')
 
+    def test_center_detail_center_alpha_numeric(self):
+        code = '12345'
+        station_number = 1
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1,
+                                         center=center,
+                                         station_number=station_number)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
+        view = views.CenterDetailsView.as_view()
+        data = center_data('12345', '12346')
+        data['center_number'] = 'abcde'
+        data['center_number_copy'] = 'abcde'
+        session = {'result_form': result_form.pk}
+        data.update(session)
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = session
+        response = view(request)
+        self.assertContains(response,
+                            u'Expecting only numbers for center number')
+
     def test_center_detail_invalid_center(self):
         code = '12345'
         other_code = '21345'

@@ -2,6 +2,7 @@ from django import forms
 from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.models.center import Center
+from libya_tally.libs.validators import MinLengthValidator
 
 
 disable_copy_input = {
@@ -15,14 +16,18 @@ disable_copy_input = {
 
 
 class CenterDetailsForm(forms.Form):
-    center_number = forms.CharField(min_length=5, max_length=5,
-                                    widget=forms.TextInput(
-                                        attrs=disable_copy_input),
-                                    label=_(u"Center Number"))
-    center_number_copy = forms.CharField(min_length=5, max_length=5,
-                                         widget=forms.TextInput(
-                                             attrs=disable_copy_input),
-                                         label=_(u"Center Number Copy"))
+    center_number = forms.IntegerField(
+        error_messages={
+            'invalid': _(u"Expecting only numbers for center number")},
+        validators=[MinLengthValidator(5)],
+        widget=forms.NumberInput(attrs=disable_copy_input),
+        label=_(u"Center Number"))
+    center_number_copy = forms.IntegerField(
+        error_messages={
+            'invalid': _(u"Expecting only numbers for center number")},
+        validators=[MinLengthValidator(5)],
+        widget=forms.NumberInput(attrs=disable_copy_input),
+        label=_(u"Center Number Copy"))
     station_number = forms.IntegerField(min_value=1, max_value=8,
                                         widget=forms.TextInput(
                                             attrs=disable_copy_input),
