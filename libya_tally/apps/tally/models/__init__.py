@@ -12,3 +12,4 @@ from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
 from libya_tally.apps.tally.models.station import Station
+from libya_tally.apps.tally.models.user_profile import UserProfile
