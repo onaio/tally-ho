@@ -26,9 +26,6 @@ sudo pip install virtualenvwrapper uwsgi
 sudo -u postgres psql -U postgres -d postgres -c "CREATE USER $DB_USER with password '$DB_PASS';"
 sudo -u postgres psql -U postgres -d postgres -c "CREATE DATABASE $DB_USER OWNER $DB_USER;"
 
-sudo cp $CODE_SRC/deploy/etc/ssh/sshd_config /etc/ssh/sshd_config
-sudo sed -i.bak -e "s/^Port 22/Port $SSH_PORT/" $config_path
-
 sudo mkdir -p $PROJECT_HOME
 sudo chown -R `whoami`:`whoami` $PROJECT_HOME
 
@@ -61,6 +58,9 @@ cd $CODE_SRC && source $activate && python manage.py migrate --settings=$DJANGO_
 cd $CODE_SRC && source $activate && python manage.py collectstatic --noinput --settings=$DJANGO_SETTINGS_MODULE
 
 sudo chown -R $USER:$USER $PROJECT_HOME
+
+sudo cp $CODE_SRC/deploy/etc/ssh/sshd_config /etc/ssh/sshd_config
+sudo sed -i.bak -e "s/^Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
 
 sudo /etc/init.d/nginx restart
 sudo mkdir -p /var/log/uwsgi
