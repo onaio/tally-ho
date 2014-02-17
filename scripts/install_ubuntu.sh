@@ -17,7 +17,7 @@ sudo useradd $USER
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 sudo wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
 sudo apt-get update
-sudo apt-get install nginx git python-setuptools python-dev binutils libproj-dev gdal-bin Postgresql-9.3-postgis libpq-dev
+sudo apt-get install nginx git python-setuptools python-dev binutils libproj-dev Postgresql-9.3-postgis libpq-dev
 sudo easy_install pip
 sudo pip install virtualenvwrapper uwsgi
 
