@@ -14,14 +14,20 @@ STAFF_ROLE_DICT = {
     'ARCHIVE SUPERVISOR': groups.ARCHIVE_SUPERVISOR,
     'ARCHIVE CLERK': groups.ARCHIVE_CLERK,
     'AUDIT CLERK': groups.AUDIT_CLERK,
+    'AUDIT SUPERVISOR': groups.AUDIT_SUPERVISOR,
     'CLEARANCE CLERK': groups.CLEARANCE_CLERK,
     'CLEARANCE SUPERVISOR': groups.CLEARANCE_SUPERVISOR,
     'CORRECTION CLERK': groups.CORRECTIONS_CLERK,
+    'CORRECTION SUPERVISOR': groups.CORRECTIONS_CLERK,
     'DATA ENTRY 1 CLERK': groups.DATA_ENTRY_1_CLERK,
     'DATA ENTRY 2 CLERK': groups.DATA_ENTRY_2_CLERK,
+    'DATA ENTRY 1 SUPERVISOR': groups.DATA_ENTRY_1_CLERK,
+    'DATA ENTRY 2 SUPERVISOR': groups.DATA_ENTRY_2_CLERK,
     'INTAKE CLERK': groups.INTAKE_CLERK,
     'INTAKE SUPERVISOR': groups.INTAKE_SUPERVISOR,
     'QUALITY CONTROL CLERK': groups.QUALITY_CONTROL_CLERK,
+    'DATABASE': groups.SUPER_ADMINISTRATOR,
+    'PROGRAMMER': groups.SUPER_ADMINISTRATOR,
     'SUPER ADMINISTRATOR': groups.SUPER_ADMINISTRATOR,
 }
 
@@ -43,7 +49,7 @@ def utf_8_encoder(unicode_csv_data):
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy("Import Staff list.")
+    help = ugettext_lazy("Import staff list.")
 
     def handle(self, *args, **kwargs):
         self.import_staff_list()
@@ -66,24 +72,30 @@ class Command(BaseCommand):
                         first_name = name
                         last_name = u''
                         split_names = name.split(u' ')
+
                         if len(split_names) > 1:
                             first_name = split_names[0]
                             last_name = u' '.join(split_names[1:])
-                        user = User.objects.create_user(
-                            username, password=username,
-                            first_name=first_name,
-                            last_name=last_name
-                        )
+
+                        user = User.objects.get(username=username)
+
+                        if not user:
+                            user = User.objects.create_user(
+                                username, password=username,
+                                first_name=first_name,
+                                last_name=last_name
+                            )
                     except Exception as e:
                         print "User %s not created! %s" % (username, e)
                         continue
                     else:
-                        role = role.upper()
-                        if role in STAFF_ROLES:
+                        role = STAFF_ROLE_DICT.get(role.upper().strip())
+
+                        if role:
                             group, created = Group.objects.get_or_create(
-                                name=STAFF_ROLE_DICT.get(role))
+                                name=role)
                             user.groups.add(group)
                         else:
                             print (
-                                "Unable to add user %s to unknown group %s."
+                                "Unable to add user %s to unknown group '%s'."
                                 % (username, row[2]))
