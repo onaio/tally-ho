@@ -5,19 +5,32 @@ from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 
 from libya_tally.apps.tally.forms.login_form import LoginForm
+from libya_tally.apps.tally.forms.password_change import PasswordChangeForm
 from libya_tally.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry_clerk, home, intake, quality_control,\
-    super_admin
+    super_admin, profile
 from libya_tally.apps.tally.views.reports import overview
 
 admin.autodiscover()
 
 accounts_urls = patterns(
     '',
-    url(r'^login/$', auth_views.login,
-        {'template_name': 'registration/login.html',
-         'authentication_form': LoginForm},
+    url(r'^login/$',
+        profile.login,
+        {
+            'template_name': 'registration/login.html',
+            'authentication_form': LoginForm
+        },
         name='login'),
+    url(r'^password_change/$',
+        'django.contrib.auth.views.password_change',
+        {
+            'password_change_form': PasswordChangeForm,
+            'post_change_redirect': '/'},
+        name='password_change'),
+    url(r'^password_change/done/$',
+        'django.contrib.auth.views.password_change_done',
+        name='password_change_done'),
     url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
 )
 
