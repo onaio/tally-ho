@@ -48,13 +48,27 @@ class TestIntake(TestBase):
         self.assertContains(response,
                             u'Ensure this value has at least 9 characters')
 
-    def test_center_detail_barcode_alphanumeric_characters(self):
+    def test_center_detail_barcode_alphabetic_characters(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
         data = {
             'barcode': 'abcdefghi',
             'barcode_copy': 'abcdefghi'
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        response = view(request)
+        self.assertContains(response,
+                            u'Expecting only numbers for barcodes')
+
+    def test_center_detail_barcode_alphanumeric_characters(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.CenterDetailsView.as_view()
+        data = {
+            'barcode': '123defghi',
+            'barcode_copy': '123defghi'
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
