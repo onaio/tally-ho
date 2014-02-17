@@ -8,7 +8,7 @@
     <meta name="author" content="">
 
     {% block styles %}
-      {% if arabic %}
+      {% if locale == 'ar' %}
       <link href="{{STATIC_URL}}css/bootstrap-rtl.css" rel="stylesheet" type="text/css" />
       {% else %}
       <link href="{{STATIC_URL}}css/bootstrap.css" rel="stylesheet" type="text/css" />
@@ -16,9 +16,6 @@
       <link href="{{STATIC_URL}}css/default.css" rel="stylesheet" type="text/css" />
       <link href="{{STATIC_URL}}css/print.css" rel="stylesheet" type="text/css" />
     {% endblock %}
-
-    {% get_current_language as LANGUAGE_CODE %}
-    <!-- Current language: {{ LANGUAGE_CODE }} -->
   </head>
 
 {% load i18n %}

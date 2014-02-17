@@ -14,12 +14,15 @@ def site_name(request):
 
 
 def locale(request):
-    arabic = None
+    locale = 'en'
 
     if hasattr(request, 'session'):
         locale = request.session.get('locale')
 
-        if (locale and locale == 'ar'):
-            arabic = 'true'
+        if not locale:
+            locale = 'ar'
 
-    return {'arabic': arabic}
+        request.session.get('locale')
+        request.session['django_language'] = locale
+
+    return {'locale': locale}
