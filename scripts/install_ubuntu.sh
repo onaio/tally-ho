@@ -3,7 +3,7 @@
 PROJECT_HOME=/var/www
 PROJECT_NAME="tally-system"
 DJANGO_SETTINGS_MODULE="libya_tally.settings.local_settings"
-CODE_SRC="$PROJECT_HOME/tally-system"
+CODE_SRC="$PROJECT_HOME/$PROJECT_NAME"
 VENV="$PROJECT_HOME/.virtualenvs"
 DB_NAME=tally
 DB_USER=tally
@@ -25,12 +25,12 @@ sudo -u postgres psql -U postgres -d postgres -c "CREATE USER $DB_USER with pass
 sudo -u postgres psql -U postgres -d postgres -c "CREATE DATABASE $DB_USER OWNER $DB_USER;"
 
 sudo mkdir -p $PROJECT_HOME
-sudo chown -R $USER:$USER $PROJECT_HOME
+sudo chown -R `whoami`:`whoami` $PROJECT_HOME
 
 if [ GIT ]; then
     cd $PROJECT_HOME && (git clone git@github.com:onaio/tally-system.git || (cd tally-system && git fetch))
 else
-    cd $PROJECT_HOME && cp -R ~/libya-tally .
+    cd $PROJECT_HOME && cp -R ~/$PROJECT_NAME .
 fi
 
 config_path_tmp="$CODE_SRC/deploy/var/www/tally-system/libya_tally/settings/local_settings.py"
@@ -47,13 +47,16 @@ sudo unlink /etc/nginx/sites-enabled/default
 sudo ln -s /etc/nginx/sites-available/tally.conf /etc/nginx/sites-enabled/tally
 
 WORKON_HOME=$VENV source /usr/local/bin/virtualenvwrapper.sh && WORKON_HOME=$VENV mkvirtualenv $PROJECT_NAME
-echo "export WORKON_HOME=$VENV" >> ~/.bashrc
-echo "export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE" >> ~/.bashrc
+echo "export WORKON_HOME=$VENV" >> /home/$USER/.bashrc
+echo "export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE" >> /home/$USER/.bashrc
 
 cd $CODE_SRC && source $activate && pip install -r requirements/common.pip
 cd $CODE_SRC && source $activate && python manage.py syncdb --noinput --settings=$DJANGO_SETTINGS_MODULE
 cd $CODE_SRC && source $activate && python manage.py migrate --settings=$DJANGO_SETTINGS_MODULE
 cd $CODE_SRC && source $activate && python manage.py collectstatic --noinput --settings=$DJANGO_SETTINGS_MODULE
+
+sudo chown -R $USER:$USER $PROJECT_HOME
+
 sudo /etc/init.d/nginx restart
 sudo mkdir -p /var/log/uwsgi
 sudo chown -R $USER /var/log/uwsgi
