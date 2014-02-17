@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-16 10:11+0000\n"
+"POT-Creation-Date: 2014-02-17 12:12+0000\n"
 "PO-Revision-Date: 2014-02-14 20:28+0000\n"
 "Last-Translator: marwa.r1985 <marwa.r.benissa@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -86,6 +86,15 @@ msgstr "الاستمارة %s غير موجودة"
 msgid "Suspicious activity detected."
 msgstr "اكتشاف نشاطات مشبوهة"
 
+#: libya_tally/apps/tally/forms/password_change.py:9
+#: libya_tally/libs/templates/registration/password_change_form.html:32
+msgid "New password"
+msgstr ""
+
+#: libya_tally/apps/tally/forms/password_change.py:12
+msgid "New password confirmation"
+msgstr ""
+
 #: libya_tally/apps/tally/management/commands/create_demo_users.py:7
 #: libya_tally/apps/tally/management/commands/create_quarantine_checks.py:7
 #: libya_tally/apps/tally/management/commands/stats.py:7
@@ -96,9 +105,13 @@ msgstr "انشاء مستخدم للعرض مع الصلاحيات والمجم�
 msgid "Create groups."
 msgstr "تكوين مجموعات"
 
-#: libya_tally/apps/tally/management/commands/import.py:57
+#: libya_tally/apps/tally/management/commands/import.py:58
 msgid "Import polling data."
 msgstr "احضار  بيانات الاقتراع"
+
+#: libya_tally/apps/tally/management/commands/import_staff_list.py:75
+msgid "Import staff list."
+msgstr ""
 
 #: libya_tally/apps/tally/models/audit.py:45
 #, fuzzy
@@ -179,6 +192,14 @@ msgstr "استعراض مكتمل"
 msgid "Reviews Required"
 msgstr "استعراض المطلوبة"
 
+#: libya_tally/apps/tally/models/quarantine_check.py:22
+msgid "Trigger 1 - Guard against overvoting"
+msgstr ""
+
+#: libya_tally/apps/tally/models/quarantine_check.py:24
+msgid "Trigger 2 - Guard against errors and tampering with the form"
+msgstr ""
+
 #: libya_tally/apps/tally/models/reconciliation_form.py:22
 msgid "Serial number of ballots received by the polling stationfrom"
 msgstr "ارقم التسلسلي لاوراق الاقتراع التي استلمتها محطة الاقتراع"
@@ -189,11 +210,13 @@ msgstr "الى"
 
 #: libya_tally/apps/tally/models/reconciliation_form.py:25
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:97
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:81
 msgid "Is the form stamped?"
 msgstr "هل الاستمارة مختومة ؟"
 
 #: libya_tally/apps/tally/models/reconciliation_form.py:27
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:42
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:26
 msgid "Total number of ballots received by the polling station"
 msgstr "العدد الكلي لاوراق الاقتراع التي استلمتها محطة الاقتراع"
 
@@ -243,54 +266,55 @@ msgstr "مجموع أوراق الاقتراع المفروزة والمعدود
 
 #: libya_tally/apps/tally/models/reconciliation_form.py:53
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:89
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:73
 msgid "Is the form signed by polling officer 1?"
 msgstr "هل تم توقيع النوذج من قبل موظف الاقتراع 1؟"
 
 #: libya_tally/apps/tally/models/reconciliation_form.py:55
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:91
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:75
 msgid "Is the form signed by polling officer 2?"
 msgstr "هل تم توقيع النوذج من قبل موظف الاقتراع 2؟"
 
 #: libya_tally/apps/tally/models/reconciliation_form.py:57
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:93
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:77
 msgid "Is the form signed by the polling station chair?"
 msgstr "هل تم توقيع النوذج من قبل المسؤول عن محطة الاقتراع ؟"
 
 #: libya_tally/apps/tally/models/reconciliation_form.py:59
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:95
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:79
 msgid "Is the form dated?"
 msgstr "هل النموذج يحتوى تاريخ؟"
 
-#: libya_tally/apps/tally/models/result_form.py:27
+#: libya_tally/apps/tally/models/result_form.py:28
 #: libya_tally/libs/views/corrections.py:24
 msgid "Result Form has no double entries."
 msgstr "نتيجة الاستمارة لا توجد به ادخال مزدوج"
 
-#: libya_tally/apps/tally/models/result_form.py:113
-#: libya_tally/apps/tally/models/result_form.py:117
-#: libya_tally/apps/tally/models/result_form.py:188
-#: libya_tally/apps/tally/models/result_form.py:193
-#: libya_tally/apps/tally/templates/tally/corrections/comparison.html:17
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:29
-msgid "Yes"
-msgstr "نعم "
-
-#: libya_tally/apps/tally/models/result_form.py:113
-#: libya_tally/apps/tally/models/result_form.py:118
-#: libya_tally/apps/tally/models/result_form.py:189
-#: libya_tally/apps/tally/models/result_form.py:194
+#: libya_tally/apps/tally/models/result_form.py:121
+#: libya_tally/apps/tally/models/result_form.py:126
+#: libya_tally/apps/tally/models/result_form.py:197
+#: libya_tally/apps/tally/models/result_form.py:202
 #: libya_tally/apps/tally/templates/tally/corrections/comparison.html:16
 #: libya_tally/apps/tally/templates/tally/corrections/required.html:28
 msgid "No"
 msgstr "لا "
 
-#: libya_tally/apps/tally/models/result_form.py:134
+#: libya_tally/apps/tally/models/result_form.py:142
 msgid "Corrections Required!"
 msgstr "التصحيحات المطلوبة!"
 
-#: libya_tally/apps/tally/models/result_form.py:153
+#: libya_tally/apps/tally/models/result_form.py:161
 msgid "Unexpected number of reconciliation forms"
 msgstr ""
+
+#: libya_tally/apps/tally/models/result_form.py:201
+#: libya_tally/apps/tally/templates/tally/corrections/comparison.html:17
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:29
+msgid "Yes"
+msgstr "نعم "
 
 #: libya_tally/apps/tally/models/sub_constituency.py:28
 msgid "General and Women"
@@ -318,7 +342,6 @@ msgstr "خطا فى عدد ارقام التسلسل"
 
 #: libya_tally/apps/tally/templates/tally/barcode_verify.html:34
 #: libya_tally/apps/tally/templates/tally/enter_center_details.html:48
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:66
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:207
 msgid "Submit"
 msgstr "دخول"
@@ -334,14 +357,15 @@ msgid "Barcode:"
 msgstr "الرقم التسلسل :"
 
 #: libya_tally/apps/tally/templates/tally/center_details.html:17
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:15
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:15
 msgid "Office Name:"
 msgstr "اسم المكتب :"
 
 #: libya_tally/apps/tally/templates/tally/center_details.html:21
-#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:19
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:12
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:12
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:14
+#: libya_tally/apps/tally/templates/tally/print_cover_common.html:4
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:11
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:11
 msgid "Center Name:"
 msgstr "اسم المركز :"
 
@@ -366,8 +390,7 @@ msgid "Station Code:"
 msgstr "رمز المحطة :"
 
 #: libya_tally/apps/tally/templates/tally/center_details.html:47
-#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:26
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:26
+#: libya_tally/apps/tally/templates/tally/print_cover_common.html:16
 msgid "Gender:"
 msgstr "الجنس"
 
@@ -400,6 +423,20 @@ msgstr "رقم المركز غير مطابق"
 msgid "Dashboard"
 msgstr ""
 
+#: libya_tally/apps/tally/templates/tally/print_cover_common.html:7
+msgid "Center Number:"
+msgstr "رقم المركز :"
+
+#: libya_tally/apps/tally/templates/tally/print_cover_common.html:10
+msgid "Station Number:"
+msgstr "رقم المركز :"
+
+#: libya_tally/apps/tally/templates/tally/print_cover_common.html:13
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:16
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:16
+msgid "Form Type:"
+msgstr "نوع الاستمارة :"
+
 #: libya_tally/apps/tally/templates/tally/success.html:9
 #, fuzzy
 msgid "Form successful move to"
@@ -415,42 +452,58 @@ msgstr "بداية استمارة جديدة"
 msgid "Print Cover"
 msgstr "طباعة الغلاف"
 
-#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:22
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:17
-msgid "Center Number:"
-msgstr "رقم المركز :"
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:10
+msgid "Quarantined"
+msgstr ""
 
-#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:25
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:20
-msgid "Station Number:"
-msgstr "رقم المركز :"
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:12
+msgid "Successful Archive"
+msgstr "تمت الارشفه بنجاح "
 
-#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:29
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:15
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:15
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:23
-msgid "Form Type:"
-msgstr "نوع الاستمارة :"
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:18
+#, fuzzy
+msgid "Quarantined Form"
+msgstr "غلاف الاستمارة"
 
-#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:32
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:23
+msgid "Failed quarantine check:"
+msgstr ""
+
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:28
+#, fuzzy
+msgid "Archived Form"
+msgstr "المؤرشفة من قبل :"
+
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:33
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:23
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:23
+#, fuzzy
+msgid "Number of Registrants:"
+msgstr "عدد الأوراق الغير مختومة"
+
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:36
 msgid "Date/Time:"
 msgstr "التاريخ / الوقت"
 
-#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:36
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:41
+msgid "Quarantined by:"
+msgstr ""
+
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:43
 msgid "Archived by:"
 msgstr "المؤرشفة من قبل :"
 
-#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:44
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:72
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:67
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:70
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:52
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:71
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:71
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:56
 msgid "Print"
 msgstr "طباعة"
 
-#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:45
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:73
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:68
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:71
+#: libya_tally/apps/tally/templates/tally/archive/print_cover.html:53
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:72
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:72
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:57
 msgid "Print Successful"
 msgstr "طباعه ناجحة"
 
@@ -503,78 +556,66 @@ msgid "Review"
 msgstr "المراجعة"
 
 #: libya_tally/apps/tally/templates/tally/audit/print_cover.html:7
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:7
 msgid "Audit Case: Team Page"
 msgstr ""
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:11
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:11
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:12
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:12
 #, fuzzy
 msgid "Barcode Number:"
 msgstr "الرقم التسلسل :"
-
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:16
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:16
-#, fuzzy
-msgid "Center Office:"
-msgstr "اسم المركز :"
 
 #: libya_tally/apps/tally/templates/tally/audit/print_cover.html:19
 #: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:19
 msgid "Sub-Constituency:"
 msgstr ""
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:23
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:23
-#, fuzzy
-msgid "Number of Registrants:"
-msgstr "عدد الأوراق الغير مختومة"
-
 #: libya_tally/apps/tally/templates/tally/audit/print_cover.html:28
 #: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:28
 msgid "Date Created:"
 msgstr ""
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:32
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:32
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:31
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:31
 #, fuzzy
 msgid "Date Team Modified:"
 msgstr "التعديل الاخير"
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:36
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:36
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:34
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:34
 #, fuzzy
 msgid "Date Supervisor Modified:"
 msgstr "مراجعة المشرف ؟"
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:39
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:39
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:37
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:37
 msgid "Problem"
 msgstr ""
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:47
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:45
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:45
 msgid "Other:"
 msgstr ""
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:51
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:46
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:50
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:50
 #, fuzzy
 msgid "Action Conducted"
 msgstr "رمز المحطة :"
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:57
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:52
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:56
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:56
 #, fuzzy
 msgid "Resolution Recommendation"
 msgstr "قسم التسوية"
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:62
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:57
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:60
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:60
 msgid "Team Comment:"
 msgstr ""
 
-#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:65
-#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:60
+#: libya_tally/apps/tally/templates/tally/audit/print_cover.html:63
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:63
 #, fuzzy
 msgid "Supervisor Comment:"
 msgstr "مراجعة المشرف ؟"
@@ -619,6 +660,10 @@ msgstr ""
 msgid "Create Form"
 msgstr "غلاف الاستمارة"
 
+#: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:7
+msgid "Clearance Case: Team Page"
+msgstr ""
+
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:7
 msgid "Clearance:"
 msgstr ""
@@ -646,50 +691,11 @@ msgstr "مدخل 1"
 msgid "Entry 2"
 msgstr "مدخل 2"
 
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:7
 #: libya_tally/apps/tally/templates/tally/corrections/match.html:7
 #: libya_tally/apps/tally/views/corrections.py:269
 #: libya_tally/apps/tally/views/data_entry_clerk.py:356
 msgid "Corrections"
 msgstr "تصحيحات"
-
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:17
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:21
-#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:5
-msgid "Reconciliation Section"
-msgstr "قسم التسوية"
-
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:21
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:37
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:53
-msgid "Match"
-msgstr "تطابق"
-
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:23
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:39
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:55
-msgid "Corrected"
-msgstr "تصحيح"
-
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:25
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:41
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:57
-msgid "Mis-Match"
-msgstr "عدم تطابق"
-
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:33
-msgid "General Section"
-msgstr "قسم العام "
-
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:49
-msgid "Women Section"
-msgstr "قسم النساء"
-
-#: libya_tally/apps/tally/templates/tally/corrections/dashboard.html:67
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:71
-#: libya_tally/apps/tally/templates/tally/quality_control/dashboard.html:33
-msgid "Abort"
-msgstr "حول"
 
 #: libya_tally/apps/tally/templates/tally/corrections/match.html:11
 msgid "Form Entries Match"
@@ -712,6 +718,11 @@ msgstr "ليست فى هذه المرحلة , الاستمارة جاهزة لم
 msgid "Not Correct - Reject"
 msgstr "لا تصحيح - رفض"
 
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:71
+#: libya_tally/apps/tally/templates/tally/quality_control/dashboard.html:33
+msgid "Abort"
+msgstr "حول"
+
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:7
 #: libya_tally/apps/tally/views/data_entry_clerk.py:60
 #: libya_tally/apps/tally/views/data_entry_clerk.py:360
@@ -732,113 +743,139 @@ msgstr ""
 msgid "Some fields are blank!"
 msgstr "بعض الحقول فارغة!"
 
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:21
+#, fuzzy
+msgid "reconciliation section"
+msgstr "قسم التسوية"
+
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:28
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:12
 #, fuzzy
 msgid "Serial number of ballots received by the polling station</span>"
 msgstr "ارقم التسلسلي لاوراق الاقتراع التي استلمتها محطة الاقتراع"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:29
-msgid "From:"
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:13
+msgid "from:"
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:51
-msgid "Section (D) to be filled after the completion of the results forms"
+msgid "section (d) to be filled after the completion of the results forms"
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:57
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:41
 #, fuzzy
 msgid "Number of unstamped ballots:"
 msgstr "عدد الأوراق الغير مختومة"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:63
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:47
 #, fuzzy
 msgid "Number of invalid votes (including the blanks):"
 msgstr "عدد الأوراق الغير صحيحة ( بما فيها الأوراق الخالية)"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:69
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:53
 #, fuzzy
 msgid "Number of valid votes:"
 msgstr "عدد الأوراق الصحيحة"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:75
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:59
 #, fuzzy
 msgid "Total number of the sorted and counted ballots:"
 msgstr "مجموع أوراق الاقتراع المفروزة والمعدودة"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:80
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:64
 msgid ""
 "If the figure in the field 12 does not equal the one in field 7, the totals "
 "of the fields  9, 10 and 11 should be recounted."
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:83
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:67
 msgid ""
 "If after recounting, the difference persists, the ballots of the fields 9, "
 "10 and 11 should be recounted as in the manual."
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:86
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:70
 msgid ""
 "If  the  difference  persists,  write a note in the field  at the bottom of "
 "the form to explain the action taken prior to proceeding to the next step."
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:105
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:89
 msgid "Section (B) to be filled after closure of polling station"
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:113
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:97
 #, fuzzy
 msgid "Number of signatures in the VR:"
 msgstr "عدد التواقيع فى سجل الناخبين"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:119
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:103
 #, fuzzy
 msgid "Number of unused ballots:"
 msgstr "عدد أوراق الاقتراع الغير مستخدمة"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:125
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:109
 #, fuzzy
 msgid "Number of spoiled ballots:"
 msgstr "عدد أوراق الاقتراع التالفة"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:131
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:115
 #, fuzzy
 msgid "Number of cancelled ballots:"
 msgstr "عدد أوراق الاقتراع الملغاة"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:137
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:121
 #, fuzzy
 msgid "Total number of ballots remaining outside the ballot box:"
 msgstr "العدد الكلي لأوراق الاقتراع خارج صندوق الاقتراع"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:143
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:127
 msgid "Section (C) to be filled after counting the ballots in the box"
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:149
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:133
 #, fuzzy
 msgid "Number of ballots found inside the ballot box:"
 msgstr "عدد أوراق الاقتراع الموجودة داخل صندوق الاقتراع"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:155
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:139
 #, fuzzy
 msgid "Total number of ballots found inside and outside the ballot box:"
 msgstr "مجموع أوراق الاقتراع  الموجودة داخل و خارج صندوق الاقتراع"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:160
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:144
 msgid ""
 "N.B. if the figure in field 8 does not equal the figure in field 1, the "
 "calculations above should be redone."
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:163
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:147
 msgid ""
 "If the difference persists, the ballots should be recounted to verify the "
 "figures in the fields 3, 4, 5, 7."
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:166
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:150
 msgid ""
 "If the difference persists, write a note in the field at the bottom of the "
 "form to explain the action taken prior to proceeding to the next step."
@@ -865,27 +902,29 @@ msgid "No."
 msgstr "لا "
 
 #: libya_tally/apps/tally/templates/tally/errors/400.html:5
-msgid "Internal system error."
-msgstr "خطأ في النظام الداخلي"
-
 #: libya_tally/apps/tally/templates/tally/errors/403.html:5
-msgid "You do not have permission to view this page."
-msgstr "ليس لديك الصلاحيات لعرض هدة الصفحة "
+#: libya_tally/apps/tally/templates/tally/errors/404.html:6
+#: libya_tally/apps/tally/templates/tally/errors/500.html:5
+msgid "Please return to the home page."
+msgstr ""
+
+#: libya_tally/apps/tally/templates/tally/errors/400.html:6
+#: libya_tally/apps/tally/templates/tally/errors/403.html:6
+#: libya_tally/apps/tally/templates/tally/errors/404.html:7
+#: libya_tally/apps/tally/templates/tally/errors/500.html:6
+msgid "Home"
+msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/errors/404.html:5
 msgid "Page not found."
 msgstr "الصفحة غير موجودة"
 
-#: libya_tally/apps/tally/templates/tally/errors/500.html:5
-msgid "Internal error."
-msgstr "خطأ فى الاتصال بالانترنت"
-
 #: libya_tally/apps/tally/templates/tally/intake/clearance.html:7
-#: libya_tally/apps/tally/views/intake_clerk.py:34
-#: libya_tally/apps/tally/views/intake_clerk.py:80
-#: libya_tally/apps/tally/views/intake_clerk.py:108
-#: libya_tally/apps/tally/views/intake_clerk.py:127
-#: libya_tally/apps/tally/views/intake_clerk.py:213
+#: libya_tally/apps/tally/views/intake.py:42
+#: libya_tally/apps/tally/views/intake.py:98
+#: libya_tally/apps/tally/views/intake.py:126
+#: libya_tally/apps/tally/views/intake.py:145
+#: libya_tally/apps/tally/views/intake.py:238
 msgid "Intake"
 msgstr "استقبال"
 
@@ -897,57 +936,57 @@ msgstr "تم ارسال ( النموذج) الاستمارة الى مرحلة �
 msgid "Cover Form"
 msgstr "غلاف الاستمارة"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:29
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:15
 #, fuzzy
 msgid "Intake: "
 msgstr "استقبال"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:29
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:15
 #, fuzzy
 msgid "Successful"
 msgstr "طباعه ناجحة"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:32
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:18
 msgid "Data Entry One:"
 msgstr "ادخال البيانات الاول :"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:33
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:39
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:19
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:25
 msgid "Name:"
 msgstr "الاسم :"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:38
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:24
 msgid "Data Entry Two:"
 msgstr "الادخال البيانات التانيه :"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:44
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:30
 msgid "Corrections:"
 msgstr "التصحيح :"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:45
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:31
 #, fuzzy
 msgid "To Quality Control"
 msgstr "ضبط الجودة"
 
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:31
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:35
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:41
 #: libya_tally/apps/tally/templates/tally/intake/print_cover.html:45
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:49
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:55
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:59
 #, fuzzy
 msgid "Name"
 msgstr "الاسم :"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:49
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:59
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:35
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:45
 #, fuzzy
 msgid "To Data Entry One"
 msgstr "ادخال البيانات الاول :"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:54
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:40
 msgid "Quality Control:"
 msgstr "ضبط الجودة :"
 
-#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:55
+#: libya_tally/apps/tally/templates/tally/intake/print_cover.html:41
 #, fuzzy
 msgid "To Archive"
 msgstr "المؤرشفة من قبل :"
@@ -957,7 +996,7 @@ msgstr "المؤرشفة من قبل :"
 #: libya_tally/apps/tally/templates/tally/quality_control/reject.html:7
 #: libya_tally/apps/tally/views/corrections.py:270
 #: libya_tally/apps/tally/views/quality_control.py:50
-#: libya_tally/apps/tally/views/quality_control.py:153
+#: libya_tally/apps/tally/views/quality_control.py:154
 msgid "Quality Control"
 msgstr "ضبط الجودة"
 
@@ -972,6 +1011,14 @@ msgstr "غير صحيح"
 #: libya_tally/apps/tally/templates/tally/quality_control/general.html:16
 msgid "Component"
 msgstr "مكون"
+
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:5
+msgid "Reconciliation Section"
+msgstr "قسم التسوية"
+
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:35
+msgid "Section (d) to be filled after the completion of the results forms"
+msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/quality_control/reject.html:9
 msgid "Form Rejected: Send to Data Entry 1"
@@ -996,8 +1043,7 @@ msgid "Number"
 msgstr "رقم المركز"
 
 #: libya_tally/apps/tally/templates/tally/reports/overview.html:13
-#, python-format
-msgid "%%"
+msgid "Percentage"
 msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/reports/overview.html:14
@@ -1016,13 +1062,13 @@ msgid "Not Intaken"
 msgstr "استقبال"
 
 #: libya_tally/apps/tally/templates/tally/reports/overview.html:30
-#: libya_tally/libs/reports/progress.py:63
+#: libya_tally/libs/reports/progress.py:64
 #, fuzzy
 msgid "Intaken"
 msgstr "استقبال"
 
 #: libya_tally/apps/tally/templates/tally/reports/overview.html:31
-#: libya_tally/libs/reports/progress.py:69
+#: libya_tally/libs/reports/progress.py:70
 #, fuzzy
 msgid "Archived"
 msgstr "المؤرشفة من قبل :"
@@ -1166,34 +1212,22 @@ msgstr "المسؤل على التدقيق"
 msgid "Users and groups"
 msgstr "مستخدمين و مجموعات"
 
-#: libya_tally/apps/tally/views/archive.py:51
-#: libya_tally/apps/tally/views/archive.py:129
-#: libya_tally/apps/tally/views/quality_control.py:154
+#: libya_tally/apps/tally/views/archive.py:64
+#: libya_tally/apps/tally/views/archive.py:145
+#: libya_tally/apps/tally/views/quality_control.py:155
 msgid "Archiving"
 msgstr "الارشفة"
 
-#: libya_tally/apps/tally/views/archive.py:90
-msgid "Quarantined"
+#: libya_tally/apps/tally/views/archive.py:140
+msgid "Quarantine"
 msgstr ""
 
-#: libya_tally/apps/tally/views/archive.py:91
-msgid "QUARANTINED FORM"
-msgstr ""
-
-#: libya_tally/apps/tally/views/archive.py:93
-msgid "Successful Archive"
-msgstr "تمت الارشفه بنجاح "
-
-#: libya_tally/apps/tally/views/archive.py:94
-msgid "ARCHIVED FORM"
-msgstr "النمادج التى تم ارشفتها "
-
-#: libya_tally/apps/tally/views/archive.py:130
+#: libya_tally/apps/tally/views/archive.py:140
 #, fuzzy
 msgid "Archive"
 msgstr "المؤرشفة من قبل :"
 
-#: libya_tally/apps/tally/views/audit.py:190
+#: libya_tally/apps/tally/views/audit.py:209
 #, fuzzy
 msgid "Create Audit"
 msgstr "تكوين مجموعات"
@@ -1229,7 +1263,7 @@ msgstr "ادخال بيانات"
 msgid "Data Entry 2"
 msgstr "ادخال بيانات"
 
-#: libya_tally/apps/tally/views/intake_clerk.py:214
+#: libya_tally/apps/tally/views/intake.py:239
 #, fuzzy
 msgid "Data Entry 1"
 msgstr "ادخال بيانات"
@@ -1238,20 +1272,20 @@ msgstr "ادخال بيانات"
 msgid "No results"
 msgstr ""
 
-#: libya_tally/libs/reports/progress.py:57
+#: libya_tally/libs/reports/progress.py:58
 msgid "Expected"
 msgstr ""
 
-#: libya_tally/libs/reports/progress.py:75
+#: libya_tally/libs/reports/progress.py:76
 msgid "Clearance"
 msgstr ""
 
-#: libya_tally/libs/reports/progress.py:81
+#: libya_tally/libs/reports/progress.py:82
 #, fuzzy
 msgid "Audit"
 msgstr "التدقيق :"
 
-#: libya_tally/libs/reports/progress.py:87
+#: libya_tally/libs/reports/progress.py:88
 msgid "Not Received"
 msgstr ""
 
@@ -1262,6 +1296,35 @@ msgstr "منظومة النتائج للناخبيين الليبين"
 #: libya_tally/libs/templates/registration/login.html:13
 msgid "Sign in"
 msgstr "ذخول"
+
+#: libya_tally/libs/templates/registration/password_change_form.html:4
+#: libya_tally/libs/templates/registration/password_change_form.html:17
+msgid "Password change"
+msgstr ""
+
+#: libya_tally/libs/templates/registration/password_change_form.html:13
+msgid "Please correct the error below."
+msgstr ""
+
+#: libya_tally/libs/templates/registration/password_change_form.html:13
+msgid "Please correct the errors below."
+msgstr ""
+
+#: libya_tally/libs/templates/registration/password_change_form.html:19
+msgid "Please enter your old password, then  enter your new password twice."
+msgstr ""
+
+#: libya_tally/libs/templates/registration/password_change_form.html:24
+msgid "Old password"
+msgstr ""
+
+#: libya_tally/libs/templates/registration/password_change_form.html:40
+msgid "Password (again)"
+msgstr ""
+
+#: libya_tally/libs/templates/registration/password_change_form.html:48
+msgid "Change my password"
+msgstr ""
 
 #: libya_tally/libs/views/corrections.py:83
 msgid "Please select correct results for all mis-matched votes."
@@ -1280,6 +1343,37 @@ msgstr "خطأ : بيانات ناقصة "
 #: libya_tally/libs/views/session.py:12
 msgid "Session result_form does not match submitted data."
 msgstr "البيانات الناتجة غير مطابقه للنمودج المداخل"
+
+#, fuzzy
+#~ msgid "Center Office:"
+#~ msgstr "اسم المركز :"
+
+#~ msgid "Match"
+#~ msgstr "تطابق"
+
+#~ msgid "Corrected"
+#~ msgstr "تصحيح"
+
+#~ msgid "Mis-Match"
+#~ msgstr "عدم تطابق"
+
+#~ msgid "General Section"
+#~ msgstr "قسم العام "
+
+#~ msgid "Women Section"
+#~ msgstr "قسم النساء"
+
+#~ msgid "Internal system error."
+#~ msgstr "خطأ في النظام الداخلي"
+
+#~ msgid "You do not have permission to view this page."
+#~ msgstr "ليس لديك الصلاحيات لعرض هدة الصفحة "
+
+#~ msgid "Internal error."
+#~ msgstr "خطأ فى الاتصال بالانترنت"
+
+#~ msgid "ARCHIVED FORM"
+#~ msgstr "النمادج التى تم ارشفتها "
 
 #~ msgid "Select"
 #~ msgstr "اختار"
