@@ -6,22 +6,42 @@
 
 <h1 class="do-not-print">{% trans 'Print Cover' %}</h1>
 
-<h2>{{ cover_type }}</h2>
+{% if result_form.audit %}
+<h2>{% trans 'Quarantined' %}</h2>
+{% else %}
+<h2>{% trans 'Successful Archive' %}</h2>
+{% endif %}
 
 <table id="coverform" class="print-table">
     <tr>
-        <td colspan="2">{{ form_state }}</td>
+        {% if result_form.audit %}
+        <td colspan="2">{% trans 'Quarantined Form' %}</td>
+        {% for check in result_form.audit.quarantine_checks.all %}
     </tr>
     <tr>
-        <td colspan="2">{{ cover_type }}</td>
+        <td>
+            {% trans 'Failed quarantine check:' %}
+            {{ check.local_name }}
+        </td>
+        {% endfor %}
+        {% else %}
+        <td colspan="2">{% trans 'Archived Form' %}</td>
+        {% endif %}
     </tr>
     {% include 'tally/print_cover_common.html' %}
-   <tr>
+    <tr>
+        <td>{% trans 'Number of Registrants:' %} </td><td>{{ result_form.station.registrants }}</td>
+    </tr>
+    <tr>
         <td>{% trans 'Date/Time:' %}</td>
         <td>{{ result_form.modified_date }}</td>
     </tr>
     <tr>
+        {% if result_form.audit %}
+        <td>{% trans 'Quarantined by:' %}</td>
+        {% else %}
         <td>{% trans 'Archived by:' %}</td>
+        {% endif %}
         <td>{{ user.username }}</td>
     </tr>
 </table>

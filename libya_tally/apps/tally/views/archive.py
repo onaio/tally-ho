@@ -106,17 +106,8 @@ class ArchivePrintView(LoginRequiredMixin,
 
         form_in_state(result_form, possible_states)
 
-        if result_form.audit:
-            cover_type = _('Quarantined')
-            form_state = _('QUARANTINED FORM')
-        else:
-            cover_type = _('Successful Archive')
-            form_state = _('ARCHIVED FORM')
-
         return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  cover_type=cover_type,
-                                  form_state=form_state))
+            self.get_context_data(result_form=result_form))
 
     @transaction.atomic
     def post(self, *args, **kwargs):
