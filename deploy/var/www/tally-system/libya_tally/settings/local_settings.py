@@ -1,6 +1,12 @@
 import os
 from libya_tally.settings.common import *  # flake8: noqa
 
+DEBUG = False
+
+TEMPLATE_DEBUG = False
+
+ALLOWED_HOSTS = ['localhost']
+
 os.environ.setdefault('DB_NAME', 'REPLACE_DB_NAME')
 os.environ.setdefault('DB_USER', 'REPLACE_DB_USER')
 os.environ.setdefault('DB_PASSWORD', 'REPLACE_DB_PASSWORD')
