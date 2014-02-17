@@ -48,6 +48,28 @@ def utf_8_encoder(unicode_csv_data):
         yield line.encode('utf-8')
 
 
+def assign_names(name):
+    first_name = name
+    last_name = u''
+    split_names = name.split(u' ')
+
+    if len(split_names) > 1:
+        first_name = split_names[0]
+        last_name = u' '.join(split_names[1:])
+
+    return first_name, last_name
+
+
+def create_user(first_name, last_name, username):
+    try:
+        return User.objects.get(username=username)
+    except User.DoesNotExist:
+        return User.objects.create_user(
+            username, password=username,
+            first_name=first_name,
+            last_name=last_name)
+
+
 class Command(BaseCommand):
     help = ugettext_lazy("Import staff list.")
 
@@ -69,22 +91,8 @@ class Command(BaseCommand):
                         (row, e)
                 else:
                     try:
-                        first_name = name
-                        last_name = u''
-                        split_names = name.split(u' ')
-
-                        if len(split_names) > 1:
-                            first_name = split_names[0]
-                            last_name = u' '.join(split_names[1:])
-
-                        user = User.objects.get(username=username)
-
-                        if not user:
-                            user = User.objects.create_user(
-                                username, password=username,
-                                first_name=first_name,
-                                last_name=last_name
-                            )
+                        first_name, last_name = assign_names(name)
+                        user = create_user(first_name, last_name, username)
                     except Exception as e:
                         print "User %s not created! %s" % (username, e)
                         continue
