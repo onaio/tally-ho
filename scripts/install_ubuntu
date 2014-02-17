@@ -11,6 +11,8 @@ DB_PASS=tally
 DB_HOST=127.0.0.1
 GIT="true"
 USER=ubuntu
+SSH_PORT=20000
+ALLOW_HOST=any
 
 sudo useradd $USER
 
@@ -23,6 +25,9 @@ sudo pip install virtualenvwrapper uwsgi
 
 sudo -u postgres psql -U postgres -d postgres -c "CREATE USER $DB_USER with password '$DB_PASS';"
 sudo -u postgres psql -U postgres -d postgres -c "CREATE DATABASE $DB_USER OWNER $DB_USER;"
+
+sudo cp $CODE_SRC/deploy/etc/ssh/sshd_config /etc/ssh/sshd_config
+sudo sed -i.bak -e "s/^Port 22/Port $SSH_PORT/" $config_path
 
 sudo mkdir -p $PROJECT_HOME
 sudo chown -R `whoami`:`whoami` $PROJECT_HOME
@@ -61,3 +66,10 @@ sudo /etc/init.d/nginx restart
 sudo mkdir -p /var/log/uwsgi
 sudo chown -R $USER /var/log/uwsgi
 sudo start tally
+
+sudo ufw allow from $ALLOW_HOST to any port $SSH_PORT proto tcp
+sudo ufw deny from any port 22 proto tcp
+sudo ufw allow from $ALLOW_HOST to any port 443 proto tcp
+sudo ufw allow from $ALLOW_HOST to any port 80 proto tcp
+sudo ufw enable
+sudo reload ssh
