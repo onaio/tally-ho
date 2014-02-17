@@ -7,6 +7,10 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("tracking", "0006_auto__add_field_pageview_method"),
+    )
+
     def forwards(self, orm):
         db.execute('ALTER TABLE "tracking_pageview" '
                    'ALTER COLUMN "url" TYPE TEXT; '
