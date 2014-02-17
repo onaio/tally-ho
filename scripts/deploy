@@ -1,12 +1,12 @@
 # copy, compress and upload project
 cd ..
-cp -R libya-tally libya-tally-clean
-rm -rf libya-tally-clean/.git
-rm -rf libya-tally-clean/data/.git
-tar czvf libya-tally.tgz libya-tally-clean
-scp libya-tally-clean hnec:
+cp -R tally-system tally-system-clean
+rm -rf tally-system-clean/.git
+rm -rf tally-system-clean/data/.git
+tar czvf tally-system.tgz tally-system-clean
+scp tally-system-clean hnec:
 
 # login and run install
 ssh hnec
-tar xzvf libya-tally.tgz libya-tally
-./libya-tally/scripts/install_ubuntu.sh
+tar xzvf tally-system.tgz tally-system
+./tally-system/scripts/install_ubuntu.sh
