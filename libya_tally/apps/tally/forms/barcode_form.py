@@ -15,14 +15,14 @@ disable_copy_input = {
 
 
 class BarcodeForm(forms.Form):
-    barcode = forms.CharField(max_length=9, min_length=9,
-                              widget=forms.TextInput(
-                                  attrs=disable_copy_input),
-                              label=_(u"Barcode"))
-    barcode_copy = forms.CharField(max_length=9, min_length=9,
-                                   widget=forms.TextInput(
-                                       attrs=disable_copy_input),
-                                   label=_(u"Barcode Copy"))
+    barcode = forms.IntegerField(
+        error_messages={'invalid': _(u"Expecting only numbers for barcodes")},
+        widget=forms.NumberInput(
+            attrs=disable_copy_input), label=_(u"Barcode"))
+    barcode_copy = forms.IntegerField(
+        error_messages={'invalid': _(u"Expecting only numbers for barcodes")},
+        widget=forms.NumberInput(
+            attrs=disable_copy_input), label=_(u"Barcode Copy"))
 
     def __init__(self, *args, **kwargs):
         super(BarcodeForm, self).__init__(*args, **kwargs)
