@@ -60,9 +60,9 @@ def pass_tampering(result_form):
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
 
-    Fails in sum of the results section of the form does not equal the number
-    of ballots expected based on the calculation of the key fields from the
-    reconciliation form with a N% tolerance.
+    Fails if the sum of the results section of the form does not equal the
+    number of ballots expected based on the calculation of the key fields from
+    the reconciliation form with a N% tolerance.
 
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
