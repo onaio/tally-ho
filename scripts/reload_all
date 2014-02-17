@@ -1,5 +1,3 @@
-rm -r libya_tally/apps/tally/migrations/0001_initial.py
-python manage.py schemamigration tally --initial
 ./scripts/create_database tally $1 $2
 python manage.py import --settings=$2
 python manage.py create_demo_users --settings=$2
