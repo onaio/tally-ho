@@ -21,3 +21,6 @@ DATABASES = {
         'HOST': os.environ.get('DB_HOST')
     }
 }
+
+DEBUG = False
+TEMPLATE_DEBUG = DEBUG
