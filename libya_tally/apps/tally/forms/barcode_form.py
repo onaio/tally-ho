@@ -1,8 +1,8 @@
 from django import forms
-from django.core import validators
 from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.models.result_form import ResultForm
+from libya_tally.libs.validators import MinLengthValidator
 
 
 disable_copy_input = {
@@ -13,10 +13,6 @@ disable_copy_input = {
     'autocomplete': 'off',
     'class': 'form-control'
 }
-
-
-class MinLengthValidator(validators.MinLengthValidator):
-    clean = lambda self, x: len(u"%s" % x)
 
 
 class BarcodeForm(forms.Form):
