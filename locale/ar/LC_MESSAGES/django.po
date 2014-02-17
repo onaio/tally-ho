@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-17 16:11+0000\n"
+"POT-Creation-Date: 2014-02-17 22:13+0000\n"
 "PO-Revision-Date: 2014-02-17 08:55+0000\n"
 "Last-Translator: marwa.r1985 <marwa.r.benissa@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -22,18 +22,23 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: libya_tally/apps/tally/forms/barcode_form.py:21
+#: libya_tally/apps/tally/forms/barcode_form.py:20
+#: libya_tally/apps/tally/forms/barcode_form.py:25
+msgid "Expecting only numbers for barcodes"
+msgstr ""
+
+#: libya_tally/apps/tally/forms/barcode_form.py:23
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:14
 #: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:14
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:14
 msgid "Barcode"
 msgstr "رقم التسلسل"
 
-#: libya_tally/apps/tally/forms/barcode_form.py:25
+#: libya_tally/apps/tally/forms/barcode_form.py:28
 msgid "Barcode Copy"
 msgstr "نسخة من الرقم التسلسلي"
 
-#: libya_tally/apps/tally/forms/barcode_form.py:38
+#: libya_tally/apps/tally/forms/barcode_form.py:41
 #: libya_tally/apps/tally/templates/tally/barcode_verify.html:11
 msgid "Barcodes do not match!"
 msgstr "الرقم التسلسلي غير مطابق"
@@ -43,35 +48,40 @@ msgid "Missing votes for candidate"
 msgstr "أصوات المترشح مفقودة"
 
 #: libya_tally/apps/tally/forms/center_details_form.py:21
+#: libya_tally/apps/tally/forms/center_details_form.py:27
+msgid "Expecting only numbers for center number"
+msgstr ""
+
+#: libya_tally/apps/tally/forms/center_details_form.py:24
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:15
 #: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:15
 msgid "Center Number"
 msgstr "رقم المركز"
 
-#: libya_tally/apps/tally/forms/center_details_form.py:25
+#: libya_tally/apps/tally/forms/center_details_form.py:30
 msgid "Center Number Copy"
 msgstr "نسخة من رقم المركز"
 
-#: libya_tally/apps/tally/forms/center_details_form.py:29
+#: libya_tally/apps/tally/forms/center_details_form.py:34
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:16
 #: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:16
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:16
 msgid "Station Number"
 msgstr "رقم المركز"
 
-#: libya_tally/apps/tally/forms/center_details_form.py:33
+#: libya_tally/apps/tally/forms/center_details_form.py:38
 msgid "Station Number Copy"
 msgstr "نسخة من رقم المحطة"
 
-#: libya_tally/apps/tally/forms/center_details_form.py:48
+#: libya_tally/apps/tally/forms/center_details_form.py:53
 msgid "Center Numbers do not match"
 msgstr "أرقام المركز غير متطابقة"
 
-#: libya_tally/apps/tally/forms/center_details_form.py:51
+#: libya_tally/apps/tally/forms/center_details_form.py:56
 msgid "Station Numbers do not match"
 msgstr "رقم المحطة غير مطابق"
 
-#: libya_tally/apps/tally/forms/center_details_form.py:60
+#: libya_tally/apps/tally/forms/center_details_form.py:65
 msgid "Invalid Station Number for this Center"
 msgstr "رقم المحطة لهذا المركز غير صحيح"
 
