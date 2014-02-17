@@ -77,3 +77,11 @@ def reload_all(deployment_name):
     with cd(env.code_src):
         with source(env.virtualenv):
             run('./scripts/reload_all tally %s' % env.django_config_module)
+
+
+def load_users(deployment_name):
+    setup_env(deployment_name)
+    with cd(env.code_src):
+        with source(env.virtualenv):
+            run('python manage.py import_staff_list --settings=%s' %
+                env.django_config_module)
