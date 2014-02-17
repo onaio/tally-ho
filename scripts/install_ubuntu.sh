@@ -9,11 +9,15 @@ DB_NAME=tally
 DB_USER=tally
 DB_PASS=tally
 DB_HOST=127.0.0.1
+GIT="true"
+USER=ubuntu
+
+sudo useradd $USER
 
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 sudo wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
-sudo apt-get update -qqy
-sudo apt-get install -qqy nginx git python-setuptools python-dev binutils libproj-dev gdal-bin Postgresql-9.3-postgis libpq-dev
+sudo apt-get update
+sudo apt-get install nginx git python-setuptools python-dev binutils libproj-dev gdal-bin Postgresql-9.3-postgis libpq-dev
 sudo easy_install pip
 sudo pip install virtualenvwrapper uwsgi
 
@@ -21,8 +25,13 @@ sudo -u postgres psql -U postgres -d postgres -c "CREATE USER $DB_USER with pass
 sudo -u postgres psql -U postgres -d postgres -c "CREATE DATABASE $DB_USER OWNER $DB_USER;"
 
 sudo mkdir -p $PROJECT_HOME
-sudo chown -R ubuntu $PROJECT_HOME
-cd $PROJECT_HOME && (git clone git@github.com:onaio/tally-system.git || (cd tally-system && git fetch))
+sudo chown -R $USER $PROJECT_HOME
+
+if [ GIT ]; then
+    cd $PROJECT_HOME && (git clone git@github.com:onaio/tally-system.git || (cd tally-system && git fetch))
+else
+    cd $PROJECT_HOME && cp -R ~/libya-tally .
+fi
 
 config_path_tmp="$CODE_SRC/deploy/var/www/tally-system/libya_tally/settings/local_settings.py"
 config_path="$CODE_SRC/libya_tally/settings/local_settings.py"
@@ -47,5 +56,5 @@ cd $CODE_SRC && source $activate && python manage.py migrate --settings=$DJANGO_
 cd $CODE_SRC && source $activate && python manage.py collectstatic --noinput --settings=$DJANGO_SETTINGS_MODULE
 sudo /etc/init.d/nginx restart
 sudo mkdir -p /var/log/uwsgi
-sudo chown -R ubuntu /var/log/uwsgi
+sudo chown -R $USER /var/log/uwsgi
 sudo start tally
