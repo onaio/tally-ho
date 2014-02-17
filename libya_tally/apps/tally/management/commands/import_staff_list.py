@@ -1,11 +1,12 @@
 import codecs
 import csv
 
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy
 
 from libya_tally.libs.permissions import groups
+from libya_tally.apps.tally.models.user_profile import UserProfile
 
 STAFF_LIST_PATH = 'data/staff_list.csv'
 
@@ -62,9 +63,9 @@ def assign_names(name):
 
 def create_user(first_name, last_name, username):
     try:
-        return User.objects.get(username=username)
-    except User.DoesNotExist:
-        return User.objects.create_user(
+        return UserProfile.objects.get(username=username)
+    except UserProfile.DoesNotExist:
+        return UserProfile.objects.create_user(
             username, password=username,
             first_name=first_name,
             last_name=last_name)
