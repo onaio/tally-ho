@@ -137,10 +137,11 @@ class ConfirmationView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
+        next_step = _('Quarantine') if result_form.audit else _('Archive')
         del self.request.session['result_form']
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   header_text=_('Archiving'),
-                                  next_step=_('Archive'),
+                                  next_step=next_step,
                                   start_url='archive'))
