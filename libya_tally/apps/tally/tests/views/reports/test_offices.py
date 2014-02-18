@@ -47,8 +47,8 @@ class TestOffices(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         request.session = {}
-
         response = view(request)
+
         self.assertContains(response, 'Per Office')
         self.assertContains(response, 'Tally Centre Progress Report')
         self.assertContains(response, "<td>2</td>")
