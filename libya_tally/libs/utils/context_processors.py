@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.utils import translation
 
 
 def site_name(request):
@@ -14,15 +15,4 @@ def site_name(request):
 
 
 def locale(request):
-    locale = 'en'
-
-    if hasattr(request, 'session'):
-        locale = request.session.get('locale')
-
-        if not locale:
-            locale = 'ar'
-
-        request.session.get('locale')
-        request.session['django_language'] = locale
-
-    return {'locale': locale}
+    return {'locale': translation.get_language_from_request(request)}
