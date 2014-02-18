@@ -5,7 +5,7 @@ DEBUG = False
 
 TEMPLATE_DEBUG = False
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['192.168.1.1', 'data-entry.ly', 'localhost']
 
 os.environ.setdefault('DB_NAME', 'REPLACE_DB_NAME')
 os.environ.setdefault('DB_USER', 'REPLACE_DB_USER')
