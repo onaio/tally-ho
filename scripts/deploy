@@ -1,12 +1,15 @@
 # copy, compress and upload project
+
+find . -name '*.pyc' -exec rm {} \;
+cp -R . ../tally-system-clean
 cd ..
-cp -R tally-system tally-system-clean
 rm -rf tally-system-clean/.git
 rm -rf tally-system-clean/data/.git
 tar czvf tally-system.tgz tally-system-clean
-scp tally-system-clean hnec:
+scp tally-system.tgz hnec:
 
 # login and run install
 ssh hnec
-tar xzvf tally-system.tgz tally-system
-./tally-system/scripts/install_ubuntu.sh
+tar xzvf tally-system.tgz
+mv tally-system-clean tally-system
+./tally-system/scripts/install_ubuntu
