@@ -12,7 +12,7 @@ body {
     background-color: #E3EAF0;
 }
 
-input[type=text], select{
+.large input[type=text], select{
 	border:1px solid #222222!important;
 	min-width:20em;
 }
