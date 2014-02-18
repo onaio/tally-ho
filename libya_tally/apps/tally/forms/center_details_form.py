@@ -13,26 +13,32 @@ disable_copy_input = {
     'autocomplete': 'off',
     'class': 'form-control'
 }
+min_station_value = 1
+max_station_value = 53
 
 
 class CenterDetailsForm(forms.Form):
+    validators = [MinLengthValidator(5)]
+
     center_number = forms.IntegerField(
         error_messages={
             'invalid': _(u"Expecting only numbers for center number")},
-        validators=[MinLengthValidator(5)],
+        validators=validators,
         widget=forms.NumberInput(attrs=disable_copy_input),
         label=_(u"Center Number"))
     center_number_copy = forms.IntegerField(
         error_messages={
             'invalid': _(u"Expecting only numbers for center number")},
-        validators=[MinLengthValidator(5)],
+        validators=validators,
         widget=forms.NumberInput(attrs=disable_copy_input),
         label=_(u"Center Number Copy"))
-    station_number = forms.IntegerField(min_value=1, max_value=8,
+    station_number = forms.IntegerField(min_value=min_station_value,
+                                        max_value=max_station_value,
                                         widget=forms.TextInput(
                                             attrs=disable_copy_input),
                                         label=_(u"Station Number"))
-    station_number_copy = forms.IntegerField(min_value=1, max_value=8,
+    station_number_copy = forms.IntegerField(min_value=min_station_value,
+                                             max_value=max_station_value,
                                              widget=forms.TextInput(
                                                  attrs=disable_copy_input),
                                              label=_(u"Station Number Copy"))

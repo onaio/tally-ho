@@ -172,13 +172,12 @@ class Command(BaseCommand):
                         code=center_code,
                         name=row[1])
 
-                # ensure that SC is converted to a number
-                sc_code = int(float(row[2]))
-
                 try:
+                    # attempt to convert SC to a number
+                    sc_code = int(float(row[2]))
                     sub_constituency = SubConstituency.objects.get(
                         code=sc_code)
-                except SubConstituency.DoesNotExist:
+                except (SubConstituency.DoesNotExist, ValueError):
                     print('[WARNING] SubConstituency "%s" does not exist' %
                           sc_code)
 
@@ -255,7 +254,11 @@ class Command(BaseCommand):
                 office = None
 
                 if office_name:
-                    office = Office.objects.get(name=office_name.strip())
+                    try:
+                        office = Office.objects.get(name=office_name.strip())
+                    except Office.DoesNotExist:
+                        print('[WARNING] Office "%s" does not exist' %
+                              office_name)
 
                 _, created = ResultForm.objects.get_or_create(
                     barcode=row[7],
