@@ -142,7 +142,8 @@ class Command(BaseCommand):
                             code=sc_code)
                         center_type = CenterType.GENERAL
 
-                    office, _ = Office.objects.get_or_create(name=row[4])
+                    office, _ = Office.objects.get_or_create(
+                        name=row[4].strip())
 
                     Center.objects.get_or_create(
                         region=row[1],
