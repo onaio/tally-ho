@@ -101,7 +101,9 @@ class TestAudit(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
         view = views.ReviewView.as_view()
-        data = {'result_form': result_form.pk}
+        # an invalid enum choice
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 10}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data

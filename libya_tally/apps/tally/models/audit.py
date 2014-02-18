@@ -32,7 +32,8 @@ class Audit(BaseModel):
     other = models.TextField(null=True, blank=True)
 
     # Recommendations
-    action_prior_to_recommendation = enum.EnumField(ActionsPrior)
+    action_prior_to_recommendation = enum.EnumField(ActionsPrior, blank=True,
+                                                    null=True)
     resolution_recommendation = enum.EnumField(
         AuditResolution, null=True, blank=True)
 
@@ -44,7 +45,7 @@ class Audit(BaseModel):
         problem_fields = {
             _('Blank Reconcilliation'): self.blank_reconciliation,
             _('Blank Results'): self.blank_results,
-            _('Damaged FOrm'): self.damaged_form,
+            _('Damaged Form'): self.damaged_form,
             _('Unclear Figures'): self.unclear_figures,
             _('Other'): self.other,
         }

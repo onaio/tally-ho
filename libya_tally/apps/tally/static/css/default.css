@@ -12,6 +12,11 @@ body {
     background-color: #E3EAF0;
 }
 
+input[type=text], select{
+	border:1px solid #222222!important;
+	min-width:20em;
+}
+
 table.mid tr td{
 	vertical-align:middle!important;
 }
@@ -21,7 +26,6 @@ table.vert tr td{
 }
 
 span.bignum{}
-
 
 .hnec-logo{
 	margin-left:1em;
@@ -70,7 +74,7 @@ form{
 	padding:0;
 }
 .infotable{
-	width:49%;
+	width:45%;
 }
 
 .border-top{
@@ -78,7 +82,6 @@ form{
 	margin-top:1em;
 	padding-top:.6em;
 }
-
 .blue-bg{
 	background:#AFCCE5;
 }
@@ -89,6 +92,19 @@ form{
 	padding:.4em;
 	text-align:center;
 	vertical-align:middle!important;
+}
+
+.warn {
+    background-color: #f2dede!important;
+    color: #a94442;
+    border: solid 2px #ebccd1!important;
+    font-weight: bold;
+}
+td.thick-border-right {
+    border-right: solid 2px #666666!important;
+}
+td.thick-border-left {
+    border-left: solid 2px #666666!important;
 }
 
 h1.headertxt{
@@ -103,23 +119,6 @@ h1.headertxt{
     border-bottom: 1px solid #CFCFCF;
 
 }
-
-.warn {
-    background-color: #f2dede!important;
-    color: #a94442;
-    border: solid 2px #ebccd1!important;
-    font-weight: bold;
-}
-
-td.thick-border-right {
-    border-right: solid 2px #666666!important;
-
-}
-td.thick-border-left {
-    border-left: solid 2px #666666!important;
-
-}
-
 
 h4.headertxt{
 	color:#F67225;
@@ -148,15 +147,13 @@ label {
     display: inline-block;
     margin-bottom: 5px;
     font-weight: 300;
-/*    font-size: 16px;*/
     margin-right: 15px;
 }
 
 .form-instructions {
-
     color:#F67225;
     font-size:1.5em;
-
+    font-weight:bold;
 }
 footer{
 	font-size:0.9em;
