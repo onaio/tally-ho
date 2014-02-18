@@ -59,6 +59,7 @@ MIDDLEWARE_CLASSES = (
     'reversion.middleware.RevisionMiddleware',
     'libya_tally.libs.middleware.idle_timeout.IdleTimeout',
     'libya_tally.libs.middleware.user_restrict.UserRestrictMiddleware',
+    'libya_tally.libs.middleware.exception_logging.ExceptionLoggingMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -158,3 +159,8 @@ IDLE_TIMEOUT = 60
 TRACK_PAGEVIEWS = True
 
 LOCALE_PATHS = (os.path.realpath(os.path.join(BASE_DIR, '..', 'locale')),)
+
+LOGGING = {
+    'version': 1,
+    'root': {'level': 'DEBUG' if DEBUG else 'INFO'},
+}
