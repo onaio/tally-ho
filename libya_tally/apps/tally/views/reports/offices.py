@@ -7,11 +7,11 @@ from libya_tally.libs.reports import progress as p
 from libya_tally.libs.views import mixins
 
 
-class OverviewReportView(LoginRequiredMixin,
-                         mixins.GroupRequiredMixin,
-                         TemplateView):
+class OfficesReportView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = 'tally/reports/overview.html'
+    template_name = 'tally/reports/offices.html'
 
     def get_per_office_progress(self):
         data = []

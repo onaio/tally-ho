@@ -1,14 +1,14 @@
 from django.test import RequestFactory
 
 from libya_tally.apps.tally.models.result_form import ResultForm
-from libya_tally.apps.tally.views.reports import overview
+from libya_tally.apps.tally.views.reports import offices
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_center, \
     create_result_form, TestBase
 
 
-class TestOverview(TestBase):
+class TestOffices(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
@@ -43,7 +43,7 @@ class TestOverview(TestBase):
         self.assertEqual(ResultForm.objects.count(), 11)
 
         request = self._get_request()
-        view = overview.OverviewReportView.as_view()
+        view = offices.OfficesReportView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {}

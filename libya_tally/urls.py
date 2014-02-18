@@ -9,7 +9,8 @@ from libya_tally.apps.tally.forms.password_change import PasswordChangeForm
 from libya_tally.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry_clerk, home, intake, quality_control,\
     super_admin, profile
-from libya_tally.apps.tally.views.reports import overview
+from libya_tally.apps.tally.views.reports import offices
+from libya_tally.apps.tally.views.reports import races
 
 admin.autodiscover()
 
@@ -163,9 +164,13 @@ urlpatterns = patterns(
         clearance.ReviewView.as_view(),
         name='clearance-review'),
 
-    url(r'^reports/internal/overview$',
-        overview.OverviewReportView.as_view(),
-        name='reports-overview'),
+    url(r'^reports/internal/offices',
+        offices.OfficesReportView.as_view(),
+        name='reports-offices'),
+
+    url(r'^reports/internal/race',
+        races.RacesReportView.as_view(),
+        name='reports-races'),
 
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),

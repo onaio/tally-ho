@@ -26,7 +26,6 @@ class ProgressReport(object):
         return self.filtered_queryset
 
     def numerator(self):
-
         return self.get_filtered_queryset().count()
 
     number = property(numerator)
@@ -43,6 +42,14 @@ class ProgressReport(object):
             100 * (self.numerator() / float(self.denominator())), 2)
 
     percentage = property(percentage_value)
+
+    def for_ballot(self, ballot):
+        obj = self.__class__()
+        obj.filtered_queryset = \
+            self.get_filtered_queryset().filter(ballot=ballot)
+        obj.queryset = self.get_queryset().filter(ballot=ballot)
+
+        return obj
 
     def for_center_office(self, office):
         obj = self.__class__()
