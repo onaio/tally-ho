@@ -53,7 +53,7 @@ class ResultForm(BaseModel):
                                      related_name='created_user')
 
     audited_count = models.PositiveIntegerField(default=0)
-    barcode = models.PositiveIntegerField(unique=True)
+    barcode = models.CharField(max_length=9, unique=True)
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
     form_state = enum.EnumField(FormState)
@@ -64,11 +64,6 @@ class ResultForm(BaseModel):
     serial_number = models.PositiveIntegerField(unique=True, null=True)
     skip_quarantine_checks = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
-
-    @property
-    def barcode_padded(self):
-        barcode = str(self.barcode)
-        return barcode if len(barcode) == 9 else '0%s' % barcode
 
     @property
     def results_final(self):
@@ -252,7 +247,7 @@ class ResultForm(BaseModel):
         result_forms = cls.objects.all().order_by('-barcode')
         highest_barcode = result_forms[0].barcode if result_forms else\
             10000000
-        return highest_barcode + 1
+        return int(highest_barcode) + 1
 
 
 reversion.register(ResultForm)

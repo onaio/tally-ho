@@ -95,7 +95,7 @@ class FormListDataView(LoginRequiredMixin,
         'modified_date',
     )
     display_fields = (
-        ('barcode', 'barcode_padded'),
+        ('barcode', 'barcode'),
         ('center__code', 'center_code'),
         ('station_number', 'station_number'),
         ('center__office__name', 'center_office'),
@@ -172,7 +172,7 @@ class FormProgressDataView(LoginRequiredMixin,
         'modified_date',
     )
     display_fields = (
-        ('barcode', 'barcode_padded'),
+        ('barcode', 'barcode'),
         ('center__code', 'center_code'),
         ('station_number', 'station_number'),
         ('center__office__name', 'center_office'),

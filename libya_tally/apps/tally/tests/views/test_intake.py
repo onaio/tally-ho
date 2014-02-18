@@ -117,6 +117,27 @@ class TestIntake(TestBase):
         self.assertEqual(result_form.form_state, FormState.INTAKE)
         self.assertEqual(result_form.user, self.user)
 
+    def test_center_detail_redirects_to_check_center_details_zero_prefix(self):
+        barcode = '000000001'
+        center = create_center()
+        create_result_form(barcode,
+                           form_state=FormState.UNSUBMITTED,
+                           center=center)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.CenterDetailsView.as_view()
+        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('intake/check-center-details',
+                      response['location'])
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self.assertEqual(result_form.form_state, FormState.INTAKE)
+        self.assertEqual(result_form.user, self.user)
+
     def test_intake_supervisor(self):
         self._create_and_login_user(username='alice')
         form_user = self.user
@@ -234,7 +255,7 @@ class TestIntake(TestBase):
         response = view(request)
         self.assertContains(response, 'Check Center Details Against Form')
         self.assertIn('result_form', response.context_data)
-        self.assertEqual(int(barcode),
+        self.assertEqual(barcode,
                          response.context_data['result_form'].barcode)
 
     def test_intake_clerk_selects_matches(self):

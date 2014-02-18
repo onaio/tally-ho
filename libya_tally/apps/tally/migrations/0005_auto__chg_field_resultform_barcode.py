@@ -7,19 +7,15 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
-    depends_on = (
-        ("tracking", "0006_auto__add_field_pageview_method"),
-    )
-
     def forwards(self, orm):
-        db.execute('ALTER TABLE "tracking_pageview" '
-                   'ALTER COLUMN "url" TYPE TEXT; '
-                   'COMMIT;')
+
+        # Changing field 'ResultForm.barcode'
+        db.alter_column(u'tally_resultform', 'barcode', self.gf('django.db.models.fields.CharField')(unique=True, max_length=9))
 
     def backwards(self, orm):
-        db.execute('ALTER TABLE "tracking_pageview" '
-                   'ALTER COLUMN "url" TYPE CHARACTER VARYING(500); '
-                   'COMMIT;')
+
+        # Changing field 'ResultForm.barcode'
+        db.alter_column(u'tally_resultform', 'barcode', self.gf('django.db.models.fields.PositiveIntegerField')(unique=True))
 
     models = {
         u'auth.group': {
@@ -68,7 +64,7 @@ class Migration(SchemaMigration):
         },
         'tally.audit': {
             'Meta': {'object_name': 'Audit'},
-            'action_prior_to_recommendation': ('django.db.models.fields.IntegerField', [], {'default': '0', 'db_index': 'True'}),
+            'action_prior_to_recommendation': ('django.db.models.fields.IntegerField', [], {'default': '0', 'null': 'True', 'db_index': 'True', 'blank': 'True'}),
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'blank_reconciliation': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'blank_results': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -232,7 +228,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'ResultForm'},
             'audited_count': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'ballot': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Ballot']", 'null': 'True'}),
-            'barcode': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True'}),
+            'barcode': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '9'}),
             'center': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tally.Center']", 'null': 'True', 'blank': 'True'}),
             'created_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'created_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'created_user'", 'null': 'True', 'to': u"orm['auth.User']"}),
@@ -273,6 +269,11 @@ class Migration(SchemaMigration):
             'modified_date': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'number_of_ballots': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
             'races': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'})
+        },
+        'tally.userprofile': {
+            'Meta': {'object_name': 'UserProfile', '_ormbases': [u'auth.User']},
+            'reset_password': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            u'user_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True', 'primary_key': 'True'})
         }
     }
 

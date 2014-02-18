@@ -1,8 +1,9 @@
 from django import forms
+from django.core.validators import MinLengthValidator, MaxLengthValidator,\
+    RegexValidator
 from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.models.result_form import ResultForm
-from libya_tally.libs.validators import MinLengthValidator
 
 
 disable_copy_input = {
@@ -16,14 +17,18 @@ disable_copy_input = {
 
 
 class BarcodeForm(forms.Form):
-    barcode = forms.IntegerField(
-        error_messages={'invalid': _(u"Expecting only numbers for barcodes")},
-        validators=[MinLengthValidator(9)],
+    error_messages = {'invalid': _(u"Expecting only numbers for barcodes")}
+    validators = [MaxLengthValidator(9), MinLengthValidator(9), RegexValidator(
+        regex=r'^[0-9]*$', message=_(u"Expecting only numbers for barcodes"))]
+
+    barcode = forms.CharField(
+        error_messages=error_messages,
+        validators=validators,
         widget=forms.NumberInput(
             attrs=disable_copy_input), label=_(u"Barcode"))
-    barcode_copy = forms.IntegerField(
-        error_messages={'invalid': _(u"Expecting only numbers for barcodes")},
-        validators=[MinLengthValidator(9)],
+    barcode_copy = forms.CharField(
+        error_messages=error_messages,
+        validators=validators,
         widget=forms.NumberInput(
             attrs=disable_copy_input), label=_(u"Barcode Copy"))
 
