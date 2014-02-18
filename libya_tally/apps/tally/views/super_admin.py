@@ -101,7 +101,7 @@ class FormListDataView(LoginRequiredMixin,
         ('center__office__name', 'center_office'),
         ('ballot__number', 'ballot_number'),
         ('ballot__race_type', 'ballot_race_type_name'),
-        ('modified_date', 'modified_date_name'),
+        ('modified_date', 'modified_date_formatted'),
     )
 
 
