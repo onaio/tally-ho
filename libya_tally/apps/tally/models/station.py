@@ -13,8 +13,8 @@ class Station(BaseModel):
         app_label = 'tally'
 
     center = models.ForeignKey(Center, related_name='stations')
-    sub_constituency = models.ForeignKey(SubConstituency,
-                                         related_name='stations')
+    sub_constituency = models.ForeignKey(
+        SubConstituency, null=True, related_name='stations')
 
     gender = enum.EnumField(Gender)
     registrants = models.PositiveIntegerField(null=True)
