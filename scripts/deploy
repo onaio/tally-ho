@@ -1,6 +1,9 @@
 # copy, compress and upload project
 
 find . -name '*.pyc' -exec rm {} \;
+find . -name '._*' -exec rm {} \;
+find . -name '.coverage' -exec rm {} \;
+find . -name '.DS_Store' -exec rm {} \;
 cp -R . ../tally-system-clean
 cd ..
 rm -rf tally-system-clean/.git
