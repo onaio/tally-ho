@@ -115,7 +115,7 @@ class Command(BaseCommand):
                     username = row[1]
                     role = row[2]
                 except Exception as e:
-                    print "Unable to add user in row: %s. Exception %s." % \
+                    print "Unable to add user in row: %s. Exception %s." %\
                         (row, e)
                 else:
                     add_row(name, username, role)
@@ -131,7 +131,7 @@ class Command(BaseCommand):
                     username = row[0]
                     role = row[2]
                 except Exception as e:
-                    print "Unable to add user in row: '%s'. Exception '%s'." % \
+                    print "Unable to add user in row: '%s'. Exception '%s'." %\
                         (row, e)
                 else:
                     add_row(name, username, role)
