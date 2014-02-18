@@ -36,7 +36,7 @@ class CenterListDataView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station
     fields = (
-        'center__office',
+        'center__office__name',
         'sub_constituency__code',
         'center__name',
         'center__code',
@@ -45,13 +45,13 @@ class CenterListDataView(LoginRequiredMixin,
         'modified_date',
     )
     display_fields = (
-        ('center__office', 'center_office'),
+        ('center__office__name', 'center_office'),
         ('sub_constituency__code', 'sub_constituency_code'),
         ('center__name', 'center_name'),
         ('center__code', 'center_code'),
         ('gender', 'gender_name'),
         ('registrants', 'registrants'),
-        ('modified_date', 'modified_date'),
+        ('modified_date', 'modified_date_formatted'),
     )
 
 
@@ -101,7 +101,7 @@ class FormListDataView(LoginRequiredMixin,
         ('center__office__name', 'center_office'),
         ('ballot__number', 'ballot_number'),
         ('ballot__race_type', 'ballot_race_type_name'),
-        ('modified_date', 'modified_date'),
+        ('modified_date', 'modified_date_name'),
     )
 
 
@@ -179,7 +179,7 @@ class FormProgressDataView(LoginRequiredMixin,
         ('ballot__race_type', 'ballot_race_type_name'),
         ('form_state', 'form_state_name'),
         ('rejected_count', 'rejected_count'),
-        ('modified_date', 'modified_date'),
+        ('modified_date', 'modified_date_formatted'),
     )
 
 

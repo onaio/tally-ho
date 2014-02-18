@@ -30,7 +30,8 @@ class Station(BaseModel):
 
     @property
     def center_office(self):
-        return self.center.office if self.center else None
+        return self.center.office.name if self.center and self.center.office\
+            else None
 
     @property
     def sub_constituency_code(self):
