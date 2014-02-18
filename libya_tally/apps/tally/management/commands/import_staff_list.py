@@ -9,23 +9,30 @@ from libya_tally.libs.permissions import groups
 from libya_tally.apps.tally.models.user_profile import UserProfile
 
 STAFF_LIST_PATH = 'data/staff_list.csv'
+USER_LIST_PATH = 'data/user_list.csv'
 
 STAFF_ROLE_DICT = {
     'ADMINISTRATOR': groups.ADMINISTRATOR,
     'ARCHIVE SUPERVISOR': groups.ARCHIVE_SUPERVISOR,
+    'ARCHIVE': groups.ARCHIVE_CLERK,
     'ARCHIVE CLERK': groups.ARCHIVE_CLERK,
     'AUDIT CLERK': groups.AUDIT_CLERK,
     'AUDIT SUPERVISOR': groups.AUDIT_SUPERVISOR,
     'CLEARANCE CLERK': groups.CLEARANCE_CLERK,
     'CLEARANCE SUPERVISOR': groups.CLEARANCE_SUPERVISOR,
+    'CORRECTION': groups.CORRECTIONS_CLERK,
     'CORRECTION CLERK': groups.CORRECTIONS_CLERK,
     'CORRECTION SUPERVISOR': groups.CORRECTIONS_CLERK,
+    'DATA ENTRY 1': groups.DATA_ENTRY_1_CLERK,
     'DATA ENTRY 1 CLERK': groups.DATA_ENTRY_1_CLERK,
+    'DATA ENTRY 2': groups.DATA_ENTRY_2_CLERK,
     'DATA ENTRY 2 CLERK': groups.DATA_ENTRY_2_CLERK,
     'DATA ENTRY 1 SUPERVISOR': groups.DATA_ENTRY_1_CLERK,
     'DATA ENTRY 2 SUPERVISOR': groups.DATA_ENTRY_2_CLERK,
     'INTAKE CLERK': groups.INTAKE_CLERK,
+    'IN TAKE': groups.INTAKE_CLERK,
     'INTAKE SUPERVISOR': groups.INTAKE_SUPERVISOR,
+    'QUALITY CONTROL': groups.QUALITY_CONTROL_CLERK,
     'QUALITY CONTROL CLERK': groups.QUALITY_CONTROL_CLERK,
     'DATABASE': groups.SUPER_ADMINISTRATOR,
     'PROGRAMMER': groups.SUPER_ADMINISTRATOR,
@@ -47,6 +54,25 @@ def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
 def utf_8_encoder(unicode_csv_data):
     for line in unicode_csv_data:
         yield line.encode('utf-8')
+
+
+def add_row(name, username, role):
+    try:
+        first_name, last_name = assign_names(name)
+        user = create_user(first_name, last_name, username)
+    except Exception as e:
+        print "User '%s' not created! '%s'" % (username, e)
+    else:
+        system_role = STAFF_ROLE_DICT.get(role.upper().strip())
+
+        if system_role:
+            group, created = Group.objects.get_or_create(
+                name=system_role)
+            user.groups.add(group)
+        else:
+            print (
+                "Unable to add user %s to unknown group '%s'."
+                % (username, role))
 
 
 def assign_names(name):
@@ -76,6 +102,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         self.import_staff_list()
+        self.import_user_list()
 
     def import_staff_list(self):
         with codecs.open(STAFF_LIST_PATH, encoding='utf-8') as f:
@@ -91,20 +118,20 @@ class Command(BaseCommand):
                     print "Unable to add user in row: %s. Exception %s." % \
                         (row, e)
                 else:
-                    try:
-                        first_name, last_name = assign_names(name)
-                        user = create_user(first_name, last_name, username)
-                    except Exception as e:
-                        print "User %s not created! %s" % (username, e)
-                        continue
-                    else:
-                        role = STAFF_ROLE_DICT.get(role.upper().strip())
+                    add_row(name, username, role)
 
-                        if role:
-                            group, created = Group.objects.get_or_create(
-                                name=role)
-                            user.groups.add(group)
-                        else:
-                            print (
-                                "Unable to add user %s to unknown group '%s'."
-                                % (username, row[2]))
+    def import_user_list(self):
+        with codecs.open(USER_LIST_PATH, encoding='utf-8') as f:
+            reader = unicode_csv_reader(f)
+            reader.next()  # ignore header
+
+            for row in reader:
+                try:
+                    name = row[1]
+                    username = row[0]
+                    role = row[2]
+                except Exception as e:
+                    print "Unable to add user in row: '%s'. Exception '%s'." % \
+                        (row, e)
+                else:
+                    add_row(name, username, role)
