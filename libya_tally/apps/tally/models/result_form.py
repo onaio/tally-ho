@@ -17,11 +17,6 @@ from libya_tally.libs.models.enums.race_type import RaceType
 
 male_local = _('Male')
 female_local = _('Female')
-general = _('General')
-women = _('Women')
-component_amazigh = _('Component Amazigh')
-component_twarag = _('Component Twarag')
-component_tebu = _('Component Tebu')
 
 
 def get_matched_results(result_form, results):

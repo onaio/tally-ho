@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-19 11:16+0000\n"
+"POT-Creation-Date: 2014-02-19 12:33+0000\n"
 "PO-Revision-Date: 2014-02-17 08:55+0000\n"
 "Last-Translator: marwa.r1985 <marwa.r.benissa@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -300,33 +300,46 @@ msgstr "هل تم توقيع النوذج من قبل المسؤول عن محط
 msgid "Is the form dated?"
 msgstr "هل النموذج يحتوى تاريخ؟"
 
-#: libya_tally/apps/tally/models/result_form.py:28
+#: libya_tally/apps/tally/models/result_form.py:18
+msgid "Male"
+msgstr ""
+
+#: libya_tally/apps/tally/models/result_form.py:19
+msgid "Female"
+msgstr ""
+
+#: libya_tally/apps/tally/models/result_form.py:31
 #: libya_tally/libs/views/corrections.py:24
 msgid "Result Form has no double entries."
 msgstr "نتيجة الاستمارة لا توجد به ادخال مزدوج"
 
-#: libya_tally/apps/tally/models/result_form.py:116
-#: libya_tally/apps/tally/models/result_form.py:121
-#: libya_tally/apps/tally/models/result_form.py:192
-#: libya_tally/apps/tally/models/result_form.py:197
+#: libya_tally/apps/tally/models/result_form.py:119
+#: libya_tally/apps/tally/models/result_form.py:124
+#: libya_tally/apps/tally/models/result_form.py:195
+#: libya_tally/apps/tally/models/result_form.py:200
 #: libya_tally/apps/tally/templates/tally/corrections/comparison.html:16
 #: libya_tally/apps/tally/templates/tally/corrections/required.html:28
 msgid "No"
 msgstr "لا "
 
-#: libya_tally/apps/tally/models/result_form.py:137
+#: libya_tally/apps/tally/models/result_form.py:140
 msgid "Corrections Required!"
 msgstr "التصحيحات المطلوبة!"
 
-#: libya_tally/apps/tally/models/result_form.py:156
+#: libya_tally/apps/tally/models/result_form.py:159
 msgid "Unexpected number of reconciliation forms"
 msgstr "عدد غير متوقع من استمارات التسوية"
 
-#: libya_tally/apps/tally/models/result_form.py:196
+#: libya_tally/apps/tally/models/result_form.py:199
 #: libya_tally/apps/tally/templates/tally/corrections/comparison.html:17
 #: libya_tally/apps/tally/templates/tally/corrections/required.html:29
 msgid "Yes"
 msgstr "نعم "
+
+#: libya_tally/apps/tally/models/result_form.py:240
+#, fuzzy
+msgid "General plus Component"
+msgstr "تنافس عام بالاضافة الى المكون"
 
 #: libya_tally/apps/tally/models/sub_constituency.py:28
 msgid "General and Women"
@@ -1529,6 +1542,3 @@ msgstr "البيانات الناتجة غير مطابقه للنمودج ال�
 
 #~ msgid "Review Pending"
 #~ msgstr "عرض الانتظار"
-
-#~ msgid "General plus Component Section"
-#~ msgstr "تنافس عام بالاضافة الى المكون"
