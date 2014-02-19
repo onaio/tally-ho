@@ -32,6 +32,7 @@
     <li><a href="{% url 'audit' %}">{% trans 'Audit Clerk' %}</a></li>
 </ul>
 
+{% if debug %}
 <h3>{% trans 'Users and groups' %}</h3>
 
 <h4>{% trans 'Demo groups and passwords (formatted as login/pass):' %}</h4>
@@ -40,5 +41,6 @@
     <li>{{ group }}/data</li>
     {% endfor %}
 </ul>
+{% endif %}
 
 {% endblock %}
