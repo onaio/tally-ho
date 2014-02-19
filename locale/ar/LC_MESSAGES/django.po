@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-19 12:33+0000\n"
+"POT-Creation-Date: 2014-02-19 21:15+0000\n"
 "PO-Revision-Date: 2014-02-17 08:55+0000\n"
 "Last-Translator: marwa.r1985 <marwa.r.benissa@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -152,11 +152,12 @@ msgid "Other"
 msgstr "اخري"
 
 #: libya_tally/apps/tally/models/candidate.py:25
-#: libya_tally/apps/tally/models/sub_constituency.py:33
+#: libya_tally/apps/tally/models/sub_constituency.py:32
 msgid "General"
 msgstr "عام"
 
 #: libya_tally/apps/tally/models/candidate.py:26
+#: libya_tally/apps/tally/models/sub_constituency.py:27
 msgid "Women"
 msgstr "نساء"
 
@@ -171,6 +172,11 @@ msgstr "مكون الطوارق"
 #: libya_tally/apps/tally/models/candidate.py:29
 msgid "Component Tebu"
 msgstr "مكون التبو"
+
+#: libya_tally/apps/tally/models/center.py:32
+#: libya_tally/apps/tally/models/result_form.py:241
+msgid "Special"
+msgstr ""
 
 #: libya_tally/apps/tally/models/clearance.py:50
 msgid "Center Name Missing"
@@ -336,20 +342,11 @@ msgstr "عدد غير متوقع من استمارات التسوية"
 msgid "Yes"
 msgstr "نعم "
 
-#: libya_tally/apps/tally/models/result_form.py:240
-#, fuzzy
-msgid "General plus Component"
-msgstr "تنافس عام بالاضافة الى المكون"
-
-#: libya_tally/apps/tally/models/sub_constituency.py:28
-msgid "General and Women"
-msgstr "تنافس عام و نساء"
-
-#: libya_tally/apps/tally/models/sub_constituency.py:31
+#: libya_tally/apps/tally/models/sub_constituency.py:30
 msgid "General and Component"
 msgstr "تنافس عام ومكون"
 
-#: libya_tally/apps/tally/models/sub_constituency.py:35
+#: libya_tally/apps/tally/models/sub_constituency.py:34
 msgid "Undefined"
 msgstr "غير معروف"
 
@@ -485,11 +482,13 @@ msgid "Successful Archive"
 msgstr "تمت الارشفه بنجاح "
 
 #: libya_tally/apps/tally/templates/tally/archive/print_cover.html:18
+#: libya_tally/apps/tally/templates/tally/audit/review.html:17
 #, fuzzy
 msgid "Quarantined Form"
 msgstr "محجوز"
 
 #: libya_tally/apps/tally/templates/tally/archive/print_cover.html:23
+#: libya_tally/apps/tally/templates/tally/audit/review.html:20
 msgid "Failed quarantine check:"
 msgstr ""
 
@@ -608,14 +607,14 @@ msgid "Date Supervisor Modified:"
 msgstr "تاريخ تعديل المشرف:"
 
 #: libya_tally/apps/tally/templates/tally/audit/print_cover.html:37
-#: libya_tally/apps/tally/templates/tally/audit/review.html:16
+#: libya_tally/apps/tally/templates/tally/audit/review.html:25
 #: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:37
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:16
 msgid "Problem"
 msgstr "مشكله "
 
 #: libya_tally/apps/tally/templates/tally/audit/print_cover.html:45
-#: libya_tally/apps/tally/templates/tally/audit/review.html:22
+#: libya_tally/apps/tally/templates/tally/audit/review.html:31
 #: libya_tally/apps/tally/templates/tally/clearance/print_cover.html:45
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:32
 msgid "Other:"
@@ -645,72 +644,72 @@ msgstr "تعليق المشرف :"
 msgid "Audit:"
 msgstr "التدقيق :"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:17
+#: libya_tally/apps/tally/templates/tally/audit/review.html:26
 #, fuzzy
 msgid "Blank reconciliation:"
 msgstr "استمارة التسوية فارغة"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:18
+#: libya_tally/apps/tally/templates/tally/audit/review.html:27
 #, fuzzy
 msgid "Blank results:"
 msgstr "استمارة نتائج فارغة"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:19
+#: libya_tally/apps/tally/templates/tally/audit/review.html:28
 #, fuzzy
 msgid "Unclear figures:"
 msgstr "ارقام غير واضحة"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:20
+#: libya_tally/apps/tally/templates/tally/audit/review.html:29
 #, fuzzy
 msgid "Damaged form:"
 msgstr "استمارة تالفة"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:23
+#: libya_tally/apps/tally/templates/tally/audit/review.html:32
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:33
 msgid "Save"
 msgstr "حفظ"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:24
+#: libya_tally/apps/tally/templates/tally/audit/review.html:33
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:34
 #, fuzzy
 msgid "Action Prior to Recommendation"
 msgstr "الحلول الموصى بها"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:25
+#: libya_tally/apps/tally/templates/tally/audit/review.html:34
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:35
 #, fuzzy
 msgid "Action prior to recommendation:"
 msgstr "الحلول الموصى بها"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:28
+#: libya_tally/apps/tally/templates/tally/audit/review.html:37
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:38
 #, fuzzy
 msgid "Resolution recommendation:"
 msgstr "الحلول الموصى بها"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:32
+#: libya_tally/apps/tally/templates/tally/audit/review.html:41
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:42
 msgid "Forward to Supervisor and Print Cover"
 msgstr "تحيل إلى المشرف وطباعة الغلاف"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:34
+#: libya_tally/apps/tally/templates/tally/audit/review.html:43
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:44
 msgid "Implement Recommendation"
 msgstr ""
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:35
+#: libya_tally/apps/tally/templates/tally/audit/review.html:44
 msgid "Return to Audit Team"
 msgstr "العودة إلى فريق التدقيق"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:40
-#: libya_tally/apps/tally/templates/tally/audit/review.html:44
+#: libya_tally/apps/tally/templates/tally/audit/review.html:49
+#: libya_tally/apps/tally/templates/tally/audit/review.html:53
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:51
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:55
 #, fuzzy
 msgid "Team comment:"
 msgstr "تعليق الفريق:"
 
-#: libya_tally/apps/tally/templates/tally/audit/review.html:49
+#: libya_tally/apps/tally/templates/tally/audit/review.html:58
 #: libya_tally/apps/tally/templates/tally/clearance/review.html:60
 #, fuzzy
 msgid "Supervisor comment:"
@@ -796,7 +795,7 @@ msgstr "مدخل 2"
 
 #: libya_tally/apps/tally/templates/tally/corrections/match.html:7
 #: libya_tally/apps/tally/views/corrections.py:269
-#: libya_tally/apps/tally/views/data_entry_clerk.py:356
+#: libya_tally/apps/tally/views/data_entry_clerk.py:334
 msgid "Corrections"
 msgstr "تصحيحات"
 
@@ -826,8 +825,8 @@ msgid "Abort"
 msgstr "حول"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:7
-#: libya_tally/apps/tally/views/data_entry_clerk.py:60
-#: libya_tally/apps/tally/views/data_entry_clerk.py:360
+#: libya_tally/apps/tally/views/data_entry_clerk.py:74
+#: libya_tally/apps/tally/views/data_entry_clerk.py:338
 msgid "Data Entry"
 msgstr "ادخال بيانات"
 
@@ -862,6 +861,10 @@ msgstr "الارقام التسلسية لاوراق الاقتراع التى �
 #, fuzzy
 msgid "from:"
 msgstr "قادمة من :"
+
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:31
+msgid "to:"
+msgstr ""
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:51
 #, fuzzy
@@ -1029,7 +1032,7 @@ msgstr "الصفحة غير موجودة"
 #: libya_tally/apps/tally/views/intake.py:98
 #: libya_tally/apps/tally/views/intake.py:126
 #: libya_tally/apps/tally/views/intake.py:145
-#: libya_tally/apps/tally/views/intake.py:238
+#: libya_tally/apps/tally/views/intake.py:240
 msgid "Intake"
 msgstr "استقبال"
 
@@ -1196,6 +1199,7 @@ msgid "Race Number"
 msgstr "الرقم التسلسلي"
 
 #: libya_tally/apps/tally/templates/tally/reports/races.html:28
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:18
 #, fuzzy
 msgid "Voting District"
 msgstr "منطقة التصويت :"
@@ -1227,7 +1231,6 @@ msgid "Center/Station List"
 msgstr "قائمة المركز / المحطة"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/centers.html:15
-#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:18
 msgid "Voting district"
 msgstr "دائرة انتخابيه "
 
@@ -1247,7 +1250,7 @@ msgstr "عدد المسجلين:"
 #: libya_tally/apps/tally/templates/tally/super_admin/centers.html:20
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:20
 #: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:21
-#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:20
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:21
 msgid "Last Modified"
 msgstr "التعديل الاخير"
 
@@ -1257,6 +1260,7 @@ msgstr "قائمة الاستمارات القابلة للتنفيد"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:18
 #: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:19
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:20
 msgid "Form State"
 msgstr "حالة النمودج"
 
@@ -1383,25 +1387,25 @@ msgstr "تصحيح"
 msgid "Results do not match."
 msgstr "النتائج غير متطابقة"
 
-#: libya_tally/apps/tally/views/data_entry_clerk.py:90
+#: libya_tally/apps/tally/views/data_entry_clerk.py:104
 #, python-format
 msgid "Return form to %s"
 msgstr "العودة الى النمودج  %s"
 
-#: libya_tally/apps/tally/views/data_entry_clerk.py:99
+#: libya_tally/apps/tally/views/data_entry_clerk.py:113
 msgid "Center and station numbers do not match"
 msgstr "المركز والمحطة غير متطابقيين"
 
-#: libya_tally/apps/tally/views/data_entry_clerk.py:134
+#: libya_tally/apps/tally/views/data_entry_clerk.py:148
 #, python-format
 msgid "Data Entry %s"
 msgstr "مدخل بيانات %s"
 
-#: libya_tally/apps/tally/views/data_entry_clerk.py:354
+#: libya_tally/apps/tally/views/data_entry_clerk.py:332
 msgid "Data Entry 2"
 msgstr "ادخال بيانات 2"
 
-#: libya_tally/apps/tally/views/intake.py:239
+#: libya_tally/apps/tally/views/intake.py:241
 msgid "Data Entry 1"
 msgstr "ادخال بيانات 1"
 
@@ -1479,6 +1483,13 @@ msgstr "خطأ : بيانات ناقصة "
 #: libya_tally/libs/views/session.py:12
 msgid "Session result_form does not match submitted data."
 msgstr "البيانات الناتجة غير مطابقه للنمودج المداخل"
+
+#, fuzzy
+#~ msgid "General plus Component"
+#~ msgstr "تنافس عام بالاضافة الى المكون"
+
+#~ msgid "General and Women"
+#~ msgstr "تنافس عام و نساء"
 
 #~ msgid "Reports Overview"
 #~ msgstr "تقارير عامة"
