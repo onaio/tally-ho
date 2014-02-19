@@ -374,5 +374,6 @@ class TestCorrections(TestBase):
         request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 200)
+        self.assertIsNone(request.session.get('result_form'))
         self.assertContains(response, 'Quality Control')
         self.assertContains(response, reverse('corrections-clerk'))
