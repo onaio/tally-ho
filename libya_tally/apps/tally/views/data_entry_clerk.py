@@ -232,42 +232,6 @@ class CenterDetailsView(LoginRequiredMixin,
                                            result_form=result_form))
 
 
-class CheckCenterDetailsView(LoginRequiredMixin,
-                             mixins.GroupRequiredMixin,
-                             mixins.ReverseSuccessURLMixin,
-                             FormView):
-    group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
-    template_name = "tally/enter_center_details.html"
-    success_url = "result-entry"
-
-    def get(self, *args, **kwargs):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_data_entry_state(result_form)
-
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  header_text=get_header_text(result_form)))
-
-    def post(self, *args, **kwargs):
-        post_data = self.request.POST
-        pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_data_entry_state(result_form)
-
-        if 'is_match' in post_data:
-            # send to print cover
-            return redirect('enter-results')
-        elif 'is_not_match' in post_data:
-            # send to clearance
-            result_form.form_state = FormState.CLEARANCE
-            result_form.save()
-
-            return redirect('intake-clearance')
-
-        return redirect('data-entry-check-center-details')
-
-
 class EnterResultsView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
