@@ -17,7 +17,7 @@
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <table>
         <tr>
-            <td><label>{{ form.center_number.label }}</label></td>
+            <td><label>{% trans form.center_number.label %}</label></td>
             <td>{{ form.center_number.errors }}
                 {{ form.center_number }}
                 <input type="password" class="form-control" value="XXXXXXXX" name="center_number_placeholder" id="center_number_placeholder" style="display:none;">
@@ -25,20 +25,20 @@
         </tr>
         <tr>
         <tr>
-            <td><label>{{ form.center_number_copy.label }}</label></td>
+            <td><label>{% trans form.center_number_copy.label %}</label></td>
             <td>{{ form.center_number_copy.errors }}
                 {{ form.center_number_copy }}
             </td>
         </tr>
          <tr>
-            <td><label>{{ form.station_number.label }}</label></td>
+            <td><label>{% trans form.station_number.label %}</label></td>
             <td>{{ form.station_number.errors }}
                 {{ form.station_number }}
                 <input type="password" class="form-control" value="XXXXXXXX" name="station_number_placeholder" id="station_number_placeholder" style="display:none;">
             </td>
         </tr>
         <tr>
-            <td><label>{{ form.station_number_copy.label }}</label></td>
+            <td><label>{% trans form.station_number_copy.label %}</label></td>
             <td>{{ form.station_number_copy.errors }}
                 {{ form.station_number_copy }}
             </td>
