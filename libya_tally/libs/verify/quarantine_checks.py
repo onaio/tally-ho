@@ -79,4 +79,4 @@ def pass_tampering(result_form):
     scaled_tolerance = (qc.value / 100) * (
         num_votes + number_ballots_expected) / 2
 
-    return diff > scaled_tolerance
+    return diff >= scaled_tolerance
