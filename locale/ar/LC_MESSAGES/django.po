@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# 
+#
 # Translators:
 # Translators:
 # Translators:
@@ -14,15 +14,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-19 21:15+0000\n"
+"POT-Creation-Date: 2014-02-19 21:25+0000\n"
 "PO-Revision-Date: 2014-02-19 21:16+0000\n"
 "Last-Translator: pld <peter@ona.io>\n"
-"Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/language/ar/)\n"
+"Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
+"language/ar/)\n"
+"Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ar\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
 #: libya_tally/apps/tally/forms/barcode_form.py:20
 #: libya_tally/apps/tally/forms/barcode_form.py:22
@@ -815,7 +817,9 @@ msgstr "ادخال بيانات"
 msgid ""
 "In all the fields below, please check the number of ballots twice to ensure "
 "accuracy"
-msgstr "في جميع  الخانات  أدناه، يرجى التحقق من عدد  أوراق  الاقتراع مرتين لضمان الدقة"
+msgstr ""
+"في جميع  الخانات  أدناه، يرجى التحقق من عدد  أوراق  الاقتراع مرتين لضمان "
+"الدقة"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:16
 msgid "Section (A) to be filled prior to opening the polling station"
@@ -872,21 +876,27 @@ msgstr "مجموع أوراق الاقتراع  المفروزة والمعدو�
 msgid ""
 "If the figure in the field 12 does not equal the one in field 7, the totals "
 "of the fields  9, 10 and 11 should be recounted."
-msgstr "إذا كان الرقم في الخانة  12 غير مساوي للرقم  في الخانة  7، يجب اعادة حساب النتائج  فى الخانات 9 و 10 و 11."
+msgstr ""
+"إذا كان الرقم في الخانة  12 غير مساوي للرقم  في الخانة  7، يجب اعادة حساب "
+"النتائج  فى الخانات 9 و 10 و 11."
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:83
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:67
 msgid ""
 "If after recounting, the difference persists, the ballots of the fields 9, "
 "10 and 11 should be recounted as in the manual."
-msgstr "إذا،ظل الفرق قائما بعد إعادة الحساب ، يجب اعادة عد اوراق الاقتراع فى الخانات 9 و 10 و 11 كما مبين فى الدليل."
+msgstr ""
+"إذا،ظل الفرق قائما بعد إعادة الحساب ، يجب اعادة عد اوراق الاقتراع فى الخانات "
+"9 و 10 و 11 كما مبين فى الدليل."
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:86
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:70
 msgid ""
 "If  the  difference  persists,  write a note in the field  at the bottom of "
 "the form to explain the action taken prior to proceeding to the next step."
-msgstr "إذا ظل الفرق، اكتب ملاحظة فى الخانة أسفل الاستمارة  ذاكرا  الإجراءات المتبعة  قبل الانتقال للخطوة التالية."
+msgstr ""
+"إذا ظل الفرق، اكتب ملاحظة فى الخانة أسفل الاستمارة  ذاكرا  الإجراءات "
+"المتبعة  قبل الانتقال للخطوة التالية."
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:105
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:89
@@ -938,21 +948,27 @@ msgstr "مجمود أوراق الاقتراع الموجودة داخل وخا�
 msgid ""
 "N.B. if the figure in field 8 does not equal the figure in field 1, the "
 "calculations above should be redone."
-msgstr "ملاحظة: إذا كان الرقم في الخانة  8 لا يساوي الرقم في الخانة 1، ينبغي تكرار الحسابات أعلاه."
+msgstr ""
+"ملاحظة: إذا كان الرقم في الخانة  8 لا يساوي الرقم في الخانة 1، ينبغي تكرار "
+"الحسابات أعلاه."
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:163
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:147
 msgid ""
 "If the difference persists, the ballots should be recounted to verify the "
 "figures in the fields 3, 4, 5, 7."
-msgstr "إذا ظل الفرق قائما ، يجي اعادة عدد أوراق  الاقتراع للتحقق من الأرقام في الخانات 3، 4، 5، 7"
+msgstr ""
+"إذا ظل الفرق قائما ، يجي اعادة عدد أوراق  الاقتراع للتحقق من الأرقام في "
+"الخانات 3، 4، 5، 7"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:166
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:150
 msgid ""
 "If the difference persists, write a note in the field at the bottom of the "
 "form to explain the action taken prior to proceeding to the next step."
-msgstr "إذا ظل الفرق، اكتب ملاحظة فى الخانة أسفل الاستمارة  ذاكرا  الإجراءات المتبعة  قبل الانتقال للخطوة التالية."
+msgstr ""
+"إذا ظل الفرق، اكتب ملاحظة فى الخانة أسفل الاستمارة  ذاكرا  الإجراءات "
+"المتبعة  قبل الانتقال للخطوة التالية."
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:176
 #: libya_tally/apps/tally/templates/tally/quality_control/general.html:11
