@@ -4,21 +4,68 @@
 
 {% block content %}
 
+<div class="container main-container">
 <h1>{% trans 'Clearance:' %} {{ clearance_type }}</h1>
 
 {% include 'tally/center_details.html' %}
 
-<form name="clearance" method="post" action="">
-    {{ form.as_p }}
-    <input class="btn"  type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <button class="btn btn-primary"  type="submit" name="save">{% trans "Save" %}</button>
-    {% if is_clerk %}
-    <button class="btn btn-success"  type="submit" name="forward">{% trans "Forward to Supervisor and Print Cover" %}</button>
-    {% else %}
-    <button class="btn btn-success"  type="submit" name="implement">{% trans "Implement Recommendation" %}</button>
-    <button class="btn btn-danger"  type="submit" name="return">{% trans "Return to Clearance Team" %}</button>
-    {% endif %}
-    {% csrf_token %}
-</form>
+
+<div class="row audit-form border-top">
+	<form name="audit" method="post" action="">
+        <div class="col-md-2 col-sm-1 grid2">
+            <h3>{% trans "Problem" %}</h3>
+            <p>{{ form.center_name_missing }}<label
+                for="id_center_name_missing">{% trans 'Center name missing:' %}</label> </p>
+
+            <p>{{ form.center_name_mismatching }}<label for="id_center_name_mismatching">{% trans 'Center name mismatching:' %}</label> </p>
+
+            <p>{{ form.center_code_missing }}<label for="id_center_code_missing">{% trans 'Center code missing:' %}</label></p>
+
+            <p>{{ form.center_code_mismatching }}<label for="id_center_code_mismatching">{% trans 'Center code mismatching:' %}</label></p>
+
+            <p>{{ form.form_already_in_system }}<label for="id_form_already_in_system">{% trans 'Form already in system:' %}</label></p>
+
+            <p>{{ form.form_incorrectly_entered_into_system }}<label
+                for="id_form_incorrectly_entered_into_system">
+                {% trans 'Form incorrectly entered into system:' %}</label></p>
+            <p class="large"><label class="wrap_label" for="id_other">
+                {% trans "Other:" %}</label>{{ form.other }}</p>
+            <p><button class="btn btn-primary" type="submit" name="save">{% trans "Save" %}</button></p>
+            <h3>{% trans "Action Prior to Recommendation" %}</h3>
+            <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
+                {{ form.action_prior_to_recommendation }}
+            </p>
+            <p><label for="id_resolution_recommendation">{% trans "Resolution recommendation:" %}</label>
+            {{ form.resolution_recommendation }}
+            </p>
+            {% if is_clerk %}
+            <p><button class="btn btn-success" type="submit" name="forward">{% trans "Forward to Supervisor and Print Cover" %}</button></p>
+            {% else %}
+            <p><button class="btn btn-success" type="submit" name="implement">{% trans "Implement Recommendation" %}</button></p>
+            <p><button class="btn btn-danger" type="submit" name="return">
+                {% trans "Return to Clearance Team" %}</button></p>
+            {% endif %}
+        </div>
+        <div class="col-md-2 col-sm-1 grid2 righter">
+            {% if is_clerk %}
+            <p><label for="id_team_comment">{% trans "Team comment:" %}</label>
+                {{ form.team_comment }}
+            </p>
+            {% else %}
+            <p><label for="id_team_comment">{% trans "Team comment:" %}</label>
+                {{ form.team_comment.value }}
+            </p>
+            {% endif %}
+            {% if not is_clerk %}
+            <p><label for="id_supervisor_comment">{% trans "Supervisor comment:" %}</label>
+                {{ form.supervisor_comment }}
+            </p>
+            {% endif %}
+        </div>
+        <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+        {% csrf_token %}
+    </form>
+</div>
+</div>
 
 {% endblock %}

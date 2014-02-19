@@ -1,11 +1,11 @@
-from django.forms import ModelForm, TypedChoiceField
+from django import forms
 
 from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.libs.models.enums.actions_prior import ActionsPrior
 from libya_tally.libs.models.enums.audit_resolution import AuditResolution
 
 
-class AuditForm(ModelForm):
+class AuditForm(forms.ModelForm):
     class Meta:
         model = Audit
         fields = [
@@ -21,11 +21,11 @@ class AuditForm(ModelForm):
             'team_comment',
             'supervisor_comment']
 
-    # Recommendations
-    action_prior_to_recommendation = TypedChoiceField(
+    other = forms.CharField(required=False)
+    action_prior_to_recommendation = forms.TypedChoiceField(
         required=False, choices=[('', '----')] + ActionsPrior.choices(),
         coerce=int)
-    resolution_recommendation = TypedChoiceField(
+    resolution_recommendation = forms.TypedChoiceField(
         required=False, choices=[('', '----')] + AuditResolution.choices(),
         coerce=int)
 

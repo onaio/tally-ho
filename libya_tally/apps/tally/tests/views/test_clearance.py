@@ -111,7 +111,9 @@ class TestClearance(TestBase):
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
         view = views.ReviewView.as_view()
-        data = {'result_form': result_form.pk}
+        # invalid enum value
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 9}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data

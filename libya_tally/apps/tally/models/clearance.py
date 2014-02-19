@@ -36,7 +36,8 @@ class Clearance(BaseModel):
     other = models.TextField(null=True, blank=True)
 
     # Recommendations
-    action_prior_to_recommendation = enum.EnumField(ActionsPrior)
+    action_prior_to_recommendation = enum.EnumField(
+        ActionsPrior, blank=True, null=True)
     resolution_recommendation = enum.EnumField(
         ClearanceResolution, null=True, blank=True)
 
