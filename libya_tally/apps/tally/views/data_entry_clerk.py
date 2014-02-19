@@ -27,12 +27,11 @@ from libya_tally.libs.views.session import session_matches_post_result_form
 
 
 def get_candidates(result_form):
-    candidates = list(
-        result_form.ballot.candidates.order_by('race_type', 'order'))
+    ballot = result_form.ballot
+    candidates = list(ballot.candidates.order_by('race_type', 'order'))
 
-    component_ballot = result_form.center and\
-        result_form.center.sub_constituency and\
-        result_form.center.sub_constituency.ballot_component
+    component_ballot = ballot.sc_general and ballot.sc_general.all(
+        )[0].ballot_component
 
     if component_ballot:
         candidates += list(component_ballot.candidates.order_by('order'))
