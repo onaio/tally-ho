@@ -89,20 +89,35 @@ class Command(BaseCommand):
 
                 try:
                     code_value = int(row[0])
+                    ballot_number_component = row[6]
                     ballot_number_general = row[3]
                     ballot_number_women = row[4]
                     number_of_ballots = row[5] and int(row[5])
 
+                    ballot_component = None
                     ballot_general = None
                     ballot_women = None
 
+                    if ballot_number_component:
+                        component_race_type = {
+                            '54': RaceType.COMPONENT_AMAZIGH,
+                            '55': RaceType.COMPONENT_TWARAG,
+                            '56': RaceType.COMPONENT_TEBU,
+                            '57': RaceType.COMPONENT_TWARAG,
+                            '58': RaceType.COMPONENT_TEBU,
+                        }[ballot_number_component]
+
+                        ballot_component, _ = Ballot.objects.get_or_create(
+                            number=ballot_number_component,
+                            race_type=component_race_type)
+
                     if ballot_number_general:
-                        ballot_general, created = Ballot.objects.get_or_create(
+                        ballot_general, _ = Ballot.objects.get_or_create(
                             number=ballot_number_general,
                             race_type=RaceType.GENERAL)
 
                     if ballot_number_women:
-                        ballot_women, created = Ballot.objects.get_or_create(
+                        ballot_women, _ = Ballot.objects.get_or_create(
                             number=ballot_number_women,
                             race_type=RaceType.WOMEN)
 
@@ -116,10 +131,10 @@ class Command(BaseCommand):
                         code=code_value,
                         field_office=row[1],
                         races=row[2],
+                        ballot_component=ballot_component,
                         ballot_general=ballot_general,
                         ballot_women=ballot_women,
-                        number_of_ballots=number_of_ballots,
-                        component_ballot=row[6] or False)
+                        number_of_ballots=number_of_ballots)
 
                 except ValueError:
                     pass
@@ -216,13 +231,20 @@ class Command(BaseCommand):
                 }[int(race_code)]
 
                 candidate_id = row[0]
-                sub_constituency = SubConstituency.objects.get(
-                    code=row[7])
+                code = row[7]
 
-                if race_type != RaceType.WOMEN:
-                    ballot = sub_constituency.ballot_general
-                else:
-                    ballot = sub_constituency.ballot_women
+                try:
+                    sub_constituency = SubConstituency.objects.get(
+                        code=code)
+
+                    if race_type != RaceType.WOMEN:
+                        ballot = sub_constituency.ballot_general
+                    else:
+                        ballot = sub_constituency.ballot_women
+
+                except SubConstituency.DoesNotExist:
+                    ballot = Ballot.objects.get(number=code)
+                    sub_constituency = ballot.sc_component
 
                 _, created = Candidate.objects.get_or_create(
                     ballot=ballot,

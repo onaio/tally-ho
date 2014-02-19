@@ -26,12 +26,27 @@ from libya_tally.libs.views.form_state import form_in_data_entry_state,\
 from libya_tally.libs.views.session import session_matches_post_result_form
 
 
+def get_candidates(result_form):
+    candidates = list(
+        result_form.ballot.candidates.order_by('race_type', 'order'))
+
+    component_ballot = result_form.center and\
+        result_form.center.sub_constituency and\
+        result_form.center.sub_constituency.ballot_component
+
+    if component_ballot:
+        candidates += list(component_ballot.candidates.order_by('order'))
+
+    return candidates
+
+
 def get_data_entry_number(form_state):
     return 1 if form_state == FormState.DATA_ENTRY_1 else 2
 
 
 def get_formset_and_candidates(result_form, post_data=None):
-    candidates = result_form.ballot.candidates.order_by('race_type', 'order')
+    candidates = get_candidates(result_form)
+
     CandidateFormSet = formset_factory(CandidateForm,
                                        extra=len(candidates),
                                        formset=BaseCandidateFormSet)
@@ -287,8 +302,8 @@ class EnterResultsView(LoginRequiredMixin,
         recon_form = ReconForm(post_data)
         data_entry_number = get_data_entry_number(result_form.form_state)
 
-        candidates = result_form.ballot.candidates.order_by('race_type',
-                                                            'order')
+        candidates = get_candidates(result_form)
+
         CandidateFormSet = formset_factory(CandidateForm,
                                            extra=len(candidates),
                                            formset=BaseCandidateFormSet)

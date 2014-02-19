@@ -10,12 +10,13 @@ class SubConstituency(BaseModel):
     class Meta:
         app_label = 'tally'
 
+    ballot_component = models.ForeignKey(Ballot, null=True,
+                                         related_name='sc_component')
     ballot_general = models.ForeignKey(Ballot, null=True,
                                        related_name='sc_general')
     ballot_women = models.ForeignKey(Ballot, null=True,
                                      related_name='sc_women')
     code = models.PositiveSmallIntegerField()  # aka SubCon number
-    component_ballot = models.BooleanField()
     field_office = models.CharField(max_length=256)
     number_of_ballots = models.PositiveSmallIntegerField(null=True)
     races = models.PositiveSmallIntegerField(null=True)
@@ -27,7 +28,7 @@ class SubConstituency(BaseModel):
         if ballot.ballot_women.first():
             return _('General and Women')
         elif ballot.ballot_general.first():
-            if ballot.ballot_general.first().component_ballot:
+            if ballot.ballot_component.first():
                 return _('General and Component')
 
             return _('General')

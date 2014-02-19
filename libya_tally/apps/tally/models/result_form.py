@@ -235,18 +235,8 @@ class ResultForm(BaseModel):
 
     @property
     def ballot_race_type_name(self):
-        if self.ballot:
-            # TODO tighten this up
-            if self.ballot.sc_general.all():
-                if self.ballot.sc_general.all()[0].component_ballot:
-                    return _('General plus Component')
-                else:
-                    return _(self.ballot.race_type_name)
-            elif self.ballot.sc_women.all():
-                if self.ballot.sc_women.all()[0].component_ballot:
-                    return _('Women plus Component')
-                else:
-                    return _(self.ballot.race_type_name)
+        if self.center and self.center.sub_constituency:
+            return self.center.sub_constituency.form_type
 
     @property
     def sub_constituency_code(self):

@@ -169,7 +169,6 @@ def create_recon_forms(result_form):
 
 def create_station(center, registrants=1):
     sc, _ = SubConstituency.objects.get_or_create(code=1,
-                                                  component_ballot=False,
                                                   field_office='1')
 
     return Station.objects.get_or_create(
