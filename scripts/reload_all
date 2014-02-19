@@ -1,5 +1,5 @@
 ./scripts/create_database tally $1 $2
 python manage.py import --settings=$2
-python manage.py import_staff --settings=$2
+python manage.py import_staff_list --settings=$2
 python manage.py create_quarantine_checks --settings=$2
 python manage.py loaddata libya_tally/apps/tally/fixtures/sites.json --settings=$2
