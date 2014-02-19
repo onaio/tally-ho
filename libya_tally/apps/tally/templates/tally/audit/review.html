@@ -13,6 +13,15 @@
 <div class="row audit-form border-top">
 	<form name="audit" method="post" action="">
         <div class="col-md-2 col-sm-1 grid2">
+            {% if result_form.audit %}
+            <h3>{% trans 'Quarantined Form' %}</h3>
+            {% for check in result_form.audit.quarantine_checks.all %}
+            <p>
+                {% trans 'Failed quarantine check:' %}
+                {{ check.local_name }}
+            </p>
+            {% endfor %}
+            {% endif %}
             <h3>{% trans "Problem" %}</h3>
             <p>{{ form.blank_reconciliation }}<label for="id_blank_reconciliation">{% trans "Blank reconciliation:" %}</label></p>
             <p>{{ form.blank_results }}<label for="id_blank_results">{% trans "Blank results:" %}</label> </p>
