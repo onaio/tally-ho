@@ -93,6 +93,12 @@ form{
 	text-align:center;
 	vertical-align:middle!important;
 }
+.pink-bg{
+	background:#FFDFDD;
+}
+.yellow-bg{
+	background:#FFFFC2;
+}
 
 .warn {
     background-color: #f2dede!important;
