@@ -15,6 +15,14 @@ from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.gender import Gender
 from libya_tally.libs.models.enums.race_type import RaceType
 
+male_local = _('Male')
+female_local = _('Female')
+general = _('General')
+women = _('Women')
+component_amazigh = _('Component Amazigh')
+component_twarag = _('Component Twarag')
+component_tebu = _('Component Tebu')
+
 
 def get_matched_results(result_form, results):
     results_v1 = results.filter(
@@ -126,7 +134,7 @@ class ResultForm(BaseModel):
 
     @property
     def gender_name(self):
-        return Gender.label(self.gender)
+        return _(Gender.label(self.gender))
 
     @property
     def num_votes(self):
@@ -232,7 +240,11 @@ class ResultForm(BaseModel):
 
     @property
     def ballot_race_type_name(self):
-        return self.ballot.race_type_name if self.ballot else None
+        if self.ballot and self.ballot.sc_general.all():
+            if self.ballot.sc_general.all()[0].component_ballot:
+                return _('General plus Component')
+            else:
+                return _(self.ballot.race_type_name)
 
     @property
     def sub_constituency_code(self):
