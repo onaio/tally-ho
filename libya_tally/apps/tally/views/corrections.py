@@ -168,7 +168,7 @@ class CorrectionMatchView(LoginRequiredMixin,
             result_form = get_object_or_404(ResultForm, pk=pk)
             form_in_state(result_form, [FormState.CORRECTION])
 
-            if not match_forms(result_form):
+            if not result_form.corrections_passed:
                 raise Exception(_(u"Results do not match."))
 
             save_final_results(result_form, self.request.user)
