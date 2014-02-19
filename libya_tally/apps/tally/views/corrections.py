@@ -43,9 +43,9 @@ def _save_final_recon_form(updated, user, result_form):
 
 
 def incorrect_checks(post_data, result_form, success_url):
-    if 'reject' in post_data:
+    if 'reject_submit' in post_data:
         result_form.reject()
-    elif 'abort' in post_data:
+    elif 'abort_submit' in post_data:
         pass
     else:
         raise SuspiciousOperation('Unknown POST response type')
