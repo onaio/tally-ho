@@ -272,6 +272,7 @@ class TestDataEntryClerk(TestBase):
         results = updated_result_form.results.all()
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].entry_version, EntryVersion.DATA_ENTRY_1)
+        self.assertIsNone(self.request.session.get('result_form'))
 
         for result in results:
             self.assertEqual(result.user, self.user)
