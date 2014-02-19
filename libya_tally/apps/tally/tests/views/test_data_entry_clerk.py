@@ -37,10 +37,10 @@ class TestDataEntryClerk(TestBase):
     def _post_enter_results(self, result_form):
         view = views.EnterResultsView.as_view()
         data = result_form_data(result_form)
-        request = self.factory.post('/', data=data)
-        request.user = self.user
-        request.session = {'result_form': result_form.pk}
-        return view(request)
+        self.request = self.factory.post('/', data=data)
+        self.request.user = self.user
+        self.request.session = {'result_form': result_form.pk}
+        return view(self.request)
 
     def test_data_entry_view(self):
         response = self._common_view_tests(views.DataEntryView.as_view())
@@ -272,7 +272,6 @@ class TestDataEntryClerk(TestBase):
         results = updated_result_form.results.all()
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].entry_version, EntryVersion.DATA_ENTRY_1)
-        self.assertIsNone(self.request.session.get('result_form'))
 
         for result in results:
             self.assertEqual(result.user, self.user)
@@ -361,6 +360,7 @@ class TestDataEntryClerk(TestBase):
         request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 200)
+        self.assertIsNone(request.session.get('result_form'))
         self.assertContains(response, 'Data Entry 2')
         self.assertContains(response, reverse('data-entry-clerk'))
 
@@ -373,6 +373,7 @@ class TestDataEntryClerk(TestBase):
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
+        self.assertIsNone(request.session.get('result_form'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Corrections')
         self.assertContains(response, reverse('data-entry-clerk'))
