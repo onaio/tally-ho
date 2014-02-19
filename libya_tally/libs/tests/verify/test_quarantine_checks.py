@@ -57,7 +57,8 @@ class TestQuarantineChecks(TestBase):
         create_station(center=center,
                        registrants=1)
         result_form = create_result_form(center=center)
-        create_reconciliation_form(result_form)
+        create_reconciliation_form(result_form,
+                                   number_unstamped_ballots=0)
         self.assertEqual(pass_tampering(result_form), True)
 
     def test_pass_tampering_true_diff(self):
@@ -66,5 +67,7 @@ class TestQuarantineChecks(TestBase):
                        registrants=1)
         result_form = create_result_form(center=center)
         create_candidates(result_form, self.user, num_results=1)
-        create_reconciliation_form(result_form, number_unstamped_ballots=0)
+        create_reconciliation_form(result_form,
+                                   number_ballots_inside_box=250,
+                                   number_unstamped_ballots=0)
         self.assertEqual(pass_tampering(result_form), True)
