@@ -9,10 +9,13 @@ cd ..
 rm -rf tally-system-clean/.git
 rm -rf tally-system-clean/data/.git
 tar czvf tally-system.tgz tally-system-clean
+rm -rf tally-system-clean
 scp tally-system.tgz hnec:
 
 # login and run install
+<<RUN
 ssh hnec
 tar xzvf tally-system.tgz
 mv tally-system-clean tally-system
 ./tally-system/scripts/install_ubuntu
+RUN
