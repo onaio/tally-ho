@@ -33,10 +33,10 @@ sudo chown -R `whoami`:`whoami` $PROJECT_HOME
 sudo mkdir -p $LOG_DIR
 sudo chown -R $USER:$USER $LOG_DIR
 
-if [ GIT ]; then
+if [[ GIT == "true" ]]; then
     cd $PROJECT_HOME && (git clone git@github.com:onaio/tally-system.git || (cd tally-system && git fetch))
 else
-    cd $PROJECT_HOME && cp -rT ~/$PROJECT_NAME/ ./
+    cd $PROJECT_HOME && sudo cp -rT ~/$PROJECT_NAME/ ./
 fi
 
 config_path_tmp="$CODE_SRC/deploy/var/www/tally-system/libya_tally/settings/local_settings.py"
