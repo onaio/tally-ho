@@ -92,6 +92,7 @@ class FormListDataView(LoginRequiredMixin,
         'center__office__name',
         'ballot__number',
         'ballot__race_type',
+        'form_state_name',
         'modified_date',
     )
     display_fields = (
@@ -100,6 +101,7 @@ class FormListDataView(LoginRequiredMixin,
         ('station_number', 'station_number'),
         ('center__office__name', 'center_office'),
         ('ballot__number', 'ballot_number'),
+        ('form_state_name', 'form_state_name'),
         ('ballot__race_type', 'ballot_race_type_name'),
         ('modified_date', 'modified_date_formatted'),
     )
