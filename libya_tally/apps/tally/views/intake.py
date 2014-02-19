@@ -159,6 +159,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             result_form.form_state = FormState.CLEARANCE
             url = 'intake-clearance'
         else:
+            del self.request.session['result_form']
             result_form.form_state = FormState.UNSUBMITTED
             url = 'intake'
 
@@ -217,6 +218,7 @@ class ClearanceView(LoginRequiredMixin,
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CLEARANCE])
+        del self.request.session['result_form']
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))

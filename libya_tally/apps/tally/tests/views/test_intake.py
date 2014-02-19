@@ -276,11 +276,26 @@ class TestIntake(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/printcover', response['location'])
 
+    def test_intake_clerk_selects_try_again(self):
+        barcode = '123456789'
+        result_form = create_result_form(barcode, form_state=FormState.INTAKE)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.CheckCenterDetailsView.as_view()
+        post_data = {'result_form': result_form.pk}
+        request = self.factory.post('/', data=post_data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+        self.assertIsNone(request.session.get('result_form'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/intake', response['location'])
+
     def _create_or_login_intake_clerk(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
 
-    def test_selects_no_matches(self):
+    def test_selects_is_not_match(self):
         result_form = create_result_form()
         self._create_or_login_intake_clerk()
         view = views.CheckCenterDetailsView.as_view()
@@ -389,5 +404,6 @@ class TestIntake(TestBase):
         result_form.form_state = FormState.CLEARANCE
         result_form.save()
         response = view(self.request)
+        self.assertIsNone(self.request.session.get('result_form'))
         self.assertContains(response,
                             'Form Sent to Clearance. Pass to Supervisor')
