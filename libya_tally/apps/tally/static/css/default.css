@@ -173,7 +173,7 @@ table.print-table{
 }
 
 table.print-table td {
-    padding: 10px;
+    padding: 10px 6px;
 }
 table.print-table td h4 {
     margin-top: 0;

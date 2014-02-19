@@ -30,10 +30,10 @@
     <tr>
         <td>{% trans 'Date Team Modified:' %} </td><td colspan="3">{{ result_form.audit.date_team_modified }}</td>
     </tr>
-    <tr>
+    <tr class="underline">
         <td>{% trans 'Date Supervisor Modified:' %} </td><td colspan="3">{{ result_form.audit.date_supervisor_modified }}</td>
     </tr>
-    <tr>
+    <tr class="underline">
         <td colspan="4"><h4>{% trans 'Problem' %}</h4>
     {% for problem in problems %}
         <input type="checkbox" checked="checked" name="problem" value="problem">&nbsp;{% trans problem %}
@@ -45,13 +45,13 @@
         <td colspan="4">{% trans 'Other:' %} {{ result_form.audit.other }}</td>
     </tr>
     {% endif %}
-    <tr>
+    <tr class="underline">
         <td colspan="4">
             <h4>{% trans 'Action Conducted' %}</h4>
             {{ result_form.audit.action_prior_name }}
         </td>
     <tr>
-    <tr>
+    <tr class="underline">
         <td colspan="4">
             <h4>{% trans 'Resolution Recommendation' %}</h4>
             {{ result_form.audit.resolution_recommendation_name }}

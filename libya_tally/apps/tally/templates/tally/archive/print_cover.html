@@ -18,7 +18,7 @@
         <td colspan="2">{% trans 'Quarantined Form' %}</td>
         {% for check in result_form.audit.quarantine_checks.all %}
     </tr>
-    <tr>
+    <tr class="underline">
         <td>
             {% trans 'Failed quarantine check:' %}
             {{ check.local_name }}
@@ -29,7 +29,7 @@
         {% endif %}
     </tr>
     {% include 'tally/print_cover_common.html' %}
-    <tr>
+    <tr class="underline">
         <td>{% trans 'Number of Registrants:' %} </td><td>{{ result_form.station.registrants }}</td>
     </tr>
     <tr>
