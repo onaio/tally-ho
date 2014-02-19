@@ -238,6 +238,8 @@ class ResultForm(BaseModel):
         if self.center and self.center.sub_constituency:
             return self.center.sub_constituency.form_type
 
+        return _('Special')
+
     @property
     def sub_constituency_code(self):
         return self.sub_constituency.code if self.sub_constituency else None

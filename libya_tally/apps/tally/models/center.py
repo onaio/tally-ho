@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import ugettext as _
 from django_enumfield import enum
 import reversion
 
@@ -25,6 +26,10 @@ class Center(BaseModel):
     office = models.ForeignKey(Office, null=True)
     region = models.TextField()
     village = models.TextField()
+
+    def sc_code(self):
+        return self.sub_constituency.code if self.sub_constituency else _(
+            'Special')
 
     def __unicode__(self):
         return u'%s - %s' % (self.code, self.name)
