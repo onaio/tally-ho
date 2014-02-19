@@ -38,7 +38,7 @@
                         <a href="{% url 'home-locale' %}?locale=en&next={{request.path}}">English</a>
                         <br/>
 
-                        {% if user.is_authenticated %}<span><a href="/">Home</a> | Signed in as {{user.username}} - <a id="logout_link" href="/accounts/logout/">logout</a><br/></span>{% endif %}
+                        {% if user.is_authenticated %}<span>Signed in as {{user.username}} - <a id="logout_link" href="/accounts/logout/">logout</a><br/></span>{% endif %}
 
                     </div>
                 </div>
