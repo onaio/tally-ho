@@ -23,12 +23,10 @@ class SubConstituency(BaseModel):
 
     @property
     def form_type(self):
-        ballot = self.ballot
-
-        if ballot.ballot_women.first():
-            return _('General and Women')
-        elif ballot.ballot_general.first():
-            if ballot.ballot_component.first():
+        if self.ballot_women:
+            return _('Women')
+        elif self.ballot_general:
+            if self.ballot_component:
                 return _('General and Component')
 
             return _('General')
