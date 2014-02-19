@@ -103,7 +103,7 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
 def save_final_results(result_form, user):
     results = Result.objects.filter(
         result_form=result_form,
-        entry_version=EntryVersion.DATA_ENTRY_2)
+        entry_version=EntryVersion.DATA_ENTRY_2, active=True)
     for result in results:
         save_result(result.candidate, result_form, EntryVersion.FINAL,
                     result.votes, user)
