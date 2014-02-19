@@ -3,20 +3,20 @@
 <h2>{% trans header_text %} {% trans 'Results Section' %}</h2>
 <table class="table table-striped table-bordered">
     <tr>
-        <th>Votes</th>
-        <th>Candidate</th>
         <th>No.</th>
+        <th>Candidate</th>
+        <th>Votes</th>
     </tr>
 {% for result in results %}
     <tr>
         <td>
-            {{ result.votes }}
+            {{ result.candidate.order }}
         </td>
         <td>
             {{ result.candidate.full_name }}
         </td>
         <td>
-            {{ result.candidate.order }}
+            {{ result.votes }}
         </td>
     </tr>
 {% endfor %}
