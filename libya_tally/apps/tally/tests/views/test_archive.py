@@ -8,8 +8,9 @@ from libya_tally.apps.tally.models.quarantine_check import QuarantineCheck
 from libya_tally.apps.tally.views import archive as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.tests.test_base import create_audit, create_center,\
-    create_reconciliation_form, create_result_form, create_station, TestBase
+from libya_tally.libs.tests.test_base import create_audit, create_candidates,\
+    create_center, create_reconciliation_form, create_result_form,\
+    create_station, TestBase
 from libya_tally.libs.verify.quarantine_checks import create_quarantine_checks
 
 
@@ -100,6 +101,40 @@ class TestArchive(TestBase):
         self.assertEqual(result_form.audited_count, 0)
         self.assertIn('archive/print', response['location'])
 
+    def test_archive_post_quarantine_pass_below_tolerance(self):
+        center = create_center()
+        create_station(center)
+        create_quarantine_checks()
+        self._create_and_login_user()
+        barcode = '123456789'
+        result_form = create_result_form(
+            form_state=FormState.ARCHIVING,
+            center=center, station_number=1)
+        recon_form = create_reconciliation_form(
+            result_form, number_ballots_inside_box=21,
+            number_unstamped_ballots=0)
+        create_candidates(result_form, self.user, votes=1, num_results=10)
+        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        view = views.ArchiveView.as_view()
+        data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=data)
+        request.session = {}
+        request.user = self.user
+        response = view(request)
+        result_form.reload()
+
+        self.assertEqual(result_form.num_votes,
+                         recon_form.number_ballots_expected)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(result_form.form_state, FormState.AUDIT)
+        self.assertTrue(result_form.audit)
+        self.assertEqual(result_form.audit.quarantine_checks.count(), 1)
+        self.assertEqual(
+            result_form.audit.quarantine_checks.all()[0].name[:9], 'Trigger 1')
+        self.assertEqual(result_form.audited_count, 1)
+        self.assertIn('archive/print', response['location'])
+
     def test_archive_post_quarantine(self):
         center = create_center()
         create_station(center)
@@ -122,7 +157,7 @@ class TestArchive(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(result_form.form_state, FormState.AUDIT)
         self.assertTrue(result_form.audit)
-        self.assertEqual(result_form.audit.quarantine_checks.count(), 1)
+        self.assertEqual(result_form.audit.quarantine_checks.count(), 2)
         self.assertEqual(result_form.audit.user, self.user)
         self.assertEqual(result_form.audited_count, 1)
         self.assertIn('archive/print', response['location'])

@@ -132,6 +132,7 @@ def create_office(name='office'):
 def create_reconciliation_form(
         result_form,
         entry_version=EntryVersion.FINAL,
+        number_ballots_inside_box=1,
         number_unstamped_ballots=1):
     return ReconciliationForm.objects.create(
         result_form=result_form,
@@ -143,7 +144,7 @@ def create_reconciliation_form(
         number_spoiled_ballots=1,
         number_cancelled_ballots=1,
         number_ballots_outside_box=1,
-        number_ballots_inside_box=1,
+        number_ballots_inside_box=number_ballots_inside_box,
         number_ballots_inside_and_outside_box=1,
         number_unstamped_ballots=number_unstamped_ballots,
         number_invalid_votes=1,
