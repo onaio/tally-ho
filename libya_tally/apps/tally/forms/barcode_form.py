@@ -48,6 +48,6 @@ class BarcodeForm(forms.Form):
             try:
                 ResultForm.objects.get(barcode=barcode)
             except ResultForm.DoesNotExist:
-                raise forms.ValidationError(u"Barcode does not exist")
+                raise forms.ValidationError(_(u"Barcode does not exist."))
 
             return cleaned_data
