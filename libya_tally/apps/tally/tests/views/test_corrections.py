@@ -196,6 +196,90 @@ class TestCorrections(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('corrections/success', response['location'])
 
+    def test_corrections_twice(self):
+        """
+        Checks that results when passed through corrections, and sent to
+        Quality Control and rejected  in QA then new corrections matching
+        does not create more than one record of active results.
+        """
+        view = views.CorrectionMatchView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_recon_forms(result_form)
+        create_results(result_form, vote1=3, vote2=3)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2)
+        session = {'result_form': result_form.pk}
+        data = {'result_form': result_form.pk,
+                'pass_to_quality_control': 'true'}
+        request = self.factory.post('/', data=data)
+        request.session = session
+        request.user = self.user
+        response = view(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 3)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form,
+                                  entry_version=EntryVersion.FINAL).count(), 1)
+        self.assertEqual(
+            ReconciliationForm.objects.filter(
+                active=True,
+                result_form=result_form,
+                entry_version=EntryVersion.FINAL).count(), 1)
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.QUALITY_CONTROL)
+
+        # reject result in QA
+        updated_result_form.reject()
+
+        # reset form to corrections
+        updated_result_form.form_state = FormState.DATA_ENTRY_2
+        updated_result_form.save()
+        updated_result_form.form_state = FormState.CORRECTION
+        updated_result_form.save()
+
+        # none of the results is active
+        self.assertEqual(
+            Result.objects.filter(
+                result_form=result_form, active=True).count(), 0)
+        self.assertEqual(
+            ReconciliationForm.objects.filter(
+                active=True,
+                result_form=result_form,
+                entry_version=EntryVersion.FINAL).count(), 0)
+
+        # create new results
+        create_recon_forms(result_form)
+        create_results(updated_result_form, vote1=2, vote2=2)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 5)
+        self.assertEqual(
+            Result.objects.filter(
+                result_form=result_form, active=True).count(), 2)
+
+        request.session = {'result_form': result_form.pk}
+        # pass to quality control
+        response = view(request)
+
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.QUALITY_CONTROL)
+
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 6)
+        self.assertEqual(
+            Result.objects.filter(
+                result_form=result_form, active=True).count(), 3)
+        self.assertEqual(
+            ReconciliationForm.objects.filter(
+                active=True,
+                result_form=result_form,
+                entry_version=EntryVersion.FINAL).count(), 1)
+
     def test_corrections_general_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
