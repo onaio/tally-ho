@@ -6,6 +6,9 @@ from libya_tally.libs.models.enums.clearance_resolution import\
     ClearanceResolution
 
 
+EMPTY_KEY = 0
+
+
 class ClearanceForm(forms.ModelForm):
     class Meta:
         model = Clearance
@@ -26,10 +29,11 @@ class ClearanceForm(forms.ModelForm):
 
     other = forms.CharField(required=False)
     action_prior_to_recommendation = forms.TypedChoiceField(
-        required=False, choices=[('', '----')] + ActionsPrior.choices(),
+        required=False, choices=[(EMPTY_KEY, '----')] + ActionsPrior.choices(),
         coerce=int)
     resolution_recommendation = forms.TypedChoiceField(
-        required=False, choices=[('', '----')] + ClearanceResolution.choices(),
+        required=False, choices=[
+            (EMPTY_KEY, '----')] + ClearanceResolution.choices(),
         coerce=int)
 
     def clean(self):
@@ -37,10 +41,10 @@ class ClearanceForm(forms.ModelForm):
         action = cleaned_data.get('action_prior_to_recommendation')
         resolution = cleaned_data.get('resolution_recommendation')
 
-        if action == '':
+        if action == EMPTY_KEY:
             cleaned_data['action_prior_to_recommendation'] = None
 
-        if resolution == '':
+        if resolution == EMPTY_KEY:
             cleaned_data['resolution_recommendation'] = None
 
         return cleaned_data
