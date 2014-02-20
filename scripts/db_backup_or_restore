@@ -1,0 +1,43 @@
+#!/bin/bash
+
+DB_HOST=192.168.1.1
+DB_USER=tally
+DB_NAME=tally
+BACKUP_FILENAME=tally_`date +%F+%T`.bak
+BACKUP_PATH=/var/lib/postgresql/backups/$BACKUP_FILENAME
+
+if [ "$1" = "backup" ]; then
+    if [ $# -gt 1 ]; then
+        DB_USER=$2
+    fi
+
+    if [ $# -gt 2 ]; then
+        DB_HOST=$3
+    fi
+
+    if [ $# -gt 3 ]; then
+        DB_NAME=$4
+    fi
+
+    if [ $# -gt 4 ]; then
+        BACKUP_PATH=$5
+    fi
+
+    pg_dump -U $DB_USER -h $DB_HOST -d $DB_NAME -Fc -f $BACKUP_PATH
+elif [ "$1" = "restore" ]; then
+    if [ $# -gt 2 ]; then
+        DB_USER=$3
+    fi
+
+    if [ $# -gt 3 ]; then
+        DB_HOST=$4
+    fi
+
+    if [ $# -gt 4 ]; then
+        DB_NAME=$5
+    fi
+
+    pg_restore -U $DB_USER -h $DB_HOST -d $DB_NAME -Fc -c $2
+else
+    echo "'backup' or 'restore' expected."
+fi
