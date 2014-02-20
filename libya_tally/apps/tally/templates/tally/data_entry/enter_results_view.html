@@ -181,9 +181,9 @@
     {{ formset.management_form }}
     <table class="table table-bordered mid">
         <tbody><tr>
-            <th width="30%">{% trans 'Votes' %}</th>
-            <th width="60%">{% trans 'Candidate' %}</th>
             <th width="10%">{% trans 'No.' %}</th>
+            <th width="60%">{% trans 'Candidate' %}</th>
+            <th width="30%">{% trans 'Votes' %}</th>
         </tr>
     {% for race_type_name, form, candidate in forms_and_candidates %}
         {% if race_type_name %}
@@ -193,13 +193,13 @@
         {% endif %}
         <tr>
             <td>
-                {{ form.as_p }}
+                {{ candidate.order }}
             </td>
             <td>
                 {{ candidate.full_name }}
             </td>
             <td>
-                {{ candidate.order }}
+                {{ form.as_p }}
             </td>
         </tr>
     {% endfor %}
