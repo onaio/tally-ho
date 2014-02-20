@@ -113,7 +113,8 @@ class TestClearance(TestBase):
         view = views.ReviewView.as_view()
         # invalid enum value
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 9}
+                'action_prior_to_recommendation': 9,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -127,7 +128,8 @@ class TestClearance(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -148,6 +150,7 @@ class TestClearance(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0,
                 'forward': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -168,7 +171,8 @@ class TestClearance(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -180,7 +184,8 @@ class TestClearance(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -201,7 +206,8 @@ class TestClearance(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -214,6 +220,7 @@ class TestClearance(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0,
                 'return': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -235,6 +242,7 @@ class TestClearance(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0,
                 'forward': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -248,7 +256,7 @@ class TestClearance(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
-                'resolution_recommendation': 2,
+                'resolution_recommendation': 3,
                 'implement': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user

@@ -103,7 +103,8 @@ class TestAudit(TestBase):
         view = views.ReviewView.as_view()
         # an invalid enum choice
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 10}
+                'action_prior_to_recommendation': 10,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -117,7 +118,8 @@ class TestAudit(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -138,7 +140,8 @@ class TestAudit(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -158,6 +161,7 @@ class TestAudit(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0,
                 'forward': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -178,7 +182,8 @@ class TestAudit(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -190,7 +195,8 @@ class TestAudit(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -209,7 +215,8 @@ class TestAudit(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1}
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0}
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = data
@@ -222,6 +229,7 @@ class TestAudit(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0,
                 'return': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -243,6 +251,7 @@ class TestAudit(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0,
                 'forward': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -256,8 +265,7 @@ class TestAudit(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
-                'action_prior_to_recommendation': 1,
-                'resolution_recommendation': 3,
+                'resolution_recommendation': 4,
                 'implement': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -284,6 +292,7 @@ class TestAudit(TestBase):
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
                 'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0,
                 'forward': 1}
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -296,7 +305,6 @@ class TestAudit(TestBase):
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
-                'action_prior_to_recommendation': 1,
                 'action_prior_to_recommendation': 1,
                 'resolution_recommendation': 1,
                 'implement': 1}
