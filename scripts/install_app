@@ -48,5 +48,4 @@ sudo chown -R $USER:$USER $PROJECT_HOME
 sudo /etc/init.d/nginx restart
 sudo mkdir -p /var/log/uwsgi
 sudo chown -R $USER /var/log/uwsgi
-sudo start tally
-
+sudo reload tally
