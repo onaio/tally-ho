@@ -14,7 +14,7 @@ from libya_tally.libs.models.enums.race_type import RaceType
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form,\
     create_candidate, create_center, create_station, TestBase,\
-    create_recon_forms
+    create_reconciliation_form, create_recon_forms
 
 
 def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL):
@@ -415,7 +415,18 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
         create_results(result_form, vote1=2, vote2=2, race_type=RaceType.WOMEN)
-        create_recon_forms(result_form)
+        ballot_from_val = 2
+        sorted_counted_val = 3
+        recon1 = create_reconciliation_form(result_form)
+        recon1.entry_version = EntryVersion.DATA_ENTRY_1
+        recon1.save()
+
+        recon2 = create_reconciliation_form(
+            result_form,
+            ballot_number_from=ballot_from_val,
+            number_sorted_and_counted=sorted_counted_val)
+        recon2.entry_version = EntryVersion.DATA_ENTRY_2
+        recon2.save()
 
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
@@ -423,8 +434,6 @@ class TestCorrections(TestBase):
             result_form=result_form).count(), 2)
 
         session = {'result_form': result_form.pk}
-        ballot_from_val = 2
-        sorted_counted_val = 3
         data = {'submit_corrections': 1,
                 'ballot_number_from': ballot_from_val,
                 'number_sorted_and_counted': sorted_counted_val}
