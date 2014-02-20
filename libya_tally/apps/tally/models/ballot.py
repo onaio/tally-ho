@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import ugettext as _
 from django_enumfield import enum
 import reversion
 
@@ -16,6 +17,9 @@ class Ballot(BaseModel):
 
     @property
     def race_type_name(self):
+        if self.sc_general.all() and self.sc_general.all()[0].ballot_component:
+            return _('General and Component')
+
         return RaceType.label(self.race_type)
 
     def __unicode__(self):

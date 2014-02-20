@@ -235,7 +235,9 @@ class ResultForm(BaseModel):
 
     @property
     def ballot_race_type_name(self):
-        if self.center and self.center.sub_constituency:
+        if self.ballot:
+            return self.ballot.race_type_name
+        elif self.center and self.center.sub_constituency:
             return self.center.sub_constituency.form_type
 
         return _('Special')
