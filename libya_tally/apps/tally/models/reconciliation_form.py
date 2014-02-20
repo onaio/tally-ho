@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django_enumfield import enum
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 import reversion
 
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -18,8 +18,8 @@ class ReconciliationForm(BaseModel):
 
     active = models.BooleanField(default=True)
     entry_version = enum.EnumField(EntryVersion)
-    ballot_number_from = models.PositiveIntegerField(_('From'))
-    ballot_number_to = models.PositiveIntegerField(_('To'))
+    ballot_number_from = models.PositiveIntegerField(_('from:'))
+    ballot_number_to = models.PositiveIntegerField(_('to:'))
     is_stamped = models.BooleanField(_('Is the form stamped?'))
     number_ballots_received = models.PositiveIntegerField(
         _('Total number of ballots received by the polling station'))

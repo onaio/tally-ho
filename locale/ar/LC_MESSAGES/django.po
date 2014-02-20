@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-20 09:29+0000\n"
+"POT-Creation-Date: 2014-02-20 10:48+0000\n"
 "PO-Revision-Date: 2014-02-19 21:29+0000\n"
 "Last-Translator: pld <peter@ona.io>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -227,13 +227,14 @@ msgid "Trigger 2 - Guard against errors and tampering with the form"
 msgstr "الشأن رقم 2  - الحذر من الأخطاء والعبث مع النموذج"
 
 #: libya_tally/apps/tally/models/reconciliation_form.py:21
-#, fuzzy
-msgid "From"
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:30
+#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:13
+msgid "from:"
 msgstr " من:"
 
 #: libya_tally/apps/tally/models/reconciliation_form.py:22
-#, fuzzy
-msgid "To"
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:32
+msgid "to:"
 msgstr "إلى:"
 
 #: libya_tally/apps/tally/models/reconciliation_form.py:23
@@ -850,15 +851,6 @@ msgstr "قسم التسوية"
 msgid "Serial number of ballots received by the polling station</span>"
 msgstr "الارقام التسلسية لاوراق الاقتراع التى تم استلامها من محطة الاقتراع"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:30
-#: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:13
-msgid "from:"
-msgstr " من:"
-
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:32
-msgid "to:"
-msgstr "إلى:"
-
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:52
 msgid "section (d) to be filled after the completion of the results forms"
 msgstr "القسم (ج) يجب تعبئته بعد عملية الإنتهاء من تعبئة النماذج النهائية"
@@ -1472,6 +1464,14 @@ msgstr "خطأ : بيانات ناقصة "
 #: libya_tally/libs/views/session.py:12
 msgid "Session result_form does not match submitted data."
 msgstr "البيانات الناتجة غير مطابقه للنمودج المداخل"
+
+#, fuzzy
+#~ msgid "Ballot number from"
+#~ msgstr " من:"
+
+#, fuzzy
+#~ msgid "Ballot number to"
+#~ msgstr "إلى:"
 
 #~ msgid "Serial number of ballots received by the polling stationfrom"
 #~ msgstr "ارقم التسلسلي لاوراق الاقتراع التي استلمتها محطة الاقتراع"
