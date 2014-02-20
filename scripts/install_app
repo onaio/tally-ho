@@ -6,6 +6,7 @@ DJANGO_SETTINGS_MODULE="libya_tally.settings.local_settings"
 CODE_SRC="$PROJECT_HOME/$PROJECT_NAME"
 LOG_DIR="/var/log/$PROJECT_NAME"
 VENV="$PROJECT_HOME/.virtualenvs"
+ACTIVATE=$VENV/$PROJECT_NAME/bin/activate
 DB_NAME=tally
 DB_USER=tally
 DB_PASS=tally
@@ -13,6 +14,7 @@ DB_HOST=192.168.1.1
 USER=ubuntu
 SSH_PORT=20000
 ALLOW_HOST=any
+GIT=false
 
 # remove existing deploy and clean new deploy
 rm -rf $PROJECT_NAME
@@ -21,7 +23,7 @@ mv $PROJECT_NAME-clean $PROJECT_NAME
 find $PROJECT_NAME -name "*.pyc" -exec rm -rf {} \;
 find $PROJECT_NAME -name "._*" -exec rm -rf {} \;
 
-if [[ GIT == "true" ]]; then
+if [[ $GIT = "true" ]]; then
     cd $PROJECT_HOME && (git clone git@github.com:onaio/tally-system.git || (cd tally-system && git fetch))
 else
     cd $CODE_SRC && sudo cp -rT ~/$PROJECT_NAME/ ./
@@ -38,12 +40,11 @@ sudo sed -i.bak -e "s/REPLACE_DB_HOST/$DB_HOST/g" $config_path
 sudo cp "$CODE_SRC/deploy/etc/init/tally.conf" /etc/init/tally.conf
 sudo cp "$CODE_SRC/deploy/etc/nginx/sites-available/nginx.conf" /etc/nginx/sites-available/tally.conf
 
-source /usr/local/bin/virtualenvwrapper.sh
-cd $CODE_SRC && source $activate && python manage.py syncdb --noinput --settings=$DJANGO_SETTINGS_MODULE
-cd $CODE_SRC && source $activate && python manage.py migrate --settings=$DJANGO_SETTINGS_MODULE
-cd $CODE_SRC && source $activate && python manage.py collectstatic --noinput --settings=$DJANGO_SETTINGS_MODULE
-
 sudo chown -R $USER:$USER $PROJECT_HOME
+
+sudo su - $USER -c "cd $CODE_SRC && . $ACTIVATE && python manage.py syncdb --noinput --settings=$DJANGO_SETTINGS_MODULE"
+sudo su - $USER -c "cd $CODE_SRC && . $ACTIVATE && python manage.py migrate --settings=$DJANGO_SETTINGS_MODULE"
+sudo su - $USER -c "cd $CODE_SRC && . $ACTIVATE && python manage.py collectstatic --noinput --settings=$DJANGO_SETTINGS_MODULE"
 
 sudo /etc/init.d/nginx restart
 sudo mkdir -p /var/log/uwsgi
