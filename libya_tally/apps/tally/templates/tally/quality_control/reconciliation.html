@@ -12,7 +12,7 @@
             <span class="helptext">{% trans 'Serial number of ballots received by the polling station</span>' %}</td>
         <td width=""><label for="id_ballot_number_from">{% trans 'from:' %}</label></td>
         <td>{{ form.ballot_number_from.data }}</td>
-        <th><label for="id_ballot_number_to">to:</label></th>
+        <th><label for="id_ballot_number_to">{% trans 'to:' %}</label></th>
         <td>{{ form.ballot_number_to.data }}</td>
     </tr>
     </tbody>
@@ -71,15 +71,15 @@
             </td>
         </tr>
         <tr><th></th><th><label for="id_signature_polling_officer_1">{% trans 'Is the form signed by polling officer 1?' %}</label></th>
-            <td>{{ form.signature_polling_officer_1.data }}</td></tr>
+            <td>{{ form.signature_polling_officer_1.data|yesno }}</td></tr>
         <tr><th></th><th><label for="id_signature_polling_officer_2">{% trans 'Is the form signed by polling officer 2?' %}</label></th>
-            <td>{{ form.signature_polling_officer_2.data }}</td></tr>
+            <td>{{ form.signature_polling_officer_2.data|yesno }}</td></tr>
         <tr><th></th><th><label for="id_signature_polling_station_chair">{% trans 'Is the form signed by the polling station chair?' %}</label></th>
-            <td>{{ form.signature_polling_station_chair.data }}</td></tr>
+            <td>{{ form.signature_polling_station_chair.data|yesno }}</td></tr>
         <tr><th></th><th><label for="id_signature_dated">{% trans 'Is the form dated?' %}</label></th>
-            <td>{{ form.signature_dated.data }}</td></tr>
+            <td>{{ form.signature_dated.data|yesno }}</td></tr>
         <tr><th></th><th><label for="id_is_stamped">{% trans 'Is the form stamped?' %}</label></th>
-            <td>{{ form.is_stamped.data }}</td></tr>
+            <td>{{ form.is_stamped.data|yesno }}</td></tr>
         </tbody>
         </table>
     </div>

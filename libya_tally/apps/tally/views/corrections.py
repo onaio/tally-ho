@@ -82,7 +82,8 @@ def get_recon_form(result_form):
 
     recon = []
     for field in reconciliation_form_1:
-        recon.append((field, reconciliation_form_2[field.name]))
+        recon.append((field, reconciliation_form_2[field.name],
+                     field.data.__class__.__name__))
 
     return recon
 
@@ -109,12 +110,14 @@ def save_recon(post_data, user, result_form):
     corrections = {}
     mismatched = 0
 
-    for v1, v2 in recon_form:
+    for v1, v2, _type in recon_form:
         if v1.data != v2.data:
             mismatched += 1
-            if post_data.get(v1.name):
-                corrections[v1.name] = post_data.get(v1.name)
-
+            value = post_data.get(v1.name)
+            if value:
+                if value == 'False':
+                    value = False
+                corrections[v1.name] = value
     if len(corrections) < mismatched:
         raise ValidationError(
             _(u"Please select correct results for all mis-matched votes."))

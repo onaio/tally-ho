@@ -22,32 +22,37 @@
             <th colspan="2">{% trans 'Entry 2' %}</th>
             <th>{% trans 'Label' %}</th>
         </tr>
-        {% for field1, field2 in reconciliation_form %}
+        {% for field1, field2, type in reconciliation_form %}
          <tr>
             <td>
                 {% if field1.data == field2.data %}
                 {% trans 'No' %}
                 {% else %}{% trans 'Yes' %}{% endif %}</td>
 
+             <td colspan="2"
              {% if field1.data != field2.data %}
-             <td colspan="2" class="warn">
+                class="warn">
                 <input type="radio" name="{{ field1.name }}" value="{{ field1.data }}" />&nbsp;
-                {{ field1.data }}
-            </td>
              {% else %}
-             <td colspan="2" >
-                 {{ field1.data }}
-             </td>
+                >
              {% endif %}
-             {% if field1.data != field2.data %}
-             <td colspan="2" class="warn">
-                 <input type="radio" name="{{ field1.name }}" value="{{ field2.data }}" />&nbsp;
-                 {{ field2.data }}
-             </td>
+             {% if type == 'bool' %}
+                 {{ field1.data|yesno }}
              {% else %}
-             <td colspan="2" >
-                 {{ field2.data }}
+                 {{ field1.data }}
+             {% endif %}
              </td>
+             <td colspan="2"
+             {% if field1.data != field2.data %}
+                 class="warn">
+                 <input type="radio" name="{{ field1.name }}" value="{{ field2.data }}" />&nbsp;
+             {% else %}
+                 >
+             {% endif %}
+             {% if type == 'bool' %}
+                 {{ field2.data|yesno }}
+             {% else %}
+                 {{ field2.data }}
              {% endif %}
             <td>
                 {{ field1.label }}

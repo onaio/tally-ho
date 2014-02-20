@@ -20,7 +20,7 @@ class Ballot(BaseModel):
         if self.sc_general.all() and self.sc_general.all()[0].ballot_component:
             return _('General and Component')
 
-        return RaceType.label(self.race_type)
+        return _(RaceType.label(self.race_type))
 
     def __unicode__(self):
         return self.number

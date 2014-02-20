@@ -415,8 +415,11 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)
         create_results(result_form, vote1=2, vote2=2, race_type=RaceType.WOMEN)
+
         ballot_from_val = 2
         sorted_counted_val = 3
+        is_stamped = False
+
         recon1 = create_reconciliation_form(result_form)
         recon1.entry_version = EntryVersion.DATA_ENTRY_1
         recon1.save()
@@ -424,7 +427,8 @@ class TestCorrections(TestBase):
         recon2 = create_reconciliation_form(
             result_form,
             ballot_number_from=ballot_from_val,
-            number_sorted_and_counted=sorted_counted_val)
+            number_sorted_and_counted=sorted_counted_val,
+            is_stamped=is_stamped)
         recon2.entry_version = EntryVersion.DATA_ENTRY_2
         recon2.save()
 
@@ -436,7 +440,8 @@ class TestCorrections(TestBase):
         session = {'result_form': result_form.pk}
         data = {'submit_corrections': 1,
                 'ballot_number_from': ballot_from_val,
-                'number_sorted_and_counted': sorted_counted_val}
+                'number_sorted_and_counted': sorted_counted_val,
+                'is_stamped': is_stamped}
         data.update(session)
         request = self.factory.post('/', data=data)
         request.session = session
@@ -446,6 +451,7 @@ class TestCorrections(TestBase):
             result_form=result_form, entry_version=EntryVersion.FINAL)[0]
 
         self.assertEqual(final_form.ballot_number_from, ballot_from_val)
+        self.assertEqual(final_form.is_stamped, is_stamped)
         self.assertEqual(final_form.number_sorted_and_counted,
                          sorted_counted_val)
         self.assertEqual(final_form.result_form, result_form)
