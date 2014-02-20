@@ -38,8 +38,7 @@ def audit_action(audit, post_data, result_form, url):
         else:
             # move to data entry 1
             audit.active = False
-            result_form.form_state = FormState.DATA_ENTRY_1
-            result_form.save()
+            result_form.reject()
 
     audit.save()
 

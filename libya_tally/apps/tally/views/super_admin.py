@@ -211,7 +211,7 @@ class FormActionView(LoginRequiredMixin,
         if 'review' in post_data:
             return redirect('audit-review')
         elif 'confirm' in post_data:
-            result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.reject()
             result_form.skip_quarantine_checks = True
             result_form.save()
 
