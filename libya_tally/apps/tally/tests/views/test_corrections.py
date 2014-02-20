@@ -1,4 +1,4 @@
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
@@ -31,11 +31,12 @@ def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL):
         entry_version=EntryVersion.DATA_ENTRY_1,
         votes=vote1)
 
-    Result.objects.create(
-        candidate=candidate,
-        result_form=result_form,
-        entry_version=EntryVersion.DATA_ENTRY_2,
-        votes=vote2)
+    if vote2:
+        Result.objects.create(
+            candidate=candidate,
+            result_form=result_form,
+            entry_version=EntryVersion.DATA_ENTRY_2,
+            votes=vote2)
 
 
 class TestCorrections(TestBase):
@@ -163,6 +164,29 @@ class TestCorrections(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.QUALITY_CONTROL)
+
+    def test_corrections_num_results_anomaly_reset_to_data_entry_one(self):
+        barcode = '123456789'
+        view = views.CorrectionMatchView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_recon_forms(result_form, self.user)
+        create_results(result_form, vote1=3, vote2=3)
+        create_results(result_form, vote1=3, vote2=None)
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 3)
+
+        view = views.CorrectionView.as_view()
+        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        request.session = {}
+        with self.assertRaises(SuspiciousOperation):
+            view(request)
+
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.DATA_ENTRY_1)
 
     def test_corrections_general_post_corrections(self):
         view = views.CorrectionRequiredView.as_view()

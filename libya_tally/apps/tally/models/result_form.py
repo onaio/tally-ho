@@ -20,6 +20,14 @@ female_local = _('Female')
 
 
 def get_matched_results(result_form, results):
+    """
+    Checks results entered by Data Entry 1 and Data Entry 2 clerks match.
+
+    If we have more results from either data entry 1 or data entry 2,
+    we reset to data entry 1 then raise a SuspiciousOperation exception.
+
+    Returns a  list of matched results and unmatched results if any.
+    """
     results_v1 = results.filter(
         result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1)\
         .values('candidate', 'votes')
@@ -31,7 +39,11 @@ def get_matched_results(result_form, results):
         raise Exception(_(u"Result Form has no double entries."))
 
     if results_v1.count() != results_v2.count():
-        return False
+        result_form.reject()
+        raise SuspiciousOperation(_(
+            u"Unexpected number of results in form %(barcode)s, "
+            u"return result form to Data Entry 1." %
+            {'barcode': result_form.barcode}))
 
     tuple_list = [i.items() for i in results_v1]
     matches = [rec for rec in results_v2 if rec.items() in tuple_list]
