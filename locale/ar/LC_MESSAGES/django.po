@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-20 11:47+0000\n"
+"POT-Creation-Date: 2014-02-20 11:48+0000\n"
 "PO-Revision-Date: 2014-02-20 11:45+0000\n"
 "Last-Translator: pld <peter@ona.io>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -787,6 +787,16 @@ msgstr "مدخل 1"
 msgid "Entry 2"
 msgstr "مدخل 2"
 
+#: libya_tally/apps/tally/templates/tally/corrections/comparison.html:9
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:185
+msgid "Candidate"
+msgstr "مرشح"
+
+#: libya_tally/apps/tally/templates/tally/corrections/comparison.html:10
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:184
+msgid "No."
+msgstr "العدد"
+
 #: libya_tally/apps/tally/templates/tally/corrections/match.html:7
 #: libya_tally/apps/tally/views/corrections.py:270
 #: libya_tally/apps/tally/views/data_entry_clerk.py:336
@@ -982,14 +992,6 @@ msgstr ""
 #: libya_tally/apps/tally/templates/tally/quality_control/results.html:3
 msgid "Results Section"
 msgstr "قسم النتائج"
-
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:184
-msgid "No."
-msgstr "العدد"
-
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:185
-msgid "Candidate"
-msgstr "مرشح"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:186
 msgid "Votes"
