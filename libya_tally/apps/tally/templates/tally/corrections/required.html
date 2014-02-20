@@ -13,6 +13,7 @@
 <form name="corrections_form" action-="" method="post">
 {% if form.errors %}<p class='errors'>{{ form.errors }}</p>{% endif %}
     {% csrf_token %}
+    {% if result_form.has_recon %}
     <h2>{% trans 'Reconciliation Form Corrections' %}</h2>
     <table class="table table-striped table-bordered">
         <tr>
@@ -54,6 +55,7 @@
         </tr>
         {% endfor %}
     </table>
+    {% endif %}
 
 {% if candidates_general %}
     {% include "tally/corrections/comparison.html" with candidates=candidates_general  header="General" prefix="general"%}

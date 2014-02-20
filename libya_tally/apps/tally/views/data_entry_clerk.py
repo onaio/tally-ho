@@ -272,7 +272,8 @@ class EnterResultsView(LoginRequiredMixin,
                                            formset=BaseCandidateFormSet)
         formset = CandidateFormSet(post_data)
 
-        if recon_form.is_valid() and formset.is_valid():
+        if (not result_form.has_recon or
+                recon_form.is_valid()) and formset.is_valid():
             check_form = check_state_and_group(
                 result_form, self.request.user, recon_form)
 
@@ -299,10 +300,11 @@ class EnterResultsView(LoginRequiredMixin,
                     user=self.request.user
                 )
 
-            re_form = recon_form.save(commit=False)
-            re_form.entry_version = entry_version
-            re_form.result_form = result_form
-            re_form.save()
+            if result_form.has_recon:
+                re_form = recon_form.save(commit=False)
+                re_form.entry_version = entry_version
+                re_form.result_form = result_form
+                re_form.save()
 
             result_form.form_state = new_state
             result_form.save()

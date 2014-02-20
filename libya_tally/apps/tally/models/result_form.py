@@ -241,6 +241,10 @@ class ResultForm(BaseModel):
         return _('Special')
 
     @property
+    def has_recon(self):
+        return self.center and self.center.code < 80001
+
+    @property
     def sub_constituency_code(self):
         return self.sub_constituency.code if self.sub_constituency else None
 

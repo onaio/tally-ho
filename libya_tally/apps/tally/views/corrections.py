@@ -198,7 +198,8 @@ class CorrectionRequiredView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CORRECTION])
 
-        recon = get_recon_form(result_form)
+        recon = get_recon_form(result_form) if result_form.has_recon else None
+
         results_general = get_results_for_race_type(result_form,
                                                     RaceType.GENERAL)
         results_women = get_results_for_race_type(result_form,

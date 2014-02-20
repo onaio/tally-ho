@@ -9,15 +9,16 @@
 
 {% include 'tally/center_details.html' %}
 
-<div class="row">
-	<div class="container">
-	<div class="text-center">
-        <p class="gray-bg">{% trans 'In all the fields below, please check the number of ballots twice to ensure accuracy' %}</p >
-        <p class="gray-bg">{% trans 'Section (A) to be filled prior to opening the polling station' %}</p>
-	</div>
-</div>
-
 <form name="results" method="post" action="" onsubmit="return validate_results('{% trans "Some fields are blank!" %}');">
+    {% if result_form.has_recon %}
+    <div class="row">
+        <div class="container">
+        <div class="text-center">
+            <p class="gray-bg">{% trans 'In all the fields below, please check the number of ballots twice to ensure accuracy' %}</p >
+            <p class="gray-bg">{% trans 'Section (A) to be filled prior to opening the polling station' %}</p>
+        </div>
+    </div>
+
     <h2>{% trans 'Reconciliation section' %}</h2>
 
 	<div class="row">
@@ -170,6 +171,7 @@
             </table>
         </div>
     </div>
+    {% endif %}
 
 	<div class="row border-top"></div>
 
