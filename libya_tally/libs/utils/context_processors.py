@@ -2,9 +2,21 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.utils import translation
 
+from libya_tally.libs.permissions import groups
+
 
 def debug(request):
     return {'debug': getattr(settings, 'DEBUG', False)}
+
+
+def is_superadmin(request):
+    is_superadmin = False
+
+    if getattr(request, 'user'):
+        is_superadmin = groups.SUPER_ADMINISTRATOR in groups.user_groups(
+            request.user)
+
+    return {'is_superadmin': is_superadmin}
 
 
 def locale(request):

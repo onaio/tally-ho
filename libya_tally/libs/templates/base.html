@@ -39,9 +39,15 @@
                         <br/>
 
                         {% if user.is_authenticated %}<span>
+                            {% if is_superadmin %}
+                            <a id="home" href="">
+                                {% trans 'Home' %}</a>
+                            {% endif %}
                             {% trans 'Signed in as'%} {{user.username}} -
                             <a id="logout_link" href="/accounts/logout/">
-                            {% trans 'logout' %}</a><br/></span>{% endif %}
+                                {% trans 'logout' %}</a>
+                            <br/></span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
