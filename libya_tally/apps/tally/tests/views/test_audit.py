@@ -7,7 +7,7 @@ from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_audit, create_result_form,\
-    TestBase
+    create_candidates, create_reconciliation_form, TestBase
 
 
 class TestAudit(TestBase):
@@ -274,8 +274,11 @@ class TestAudit(TestBase):
 
     def test_review_post_supervisor_implement_de1(self):
         # save audit as clerk
-        result_form = create_result_form(form_state=FormState.AUDIT)
         self._create_and_login_user()
+        result_form = create_result_form(form_state=FormState.AUDIT)
+        create_reconciliation_form(result_form)
+        create_reconciliation_form(result_form)
+        create_candidates(result_form, self.user)
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 
         view = views.ReviewView.as_view()
@@ -304,10 +307,20 @@ class TestAudit(TestBase):
 
         audit = Audit.objects.get(result_form=result_form)
         self.assertEqual(audit.supervisor, self.user)
-        self.assertEqual(audit.reviewed_supervisor, True)
-        self.assertEqual(audit.reviewed_team, True)
-        self.assertEqual(audit.active, False)
+        self.assertTrue(audit.reviewed_supervisor)
+        self.assertTrue(audit.reviewed_team)
+        self.assertFalse(audit.active)
         self.assertEqual(audit.result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertEqual(len(audit.result_form.results.all()), 20)
+        self.assertEqual(len(audit.result_form.reconciliationform_set.all()),
+                         2)
+
+        for result in audit.result_form.results.all():
+            self.assertFalse(result.active)
+
+        for result in audit.result_form.reconciliationform_set.all():
+            self.assertFalse(result.active)
+
         self.assertEqual(audit.action_prior_to_recommendation, 1)
         self.assertEqual(response.status_code, 302)
 
