@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# 
+#
 # Translators:
 # Translators:
 # Translators:
@@ -20,15 +20,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-19 21:15+0000\n"
+"POT-Creation-Date: 2014-02-20 09:29+0000\n"
 "PO-Revision-Date: 2014-02-19 21:29+0000\n"
 "Last-Translator: pld <peter@ona.io>\n"
-"Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/language/ar/)\n"
+"Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
+"language/ar/)\n"
+"Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ar\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
 #: libya_tally/apps/tally/forms/barcode_form.py:20
 #: libya_tally/apps/tally/forms/barcode_form.py:22
@@ -224,90 +226,92 @@ msgstr "الشأن رقم 1 : الحذر من عملية التسجيل المت
 msgid "Trigger 2 - Guard against errors and tampering with the form"
 msgstr "الشأن رقم 2  - الحذر من الأخطاء والعبث مع النموذج"
 
+#: libya_tally/apps/tally/models/reconciliation_form.py:21
+#, fuzzy
+msgid "From"
+msgstr " من:"
+
 #: libya_tally/apps/tally/models/reconciliation_form.py:22
-msgid "Serial number of ballots received by the polling stationfrom"
-msgstr "ارقم التسلسلي لاوراق الاقتراع التي استلمتها محطة الاقتراع"
-
-#: libya_tally/apps/tally/models/reconciliation_form.py:24
+#, fuzzy
 msgid "To"
-msgstr "الى"
+msgstr "إلى:"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:25
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:97
+#: libya_tally/apps/tally/models/reconciliation_form.py:23
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:98
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:81
 msgid "Is the form stamped?"
 msgstr "هل الاستمارة مختومة ؟"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:27
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:42
+#: libya_tally/apps/tally/models/reconciliation_form.py:25
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:43
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:26
 msgid "Total number of ballots received by the polling station"
 msgstr "العدد الكلي لاوراق الاقتراع التي استلمتها محطة الاقتراع"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:29
+#: libya_tally/apps/tally/models/reconciliation_form.py:27
 msgid "Number of signatures in the VR"
 msgstr "عدد التواقيع فى سجل الناخبين"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:31
+#: libya_tally/apps/tally/models/reconciliation_form.py:29
 msgid "Number of unused ballots"
 msgstr "عدد أوراق الاقتراع الغير مستخدمة"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:33
+#: libya_tally/apps/tally/models/reconciliation_form.py:31
 msgid "Number of spoiled ballots"
 msgstr "عدد أوراق الاقتراع التالفة"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:35
+#: libya_tally/apps/tally/models/reconciliation_form.py:33
 msgid "Number of cancelled ballots"
 msgstr "عدد أوراق الاقتراع الملغاة"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:37
+#: libya_tally/apps/tally/models/reconciliation_form.py:35
 msgid "Total number of ballots remaining outside the ballot box"
 msgstr "العدد الكلي لأوراق الاقتراع خارج صندوق الاقتراع"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:40
+#: libya_tally/apps/tally/models/reconciliation_form.py:37
 msgid "Number of ballots found inside the ballot box"
 msgstr "عدد أوراق الاقتراع الموجودة داخل صندوق الاقتراع"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:42
+#: libya_tally/apps/tally/models/reconciliation_form.py:39
 msgid "Total number of ballots found inside and outside the ballot box"
 msgstr "مجموع أوراق الاقتراع  الموجودة داخل و خارج صندوق الاقتراع"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:45
+#: libya_tally/apps/tally/models/reconciliation_form.py:41
 msgid "Number of unstamped ballots"
 msgstr "عدد الأوراق الغير مختومة"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:47
+#: libya_tally/apps/tally/models/reconciliation_form.py:43
 msgid "Number of invalid votes (including the blanks)"
 msgstr "عدد الأوراق الغير صحيحة ( بما فيها الأوراق الخالية)"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:49
+#: libya_tally/apps/tally/models/reconciliation_form.py:45
 msgid "Number of valid votes"
 msgstr "عدد الأوراق الصحيحة"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:51
+#: libya_tally/apps/tally/models/reconciliation_form.py:47
 msgid "Total number of the sorted and counted ballots"
 msgstr "مجموع أوراق الاقتراع المفروزة والمعدودة"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:53
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:89
+#: libya_tally/apps/tally/models/reconciliation_form.py:49
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:90
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:73
 msgid "Is the form signed by polling officer 1?"
 msgstr "هل تم توقيع النوذج من قبل موظف الاقتراع 1؟"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:55
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:91
+#: libya_tally/apps/tally/models/reconciliation_form.py:51
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:92
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:75
 msgid "Is the form signed by polling officer 2?"
 msgstr "هل تم توقيع النوذج من قبل موظف الاقتراع 2؟"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:57
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:93
+#: libya_tally/apps/tally/models/reconciliation_form.py:53
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:94
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:77
 msgid "Is the form signed by the polling station chair?"
 msgstr "هل تم توقيع النوذج من قبل المسؤول عن محطة الاقتراع ؟"
 
-#: libya_tally/apps/tally/models/reconciliation_form.py:59
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:95
+#: libya_tally/apps/tally/models/reconciliation_form.py:54
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:96
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:79
 msgid "Is the form dated?"
 msgstr "هل النموذج يحتوى تاريخ؟"
@@ -330,7 +334,7 @@ msgstr "نتيجة الاستمارة لا توجد به ادخال مزدوج"
 #: libya_tally/apps/tally/models/result_form.py:195
 #: libya_tally/apps/tally/models/result_form.py:200
 #: libya_tally/apps/tally/templates/tally/corrections/comparison.html:16
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:28
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:29
 msgid "No"
 msgstr "لا "
 
@@ -344,7 +348,7 @@ msgstr "عدد غير متوقع من استمارات التسوية"
 
 #: libya_tally/apps/tally/models/result_form.py:199
 #: libya_tally/apps/tally/templates/tally/corrections/comparison.html:17
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:29
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:30
 msgid "Yes"
 msgstr "نعم "
 
@@ -370,7 +374,7 @@ msgstr "خطا فى عدد ارقام التسلسل"
 
 #: libya_tally/apps/tally/templates/tally/barcode_verify.html:34
 #: libya_tally/apps/tally/templates/tally/enter_center_details.html:48
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:207
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:209
 msgid "Submit"
 msgstr "دخول"
 
@@ -766,23 +770,23 @@ msgid "Results Form Corrections"
 msgstr "نتائج استمارات التصحيح"
 
 #: libya_tally/apps/tally/templates/tally/corrections/comparison.html:5
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:19
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:20
 msgid "Corrections Required?"
 msgstr "التصحيحات المطلوبة؟"
 
 #: libya_tally/apps/tally/templates/tally/corrections/comparison.html:7
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:20
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:21
 msgid "Entry 1"
 msgstr "مدخل 1"
 
 #: libya_tally/apps/tally/templates/tally/corrections/comparison.html:8
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:21
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:22
 msgid "Entry 2"
 msgstr "مدخل 2"
 
 #: libya_tally/apps/tally/templates/tally/corrections/match.html:7
-#: libya_tally/apps/tally/views/corrections.py:269
-#: libya_tally/apps/tally/views/data_entry_clerk.py:334
+#: libya_tally/apps/tally/views/corrections.py:270
+#: libya_tally/apps/tally/views/data_entry_clerk.py:336
 msgid "Corrections"
 msgstr "تصحيحات"
 
@@ -794,188 +798,206 @@ msgstr "ادخال الاستمارة متطابق"
 msgid "Pass to Quality Control"
 msgstr "تنقل الى ضبط الجودة "
 
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:16
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:17
 msgid "Reconciliation Form Corrections"
 msgstr "تصحيح استمارة التسوية"
 
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:69
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:23
+msgid "Label"
+msgstr ""
+
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:71
 msgid "Submit Corrections"
 msgstr "ليست فى هذه المرحلة , الاستمارة جاهزة لمرحلة التصحيح"
 
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:70
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:72
 msgid "Not Correct - Reject"
 msgstr "غير صحيحة - مرفوضة"
 
-#: libya_tally/apps/tally/templates/tally/corrections/required.html:71
+#: libya_tally/apps/tally/templates/tally/corrections/required.html:73
 #: libya_tally/apps/tally/templates/tally/quality_control/dashboard.html:33
 msgid "Abort"
 msgstr "حول"
 
 #: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:7
 #: libya_tally/apps/tally/views/data_entry_clerk.py:74
-#: libya_tally/apps/tally/views/data_entry_clerk.py:338
+#: libya_tally/apps/tally/views/data_entry_clerk.py:340
 msgid "Data Entry"
 msgstr "ادخال بيانات"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:15
-msgid ""
-"In all the fields below, please check the number of ballots twice to ensure "
-"accuracy"
-msgstr "في جميع  الخانات  أدناه، يرجى التحقق من عدد  أوراق  الاقتراع مرتين لضمان الدقة"
-
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:16
-msgid "Section (A) to be filled prior to opening the polling station"
-msgstr "القسم (أ) يعبا قبل فتح المحطة"
-
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:20
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:12
 msgid "Some fields are blank!"
 msgstr "بعض الحقول فارغة!"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:21
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:17
+msgid ""
+"In all the fields below, please check the number of ballots twice to ensure "
+"accuracy"
+msgstr ""
+"في جميع  الخانات  أدناه، يرجى التحقق من عدد  أوراق  الاقتراع مرتين لضمان "
+"الدقة"
+
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:18
+msgid "Section (A) to be filled prior to opening the polling station"
+msgstr "القسم (أ) يعبا قبل فتح المحطة"
+
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:22
 msgid "Reconciliation section"
 msgstr "قسم التسوية"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:28
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:29
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:12
 msgid "Serial number of ballots received by the polling station</span>"
 msgstr "الارقام التسلسية لاوراق الاقتراع التى تم استلامها من محطة الاقتراع"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:29
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:30
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:13
 msgid "from:"
 msgstr " من:"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:31
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:32
 msgid "to:"
 msgstr "إلى:"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:51
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:52
 msgid "section (d) to be filled after the completion of the results forms"
 msgstr "القسم (ج) يجب تعبئته بعد عملية الإنتهاء من تعبئة النماذج النهائية"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:57
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:58
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:41
 msgid "Number of unstamped ballots:"
 msgstr "عدد الاصوات الغير مختومة:"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:63
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:64
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:47
 msgid "Number of invalid votes (including the blanks):"
 msgstr "عدد الأصوات الغير صحيحة  (بما فيها الاوراق الخالية):"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:69
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:70
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:53
 msgid "Number of valid votes:"
 msgstr "عدد الأصوات الصحيحة:"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:75
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:76
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:59
 msgid "Total number of the sorted and counted ballots:"
 msgstr "مجموع أوراق الاقتراع  المفروزة والمعدودة:"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:80
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:81
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:64
 msgid ""
 "If the figure in the field 12 does not equal the one in field 7, the totals "
 "of the fields  9, 10 and 11 should be recounted."
-msgstr "إذا كان الرقم في الخانة  12 غير مساوي للرقم  في الخانة  7، يجب اعادة حساب النتائج  فى الخانات 9 و 10 و 11."
+msgstr ""
+"إذا كان الرقم في الخانة  12 غير مساوي للرقم  في الخانة  7، يجب اعادة حساب "
+"النتائج  فى الخانات 9 و 10 و 11."
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:83
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:84
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:67
 msgid ""
 "If after recounting, the difference persists, the ballots of the fields 9, "
 "10 and 11 should be recounted as in the manual."
-msgstr "إذا،ظل الفرق قائما بعد إعادة الحساب ، يجب اعادة عد اوراق الاقتراع فى الخانات 9 و 10 و 11 كما مبين فى الدليل."
+msgstr ""
+"إذا،ظل الفرق قائما بعد إعادة الحساب ، يجب اعادة عد اوراق الاقتراع فى الخانات "
+"9 و 10 و 11 كما مبين فى الدليل."
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:86
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:87
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:70
 msgid ""
 "If  the  difference  persists,  write a note in the field  at the bottom of "
 "the form to explain the action taken prior to proceeding to the next step."
-msgstr "إذا ظل الفرق، اكتب ملاحظة فى الخانة أسفل الاستمارة  ذاكرا  الإجراءات المتبعة  قبل الانتقال للخطوة التالية."
+msgstr ""
+"إذا ظل الفرق، اكتب ملاحظة فى الخانة أسفل الاستمارة  ذاكرا  الإجراءات "
+"المتبعة  قبل الانتقال للخطوة التالية."
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:105
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:106
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:89
 msgid "Section (B) to be filled after closure of polling station"
 msgstr "القسم (B) المطلوب تعبئتها  بعد إغلاق محطات الاقتراع"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:113
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:114
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:97
 msgid "Number of signatures in the VR:"
 msgstr "عدد التواقيع فى سجل الناخبين:"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:119
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:120
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:103
 msgid "Number of unused ballots:"
 msgstr "عدد أوراق الاقتراع الغير مستخدمة:"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:125
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:126
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:109
 msgid "Number of spoiled ballots:"
 msgstr "عدد أوراق الاقتراع التالفة :"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:131
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:132
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:115
 msgid "Number of cancelled ballots:"
 msgstr "عدد أوراق الاقتراع الملغاة :"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:137
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:138
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:121
 msgid "Total number of ballots remaining outside the ballot box:"
 msgstr "العدد الكلي لأوراق الاقتراع خارج صندوق الاقتراع :"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:143
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:144
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:127
 msgid "Section (C) to be filled after counting the ballots in the box"
 msgstr "القسم (ج) يعبأ بعد عد أوراق الاقتراع فى صندوق الإقتراع"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:149
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:150
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:133
 msgid "Number of ballots found inside the ballot box:"
 msgstr "عدد أوراق الاقتراع الموجودة داخل صندوق الاقتراع"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:155
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:156
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:139
 msgid "Total number of ballots found inside and outside the ballot box:"
 msgstr "مجمود أوراق الاقتراع الموجودة داخل وخارج صندوق الاقتراع"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:160
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:161
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:144
 msgid ""
 "N.B. if the figure in field 8 does not equal the figure in field 1, the "
 "calculations above should be redone."
-msgstr "ملاحظة: إذا كان الرقم في الخانة  8 لا يساوي الرقم في الخانة 1، ينبغي تكرار الحسابات أعلاه."
+msgstr ""
+"ملاحظة: إذا كان الرقم في الخانة  8 لا يساوي الرقم في الخانة 1، ينبغي تكرار "
+"الحسابات أعلاه."
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:163
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:164
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:147
 msgid ""
 "If the difference persists, the ballots should be recounted to verify the "
 "figures in the fields 3, 4, 5, 7."
-msgstr "إذا ظل الفرق قائما ، يجي اعادة عدد أوراق  الاقتراع للتحقق من الأرقام في الخانات 3، 4، 5، 7"
+msgstr ""
+"إذا ظل الفرق قائما ، يجي اعادة عدد أوراق  الاقتراع للتحقق من الأرقام في "
+"الخانات 3، 4، 5، 7"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:166
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:167
 #: libya_tally/apps/tally/templates/tally/quality_control/reconciliation.html:150
 msgid ""
 "If the difference persists, write a note in the field at the bottom of the "
 "form to explain the action taken prior to proceeding to the next step."
-msgstr "إذا ظل الفرق، اكتب ملاحظة فى الخانة أسفل الاستمارة  ذاكرا  الإجراءات المتبعة  قبل الانتقال للخطوة التالية."
+msgstr ""
+"إذا ظل الفرق، اكتب ملاحظة فى الخانة أسفل الاستمارة  ذاكرا  الإجراءات "
+"المتبعة  قبل الانتقال للخطوة التالية."
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:176
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:178
 #: libya_tally/apps/tally/templates/tally/quality_control/general.html:11
 #: libya_tally/apps/tally/templates/tally/quality_control/general.html:16
 #: libya_tally/apps/tally/templates/tally/quality_control/results.html:3
 msgid "Results Section"
 msgstr "قسم النتائج"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:182
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:184
 msgid "Votes"
 msgstr "الاصوات"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:183
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:185
 msgid "Candidate"
 msgstr "مرشح"
 
-#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:184
+#: libya_tally/apps/tally/templates/tally/data_entry/enter_results_view.html:186
 msgid "No."
 msgstr "لا"
 
@@ -1066,7 +1088,7 @@ msgstr "الى الارشيف"
 #: libya_tally/apps/tally/templates/tally/quality_control/dashboard.html:7
 #: libya_tally/apps/tally/templates/tally/quality_control/general.html:7
 #: libya_tally/apps/tally/templates/tally/quality_control/reject.html:7
-#: libya_tally/apps/tally/views/corrections.py:270
+#: libya_tally/apps/tally/views/corrections.py:271
 #: libya_tally/apps/tally/views/quality_control.py:50
 #: libya_tally/apps/tally/views/quality_control.py:154
 msgid "Quality Control"
@@ -1359,7 +1381,7 @@ msgstr "المركز والمحطة غير متطابقيين"
 msgid "Data Entry %s"
 msgstr "مدخل بيانات %s"
 
-#: libya_tally/apps/tally/views/data_entry_clerk.py:332
+#: libya_tally/apps/tally/views/data_entry_clerk.py:334
 msgid "Data Entry 2"
 msgstr "ادخال بيانات 2"
 
@@ -1386,6 +1408,15 @@ msgstr "التدقيق"
 #: libya_tally/libs/reports/progress.py:95
 msgid "Not Received"
 msgstr "لم يتم الاستيلام"
+
+#: libya_tally/libs/templates/base.html:42
+#, fuzzy
+msgid "Signed in as"
+msgstr "ذخول"
+
+#: libya_tally/libs/templates/base.html:44
+msgid "logout"
+msgstr ""
 
 #: libya_tally/libs/templates/registration/login.html:6
 msgid "Libya Vote Tally"
@@ -1441,6 +1472,9 @@ msgstr "خطأ : بيانات ناقصة "
 #: libya_tally/libs/views/session.py:12
 msgid "Session result_form does not match submitted data."
 msgstr "البيانات الناتجة غير مطابقه للنمودج المداخل"
+
+#~ msgid "Serial number of ballots received by the polling stationfrom"
+#~ msgstr "ارقم التسلسلي لاوراق الاقتراع التي استلمتها محطة الاقتراع"
 
 #~ msgid "General plus Component"
 #~ msgstr "تنافس عام بالاضافة الى المكون"
