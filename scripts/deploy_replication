@@ -29,23 +29,23 @@ STANDBY_HOST=192.168.1.2
 # cp deploy/etc/postgresql/9.3/main/standby/pg_hba.conf standby:/etc/postgresql/9.3/main/pg_hba.conf
 # cp deploy/etc/postgresql/9.3/main/standby/recovery.conf standby:/etc/postgresql/9.3/main/recovery.conf
 
-sed -i.bak 's/192.168.1.2/$STANDBY_HOST/g' deploy/etc/postgresql/9.3/main/standby/recovery.conf
-sed -i.bak 's/192.168.1.2/$STANDBY_HOST/g' deploy/etc/postgresql/9.3/main/standby/postgresql.conf
-sed -i.bak 's/192.168.1.2/$STANDBY_HOST/g' deploy/etc/postgresql/9.3/main/standby/pg_hba.conf
-sed -i.bak 's/192.168.1.2/$STANDBY_HOST/g' deploy/etc/postgresql/9.3/main/pg_hba.conf
-sed -i.bak 's/192.168.1.2/$STANDBY_HOST/g' deploy/etc/postgresql/9.3/main/postgresql.conf
-sed -i.bak 's/192.168.1.1/$MASTER_HOST/g' deploy/etc/postgresql/9.3/main/postgresql.conf
-sed -i.bak 's/192.168.1.1/$MASTER_HOST/g' deploy/etc/postgresql/9.3/main/pg_hba.conf
-sed -i.bak 's/192.168.1.1/$MASTER_HOST/g' deploy/etc/postgresql/9.3/main/standby/pg_hba.conf
-sed -i.bak 's/192.168.1.1/$MASTER_HOST/g' deploy/etc/postgresql/9.3/main/standby/postgresql.conf
-sed -i.bak 's/192.168.1.1/$MASTER_HOST/g' deploy/etc/postgresql/9.3/main/standby/recovery.conf
+sed -i.bak "s/192.168.1.2/$STANDBY_HOST/g" deploy/etc/postgresql/9.3/main/standby/recovery.conf
+sed -i.bak "s/192.168.1.2/$STANDBY_HOST/g" deploy/etc/postgresql/9.3/main/standby/postgresql.conf
+sed -i.bak "s/192.168.1.2/$STANDBY_HOST/g" deploy/etc/postgresql/9.3/main/standby/pg_hba.conf
+sed -i.bak "s/192.168.1.2/$STANDBY_HOST/g" deploy/etc/postgresql/9.3/main/pg_hba.conf
+sed -i.bak "s/192.168.1.2/$STANDBY_HOST/g" deploy/etc/postgresql/9.3/main/postgresql.conf
+sed -i.bak "s/192.168.1.1/$MASTER_HOST/g" deploy/etc/postgresql/9.3/main/postgresql.conf
+sed -i.bak "s/192.168.1.1/$MASTER_HOST/g" deploy/etc/postgresql/9.3/main/pg_hba.conf
+sed -i.bak "s/192.168.1.1/$MASTER_HOST/g" deploy/etc/postgresql/9.3/main/standby/pg_hba.conf
+sed -i.bak "s/192.168.1.1/$MASTER_HOST/g" deploy/etc/postgresql/9.3/main/standby/postgresql.conf
+sed -i.bak "s/192.168.1.1/$MASTER_HOST/g" deploy/etc/postgresql/9.3/main/standby/recovery.conf
 
 sudo service postgresql stop
 
 sudo mkdir -p /var/lib/postgresql/archive
-sudo chown -R postgres:postgres
+sudo chown -R postgres:postgres /var/lib/postgresql/archive
 
-if [[ $1 == "standby"]]; then
+if [ "$1" = "standby" ]; then
     sudo cp deploy/etc/postgresql/9.3/main/standby/postgresql.conf /etc/postgresql/9.3/main/postgresql.conf
     sudo cp deploy/etc/postgresql/9.3/main/standby/pg_hba.conf /etc/postgresql/9.3/main/pg_hba.conf
     sudo pg_basebackup -U postgres -R -D /var/lib/postgresql/9.3/main/ --host=$MASTER_HOST --port=5432
