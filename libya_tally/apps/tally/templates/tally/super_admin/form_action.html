@@ -35,14 +35,14 @@
         <td>
             <form name="review_form_{{ forloop.counter }}" method="post" action="">
                 <input type="hidden" name="result_form" value="{{ audit.result_form.pk }}">
-                <button class="btn btn-small" type="submit" name="review">{% trans "Review" %}</button>
+                <button class="btn btn-default btn-small" type="submit" name="review">{% trans "Review" %}</button>
                 {% csrf_token %}
             </form>
         </td>
         <td>
             <form name="confirm_form_{{ forloop.counter }}" method="post" action="">
                 <input type="hidden" name="result_form" value="{{ audit.result_form.pk }}">
-                <button class="btn btn-small" type="submit" name="confirm">{% trans "Confirm" %}</button>
+                <button class="btn btn-default btn-small" type="submit" name="confirm">{% trans "Confirm" %}</button>
                 {% csrf_token %}
             </form>
         </td>

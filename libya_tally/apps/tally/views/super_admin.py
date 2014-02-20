@@ -13,7 +13,6 @@ from libya_tally.libs.models.enums.audit_resolution import\
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.session import session_matches_post_result_form
 
 
 class DashboardView(LoginRequiredMixin,
@@ -205,7 +204,7 @@ class FormActionView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
-        pk = session_matches_post_result_form(post_data, self.request)
+        pk = self.request.session['result_form'] = post_data.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
 
         if 'review' in post_data:

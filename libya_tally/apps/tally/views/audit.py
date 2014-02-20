@@ -83,10 +83,15 @@ class DashboardView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         user_is_clerk = is_clerk(self.request.user)
 
-        form_list = ResultForm.objects.filter(form_state=FormState.AUDIT)
+        form_list = ResultForm.objects.filter(
+            form_state=FormState.AUDIT,
+            audit__reviewed_supervisor=False)
 
         if user_is_clerk:
-            form_list = form_list.filter(audit__reviewed_team=False)
+            form_list = form_list.filter(
+                form_state=FormState.AUDIT,
+                audit__active=True,
+                audit__reviewed_team=False)
 
         paginator = Paginator(form_list, 100)
         page = self.request.GET.get('page')

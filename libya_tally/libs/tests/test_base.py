@@ -29,8 +29,8 @@ def create_audit(result_form, user, reviewed_team=False):
     return Audit.objects.create(user=user,
                                 reviewed_team=reviewed_team,
                                 result_form=result_form,
-                                action_prior_to_recommendation=0,
-                                resolution_recommendation=0)
+                                action_prior_to_recommendation=1,
+                                resolution_recommendation=1)
 
 
 def create_ballot():
@@ -46,8 +46,7 @@ def create_clearance(result_form, user, reviewed_team=False):
     return Clearance.objects.create(result_form=result_form,
                                     reviewed_team=reviewed_team,
                                     user=user,
-                                    date_team_modified=date_team_modified
-                                    )
+                                    date_team_modified=date_team_modified)
 
 
 def create_result(result_form, candidate, user, votes):
