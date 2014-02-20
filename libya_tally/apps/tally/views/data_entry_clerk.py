@@ -30,8 +30,8 @@ def get_candidates(result_form):
     ballot = result_form.ballot
     candidates = list(ballot.candidates.order_by('race_type', 'order'))
 
-    component_ballot = ballot.sc_general and ballot.sc_general.all(
-        )[0].ballot_component
+    component_ballot = ballot.sc_general and ballot.sc_general.all() and\
+        ballot.sc_general.all()[0].ballot_component
 
     if component_ballot:
         candidates += list(component_ballot.candidates.order_by('order'))

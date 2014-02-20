@@ -247,7 +247,8 @@ class TestDataEntryClerk(TestBase):
         code = '12345'
         center = create_center(code)
         create_station(center)
-        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1,
+                                         center=center)
         ballot = result_form.ballot
         candidate_name = 'candidate name'
         create_candidate(ballot, candidate_name)
@@ -260,16 +261,16 @@ class TestDataEntryClerk(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('data-entry',
                       response['location'])
-        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
-        self.assertEqual(updated_result_form.form_state,
+        result_form.reload()
+        self.assertEqual(result_form.form_state,
                          FormState.DATA_ENTRY_2)
 
-        reconciliation_forms = updated_result_form.reconciliationform_set.all()
+        reconciliation_forms = result_form.reconciliationform_set.all()
         self.assertEqual(len(reconciliation_forms), 1)
         self.assertEqual(reconciliation_forms[0].entry_version,
                          EntryVersion.DATA_ENTRY_1)
 
-        results = updated_result_form.results.all()
+        results = result_form.results.all()
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].entry_version, EntryVersion.DATA_ENTRY_1)
 
@@ -280,7 +281,8 @@ class TestDataEntryClerk(TestBase):
         code = '12345'
         center = create_center(code)
         create_station(center)
-        result_form = create_result_form(form_state=FormState.DATA_ENTRY_2)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_2,
+                                         center=center)
         ballot = result_form.ballot
         candidate_name = 'candidate name'
         create_candidate(ballot, candidate_name)

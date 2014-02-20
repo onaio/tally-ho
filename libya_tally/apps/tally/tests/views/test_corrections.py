@@ -393,7 +393,9 @@ class TestCorrections(TestBase):
 
     def test_recon_get(self):
         view = views.CorrectionRequiredView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        center = create_center()
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         center=center)
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         create_recon_forms(result_form)
 
