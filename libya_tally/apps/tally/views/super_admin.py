@@ -2,6 +2,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import TemplateView
+from djqscsv import render_to_csv_response
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
@@ -113,7 +114,20 @@ class FormListView(LoginRequiredMixin,
     template_name = "tally/super_admin/forms.html"
 
     def get(self, *args, **kwargs):
+        form_state = kwargs.get('state')
+
+        if form_state:
+            form_state = FormState.get(form_state)
+            form_list = ResultForm.objects.filter(
+                form_state=form_state.value).values(
+                'barcode', 'form_state', 'gender', 'name', 'station_number',
+                'office__name', 'user__username', 'center__code',
+                'ballot__race_type')
+
+            return render_to_csv_response(form_list)
+
         form_list = ResultForm.objects.all()
+
         paginator = Paginator(form_list, 100)
         page = self.request.GET.get('page')
 

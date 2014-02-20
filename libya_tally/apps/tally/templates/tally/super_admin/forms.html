@@ -8,6 +8,20 @@
 
 <h1>{% trans 'Form List' %}</h1>
 
+Export:
+<a href="{% url 'form-list' 'unsubmitted' %}">{% trans 'Unsubmitted' %}</a>
+<a href="{% url 'form-list' 'intake' %}">{% trans 'Intake' %}</a>
+<a href="{% url 'form-list' 'data_entry_1' %}">{% trans 'Data Entry 1' %}</a>
+<a href="{% url 'form-list' 'data_entry_2' %}">{% trans 'Data Entry 2' %}</a>
+<a href="{% url 'form-list' 'correction' %}">{% trans 'Correction' %}</a>
+<a href="{% url 'form-list' 'quality_control' %}">{% trans 'Quality Control' %}</a>
+<a href="{% url 'form-list' 'archiving' %}">{% trans 'Archiving' %}</a>
+<a href="{% url 'form-list' 'archived' %}">{% trans 'Archived' %}</a>
+<a href="{% url 'form-list' 'clearance' %}">{% trans 'Clearance' %}</a>
+<a href="{% url 'form-list' 'audit' %}">{% trans 'Audit' %}</a>
+<br/>
+<br/>
+
 <table id="formlist">
     <thead>
         <tr>

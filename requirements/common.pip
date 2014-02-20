@@ -2,6 +2,7 @@ django==1.6.1
 django-enumfield
 django-guardian==1.1.1
 django_nose
+django-queryset-csv==0.2.7
 django-reversion==1.8.0
 django-tracking2
 psycopg2
