@@ -53,6 +53,21 @@ def incorrect_checks(post_data, result_form, success_url):
     return redirect(success_url)
 
 
+def get_corrections_forms(result_form):
+    recon = get_recon_form(result_form) if result_form.has_recon else None
+    results_general = get_results_for_race_type(result_form,
+                                                RaceType.GENERAL)
+    results_women = get_results_for_race_type(result_form,
+                                              RaceType.WOMEN)
+    results_component = get_results_for_race_type(result_form, None)
+
+    # get name of component race type
+    c_name = results_component[0][0].race_type_name\
+        if len(results_component) else None
+
+    return [recon, results_general, results_women, results_component, c_name]
+
+
 def get_recon_form(result_form):
     results = result_form.reconciliationform_set.filter(active=True)
 
@@ -89,12 +104,23 @@ def save_unchanged_final_recon_form(result_form, user):
 
 
 def save_recon(post_data, user, result_form):
+    recon_form = get_recon_form(result_form)
+
+    corrections = {}
+    mismatched = 0
+
+    for v1, v2 in recon_form:
+        if v1.data != v2.data:
+            mismatched += 1
+            if post_data.get(v1.name):
+                corrections[v1.name] = post_data.get(v1.name)
+
+    if len(corrections) < mismatched:
+        raise ValidationError(
+            _(u"Please select correct results for all mis-matched votes."))
+
     updated = _get_recon_form_dict(result_form)
-
-    recon_form_corrections = ReconForm(post_data)
-    corrections = {f.name: f.value() for f in recon_form_corrections
-                   if f.value() is not None}
-
+    updated = {k: v for k, v in updated.items() if k not in corrections}
     updated.update(corrections)
 
     _save_final_recon_form(updated, user, result_form)
@@ -198,17 +224,8 @@ class CorrectionRequiredView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CORRECTION])
 
-        recon = get_recon_form(result_form) if result_form.has_recon else None
-
-        results_general = get_results_for_race_type(result_form,
-                                                    RaceType.GENERAL)
-        results_women = get_results_for_race_type(result_form,
-                                                  RaceType.WOMEN)
-        results_component = get_results_for_race_type(result_form, None)
-
-        # get name of component race type
-        component_name = results_component[0][0].race_type_name\
-            if len(results_component) else None
+        recon, results_general, results_women, results_component, c_name =\
+            get_corrections_forms(result_form)
 
         errors = self.request.session.get('errors')
 
@@ -222,7 +239,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
                                   candidates_general=results_general,
                                   candidates_component=results_component,
                                   candidates_women=results_women,
-                                  component_name=component_name))
+                                  component_name=c_name))
 
     @transaction.atomic
     def post(self, race_type):
@@ -235,15 +252,16 @@ class CorrectionRequiredView(LoginRequiredMixin,
             user = self.request.user
 
             try:
+                if result_form.reconciliationform_exists:
+                    save_recon(post_data, user, result_form)
+
                 save_component_results(result_form, post_data, user)
                 save_general_results(result_form, post_data, user)
                 save_women_results(result_form, post_data, user)
+
             except ValidationError as e:
                 self.request.session['errors'] = e.message
                 return redirect('corrections-required')
-
-            if result_form.reconciliationform_exists:
-                save_recon(post_data, user, result_form)
 
             result_form.form_state = FormState.QUALITY_CONTROL
             result_form.save()
