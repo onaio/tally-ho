@@ -215,9 +215,12 @@ class CreateAuditView(LoginRequiredMixin,
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
 
-            form = safe_form_in_state(
-                result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
-                form)
+            possible_states = [FormState.CORRECTION,
+                               FormState.DATA_ENTRY_1,
+                               FormState.DATA_ENTRY_2,
+                               FormState.QUALITY_CONTROL]
+
+            form = safe_form_in_state(result_form, possible_states, form)
 
             if form:
                 return self.form_invalid(form)

@@ -341,8 +341,12 @@ class TestAudit(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
         barcode = 123456789
         serial_number = 0
+        auditable_states = [FormState.CORRECTION,
+                            FormState.DATA_ENTRY_1,
+                            FormState.DATA_ENTRY_2,
+                            FormState.QUALITY_CONTROL]
 
-        for form_state in [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2]:
+        for form_state in auditable_states:
             result_form = create_result_form(form_state=form_state,
                                              barcode=barcode,
                                              serial_number=serial_number)
