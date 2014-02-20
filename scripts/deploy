@@ -1,4 +1,11 @@
+#!/bin/bash
 # copy, compress and upload project
+
+TARGET_HOST=hnec
+
+if [ $# -gt 0 ]; then
+    TARGET_HOST=$1
+fi
 
 find . -name '*.pyc' -exec rm {} \;
 find . -name '._*' -exec rm {} \;
@@ -10,11 +17,11 @@ rm -rf tally-system-clean/.git
 rm -rf tally-system-clean/data/.git
 tar czvf tally-system.tgz tally-system-clean
 rm -rf tally-system-clean
-scp tally-system.tgz hnec:
+scp tally-system.tgz $TARGET_HOST:
 
 # login and run install
-<<RUN
-ssh hnec
+cat <<RUN
+ssh $TARGET_HOST
 tar xzvf tally-system.tgz
 mv tally-system-clean tally-system
 ./tally-system/scripts/install_ubuntu
