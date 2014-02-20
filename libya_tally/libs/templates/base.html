@@ -40,7 +40,7 @@
 
                         {% if user.is_authenticated %}<span>
                             {% if is_superadmin %}
-                            <a id="home" href="">
+                            <a id="home" href="{% url 'home' %}">
                                 {% trans 'Home' %}</a>
                             {% endif %}
                             {% trans 'Signed in as'%} {{user.username}} -
