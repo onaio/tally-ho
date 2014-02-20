@@ -276,8 +276,8 @@ class TestAudit(TestBase):
         # save audit as clerk
         self._create_and_login_user()
         result_form = create_result_form(form_state=FormState.AUDIT)
-        create_reconciliation_form(result_form)
-        create_reconciliation_form(result_form)
+        create_reconciliation_form(result_form, self.user)
+        create_reconciliation_form(result_form, self.user)
         create_candidates(result_form, self.user)
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
 

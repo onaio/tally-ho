@@ -22,8 +22,8 @@ class TestResultForm(TestBase):
 
     def test_reconciliation_match(self):
         result_form = create_result_form()
-        create_reconciliation_form(result_form)
-        re_form = create_reconciliation_form(result_form)
+        create_reconciliation_form(result_form, self.user)
+        re_form = create_reconciliation_form(result_form, self.user)
         re_form.entry_version = EntryVersion.DATA_ENTRY_2
         re_form.save()
 

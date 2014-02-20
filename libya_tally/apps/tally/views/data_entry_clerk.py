@@ -304,6 +304,7 @@ class EnterResultsView(LoginRequiredMixin,
                 re_form = recon_form.save(commit=False)
                 re_form.entry_version = entry_version
                 re_form.result_form = result_form
+                re_form.user = self.request.user
                 re_form.save()
 
             result_form.form_state = new_state

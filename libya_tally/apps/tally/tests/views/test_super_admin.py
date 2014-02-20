@@ -43,8 +43,8 @@ class TestSuperAdmin(TestBase):
 
     def test_form_action_view_post_confirm_audit(self):
         result_form = create_result_form(form_state=FormState.AUDIT)
-        create_reconciliation_form(result_form)
-        create_reconciliation_form(result_form)
+        create_reconciliation_form(result_form, self.user)
+        create_reconciliation_form(result_form, self.user)
         create_candidates(result_form, self.user)
         audit = create_audit(result_form, self.user)
 

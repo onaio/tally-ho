@@ -28,7 +28,7 @@ class TestQuarantineChecks(TestBase):
         create_station(center=center,
                        registrants=1)
         result_form = create_result_form(center=center)
-        create_reconciliation_form(result_form)
+        create_reconciliation_form(result_form, self.user)
         self.assertEqual(pass_overvote(result_form), True)
 
     def test_pass_overvote_false(self):
@@ -36,7 +36,9 @@ class TestQuarantineChecks(TestBase):
         create_station(center=center,
                        registrants=1)
         result_form = create_result_form(center=center)
-        create_reconciliation_form(result_form, number_unstamped_ballots=11)
+        create_reconciliation_form(result_form,
+                                   self.user,
+                                   number_unstamped_ballots=11)
         self.assertEqual(pass_overvote(result_form), False)
 
     def test_pass_tamper_true_no_registrants(self):
@@ -58,6 +60,7 @@ class TestQuarantineChecks(TestBase):
                        registrants=1)
         result_form = create_result_form(center=center)
         create_reconciliation_form(result_form,
+                                   self.user,
                                    number_unstamped_ballots=0)
         self.assertEqual(pass_tampering(result_form), True)
 
@@ -68,6 +71,7 @@ class TestQuarantineChecks(TestBase):
         result_form = create_result_form(center=center)
         create_candidates(result_form, self.user, num_results=1)
         create_reconciliation_form(result_form,
+                                   self.user,
                                    number_ballots_inside_box=250,
                                    number_unstamped_ballots=0)
         self.assertEqual(pass_tampering(result_form), True)

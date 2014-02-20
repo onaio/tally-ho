@@ -140,7 +140,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         self._create_and_login_user()
-        create_reconciliation_form(result_form)
+        create_reconciliation_form(result_form, self.user)
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
@@ -183,7 +183,7 @@ class TestQualityControl(TestBase):
         create_result_form(barcode,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
-        create_recon_forms(result_form)
+        create_recon_forms(result_form, self.user)
         create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)

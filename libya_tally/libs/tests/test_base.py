@@ -131,6 +131,7 @@ def create_office(name='office'):
 
 def create_reconciliation_form(
         result_form,
+        user,
         entry_version=EntryVersion.FINAL,
         ballot_number_from=1,
         number_sorted_and_counted=1,
@@ -158,15 +159,16 @@ def create_reconciliation_form(
         signature_polling_officer_2=True,
         signature_polling_station_chair=True,
         signature_dated=True,
-        entry_version=entry_version)
+        entry_version=entry_version,
+        user=user)
 
 
-def create_recon_forms(result_form):
-    recon1 = create_reconciliation_form(result_form)
+def create_recon_forms(result_form, user):
+    recon1 = create_reconciliation_form(result_form, user)
     recon1.entry_version = EntryVersion.DATA_ENTRY_1
     recon1.save()
 
-    recon2 = create_reconciliation_form(result_form)
+    recon2 = create_reconciliation_form(result_form, user)
     recon2.entry_version = EntryVersion.DATA_ENTRY_2
     recon2.save()
 

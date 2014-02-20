@@ -82,7 +82,7 @@ class TestArchive(TestBase):
             form_state=FormState.ARCHIVING,
             center=center, station_number=1)
         recon_form = create_reconciliation_form(
-            result_form, number_unstamped_ballots=0)
+            result_form, self.user, number_unstamped_ballots=0)
         self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
         view = views.ArchiveView.as_view()
         data = {'barcode': barcode, 'barcode_copy': barcode}
@@ -111,7 +111,7 @@ class TestArchive(TestBase):
             form_state=FormState.ARCHIVING,
             center=center, station_number=1)
         recon_form = create_reconciliation_form(
-            result_form, number_ballots_inside_box=21,
+            result_form, self.user, number_ballots_inside_box=21,
             number_unstamped_ballots=0)
         create_candidates(result_form, self.user, votes=1, num_results=10)
         self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
@@ -144,7 +144,8 @@ class TestArchive(TestBase):
         result_form = create_result_form(
             form_state=FormState.ARCHIVING,
             center=center, station_number=1)
-        create_reconciliation_form(result_form, number_unstamped_ballots=1000)
+        create_reconciliation_form(
+            result_form, self.user, number_unstamped_ballots=1000)
         self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
         view = views.ArchiveView.as_view()
         data = {'barcode': barcode, 'barcode_copy': barcode}
