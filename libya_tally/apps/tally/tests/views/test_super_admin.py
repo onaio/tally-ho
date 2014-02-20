@@ -5,7 +5,7 @@ from libya_tally.apps.tally.views import super_admin as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_audit,\
-    create_result_form, TestBase
+    create_candidates, create_reconciliation_form, create_result_form, TestBase
 
 
 class TestSuperAdmin(TestBase):
@@ -43,7 +43,11 @@ class TestSuperAdmin(TestBase):
 
     def test_form_action_view_post_confirm_audit(self):
         result_form = create_result_form(form_state=FormState.AUDIT)
+        create_reconciliation_form(result_form)
+        create_reconciliation_form(result_form)
+        create_candidates(result_form, self.user)
         audit = create_audit(result_form, self.user)
+
         request = self._get_request()
         view = views.FormActionView.as_view()
         data = {'result_form': result_form.pk,
@@ -58,6 +62,16 @@ class TestSuperAdmin(TestBase):
         self.assertFalse(audit.active)
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertTrue(result_form.skip_quarantine_checks)
+
+        self.assertEqual(len(result_form.results.all()), 20)
+        self.assertEqual(len(result_form.reconciliationform_set.all()),
+                         2)
+
+        for result in result_form.results.all():
+            self.assertFalse(result.active)
+
+        for result in result_form.reconciliationform_set.all():
+            self.assertFalse(result.active)
 
         self.assertEqual(response.status_code, 302)
         self.assertIn('/super-administrator/form-action-list',
