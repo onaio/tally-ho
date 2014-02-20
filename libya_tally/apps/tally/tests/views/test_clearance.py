@@ -8,7 +8,7 @@ from libya_tally.apps.tally.views import clearance as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_ballot, create_clearance,\
-    create_candidates, create_reconciliation_form, create_result_form, TestBase
+    create_result_form, TestBase
 
 
 class TestClearance(TestBase):
@@ -230,9 +230,6 @@ class TestClearance(TestBase):
         # save clearance as clerk
         self._create_and_login_user()
         result_form = create_result_form(form_state=FormState.CLEARANCE)
-        create_reconciliation_form(result_form)
-        create_reconciliation_form(result_form)
-        create_candidates(result_form, self.user)
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
         view = views.ReviewView.as_view()
@@ -266,15 +263,6 @@ class TestClearance(TestBase):
         self.assertTrue(clearance.reviewed_supervisor)
         self.assertTrue(clearance.reviewed_team)
         self.assertEqual(clearance.action_prior_to_recommendation, 1)
-        self.assertEqual(len(clearance.result_form.results.all()), 20)
-        self.assertEqual(
-            len(clearance.result_form.reconciliationform_set.all()), 2)
-
-        for result in clearance.result_form.results.all():
-            self.assertFalse(result.active)
-
-        for result in clearance.result_form.reconciliationform_set.all():
-            self.assertFalse(result.active)
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
