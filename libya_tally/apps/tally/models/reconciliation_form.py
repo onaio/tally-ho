@@ -18,45 +18,40 @@ class ReconciliationForm(BaseModel):
 
     active = models.BooleanField(default=True)
     entry_version = enum.EnumField(EntryVersion)
-    ballot_number_from = models.PositiveIntegerField(
-        help_text=_('Serial number of ballots received by the polling station'
-                    'from'))
-    ballot_number_to = models.PositiveIntegerField(help_text=_('To'))
-    is_stamped = models.BooleanField(help_text=_('Is the form stamped?'))
+    ballot_number_from = models.PositiveIntegerField(_('from'))
+    ballot_number_to = models.PositiveIntegerField(_('to'))
+    is_stamped = models.BooleanField(_('Is the form stamped?'))
     number_ballots_received = models.PositiveIntegerField(
-        help_text=_('Total number of ballots received by the polling station'))
+        _('Total number of ballots received by the polling station'))
     number_signatures_in_vr = models.PositiveIntegerField(
-        help_text=_('Number of signatures in the VR'))
+        _('Number of signatures in the VR'))
     number_unused_ballots = models.PositiveIntegerField(
-        help_text=_('Number of unused ballots'))
+        _('Number of unused ballots'))
     number_spoiled_ballots = models.PositiveIntegerField(
-        help_text=_('Number of spoiled ballots'))
+        _('Number of spoiled ballots'))
     number_cancelled_ballots = models.PositiveIntegerField(
-        help_text=_('Number of cancelled ballots'))
+        _('Number of cancelled ballots'))
     number_ballots_outside_box = models.PositiveIntegerField(
-        help_text=_('Total number of ballots remaining outside the ballot box'
-                    ))
+        _('Total number of ballots remaining outside the ballot box'))
     number_ballots_inside_box = models.PositiveIntegerField(
-        help_text=_('Number of ballots found inside the ballot box'))
+        _('Number of ballots found inside the ballot box'))
     number_ballots_inside_and_outside_box = models.PositiveIntegerField(
-        help_text=_('Total number of ballots found inside and outside the '
-                    'ballot box'))
+        _('Total number of ballots found inside and outside the ballot box'))
     number_unstamped_ballots = models.PositiveIntegerField(
-        help_text=_('Number of unstamped ballots'))
+        _('Number of unstamped ballots'))
     number_invalid_votes = models.PositiveIntegerField(
-        help_text=_('Number of invalid votes (including the blanks)'))
+        _('Number of invalid votes (including the blanks)'))
     number_valid_votes = models.PositiveIntegerField(
-        help_text=_('Number of valid votes'))
+        _('Number of valid votes'))
     number_sorted_and_counted = models.PositiveIntegerField(
-        help_text=_('Total number of the sorted and counted ballots'))
+        _('Total number of the sorted and counted ballots'))
     signature_polling_officer_1 = models.BooleanField(
-        help_text=_('Is the form signed by polling officer 1?'))
+        _('Is the form signed by polling officer 1?'))
     signature_polling_officer_2 = models.BooleanField(
-        help_text=_('Is the form signed by polling officer 2?'))
+        _('Is the form signed by polling officer 2?'))
     signature_polling_station_chair = models.BooleanField(
-        help_text=_('Is the form signed by the polling station chair?'))
-    signature_dated = models.BooleanField(
-        help_text=_('Is the form dated?'))
+        _('Is the form signed by the polling station chair?'))
+    signature_dated = models.BooleanField(_('Is the form dated?'))
 
     @property
     def number_ballots_used(self):

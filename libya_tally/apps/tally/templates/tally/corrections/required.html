@@ -20,7 +20,7 @@
             <th>{% trans 'Corrections Required?' %}</th>
             <th colspan="2">{% trans 'Entry 1' %}</th>
             <th colspan="2">{% trans 'Entry 2' %}</th>
-            <th>Label</th>
+            <th>{% trans 'Label' %}</th>
         </tr>
         {% for field1, field2 in reconciliation_form %}
          <tr>
@@ -50,7 +50,7 @@
              </td>
              {% endif %}
             <td>
-                {{ field1.label }}
+                {% trans field1.label %}
             </td>
         </tr>
         {% endfor %}
