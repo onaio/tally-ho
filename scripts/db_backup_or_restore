@@ -1,10 +1,13 @@
 #!/bin/bash
 
-DB_HOST=192.168.1.1
+DB_HOST=192.168.1.2
 DB_USER=tally
 DB_NAME=tally
 BACKUP_FILENAME=tally_`date +%F+%T`.bak
-BACKUP_PATH=/var/lib/postgresql/backups/$BACKUP_FILENAME
+BACKUP_DIR_PATH=/var/lib/postgresql/backups
+BACKUP_PATH=$BACKUP_DIR_PATH/$BACKUP_FILENAME
+
+mkdir -p $BACKUP_DIR_PATH
 
 if [ "$1" = "backup" ]; then
     if [ $# -gt 1 ]; then
