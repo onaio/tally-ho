@@ -59,6 +59,8 @@ MIDDLEWARE_CLASSES = (
     'reversion.middleware.RevisionMiddleware',
     'libya_tally.libs.middleware.idle_timeout.IdleTimeout',
     'libya_tally.libs.middleware.user_restrict.UserRestrictMiddleware',
+    'libya_tally.libs.middleware.disable_clientside_caching.'
+    'DisableClientsideCachingMiddleware',
     'libya_tally.libs.middleware.exception_logging.ExceptionLoggingMiddleware',
 )
 
