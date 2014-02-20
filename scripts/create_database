@@ -1,5 +1,8 @@
 #!/bin/bash
-psql -c "DROP DATABASE $1;" -U $2 -h 127.0.0.1 postgres
-psql -c "CREATE DATABASE $1;" -U $2 -h 127.0.0.1 postgres
+
+HOST=192.168.1.1
+
+psql -c "DROP DATABASE $1;" -U $2 -h $HOST postgres
+psql -c "CREATE DATABASE $1;" -U $2 -h $HOST postgres
 python manage.py syncdb --noinput --settings=$3
 python manage.py migrate --settings=$3
