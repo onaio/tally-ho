@@ -18,16 +18,19 @@ class RacesReportView(LoginRequiredMixin,
 
         for ballot in Ballot.objects.all():
             archived = p.ArchivedProgressReport().for_ballot(ballot)
-            sc = ballot.sc_general.all() or ballot.sc_women.all()
-            sc = sc[0]
-            data.append({
-                'ballot': ballot.number,
-                'district': sc.code,
-                'race_type': ballot.race_type_name,
-                'expected': archived.denominator,
-                'complete': archived.number,
-                'percentage': archived.percentage,
-            })
+            sc = ballot.sc_general.all() or ballot.sc_women.all() or\
+                ballot.sc_component.all()
+
+            if sc:
+                sc = sc[0]
+                data.append({
+                    'ballot': ballot.number,
+                    'district': sc.code,
+                    'race_type': ballot.race_type_name,
+                    'expected': archived.denominator,
+                    'complete': archived.number,
+                    'percentage': archived.percentage,
+                })
 
         return data
 
