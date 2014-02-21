@@ -1,5 +1,6 @@
 *.pyc
 
+*.bak
 .coverage
 .DS_Store
 .idea
