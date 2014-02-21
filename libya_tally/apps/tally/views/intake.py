@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
@@ -6,6 +7,7 @@ from guardian.mixins import LoginRequiredMixin
 from libya_tally.apps.tally.forms.center_details_form import\
     CenterDetailsForm
 from libya_tally.apps.tally.forms.barcode_form import BarcodeForm
+from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
@@ -116,9 +118,25 @@ class EnterCenterView(LoginRequiredMixin,
             center_number = center_form.cleaned_data.get('center_number')
             station_number = center_form.cleaned_data.get('station_number')
             center = Center.objects.get(code=center_number)
-            result_form.center = center
-            result_form.station_number = station_number
-            result_form.save()
+
+            # check that center, ballot, station, no result_form does not exist
+            # in system
+            qs = ResultForm.objects.filter(
+                center=center,
+                station_number=station_number,
+                ballot=result_form.ballot)\
+                .exclude(Q(form_state=FormState.UNSUBMITTED)
+                         | Q(form_state=FormState.INTAKE))
+            if qs.count():
+                # a form already exists, send to clearance
+                result_form.send_to_clearance()
+                Audit.objects.create(result_form=result_form,
+                                     user=self.request.user)
+                self.request.session['sent_to_audit'] = True
+            else:
+                result_form.center = center
+                result_form.station_number = station_number
+                result_form.save()
 
             return redirect(self.success_url)
         else:
