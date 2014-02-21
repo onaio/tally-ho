@@ -421,6 +421,7 @@ class TestClearance(TestBase):
                             FormState.DATA_ENTRY_2,
                             FormState.INTAKE,
                             FormState.QUALITY_CONTROL,
+                            FormState.ARCHIVING,
                             FormState.UNSUBMITTED]
 
         for form_state in clearable_states:

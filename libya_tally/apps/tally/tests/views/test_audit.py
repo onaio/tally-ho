@@ -350,6 +350,7 @@ class TestAudit(TestBase):
         barcode = 123456789
         serial_number = 0
         auditable_states = [FormState.CORRECTION,
+                            FormState.ARCHIVING,
                             FormState.DATA_ENTRY_1,
                             FormState.DATA_ENTRY_2,
                             FormState.QUALITY_CONTROL]

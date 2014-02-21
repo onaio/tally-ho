@@ -208,6 +208,7 @@ class CreateClearanceView(LoginRequiredMixin,
                                FormState.DATA_ENTRY_2,
                                FormState.INTAKE,
                                FormState.QUALITY_CONTROL,
+                               FormState.ARCHIVING,
                                FormState.UNSUBMITTED]
 
             form = safe_form_in_state(result_form, possible_states, form)

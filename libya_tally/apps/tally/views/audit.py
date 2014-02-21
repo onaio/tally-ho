@@ -223,6 +223,7 @@ class CreateAuditView(LoginRequiredMixin,
             possible_states = [FormState.CORRECTION,
                                FormState.DATA_ENTRY_1,
                                FormState.DATA_ENTRY_2,
+                               FormState.ARCHIVING,
                                FormState.QUALITY_CONTROL]
 
             form = safe_form_in_state(result_form, possible_states, form)
