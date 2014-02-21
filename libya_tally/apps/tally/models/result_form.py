@@ -89,7 +89,8 @@ class ResultForm(BaseModel):
     @property
     def station(self):
         if self.center:
-            stations = self.center.stations.filter(gender=self.gender)
+            stations = self.center.stations.filter(
+                station_number=self.station_number)
             if stations:
                 return stations[0]
 
