@@ -28,7 +28,10 @@ class Command(BaseCommand):
         self.export_candidate_votes()
 
     def export_candidate_votes(self):
-        header = ['ballot number']
+        header = ['ballot number',
+                  'stations',
+                  'stations completed',
+                  'stations percent completed']
 
         max_candidates = 0
         for ballot in Ballot.objects.all():
@@ -46,8 +49,26 @@ class Command(BaseCommand):
             w.writeheader()
 
             for ballot in Ballot.objects.all():
+                forms = ballot.resultform_set.filter(
+                    center__isnull=False).distinct(
+                    'center__id', 'station_number', 'ballot__id')
+
+                num_stations = forms.count()
+                num_stations_completed = forms.filter(
+                    form_state=FormState.ARCHIVED).count()
+
+                if num_stations == 0:
+                    import ipdb
+                    ipdb.set_trace()
+
+                percent_complete = round(
+                    100 * num_stations_completed / num_stations, 2)
+
                 output = OrderedDict({
-                    'ballot number': ballot.number})
+                    'ballot number': ballot.number,
+                    'stations': num_stations,
+                    'stations completed': num_stations_completed,
+                    'stations percent completed': percent_complete})
 
                 for candidate in ballot.candidates.all():
                     votes = get_votes(candidate)
