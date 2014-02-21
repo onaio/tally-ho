@@ -10,7 +10,7 @@ from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_candidates,\
     create_reconciliation_form, create_recon_forms, create_result_form,\
-    TestBase
+    create_center, create_station, TestBase
 
 
 def create_quality_control(result_form, user):
@@ -116,7 +116,11 @@ class TestQualityControl(TestBase):
     def test_dashboard_get(self):
         barcode = '123456789'
         self._create_and_login_user()
+        center = create_center()
+        station = create_station(center=center)
         create_result_form(barcode,
+                           center=center,
+                           station_number=station.station_number,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_candidates(result_form, self.user)
@@ -239,7 +243,11 @@ class TestQualityControl(TestBase):
 
     def test_general_get(self):
         barcode = '123456789'
+        center = create_center()
+        station = create_station(center=center)
         create_result_form(barcode,
+                           center=center,
+                           station_number=station.station_number,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         self._create_and_login_user()
@@ -342,7 +350,11 @@ class TestQualityControl(TestBase):
 
     def test_women_get(self):
         barcode = '123456789'
+        center = create_center()
+        station = create_station(center=center)
         create_result_form(barcode,
+                           center=center,
+                           station_number=station.station_number,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         self._create_and_login_user()

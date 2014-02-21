@@ -33,9 +33,10 @@ class TestQuarantineChecks(TestBase):
 
     def test_pass_overvote_false(self):
         center = create_center()
-        create_station(center=center,
-                       registrants=1)
-        result_form = create_result_form(center=center)
+        station = create_station(center=center, registrants=1)
+        result_form = create_result_form(
+            center=center,
+            station_number=station.station_number)
         create_reconciliation_form(result_form,
                                    self.user,
                                    number_unstamped_ballots=11)
