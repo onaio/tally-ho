@@ -253,7 +253,6 @@ class TestIntake(TestBase):
         )
         replacement_result_form = create_result_form(
             barcode=replacement_barcode,
-            station_number=station.station_number,
             ballot=ballot,
             form_state=FormState.INTAKE,
             serial_number=1
@@ -276,7 +275,7 @@ class TestIntake(TestBase):
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/intake/check-center-details', response['location'])
+        self.assertIn('/intake/clearance', response['location'])
 
     def test_check_center_details(self):
         barcode = '123456789'

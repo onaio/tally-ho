@@ -130,9 +130,7 @@ class EnterCenterView(LoginRequiredMixin,
             if qs.count():
                 # a form already exists, send to clearance
                 result_form.send_to_clearance()
-                Audit.objects.create(result_form=result_form,
-                                     user=self.request.user)
-                self.request.session['sent_to_audit'] = True
+                return redirect('intake-clearance')
             else:
                 result_form.center = center
                 result_form.station_number = station_number
