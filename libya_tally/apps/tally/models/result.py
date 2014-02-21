@@ -13,7 +13,7 @@ class Result(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    candidate = models.ForeignKey(Candidate, related_name='candidates')
+    candidate = models.ForeignKey(Candidate, related_name='results')
     result_form = models.ForeignKey(ResultForm, related_name='results')
     user = models.ForeignKey(User, null=True)
 
