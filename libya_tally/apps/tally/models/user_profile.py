@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+import reversion
 
 
 class UserProfile(User):
@@ -7,3 +8,10 @@ class UserProfile(User):
 
     class Meta:
         app_label = 'tally'
+
+    def save(self, *args, **kwargs):
+        if self.reset_password:
+            self.set_password(self.username)
+        super(UserProfile, self).save(*args, **kwargs)
+
+reversion.register(UserProfile)

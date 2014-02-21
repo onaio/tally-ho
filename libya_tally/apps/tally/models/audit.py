@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
+import reversion
 
 from libya_tally.apps.tally.models.quarantine_check import QuarantineCheck
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -62,3 +63,5 @@ class Audit(BaseModel):
 
     def resolution_recommendation_name(self):
         return AuditResolution.label(self.resolution_recommendation)
+
+reversion.register(Audit)
