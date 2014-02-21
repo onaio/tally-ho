@@ -176,12 +176,13 @@ def create_station(center, registrants=1):
     sc, _ = SubConstituency.objects.get_or_create(code=1,
                                                   field_office='1')
 
-    return Station.objects.get_or_create(
+    station, _ = Station.objects.get_or_create(
         center=center,
         sub_constituency=sc,
         gender=Gender.MALE,
         station_number=1,
         registrants=registrants)
+    return station
 
 
 def result_form_data_blank(result_form):
