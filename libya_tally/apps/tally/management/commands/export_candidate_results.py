@@ -19,11 +19,11 @@ def distinct_forms(ballot):
 def get_votes(candidate):
     """Return the active results for this candidate that are for archived
     result forms."""
-    votes = candidate.results.filter(
+    results = candidate.results.filter(
         entry_version=EntryVersion.FINAL,
-        active=True, result_form__form_state=FormState.ARCHIVED).count()
+        active=True, result_form__form_state=FormState.ARCHIVED).all()
 
-    return votes
+    return [len(results), sum([r.votes for r in results])]
 
 
 class Command(BaseCommand):
@@ -64,10 +64,6 @@ class Command(BaseCommand):
                 num_stations_completed = forms.filter(
                     form_state=FormState.ARCHIVED).count()
 
-                if num_stations == 0:
-                    import ipdb
-                    ipdb.set_trace()
-
                 percent_complete = round(
                     100 * num_stations_completed / num_stations, 3)
 
@@ -77,10 +73,18 @@ class Command(BaseCommand):
                     'stations completed': num_stations_completed,
                     'stations percent completed': percent_complete})
 
+                num_results_ary = []
                 candidates_to_votes = {}
+
                 for candidate in ballot.candidates.all():
-                    votes = get_votes(candidate)
+                    num_results, votes = get_votes(candidate)
                     candidates_to_votes[candidate.full_name] = votes
+                    num_results_ary.append(num_results)
+
+                assert len(set(num_results_ary)) <= 1
+
+                for num_results in num_results_ary:
+                    assert num_stations_completed == num_results
 
                 candidates_to_votes = OrderedDict((sorted(
                     candidates_to_votes.items(), key=lambda t: t[1],
