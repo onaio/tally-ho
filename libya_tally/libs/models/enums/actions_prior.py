@@ -1,4 +1,7 @@
 from django_enumfield import enum
+from django.utils.translation import ugettext_lazy as _
+
+EMPTY_KEY = 0
 
 
 class ActionsPrior(enum.Enum):
@@ -6,3 +9,13 @@ class ActionsPrior(enum.Enum):
     REQUEST_AUDIT_ACTION_FROM_FIELD = 1
     PENDING_ADVICE = 2
     NONE_REQUIRED = 3
+
+
+ACTION_CHOICES = [
+    (EMPTY_KEY, '----'),
+    (ActionsPrior.REQUEST_COPY_FROM_FIELD, _(u"Request Copy From Field")),
+    (ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
+     _(u"Request Audit Action From Field")),
+    (ActionsPrior.PENDING_ADVICE, _(u"Pending Advice")),
+    (ActionsPrior.NONE_REQUIRED, _(u"None Required"))
+]

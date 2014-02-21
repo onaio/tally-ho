@@ -1,9 +1,8 @@
 from django import forms
 
 from libya_tally.apps.tally.models.clearance import Clearance
-from libya_tally.libs.models.enums.actions_prior import ActionsPrior
-from libya_tally.libs.models.enums.clearance_resolution import\
-    ClearanceResolution
+from libya_tally.libs.models.enums import actions_prior
+from libya_tally.libs.models.enums import clearance_resolution
 
 
 EMPTY_KEY = 0
@@ -29,11 +28,9 @@ class ClearanceForm(forms.ModelForm):
 
     other = forms.CharField(required=False)
     action_prior_to_recommendation = forms.TypedChoiceField(
-        required=False, choices=[(EMPTY_KEY, '----')] + ActionsPrior.choices(),
-        coerce=int)
+        required=False, choices=actions_prior.ACTION_CHOICES, coerce=int)
     resolution_recommendation = forms.TypedChoiceField(
-        required=False, choices=[
-            (EMPTY_KEY, '----')] + ClearanceResolution.choices(),
+        required=False, choices=clearance_resolution.CLEARANCE_CHOICES,
         coerce=int)
 
     def clean(self):

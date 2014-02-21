@@ -1,8 +1,8 @@
 from django import forms
 
 from libya_tally.apps.tally.models.audit import Audit
-from libya_tally.libs.models.enums.actions_prior import ActionsPrior
-from libya_tally.libs.models.enums.audit_resolution import AuditResolution
+from libya_tally.libs.models.enums import actions_prior
+from libya_tally.libs.models.enums import audit_resolution
 
 EMPTY_KEY = 0
 
@@ -25,11 +25,10 @@ class AuditForm(forms.ModelForm):
 
     other = forms.CharField(required=False)
     action_prior_to_recommendation = forms.TypedChoiceField(
-        required=False, choices=[(EMPTY_KEY, '----')] + ActionsPrior.choices(),
+        required=False, choices=actions_prior.ACTION_CHOICES,
         coerce=int)
     resolution_recommendation = forms.TypedChoiceField(
-        required=False, choices=[
-            (EMPTY_KEY, '----')] + AuditResolution.choices(),
+        required=False, choices=audit_resolution.AUDIT_CHOICES,
         coerce=int)
 
     def clean(self):
