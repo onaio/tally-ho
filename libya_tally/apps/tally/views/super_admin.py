@@ -118,10 +118,11 @@ class FormListView(LoginRequiredMixin,
 
         if form_state:
             form_state = FormState.get(form_state)
-            form_list = ResultForm.objects.filter(
+            form_list = ResultForm.distinct_forms().filter(
                 form_state=form_state.value).values(
-                'barcode', 'form_state', 'gender', 'name', 'station_number',
-                'office__name', 'user__username', 'center__code',
+                'barcode', 'form_state', 'gender', 'station_number',
+                'center__sub_constituency__code',
+                'center__code',
                 'ballot__race_type')
 
             return render_to_csv_response(form_list)

@@ -142,7 +142,8 @@ class ResultForm(BaseModel):
 
     @property
     def gender_name(self):
-        return _(Gender.label(self.gender))
+        return _(Gender.label(
+            self.station.gender if self.station else self.gender))
 
     @property
     def num_votes(self):
@@ -248,6 +249,11 @@ class ResultForm(BaseModel):
             else None
 
     @property
+    def center_office_number(self):
+        return self.center.office.number if self.center and self.center.office\
+            else None
+
+    @property
     def ballot_number(self):
         return self.ballot.number if self.ballot else None
 
@@ -266,7 +272,8 @@ class ResultForm(BaseModel):
 
     @property
     def sub_constituency_code(self):
-        return self.sub_constituency.code if self.sub_constituency else None
+        if self.center and self.center.sub_constituency:
+            self.center.sub_constituency.code
 
     @property
     def center_name(self):
