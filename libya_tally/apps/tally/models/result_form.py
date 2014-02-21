@@ -278,5 +278,9 @@ class ResultForm(BaseModel):
             10000000
         return int(highest_barcode) + 1
 
+    def send_to_clearance(self):
+        self.form_state = FormState.CLEARANCE
+        self.save()
+
 
 reversion.register(ResultForm)
