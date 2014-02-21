@@ -8,7 +8,7 @@ from libya_tally.apps.tally.views import intake as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_center,\
-    create_result_form, create_station, TestBase
+    create_result_form, create_station, create_ballot, TestBase
 
 
 class TestIntake(TestBase):
@@ -235,6 +235,46 @@ class TestIntake(TestBase):
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/intake/check-center-details', response['location'])
+
+    def test_center_check_no_result_form_assigned_to_center_station(self):
+        center = create_center(code='11111')
+        station = create_station(center)
+        ballot = create_ballot()
+        barcode = '123456789'
+        replacement_barcode = '012345678'
+        create_result_form(
+            barcode=barcode,
+            ballot=ballot,
+            form_state=FormState.ARCHIVED,
+            center=center,
+            station_number=station.station_number
+        )
+        replacement_result_form = create_result_form(
+            barcode=replacement_barcode,
+            station_number=station.station_number,
+            ballot=ballot,
+            form_state=FormState.INTAKE,
+            serial_number=1
+        )
+
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.EnterCenterView.as_view()
+        data = {'result_form': replacement_result_form.pk,
+                'center_number': center.code,
+                'center_number_copy': center.code,
+                'station_number': station.station_number,
+                'station_number_copy': station.station_number}
+        request = self.factory.post('/',
+                                    data=data)
+        request.user = self.user
+        request.session = {'result_form': replacement_result_form.pk}
+        response = view(request)
+        result_form = ResultForm.objects.get(pk=replacement_result_form.pk)
+        self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/check-center-details', response['location'])
 
