@@ -162,6 +162,28 @@ class TestIntake(TestBase):
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(result_form.user, form_user)
 
+    def test_when_more_than_one_replacement_form_redirects_no_center(self):
+        barcode = '123456789'
+        create_result_form(barcode,
+                           form_state=FormState.UNSUBMITTED)
+        create_result_form('123456289',
+                           form_state=FormState.UNSUBMITTED,
+                           serial_number=3)
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.CenterDetailsView.as_view()
+        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('intake/enter-center',
+                      response['location'])
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self.assertEqual(result_form.form_state, FormState.INTAKE)
+        self.assertEqual(result_form.user, self.user)
+
     def test_center_detail_redirects_no_center(self):
         barcode = '123456789'
         create_result_form(barcode,

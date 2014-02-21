@@ -28,7 +28,9 @@ def states_for_form(user, states, result_form):
 
 def result_form_intaken(center, station_number, ballot, result_form):
     qs = ResultForm.objects.filter(
-        center=center, station_number=station_number, ballot=ballot)
+        Q(center=center), Q(center__isnull=False),
+        Q(station_number=station_number), Q(station_number__isnull=False),
+        Q(ballot=ballot), Q(ballot__isnull=False))
     if result_form.form_state == FormState.UNSUBMITTED:
         qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED))
     elif result_form.form_state == FormState.INTAKE:
