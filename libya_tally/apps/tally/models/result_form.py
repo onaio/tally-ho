@@ -273,6 +273,13 @@ class ResultForm(BaseModel):
         return self.center.name if self.center else None
 
     @classmethod
+    def distinct_forms(cls):
+        return ResultForm.objects.filter(
+            center__isnull=False, station_number__isnull=False,
+            ballot__isnull=False).distinct(
+            'center__id', 'station_number', 'ballot__id')
+
+    @classmethod
     def generate_barcode(cls):
         result_forms = cls.objects.all().order_by('-barcode')
         highest_barcode = result_forms[0].barcode if result_forms else\

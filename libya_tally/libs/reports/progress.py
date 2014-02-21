@@ -8,8 +8,7 @@ from libya_tally.libs.models.enums.form_state import FormState
 
 
 class ProgressReport(object):
-    queryset = ResultForm.objects.all()
-    filtered_queryset = None
+    queryset = ResultForm.distinct_forms()
 
     def get_queryset(self):
         if self.queryset is None or not isinstance(self.queryset, QuerySet):
@@ -61,35 +60,35 @@ class ProgressReport(object):
 
 
 class ExpectedProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.objects.all()
+    filtered_queryset = ResultForm.distinct_forms()
     label = _(u"Expected")
 
 
 class IntakenProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.objects.exclude(
+    filtered_queryset = ResultForm.distinct_forms().exclude(
         Q(form_state=FormState.UNSUBMITTED) | Q(form_state=FormState.INTAKE))
     label = _(u"Intaken")
 
 
 class ArchivedProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.objects.filter(
+    filtered_queryset = ResultForm.distinct_forms().filter(
         form_state=FormState.ARCHIVED)
     label = _(u"Archived")
 
 
 class ClearanceProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.objects.filter(
+    filtered_queryset = ResultForm.distinct_forms().filter(
         form_state=FormState.CLEARANCE)
     label = _(u"Clearance")
 
 
 class AuditProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.objects.filter(
+    filtered_queryset = ResultForm.distinct_forms().filter(
         form_state=FormState.AUDIT)
     label = _(u"Audit")
 
 
 class NotRecievedProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.objects.filter(
+    filtered_queryset = ResultForm.distinct_forms().filter(
         form_state=FormState.UNSUBMITTED)
     label = _(u"Not Received")
