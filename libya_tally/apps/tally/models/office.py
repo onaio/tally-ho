@@ -10,6 +10,7 @@ class Office(BaseModel):
         ordering = ['name']
 
     name = models.CharField(max_length=256, unique=True)
+    number = models.IntegerField(null=True)
 
     def __unicode__(self):
         return self.name
