@@ -6,7 +6,7 @@ def create_quarantine_checks():
     quarantine_data = [
         ['Trigger 1 - Guard against overvoting', 'pass_overvote', 10],
         ['Trigger 2 - Guard against errors and tampering with the form',
-         'pass_tampering', 5]
+         'pass_tampering', 3]
     ]
 
     for name, method, value in quarantine_data:
