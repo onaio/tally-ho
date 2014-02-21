@@ -1,10 +1,13 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import FormView, TemplateView
+from django.utils.translation import ugettext as _
 from guardian.mixins import LoginRequiredMixin
 
+from libya_tally.apps.tally.forms.barcode_form import BarcodeForm
 from libya_tally.apps.tally.forms.clearance_form import ClearanceForm
 from libya_tally.apps.tally.forms.new_result_form import NewResultForm
+from libya_tally.apps.tally.models.clearance import Clearance
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.clearance_resolution import\
     ClearanceResolution
@@ -12,7 +15,8 @@ from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.utils.time import now
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.form_state import form_in_state
+from libya_tally.libs.views.form_state import form_in_state,\
+    safe_form_in_state
 from libya_tally.libs.views.session import session_matches_post_result_form
 
 
@@ -173,6 +177,53 @@ class PrintCoverView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
+
+
+class CreateClearanceView(LoginRequiredMixin,
+                          mixins.GroupRequiredMixin,
+                          FormView):
+    form_class = BarcodeForm
+    group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
+    success_url = 'clearance'
+    template_name = "tally/barcode_verify.html"
+
+    def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form, header_text=_(
+                'Create Clearance')))
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            barcode = form.cleaned_data['barcode']
+            result_form = get_object_or_404(ResultForm, barcode=barcode)
+
+            possible_states = [FormState.CORRECTION,
+                               FormState.DATA_ENTRY_1,
+                               FormState.DATA_ENTRY_2,
+                               FormState.INTAKE,
+                               FormState.QUALITY_CONTROL,
+                               FormState.UNSUBMITTED]
+
+            form = safe_form_in_state(result_form, possible_states, form)
+
+            if form:
+                return self.form_invalid(form)
+
+            result_form.form_state = FormState.CLEARANCE
+            result_form.save()
+
+            Clearance.objects.create(result_form=result_form,
+                                     user=self.request.user)
+
+            return redirect(self.success_url)
+        else:
+            return self.form_invalid(form)
 
 
 class NewFormView(LoginRequiredMixin,

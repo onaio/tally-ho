@@ -163,11 +163,13 @@ urlpatterns = patterns(
     url(r'^clearance/review$',
         clearance.ReviewView.as_view(),
         name='clearance-review'),
+    url(r'^clearance/create',
+        clearance.CreateClearanceView.as_view(),
+        name='clearance-create'),
 
     url(r'^reports/internal/offices',
         offices.OfficesReportView.as_view(),
         name='reports-offices'),
-
     url(r'^reports/internal/race',
         races.RacesReportView.as_view(),
         name='reports-races'),

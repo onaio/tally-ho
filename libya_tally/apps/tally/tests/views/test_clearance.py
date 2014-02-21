@@ -398,3 +398,48 @@ class TestClearance(TestBase):
         self.assertContains(response, 'Clearance Case')
         self.assertContains(response, '42')
         self.assertContains(response, date_str)
+
+    def test_create_clearance_get(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.CreateClearanceView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Create Clearance')
+
+    def test_create_audit_post(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+        barcode = 123456789
+        serial_number = 0
+        clearable_states = [FormState.CORRECTION,
+                            FormState.DATA_ENTRY_1,
+                            FormState.DATA_ENTRY_2,
+                            FormState.INTAKE,
+                            FormState.QUALITY_CONTROL,
+                            FormState.UNSUBMITTED]
+
+        for form_state in clearable_states:
+            result_form = create_result_form(form_state=form_state,
+                                             barcode=barcode,
+                                             serial_number=serial_number)
+            view = views.CreateClearanceView.as_view()
+            data = {'barcode': result_form.barcode,
+                    'barcode_copy': result_form.barcode}
+            request = self.factory.post('/', data=data)
+            request.user = self.user
+            request.session = data
+            response = view(request)
+            result_form.reload()
+
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+            self.assertIsNotNone(result_form.clearance)
+            self.assertEqual(result_form.clearance.user, self.user)
+
+            barcode = barcode + 1
+            serial_number = serial_number + 1

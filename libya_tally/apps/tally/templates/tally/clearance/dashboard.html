@@ -6,17 +6,28 @@
 
 <h1>{% trans 'Clearance List' %}</h1>
 
+<form method="get" action="clearance/create">
+    <button type="submit" class="btn btn-primary btn-small pull-right">
+        {% trans 'New Clearance' %}
+    </button>
+</form>
+
+<br/>
+
+{% if not is_clerk %}
 <form method="get" action="clearance/new">
     <button type="submit" class="btn btn-primary btn-small pull-right">
         {% trans 'New Form Record' %}
     </button>
 </form>
+{% endif %}
 
 <br/>
 <br/>
 
 <table class="table table-bordered table-striped">
     <tr>
+        <th>{% trans 'Barcode' %}</th>
         <th>{% trans 'Center Name' %}</th>
         <th>{% trans 'Center ID' %}</th>
         <th>{% trans 'Station' %}</th>
@@ -27,6 +38,7 @@
     </tr>
 {% for form in forms %}
     <tr>
+        <td>{{ form.barcode }}</td>
         <td>{{ form.center.name }}</td>
         <td>{{ form.center.code }}</td>
         <td>{{ form.station_number }}</td>
