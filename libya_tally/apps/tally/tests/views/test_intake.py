@@ -293,8 +293,9 @@ class TestIntake(TestBase):
         request.user = self.user
         request.session = {'result_form': replacement_result_form.pk}
         response = view(request)
-        result_form = ResultForm.objects.get(pk=replacement_result_form.pk)
-        self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+        replacement_result_form.reload()
+        self.assertEqual(replacement_result_form.form_state,
+                         FormState.CLEARANCE)
 
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/clearance', response['location'])
@@ -332,10 +333,11 @@ class TestIntake(TestBase):
         request.user = self.user
         request.session = {'result_form': replacement_result_form.pk}
         response = view(request)
-        result_form = ResultForm.objects.get(pk=replacement_result_form.pk)
-        self.assertEqual(result_form.form_state, FormState.INTAKE)
-        self.assertEqual(result_form.station_number, station.station_number)
-        self.assertEqual(result_form.center, center)
+        replacement_result_form.reload()
+        self.assertEqual(replacement_result_form.form_state, FormState.INTAKE)
+        self.assertEqual(replacement_result_form.station_number,
+                         station.station_number)
+        self.assertEqual(replacement_result_form.center, center)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/check-center-details', response['location'])
 
