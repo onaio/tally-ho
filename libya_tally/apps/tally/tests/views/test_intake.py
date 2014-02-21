@@ -277,6 +277,57 @@ class TestIntake(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/clearance', response['location'])
 
+    def test_center_check_replaced_result_form_sent_to_clearance(self):
+        center = create_center(code='11111')
+        station = create_station(center)
+        ballot = create_ballot()
+        barcode = '123456789'
+        replacement_barcode = '012345678'
+        create_result_form(
+            barcode=barcode,
+            ballot=ballot,
+            form_state=FormState.UNSUBMITTED,
+            center=center,
+            station_number=station.station_number
+        )
+        replacement_result_form = create_result_form(
+            barcode=replacement_barcode,
+            ballot=ballot,
+            form_state=FormState.INTAKE,
+            serial_number=1
+        )
+
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.EnterCenterView.as_view()
+        data = {'result_form': replacement_result_form.pk,
+                'center_number': center.code,
+                'center_number_copy': center.code,
+                'station_number': station.station_number,
+                'station_number_copy': station.station_number}
+        request = self.factory.post('/',
+                                    data=data)
+        request.user = self.user
+        request.session = {'result_form': replacement_result_form.pk}
+        response = view(request)
+        result_form = ResultForm.objects.get(pk=replacement_result_form.pk)
+        self.assertEqual(result_form.form_state, FormState.INTAKE)
+        self.assertEqual(result_form.station_number, station.station_number)
+        self.assertEqual(result_form.center, center)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/intake/check-center-details', response['location'])
+
+        view = views.CenterDetailsView.as_view()
+        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/intake/clearance', response['location'])
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+
     def test_check_center_details(self):
         barcode = '123456789'
         result_form = create_result_form(barcode,

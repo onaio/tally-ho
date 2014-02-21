@@ -7,7 +7,6 @@ from guardian.mixins import LoginRequiredMixin
 from libya_tally.apps.tally.forms.center_details_form import\
     CenterDetailsForm
 from libya_tally.apps.tally.forms.barcode_form import BarcodeForm
-from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
@@ -25,6 +24,19 @@ def states_for_form(user, states, result_form):
         states.append(FormState.DATA_ENTRY_1)
 
     return states
+
+
+def result_form_intaken(center, station_number, ballot, result_form):
+    qs = ResultForm.objects.filter(
+        center=center, station_number=station_number, ballot=ballot)
+    if result_form.form_state == FormState.UNSUBMITTED:
+        qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED))
+    elif result_form.form_state == FormState.INTAKE:
+        qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED)
+                        | Q(form_state=FormState.INTAKE))
+    else:
+        return False
+    return qs.count() > 0
 
 
 class CenterDetailsView(LoginRequiredMixin,
@@ -65,6 +77,18 @@ class CenterDetailsView(LoginRequiredMixin,
 
             if form:
                 return self.form_invalid(form)
+
+            intaken = result_form_intaken(
+                result_form.center,
+                result_form.station_number,
+                result_form.ballot,
+                result_form
+            )
+
+            if intaken:
+                # a form already exists, send to clearance
+                result_form.send_to_clearance()
+                return redirect('intake-clearance')
 
             if result_form.form_state != FormState.DATA_ENTRY_1:
                 result_form.form_state = FormState.INTAKE
@@ -119,15 +143,14 @@ class EnterCenterView(LoginRequiredMixin,
             station_number = center_form.cleaned_data.get('station_number')
             center = Center.objects.get(code=center_number)
 
-            # check that center, ballot, station, no result_form does not exist
-            # in system
-            qs = ResultForm.objects.filter(
-                center=center,
-                station_number=station_number,
-                ballot=result_form.ballot)\
-                .exclude(Q(form_state=FormState.UNSUBMITTED)
-                         | Q(form_state=FormState.INTAKE))
-            if qs.count():
+            intaken = result_form_intaken(
+                center,
+                station_number,
+                result_form.ballot,
+                result_form
+            )
+
+            if intaken:
                 # a form already exists, send to clearance
                 result_form.send_to_clearance()
                 return redirect('intake-clearance')
