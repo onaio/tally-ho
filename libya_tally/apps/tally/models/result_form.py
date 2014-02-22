@@ -19,6 +19,14 @@ male_local = _('Male')
 female_local = _('Female')
 
 
+def model_field_to_dict(form):
+    field_dict = model_to_dict(form)
+    del field_dict['id']
+    del field_dict['user']
+
+    return field_dict
+
+
 def get_matched_results(result_form, results):
     """
     Checks results entered by Data Entry 1 and Data Entry 2 clerks match.
@@ -169,8 +177,18 @@ class ResultForm(BaseModel):
             active=True, entry_version=EntryVersion.FINAL)
 
         if len(reconciliationforms) > 1:
-            raise SuspiciousOperation(_(
-                'Unexpected number of reconciliation forms'))
+            field_dict = model_field_to_dict(reconciliationforms[0])
+
+            for form in reconciliationforms[1:]:
+                other_field_dict = model_field_to_dict(form)
+                for k, v in other_field_dict.items():
+                    if field_dict[k] != v:
+                        raise SuspiciousOperation(_(
+                            'Unexpected number of reconciliation forms'))
+
+                form.active = False
+                form.save()
+
         elif len(reconciliationforms) == 0:
             return False
 

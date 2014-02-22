@@ -1,4 +1,4 @@
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.contrib.auth.models import AnonymousUser
 from django.core.urlresolvers import reverse
 from django.test import RequestFactory
@@ -63,27 +63,6 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertEqual(result_form.qualitycontrol.user, self.user)
 
-    def test_quality_control_post_extra_recon(self):
-        barcode = '123456789'
-        self._create_and_login_user()
-        result_form = create_result_form(barcode,
-                                         form_state=FormState.QUALITY_CONTROL)
-        create_reconciliation_form(result_form, self.user)
-        create_reconciliation_form(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlView.as_view()
-        data = {'barcode': barcode, 'barcode_copy': barcode}
-        request = self.factory.post('/', data=data)
-        request.user = self.user
-        request.session = {}
-        response = view(request)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/dashboard',
-                      response['location'])
-        result_form = ResultForm.objects.get(barcode=barcode)
-        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
-        self.assertEqual(result_form.qualitycontrol.user, self.user)
-
     def test_dashboard_abort_post(self):
         barcode = '123456789'
         create_result_form(barcode,
@@ -133,6 +112,55 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/success',
                       response['location'])
         self.assertEqual(result_form.form_state, FormState.ARCHIVING)
+
+    def test_dashboard_get_double_recon(self):
+        barcode = '123456789'
+        self._create_and_login_user()
+        center = create_center()
+        station = create_station(center=center)
+        result_form = create_result_form(barcode,
+                                         center=center,
+                                         station_number=station.station_number,
+                                         form_state=FormState.QUALITY_CONTROL)
+        create_reconciliation_form(result_form, self.user)
+        create_reconciliation_form(result_form, self.user)
+        create_candidates(result_form, self.user)
+        create_quality_control(result_form, self.user)
+
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'General Results Section')
+        self.assertContains(response, 'Abort')
+
+    def test_dashboard_get_double_recon_raise(self):
+        barcode = '123456789'
+        self._create_and_login_user()
+        center = create_center()
+        station = create_station(center=center)
+        result_form = create_result_form(barcode,
+                                         center=center,
+                                         station_number=station.station_number,
+                                         form_state=FormState.QUALITY_CONTROL)
+        create_reconciliation_form(result_form, self.user)
+        create_reconciliation_form(result_form, self.user,
+                                   ballot_number_from=2)
+        create_candidates(result_form, self.user)
+        create_quality_control(result_form, self.user)
+
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+
+        with self.assertRaises(SuspiciousOperation):
+            view(request)
 
     def test_dashboard_get(self):
         barcode = '123456789'
