@@ -12,7 +12,10 @@ OUTPUT_PATH = 'results/candidate_votes.csv'
 
 
 def distinct_forms(ballot):
-    return ballot.resultform_set.filter(center__isnull=False).distinct(
+    return ballot.resultform_set.filter(
+        center__isnull=False,
+        ballot__isnull=False,
+        station_number__isnull=False).distinct(
         'center__id', 'station_number', 'ballot__id')
 
 
