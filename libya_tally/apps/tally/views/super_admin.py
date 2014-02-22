@@ -1,5 +1,6 @@
 from django.core.exceptions import SuspiciousOperation
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import TemplateView
 from djqscsv import render_to_csv_response
@@ -14,6 +15,22 @@ from libya_tally.libs.models.enums.audit_resolution import\
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
+
+
+def paging(form_list, request):
+    paginator = Paginator(form_list, 100)
+    page = request.GET.get('page')
+
+    try:
+        forms = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        forms = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page.
+        forms = paginator.page(paginator.num_pages)
+
+    return forms
 
 
 class DashboardView(LoginRequiredMixin,
@@ -156,17 +173,24 @@ class FormProgressView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         form_list = ResultForm.objects.exclude(
             form_state=FormState.UNSUBMITTED)
-        paginator = Paginator(form_list, 100)
-        page = self.request.GET.get('page')
 
-        try:
-            forms = paginator.page(page)
-        except PageNotAnInteger:
-            # If page is not an integer, deliver first page.
-            forms = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page.
-            forms = paginator.page(paginator.num_pages)
+        forms = paging(form_list, self.request)
+
+        return self.render_to_response(self.get_context_data(
+            forms=forms))
+
+
+class FormDuplicatesView(LoginRequiredMixin,
+                         mixins.GroupRequiredMixin,
+                         TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "tally/super_admin/form_duplicates.html"
+
+    def get(self, *args, **kwargs):
+        form_list = ResultForm.objects.exclude(
+            form_state=FormState.UNSUBMITTED)
+
+        forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             forms=forms))
@@ -203,6 +227,23 @@ class FormProgressDataView(LoginRequiredMixin,
         ('rejected_count', 'rejected_count'),
         ('modified_date', 'modified_date_formatted'),
     )
+
+
+def duplicates():
+    dupes = ResultForm.objects.values(
+        'center', 'ballot', 'station_number').annotate(
+        Count('id')).order_by().filter(id__count__gt=1).filter(
+        center__isnull=False, ballot__isnull=False,
+        station_number__isnull=False).exclude(form_state=FormState.UNSUBMITTED)
+
+    return ResultForm.objects.filter(
+        center__in=[item['center'] for item in dupes],
+        ballot__in=[item['ballot'] for item in dupes],
+        station_number__in=[item['station_number'] for item in dupes])
+
+
+class FormDuplicatesDataView(FormProgressDataView):
+    queryset = duplicates()
 
 
 class FormActionView(LoginRequiredMixin,

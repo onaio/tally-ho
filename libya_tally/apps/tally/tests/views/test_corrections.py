@@ -427,7 +427,7 @@ class TestCorrections(TestBase):
         result_form = create_result_form(form_state=FormState.CORRECTION)
         create_results(result_form, vote1=2, vote2=2, race_type=RaceType.WOMEN)
 
-        ballot_from_val = 2
+        ballot_from_val = '2'
         sorted_counted_val = 3
         is_stamped = False
 
