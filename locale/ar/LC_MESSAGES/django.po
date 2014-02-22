@@ -1477,7 +1477,7 @@ msgstr "مدخل بيانات %s"
 #: libya_tally/apps/tally/views/intake.py:20
 #, fuzzy
 msgid "Duplicate of a form already entered into system."
-msgstr "تم ادخال الاستمارة بشكل غير صحيح فى النظام"
+msgstr "توجد نسخة طبق الاصل من هذ ا النموذج مدخلة بالنظام"
 
 #: libya_tally/libs/models/enums/actions_prior.py:16
 msgid "Request Copy From Field"
