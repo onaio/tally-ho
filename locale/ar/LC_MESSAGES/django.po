@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-21 16:37+0000\n"
+"POT-Creation-Date: 2014-02-22 07:37+0000\n"
 "PO-Revision-Date: 2014-02-21 16:33+0000\n"
 "Last-Translator: MonaHago <missahmed230@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -41,6 +41,8 @@ msgstr "يقبل أرقام فقط في الرقم التسلسلي"
 
 #: libya_tally/apps/tally/forms/barcode_form.py:28
 #: libya_tally/apps/tally/templates/tally/barcode_verify.html:19
+#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:20
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:30
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:14
 #: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:14
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:28
@@ -193,7 +195,7 @@ msgid "Component Tebu"
 msgstr "مكون التبو"
 
 #: libya_tally/apps/tally/models/center.py:32
-#: libya_tally/apps/tally/models/result_form.py:261
+#: libya_tally/apps/tally/models/result_form.py:267
 msgid "Special"
 msgstr "خاص"
 
@@ -355,18 +357,18 @@ msgstr ""
 
 #: libya_tally/apps/tally/models/result_form.py:132
 #: libya_tally/apps/tally/models/result_form.py:137
-#: libya_tally/apps/tally/models/result_form.py:212
-#: libya_tally/apps/tally/models/result_form.py:218
+#: libya_tally/apps/tally/models/result_form.py:213
+#: libya_tally/apps/tally/models/result_form.py:219
 #: libya_tally/apps/tally/templates/tally/corrections/comparison.html:16
 #: libya_tally/apps/tally/templates/tally/corrections/required.html:29
 msgid "No"
 msgstr "لا "
 
-#: libya_tally/apps/tally/models/result_form.py:153
+#: libya_tally/apps/tally/models/result_form.py:154
 msgid "Corrections Required!"
 msgstr "التصحيحات المطلوبة!"
 
-#: libya_tally/apps/tally/models/result_form.py:172
+#: libya_tally/apps/tally/models/result_form.py:173
 msgid "Unexpected number of reconciliation forms"
 msgstr "عدد غير متوقع من استمارات التسوية"
 
@@ -556,44 +558,44 @@ msgid "Audit List"
 msgstr "قائمة المراجعة"
 
 #: libya_tally/apps/tally/templates/tally/audit/dashboard.html:11
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:11
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:20
 msgid "New Form Record"
 msgstr "تسجيل أستمارة جديدة "
 
-#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:20
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:20
+#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:21
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:31
 #: libya_tally/apps/tally/templates/tally/super_admin/centers.html:16
 msgid "Center Name"
 msgstr "اسم المركز"
 
-#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:21
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:21
+#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:22
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:32
 msgid "Center ID"
 msgstr "تعريف المركز"
 
-#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:22
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:22
+#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:23
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:33
 msgid "Station"
 msgstr "محطة"
 
-#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:23
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:23
+#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:24
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:34
 msgid "Reviewed?"
 msgstr "تمت مراجعتها"
 
-#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:24
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:24
+#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:25
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:35
 msgid "Supervisor Reviewed?"
 msgstr "مراجعة المشرف ؟"
 
-#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:25
+#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:26
 msgid "Modified Date"
 msgstr "تاريخ التعديل"
 
-#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:26
-#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:39
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:26
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:40
+#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:27
+#: libya_tally/apps/tally/templates/tally/audit/dashboard.html:41
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:37
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:52
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:38
 msgid "Review"
 msgstr "المراجعة"
@@ -731,7 +733,12 @@ msgstr "تعليق المشرف"
 msgid "Clearance List"
 msgstr "قائمة التصحيح"
 
-#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:25
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:11
+#, fuzzy
+msgid "New Clearance"
+msgstr "تحقق"
+
+#: libya_tally/apps/tally/templates/tally/clearance/dashboard.html:36
 msgid "Modified"
 msgstr "تعديل"
 
@@ -1172,19 +1179,24 @@ msgid "Not Intaken"
 msgstr "لم تستقبل"
 
 #: libya_tally/apps/tally/templates/tally/reports/offices.html:30
-#: libya_tally/libs/reports/progress.py:71
+#: libya_tally/libs/reports/progress.py:70
 msgid "Intaken"
 msgstr "استقبال"
 
 #: libya_tally/apps/tally/templates/tally/reports/offices.html:31
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:19
-#: libya_tally/libs/reports/progress.py:77
+#: libya_tally/libs/reports/progress.py:76
 msgid "Archived"
 msgstr "تم الارشفة"
 
 #: libya_tally/apps/tally/templates/tally/reports/offices.html:32
+#, fuzzy
+msgid "Office Number"
+msgstr "اسم المكتب :"
+
+#: libya_tally/apps/tally/templates/tally/reports/offices.html:33
 #: libya_tally/apps/tally/templates/tally/super_admin/centers.html:14
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:17
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:18
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:31
 msgid "Office"
 msgstr "مكتب"
@@ -1212,7 +1224,7 @@ msgstr "منطقة التصويت :"
 
 #: libya_tally/apps/tally/templates/tally/reports/races.html:29
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:17
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:18
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:19
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:33
 msgid "Race Type"
 msgstr "نوع التنافس"
@@ -1251,7 +1263,7 @@ msgstr "عدد المسجلين"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/centers.html:20
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:20
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:21
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:22
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:35
 msgid "Last Modified"
 msgstr "التعديل الاخير"
@@ -1261,7 +1273,7 @@ msgid "Actionable Form List"
 msgstr "قائمة الاستمارات القابلة للتنفيد"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:18
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:19
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:20
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:34
 msgid "Form State"
 msgstr "حالة النمودج"
@@ -1280,7 +1292,12 @@ msgstr "موافقه"
 msgid "Form List"
 msgstr "قائمة النمودج "
 
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:20
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:17
+#, fuzzy
+msgid "Ballot Number"
+msgstr "الرقم التسلسلي"
+
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:21
 msgid "Number of times rejected to DE1"
 msgstr "عدد المرات المرفوضه من ادخال البيانات 1"
 
@@ -1311,12 +1328,12 @@ msgid "Archiving"
 msgstr "الارشفة"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:20
-#: libya_tally/libs/reports/progress.py:83
+#: libya_tally/libs/reports/progress.py:82
 msgid "Clearance"
 msgstr "تحقق"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:21
-#: libya_tally/libs/reports/progress.py:89
+#: libya_tally/libs/reports/progress.py:88
 msgid "Audit"
 msgstr "التدقيق"
 
@@ -1404,6 +1421,11 @@ msgstr "أرشيف"
 msgid "Create Audit"
 msgstr "أنشاء التدقيق"
 
+#: libya_tally/apps/tally/views/clearance.py:196
+#, fuzzy
+msgid "Create Clearance"
+msgstr "تحقق"
+
 #: libya_tally/apps/tally/views/corrections.py:75
 msgid "There should be exactly two reconciliation results."
 msgstr "ينبغي أن يكون هناك بالضبط نتيجتين المصالحة."
@@ -1475,15 +1497,15 @@ msgstr "ارسل الي المشرف"
 msgid "Reset To Preintake"
 msgstr "اعادة عملية استلام النموذج"
 
-#: libya_tally/libs/reports/progress.py:40
+#: libya_tally/libs/reports/progress.py:39
 msgid "No results"
 msgstr "لا توجد نتائج"
 
-#: libya_tally/libs/reports/progress.py:65
+#: libya_tally/libs/reports/progress.py:64
 msgid "Expected"
 msgstr "مترقب"
 
-#: libya_tally/libs/reports/progress.py:95
+#: libya_tally/libs/reports/progress.py:94
 msgid "Not Received"
 msgstr "لم يتم الاستيلام"
 
