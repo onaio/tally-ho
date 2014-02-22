@@ -235,7 +235,7 @@ class CreateAuditView(LoginRequiredMixin,
             if form:
                 return self.form_invalid(form)
 
-            result_form.form_state = FormState.AUDIT
+            result_form.reject(new_state=FormState.AUDIT)
             result_form.audited_count += 1
             result_form.save()
 

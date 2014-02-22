@@ -8,7 +8,7 @@ from libya_tally.apps.tally.views import clearance as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_ballot, create_clearance,\
-    create_result_form, TestBase
+    create_recon_forms, create_candidates, create_result_form, TestBase
 
 
 class TestClearance(TestBase):
@@ -411,7 +411,7 @@ class TestClearance(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Create Clearance')
 
-    def test_create_audit_post(self):
+    def test_create_clearance_post(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
         barcode = 123456789
@@ -428,6 +428,8 @@ class TestClearance(TestBase):
             result_form = create_result_form(form_state=form_state,
                                              barcode=barcode,
                                              serial_number=serial_number)
+            create_recon_forms(result_form, self.user)
+            create_candidates(result_form, self.user)
             view = views.CreateClearanceView.as_view()
             data = {'barcode': result_form.barcode,
                     'barcode_copy': result_form.barcode}
@@ -441,6 +443,12 @@ class TestClearance(TestBase):
             self.assertEqual(result_form.form_state, FormState.CLEARANCE)
             self.assertIsNotNone(result_form.clearance)
             self.assertEqual(result_form.clearance.user, self.user)
+
+            for result in result_form.reconciliationform_set.all():
+                self.assertFalse(result.active)
+
+            for result in result_form.results.all():
+                self.assertFalse(result.active)
 
             barcode = barcode + 1
             serial_number = serial_number + 1
@@ -461,7 +469,7 @@ class TestClearance(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(result_form.form_state, FormState.ARCHIVED)
 
-    def test_create_audit_post_super(self):
+    def test_create_clearance_post_super(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
         barcode = 123456789
@@ -479,6 +487,8 @@ class TestClearance(TestBase):
             result_form = create_result_form(form_state=form_state,
                                              barcode=barcode,
                                              serial_number=serial_number)
+            create_recon_forms(result_form, self.user)
+            create_candidates(result_form, self.user)
             view = views.CreateClearanceView.as_view()
             data = {'barcode': result_form.barcode,
                     'barcode_copy': result_form.barcode}
@@ -492,6 +502,12 @@ class TestClearance(TestBase):
             self.assertEqual(result_form.form_state, FormState.CLEARANCE)
             self.assertIsNotNone(result_form.clearance)
             self.assertEqual(result_form.clearance.user, self.user)
+
+            for result in result_form.reconciliationform_set.all():
+                self.assertFalse(result.active)
+
+            for result in result_form.results.all():
+                self.assertFalse(result.active)
 
             barcode = barcode + 1
             serial_number = serial_number + 1

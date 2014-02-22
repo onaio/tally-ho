@@ -220,8 +220,7 @@ class CreateClearanceView(LoginRequiredMixin,
             if form:
                 return self.form_invalid(form)
 
-            result_form.form_state = FormState.CLEARANCE
-            result_form.save()
+            result_form.reject(FormState.CLEARANCE)
 
             Clearance.objects.create(result_form=result_form,
                                      user=self.request.user)

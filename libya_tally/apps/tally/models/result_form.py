@@ -226,7 +226,7 @@ class ResultForm(BaseModel):
              self.reconciliation_match) and
             (not self.has_women_results or self.women_match))
 
-    def reject(self):
+    def reject(self, new_state=FormState.DATA_ENTRY_1):
         for result in self.results.all():
             result.active = False
             result.save()
@@ -236,7 +236,7 @@ class ResultForm(BaseModel):
             recon.save()
 
         self.rejected_count += 1
-        self.form_state = FormState.DATA_ENTRY_1
+        self.form_state = new_state
         self.save()
 
     @property

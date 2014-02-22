@@ -7,7 +7,7 @@ from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_audit, create_result_form,\
-    create_candidates, create_reconciliation_form, TestBase
+    create_recon_forms, create_candidates, create_reconciliation_form, TestBase
 
 
 class TestAudit(TestBase):
@@ -359,6 +359,8 @@ class TestAudit(TestBase):
             result_form = create_result_form(form_state=form_state,
                                              barcode=barcode,
                                              serial_number=serial_number)
+            create_recon_forms(result_form, self.user)
+            create_candidates(result_form, self.user)
             view = views.CreateAuditView.as_view()
             data = {'barcode': result_form.barcode,
                     'barcode_copy': result_form.barcode}
@@ -372,6 +374,12 @@ class TestAudit(TestBase):
             self.assertEqual(result_form.form_state, FormState.AUDIT)
             self.assertEqual(result_form.audited_count, 1)
             self.assertEqual(result_form.audit.user, self.user)
+
+            for result in result_form.reconciliationform_set.all():
+                self.assertFalse(result.active)
+
+            for result in result_form.results.all():
+                self.assertFalse(result.active)
 
             barcode = barcode + 1
             serial_number = serial_number + 1
@@ -408,6 +416,8 @@ class TestAudit(TestBase):
             result_form = create_result_form(form_state=form_state,
                                              barcode=barcode,
                                              serial_number=serial_number)
+            create_recon_forms(result_form, self.user)
+            create_candidates(result_form, self.user)
             view = views.CreateAuditView.as_view()
             data = {'barcode': result_form.barcode,
                     'barcode_copy': result_form.barcode}
@@ -421,6 +431,12 @@ class TestAudit(TestBase):
             self.assertEqual(result_form.form_state, FormState.AUDIT)
             self.assertEqual(result_form.audited_count, 1)
             self.assertEqual(result_form.audit.user, self.user)
+
+            for result in result_form.reconciliationform_set.all():
+                self.assertFalse(result.active)
+
+            for result in result_form.results.all():
+                self.assertFalse(result.active)
 
             barcode = barcode + 1
             serial_number = serial_number + 1
