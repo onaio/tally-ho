@@ -126,6 +126,8 @@ class Command(BaseCommand):
                         print('[WARNING] Office "%s" does not exist' %
                               office_name)
 
+                is_replacement = False if center is None else True
+
                 try:
                     _, created = ResultForm.objects.get_or_create(
                         barcode=row[7],
@@ -139,3 +141,7 @@ class Command(BaseCommand):
                         station_number=row[2])
                 except IntegrityError:
                     pass
+                else:
+                    if is_replacement:
+                        _.is_replacement = is_replacement
+                        _.save()

@@ -282,6 +282,8 @@ class Command(BaseCommand):
                         print('[WARNING] Office "%s" does not exist' %
                               office_name)
 
+                is_replacement = False if center is None else True
+
                 _, created = ResultForm.objects.get_or_create(
                     barcode=row[7],
                     ballot=ballot,
@@ -292,3 +294,6 @@ class Command(BaseCommand):
                     office=office,
                     serial_number=row[8],
                     station_number=row[2])
+
+                _.is_replacement = is_replacement
+                _.save()
