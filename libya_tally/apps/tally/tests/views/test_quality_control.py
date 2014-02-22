@@ -63,6 +63,27 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertEqual(result_form.qualitycontrol.user, self.user)
 
+    def test_quality_control_post_extra_recon(self):
+        barcode = '123456789'
+        self._create_and_login_user()
+        result_form = create_result_form(barcode,
+                                         form_state=FormState.QUALITY_CONTROL)
+        create_reconciliation_form(result_form, self.user)
+        create_reconciliation_form(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlView.as_view()
+        data = {'barcode': barcode, 'barcode_copy': barcode}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/dashboard',
+                      response['location'])
+        result_form = ResultForm.objects.get(barcode=barcode)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
+        self.assertEqual(result_form.qualitycontrol.user, self.user)
+
     def test_dashboard_abort_post(self):
         barcode = '123456789'
         create_result_form(barcode,
