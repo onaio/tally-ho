@@ -7,6 +7,8 @@ from django.db.utils import IntegrityError
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy
 
+from optparse import make_option
+
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.office import Office
@@ -47,9 +49,12 @@ def strip_non_numeric(string):
 
 class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
+    option_list = BaseCommand.option_list + (
+        make_option('--result-forms-path'),
+    )
 
-    def handle(self, *args, **kwargs):
-        result_path = kwargs.get('results-form-path')
+    def handle(self, *args, **options):
+        result_path = options.get('result_forms_path')
         result_path = result_path \
             if result_path is not None else RESULT_FORMS_PATH
 
