@@ -37,9 +37,9 @@ class Clearance(BaseModel):
 
     # Recommendations
     action_prior_to_recommendation = enum.EnumField(
-        ActionsPrior, blank=True, null=True)
+        ActionsPrior, blank=True, null=True, default=4)
     resolution_recommendation = enum.EnumField(
-        ClearanceResolution, null=True, blank=True)
+        ClearanceResolution, null=True, blank=True, default=0)
 
     # Comments
     team_comment = models.TextField(null=True, blank=True)

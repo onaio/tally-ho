@@ -5,10 +5,13 @@ from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy
 
 from libya_tally.apps.tally.models.ballot import Ballot
+from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 
 OUTPUT_PATH = 'results/candidate_votes.csv'
+BARCODE_PATH = 'results/special_barcodes.csv'
+SPECIAL_BALLOTS = [4, 6, 7, 11, 12]
 
 
 def distinct_forms(ballot):
@@ -50,6 +53,9 @@ class Command(BaseCommand):
             header.append('candidate %s name' % i)
             header.append('candidate %s votes' % i)
 
+        barcodes = []
+        candidates_to_votes_cache = {}
+
         with open(OUTPUT_PATH, 'wb') as f:
             # BOM, Excel needs it to open UTF-8 file properly
             f.write(u'\ufeff'.encode('utf8'))
@@ -58,6 +64,11 @@ class Command(BaseCommand):
 
             for ballot in Ballot.objects.exclude(number=54):
                 forms = distinct_forms(ballot)
+
+                if ballot.number in SPECIAL_BALLOTS:
+                    special_forms = forms.filter(
+                        form_state=FormState.ARCHIVED)
+                    barcodes.extend([r.barcode for r in special_forms])
 
                 if not forms:
                     forms = distinct_forms(
@@ -76,11 +87,12 @@ class Command(BaseCommand):
                     'stations completed': num_stations_completed,
                     'stations percent completed': percent_complete})
 
-                num_results_ary = []
                 candidates_to_votes = {}
+                num_results_ary = []
 
                 for candidate in ballot.candidates.all():
                     num_results, votes = get_votes(candidate)
+                    candidates_to_votes_cache[candidate.full_name] = votes
                     candidates_to_votes[candidate.full_name] = votes
                     num_results_ary.append(num_results)
 
@@ -106,4 +118,33 @@ class Command(BaseCommand):
                     output['candidate %s votes' % (i + 1)] = votes
 
                 w.writerow({k: v.encode('utf8') if isinstance(v, basestring)
+                            else v for k, v in output.items()})
+
+            with open(BARCODE_PATH, 'w') as f:
+                header = ['ballot', 'barcode', 'order', 'name', 'votes']
+                w = csv.DictWriter(f, header)
+                f.write(u'\ufeff'.encode('utf-8'))
+
+                for barcode in barcodes:
+                    result_form = ResultForm.objects.get(barcode=barcode)
+                    candidates = result_form.ballot.candidates.all()
+
+                    for candidate in candidates:
+                        results = candidate.results.filter(
+                            result_form=result_form,
+                            entry_version=EntryVersion.FINAL,
+                            result_form__form_state=FormState.ARCHIVED,
+                            active=True).all()
+                        votes = sum([r.votes for r in results])
+
+                        output = {
+                            'ballot': result_form.ballot.number,
+                            'barcode': barcode,
+                            'order': candidate.order,
+                            'name': candidate.full_name,
+                            'votes': votes
+                        }
+
+                        w.writerow({
+                            k: v.encode('utf8') if isinstance(v, basestring)
                             else v for k, v in output.items()})

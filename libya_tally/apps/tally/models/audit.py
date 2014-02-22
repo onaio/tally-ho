@@ -8,7 +8,8 @@ from libya_tally.apps.tally.models.quarantine_check import QuarantineCheck
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.actions_prior import ActionsPrior
-from libya_tally.libs.models.enums.audit_resolution import AuditResolution
+from libya_tally.libs.models.enums.audit_resolution import AuditResolution,\
+    AUDIT_CHOICES
 
 
 class Audit(BaseModel):
@@ -34,9 +35,9 @@ class Audit(BaseModel):
 
     # Recommendations
     action_prior_to_recommendation = enum.EnumField(ActionsPrior, blank=True,
-                                                    null=True)
+                                                    null=True, default=4)
     resolution_recommendation = enum.EnumField(
-        AuditResolution, null=True, blank=True)
+        AuditResolution, null=True, blank=True, default=0)
 
     # Comments
     team_comment = models.TextField(null=True, blank=True)
@@ -59,9 +60,9 @@ class Audit(BaseModel):
         return problems
 
     def action_prior_name(self):
-        return ActionsPrior.label(self.action_prior_to_recommendation)
+        return _(ActionsPrior.label(self.action_prior_to_recommendation))
 
     def resolution_recommendation_name(self):
-        return AuditResolution.label(self.resolution_recommendation)
+        return dict(AUDIT_CHOICES).get(self.resolution_recommendation)
 
 reversion.register(Audit)

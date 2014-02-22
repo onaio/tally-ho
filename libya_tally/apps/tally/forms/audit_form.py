@@ -4,8 +4,6 @@ from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.libs.models.enums import actions_prior
 from libya_tally.libs.models.enums import audit_resolution
 
-EMPTY_KEY = 0
-
 
 class AuditForm(forms.ModelForm):
     class Meta:
@@ -30,16 +28,3 @@ class AuditForm(forms.ModelForm):
     resolution_recommendation = forms.TypedChoiceField(
         required=False, choices=audit_resolution.AUDIT_CHOICES,
         coerce=int)
-
-    def clean(self):
-        cleaned_data = super(AuditForm, self).clean()
-        action = cleaned_data.get('action_prior_to_recommendation')
-        resolution = cleaned_data.get('resolution_recommendation')
-
-        if action == EMPTY_KEY:
-            cleaned_data['action_prior_to_recommendation'] = None
-
-        if resolution == EMPTY_KEY:
-            cleaned_data['resolution_recommendation'] = None
-
-        return cleaned_data
