@@ -222,18 +222,9 @@ class CorrectionRequiredView(LoginRequiredMixin,
     template_name = "tally/corrections/required.html"
     success_url = 'corrections-success'
 
-    def get(self, *args, **kwargs):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, [FormState.CORRECTION])
-
+    def corrections_response(self, result_form, errors=None):
         recon, results_general, results_women, results_component, c_name =\
             get_corrections_forms(result_form)
-
-        errors = self.request.session.get('errors')
-
-        if errors:
-            del self.request.session['errors']
 
         return self.render_to_response(
             self.get_context_data(errors=errors,
@@ -244,7 +235,13 @@ class CorrectionRequiredView(LoginRequiredMixin,
                                   candidates_women=results_women,
                                   component_name=c_name))
 
-    @transaction.atomic
+    def get(self, *args, **kwargs):
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, [FormState.CORRECTION])
+
+        return self.corrections_response(result_form)
+
     def post(self, race_type):
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
@@ -255,16 +252,16 @@ class CorrectionRequiredView(LoginRequiredMixin,
             user = self.request.user
 
             try:
-                if result_form.reconciliationform_exists:
-                    save_recon(post_data, user, result_form)
+                with transaction.atomic():
+                    if result_form.reconciliationform_exists:
+                        save_recon(post_data, user, result_form)
 
-                save_component_results(result_form, post_data, user)
-                save_general_results(result_form, post_data, user)
-                save_women_results(result_form, post_data, user)
+                    save_component_results(result_form, post_data, user)
+                    save_general_results(result_form, post_data, user)
+                    save_women_results(result_form, post_data, user)
 
             except ValidationError as e:
-                self.request.session['errors'] = e.message
-                return redirect('corrections-required')
+                return self.corrections_response(result_form, e.message)
 
             result_form.form_state = FormState.QUALITY_CONTROL
             result_form.save()

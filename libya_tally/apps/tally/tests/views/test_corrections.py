@@ -17,7 +17,8 @@ from libya_tally.libs.tests.test_base import create_result_form,\
     create_reconciliation_form, create_recon_forms
 
 
-def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL):
+def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL,
+                   num=1):
     code = '12345'
     center = create_center(code)
     create_station(center)
@@ -25,18 +26,19 @@ def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL):
     candidate_name = 'candidate name'
     candidate = create_candidate(ballot, candidate_name, race_type)
 
-    Result.objects.create(
-        candidate=candidate,
-        result_form=result_form,
-        entry_version=EntryVersion.DATA_ENTRY_1,
-        votes=vote1)
-
-    if vote2:
+    for i in xrange(num):
         Result.objects.create(
             candidate=candidate,
             result_form=result_form,
-            entry_version=EntryVersion.DATA_ENTRY_2,
-            votes=vote2)
+            entry_version=EntryVersion.DATA_ENTRY_1,
+            votes=vote1)
+
+        if vote2:
+            Result.objects.create(
+                candidate=candidate,
+                result_form=result_form,
+                entry_version=EntryVersion.DATA_ENTRY_2,
+                votes=vote2)
 
 
 class TestCorrections(TestBase):
@@ -212,6 +214,34 @@ class TestCorrections(TestBase):
                          FormState.QUALITY_CONTROL)
         self.assertEqual(response.status_code, 302)
         self.assertIn('corrections/success', response['location'])
+
+    def test_corrections_general_post_few_corrections(self):
+        view = views.CorrectionRequiredView.as_view()
+        result_form = create_result_form(form_state=FormState.CORRECTION)
+        create_results(result_form, vote1=2, vote2=3, num=2)
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 4)
+        session = {'result_form': result_form.pk}
+        post_data = {
+            'candidate_general_%s' % result_form.results.all()[
+                0].candidate.pk: 2,
+            'result_form': result_form.pk,
+            'submit_corrections': 'submit corrections'
+        }
+        request = self.factory.post('/', post_data)
+        request.session = session
+        request.user = self.user
+        response = view(request)
+
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.CORRECTION)
+        self.assertContains(
+            response,
+            u"Please select correct results for all mis-matched votes.")
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 4)
 
     def test_corrections_twice(self):
         """
