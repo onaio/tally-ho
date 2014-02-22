@@ -17,6 +17,22 @@ from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
 
 
+def duplicates():
+    dupes = ResultForm.objects.values(
+        'center', 'ballot', 'station_number').annotate(
+        Count('id')).order_by().filter(id__count__gt=1).filter(
+        center__isnull=False, ballot__isnull=False,
+        station_number__isnull=False).exclude(form_state=FormState.UNSUBMITTED)
+
+    pks = []
+    for item in dupes:
+        pks.extend([r.pk for r in ResultForm.objects.filter(
+            center=item['center'], ballot=item['ballot'],
+            station_number=item['station_number'])])
+
+    return ResultForm.objects.filter(pk__in=pks)
+
+
 def paging(form_list, request):
     paginator = Paginator(form_list, 100)
     page = request.GET.get('page')
@@ -187,8 +203,7 @@ class FormDuplicatesView(LoginRequiredMixin,
     template_name = "tally/super_admin/form_duplicates.html"
 
     def get(self, *args, **kwargs):
-        form_list = ResultForm.objects.exclude(
-            form_state=FormState.UNSUBMITTED)
+        form_list = duplicates()
 
         forms = paging(form_list, self.request)
 
@@ -227,19 +242,6 @@ class FormProgressDataView(LoginRequiredMixin,
         ('rejected_count', 'rejected_count'),
         ('modified_date', 'modified_date_formatted'),
     )
-
-
-def duplicates():
-    dupes = ResultForm.objects.values(
-        'center', 'ballot', 'station_number').annotate(
-        Count('id')).order_by().filter(id__count__gt=1).filter(
-        center__isnull=False, ballot__isnull=False,
-        station_number__isnull=False).exclude(form_state=FormState.UNSUBMITTED)
-
-    return ResultForm.objects.filter(
-        center__in=[item['center'] for item in dupes],
-        ballot__in=[item['ballot'] for item in dupes],
-        station_number__in=[item['station_number'] for item in dupes])
 
 
 class FormDuplicatesDataView(FormProgressDataView):
