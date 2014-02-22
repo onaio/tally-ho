@@ -17,6 +17,8 @@ from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_intake_state,\
     safe_form_in_state, form_in_state
 
+INTAKEN_MESSAGE = _('Duplicate of a form already entered into system.')
+
 
 def states_for_form(user, states, result_form):
     if groups.INTAKE_SUPERVISOR in groups.user_groups(user)\
@@ -89,6 +91,7 @@ class CenterDetailsView(LoginRequiredMixin,
 
             if intaken:
                 # a form already exists, send to clearance
+                self.request.session['intake-error'] = INTAKEN_MESSAGE
                 result_form.send_to_clearance()
                 return redirect('intake-clearance')
 
@@ -154,6 +157,7 @@ class EnterCenterView(LoginRequiredMixin,
 
             if intaken:
                 # a form already exists, send to clearance
+                self.request.session['intake-error'] = INTAKEN_MESSAGE
                 result_form.send_to_clearance()
                 return redirect('intake-clearance')
             else:
@@ -261,8 +265,14 @@ class ClearanceView(LoginRequiredMixin,
         form_in_state(result_form, [FormState.CLEARANCE])
         del self.request.session['result_form']
 
+        error_msg = self.request.session.get('intake-error')
+
+        if error_msg:
+            del self.request.session['intake-error']
+
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(error_msg=error_msg,
+                                  result_form=result_form))
 
 
 class ConfirmationView(LoginRequiredMixin,
