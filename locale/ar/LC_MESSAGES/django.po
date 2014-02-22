@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-22 07:37+0000\n"
+"POT-Creation-Date: 2014-02-22 08:11+0000\n"
 "PO-Revision-Date: 2014-02-21 16:33+0000\n"
 "Last-Translator: MonaHago <missahmed230@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -1190,6 +1190,8 @@ msgid "Archived"
 msgstr "تم الارشفة"
 
 #: libya_tally/apps/tally/templates/tally/reports/offices.html:32
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:19
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:32
 #, fuzzy
 msgid "Office Number"
 msgstr "اسم المكتب :"
@@ -1218,14 +1220,14 @@ msgid "Race Number"
 msgstr "رقم التنافس"
 
 #: libya_tally/apps/tally/templates/tally/reports/races.html:28
-#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:32
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:33
 msgid "Voting District"
 msgstr "منطقة التصويت :"
 
 #: libya_tally/apps/tally/templates/tally/reports/races.html:29
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:17
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:19
-#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:33
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:20
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:34
 msgid "Race Type"
 msgstr "نوع التنافس"
 
@@ -1263,8 +1265,8 @@ msgstr "عدد المسجلين"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/centers.html:20
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:20
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:22
-#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:35
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:23
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:36
 msgid "Last Modified"
 msgstr "التعديل الاخير"
 
@@ -1273,8 +1275,8 @@ msgid "Actionable Form List"
 msgstr "قائمة الاستمارات القابلة للتنفيد"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/form_action.html:18
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:20
-#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:34
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:21
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:35
 msgid "Form State"
 msgstr "حالة النمودج"
 
@@ -1287,19 +1289,23 @@ msgid "Confirm"
 msgstr "موافقه"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:9
-#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:9
-#: libya_tally/apps/tally/templates/tally/super_admin/home.html:12
-msgid "Form List"
-msgstr "قائمة النمودج "
+#, fuzzy
+msgid "Form Progress List"
+msgstr "متابعة النماذج"
 
 #: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:17
 #, fuzzy
 msgid "Ballot Number"
 msgstr "الرقم التسلسلي"
 
-#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:21
+#: libya_tally/apps/tally/templates/tally/super_admin/form_progress.html:22
 msgid "Number of times rejected to DE1"
 msgstr "عدد المرات المرفوضه من ادخال البيانات 1"
+
+#: libya_tally/apps/tally/templates/tally/super_admin/forms.html:9
+#: libya_tally/apps/tally/templates/tally/super_admin/home.html:12
+msgid "Form List"
+msgstr "قائمة النمودج "
 
 #: libya_tally/apps/tally/templates/tally/super_admin/forms.html:12
 msgid "Unsubmitted"
