@@ -87,6 +87,7 @@ class ResultForm(BaseModel):
     serial_number = models.PositiveIntegerField(unique=True, null=True)
     skip_quarantine_checks = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
+    is_replacement = models.BooleanField(default=False)
 
     @property
     def results_final(self):
