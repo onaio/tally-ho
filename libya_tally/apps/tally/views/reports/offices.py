@@ -16,13 +16,14 @@ class OfficesReportView(LoginRequiredMixin,
     def get_per_office_progress(self):
         data = []
 
-        for office in Office.objects.all():
+        for office in Office.objects.all().order_by('number'):
             intaken = p.IntakenProgressReport().for_center_office(office)
             not_intaken = p.NotRecievedProgressReport()\
                 .for_center_office(office)
             archived = p.ArchivedProgressReport().for_center_office(office)
             data.append({
                 'office': office,
+                'number': office.number,
                 'intaken': intaken.number,
                 'not_intaken': not_intaken.number,
                 'archived': archived.number,

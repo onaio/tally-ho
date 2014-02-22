@@ -29,6 +29,7 @@
         <th>{% trans 'Not Intaken' %}</th>
         <th>{% trans 'Intaken' %}</th>
         <th>{% trans 'Archived' %}</th>
+        <th>{% trans 'Office Number' %}</th>
         <th>{% trans 'Office' %}</th>
     </tr>
 {% for rec in per_office %}
@@ -36,6 +37,7 @@
         <td>{{ rec.not_intaken }}</td>
         <td>{{ rec.intaken }}</td>
         <td>{{ rec.archived }}</td>
+        <td>{{ rec.office.number }}</td>
         <td>{{ rec.office }}</td>
     </tr>
 {% endfor %}
