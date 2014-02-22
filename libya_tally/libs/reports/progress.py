@@ -76,9 +76,39 @@ class ArchivedProgressReport(ProgressReport):
     label = _(u"Archived")
 
 
+class IntakeProgressReport(ProgressReport):
+    filtered_queryset = ResultForm.forms_in_state(FormState.INTAKE)
+    label = _(u"Intake")
+
+
 class ClearanceProgressReport(ProgressReport):
     filtered_queryset = ResultForm.forms_in_state(FormState.CLEARANCE)
     label = _(u"Clearance")
+
+
+class DataEntry1ProgressReport(ProgressReport):
+    filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_1)
+    label = _(u"Data Entry 1")
+
+
+class DataEntry2ProgressReport(ProgressReport):
+    filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_2)
+    label = _(u"Data Entry 2")
+
+
+class CorrectionProgressReport(ProgressReport):
+    filtered_queryset = ResultForm.forms_in_state(FormState.CORRECTION)
+    label = _(u"Correction")
+
+
+class QualityControlProgressReport(ProgressReport):
+    filtered_queryset = ResultForm.forms_in_state(FormState.QUALITY_CONTROL)
+    label = _(u"Quality Control")
+
+
+class ArchivingProgressReport(ProgressReport):
+    filtered_queryset = ResultForm.forms_in_state(FormState.ARCHIVING)
+    label = _(u"Archiving")
 
 
 class AuditProgressReport(ProgressReport):
