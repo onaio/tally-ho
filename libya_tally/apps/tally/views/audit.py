@@ -226,6 +226,10 @@ class CreateAuditView(LoginRequiredMixin,
                                FormState.ARCHIVING,
                                FormState.QUALITY_CONTROL]
 
+            if groups.SUPER_ADMINISTRATOR in groups.user_groups(
+                    self.request.user):
+                possible_states.append(FormState.ARCHIVED)
+
             form = safe_form_in_state(result_form, possible_states, form)
 
             if form:

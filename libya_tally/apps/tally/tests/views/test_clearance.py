@@ -444,3 +444,54 @@ class TestClearance(TestBase):
 
             barcode = barcode + 1
             serial_number = serial_number + 1
+
+        # unclearable
+        result_form = create_result_form(form_state=FormState.ARCHIVED,
+                                         barcode=barcode,
+                                         serial_number=serial_number)
+        view = views.CreateClearanceView.as_view()
+        data = {'barcode': result_form.barcode,
+                'barcode_copy': result_form.barcode}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+        result_form.reload()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+
+    def test_create_audit_post_super(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
+        barcode = 123456789
+        serial_number = 0
+        clearable_states = [FormState.ARCHIVED,
+                            FormState.CORRECTION,
+                            FormState.DATA_ENTRY_1,
+                            FormState.DATA_ENTRY_2,
+                            FormState.INTAKE,
+                            FormState.QUALITY_CONTROL,
+                            FormState.ARCHIVING,
+                            FormState.UNSUBMITTED]
+
+        for form_state in clearable_states:
+            result_form = create_result_form(form_state=form_state,
+                                             barcode=barcode,
+                                             serial_number=serial_number)
+            view = views.CreateClearanceView.as_view()
+            data = {'barcode': result_form.barcode,
+                    'barcode_copy': result_form.barcode}
+            request = self.factory.post('/', data=data)
+            request.user = self.user
+            request.session = data
+            response = view(request)
+            result_form.reload()
+
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+            self.assertIsNotNone(result_form.clearance)
+            self.assertEqual(result_form.clearance.user, self.user)
+
+            barcode = barcode + 1
+            serial_number = serial_number + 1
