@@ -133,7 +133,8 @@ class TestQualityControl(TestBase):
         response = view(request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, str(result_form.gender_name))
+        # gender has been removed
+        # self.assertContains(response, str(result_form.gender_name))
         self.assertContains(response, 'General Results Section')
         self.assertNotContains(response, 'Reconciliation')
         self.assertContains(response, 'Abort')
@@ -265,7 +266,8 @@ class TestQualityControl(TestBase):
         response = view(request)
         response.render()
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, str(result_form.gender_name))
+        # gender has been removed
+        # self.assertContains(response, str(result_form.gender_name))
         self.assertContains(response, 'General')
         self.assertContains(response, name)
         self.assertContains(response, women_name)
@@ -372,7 +374,8 @@ class TestQualityControl(TestBase):
         response = view(request)
         response.render()
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, str(result_form.gender_name))
+        # gender has been removed
+        # self.assertContains(response, str(result_form.gender_name))
         self.assertContains(response, 'Women')
         self.assertContains(response, women_name)
         self.assertContains(response, name)
