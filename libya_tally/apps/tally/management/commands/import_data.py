@@ -254,10 +254,11 @@ class Command(BaseCommand):
                     race_type=race_type)
 
     def import_result_forms(self):
+        replacement_count = 0
+
         with open(RESULT_FORMS_PATH, 'rU') as f:
             reader = csv.reader(f)
             reader.next()  # ignore header
-            replacement_form_count = 0
 
             for row in reader:
                 row = empty_strings_to_none(row)
@@ -287,7 +288,7 @@ class Command(BaseCommand):
                 is_replacement = True if center is None else False
 
                 if is_replacement:
-                    replacement_form_count += 1
+                    replacement_count += 1
 
                 _, created = ResultForm.objects.get_or_create(
                     barcode=barcode,
@@ -303,5 +304,4 @@ class Command(BaseCommand):
                 _.is_replacement = is_replacement
                 _.save()
 
-            print '[INFO] Total number of replacement forms: %s' % (
-                replacement_form_count)
+        print '[INFO] Number of replacement forms: %s' % replacement_count
