@@ -257,10 +257,12 @@ class Command(BaseCommand):
         with open(RESULT_FORMS_PATH, 'rU') as f:
             reader = csv.reader(f)
             reader.next()  # ignore header
+            replacement_form_count = 0
 
             for row in reader:
                 row = empty_strings_to_none(row)
                 ballot = Ballot.objects.get(number=row[0])
+                barcode = row[7]
 
                 center = None
                 gender = None
@@ -282,10 +284,13 @@ class Command(BaseCommand):
                         print('[WARNING] Office "%s" does not exist' %
                               office_name)
 
-                is_replacement = False if center is None else True
+                is_replacement = True if center is None else False
+
+                if is_replacement:
+                    replacement_form_count += 1
 
                 _, created = ResultForm.objects.get_or_create(
-                    barcode=row[7],
+                    barcode=barcode,
                     ballot=ballot,
                     center=center,
                     form_state=FormState.UNSUBMITTED,
@@ -297,3 +302,6 @@ class Command(BaseCommand):
 
                 _.is_replacement = is_replacement
                 _.save()
+
+            print '[INFO] Total number of replacement forms: %s' % (
+                replacement_form_count)
