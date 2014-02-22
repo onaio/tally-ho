@@ -1,4 +1,3 @@
-from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext as _
@@ -38,7 +37,7 @@ class ProgressReport(object):
         if self.denominator() <= 0:
             return _(u"No results")
         return '%s%%' % round(
-            100 * (self.numerator() / float(self.denominator())), 2)
+            100 * (float(self.numerator()) / float(self.denominator())), 2)
 
     percentage = property(percentage_value)
 
@@ -65,30 +64,28 @@ class ExpectedProgressReport(ProgressReport):
 
 
 class IntakenProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.distinct_forms().exclude(
-        Q(form_state=FormState.UNSUBMITTED) | Q(form_state=FormState.INTAKE))
+    pks = ResultForm.distinct_form_pks()
+
+    filtered_queryset = ResultForm.objects.filter(
+        id__in=pks).exclude(form_state=FormState.UNSUBMITTED)
     label = _(u"Intaken")
 
 
 class ArchivedProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.distinct_forms().filter(
-        form_state=FormState.ARCHIVED)
+    filtered_queryset = ResultForm.forms_in_state(FormState.ARCHIVED)
     label = _(u"Archived")
 
 
 class ClearanceProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.distinct_forms().filter(
-        form_state=FormState.CLEARANCE)
+    filtered_queryset = ResultForm.forms_in_state(FormState.CLEARANCE)
     label = _(u"Clearance")
 
 
 class AuditProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.distinct_forms().filter(
-        form_state=FormState.AUDIT)
+    filtered_queryset = ResultForm.forms_in_state(FormState.AUDIT)
     label = _(u"Audit")
 
 
 class NotRecievedProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.distinct_forms().filter(
-        form_state=FormState.UNSUBMITTED)
+    filtered_queryset = ResultForm.forms_in_state(FormState.UNSUBMITTED)
     label = _(u"Not Received")

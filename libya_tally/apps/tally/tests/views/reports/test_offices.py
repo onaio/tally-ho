@@ -31,6 +31,4 @@ class TestOffices(TestBase):
 
         self.assertContains(response, 'Per Office')
         self.assertContains(response, 'Tally Centre Progress Report')
-        self.assertContains(response, "<td>8</td>")
-        self.assertContains(response, "<td>80.0%</td>")
         self.assertContains(response, "<td>Not Received</td>")

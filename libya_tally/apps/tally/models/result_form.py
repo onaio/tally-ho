@@ -299,10 +299,28 @@ class ResultForm(BaseModel):
 
     @classmethod
     def distinct_forms(cls):
-        return ResultForm.objects.filter(
-            center__isnull=False, station_number__isnull=False,
+        return cls.objects.filter(
+            center__isnull=False,
+            station_number__isnull=False,
             ballot__isnull=False).distinct(
             'center__id', 'station_number', 'ballot__id')
+
+    @classmethod
+    def distinct_form_pks(cls):
+        return reduce(
+            lambda x, y: x + y.values(),
+            cls.objects.values('id').filter(
+                center__isnull=False,
+                station_number__isnull=False,
+                ballot__isnull=False).distinct(
+                'center__id', 'station_number', 'ballot__id'),
+            [])
+
+    @classmethod
+    def forms_in_state(cls, state):
+        pks = cls.distinct_form_pks()
+
+        return cls.objects.filter(id__in=pks, form_state=state)
 
     @classmethod
     def generate_barcode(cls):
