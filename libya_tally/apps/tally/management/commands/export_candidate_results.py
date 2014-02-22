@@ -56,7 +56,7 @@ class Command(BaseCommand):
             w = csv.DictWriter(f, header)
             w.writeheader()
 
-            for ballot in Ballot.objects.all():
+            for ballot in Ballot.objects.exclude(number=54):
                 forms = distinct_forms(ballot)
 
                 if not forms:
@@ -87,7 +87,13 @@ class Command(BaseCommand):
                 assert len(set(num_results_ary)) <= 1
 
                 for num_results in num_results_ary:
-                    assert num_stations_completed == num_results
+                    if num_stations_completed != num_results:
+                        print ('[WARNING] Number stations complete (%s) not '
+                               'equal to num_results (%s)' % (
+                                   num_stations_completed, num_results))
+#                        import ipdb
+#                        ipdb.set_trace()
+#                    assert num_stations_completed == num_results
 
                 candidates_to_votes = OrderedDict((sorted(
                     candidates_to_votes.items(), key=lambda t: t[1],
