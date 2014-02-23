@@ -339,7 +339,11 @@ class ResultForm(BaseModel):
 
     @classmethod
     def distinct_form_pks(cls):
-        return cls.distinct_filter(cls.distinct_forms()).values('pk')
+        # Calling '.values(id)' here does not preserve the distinct order by,
+        # this leads to not choosing the archived replacement form.
+        # TODO use a subquery that preserves the distinct and the order by
+        # or cache this.
+        return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
 
     @classmethod
     def forms_in_state(cls, state):
