@@ -89,9 +89,11 @@ def export_candidate_votes(output=None):
             if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
                 complete_barcodes.extend([r.barcode for r in final_forms])
 
+            candidate_ballot = ballot
+
             if not forms:
-                forms = distinct_forms(
-                    ballot.sc_component.all()[0].ballot_general)
+                candidate_ballot = ballot.sc_component.all()[0].ballot_general
+                forms = distinct_forms(candidate_ballot)
 
             num_stations = forms.count()
             num_stations_completed = final_forms.count()
@@ -108,7 +110,7 @@ def export_candidate_votes(output=None):
             candidates_to_votes = {}
             num_results_ary = []
 
-            for candidate in ballot.candidates.all():
+            for candidate in candidate_ballot.candidates.all():
                 num_results, votes = get_votes(candidate)
                 candidates_to_votes[candidate.full_name] = votes
                 num_results_ary.append(num_results)
@@ -134,7 +136,7 @@ def export_candidate_votes(output=None):
             w.writerow({k: v.encode('utf8') if isinstance(v, basestring)
                         else v for k, v in output.items()})
 
-        save_barcode_results(complete_barcodes)
+        #save_barcode_results(complete_barcodes)
 
 
 class Command(BaseCommand):
