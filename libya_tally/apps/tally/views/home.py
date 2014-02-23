@@ -50,6 +50,17 @@ def server_error(request):
                               context_instance=context)
 
 
+def suspicious_error(request):
+    context = RequestContext(request)
+    error_message = request.session.get('error_message')
+
+    if error_message:
+        del request.session['error_message']
+    return render_to_response('tally/errors/suspicious.html',
+                              {'error_message': error_message},
+                              context_instance=context)
+
+
 class HomeView(LoginRequiredMixin, TemplateView):
     template_name = "tally/home.html"
 

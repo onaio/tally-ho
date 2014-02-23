@@ -221,6 +221,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
     group_required = groups.CORRECTIONS_CLERK
     template_name = "tally/corrections/required.html"
     success_url = 'corrections-success'
+    failed_url = 'suspicious-error'
 
     def corrections_response(self, result_form, errors=None):
         recon, results_general, results_women, results_component, c_name =\
@@ -261,10 +262,15 @@ class CorrectionRequiredView(LoginRequiredMixin,
                     save_women_results(result_form, post_data, user)
 
             except ValidationError as e:
-                return self.corrections_response(result_form, e.message)
-
-            result_form.form_state = FormState.QUALITY_CONTROL
-            result_form.save()
+                return self.corrections_response(result_form, u"%s" % e)
+            except SuspiciousOperation as e:
+                self.request.session['error_message'] = u"%s" % e
+                if result_form.form_state == FormState.DATA_ENTRY_1:
+                    result_form.save()
+                return redirect(self.failed_url)
+            else:
+                result_form.form_state = FormState.QUALITY_CONTROL
+                result_form.save()
 
             return redirect(self.success_url)
         else:

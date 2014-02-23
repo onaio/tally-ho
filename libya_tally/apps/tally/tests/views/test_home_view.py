@@ -1,5 +1,5 @@
 from libya_tally.libs.permissions import groups
-from libya_tally.apps.tally.views.home import HomeView
+from libya_tally.apps.tally.views.home import HomeView, suspicious_error
 from libya_tally.libs.tests.test_base import TestBase
 
 
@@ -23,3 +23,10 @@ class TestHomeView(TestBase):
         response = self.view(self.request)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake', response['location'])
+
+    def test_suspicious_error(self):
+        self._create_and_login_user()
+        error_message = "Some Error Message!"
+        self.request.session = {'error_message': error_message}
+        response = suspicious_error(self.request)
+        self.assertContains(response, error_message)

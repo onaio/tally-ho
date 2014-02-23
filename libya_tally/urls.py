@@ -180,6 +180,9 @@ urlpatterns = patterns(
         races.RacesReportView.as_view(),
         name='reports-races'),
 
+    url(r'^operation-not-allowed',
+        home.suspicious_error, name='suspicious-error'),
+
     url(r'^accounts/', include(accounts_urls)),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^tracking/', include('tracking.urls')),
