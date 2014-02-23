@@ -314,10 +314,7 @@ class ResultForm(BaseModel):
 
     @classmethod
     def distinct_form_pks(cls):
-        return reduce(
-            lambda x, y: x + y.values(),
-            cls.distinct_filter(cls.objects.values('id')),
-            [])
+        return cls.distinct_filter(cls.distinct_forms()).values('pk')
 
     @classmethod
     def forms_in_state(cls, state):
