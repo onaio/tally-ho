@@ -452,6 +452,26 @@ class TestCorrections(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Reconciliation')
 
+    def test_recon_get_double_entry_recon_form(self):
+        view = views.CorrectionRequiredView.as_view()
+        center = create_center()
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         center=center)
+        create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
+        create_recon_forms(result_form, self.user)
+        create_recon_forms(result_form, self.user)
+
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2)
+        session = {'result_form': result_form.pk}
+        request = self.factory.get('/')
+        request.session = session
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Reconciliation')
+
     def test_recon_post(self):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION)

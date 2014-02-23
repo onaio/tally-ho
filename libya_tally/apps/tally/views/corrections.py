@@ -69,7 +69,7 @@ def get_corrections_forms(result_form):
 
 
 def get_recon_form(result_form):
-    results = result_form.reconciliationform_set.filter(active=True)
+    results = result_form.corrections_reconciliationforms
 
     if results.count() != 2:
         raise SuspiciousOperation(_(u"There should be exactly two "

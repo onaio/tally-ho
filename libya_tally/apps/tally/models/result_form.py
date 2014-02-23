@@ -65,6 +65,25 @@ def match_results(result_form, results=None):
     return len(no_match) == 0
 
 
+def clean_reconciliation_forms(recon_queryset):
+    if len(recon_queryset) > 1:
+        field_dict = model_field_to_dict(recon_queryset[0])
+
+        for form in recon_queryset[1:]:
+            other_field_dict = model_field_to_dict(form)
+            for k, v in other_field_dict.items():
+                if field_dict[k] != v:
+                    raise SuspiciousOperation(_(
+                        'Unexpected number of reconciliation forms'))
+
+            form.active = False
+            form.save()
+
+        return True
+
+    return False
+
+
 class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
@@ -173,25 +192,31 @@ class ResultForm(BaseModel):
             if self.women_results else True
 
     @property
+    def corrections_reconciliationforms(self):
+        reconciliationforms = self.reconciliationform_set.filter(active=True)
+
+        de_1 = reconciliationforms.filter(
+            entry_version=EntryVersion.DATA_ENTRY_1)
+        de_2 = reconciliationforms.filter(
+            entry_version=EntryVersion.DATA_ENTRY_2)
+
+        if de_1.count() > 1:
+            clean_reconciliation_forms(de_1)
+
+        if de_2.count() > 1:
+            clean_reconciliation_forms(de_2)
+
+        return self.reconciliationform_set.filter(active=True)
+
+    @property
     def reconciliationform(self):
         reconciliationforms = self.reconciliationform_set.filter(
             active=True, entry_version=EntryVersion.FINAL)
 
-        if len(reconciliationforms) > 1:
-            field_dict = model_field_to_dict(reconciliationforms[0])
-
-            for form in reconciliationforms[1:]:
-                other_field_dict = model_field_to_dict(form)
-                for k, v in other_field_dict.items():
-                    if field_dict[k] != v:
-                        raise SuspiciousOperation(_(
-                            'Unexpected number of reconciliation forms'))
-
-                form.active = False
-                form.save()
-
-        elif len(reconciliationforms) == 0:
+        if len(reconciliationforms) == 0:
             return False
+        else:
+            clean_reconciliation_forms(reconciliationforms)
 
         return reconciliationforms[0]
 
