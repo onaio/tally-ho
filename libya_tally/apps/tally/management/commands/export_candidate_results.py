@@ -10,7 +10,7 @@ from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.models.enums.form_state import FormState
 
 OUTPUT_PATH = 'results/candidate_votes.csv'
-BARCODE_PATH = 'results/special_barcodes.csv'
+RESULTS_PATH = 'results/form_results.csv'
 SPECIAL_BALLOTS = None
 
 
@@ -29,7 +29,7 @@ def get_votes(candidate):
 
 
 def save_barcode_results(complete_barcodes):
-    with open(BARCODE_PATH, 'w') as f:
+    with open(RESULTS_PATH, 'w') as f:
         header = ['ballot', 'barcode', 'order', 'name', 'votes']
         w = csv.DictWriter(f, header)
         f.write(u'\ufeff'.encode('utf-8'))
