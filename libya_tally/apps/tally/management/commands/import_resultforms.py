@@ -81,6 +81,7 @@ class Command(BaseCommand):
             for row in reader:
                 row = imp.empty_strings_to_none(row)
                 ballot = Ballot.objects.get(number=row[0])
+                barcode = row[7]
 
                 center = None
                 gender = None
@@ -108,21 +109,21 @@ class Command(BaseCommand):
                     replacement_count += 1
 
                 kwargs = {
-                    'barcode': row[7],
+                    'barcode': barcode,
                     'ballot': ballot,
                     'center': center,
                     'gender': gender,
                     'name': row[4],
                     'office': office,
                     'serial_number': row[8],
-                    'station_number': row[2]
+                    'station_number': row[2],
+                    'form_state': FormState.UNSUBMITTED,
+                    'is_replacement': is_replacement
                 }
 
                 try:
-                    form = ResultForm.objects.get(**kwargs)
+                    form = ResultForm.objects.get(barcode=barcode)
                 except ResultForm.DoesNotExist:
-                    kwargs['form_state'] = FormState.UNSUBMITTED
-                    kwargs['is_replacement'] = is_replacement
                     ResultForm.objects.create(**kwargs)
                 else:
                     if is_replacement:
