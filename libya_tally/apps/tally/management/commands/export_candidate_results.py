@@ -15,11 +15,7 @@ SPECIAL_BALLOTS = None
 
 
 def distinct_forms(ballot):
-    return ballot.resultform_set.filter(
-        center__isnull=False,
-        ballot__isnull=False,
-        station_number__isnull=False).distinct(
-        'center__id', 'station_number', 'ballot__id')
+    return ResultForm.distinct_filter(ballot.resultform_set)
 
 
 def get_votes(candidate):
@@ -96,7 +92,7 @@ class Command(BaseCommand):
                 forms = distinct_forms(ballot)
                 final_forms = forms.filter(form_state=FormState.ARCHIVED)
 
-                if SPECIAL_BALLOTS and ballot.number in SPECIAL_BALLOTS:
+                if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
                     complete_barcodes.extend([r.barcode for r in final_forms])
 
                 if not forms:

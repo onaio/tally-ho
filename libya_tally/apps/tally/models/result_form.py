@@ -299,22 +299,24 @@ class ResultForm(BaseModel):
         return self.center.name if self.center else None
 
     @classmethod
-    def distinct_forms(cls):
-        return cls.objects.filter(
+    def distinct_filter(self, qs):
+        return qs.filter(
             center__isnull=False,
             station_number__isnull=False,
-            ballot__isnull=False).distinct(
+            ballot__isnull=False).order_by(
+            'center__id', 'station_number', 'ballot__id',
+            'form_state').distinct(
             'center__id', 'station_number', 'ballot__id')
+
+    @classmethod
+    def distinct_forms(cls):
+        return cls.distinct_filter(cls.objects)
 
     @classmethod
     def distinct_form_pks(cls):
         return reduce(
             lambda x, y: x + y.values(),
-            cls.objects.values('id').filter(
-                center__isnull=False,
-                station_number__isnull=False,
-                ballot__isnull=False).distinct(
-                'center__id', 'station_number', 'ballot__id'),
+            cls.distinct_filter(cls.objects.values('id')),
             [])
 
     @classmethod
