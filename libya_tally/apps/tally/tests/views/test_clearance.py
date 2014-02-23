@@ -8,7 +8,8 @@ from libya_tally.apps.tally.views import clearance as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_ballot, create_clearance,\
-    create_recon_forms, create_candidates, create_result_form, TestBase
+    create_recon_forms, create_candidates, create_result_form, create_center, \
+    TestBase
 
 
 class TestClearance(TestBase):
@@ -236,7 +237,13 @@ class TestClearance(TestBase):
     def test_review_post_supervisor_implement(self):
         # save clearance as clerk
         self._create_and_login_user()
-        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        center = create_center()
+        station_number = 2
+        result_form = create_result_form(form_state=FormState.CLEARANCE,
+                                         center=center,
+                                         station_number=station_number)
+        self.assertEqual(result_form.center, center)
+        self.assertEqual(result_form.station_number, station_number)
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
         view = views.ReviewView.as_view()
@@ -274,6 +281,59 @@ class TestClearance(TestBase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+        self.assertEqual(result_form.center, center)
+        self.assertEqual(result_form.station_number, station_number)
+
+    def test_review_post_supervisor_implement_replacement_form(self):
+        center = create_center()
+        # save clearance as clerk
+        self._create_and_login_user()
+        result_form = create_result_form(form_state=FormState.CLEARANCE,
+                                         is_replacement=True,
+                                         center=center,
+                                         station_number=2)
+        self.assertEqual(result_form.center, center)
+        self.assertEqual(result_form.station_number, 2)
+        self.assertTrue(result_form.is_replacement)
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.ReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 0,
+                'forward': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        # save as supervisor
+        self._create_and_login_user(username='alice')
+        self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
+
+        view = views.ReviewView.as_view()
+        data = {'result_form': result_form.pk,
+                'action_prior_to_recommendation': 1,
+                'resolution_recommendation': 3,
+                'implement': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request)
+
+        clearance = result_form.clearances.all()[0]
+        result_form.reload()
+
+        self.assertEqual(clearance.supervisor, self.user)
+        self.assertFalse(clearance.active)
+        self.assertTrue(clearance.reviewed_supervisor)
+        self.assertTrue(clearance.reviewed_team)
+        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+        self.assertIsNone(result_form.center)
+        self.assertIsNone(result_form.station_number)
 
     def test_new_form_get_with_form(self):
         # save clearance as clerk

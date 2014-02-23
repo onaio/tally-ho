@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
 import csv
-import re
 
-from django.db.utils import IntegrityError
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy
 
 from optparse import make_option
 
+import libya_tally.apps.tally.management.commands.import_data as imp
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.office import Office
@@ -20,31 +19,6 @@ from libya_tally.libs.models.enums.gender import Gender
 
 STATIONS_PATH = 'data/stations.csv'
 RESULT_FORMS_PATH = 'data/result_forms.csv'
-
-
-def empty_string_to(value, default):
-    return value if len(value) else default
-
-
-def empty_strings_to_none(row):
-    """Convert all empty strings in row to 0."""
-    return [empty_string_to(f, None) for f in row]
-
-
-def invalid_line(row):
-    """Ignore lines that are all empty."""
-    return len(row) == reduce(lambda x, y: x + 1 if y == '' else 0, row, 0)
-
-
-def strip_non_numeric(string):
-    """Strip non-numerics and safely convert to float.
-
-    :param string: The string to convert.
-    :returns: None if string is not a float."""
-    try:
-        return float(re.sub("[^0-9.]", "", string))
-    except ValueError:
-        return None
 
 
 class Command(BaseCommand):
@@ -94,16 +68,18 @@ class Command(BaseCommand):
                     center=center,
                     sub_constituency=sub_constituency,
                     gender=gender,
-                    registrants=empty_string_to(row[5], None),
+                    registrants=imp.empty_string_to(row[5], None),
                     station_number=row[3])
 
     def import_result_forms(self, result_forms_path):
+        replacement_count = 0
+
         with open(result_forms_path, 'rU') as f:
             reader = csv.reader(f)
             reader.next()  # ignore header
 
             for row in reader:
-                row = empty_strings_to_none(row)
+                row = imp.empty_strings_to_none(row)
                 ballot = Ballot.objects.get(number=row[0])
 
                 center = None
@@ -126,16 +102,31 @@ class Command(BaseCommand):
                         print('[WARNING] Office "%s" does not exist' %
                               office_name)
 
+                is_replacement = True if center is None else False
+
+                if is_replacement:
+                    replacement_count += 1
+
+                kwargs = {
+                    'barcode': row[7],
+                    'ballot': ballot,
+                    'center': center,
+                    'gender': gender,
+                    'name': row[4],
+                    'office': office,
+                    'serial_number': row[8],
+                    'station_number': row[2]
+                }
+
                 try:
-                    _, created = ResultForm.objects.get_or_create(
-                        barcode=row[7],
-                        ballot=ballot,
-                        center=center,
-                        form_state=FormState.UNSUBMITTED,
-                        gender=gender,
-                        name=row[4],
-                        office=office,
-                        serial_number=row[8],
-                        station_number=row[2])
-                except IntegrityError:
-                    pass
+                    form = ResultForm.objects.get(**kwargs)
+                except ResultForm.DoesNotExist:
+                    kwargs['form_state'] = FormState.UNSUBMITTED
+                    kwargs['is_replacement'] = is_replacement
+                    ResultForm.objects.create(**kwargs)
+                else:
+                    if is_replacement:
+                        form.is_replacement = is_replacement
+                        form.save()
+
+        print '[INFO] Number of replacement forms: %s' % replacement_count
