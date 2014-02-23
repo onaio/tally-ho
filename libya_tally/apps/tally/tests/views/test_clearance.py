@@ -237,7 +237,13 @@ class TestClearance(TestBase):
     def test_review_post_supervisor_implement(self):
         # save clearance as clerk
         self._create_and_login_user()
-        result_form = create_result_form(form_state=FormState.CLEARANCE)
+        center = create_center()
+        station_number = 2
+        result_form = create_result_form(form_state=FormState.CLEARANCE,
+                                         center=center,
+                                         station_number=station_number)
+        self.assertEqual(result_form.center, center)
+        self.assertEqual(result_form.station_number, station_number)
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
 
         view = views.ReviewView.as_view()
@@ -275,6 +281,8 @@ class TestClearance(TestBase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+        self.assertEqual(result_form.center, center)
+        self.assertEqual(result_form.station_number, station_number)
 
     def test_review_post_supervisor_implement_replacement_form(self):
         center = create_center()
@@ -324,8 +332,8 @@ class TestClearance(TestBase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
-        self.assertTrue(result_form.center is None)
-        self.assertTrue(result_form.station_number is None)
+        self.assertIsNone(result_form.center)
+        self.assertIsNone(result_form.station_number)
 
     def test_new_form_get_with_form(self):
         # save clearance as clerk
