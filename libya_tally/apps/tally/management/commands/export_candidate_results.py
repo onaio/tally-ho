@@ -11,7 +11,7 @@ from libya_tally.libs.models.enums.form_state import FormState
 
 OUTPUT_PATH = 'results/candidate_votes.csv'
 BARCODE_PATH = 'results/special_barcodes.csv'
-SPECIAL_BALLOTS = [4, 6, 7, 11, 12]
+SPECIAL_BALLOTS = None
 
 
 def distinct_forms(ballot):
@@ -30,6 +30,37 @@ def get_votes(candidate):
         active=True, result_form__form_state=FormState.ARCHIVED).all()
 
     return [len(results), sum([r.votes for r in results])]
+
+
+def save_barcode_results(complete_barcodes):
+    with open(BARCODE_PATH, 'w') as f:
+        header = ['ballot', 'barcode', 'order', 'name', 'votes']
+        w = csv.DictWriter(f, header)
+        f.write(u'\ufeff'.encode('utf-8'))
+
+        for barcode in complete_barcodes:
+            result_form = ResultForm.objects.get(barcode=barcode)
+            candidates = result_form.ballot.candidates.all()
+
+            for candidate in candidates:
+                results = candidate.results.filter(
+                    result_form=result_form,
+                    entry_version=EntryVersion.FINAL,
+                    result_form__form_state=FormState.ARCHIVED,
+                    active=True).all()
+                votes = sum([r.votes for r in results])
+
+                output = {
+                    'ballot': result_form.ballot.number,
+                    'barcode': barcode,
+                    'order': candidate.order,
+                    'name': candidate.full_name,
+                    'votes': votes
+                }
+
+                w.writerow({
+                    k: v.encode('utf8') if isinstance(v, basestring)
+                    else v for k, v in output.items()})
 
 
 class Command(BaseCommand):
@@ -53,8 +84,7 @@ class Command(BaseCommand):
             header.append('candidate %s name' % i)
             header.append('candidate %s votes' % i)
 
-        barcodes = []
-        candidates_to_votes_cache = {}
+        complete_barcodes = []
 
         with open(OUTPUT_PATH, 'wb') as f:
             # BOM, Excel needs it to open UTF-8 file properly
@@ -64,19 +94,17 @@ class Command(BaseCommand):
 
             for ballot in Ballot.objects.exclude(number=54):
                 forms = distinct_forms(ballot)
+                final_forms = forms.filter(form_state=FormState.ARCHIVED)
 
-                if ballot.number in SPECIAL_BALLOTS:
-                    special_forms = forms.filter(
-                        form_state=FormState.ARCHIVED)
-                    barcodes.extend([r.barcode for r in special_forms])
+                if SPECIAL_BALLOTS and ballot.number in SPECIAL_BALLOTS:
+                    complete_barcodes.extend([r.barcode for r in final_forms])
 
                 if not forms:
                     forms = distinct_forms(
                         ballot.sc_component.all()[0].ballot_general)
 
                 num_stations = forms.count()
-                num_stations_completed = forms.filter(
-                    form_state=FormState.ARCHIVED).count()
+                num_stations_completed = final_forms.count()
 
                 percent_complete = round(
                     100 * num_stations_completed / num_stations, 3)
@@ -92,7 +120,6 @@ class Command(BaseCommand):
 
                 for candidate in ballot.candidates.all():
                     num_results, votes = get_votes(candidate)
-                    candidates_to_votes_cache[candidate.full_name] = votes
                     candidates_to_votes[candidate.full_name] = votes
                     num_results_ary.append(num_results)
 
@@ -120,31 +147,4 @@ class Command(BaseCommand):
                 w.writerow({k: v.encode('utf8') if isinstance(v, basestring)
                             else v for k, v in output.items()})
 
-            with open(BARCODE_PATH, 'w') as f:
-                header = ['ballot', 'barcode', 'order', 'name', 'votes']
-                w = csv.DictWriter(f, header)
-                f.write(u'\ufeff'.encode('utf-8'))
-
-                for barcode in barcodes:
-                    result_form = ResultForm.objects.get(barcode=barcode)
-                    candidates = result_form.ballot.candidates.all()
-
-                    for candidate in candidates:
-                        results = candidate.results.filter(
-                            result_form=result_form,
-                            entry_version=EntryVersion.FINAL,
-                            result_form__form_state=FormState.ARCHIVED,
-                            active=True).all()
-                        votes = sum([r.votes for r in results])
-
-                        output = {
-                            'ballot': result_form.ballot.number,
-                            'barcode': barcode,
-                            'order': candidate.order,
-                            'name': candidate.full_name,
-                            'votes': votes
-                        }
-
-                        w.writerow({
-                            k: v.encode('utf8') if isinstance(v, basestring)
-                            else v for k, v in output.items()})
+            save_barcode_results(complete_barcodes)
