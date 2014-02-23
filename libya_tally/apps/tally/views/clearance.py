@@ -264,6 +264,13 @@ class NewFormView(LoginRequiredMixin,
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = ResultForm.objects.get(pk=pk)
+
+        if result_form.center or result_form.station_number\
+                or result_form.ballot or result_form.office:
+            # We are writing a form we should not be, bail out.
+            del self.request.session['result_form']
+            return redirect('clearance')
+
         result_form.created_user = self.request.user
         form = NewResultForm(post_data, instance=result_form)
 
