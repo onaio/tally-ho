@@ -158,7 +158,7 @@ class FormListView(LoginRequiredMixin,
                 'barcode', 'form_state', 'gender', 'station_number',
                 'center__sub_constituency__code',
                 'center__code',
-                'ballot__race_type')
+                'ballot__race_type').order_by('barcode')
 
             return render_to_csv_response(form_list)
 
