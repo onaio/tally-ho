@@ -18,6 +18,13 @@ from libya_tally.libs.models.enums.race_type import RaceType
 male_local = _('Male')
 female_local = _('Female')
 
+COMPONENT_TO_BALLOTS = {
+    55: [26, 27, 28],
+    56: [29, 30, 31],
+    57: [34],
+    58: [47],
+}
+
 
 def model_field_to_dict(form):
     field_dict = model_to_dict(form)
@@ -332,6 +339,11 @@ class ResultForm(BaseModel):
             'center__id', 'station_number', 'ballot__id',
             'form_state').distinct(
             'center__id', 'station_number', 'ballot__id')
+
+    @classmethod
+    def distinct_for_component(cls, ballot):
+        return cls.distinct_filter(cls.objects.filter(
+            ballot__number__in=COMPONENT_TO_BALLOTS[ballot.number]))
 
     @classmethod
     def distinct_forms(cls):

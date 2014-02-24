@@ -15,7 +15,12 @@ SPECIAL_BALLOTS = None
 
 
 def distinct_forms(ballot):
-    return ResultForm.distinct_filter(ballot.resultform_set)
+    forms = ResultForm.distinct_filter(ballot.resultform_set)
+
+    if not forms:
+        forms = ResultForm.distinct_for_component(ballot)
+
+    return forms
 
 
 def get_votes(candidate):
@@ -83,17 +88,12 @@ def export_candidate_votes(output=None):
         w.writeheader()
 
         for ballot in Ballot.objects.exclude(number=54):
+            general_ballot = ballot
             forms = distinct_forms(ballot)
             final_forms = forms.filter(form_state=FormState.ARCHIVED)
 
             if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
                 complete_barcodes.extend([r.barcode for r in final_forms])
-
-            candidate_ballot = ballot
-
-            if not forms:
-                candidate_ballot = ballot.sc_component.all()[0].ballot_general
-                forms = distinct_forms(candidate_ballot)
 
             num_stations = forms.count()
             num_stations_completed = final_forms.count()
@@ -110,7 +110,7 @@ def export_candidate_votes(output=None):
             candidates_to_votes = {}
             num_results_ary = []
 
-            for candidate in candidate_ballot.candidates.all():
+            for candidate in ballot.candidates.all():
                 num_results, votes = get_votes(candidate)
                 candidates_to_votes[candidate.full_name] = votes
                 num_results_ary.append(num_results)
@@ -120,8 +120,11 @@ def export_candidate_votes(output=None):
             for num_results in num_results_ary:
                 if num_stations_completed != num_results:
                     print ('[WARNING] Number stations complete (%s) not '
-                           'equal to num_results (%s)' % (
-                               num_stations_completed, num_results))
+                           'equal to num_results (%s) for ballot %s (general'
+                           ' ballot %s)' % (
+                               num_stations_completed, num_results,
+                               ballot.number, general_ballot.number))
+                    output['stations completed'] = num_results
 
             candidates_to_votes = OrderedDict((sorted(
                 candidates_to_votes.items(), key=lambda t: t[1],

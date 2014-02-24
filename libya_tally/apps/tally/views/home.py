@@ -56,6 +56,7 @@ def suspicious_error(request):
 
     if error_message:
         del request.session['error_message']
+
     return render_to_response('tally/errors/suspicious.html',
                               {'error_message': error_message},
                               context_instance=context)
