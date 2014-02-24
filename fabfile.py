@@ -1,4 +1,5 @@
 import os
+from subprocess import call
 import sys
 
 from fabric.api import cd, env, prefix, run
@@ -12,6 +13,14 @@ DEPLOYMENTS = {
         'django_config_module': 'libya_tally.settings.local_settings',
         'pid': '/var/run/tally.pid',
     },
+    'prod': {
+        'home': '/var/www/',
+        'db_host': '192.168.1.1',
+        'from_local': True,
+        'host_string': 'hnec',
+        'project': 'tally-system',
+        'django_config_module': 'libya_tally.settings.local_settings',
+    }
 }
 
 
@@ -49,13 +58,33 @@ def setup_env(deployment_name):
                                              'requirements/common.pip')
 
 
+def local_deploy():
+    env.use_ssh_config = True
+    call(['./scripts/deploy'])
+
+    run('rm -rf %s' % env.project)
+    run('tar xzvf %s.tgz' % env.project)
+    run('mv %s-clean %s' % (env.project, env.project))
+
+    # remove existing deploy and clean new deploy
+    run('find %s -name "*.pyc" -exec rm -rf {} \;' % env.project)
+    run('find %s -name "._*" -exec rm -rf {} \;' % env.project)
+    run('./%s/scripts/install_app %s' % (env.project, env.db_host))
+
+
 def deploy(deployment_name, branch='master'):
     setup_env(deployment_name)
+
+    if env.from_local:
+        local_deploy()
+        return
+
     with cd(env.code_src):
         run("git fetch origin")
         run("git checkout origin/%s" % branch)
 
         run('find . -name "*.pyc" -exec rm -rf {} \;')
+        run('find . -name "._" -exec rm -rf {} \;')
 
     with source(env.virtualenv):
         run("pip install -r %s" % env.pip_requirements_file)

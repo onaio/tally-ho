@@ -13,10 +13,11 @@ DB_HOST=127.0.0.1
 USER=ubuntu
 ALLOW_HOST=any
 
+if [ $# -gt 0 ]; then
+    DB_HOST=$1
+fi
+
 # remove existing deploy and clean new deploy
-rm -rf $PROJECT_NAME
-tar xzvf $PROJECT_NAME.tgz
-mv $PROJECT_NAME-clean $PROJECT_NAME
 find $PROJECT_NAME -name "*.pyc" -exec rm -rf {} \;
 find $PROJECT_NAME -name "._*" -exec rm -rf {} \;
 

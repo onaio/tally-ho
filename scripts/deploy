@@ -18,11 +18,3 @@ rm -rf tally-system-clean/data/.git
 tar czvf tally-system.tgz tally-system-clean
 rm -rf tally-system-clean
 scp tally-system.tgz $TARGET_HOST:
-
-# login and run install
-cat <<RUN
-ssh $TARGET_HOST
-tar xzvf tally-system.tgz
-mv tally-system-clean tally-system
-./tally-system/scripts/install_app
-RUN
