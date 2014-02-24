@@ -153,8 +153,7 @@ class FormListView(LoginRequiredMixin,
 
         if form_state:
             form_state = FormState.get(form_state)
-            form_list = ResultForm.distinct_forms().filter(
-                form_state=form_state.value).values(
+            form_list = ResultForm.forms_in_state(form_state.value).values(
                 'barcode', 'form_state', 'gender', 'station_number',
                 'center__sub_constituency__code',
                 'center__code',
