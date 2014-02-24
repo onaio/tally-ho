@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
+from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
@@ -373,6 +374,16 @@ class ResultForm(BaseModel):
     def send_to_clearance(self):
         self.form_state = FormState.CLEARANCE
         self.save()
+
+    @classmethod
+    def unsubmitted_result_forms(self):
+        not_in_states = [FormState.ARCHIVED, FormState.ARCHIVING,
+                         FormState.AUDIT, FormState.CLEARANCE,
+                         FormState.CORRECTION, FormState.DATA_ENTRY_1,
+                         FormState.DATA_ENTRY_2, FormState.INTAKE,
+                         FormState.QUALITY_CONTROL]
+        return ResultForm.objects.exclude(
+            Q(form_state__in=not_in_states) | Q(center__isnull=True))
 
 
 reversion.register(ResultForm)
