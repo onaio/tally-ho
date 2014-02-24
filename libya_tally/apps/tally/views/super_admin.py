@@ -1,8 +1,12 @@
 from django.core.exceptions import SuspiciousOperation
+
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
+from django.template import loader, RequestContext
 from django.views.generic import TemplateView
+from django.utils.translation import ugettext_lazy as _
+
 from djqscsv import render_to_csv_response
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
@@ -15,6 +19,7 @@ from libya_tally.libs.models.enums.audit_resolution import\
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
+from libya_tally.libs.views.exports import export_to_csv_response
 
 
 def duplicates():
@@ -292,12 +297,38 @@ class FormNotReceivedListView(LoginRequiredMixin,
                               TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/forms_not_received.html"
+    header_template_name = "tally/super_admin/forms_not_received_header.html"
+    queryset = ResultForm.unsubmitted_result_forms()
+
+    headers = [
+        _(u'Barcode'),
+        _(u'Center Code'),
+        _(u'Station Number'),
+        _(u'Office'),
+        _(u'Office Number'),
+        _(u'Voting District'),
+        _(u'Race Type'),
+        _(u'Form State'),
+        _(u'Last Modified')
+    ]
+
+    def get(self, *args, **kwargs):
+        fmt = kwargs.get('format')
+        if fmt == 'csv':
+            filename = 'forms-not-received.csv'
+
+            # get translated headers
+            context = RequestContext(self.request)
+            t = loader.get_template(self.header_template_name)
+            headers = t.render(context).strip().split(',')
+
+            fields = [name
+                      for f, name in FormNotReceivedDataView.display_fields]
+
+            return export_to_csv_response(
+                self.queryset, headers, fields, filename)
+        return super(FormNotReceivedListView, self).get(*args, **kwargs)
 
 
 class FormNotReceivedDataView(FormListDataView):
-    not_in_states = [FormState.ARCHIVED, FormState.ARCHIVING, FormState.AUDIT,
-                     FormState.CLEARANCE, FormState.CORRECTION,
-                     FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2,
-                     FormState.INTAKE, FormState.QUALITY_CONTROL]
-    queryset = ResultForm.objects.exclude(
-        Q(form_state__in=not_in_states) | Q(center__isnull=True))
+    queryset = ResultForm.unsubmitted_result_forms()

@@ -7,7 +7,7 @@
 {% block content %}
 
 <h1>{% trans 'Forms Not Received List' %}</h1>
-
+<div class="row">
 Export:
 <a href="{% url 'form-list' 'unsubmitted' %}">{% trans 'Unsubmitted' %}</a>
 <a href="{% url 'form-list' 'intake' %}">{% trans 'Intake' %}</a>
@@ -19,8 +19,11 @@ Export:
 <a href="{% url 'form-list' 'archived' %}">{% trans 'Archived' %}</a>
 <a href="{% url 'form-list' 'clearance' %}">{% trans 'Clearance' %}</a>
 <a href="{% url 'form-list' 'audit' %}">{% trans 'Audit' %}</a>
-<br/>
-<br/>
+
+</div>
+<div class="row">
+<a href="{% url 'form-not-received-view' 'csv' %}" class="btn">{% trans 'Download Not Received Result Form List' %}</a>
+</div>
 
 <table id="formlist">
     <thead>
