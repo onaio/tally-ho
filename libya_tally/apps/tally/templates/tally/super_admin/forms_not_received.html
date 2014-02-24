@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load js %}
+{% load eztables %}
+
+{% block content %}
+
+<h1>{% trans 'Forms Not Received List' %}</h1>
+
+Export:
+<a href="{% url 'form-list' 'unsubmitted' %}">{% trans 'Unsubmitted' %}</a>
+<a href="{% url 'form-list' 'intake' %}">{% trans 'Intake' %}</a>
+<a href="{% url 'form-list' 'data_entry_1' %}">{% trans 'Data Entry 1' %}</a>
+<a href="{% url 'form-list' 'data_entry_2' %}">{% trans 'Data Entry 2' %}</a>
+<a href="{% url 'form-list' 'correction' %}">{% trans 'Correction' %}</a>
+<a href="{% url 'form-list' 'quality_control' %}">{% trans 'Quality Control' %}</a>
+<a href="{% url 'form-list' 'archiving' %}">{% trans 'Archiving' %}</a>
+<a href="{% url 'form-list' 'archived' %}">{% trans 'Archived' %}</a>
+<a href="{% url 'form-list' 'clearance' %}">{% trans 'Clearance' %}</a>
+<a href="{% url 'form-list' 'audit' %}">{% trans 'Audit' %}</a>
+<br/>
+<br/>
+
+<table id="formlist">
+    <thead>
+        <tr>
+            <th>{% trans 'Barcode' %}</th>
+            <th>{% trans 'Center Code' %}</th>
+            <th>{% trans 'Station Number' %}</th>
+            <th>{% trans 'Office' %}</th>
+            <th>{% trans 'Office Number' %}</th>
+            <th>{% trans 'Voting District' %}</th>
+            <th>{% trans 'Race Type' %}</th>
+            <th>{% trans 'Form State' %}</th>
+            <th>{% trans 'Last Modified' %}</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+{% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+      <link href="{{STATIC_URL}}css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
+{% django_js %}
+{% datatables_js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/form_not_received.js"></script>
+{% endblock %}

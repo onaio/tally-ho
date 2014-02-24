@@ -1,6 +1,6 @@
 from django.core.exceptions import SuspiciousOperation
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import TemplateView
 from djqscsv import render_to_csv_response
@@ -285,3 +285,19 @@ class FormActionView(LoginRequiredMixin,
             return redirect(self.success_url)
         else:
             raise SuspiciousOperation('Unknown POST response type')
+
+
+class FormNotReceivedListView(LoginRequiredMixin,
+                              mixins.GroupRequiredMixin,
+                              TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "tally/super_admin/forms_not_received.html"
+
+
+class FormNotReceivedDataView(FormListDataView):
+    not_in_states = [FormState.ARCHIVED, FormState.ARCHIVING, FormState.AUDIT,
+                     FormState.CLEARANCE, FormState.CORRECTION,
+                     FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2,
+                     FormState.INTAKE, FormState.QUALITY_CONTROL]
+    queryset = ResultForm.objects.exclude(
+        Q(form_state__in=not_in_states) | Q(center__isnull=True))

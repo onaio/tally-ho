@@ -1,6 +1,8 @@
 from django.core.exceptions import SuspiciousOperation
 from django.test import RequestFactory
 
+from eztables.tests import DatatablesTestMixin
+
 from libya_tally.apps.tally.views import super_admin as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
@@ -76,3 +78,11 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/super-administrator/form-action-list',
                       response['Location'])
+
+    def test_form_not_received_list_view(self):
+        view = views.FormNotReceivedListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request)
+        self.assertContains(response, "Forms Not Received List")
+        self.assertContains(response, "form_not_received.js")
