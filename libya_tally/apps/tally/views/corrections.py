@@ -72,8 +72,16 @@ def get_recon_form(result_form):
     results = result_form.corrections_reconciliationforms
 
     if results.count() != 2:
-        raise SuspiciousOperation(_(u"There should be exactly two "
-                                    u"reconciliation results."))
+        final_results = results.filter(entry_version=EntryVersion.FINAL)
+
+        if results.count() - final_results.count() == 2:
+            # final results exist, deactivate them and continue
+            for final in final_results:
+                final.active = False
+                final.save()
+        else:
+            raise SuspiciousOperation(_(u"There should be exactly two "
+                                        u"reconciliation results."))
 
     reconciliation_form_1 = recon_form_for_version(
         results, EntryVersion.DATA_ENTRY_1)
