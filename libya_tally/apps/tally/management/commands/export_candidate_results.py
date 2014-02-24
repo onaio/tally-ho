@@ -139,7 +139,7 @@ def export_candidate_votes(output=None):
             w.writerow({k: v.encode('utf8') if isinstance(v, basestring)
                         else v for k, v in output.items()})
 
-        #save_barcode_results(complete_barcodes)
+        save_barcode_results(complete_barcodes)
 
 
 class Command(BaseCommand):
