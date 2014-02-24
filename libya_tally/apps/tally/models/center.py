@@ -27,6 +27,21 @@ class Center(BaseModel):
     region = models.TextField()
     village = models.TextField()
 
+    def remove(self):
+        """Remove a center.  Stop and doing nothing if there are results for
+        that center.  Remove result forms and stations for the center.
+        """
+        for resultform in self.resultform_set.all():
+            if resultform.results.all():
+                print resultform.barcode
+                print resultform.results.all()
+                raise Exception('Unexpected results.')
+
+        self.resultform_set.all().delete()
+        self.stations.all().delete()
+
+        self.delete()
+
     def sc_code(self):
         return self.sub_constituency.code if self.sub_constituency else _(
             'Special')
