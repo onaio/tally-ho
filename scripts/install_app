@@ -17,10 +17,6 @@ if [ $# -gt 0 ]; then
     DB_HOST=$1
 fi
 
-# remove existing deploy and clean new deploy
-find $PROJECT_NAME -name "*.pyc" -exec rm -rf {} \;
-find $PROJECT_NAME -name "._*" -exec rm -rf {} \;
-
 sudo stop tally
 
 if [[ $GIT == "true" ]]; then
