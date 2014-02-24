@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<h4>{% trans 'Please return to the home page.' %}</h4>
+<a href={% url 'home' %}>{% trans 'Home' %}</a>
+<h3>{{ error_message }}</h3>
+{% endblock %}
