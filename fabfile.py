@@ -17,7 +17,7 @@ DEPLOYMENTS = {
         'home': '/var/www/',
         'db_host': '192.168.1.1',
         'from_local': True,
-        'host_string': 'hnec',
+        'host_string': 'hnec',  # configure .ssh/config for HNEC
         'project': 'tally-system',
         'django_config_module': 'libya_tally.settings.local_settings',
     }
