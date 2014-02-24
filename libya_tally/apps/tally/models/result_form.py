@@ -25,6 +25,7 @@ COMPONENT_TO_BALLOTS = {
     57: [34],
     58: [47],
 }
+MAX_BARCODE = 530000576
 
 
 def model_field_to_dict(form):
@@ -336,7 +337,9 @@ class ResultForm(BaseModel):
         return qs.filter(
             center__isnull=False,
             station_number__isnull=False,
-            ballot__isnull=False).order_by(
+            ballot__isnull=False).extra(
+            where=["barcode::integer <= %s"],
+            params=[MAX_BARCODE]).order_by(
             'center__id', 'station_number', 'ballot__id',
             'form_state').distinct(
             'center__id', 'station_number', 'ballot__id')
