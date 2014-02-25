@@ -37,9 +37,11 @@ class RacesReportView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         per_ballot = self.get_per_ballot_progress()
         completed = reduce(
-            lambda x, y: x + (1 if y['percentage'] >= 100 else 0),
+            lambda x, y: x + (1 if isinstance(y['percentage'], float) and
+                              y['percentage'] >= 100 else 0),
             per_ballot, 0)
 
+        raise Exception([p['percentage'] for p in per_ballot], completed)
 
         overview = {
             'races': len(per_ballot),
