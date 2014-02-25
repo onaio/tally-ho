@@ -41,8 +41,6 @@ class RacesReportView(LoginRequiredMixin,
                               y['percentage'] >= 100 else 0),
             per_ballot, 0)
 
-        raise Exception([p['percentage'] for p in per_ballot], completed)
-
         overview = {
             'races': len(per_ballot),
             'completed': completed
