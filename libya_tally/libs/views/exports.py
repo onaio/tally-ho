@@ -61,7 +61,6 @@ def save_barcode_results(complete_barcodes, output_duplicates=False):
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
     ballots_to_candidates = {}
-    candidates_to_votes = {}
 
     for ballot in valid_ballots():
         ballots_to_candidates[ballot.number] = ballot.candidates.all(
@@ -81,13 +80,9 @@ def save_barcode_results(complete_barcodes, output_duplicates=False):
             vote_list = ()
 
             for candidate in ballots_to_candidates[result_form.ballot.number]:
-                votes = candidates_to_votes.get(candidate)
-
-                if not votes:
-                    votes = candidate.num_votes(result_form)
-                    candidates_to_votes[candidate] = votes
-
+                votes = candidate.num_votes(result_form)
                 vote_list += (votes,)
+
                 output = {
                     'ballot': result_form.ballot.number,
                     'center': result_form.center.code,
