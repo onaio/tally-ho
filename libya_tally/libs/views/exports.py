@@ -1,6 +1,6 @@
 import csv
 
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
@@ -14,6 +14,7 @@ from libya_tally.libs.models.enums.form_state import FormState
 
 OUTPUT_PATH = 'results/candidate_votes.csv'
 RESULTS_PATH = 'results/form_results.csv'
+DUPLICATE_RESULTS_PATH = 'results/duplicate_results.csv'
 SPECIAL_BALLOTS = None
 
 
@@ -52,15 +53,22 @@ def get_votes(candidate):
     return [len(results), sum([r.votes for r in results])]
 
 
-def save_barcode_results(complete_barcodes):
+def save_barcode_results(complete_barcodes, output_duplicates=False):
+    center_to_votes = defaultdict(list)
+    center_to_forms = defaultdict(list)
+
     with open(RESULTS_PATH, 'w') as f:
-        header = ['ballot', 'barcode', 'order', 'name', 'votes']
+        header = ['ballot', 'center', 'station', 'gender', 'barcode', 'order',
+                  'name', 'votes']
         w = csv.DictWriter(f, header)
         f.write(u'\ufeff'.encode('utf-8'))
 
         for barcode in complete_barcodes:
             result_form = ResultForm.objects.get(barcode=barcode)
             candidates = result_form.ballot.candidates.all()
+
+            # build list of votes for this barcode
+            vote_list = ()
 
             for candidate in candidates.order_by('order'):
                 results = candidate.results.filter(
@@ -72,6 +80,9 @@ def save_barcode_results(complete_barcodes):
 
                 output = {
                     'ballot': result_form.ballot.number,
+                    'center': result_form.center.code,
+                    'station': result_form.station_number,
+                    'gender': result_form.gender_name,
                     'barcode': barcode,
                     'order': candidate.order,
                     'name': candidate.full_name,
@@ -82,8 +93,55 @@ def save_barcode_results(complete_barcodes):
                     k: v.encode('utf8') if isinstance(v, basestring)
                     else v for k, v in output.items()})
 
+            # store votes for this forms center
+            center = result_form.center
+            center_to_votes[center.code].append(vote_list)
+            center_to_forms[center.code].append(result_form)
 
-def export_candidate_votes(output=None, save_barcodes=False):
+    if output_duplicates:
+        output_duplicates(center_to_votes, center_to_forms)
+
+
+def output_duplicates(center_to_votes, center_to_forms):
+    print '[INFO] Exporting vote duplicate records'
+
+    with open(DUPLICATE_RESULTS_PATH, 'w') as f:
+        header = ['ballot', 'center', 'barcode', 'state', 'station', 'votes']
+        w = csv.DictWriter(f, header)
+        w.writeheader()
+        f.write(u'\ufeff'.encode('utf-8'))
+
+        for code, vote_lists in center_to_votes.items():
+            votes_cast = sum([sum(l) for l in vote_lists]) > 0
+            num_vote_lists = len(vote_lists)
+            num_distinct_vote_lists = len(set(vote_lists))
+
+            if votes_cast and num_distinct_vote_lists < num_vote_lists:
+                print ('[WARNING] Matching votes for center %s, %s vote lists'
+                       % (code, num_vote_lists))
+
+                for i, form in enumerate(center_to_forms[code]):
+                    vote_list = vote_lists[i]
+                    num_votes = sum(vote_list)
+                    other_vote_lists = vote_lists[:i] + vote_lists[i + 1:]
+
+                    if num_votes > 0 and vote_list in other_vote_lists:
+                        output = {
+                            'ballot': form.ballot.number,
+                            'center': code,
+                            'barcode': form.barcode,
+                            'state': form.form_state_name,
+                            'station': form.station_number,
+                            'votes': vote_list
+                        }
+
+                        w.writerow({
+                            k: v.encode('utf8') if isinstance(v, basestring)
+                            else v for k, v in output.items()})
+
+
+def export_candidate_votes(output=None, save_barcodes=False,
+                           output_duplicates=True):
     header = ['ballot number',
               'stations',
               'stations completed',
@@ -159,7 +217,8 @@ def export_candidate_votes(output=None, save_barcodes=False):
                         else v for k, v in output.items()})
 
         if save_barcodes:
-            save_barcode_results(complete_barcodes)
+            save_barcode_results(complete_barcodes,
+                                 output_duplicates=output_duplicates)
 
 
 def get_result_export_response(report):

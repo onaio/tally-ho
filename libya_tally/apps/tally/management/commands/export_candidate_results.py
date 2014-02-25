@@ -8,4 +8,4 @@ class Command(BaseCommand):
     help = ugettext_lazy("Export candidate votes list.")
 
     def handle(self, *args, **kwargs):
-        export_candidate_votes(save_barcodes=True)
+        export_candidate_votes(save_barcodes=True, output_duplicates=True)
