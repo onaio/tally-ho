@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Delete Centre' %}</h1>
+
+<div class="form-instructions">{% trans 'Enter the centre number to delete.' %}</div>
+
+<form name="remove-center-form" method="post" action="" onsubmit="return confirm('{% trans "Confirm that you want to delete the centre!" %}');">
+    {% if form.non_field_errors %}
+    <div class="text-danger">
+        {{ form.non_field_errors }}<br/>
+    </div>
+    {% endif %}
+    <table>
+        <tr>
+            <td><label>{% trans form.center_number.label %}</label></td>
+            <td>{{ form.center_number.errors }}
+                {{ form.center_number }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button type="submit" name="submit" class="btn btn-primary">{% trans "Delete Center" %}</button>
+            </td>
+        </tr>
+        {% csrf_token %}
+    </table>
+</form>
+
+{% endblock %}

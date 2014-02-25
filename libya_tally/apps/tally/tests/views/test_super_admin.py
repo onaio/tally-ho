@@ -98,3 +98,14 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         response = view(request)
         self.assertContains(response, "Downloads")
+
+    def test_remove_center_get(self):
+        view = views.RemoveCenterView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request)
+        self.assertContains(response, 'name="center_number"')
+        self.assertContains(response, '<form name="remove-center-form"')
+        self.assertContains(response,
+                            "confirm('Confirm that you want to "
+                            "delete the centre!")
