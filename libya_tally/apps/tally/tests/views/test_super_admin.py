@@ -151,3 +151,10 @@ class TestSuperAdmin(TestBase):
         self.assertContains(response,
                             u"Cannot remove center, some results for "
                             u"123456789 exist.")
+
+    def test_remove_centre_link(self):
+        view = views.DashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request)
+        self.assertContains(response, "Remove a Centre</a>")

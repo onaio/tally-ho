@@ -35,6 +35,12 @@
     <li><a href="{% url 'audit' %}">{% trans 'Audit Clerk' %}</a></li>
 </ul>
 
+
+<h3>{% trans 'Admin Operations' %}</h3>
+<ul>
+    <li><a href="{% url 'remove-center' %}">{% trans 'Remove a Centre' %}</a></li>
+</ul>
+
 {% if debug %}
 <h3>{% trans 'Users and groups' %}</h3>
 

@@ -93,6 +93,9 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-not-received-data$',
         super_admin.FormNotReceivedDataView.as_view(),
         name='form-not-received-data'),
+    url(r'^super-administrator/remove-centre$',
+        super_admin.RemoveCenterView.as_view(),
+        name='remove-center'),
 
     url(r'^data-entry$', data_entry_clerk.DataEntryView.as_view(),
         name='data-entry-clerk'),
