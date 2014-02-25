@@ -18,6 +18,10 @@ DUPLICATE_RESULTS_PATH = 'results/duplicate_results.csv'
 SPECIAL_BALLOTS = None
 
 
+def valid_ballots():
+    return Ballot.objects.exclude(number=54)
+
+
 def export_to_csv_response(queryset, headers, fields, filename='data.csv'):
     response = HttpResponse(content_type='text/csv')
     response['Content-Desposition'] = 'attachment; filename=%s' % filename
@@ -56,34 +60,40 @@ def get_votes(candidate):
 def save_barcode_results(complete_barcodes, output_duplicates=False):
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
+    ballots_to_candidates = {}
+    candidates_to_votes = {}
+
+    for ballot in valid_ballots():
+        ballots_to_candidates[ballot.number] = ballot.candidates.all(
+            ).order_by('order')
 
     with open(RESULTS_PATH, 'w') as f:
         header = ['ballot', 'center', 'station', 'gender', 'barcode', 'order',
                   'name', 'votes']
         w = csv.DictWriter(f, header)
+        w.writeheader()
         f.write(u'\ufeff'.encode('utf-8'))
 
-        for barcode in complete_barcodes:
-            result_form = ResultForm.objects.get(barcode=barcode)
-            candidates = result_form.ballot.candidates.all()
+        result_forms = ResultForm.objects.filter(barcode__in=complete_barcodes)
 
+        for result_form in result_forms:
             # build list of votes for this barcode
             vote_list = ()
 
-            for candidate in candidates.order_by('order'):
-                results = candidate.results.filter(
-                    result_form=result_form,
-                    entry_version=EntryVersion.FINAL,
-                    result_form__form_state=FormState.ARCHIVED,
-                    active=True).all()
-                votes = sum([r.votes for r in results])
+            for candidate in ballots_to_candidates[result_form.ballot.number]:
+                votes = candidates_to_votes.get(candidate)
 
+                if not votes:
+                    votes = candidate.num_votes(result_form)
+                    candidates_to_votes[candidate] = votes
+
+                vote_list += (votes,)
                 output = {
                     'ballot': result_form.ballot.number,
                     'center': result_form.center.code,
                     'station': result_form.station_number,
                     'gender': result_form.gender_name,
-                    'barcode': barcode,
+                    'barcode': result_form.barcode,
                     'order': candidate.order,
                     'name': candidate.full_name,
                     'votes': votes
@@ -99,10 +109,10 @@ def save_barcode_results(complete_barcodes, output_duplicates=False):
             center_to_forms[center.code].append(result_form)
 
     if output_duplicates:
-        output_duplicates(center_to_votes, center_to_forms)
+        save_center_duplicates(center_to_votes, center_to_forms)
 
 
-def output_duplicates(center_to_votes, center_to_forms):
+def save_center_duplicates(center_to_votes, center_to_forms):
     print '[INFO] Exporting vote duplicate records'
 
     with open(DUPLICATE_RESULTS_PATH, 'w') as f:
@@ -122,10 +132,10 @@ def output_duplicates(center_to_votes, center_to_forms):
 
                 for i, form in enumerate(center_to_forms[code]):
                     vote_list = vote_lists[i]
-                    num_votes = sum(vote_list)
+                    votes_cast = sum(vote_list) > 0
                     other_vote_lists = vote_lists[:i] + vote_lists[i + 1:]
 
-                    if num_votes > 0 and vote_list in other_vote_lists:
+                    if votes_cast and vote_list in other_vote_lists:
                         output = {
                             'ballot': form.ballot.number,
                             'center': code,
@@ -164,7 +174,7 @@ def export_candidate_votes(output=None, save_barcodes=False,
         w = csv.DictWriter(f, header)
         w.writeheader()
 
-        for ballot in Ballot.objects.exclude(number=54):
+        for ballot in valid_ballots():
             general_ballot = ballot
             forms = distinct_forms(ballot)
             final_forms = forms.filter(form_state=FormState.ARCHIVED)

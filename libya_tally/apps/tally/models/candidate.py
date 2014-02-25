@@ -5,6 +5,8 @@ import reversion
 
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.libs.models.base_model import BaseModel
+from libya_tally.libs.models.enums.entry_version import EntryVersion
+from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.race_type import RaceType
 
 
@@ -28,6 +30,15 @@ class Candidate(BaseModel):
             3: _('Component Twarag'),
             4: _('Component Tebu')
         }[self.race_type]
+
+    def num_votes(self, result_form):
+        results = self.results.filter(
+            result_form=result_form,
+            entry_version=EntryVersion.FINAL,
+            result_form__form_state=FormState.ARCHIVED,
+            active=True)
+
+        return sum([r.votes for r in results])
 
 
 reversion.register(Candidate)
