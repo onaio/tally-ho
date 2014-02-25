@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Downloads' %}</h1>
+
+<ul>
+    <li><a href="{% url 'result-export' 'formlist' %}">{% trans 'Result Form List' %}</a></li>
+    <li><a href="{% url 'result-export' 'candidate' %}">{% trans 'Candidate Votes' %}</a></li>
+</ul>
+
+{% endblock %}

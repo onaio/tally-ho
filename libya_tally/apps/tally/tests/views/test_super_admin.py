@@ -91,3 +91,10 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         response = view(request, format='csv')
         self.assertContains(response, "Barcode")
+
+    def test_result_export_view(self):
+        view = views.ResultExportView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request)
+        self.assertContains(response, "Downloads")

@@ -332,3 +332,10 @@ class FormNotReceivedListView(LoginRequiredMixin,
 
 class FormNotReceivedDataView(FormListDataView):
     queryset = ResultForm.unsubmitted_result_forms()
+
+
+class ResultExportView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "tally/super_admin/result_export.html"
