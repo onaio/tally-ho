@@ -23,6 +23,9 @@ from libya_tally.libs.views.exports import export_to_csv_response, \
     get_result_export_response
 
 
+ALL = '__all__'
+
+
 def duplicates():
     dupes = ResultForm.objects.values(
         'center', 'ballot', 'station_number').annotate(
@@ -158,9 +161,14 @@ class FormListView(LoginRequiredMixin,
         form_state = kwargs.get('state')
 
         if form_state:
-            form_state = FormState.get(form_state)
-            form_list = ResultForm.objects.filter(
-                form_state=form_state.value).values(
+            if form_state == ALL:
+                form_list = ResultForm.objects.all()
+            else:
+                form_state = FormState.get(form_state)
+                form_list = ResultForm.objects.filter(
+                    form_state=form_state.value)
+
+            form_list = form_list.values(
                 'barcode', 'form_state', 'gender', 'station_number',
                 'center__sub_constituency__code',
                 'center__code',

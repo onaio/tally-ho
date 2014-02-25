@@ -9,6 +9,7 @@
 <h1>{% trans 'Form List' %}</h1>
 
 Export:
+<a href="{% url 'form-list' '__all__' %}">{% trans 'All' %}</a>
 <a href="{% url 'form-list' 'unsubmitted' %}">{% trans 'Unsubmitted' %}</a>
 <a href="{% url 'form-list' 'intake' %}">{% trans 'Intake' %}</a>
 <a href="{% url 'form-list' 'data_entry_1' %}">{% trans 'Data Entry 1' %}</a>
