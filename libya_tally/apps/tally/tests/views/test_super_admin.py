@@ -1,11 +1,14 @@
 from django.core.exceptions import SuspiciousOperation
 from django.test import RequestFactory
 
+from libya_tally.apps.tally.models.center import Center
+from libya_tally.apps.tally.models.result import Result
 from libya_tally.apps.tally.views import super_admin as views
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_audit,\
-    create_candidates, create_reconciliation_form, create_result_form, TestBase
+    create_candidates, create_reconciliation_form, create_result_form, \
+    create_center, TestBase
 
 
 class TestSuperAdmin(TestBase):
@@ -109,3 +112,42 @@ class TestSuperAdmin(TestBase):
         self.assertContains(response,
                             "confirm('Confirm that you want to "
                             "delete the centre!")
+
+    def test_remove_center_post_invalid(self):
+        view = views.RemoveCenterView.as_view()
+        center = create_center()
+        data = {'center_number': center.code}
+        request = self.factory.post('/', data)
+        request.user = self.user
+        response = view(request)
+        self.assertContains(response,
+                            'Ensure this value has at least 5 character')
+
+    def test_remove_center_post_valid(self):
+        view = views.RemoveCenterView.as_view()
+        center = create_center('12345')
+        data = {'center_number': center.code}
+        request = self.factory.post('/', data)
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        with self.assertRaises(Center.DoesNotExist):
+            Center.objects.get(code=center.code)
+
+    def test_remove_center_post_result_exists(self):
+        center = create_center('12345')
+        result_form = create_result_form(center=center,
+                                         form_state=FormState.AUDIT)
+        create_reconciliation_form(result_form, self.user)
+        create_reconciliation_form(result_form, self.user)
+        create_candidates(result_form, self.user)
+        self.assertTrue(Result.objects.filter().count() > 0)
+
+        view = views.RemoveCenterView.as_view()
+        data = {'center_number': center.code}
+        request = self.factory.post('/', data)
+        request.user = self.user
+        response = view(request)
+        self.assertContains(response,
+                            u"Cannot remove center, some results for "
+                            u"123456789 exist.")

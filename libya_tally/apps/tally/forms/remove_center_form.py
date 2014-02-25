@@ -44,8 +44,9 @@ class RemoveCenterForm(forms.Form):
                 for resultform in center.resultform_set.all():
                     if resultform.results.all():
                         raise forms.ValidationError(
-                            _(u"Cannot remove center, some results for "
-                              u" %(barcode)s exist."))
+                            _(u"Cannot remove center, some results for"
+                              u" %(barcode)s exist." % {'barcode':
+                                                        resultform.barcode}))
 
             return cleaned_data
 
