@@ -19,7 +19,8 @@ from libya_tally.libs.models.enums.audit_resolution import\
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.views import mixins
-from libya_tally.libs.views.exports import export_to_csv_response
+from libya_tally.libs.views.exports import export_to_csv_response, \
+    get_result_export_response
 
 
 def duplicates():
@@ -339,3 +340,9 @@ class ResultExportView(LoginRequiredMixin,
                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/result_export.html"
+
+    def get(self, *args, **kwargs):
+        report = kwargs.get('report')
+        if report:
+            return get_result_export_response(report)
+        return super(ResultExportView, self).get(*args, **kwargs)

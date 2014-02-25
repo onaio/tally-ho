@@ -4,6 +4,7 @@ from collections import OrderedDict
 
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
+from django.utils.translation import ugettext as _
 
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -82,7 +83,7 @@ def save_barcode_results(complete_barcodes):
                     else v for k, v in output.items()})
 
 
-def export_candidate_votes(output=None):
+def export_candidate_votes(output=None, save_barcodes=False):
     header = ['ballot number',
               'stations',
               'stations completed',
@@ -157,4 +158,28 @@ def export_candidate_votes(output=None):
             w.writerow({k: v.encode('utf8') if isinstance(v, basestring)
                         else v for k, v in output.items()})
 
-        save_barcode_results(complete_barcodes)
+        if save_barcodes:
+            save_barcode_results(complete_barcodes)
+
+
+def get_result_export_response(report):
+    filename = 'not_found.csv'
+    path = None
+    if report == 'formresults':
+        filename = 'form_results.csv'
+        export_candidate_votes(save_barcodes=True)
+        path = RESULTS_PATH
+    elif report == 'candidates':
+        filename = 'candidates_votes.csv'
+        export_candidate_votes()
+        path = OUTPUT_PATH
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Desposition'] = 'attachment; filename=%s' % filename
+
+    if path:
+        with open(path, 'rb') as f:
+            response.write(f.read())
+    else:
+        response.write(_(u"Report not found."))
+        response.status_code = 404
+    return response
