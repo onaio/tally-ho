@@ -89,7 +89,8 @@ def build_result_and_recon_output(result_form):
     return output
 
 
-def save_barcode_results(complete_barcodes, output_duplicates=False):
+def save_barcode_results(complete_barcodes, output_duplicates=False,
+                         output_to_file=True):
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
     ballots_to_candidates = {}
@@ -156,7 +157,8 @@ def save_barcode_results(complete_barcodes, output_duplicates=False):
     return csv_file.name
 
 
-def save_center_duplicates(center_to_votes, center_to_forms):
+def save_center_duplicates(center_to_votes, center_to_forms,
+                           output_to_file=True):
     print '[INFO] Exporting vote duplicate records'
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
@@ -193,11 +195,15 @@ def save_center_duplicates(center_to_votes, center_to_forms):
                         w.writerow({
                             k: v.encode('utf8') if isinstance(v, basestring)
                             else v for k, v in output.items()})
+    if output_to_file:
+        os.rename(csv_file, DUPLICATE_RESULTS_PATH)
+        return DUPLICATE_RESULTS_PATH
+
     return csv_file.name
 
 
 def export_candidate_votes(output=None, save_barcodes=False,
-                           output_duplicates=True):
+                           output_duplicates=True, output_to_file=True):
     header = ['ballot number',
               'stations',
               'stations completed',
