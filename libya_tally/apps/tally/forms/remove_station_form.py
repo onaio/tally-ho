@@ -72,3 +72,4 @@ class RemoveStationForm(forms.Form):
             station = Station.objects.filter(
                 center__code=center_number, station_number=station_number)[0]
             station.remove()
+            return station

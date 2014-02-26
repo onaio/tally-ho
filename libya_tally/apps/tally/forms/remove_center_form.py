@@ -59,3 +59,4 @@ class RemoveCenterForm(forms.Form):
                 raise forms.ValidationError(_(u"Center Number does not exist"))
             else:
                 center.remove()
+                return center

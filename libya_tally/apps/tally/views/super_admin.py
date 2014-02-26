@@ -1,6 +1,7 @@
 from django.core.exceptions import SuspiciousOperation
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
 from django.template import loader, RequestContext
@@ -360,11 +361,14 @@ class ResultExportView(LoginRequiredMixin,
 
 class RemoveCenterView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.ReverseSuccessURLMixin,
+                       SuccessMessageMixin,
                        FormView):
     form_class = RemoveCenterForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/remove_center.html"
-    success_url = 'remove-center'
+    success_url = 'super-administrator'
+    success_message = _(u"Center Successfully Removed.")
 
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -378,18 +382,24 @@ class RemoveCenterView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
-            form.save()
+            center = form.save()
+            self.success_message = _(
+                u"Successfully removed center %(center)s"
+                % {'center': center.code})
             return self.form_valid(form)
         return self.form_invalid(form)
 
 
 class RemoveStationView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
+                        mixins.ReverseSuccessURLMixin,
+                        SuccessMessageMixin,
                         FormView):
     form_class = RemoveStationForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/remove_station.html"
-    success_url = 'remove-station'
+    success_url = 'super-administrator'
+    success_message = _(u"Station Successfully Removed.")
 
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -403,6 +413,10 @@ class RemoveStationView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
-            form.save()
+            station = form.save()
+            self.success_message = _(
+                u"Successfully removed station %(station)s from "
+                u"center %(center)s." % {'center': station.center.code,
+                                         'station': station.station_number})
             return self.form_valid(form)
         return self.form_invalid(form)

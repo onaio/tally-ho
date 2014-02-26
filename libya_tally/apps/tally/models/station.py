@@ -23,6 +23,9 @@ class Station(BaseModel):
     registrants = models.PositiveIntegerField(null=True)
     station_number = models.PositiveSmallIntegerField()
 
+    def __unicode__(self):
+        return u'%s - %s' % (self.center.code, self.station_number)
+
     @property
     def gender_name(self):
         return Gender.label(self.gender)

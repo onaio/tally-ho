@@ -1,4 +1,5 @@
 from django.core.exceptions import SuspiciousOperation
+from django.contrib.messages.storage import default_storage
 from django.test import RequestFactory
 
 from libya_tally.apps.tally.models.center import Center
@@ -130,6 +131,8 @@ class TestSuperAdmin(TestBase):
         data = {'center_number': center.code}
         request = self.factory.post('/', data)
         request.user = self.user
+        request.session = {}
+        request._messages = default_storage(request)
         response = view(request)
         self.assertEqual(response.status_code, 302)
         with self.assertRaises(Center.DoesNotExist):
@@ -201,6 +204,8 @@ class TestSuperAdmin(TestBase):
         }
         request = self.factory.post('/', data)
         request.user = self.user
+        request.session = {}
+        request._messages = default_storage(request)
         response = view(request)
         self.assertEqual(response.status_code, 302)
         with self.assertRaises(Station.DoesNotExist):
