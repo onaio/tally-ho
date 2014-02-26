@@ -7,7 +7,7 @@ git clone git@github.com:onaio/tally-system.git
 git clone git@github.com:onaio/libya-data.git data
 ```
 
-### Make a virutal environment and install requirements
+### Make a virtual environment and install requirements
 
 Prerequisites: this assumes you have [virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/en/latest/install.html) and [PostgreSQL](https://wiki.postgresql.org/wiki/Detailed_installation_guides) installed.
 
