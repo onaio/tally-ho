@@ -1,10 +1,13 @@
 import csv
+import os
 
 from collections import defaultdict, OrderedDict
 
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
 from django.utils.translation import ugettext as _
+
+from tempfile import NamedTemporaryFile
 
 from libya_tally.apps.tally.models.ballot import Ballot
 from libya_tally.apps.tally.models.result_form import ResultForm
@@ -63,10 +66,12 @@ def save_barcode_results(complete_barcodes, output_duplicates=False):
     ballots_to_candidates = {}
 
     for ballot in valid_ballots():
-        ballots_to_candidates[ballot.number] = ballot.candidates.all(
-            ).order_by('order')
+        ballots_to_candidates[ballot.number] = \
+            ballot.candidates.all().order_by('order')
 
-    with open(RESULTS_PATH, 'w') as f:
+    csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
+
+    with csv_file as f:
         header = ['ballot', 'center', 'station', 'gender', 'barcode', 'order',
                   'name', 'votes']
         w = csv.DictWriter(f, header)
@@ -104,13 +109,16 @@ def save_barcode_results(complete_barcodes, output_duplicates=False):
             center_to_forms[center.code].append(result_form)
 
     if output_duplicates:
-        save_center_duplicates(center_to_votes, center_to_forms)
+        return save_center_duplicates(center_to_votes, center_to_forms)
+    return csv_file.name
 
 
 def save_center_duplicates(center_to_votes, center_to_forms):
     print '[INFO] Exporting vote duplicate records'
 
-    with open(DUPLICATE_RESULTS_PATH, 'w') as f:
+    csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
+
+    with csv_file as f:
         header = ['ballot', 'center', 'barcode', 'state', 'station', 'votes']
         w = csv.DictWriter(f, header)
         w.writeheader()
@@ -143,6 +151,7 @@ def save_center_duplicates(center_to_votes, center_to_forms):
                         w.writerow({
                             k: v.encode('utf8') if isinstance(v, basestring)
                             else v for k, v in output.items()})
+    return csv_file.name
 
 
 def export_candidate_votes(output=None, save_barcodes=False,
@@ -163,7 +172,9 @@ def export_candidate_votes(output=None, save_barcodes=False,
 
     complete_barcodes = []
 
-    with open(OUTPUT_PATH, 'wb') as f:
+    csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
+
+    with csv_file as f:
         # BOM, Excel needs it to open UTF-8 file properly
         f.write(u'\ufeff'.encode('utf8'))
         w = csv.DictWriter(f, header)
@@ -221,9 +232,10 @@ def export_candidate_votes(output=None, save_barcodes=False,
             w.writerow({k: v.encode('utf8') if isinstance(v, basestring)
                         else v for k, v in output.items()})
 
-        if save_barcodes:
-            save_barcode_results(complete_barcodes,
-                                 output_duplicates=output_duplicates)
+    if save_barcodes:
+        return save_barcode_results(complete_barcodes,
+                                    output_duplicates=output_duplicates)
+    return csv_file.name
 
 
 def get_result_export_response(report):
@@ -231,18 +243,17 @@ def get_result_export_response(report):
     path = None
     if report == 'formresults':
         filename = 'form_results.csv'
-        export_candidate_votes(save_barcodes=True)
-        path = RESULTS_PATH
+        path = export_candidate_votes(save_barcodes=True)
     elif report == 'candidates':
         filename = 'candidates_votes.csv'
-        export_candidate_votes()
-        path = OUTPUT_PATH
+        path = export_candidate_votes()
     response = HttpResponse(content_type='text/csv')
     response['Content-Desposition'] = 'attachment; filename=%s' % filename
 
     if path:
         with open(path, 'rb') as f:
             response.write(f.read())
+        os.remove(path)
     else:
         response.write(_(u"Report not found."))
         response.status_code = 404
