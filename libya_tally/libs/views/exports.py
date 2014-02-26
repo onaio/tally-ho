@@ -3,6 +3,8 @@ import os
 
 from collections import defaultdict, OrderedDict
 
+from django.core.files.base import File
+from django.core.files.storage import default_storage
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
 from django.utils.translation import ugettext as _
@@ -152,8 +154,11 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             center_to_votes[center.code].append(vote_list)
             center_to_forms[center.code].append(result_form)
 
+    if output_to_file:
+        default_storage.save(RESULTS_PATH, File(csv_file.name))
     if output_duplicates:
-        return save_center_duplicates(center_to_votes, center_to_forms)
+        return save_center_duplicates(center_to_votes, center_to_forms,
+                                      output_to_file=output_to_file)
     return csv_file.name
 
 
@@ -196,7 +201,7 @@ def save_center_duplicates(center_to_votes, center_to_forms,
                             k: v.encode('utf8') if isinstance(v, basestring)
                             else v for k, v in output.items()})
     if output_to_file:
-        os.rename(csv_file, DUPLICATE_RESULTS_PATH)
+        default_storage.save(DUPLICATE_RESULTS_PATH, File(csv_file.name))
         return DUPLICATE_RESULTS_PATH
 
     return csv_file.name
@@ -278,9 +283,12 @@ def export_candidate_votes(output=None, save_barcodes=False,
             w.writerow({k: v.encode('utf8') if isinstance(v, basestring)
                         else v for k, v in output.items()})
 
+    if output_to_file:
+        default_storage.save(OUTPUT_PATH, File(csv_file.name))
     if save_barcodes:
         return save_barcode_results(complete_barcodes,
-                                    output_duplicates=output_duplicates)
+                                    output_duplicates=output_duplicates,
+                                    output_to_file=output_to_file)
     return csv_file.name
 
 
@@ -290,14 +298,16 @@ def get_result_export_response(report):
     if report == 'formresults':
         filename = 'form_results.csv'
         path = export_candidate_votes(save_barcodes=True,
-                                      output_duplicates=False)
+                                      output_duplicates=False,
+                                      output_to_file=False)
     elif report == 'candidates':
         filename = 'candidates_votes.csv'
-        path = export_candidate_votes()
+        path = export_candidate_votes(output_to_file=False)
     elif report == 'duplicates':
         filename = 'duplicates.csv'
         path = export_candidate_votes(save_barcodes=True,
-                                      output_duplicates=True)
+                                      output_duplicates=True,
+                                      output_to_file=False)
     response = HttpResponse(content_type='text/csv')
     response['Content-Desposition'] = 'attachment; filename=%s' % filename
 
