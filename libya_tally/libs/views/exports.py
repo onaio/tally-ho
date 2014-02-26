@@ -155,7 +155,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             center_to_forms[center.code].append(result_form)
 
     if output_to_file:
-        default_storage.save(RESULTS_PATH, File(csv_file.name))
+        default_storage.save(RESULTS_PATH, File(open(csv_file.name)))
     if output_duplicates:
         return save_center_duplicates(center_to_votes, center_to_forms,
                                       output_to_file=output_to_file)
@@ -201,7 +201,7 @@ def save_center_duplicates(center_to_votes, center_to_forms,
                             k: v.encode('utf8') if isinstance(v, basestring)
                             else v for k, v in output.items()})
     if output_to_file:
-        default_storage.save(DUPLICATE_RESULTS_PATH, File(csv_file.name))
+        default_storage.save(DUPLICATE_RESULTS_PATH, File(open(csv_file.name)))
         return DUPLICATE_RESULTS_PATH
 
     return csv_file.name
@@ -284,7 +284,7 @@ def export_candidate_votes(output=None, save_barcodes=False,
                         else v for k, v in output.items()})
 
     if output_to_file:
-        default_storage.save(OUTPUT_PATH, File(csv_file.name))
+        default_storage.save(OUTPUT_PATH, File(open(csv_file.name)))
     if save_barcodes:
         return save_barcode_results(complete_barcodes,
                                     output_duplicates=output_duplicates,
