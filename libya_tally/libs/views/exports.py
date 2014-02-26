@@ -283,10 +283,15 @@ def get_result_export_response(report):
     path = None
     if report == 'formresults':
         filename = 'form_results.csv'
-        path = export_candidate_votes(save_barcodes=True)
+        path = export_candidate_votes(save_barcodes=True,
+                                      output_duplicates=False)
     elif report == 'candidates':
         filename = 'candidates_votes.csv'
         path = export_candidate_votes()
+    elif report == 'duplicates':
+        filename = 'duplicates.csv'
+        path = export_candidate_votes(save_barcodes=True,
+                                      output_duplicates=True)
     response = HttpResponse(content_type='text/csv')
     response['Content-Desposition'] = 'attachment; filename=%s' % filename
 

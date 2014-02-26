@@ -83,8 +83,7 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-not-received$',
         super_admin.FormNotReceivedListView.as_view(),
         name='form-not-received-view'),
-    url(r'^super-administrator/results-(?P<report>(formresults|candidates))'
-        '.csv$',
+    url(r'^super-administrator/results-(?P<report>.*).csv$',
         super_admin.ResultExportView.as_view(),
         name='result-export'),
     url(r'^super-administrator/results$',
