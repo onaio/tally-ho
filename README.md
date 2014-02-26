@@ -18,8 +18,11 @@ pip install -r requirements/dev.pip
 
 ### Recreate the database, then load the data and demo users
 
-Change the user argument `postgres` if that is not a user able to drop and create databases.
+*This will remove all data in the database.*
+
+The first argument is the database user, the second is the database host IP
+address, and the third is the settings file.  Modify these arguments as needed.
 
 ```bash
-./script/reload_all postgres libya_tally.settings.common
+./script/reload_all postgres 127.0.0.1 libya_tally.settings.common
 ```
