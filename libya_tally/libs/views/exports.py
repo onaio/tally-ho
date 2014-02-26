@@ -129,7 +129,8 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
         w = csv.DictWriter(f, header)
         w.writeheader()
 
-        result_forms = ResultForm.objects.filter(barcode__in=complete_barcodes)
+        result_forms = ResultForm.objects.select_related(
+            ).filter(barcode__in=complete_barcodes)
 
         for result_form in result_forms:
             # build list of votes for this barcode
