@@ -22,6 +22,19 @@ class Ballot(BaseModel):
 
         return _(RaceType.label(self.race_type))
 
+    @property
+    def sub_constituency(self):
+        sc = self.sc_general.all() or self.sc_women.all() or\
+            self.sc_component.all()
+
+        if sc:
+            return sc[0]
+
+    @property
+    def component_ballot(self):
+        return self.sc_general and self.sc_general.all() and\
+            self.sc_general.all()[0].ballot_component
+
     def __unicode__(self):
         return self.number
 

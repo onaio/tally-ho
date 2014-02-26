@@ -332,6 +332,17 @@ class ResultForm(BaseModel):
     def center_name(self):
         return self.center.name if self.center else None
 
+    @property
+    def candidates(self):
+        ballot = self.ballot
+        candidates = list(ballot.candidates.order_by('race_type', 'order'))
+        component_ballot = ballot.component_ballot
+
+        if component_ballot:
+            candidates += list(component_ballot.candidates.order_by('order'))
+
+        return candidates
+
     @classmethod
     def distinct_filter(self, qs):
         return qs.filter(

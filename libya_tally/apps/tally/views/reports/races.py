@@ -18,8 +18,7 @@ class RacesReportView(LoginRequiredMixin,
 
         for ballot in Ballot.objects.all():
             archived = p.ArchivedProgressReport().for_ballot(ballot)
-            sc = ballot.sc_general.all() or ballot.sc_women.all() or\
-                ballot.sc_component.all()
+            sc = ballot.sub_constituency
 
             if sc:
                 sc = sc[0]

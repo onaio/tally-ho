@@ -60,6 +60,35 @@ def get_votes(candidate):
     return [len(results), sum([r.votes for r in results])]
 
 
+def build_result_and_recon_output(result_form):
+    output = {
+        'ballot': result_form.ballot.number,
+        'center': result_form.center.code,
+        'station': result_form.station_number,
+        'gender': result_form.gender_name,
+        'barcode': result_form.barcode,
+        'race type': result_form.ballot_race_type_name,
+        'voting district': result_form.ballot.sub_constituency.code,
+        'number registrants': result_form.station.registrants
+    }
+
+    recon = result_form.reconciliationform
+
+    if recon:
+        output.update({
+            'invalid ballots': recon.number_invalid_votes,
+            'unstamped ballots': recon.number_unstamped_ballots,
+            'cancelled ballots': recon.number_cancelled_ballots,
+            'spoilt ballots': recon.number_spoiled_ballots,
+            'unused ballots': recon.number_unused_ballots,
+            'number of signatures': recon.number_signatures_in_vr,
+            'received ballots papers': recon.number_ballots_received,
+            'valid votes': recon.number_valid_votes,
+        })
+
+    return output
+
+
 def save_barcode_results(complete_barcodes, output_duplicates=False):
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
@@ -72,32 +101,46 @@ def save_barcode_results(complete_barcodes, output_duplicates=False):
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
 
     with csv_file as f:
-        header = ['ballot', 'center', 'station', 'gender', 'barcode', 'order',
-                  'name', 'votes']
+        header = [
+            'ballot',
+            'race number',
+            'center',
+            'station',
+            'gender',
+            'barcode',
+            'race type',
+            'voting district',
+            'order',
+            'name', 'votes',
+            'invalid ballots',
+            'unstamped ballots',
+            'cancelled ballots',
+            'spoilt ballots',
+            'unused ballots',
+            'number of signatures',
+            'received ballots papers',
+            'valid votes',
+            'number registrants'
+        ]
+
         w = csv.DictWriter(f, header)
         w.writeheader()
-        f.write(u'\ufeff'.encode('utf-8'))
 
         result_forms = ResultForm.objects.filter(barcode__in=complete_barcodes)
 
         for result_form in result_forms:
             # build list of votes for this barcode
             vote_list = ()
+            output = build_result_and_recon_output(result_form)
 
-            for candidate in ballots_to_candidates[result_form.ballot.number]:
+            for candidate in result_form.candidates:
                 votes = candidate.num_votes(result_form)
                 vote_list += (votes,)
 
-                output = {
-                    'ballot': result_form.ballot.number,
-                    'center': result_form.center.code,
-                    'station': result_form.station_number,
-                    'gender': result_form.gender_name,
-                    'barcode': result_form.barcode,
-                    'order': candidate.order,
-                    'name': candidate.full_name,
-                    'votes': votes
-                }
+                output['order'] = candidate.order
+                output['name'] = candidate.full_name
+                output['votes'] = votes
+                output['race number'] = candidate.ballot.number
 
                 w.writerow({
                     k: v.encode('utf8') if isinstance(v, basestring)
@@ -122,7 +165,6 @@ def save_center_duplicates(center_to_votes, center_to_forms):
         header = ['ballot', 'center', 'barcode', 'state', 'station', 'votes']
         w = csv.DictWriter(f, header)
         w.writeheader()
-        f.write(u'\ufeff'.encode('utf-8'))
 
         for code, vote_lists in center_to_votes.items():
             votes_cast = sum([sum(l) for l in vote_lists]) > 0
@@ -175,8 +217,6 @@ def export_candidate_votes(output=None, save_barcodes=False,
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
 
     with csv_file as f:
-        # BOM, Excel needs it to open UTF-8 file properly
-        f.write(u'\ufeff'.encode('utf8'))
         w = csv.DictWriter(f, header)
         w.writeheader()
 
