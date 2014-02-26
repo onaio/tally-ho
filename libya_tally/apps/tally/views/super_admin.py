@@ -12,6 +12,7 @@ from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
 from libya_tally.apps.tally.forms.remove_center_form import RemoveCenterForm
+from libya_tally.apps.tally.forms.remove_station_form import RemoveStationForm
 from libya_tally.apps.tally.models.audit import Audit
 from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.apps.tally.models.station import Station
@@ -364,6 +365,31 @@ class RemoveCenterView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "tally/super_admin/remove_center.html"
     success_url = 'remove-center'
+
+    def get(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form))
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            form.save()
+            return self.form_valid(form)
+        return self.form_invalid(form)
+
+
+class RemoveStationView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        FormView):
+    form_class = RemoveStationForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "tally/super_admin/remove_station.html"
+    success_url = 'remove-station'
 
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()

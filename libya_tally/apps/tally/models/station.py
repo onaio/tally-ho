@@ -1,6 +1,9 @@
-from django.db import models
-from django_enumfield import enum
 import reversion
+
+from django.db import models
+from django.utils.translation import ugettext_lazy as _
+
+from django_enumfield import enum
 
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
@@ -41,5 +44,17 @@ class Station(BaseModel):
     def center_name(self):
         return self.center.name if self.center else None
 
+    def remove(self):
+        """Remove station and result forms for the station,
+        only if we have no results for the station.
+        """
+        resultforms = self.center.resultform_set.filter(
+            station_number=self.station_number)
+        for resultform in resultforms:
+            if resultform.results.count():
+                raise Exception(_(u"Results exist for %(barcode)s" %
+                                  {'barcode': resultform.barcode}))
+        resultforms.delete()
+        self.delete()
 
 reversion.register(Station)
