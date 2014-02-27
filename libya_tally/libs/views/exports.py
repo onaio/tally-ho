@@ -6,6 +6,7 @@ from collections import defaultdict, OrderedDict
 from django.core.files.base import File
 from django.core.files.storage import default_storage
 from django.http import HttpResponse
+from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.utils.translation import ugettext as _
 
@@ -21,6 +22,28 @@ OUTPUT_PATH = 'results/candidate_votes.csv'
 RESULTS_PATH = 'results/form_results.csv'
 DUPLICATE_RESULTS_PATH = 'results/duplicate_results.csv'
 SPECIAL_BALLOTS = None
+
+
+def path_with_timestamp(path):
+    if isinstance(path, basestring):
+        tmp = path.split('.')
+        time_str = timezone.now().strftime('%Y%m%d_%H-%M-%S')
+        tmp.insert(len(tmp) - 1, time_str)
+
+        return '.'.join(tmp)
+
+    return path
+
+
+def save_csv_file_and_symlink(csv_file, path):
+    new_path = path_with_timestamp(path)
+    default_storage.save(new_path, File(open(csv_file.name)))
+    new_path = os.path.realpath(new_path)
+    path = os.path.realpath(path)
+    if os.path.exists(path):
+        os.unlink(path)
+    os.symlink(new_path, path)
+    return path
 
 
 def valid_ballots():
@@ -129,8 +152,8 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
         w = csv.DictWriter(f, header)
         w.writeheader()
 
-        result_forms = ResultForm.objects.select_related(
-            ).filter(barcode__in=complete_barcodes)
+        result_forms = ResultForm.objects\
+            .select_related().filter(barcode__in=complete_barcodes)
 
         for result_form in result_forms:
             # build list of votes for this barcode
@@ -156,7 +179,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             center_to_forms[center.code].append(result_form)
 
     if output_to_file:
-        default_storage.save(RESULTS_PATH, File(open(csv_file.name)))
+        save_csv_file_and_symlink(csv_file, RESULTS_PATH)
     if output_duplicates:
         return save_center_duplicates(center_to_votes, center_to_forms,
                                       output_to_file=output_to_file)
@@ -202,8 +225,7 @@ def save_center_duplicates(center_to_votes, center_to_forms,
                             k: v.encode('utf8') if isinstance(v, basestring)
                             else v for k, v in output.items()})
     if output_to_file:
-        default_storage.save(DUPLICATE_RESULTS_PATH, File(open(csv_file.name)))
-        return DUPLICATE_RESULTS_PATH
+        return save_csv_file_and_symlink(csv_file, DUPLICATE_RESULTS_PATH)
 
     return csv_file.name
 
@@ -285,7 +307,7 @@ def export_candidate_votes(output=None, save_barcodes=False,
                         else v for k, v in output.items()})
 
     if output_to_file:
-        default_storage.save(OUTPUT_PATH, File(open(csv_file.name)))
+        save_csv_file_and_symlink(csv_file, OUTPUT_PATH)
     if save_barcodes:
         return save_barcode_results(complete_barcodes,
                                     output_duplicates=output_duplicates,
