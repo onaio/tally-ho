@@ -21,7 +21,6 @@ class RacesReportView(LoginRequiredMixin,
             sc = ballot.sub_constituency
 
             if sc:
-                sc = sc[0]
                 data.append({
                     'ballot': ballot.number,
                     'district': sc.code,
