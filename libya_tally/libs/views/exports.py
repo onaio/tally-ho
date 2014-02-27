@@ -1,4 +1,3 @@
-import copy
 import csv
 import os
 
@@ -331,6 +330,8 @@ def get_result_export_response(report):
     response = HttpResponse(content_type='text/csv')
 
     try:
+        if not os.path.exists(filename):
+            export_candidate_votes(save_barcodes=True, output_duplicates=True)
         path = os.readlink(filename)
         filename = os.path.basename(path)
         response['Content-Desposition'] = 'attachment; filename=%s' % filename
