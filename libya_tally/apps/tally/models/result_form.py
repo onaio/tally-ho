@@ -352,7 +352,7 @@ class ResultForm(BaseModel):
     @classmethod
     def distinct_for_component(cls, ballot):
         return cls.distinct_filter(cls.objects.filter(
-            ballot__number__in=ballot.component_ballot))
+            ballot__number__in=ballot.form_ballot_numbers))
 
     @classmethod
     def distinct_forms(cls):
