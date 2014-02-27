@@ -1,7 +1,7 @@
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from libya_tally.apps.tally.models.ballot import Ballot
+from libya_tally.libs.views.exports import valid_ballots
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.reports import progress as p
 from libya_tally.libs.views import mixins
@@ -16,7 +16,7 @@ class RacesReportView(LoginRequiredMixin,
     def get_per_ballot_progress(self):
         data = []
 
-        for ballot in Ballot.objects.all():
+        for ballot in valid_ballots():
             archived = p.ArchivedProgressReport().for_ballot(ballot)
             sc = ballot.sub_constituency
 

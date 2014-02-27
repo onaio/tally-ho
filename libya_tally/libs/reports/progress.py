@@ -43,9 +43,11 @@ class ProgressReport(object):
 
     def for_ballot(self, ballot):
         obj = self.__class__()
-        obj.filtered_queryset = \
-            self.get_filtered_queryset().filter(ballot=ballot)
-        obj.queryset = self.get_queryset().filter(ballot=ballot)
+
+        obj.filtered_queryset = self.get_filtered_queryset().filter(
+            ballot__number__in=ballot.form_ballot_numbers)
+        obj.queryset = self.get_queryset().filter(
+            ballot__number__in=ballot.form_ballot_numbers)
 
         return obj
 

@@ -12,6 +12,13 @@ class Ballot(BaseModel):
         app_label = 'tally'
         ordering = ['number']
 
+    COMPONENT_TO_BALLOTS = {
+        55: [26, 27, 28],
+        56: [29, 30, 31],
+        57: [34],
+        58: [47],
+    }
+
     number = models.PositiveSmallIntegerField()
     race_type = enum.EnumField(RaceType)
 
@@ -34,6 +41,15 @@ class Ballot(BaseModel):
     def component_ballot(self):
         return self.sc_general and self.sc_general.all() and\
             self.sc_general.all()[0].ballot_component
+
+    @property
+    def form_ballot_numbers(self):
+        return Ballot.COMPONENT_TO_BALLOTS[self.number] if self.is_component\
+            else [self.number]
+
+    @property
+    def is_component(self):
+        return self.number in self.COMPONENT_TO_BALLOTS.keys()
 
     def __unicode__(self):
         return self.number

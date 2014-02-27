@@ -19,14 +19,6 @@ from libya_tally.libs.models.enums.race_type import RaceType
 male_local = _('Male')
 female_local = _('Female')
 
-COMPONENT_TO_BALLOTS = {
-    55: [26, 27, 28],
-    56: [29, 30, 31],
-    57: [34],
-    58: [47],
-}
-MAX_BARCODE = 530000576
-
 
 def model_field_to_dict(form):
     field_dict = model_to_dict(form)
@@ -96,6 +88,8 @@ def clean_reconciliation_forms(recon_queryset):
 class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
+
+    MAX_BARCODE = 530000576
 
     ballot = models.ForeignKey(Ballot, null=True)
     center = models.ForeignKey(Center, blank=True, null=True)
@@ -350,7 +344,7 @@ class ResultForm(BaseModel):
             station_number__isnull=False,
             ballot__isnull=False).extra(
             where=["barcode::integer <= %s"],
-            params=[MAX_BARCODE]).order_by(
+            params=[self.MAX_BARCODE]).order_by(
             'center__id', 'station_number', 'ballot__id',
             'form_state').distinct(
             'center__id', 'station_number', 'ballot__id')
@@ -358,7 +352,7 @@ class ResultForm(BaseModel):
     @classmethod
     def distinct_for_component(cls, ballot):
         return cls.distinct_filter(cls.objects.filter(
-            ballot__number__in=COMPONENT_TO_BALLOTS[ballot.number]))
+            ballot__number__in=ballot.component_ballots))
 
     @classmethod
     def distinct_forms(cls):
