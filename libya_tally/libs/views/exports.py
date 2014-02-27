@@ -1,3 +1,4 @@
+import copy
 import csv
 import os
 
@@ -39,9 +40,10 @@ def save_csv_file_and_symlink(csv_file, path):
     new_path = path_with_timestamp(path)
     default_storage.save(new_path, File(open(csv_file.name)))
     new_path = os.path.realpath(new_path)
-    path = os.path.realpath(path)
-    if os.path.exists(path):
-        os.unlink(path)
+    if os.path.exists(os.path.abspath(path)):
+        os.unlink(os.path.abspath(path))
+    print new_path
+    print path
     os.symlink(new_path, path)
     return path
 
@@ -318,27 +320,27 @@ def export_candidate_votes(output=None, save_barcodes=False,
 def get_result_export_response(report):
     filename = 'not_found.csv'
     path = None
-    if report == 'formresults':
-        filename = 'form_results.csv'
-        path = export_candidate_votes(save_barcodes=True,
-                                      output_duplicates=False,
-                                      output_to_file=False)
-    elif report == 'candidates':
-        filename = 'candidates_votes.csv'
-        path = export_candidate_votes(output_to_file=False)
-    elif report == 'duplicates':
-        filename = 'duplicates.csv'
-        path = export_candidate_votes(save_barcodes=True,
-                                      output_duplicates=True,
-                                      output_to_file=False)
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Desposition'] = 'attachment; filename=%s' % filename
 
-    if path:
-        with open(path, 'rb') as f:
-            response.write(f.read())
-        os.remove(path)
-    else:
+    if report == 'formresults':
+        filename = os.path.join('results', 'form_results.csv')
+    elif report == 'candidates':
+        filename = os.path.join('results', 'candidate_votes.csv')
+    elif report == 'duplicates':
+        filename = os.path.join('results', 'duplicate_results.csv')
+
+    response = HttpResponse(content_type='text/csv')
+
+    try:
+        path = os.readlink(filename)
+        filename = os.path.basename(path)
+        response['Content-Desposition'] = 'attachment; filename=%s' % filename
+
+        if path:
+            with open(path, 'rb') as f:
+                response.write(f.read())
+        else:
+            raise Exception(_(u"File Not found!"))
+    except Exception:
         response.write(_(u"Report not found."))
         response.status_code = 404
     return response
