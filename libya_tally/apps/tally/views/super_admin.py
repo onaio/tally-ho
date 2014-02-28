@@ -168,8 +168,7 @@ class FormListView(LoginRequiredMixin,
                 form_list = ResultForm.objects.all()
             else:
                 form_state = FormState.get(form_state)
-                form_list = ResultForm.objects.filter(
-                    form_state=form_state.value)
+                form_list = ResultForm.forms_in_state(form_state.value)
 
             form_list = form_list.values(
                 'barcode', 'form_state', 'gender', 'station_number',
