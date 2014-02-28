@@ -35,7 +35,7 @@ sudo sed -i.bak -e "s/REPLACE_DB_HOST/$DB_HOST/g" $config_path
 
 sudo cp "$CODE_SRC/deploy/etc/init/tally.conf" /etc/init/tally.conf
 sudo cp "$CODE_SRC/deploy/etc/nginx/sites-available/nginx.conf" /etc/nginx/sites-available/tally.conf
-
+sudo find $CODE_SRC -name '*.pyc' -exec sudo rm {} \;
 sudo chown -R $USER:$USER $PROJECT_HOME
 
 sudo /etc/init.d/nginx restart
