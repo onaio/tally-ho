@@ -90,6 +90,7 @@ class ResultForm(BaseModel):
         app_label = 'tally'
 
     MAX_BARCODE = 530000576
+    OCV_CENTER_MIN = 80001
 
     ballot = models.ForeignKey(Ballot, null=True)
     center = models.ForeignKey(Center, blank=True, null=True)
@@ -315,7 +316,7 @@ class ResultForm(BaseModel):
 
     @property
     def has_recon(self):
-        return self.center and self.center.code < 80001
+        return self.center and self.center.code < self.OCV_CENTER_MIN
 
     @property
     def sub_constituency_code(self):
