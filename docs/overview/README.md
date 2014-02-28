@@ -1,12 +1,12 @@
-# System Overview
+## System Overview
 
 **tally-system** is used to record, verify, and report the results of paper votes
-that have been used in an election.  Tally centers enter *results forms* and
+that have been used in an election.  Tally centers enter *result forms* and
 *reconciliation forms* into the **tally-system**.  Each form has a unique
 barcode which links the form to the center, station, and ballot (with the exception of
-*replacement forms*, discussed below) in which it was used.  Using this
-information the system is able to retrieve the candidates for which results
-must be entered.
+*replacement forms*, discussed below).  Using this
+information the system retrieves the candidates for the race and clerks then
+enter the results.
 
 The **tally-system** process consists of 6 stages in the *main pipeline* and two
 *review stages*. Overall, the process proceeds as follows:
@@ -18,6 +18,49 @@ The **tally-system** process consists of 6 stages in the *main pipeline* and two
 The system includes a number of results dashboards that show the progress of
 forms through the various stages of the system as well as completion statistics
 for individual races.
+
+## Idiosyncracies
+
+The **tally-system** was built specifical to facilitate result counting in the
+Libyan Constituent Assembly elections held February 20th 2014.  The
+system functionality and the flow used throughout this system is applicable to most
+elections involving aggregated results and paper ballot counting.
+
+
+None the less, the system does involve components that are designed to support
+the idiosyncracies of this particular Libyan election.  The primary
+idiosyncracies are in:
+
+1. The granular division of results forms,
+2. The existence of Womens and "Component Ballots" for minority groups.
+
+### The Division of Result Forms
+
+A *Result Form* is the essential unit of data entry on which votes for
+candidates are recorded.
+
+Each result form is pre-assigned to a *Sub Constituency*, *Office*, and *Ballot*.
+*Sub Constituency* and *Office* are markers of location, roughly analogous to
+voting districts.  A ballot is equivalent to a *Race*.  It determines the candidates that appear
+on the result form and when all the result forms for a race have been entered
+the system can calculate the race results and determine a winner.
+
+The *Center* and *Station* are preassigned to some result forms and are
+assigned on entry to other result forms, depending on the barcode of the form.
+Each result form must be for a unique ballot, center, and station combination.
+
+### Womens and Component Ballots
+
+In the Libyan Constituent Assembly additional races exist for only female
+candidates (Women ballots) as well as for candidates from specific ethnic minority groups (Component ballots).
+Therefore, each sub constituencies either has a General ballot, a General
+ballot and a Womens ballot, or a General Plus Component ballot.
+
+For component races, the candidates that appear on result forms for a specific
+component race may be shared accross multiple General ballots.  For example,
+although the General race candidates in Sebha office races 17 through 21 each
+have different candidates on the General ballots, the componant candidates for
+races 17 through 21 are all the same.
 
 ## Main Pipeline
 
@@ -202,23 +245,29 @@ recommending that the form skip Quarantine Checks on its next time through the
 syste.  The form is then hidden from the Audit team and must then be reviewed
 by a Super Administration before moving to Data Entry 1.
 
-## Super Admin Views
+## Super Administrator Views
 
-### Actionable form list
+Super administrators are able to perform additional operations and view
+additional information that is hidden from other users.  This facilitates
+tracking the progress of results through the system, optimize the allocation of
+human resources throughout the system, and the presentation of results.
+
+### Forms Waiting For Approval
 
 If the audit team recommends that a form skip quarantine checks the super
 administrator must review and approve this case before the form state can
-change.  The "Actionable Form List" shows those forms which a Super
-Administrator must review.
+change.  The *Forms Waiting For Approval* list shows those forms which a Super
+Administrator must review.  Rows in this list link to the Audit review view for
+the forms.
 
-### Form Progress Views
+### Reports Views
 
-The "Form Progess" list shows all the forms that have been intaken and their
+The *Form Progess* list shows all the forms that have been intaken and their
 current state within the system.  This view is useful to determine where a form
 is in processing and to see how many forms from a particular center have been
 entered into the system.
 
-The "Reports Offices" list shows the percentage of forms in each state within
+The *Reports Offices* list shows the percentage of forms in each state within
 the system.  This can be used to balance the Clerk assigned to specific
 stations.  For example, if there are twice as many forms in Data Entry 1 than
 in Data Entry 2, it may be wise to assign some Clerk from Data Entry 2 to Dat
@@ -226,10 +275,55 @@ Entry 1.
 
 This view also shows the number of Intaken and Archived form for each Office
 (analogous to a type of voting district).  This allows administrators to track
-down problems in recieving forms from a particular office.
+down problems in receiving forms from a particular office.
 
-The "Reports Races" lists shows the percentage complete for each race.  This is
-similarly useful to determine if there is a problem in recieving forms for a
+The *Reports Races* lists shows the percentage complete for each race.  This is
+similarly useful to determine if there is a problem in receiving forms for a
 particular race.  Based on the percentage of forms completed, this view shows
 administrators how close they are to being able to announce preliminary
 results.
+
+The *Form Duplicates* list shows duplicate forms that have been entered into
+the system.
+
+### Data Views
+
+There are a number of views that to display the data which the system uses.  The
+*Center List* shows the centers used by the system, these are tied to results
+forms.  The *Form List* shows all of the valid barcodes that for result forms
+that can be entered into the system.
+
+The *Forms Not Received List* shows the barcodes for forms that the system has
+not yet intaken.
+
+
+### Results Exports
+
+The *Downloads* section allows Super Administrators to export both simple and
+deteailed results views.  The *Candidate Votes* download shows a simple
+spreadsheet of the leading candidates and their votes accross all ballots.  The
+*Result Form List* returns a detailed file of the results entered for every
+result form and associated information about that result form, e.g. gender,
+ballot, center, and station.
+
+The *Result Forms With Duplicate Results* export checks to see if there are
+suspiciously similar results for any forms assigned to the same center.  For
+each center, this method searches through all of the result forms for the
+center and collects any two forms that have the exact same number of votes for
+the candidates.  This likely indicates that the same form was entered for
+multiple stations.
+
+### Admin Operations
+
+This section allows a Super Administrator to remove a center or a station for
+the system.  To avoid orphaning data that has been entered into the system
+these operations first verify that no results have been recorded for the center
+or station that the admin is attempting to remove.  If any results exist the
+barcodes for the center or station are returned and the center or station is
+not removed.
+
+When a center is removed from the system, all the stations associated with this
+center and any result forms associated with this center are removed.  This
+means that it will no longer be possible to intake those barcodes.  Similarly,
+when a station is removed from the system all result forms for that station are
+also removed.
