@@ -368,8 +368,9 @@ class ResultForm(BaseModel):
         return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
 
     @classmethod
-    def forms_in_state(cls, state):
-        pks = cls.distinct_form_pks()
+    def forms_in_state(cls, state, pks=None):
+        if not pks:
+            pks = cls.distinct_form_pks()
 
         return cls.objects.filter(id__in=pks, form_state=state)
 

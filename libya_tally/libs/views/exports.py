@@ -258,7 +258,8 @@ def export_candidate_votes(output=None, save_barcodes=False,
         for ballot in valid_ballots():
             general_ballot = ballot
             forms = distinct_forms(ballot)
-            final_forms = forms.filter(form_state=FormState.ARCHIVED)
+            final_forms = ResultForm.forms_in_state(
+                FormState.ARCHIVED, pks=[r.pk for r in forms])
 
             if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
                 complete_barcodes.extend([r.barcode for r in final_forms])
