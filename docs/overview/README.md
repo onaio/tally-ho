@@ -21,18 +21,17 @@ for individual races.
 
 ## Idiosyncracies
 
-The **tally-system** was built specifical to facilitate result counting in the
-Libyan Constituent Assembly elections held February 20th 2014.  The
-system functionality and the flow used throughout this system is applicable to most
+The **tally-system** was built specifically to facilitate result counting in the
+Libyan Constituent Assembly elections held February 20th, 2014.  The
+system functionality and the flow used throughout the system is applicable to most
 elections involving aggregated results and paper ballot counting.
 
-
-None the less, the system does involve components that are designed to support
-the idiosyncracies of this particular Libyan election.  The primary
+None the less, the system does involve functionality designed to support
+the idiosyncracies of this particular election.  The primary
 idiosyncracies are in:
 
-1. The granular division of results forms,
-2. The existence of Womens and "Component Ballots" for minority groups.
+1. The granular division of result forms,
+2. The existence of women and minority group ballots.
 
 ### The Division of Result Forms
 
@@ -42,16 +41,16 @@ candidates are recorded.
 Each result form is pre-assigned to a *Sub Constituency*, *Office*, and *Ballot*.
 *Sub Constituency* and *Office* are markers of location, roughly analogous to
 voting districts.  A ballot is equivalent to a *Race*.  It determines the candidates that appear
-on the result form and when all the result forms for a race have been entered
-the system can calculate the race results and determine a winner.
+on the result form.  When all the result forms for a race have been entered
+the system can confidently calculate the race results and determine a winner.
 
-The *Center* and *Station* are preassigned to some result forms and are
-assigned on entry to other result forms, depending on the barcode of the form.
+The *Center* and *Station* are preassigned for some result forms and are
+assigned upon entry for other result forms, dependent on the barcode of the form.
 Each result form must be for a unique ballot, center, and station combination.
 
 ### Womens and Component Ballots
 
-In the Libyan Constituent Assembly additional races exist for only female
+In the Libyan Constituent Assembly additional seats are allocation, and hence races must be run, for female
 candidates (Women ballots) as well as for candidates from specific ethnic minority groups (Component ballots).
 Therefore, each sub constituencies either has a General ballot, a General
 ballot and a Womens ballot, or a General Plus Component ballot.
@@ -59,12 +58,13 @@ ballot and a Womens ballot, or a General Plus Component ballot.
 For component races, the candidates that appear on result forms for a specific
 component race may be shared accross multiple General ballots.  For example,
 although the General race candidates in Sebha office races 17 through 21 each
-have different candidates on the General ballots, the componant candidates for
+have different candidates on the General ballots, the component candidates for
 races 17 through 21 are all the same.
 
 ## Main Pipeline
 
-The main pipeline begins when a paper results form is received. The result form passes through the following stages in sequence:
+The main pipeline begins when a paper results form is received. The result form
+passes through the following stages in sequence:
 
 1. Intake
 2. Data Entry 1
@@ -74,11 +74,11 @@ The main pipeline begins when a paper results form is received. The result form 
 6. Archiving
 
 System administrators assign clerks to specific stages and a clerk is only able
-to use the functionality for their assigned stage.
+to use the functionality in their assigned stage.
 
 ### Intake
 
-In Intake an Intake Clerk enters the barcode for the received form.  If the
+In Intake the Intake Clerk enters the barcode for the received form.  If the
 form is not a replacement form it will have a pre-assigned center and station.
 If it is a replacement form the clerk will next enter the center and station
 number for that form.
