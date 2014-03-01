@@ -39,6 +39,11 @@ class Ballot(BaseModel):
 
     @property
     def component_ballot(self):
+        """Retrieve the component ballot for this ballot.
+
+        :returns: The component ballot for this ballot via the general ballot
+            sub constituency.
+        """
         return self.sc_general and self.sc_general.all() and\
             self.sc_general.all()[0].ballot_component
 

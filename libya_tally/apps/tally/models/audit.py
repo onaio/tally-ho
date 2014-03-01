@@ -10,6 +10,7 @@ from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.actions_prior import ActionsPrior
 from libya_tally.libs.models.enums.audit_resolution import AuditResolution,\
     AUDIT_CHOICES
+from libya_tally.libs.utils.dicts import keys_if_value
 
 
 class Audit(BaseModel):
@@ -59,8 +60,7 @@ class Audit(BaseModel):
             _('Other'): self.other,
         }
 
-        return [problem_name for problem_name, problem_field in
-                problem_fields.iteritems() if problem_field]
+        return keys_if_value(problem_fields)
 
     def action_prior_name(self):
         return _(ActionsPrior.label(self.action_prior_to_recommendation))

@@ -9,6 +9,7 @@ from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.actions_prior import ActionsPrior
 from libya_tally.libs.models.enums.clearance_resolution import\
     ClearanceResolution
+from libya_tally.libs.utils.dicts import keys_if_value
 
 
 class Clearance(BaseModel):
@@ -57,12 +58,7 @@ class Clearance(BaseModel):
             _('Other'): self.other,
         }
 
-        problems = []
-        for problem_name, problem_field in problem_fields.iteritems():
-            if problem_field:
-                problems.append(problem_name)
-
-        return problems
+        return keys_if_value(problem_fields)
 
     def action_prior_name(self):
         return ActionsPrior.label(self.action_prior_to_recommendation)

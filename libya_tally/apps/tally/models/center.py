@@ -28,14 +28,20 @@ class Center(BaseModel):
     village = models.TextField()
 
     def remove(self):
-        """Remove a center.  Stop and doing nothing if there are results for
-        that center.  Remove result forms and stations for the center.
+        """Remove this center and related information.
+
+        Stop and do nothing if there are results for this center.  Removes the
+        result forms and stations associated with this center.
+
+        :raises: `Exception` if any results exist in any result forms
+            associated with this center.
         """
         for resultform in self.resultform_set.all():
-            if resultform.results.all():
-                print resultform.barcode
-                print resultform.results.all()
-                raise Exception('Unexpected results.')
+            if resultform.results.count() > 0:
+                raise Exception('Unexpected results for result form barcode %s'
+                                ' associated with this center: %s.' % (
+                                    resultform.barcode,
+                                    resultform.results.all()))
 
         self.resultform_set.all().delete()
         self.stations.all().delete()

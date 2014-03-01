@@ -17,12 +17,7 @@ class QuarantineCheck(BaseModel):
     value = models.FloatField()
 
     def local_name(self):
-        return {
-            'Trigger 1 - Guard against overvoting':
-            _('Trigger 1 - Guard against overvoting'),
-            'Trigger 2 - Guard against errors and tampering with the form':
-            _('Trigger 2 - Guard against errors and tampering with the form')
-        }.get(self.name, self.name)
+        return _(self.name)
 
 
 reversion.register(QuarantineCheck)

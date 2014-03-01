@@ -21,6 +21,10 @@ class QualityControl(BaseModel):
 
     @property
     def reviews_passed(self):
+        """Return True if this quality control has passed, otherwise False.
+
+        :returns: True if this quality control has passed, otherwise False.
+        """
         rf = self.result_form
 
         return (

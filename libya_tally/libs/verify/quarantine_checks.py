@@ -1,11 +1,12 @@
+from django.utils.translation import ugettext as _
 from libya_tally.apps.tally.models.quarantine_check import\
     QuarantineCheck
 
 
 def create_quarantine_checks():
     quarantine_data = [
-        ['Trigger 1 - Guard against overvoting', 'pass_overvote', 10],
-        ['Trigger 2 - Guard against errors and tampering with the form',
+        [_('Trigger 1 - Guard against overvoting'), 'pass_overvote', 10],
+        [_('Trigger 2 - Guard against errors and tampering with the form'),
          'pass_tampering', 3]
     ]
 

@@ -32,13 +32,20 @@ class Candidate(BaseModel):
         }[self.race_type]
 
     def num_votes(self, result_form):
+        """Return the number of final active votes for this candidate in the
+        result form.
+
+        :param result_form: The result form to restrict the sum over votes to.
+
+        :returns: The number of votes for this candidate and result form.
+        """
         results = self.results.filter(
             result_form=result_form,
             entry_version=EntryVersion.FINAL,
             result_form__form_state=FormState.ARCHIVED,
             active=True)
 
-        return sum([r.votes for r in results])
+        return results.aggregate(models.Sum('votes')).values()[0] or 0
 
 
 reversion.register(Candidate)
