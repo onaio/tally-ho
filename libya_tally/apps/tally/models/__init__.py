@@ -5,7 +5,6 @@ from libya_tally.apps.tally.models.candidate import Candidate
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.clearance import Clearance
 from libya_tally.apps.tally.models.quality_control import QualityControl
-from libya_tally.apps.tally.models.race import Race
 from libya_tally.apps.tally.models.reconciliation_form import\
     ReconciliationForm
 from libya_tally.apps.tally.models.result import Result
