@@ -81,7 +81,8 @@ def get_votes(candidate):
     result forms."""
     results = candidate.results.filter(
         entry_version=EntryVersion.FINAL,
-        active=True, result_form__form_state=FormState.ARCHIVED).all()
+        active=True, result_form__form_state=FormState.ARCHIVED)\
+        .distinct('entry_version', 'active', 'result_form')
 
     return [len(results), sum([r.votes for r in results])]
 
