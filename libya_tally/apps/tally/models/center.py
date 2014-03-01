@@ -6,6 +6,7 @@ import reversion
 from libya_tally.apps.tally.models.office import Office
 from libya_tally.apps.tally.models.sub_constituency import SubConstituency
 from libya_tally.libs.models.base_model import BaseModel
+from libya_tally.libs.models.dependencies import check_results_for_forms
 from libya_tally.libs.models.enums.center_type import CenterType
 
 
@@ -33,17 +34,13 @@ class Center(BaseModel):
         Stop and do nothing if there are results for this center.  Removes the
         result forms and stations associated with this center.
 
-        :raises: `Exception` if any results exist in any result forms
+        :raises: `Exception` if any results exist in any result forms are
             associated with this center.
         """
-        for resultform in self.resultform_set.all():
-            if resultform.results.count() > 0:
-                raise Exception('Unexpected results for result form barcode %s'
-                                ' associated with this center: %s.' % (
-                                    resultform.barcode,
-                                    resultform.results.all()))
+        resultforms = self.resultform_set.all()
 
-        self.resultform_set.all().delete()
+        check_results_for_forms(resultforms)
+        resultforms.delete()
         self.stations.all().delete()
 
         self.delete()

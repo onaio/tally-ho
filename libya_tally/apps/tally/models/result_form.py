@@ -47,10 +47,11 @@ def get_matched_results(result_form, results):
         .values('candidate', 'votes')
 
     if results and (not results_v1 or not results_v2):
-        raise Exception(_(u"Result Form has no double entries."))
+        raise SuspiciousOperation(_(u"Result Form has no double entries."))
 
     if results_v1.count() != results_v2.count():
         result_form.reject()
+
         raise SuspiciousOperation(_(
             u"Unexpected number of results in form %(barcode)s, "
             u"return result form to Data Entry 1." %

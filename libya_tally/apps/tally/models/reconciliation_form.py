@@ -55,6 +55,10 @@ class ReconciliationForm(BaseModel):
 
     @property
     def number_ballots_used(self):
+        """Calculate the number of ballots used based on this forms.
+
+        :returns: A positive integer representing the number of ballots used.
+        """
         votes = self.result_form.num_votes
 
         return (self.number_cancelled_ballots +
@@ -64,6 +68,11 @@ class ReconciliationForm(BaseModel):
 
     @property
     def number_ballots_expected(self):
+        """Calculate the number of ballots expected based on this form.
+
+        :returns: A positive integer representing the number of ballots
+            expected.
+        """
         return (self.number_ballots_inside_box -
                 self.number_unstamped_ballots -
                 self.number_invalid_votes)
