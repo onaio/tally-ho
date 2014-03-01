@@ -94,7 +94,7 @@ class Command(BaseCommand):
         self.import_candidates()
 
         print '[INFO] import result forms'
-        self.import_result_forms()
+        self.import_result_forms(RESULT_FORMS_PATH)
 
     def import_sub_constituencies_and_ballots(self):
         with open(SUB_CONSTITUENCIES_PATH, 'rU') as f:
@@ -272,10 +272,10 @@ class Command(BaseCommand):
                     order=id_to_ballot_order[candidate_id],
                     race_type=race_type)
 
-    def import_result_forms(self):
+    def import_result_forms(self, path):
         replacement_count = 0
 
-        with open(RESULT_FORMS_PATH, 'rU') as f:
+        with open(path, 'rU') as f:
             reader = csv.reader(f)
             reader.next()  # ignore header
 
@@ -307,18 +307,28 @@ class Command(BaseCommand):
                 if is_replacement:
                     replacement_count += 1
 
-                result_form, _ = ResultForm.objects.get_or_create(
-                    barcode=barcode,
-                    ballot=ballot,
-                    center=center,
-                    form_state=FormState.UNSUBMITTED,
-                    gender=gender,
-                    name=name,
-                    office=office,
-                    serial_number=serial_number,
-                    station_number=station_number)
+                kwargs = {
+                    'barcode': barcode,
+                    'ballot': ballot,
+                    'center': center,
+                    'gender': gender,
+                    'name': name,
+                    'office': office,
+                    'serial_number': serial_number,
+                    'station_number': station_number,
+                    'form_state': FormState.UNSUBMITTED,
+                    'is_replacement': is_replacement
+                }
 
-                result_form.is_replacement = is_replacement
-                result_form.save()
+                try:
+                    form = ResultForm.objects.get(barcode=barcode)
+                    print '[INFO] Found with barcode: %s' % barcode
+                except ResultForm.DoesNotExist:
+                    print '[INFO] Create with barcode: %s' % barcode
+                    ResultForm.objects.create(**kwargs)
+                else:
+                    if is_replacement:
+                        form.is_replacement = is_replacement
+                        form.save()
 
         print '[INFO] Number of replacement forms: %s' % replacement_count
