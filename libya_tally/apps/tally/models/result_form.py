@@ -133,6 +133,7 @@ class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
 
+    START_BARCODE = 10000000
     MAX_BARCODE = 530000576
     OCV_CENTER_MIN = 80001
 
@@ -431,6 +432,16 @@ class ResultForm(BaseModel):
 
     @classmethod
     def distinct_filter(self, qs):
+        """Add a distinct filter onto a queryset.
+
+        Return a queryset that accounts for duplicate replacement forms, orders
+        the results to take the duplicate which is archived if one exists, and
+        removes the barcodes that are not in the original dataset.
+
+        :param qs: The queryset to filer.
+
+        :returns: A distinct, ordered, and filtered queryset.
+        """
         return qs.filter(
             center__isnull=False,
             station_number__isnull=False,
@@ -443,6 +454,13 @@ class ResultForm(BaseModel):
 
     @classmethod
     def distinct_for_component(cls, ballot):
+        """Return the distinct result forms for this ballot, taking into
+        account the possiblity of a component ballot.
+
+        :param ballot: The ballot to return forms for.
+
+        :returns: A distinct list of result forms.
+        """
         return cls.distinct_filter(cls.objects.filter(
             ballot__number__in=ballot.form_ballot_numbers))
 
@@ -467,9 +485,19 @@ class ResultForm(BaseModel):
 
     @classmethod
     def generate_barcode(cls):
+        """Create a new barcode.
+
+        Create a new barcode that is not already in the system by taking the
+        greatest barcode in the system and incrementing it by one.
+
+        Note this does not account for multiple request or threads.
+
+        :returns: A new unique integer barcode.
+        """
         result_forms = cls.objects.all().order_by('-barcode')
         highest_barcode = result_forms[0].barcode if result_forms else\
-            10000000
+            cls.START_BARCODE
+
         return int(highest_barcode) + 1
 
     def send_to_clearance(self):
@@ -483,6 +511,7 @@ class ResultForm(BaseModel):
                          FormState.CORRECTION, FormState.DATA_ENTRY_1,
                          FormState.DATA_ENTRY_2, FormState.INTAKE,
                          FormState.QUALITY_CONTROL]
+
         return ResultForm.objects.exclude(
             Q(form_state__in=not_in_states) | Q(center__isnull=True))
 
