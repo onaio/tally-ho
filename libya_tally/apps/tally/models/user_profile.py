@@ -10,8 +10,12 @@ class UserProfile(User):
         app_label = 'tally'
 
     def save(self, *args, **kwargs):
+        """For the user to set their password if `reset_password` is True.
+        """
+
         if self.reset_password:
             self.set_password(self.username)
+
         super(UserProfile, self).save(*args, **kwargs)
 
 reversion.register(UserProfile)

@@ -23,6 +23,10 @@ class SubConstituency(BaseModel):
 
     @property
     def form_type(self):
+        """Return the form type of ballots used in this subconstituency.
+
+        :returns: The type of ballot that is used in this subconstituency.
+        """
         if self.ballot_women:
             return _('Women')
         elif self.ballot_general:
