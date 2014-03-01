@@ -11,6 +11,7 @@ from libya_tally.apps.tally.models.user_profile import UserProfile
 STAFF_LIST_PATH = 'data/staff_list.csv'
 USER_LIST_PATH = 'data/user_list.csv'
 
+# Dict for all the variations on Clerk names.
 STAFF_ROLE_DICT = {
     'ADMINISTRATOR': groups.ADMINISTRATOR,
     'ARCHIVE SUPERVISOR': groups.ARCHIVE_SUPERVISOR,
@@ -111,9 +112,7 @@ class Command(BaseCommand):
 
             for row in reader:
                 try:
-                    name = row[0]
-                    username = row[1]
-                    role = row[2]
+                    name, username, role = row[0:3]
                 except Exception as e:
                     print "Unable to add user in row: %s. Exception %s." %\
                         (row, e)
@@ -127,9 +126,7 @@ class Command(BaseCommand):
 
             for row in reader:
                 try:
-                    name = row[1]
-                    username = row[0]
-                    role = row[2]
+                    username, name, role = row[0:3]
                 except Exception as e:
                     print "Unable to add user in row: '%s'. Exception '%s'." %\
                         (row, e)
