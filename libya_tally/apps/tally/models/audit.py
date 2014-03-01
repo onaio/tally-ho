@@ -44,6 +44,13 @@ class Audit(BaseModel):
     supervisor_comment = models.TextField(null=True, blank=True)
 
     def get_problems(self):
+        """Return a list of problems for this audit.
+
+        Return a list of problems for which the problem checkbox has been
+        selected.
+
+        :returns: A list of strings.
+        """
         problem_fields = {
             _('Blank Reconcilliation'): self.blank_reconciliation,
             _('Blank Results'): self.blank_results,
@@ -52,12 +59,8 @@ class Audit(BaseModel):
             _('Other'): self.other,
         }
 
-        problems = []
-        for problem_name, problem_field in problem_fields.iteritems():
-            if problem_field:
-                problems.append(problem_name)
-
-        return problems
+        return [problem_name for problem_name, problem_field in
+                problem_fields.iteritems() if problem_field]
 
     def action_prior_name(self):
         return _(ActionsPrior.label(self.action_prior_to_recommendation))
