@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
@@ -29,13 +29,15 @@ def model_field_to_dict(form):
 
 
 def get_matched_results(result_form, results):
-    """
-    Checks results entered by Data Entry 1 and Data Entry 2 clerks match.
+    """Checks results entered by Data Entry 1 and Data Entry 2 clerks match.
 
     If we have more results from either data entry 1 or data entry 2,
     we reset to data entry 1 then raise a SuspiciousOperation exception.
 
-    Returns a  list of matched results and unmatched results if any.
+    :param result_form: The result form to find matching results for.
+    :param results: The results to look within when finding matching results.
+
+    :returns: A list of matched and unmatched results.
     """
     results_v1 = results.filter(
         result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1)\
@@ -62,12 +64,26 @@ def get_matched_results(result_form, results):
 
 
 def match_results(result_form, results=None):
+    """True is all results match, otherwise false.
+
+    :param result_form: The result form to find match results for.
+    :param results: The results to filter when finding matched results.
+    """
     matches, no_match = get_matched_results(result_form, results)
     return len(no_match) == 0
 
 
 def sanity_check_final_results(result_form):
-    """Deactivate duplicate EntryVersion.FINAL results."""
+    """Deactivate duplicate fnal results.
+
+    Each result form should have one final result for each candidate.  If there
+    are multiple final results for a candidate deactivate them.
+
+    :param result_form: The result form to check final results for.
+
+    :raises: `SuspiciousOperation` if the votes in the final results for the
+        same candidate and result form do not match.
+    """
     for candidate in result_form.candidates:
         results = result_form.results_final.filter(candidate=candidate)
         other_result = results[0]
@@ -83,6 +99,18 @@ def sanity_check_final_results(result_form):
 
 
 def clean_reconciliation_forms(recon_queryset):
+    """Deactivate duplicate reconciliation forms for the same form state.
+
+    Check that all reconciliation forms in the same state match and deactivate
+    all but one if there are more than one.
+
+    :param recon_queryset: A reconciliaton form queryset to clean results for.
+
+    :raises: `SuspiciousOperation` if the recon forms do not have the exact
+        same results.
+
+    :returns: True if any forms need to be cleaned, False otherwise.
+    """
     if len(recon_queryset) > 1:
         field_dict = model_field_to_dict(recon_queryset[0])
 
@@ -130,12 +158,19 @@ class ResultForm(BaseModel):
 
     @property
     def results_final(self):
+        """Return the final active results for this result form."""
         return self.results.filter(
-            active=True,
-            entry_version=EntryVersion.FINAL)
+            active=True, entry_version=EntryVersion.FINAL)
 
     @property
     def station(self):
+        """Return the station for this result form.
+
+        Stations are indirectly tied to result forms through the station
+        number and the centers linked to the result form.  Find the station for
+        this result form by finding that with a matching station number in the
+        center tied to this result form.
+        """
         if self.center:
             stations = self.center.stations.filter(
                 station_number=self.station_number)
@@ -195,7 +230,7 @@ class ResultForm(BaseModel):
 
     @property
     def num_votes(self):
-        return sum([r.votes for r in self.results_final])
+        return self.results_final.aggregate(Sum('votes')).values()[0] or 0
 
     @property
     def corrections_required_text(self):
@@ -213,6 +248,15 @@ class ResultForm(BaseModel):
 
     @property
     def corrections_reconciliationforms(self):
+        """Return the reconciliation forms for this result form to be used in
+        corrections.
+
+        If there are extract Data Entry 1 or 2 reconciliation forms, clean
+        those forms.
+
+        :returns: The reconciliation forms for this result form after cleaning
+            Data Entry 1 and 2 conciliation forms.
+        """
         reconciliationforms = self.reconciliationform_set.filter(active=True)
 
         de_1 = reconciliationforms.filter(
@@ -220,25 +264,28 @@ class ResultForm(BaseModel):
         de_2 = reconciliationforms.filter(
             entry_version=EntryVersion.DATA_ENTRY_2)
 
-        if de_1.count() > 1:
-            clean_reconciliation_forms(de_1)
-
-        if de_2.count() > 1:
-            clean_reconciliation_forms(de_2)
+        de_1.count() > 1 and clean_reconciliation_forms(de_1)
+        de_2.count() > 1 and clean_reconciliation_forms(de_2)
 
         return self.reconciliationform_set.filter(active=True)
 
     @property
     def reconciliationform(self):
-        reconciliationforms = self.reconciliationform_set.filter(
+        """Return the final reconciliation form for this result form.
+
+        Clean the final reconciliation forms if there are more than one.
+
+        :returns: The final reconciliation form for this result form.
+        """
+        final = self.reconciliationform_set.filter(
             active=True, entry_version=EntryVersion.FINAL)
 
-        if len(reconciliationforms) == 0:
+        if len(final) == 0:
             return False
-        else:
-            clean_reconciliation_forms(reconciliationforms)
 
-        return reconciliationforms[0]
+        final.count() > 1 and clean_reconciliation_forms(final)
+
+        return final[0]
 
     @property
     def reconciliationform_exists(self):
@@ -246,6 +293,12 @@ class ResultForm(BaseModel):
 
     @property
     def reconciliation_match(self):
+        """Return True if there are two reconciliation forms and they match,
+        otherwise return False.
+
+        :returns: True if there are two reonciliation forms and they match,
+            False otherwise.
+        """
         results = self.reconciliationform_set.filter(active=True)
         if results and results.count() == 2:
             v1, v2 = [model_to_dict(result) for result in results]
@@ -284,6 +337,12 @@ class ResultForm(BaseModel):
 
     @property
     def corrections_passed(self):
+        """If for all types of results for this result form the entries in
+        Data Entry 1 and 2 match return True, otherwise False.
+
+        :returns: True if the results from Data Entry 1 and 2 match, otherwise
+            returns False.
+        """
         return (
             (not self.has_general_results or self.general_match) and
             (not self.reconciliationform_exists or
@@ -291,6 +350,11 @@ class ResultForm(BaseModel):
             (not self.has_women_results or self.women_match))
 
     def reject(self, new_state=FormState.DATA_ENTRY_1):
+        """Deactivate existing results and reconciliation forms for this result
+        form, change the state, and increment the rejected count.
+
+        :param new_state: The state to set the form to.
+        """
         for result in self.results.all():
             result.active = False
             result.save()
@@ -332,6 +396,9 @@ class ResultForm(BaseModel):
 
     @property
     def has_recon(self):
+        """Any forms with assigned centers that are below the Out-of-country
+        Voting minimum center number will have reconciliation forms.
+        """
         return self.center and self.center.code < self.OCV_CENTER_MIN
 
     @property
@@ -345,6 +412,14 @@ class ResultForm(BaseModel):
 
     @property
     def candidates(self):
+        """Get the candidates for this result form.
+
+        If the result form is a component ballot the candidates from the
+        general ballot must be augmented with the candidates from the component
+        ballot.
+
+        :returns: A list of candidates that appear on this result form.
+        """
         ballot = self.ballot
         candidates = list(ballot.candidates.order_by('race_type', 'order'))
         component_ballot = ballot.component_ballot
