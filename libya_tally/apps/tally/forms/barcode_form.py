@@ -37,6 +37,9 @@ class BarcodeForm(forms.Form):
         self.fields['barcode'].widget.attrs['autofocus'] = 'on'
 
     def clean(self):
+        """Verify that barcode and barcode copy match and that the barcode is
+        for a result form in the system.
+        """
         if self.is_valid():
             cleaned_data = super(BarcodeForm, self).clean()
             barcode = cleaned_data.get('barcode')
