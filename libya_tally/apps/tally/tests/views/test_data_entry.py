@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
-from libya_tally.apps.tally.views import data_entry_clerk as views
+from libya_tally.apps.tally.views import data_entry as views
 from libya_tally.libs.permissions import groups
 from libya_tally.libs.tests.test_base import create_result_form,\
     create_candidate, create_center, create_station, center_data,\

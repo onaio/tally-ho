@@ -7,7 +7,7 @@ from django.views.generic import TemplateView
 from libya_tally.apps.tally.forms.login_form import LoginForm
 from libya_tally.apps.tally.forms.password_change import PasswordChangeForm
 from libya_tally.apps.tally.views import archive, audit, clearance,\
-    corrections, data_entry_clerk, home, intake, quality_control,\
+    corrections, data_entry, home, intake, quality_control,\
     super_admin, profile
 from libya_tally.apps.tally.views.reports import offices
 from libya_tally.apps.tally.views.reports import races
@@ -99,16 +99,16 @@ urlpatterns = patterns(
         super_admin.RemoveStationView.as_view(),
         name='remove-station'),
 
-    url(r'^data-entry$', data_entry_clerk.DataEntryView.as_view(),
+    url(r'^data-entry$', data_entry.DataEntryView.as_view(),
         name='data-entry-clerk'),
     url(r'^data-entry/enter-center-details$',
-        data_entry_clerk.CenterDetailsView.as_view(),
+        data_entry.CenterDetailsView.as_view(),
         name='data-entry-enter-center-details'),
     url(r'^data-entry/enter-results',
-        data_entry_clerk.EnterResultsView.as_view(),
+        data_entry.EnterResultsView.as_view(),
         name='enter-results'),
     url(r'^data-entry/success',
-        data_entry_clerk.ConfirmationView.as_view(),
+        data_entry.ConfirmationView.as_view(),
         name='data-entry-success'),
 
     url(r'^intake/center-details$', intake.CenterDetailsView.as_view(),
