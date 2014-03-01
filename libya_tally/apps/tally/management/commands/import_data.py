@@ -38,6 +38,26 @@ def empty_strings_to_none(row):
     return [empty_string_to(f, None) for f in row]
 
 
+def get_component_race_type(ballot_number_component):
+    return {
+        '54': RaceType.COMPONENT_AMAZIGH,
+        '55': RaceType.COMPONENT_TWARAG,
+        '56': RaceType.COMPONENT_TEBU,
+        '57': RaceType.COMPONENT_TWARAG,
+        '58': RaceType.COMPONENT_TEBU,
+    }[ballot_number_component]
+
+
+def get_race_type(race_code):
+    return {
+        0: RaceType.GENERAL,
+        1: RaceType.WOMEN,
+        2: RaceType.COMPONENT_AMAZIGH,
+        3: RaceType.COMPONENT_TWARAG,
+        4: RaceType.COMPONENT_TEBU
+    }[int(race_code)]
+
+
 def invalid_line(row):
     """Ignore lines that are all empty."""
     return len(row) == reduce(lambda x, y: x + 1 if y == '' else 0, row, 0)
@@ -88,24 +108,21 @@ class Command(BaseCommand):
                 row = empty_strings_to_none(row)
 
                 try:
-                    code_value = int(row[0])
-                    ballot_number_component = row[6]
-                    ballot_number_general = row[3]
-                    ballot_number_women = row[4]
-                    number_of_ballots = row[5] and int(row[5])
+                    code_value, field_office, races, ballot_number_general,\
+                        ballot_number_women, number_of_ballots,\
+                        ballot_number_component = row[:7]
+
+                    code_value = int(code_value)
+                    number_of_ballots = number_of_ballots and int(
+                        number_of_ballots)
 
                     ballot_component = None
                     ballot_general = None
                     ballot_women = None
 
                     if ballot_number_component:
-                        component_race_type = {
-                            '54': RaceType.COMPONENT_AMAZIGH,
-                            '55': RaceType.COMPONENT_TWARAG,
-                            '56': RaceType.COMPONENT_TEBU,
-                            '57': RaceType.COMPONENT_TWARAG,
-                            '58': RaceType.COMPONENT_TEBU,
-                        }[ballot_number_component]
+                        component_race_type = get_component_race_type(
+                            ballot_number_component)
 
                         ballot_component, _ = Ballot.objects.get_or_create(
                             number=ballot_number_component,
@@ -129,8 +146,8 @@ class Command(BaseCommand):
 
                     _, created = SubConstituency.objects.get_or_create(
                         code=code_value,
-                        field_office=row[1],
-                        races=row[2],
+                        field_office=field_office,
+                        races=races,
                         ballot_component=ballot_component,
                         ballot_general=ballot_general,
                         ballot_women=ballot_women,
@@ -157,7 +174,13 @@ class Command(BaseCommand):
                             code=sc_code)
                         center_type = CenterType.GENERAL
 
+                    try:
+                        office_number = int(row[3])
+                    except ValueError:
+                        office_number = None
+
                     office, _ = Office.objects.get_or_create(
+                        number=office_number,
                         name=row[4].strip())
 
                     Center.objects.get_or_create(
@@ -178,32 +201,33 @@ class Command(BaseCommand):
             reader.next()  # ignore header
 
             for row in reader:
-                center_code = row[0]
+                center_code, center_name, sc_code, station_number, gender,\
+                    registrants = row[0:6]
 
                 try:
                     center = Center.objects.get(code=center_code)
                 except Center.DoesNotExist:
                     center, created = Center.objects.get_or_create(
                         code=center_code,
-                        name=row[1])
+                        name=center_name)
 
                 try:
                     # attempt to convert SC to a number
-                    sc_code = int(float(row[2]))
+                    sc_code = int(float(sc_code))
                     sub_constituency = SubConstituency.objects.get(
                         code=sc_code)
                 except (SubConstituency.DoesNotExist, ValueError):
                     print('[WARNING] SubConstituency "%s" does not exist' %
                           sc_code)
 
-                gender = getattr(Gender, row[4].upper())
+                gender = getattr(Gender, gender.upper())
 
                 _, created = Station.objects.get_or_create(
                     center=center,
                     sub_constituency=sub_constituency,
                     gender=gender,
-                    registrants=empty_string_to(row[5], None),
-                    station_number=row[3])
+                    registrants=empty_string_to(registrants, None),
+                    station_number=station_number)
 
     def import_candidates(self):
         id_to_ballot_order = {}
@@ -213,25 +237,20 @@ class Command(BaseCommand):
             reader.next()  # ignore header
 
             for row in reader:
-                id_to_ballot_order[row[0]] = row[1]
+                id_, ballot_number = row
+                id_to_ballot_order[id_] = ballot_number
 
         with open(CANDIDATES_PATH, 'rU') as f:
             reader = csv.reader(f)
             reader.next()  # ignore header
 
             for row in reader:
-                race_code = row[18]
-
-                race_type = {
-                    0: RaceType.GENERAL,
-                    1: RaceType.WOMEN,
-                    2: RaceType.COMPONENT_AMAZIGH,
-                    3: RaceType.COMPONENT_TWARAG,
-                    4: RaceType.COMPONENT_TEBU
-                }[int(race_code)]
-
                 candidate_id = row[0]
                 code = row[7]
+                full_name = row[14]
+                race_code = row[18]
+
+                race_type = get_race_type(race_code)
 
                 try:
                     sub_constituency = SubConstituency.objects.get(
@@ -249,7 +268,7 @@ class Command(BaseCommand):
                 _, created = Candidate.objects.get_or_create(
                     ballot=ballot,
                     candidate_id=candidate_id,
-                    full_name=row[14],
+                    full_name=full_name,
                     order=id_to_ballot_order[candidate_id],
                     race_type=race_type)
 
@@ -262,20 +281,18 @@ class Command(BaseCommand):
 
             for row in reader:
                 row = empty_strings_to_none(row)
-                ballot = Ballot.objects.get(number=row[0])
-                barcode = row[7]
+                ballot_number, code, station_number, gender, name,\
+                    office_name, _, barcode, serial_number = row
 
+                ballot = Ballot.objects.get(number=ballot_number)
+                gender = gender and getattr(Gender, gender.upper())
                 center = None
-                gender = None
 
                 try:
-                    center = Center.objects.get(
-                        code=row[1])
-                    gender = getattr(Gender, row[3].upper())
+                    center = Center.objects.get(code=code)
                 except Center.DoesNotExist:
                     pass
 
-                office_name = row[5]
                 office = None
 
                 if office_name:
@@ -290,18 +307,18 @@ class Command(BaseCommand):
                 if is_replacement:
                     replacement_count += 1
 
-                _, created = ResultForm.objects.get_or_create(
+                result_form, _ = ResultForm.objects.get_or_create(
                     barcode=barcode,
                     ballot=ballot,
                     center=center,
                     form_state=FormState.UNSUBMITTED,
                     gender=gender,
-                    name=row[4],
+                    name=name,
                     office=office,
-                    serial_number=row[8],
-                    station_number=row[2])
+                    serial_number=serial_number,
+                    station_number=station_number)
 
-                _.is_replacement = is_replacement
-                _.save()
+                result_form.is_replacement = is_replacement
+                result_form.save()
 
         print '[INFO] Number of replacement forms: %s' % replacement_count
