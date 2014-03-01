@@ -19,16 +19,16 @@ max_station_value = 53
 
 class CenterDetailsForm(forms.Form):
     validators = [MinLengthValidator(5)]
+    center_error_messages = {
+        'invalid': _(u"Expecting only numbers for center number")}
 
     center_number = forms.IntegerField(
-        error_messages={
-            'invalid': _(u"Expecting only numbers for center number")},
+        error_messages=center_error_messages,
         validators=validators,
         widget=forms.NumberInput(attrs=disable_copy_input),
         label=_(u"Center Number"))
     center_number_copy = forms.IntegerField(
-        error_messages={
-            'invalid': _(u"Expecting only numbers for center number")},
+        error_messages=center_error_messages,
         validators=validators,
         widget=forms.NumberInput(attrs=disable_copy_input),
         label=_(u"Center Number Copy"))
@@ -48,6 +48,11 @@ class CenterDetailsForm(forms.Form):
         self.fields['center_number'].widget.attrs['autofocus'] = 'on'
 
     def clean(self):
+        """Ensure that the center number and center number copy match, as well
+        as the station number and station number copy.  Also validate that the
+        center number is a valid center number and that the station number is
+        for a station in that center.
+        """
         if self.is_valid():
             cleaned_data = super(CenterDetailsForm, self).clean()
             center_number = cleaned_data.get('center_number')
@@ -63,14 +68,15 @@ class CenterDetailsForm(forms.Form):
 
             try:
                 center = Center.objects.get(code=center_number)
-                stations = center.stations.all()
-                valid_station_numbers = [s.station_number for s in stations]
+                valid_station_numbers = [
+                    d.values()[0] for d in
+                    center.stations.values('station_number')]
 
                 if not int(station_number) in valid_station_numbers:
                     raise forms.ValidationError(_(
                         u"Invalid Station Number for this Center"))
 
             except Center.DoesNotExist:
-                raise forms.ValidationError(u"Center Number does not exist")
+                raise forms.ValidationError(_(u"Center Number does not exist"))
 
             return cleaned_data
