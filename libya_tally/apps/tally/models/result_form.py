@@ -66,6 +66,22 @@ def match_results(result_form, results=None):
     return len(no_match) == 0
 
 
+def sanity_check_final_results(result_form):
+    """Deactivate duplicate EntryVersion,FINAL results"""
+    for candidate in result_form.candidates:
+        results = result_form.results_final.filter(candidate=candidate)
+        other_result = results[0]
+
+        if results.count() > 1:
+            for result in results[1:]:
+
+                if result.votes != other_result.votes:
+                    raise SuspiciousOperation(_("Votes do not match!"))
+
+                result.active = False
+                result.save()
+
+
 def clean_reconciliation_forms(recon_queryset):
     if len(recon_queryset) > 1:
         field_dict = model_field_to_dict(recon_queryset[0])

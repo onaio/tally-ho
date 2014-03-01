@@ -1,7 +1,9 @@
+from libya_tally.apps.tally.models.result_form import \
+    sanity_check_final_results
 from libya_tally.apps.tally.models.quality_control import QualityControl
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 from libya_tally.libs.tests.test_base import create_reconciliation_form,\
-    create_result_form, TestBase
+    create_result_form, create_result, create_candidates, TestBase
 
 
 class TestResultForm(TestBase):
@@ -28,3 +30,17 @@ class TestResultForm(TestBase):
         re_form.save()
 
         self.assertTrue(result_form.reconciliation_match)
+
+    def test_sanity_check_results(self):
+        votes = 12
+        result_form = create_result_form()
+        create_candidates(result_form, votes=votes, user=self.user,
+                          num_results=1)
+        for result in result_form.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # create duplicate final results
+            create_result(result_form, result.candidate, self.user, votes)
+        self.assertEqual(result_form.results_final.filter().count(), 4)
+        sanity_check_final_results(result_form)
+        self.assertEqual(result_form.results_final.filter().count(), 2)
