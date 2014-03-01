@@ -13,7 +13,7 @@ from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.models.enums.entry_version import EntryVersion
 
 
-class TestDataEntryClerk(TestBase):
+class TestDataEntry(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
