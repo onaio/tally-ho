@@ -14,7 +14,9 @@ RESULT_FORMS_PATH = 'data/result_forms.csv'
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy("Check result forms.")
+    help = ugettext_lazy('Check that the centers and stations assigned to '
+                         'result forms in the system match those in the raw '
+                         'data.')
 
     def handle(self, *args, **kwargs):
         self.check_result_forms()
