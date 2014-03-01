@@ -67,7 +67,7 @@ def match_results(result_form, results=None):
 
 
 def sanity_check_final_results(result_form):
-    """Deactivate duplicate EntryVersion,FINAL results"""
+    """Deactivate duplicate EntryVersion.FINAL results."""
     for candidate in result_form.candidates:
         results = result_form.results_final.filter(candidate=candidate)
         other_result = results[0]
