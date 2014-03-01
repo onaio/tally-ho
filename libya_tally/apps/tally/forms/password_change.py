@@ -12,8 +12,7 @@ class PasswordChangeForm(PasswordChangeForm):
         label=_("New password confirmation"), widget=forms.PasswordInput)
 
     def save(self, commit=True):
-        """
-        Saves the new password and set user_profile reset_password to false
+        """Save the new password and set user_profile reset_password to false.
         """
         self.user.set_password(self.cleaned_data["new_password1"])
         if commit:

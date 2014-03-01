@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from libya_tally.apps.tally.models.center import Center
 from libya_tally.apps.tally.models.station import Station
+from libya_tally.libs.models.dependencies import check_results_for_forms
 from libya_tally.libs.validators import MinLengthValidator
 
 
@@ -54,13 +55,8 @@ class RemoveStationForm(forms.Form):
             except Center.DoesNotExist:
                 raise forms.ValidationError(u"Center Number does not exist")
             else:
-                for resultform in center.resultform_set.filter(
-                        station_number=station_number):
-                    if resultform.results.all():
-                        raise forms.ValidationError(
-                            _(u"Cannot remove station, some results for"
-                              u" %(barcode)s exist." % {'barcode':
-                                                        resultform.barcode}))
+                check_results_for_forms(center.resultform_set.filter(
+                    station_number=station_number))
 
             return cleaned_data
 

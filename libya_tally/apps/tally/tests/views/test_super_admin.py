@@ -152,9 +152,8 @@ class TestSuperAdmin(TestBase):
         request = self.factory.post('/', data)
         request.user = self.user
         response = view(request)
-        self.assertContains(response,
-                            u"Cannot remove center, some results for "
-                            u"123456789 exist.")
+        self.assertContains(response, u"Results exist for barcodes")
+        self.assertContains(response, result_form.barcode)
 
     def test_remove_centre_link(self):
         view = views.DashboardView.as_view()
@@ -231,9 +230,8 @@ class TestSuperAdmin(TestBase):
         request = self.factory.post('/', data)
         request.user = self.user
         response = view(request)
-        self.assertContains(response,
-                            u"Cannot remove station, some results for "
-                            u"123456789 exist.")
+        self.assertContains(response, u"Results exist for barcodes")
+        self.assertContains(response, result_form.barcode)
 
     def test_remove_station_link(self):
         view = views.DashboardView.as_view()
