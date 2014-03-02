@@ -27,31 +27,37 @@ from libya_tally.libs.views.session import session_matches_post_result_form
 
 
 def get_data_entry_number(form_state):
+    """Return data entry number from form state."""
     return 1 if form_state == FormState.DATA_ENTRY_1 else 2
 
 
 def get_formset_and_candidates(result_form, post_data=None):
+    """Return a formset with the candidates and race types for this result
+    form.
+
+    :param result_form: The result form to get candidates for.
+    :param post_date: The post data to initialize the form with.
+
+    :returns: A form set and list of candidates race type, form, and candidate
+        tuples.
+    """
     candidates = result_form.candidates
 
-    CandidateFormSet = formset_factory(CandidateForm,
-                                       extra=len(candidates),
-                                       formset=BaseCandidateFormSet)
+    CandidateFormSet = formset_factory(
+        CandidateForm, extra=len(candidates), formset=BaseCandidateFormSet)
     formset = CandidateFormSet(post_data) if post_data else CandidateFormSet()
     forms_and_candidates = []
-
     last_race_type = None
     tabindex = 200
+
     for i, f in enumerate(formset):
         candidate = candidates[i]
         race_type = candidate.race_type_name if\
             candidate.race_type != last_race_type else None
         last_race_type = candidate.race_type
-
         f.fields['votes'].widget.attrs['tabindex'] = tabindex
         tabindex += 10
-
-        entry = [race_type, f, candidate]
-        forms_and_candidates.append(entry)
+        forms_and_candidates.append([race_type, f, candidate])
 
     return [formset, forms_and_candidates]
 
@@ -78,9 +84,9 @@ def check_group_for_state(result_form, user, form):
     :param result_form: The result form to check access to.
     :param user: The user to check group of.
     :param form: The Django form to attach an error to.
+
     :returns: A form with an error if access denied, else None.
     """
-
     if groups.SUPER_ADMINISTRATOR in groups.user_groups(user):
         return None
 
@@ -94,6 +100,16 @@ def check_group_for_state(result_form, user, form):
 
 
 def check_form_for_center_station(center, station_number, result_form):
+    """Validate that the center and station are assigned to this result form.
+
+    :param center: The center to check.
+    :param station_number: The station number to check.
+    :param result_form: The result form to check the center and station number
+        for.
+
+    :raises: `SuspiciousOperation` if the result_form is not for this center
+        and station.
+    """
     if not result_form in ResultForm.objects.filter(
             center=center, station_number=station_number):
         raise SuspiciousOperation(
@@ -101,9 +117,17 @@ def check_form_for_center_station(center, station_number, result_form):
 
 
 def check_state_and_group(result_form, user, form):
+    """Check that the result_form is in the correct state for the user.
+
+    :param result_form: The result form to check the state of.
+    :param user: The user to check the state for.
+    :param form: A form to add errors to if any exist.
+
+    :returns: A form with an error the form and user do not match, otherwise
+        None.
+    """
     check_state = safe_form_in_state(
         result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2], form)
-
     check_group = check_group_for_state(result_form, user, form)
 
     return check_state or check_group
@@ -141,7 +165,6 @@ class DataEntryView(LoginRequiredMixin,
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
-
             check_form = check_state_and_group(
                 result_form, self.request.user, form)
 
@@ -167,7 +190,6 @@ class CenterDetailsView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_data_entry_state(result_form)
@@ -199,8 +221,7 @@ class CenterDetailsView(LoginRequiredMixin,
                 check_form_for_center_station(center, station_number,
                                               result_form)
             except SuspiciousOperation as e:
-                errors = form._errors.setdefault(
-                    "__all__", ErrorList())
+                errors = form._errors.setdefault("__all__", ErrorList())
                 errors.append(e)
 
                 return self.render_to_response(self.get_context_data(
@@ -251,9 +272,7 @@ class EnterResultsView(LoginRequiredMixin,
                                                                    post_data)
         recon_form = ReconForm(post_data)
         data_entry_number = get_data_entry_number(result_form.form_state)
-
         candidates = result_form.candidates
-
         CandidateFormSet = formset_factory(CandidateForm,
                                            extra=len(candidates),
                                            formset=BaseCandidateFormSet)
@@ -318,13 +337,11 @@ class ConfirmationView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         del self.request.session['result_form']
 
-        if result_form.form_state == FormState.DATA_ENTRY_2:
-            next_step = _('Data Entry 2')
-        else:
-            next_step = _('Corrections')
+        next_step = _('Data Entry 2') if result_form.form_state ==\
+            FormState.DATA_ENTRY_2 else _('Corrections')
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   header_text=_('Data Entry'),
                                   next_step=next_step,
-                                  start_url='data-entry-clerk'))
+                                  start_url='data-entry'))

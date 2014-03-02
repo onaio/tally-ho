@@ -501,10 +501,6 @@ class ResultForm(BaseModel):
 
         return int(highest_barcode) + 1
 
-    def send_to_clearance(self):
-        self.form_state = FormState.CLEARANCE
-        self.save()
-
     @classmethod
     def unsubmitted_result_forms(self):
         not_in_states = [FormState.ARCHIVED, FormState.ARCHIVING,
@@ -515,6 +511,41 @@ class ResultForm(BaseModel):
 
         return ResultForm.objects.exclude(
             Q(form_state__in=not_in_states) | Q(center__isnull=True))
+
+    def intaken(self, center=None, station_number=None):
+        """Check if another result form has been intaken for this center and
+        station_number.
+
+        :param center: Check result forms from this center.
+        :param station_number: Check result forms with this station number.
+
+        :returns: True if a form has already been intaken for this center,
+            station, ballot, and considering form state, otherwise False.
+        """
+        if not center:
+            center = self.center
+
+        if not station_number:
+            station_number = self.station_number
+
+        qs = ResultForm.objects.filter(
+            Q(center=center), Q(center__isnull=False),
+            Q(station_number=station_number), Q(station_number__isnull=False),
+            Q(ballot=self.ballot), Q(ballot__isnull=False))
+
+        if self.form_state == FormState.UNSUBMITTED:
+            qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED))
+        elif self.form_state == FormState.INTAKE:
+            qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED)
+                            | Q(form_state=FormState.INTAKE))
+        else:
+            return False
+
+        return qs.count() > 0
+
+    def send_to_clearance(self):
+        self.form_state = FormState.CLEARANCE
+        self.save()
 
 
 reversion.register(ResultForm)
