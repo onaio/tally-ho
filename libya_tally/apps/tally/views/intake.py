@@ -1,4 +1,3 @@
-from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
@@ -28,21 +27,6 @@ def states_for_form(user, states, result_form):
     return states
 
 
-def result_form_intaken(center, station_number, ballot, result_form):
-    qs = ResultForm.objects.filter(
-        Q(center=center), Q(center__isnull=False),
-        Q(station_number=station_number), Q(station_number__isnull=False),
-        Q(ballot=ballot), Q(ballot__isnull=False))
-    if result_form.form_state == FormState.UNSUBMITTED:
-        qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED))
-    elif result_form.form_state == FormState.INTAKE:
-        qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED)
-                        | Q(form_state=FormState.INTAKE))
-    else:
-        return False
-    return qs.count() > 0
-
-
 class CenterDetailsView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
@@ -66,10 +50,8 @@ class CenterDetailsView(LoginRequiredMixin,
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
-
             url = self.success_url
             user = self.request.user
-
             possible_states = states_for_form(
                 user, [FormState.INTAKE, FormState.UNSUBMITTED], result_form)
 
@@ -82,14 +64,7 @@ class CenterDetailsView(LoginRequiredMixin,
             if form:
                 return self.form_invalid(form)
 
-            intaken = result_form_intaken(
-                result_form.center,
-                result_form.station_number,
-                result_form.ballot,
-                result_form
-            )
-
-            if intaken:
+            if result_form.intaken():
                 # a form already exists, send to clearance
                 self.request.session['intake-error'] = INTAKEN_MESSAGE
                 result_form.send_to_clearance()
@@ -136,7 +111,6 @@ class EnterCenterView(LoginRequiredMixin,
 
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
-
         form = safe_form_in_state(result_form, FormState.INTAKE,
                                   center_form)
 
@@ -148,14 +122,7 @@ class EnterCenterView(LoginRequiredMixin,
             station_number = center_form.cleaned_data.get('station_number')
             center = Center.objects.get(code=center_number)
 
-            intaken = result_form_intaken(
-                center,
-                station_number,
-                result_form.ballot,
-                result_form
-            )
-
-            if intaken:
+            if result_form.intaken(center, station_number):
                 # a form already exists, send to clearance
                 self.request.session['intake-error'] = INTAKEN_MESSAGE
                 result_form.send_to_clearance()
@@ -223,10 +190,8 @@ class PrintCoverView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
-
         possible_states = states_for_form(self.request.user,
                                           [FormState.INTAKE], result_form)
-
         form_in_state(result_form, possible_states)
 
         return self.render_to_response(
@@ -237,13 +202,10 @@ class PrintCoverView(LoginRequiredMixin,
 
         if 'result_form' in post_data:
             pk = session_matches_post_result_form(post_data, self.request)
-
             result_form = get_object_or_404(ResultForm, pk=pk)
             possible_states = states_for_form(self.request.user,
                                               [FormState.INTAKE], result_form)
-
             form_in_state(result_form, possible_states)
-
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
 

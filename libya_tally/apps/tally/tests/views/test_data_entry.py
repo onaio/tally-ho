@@ -364,7 +364,7 @@ class TestDataEntry(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(request.session.get('result_form'))
         self.assertContains(response, 'Data Entry 2')
-        self.assertContains(response, reverse('data-entry-clerk'))
+        self.assertContains(response, reverse('data-entry'))
 
     def test_confirmation_get_corrections(self):
         result_form = create_result_form(form_state=FormState.CORRECTION)
@@ -378,4 +378,4 @@ class TestDataEntry(TestBase):
         self.assertIsNone(request.session.get('result_form'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Corrections')
-        self.assertContains(response, reverse('data-entry-clerk'))
+        self.assertContains(response, reverse('data-entry'))

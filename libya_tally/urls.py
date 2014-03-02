@@ -100,7 +100,7 @@ urlpatterns = patterns(
         name='remove-station'),
 
     url(r'^data-entry$', data_entry.DataEntryView.as_view(),
-        name='data-entry-clerk'),
+        name='data-entry'),
     url(r'^data-entry/enter-center-details$',
         data_entry.CenterDetailsView.as_view(),
         name='data-entry-enter-center-details'),
@@ -130,7 +130,7 @@ urlpatterns = patterns(
 
     url(r'^quality-control/home$',
         quality_control.QualityControlView.as_view(),
-        name='quality-control-clerk'),
+        name='quality-control'),
     url(r'^quality-control/dashboard$',
         quality_control.QualityControlDashboardView.as_view(),
         name='quality-control-dashboard'),
@@ -144,7 +144,7 @@ urlpatterns = patterns(
 
     url(r'^corrections$',
         corrections.CorrectionView.as_view(),
-        name='corrections-clerk'),
+        name='corrections'),
     url(r'^corrections/match$',
         corrections.CorrectionMatchView.as_view(),
         name='corrections-match'),

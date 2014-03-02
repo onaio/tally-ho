@@ -517,5 +517,5 @@ class TestQualityControl(TestBase):
         response = view(request)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Archiving')
-        self.assertContains(response, reverse('quality-control-clerk'))
+        self.assertContains(response, reverse('quality-control'))
         self.assertEqual(request.session.get('result_form'), None)

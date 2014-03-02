@@ -16,12 +16,12 @@ GROUP_URLS = {
     groups.AUDIT_SUPERVISOR: "audit",
     groups.CLEARANCE_CLERK: "clearance",
     groups.CLEARANCE_SUPERVISOR: "clearance",
-    groups.CORRECTIONS_CLERK: "corrections-clerk",
-    groups.DATA_ENTRY_1_CLERK: "data-entry-clerk",
-    groups.DATA_ENTRY_2_CLERK: "data-entry-clerk",
+    groups.CORRECTIONS_CLERK: "corrections",
+    groups.DATA_ENTRY_1_CLERK: "data-entry",
+    groups.DATA_ENTRY_2_CLERK: "data-entry",
     groups.INTAKE_CLERK: "intake",
     groups.INTAKE_SUPERVISOR: "intake",
-    groups.QUALITY_CONTROL_CLERK: "quality-control-clerk",
+    groups.QUALITY_CONTROL_CLERK: "quality-control",
     groups.SUPER_ADMINISTRATOR: "super-administrator",
 }
 
@@ -69,20 +69,25 @@ class HomeView(LoginRequiredMixin, TemplateView):
         if user.groups.count():
             user_group = user.groups.all()[0]
             return reverse(GROUP_URLS.get(user_group.name))
+
         return None
 
     def redirect_user_to_role_view(self):
         user = self.request.user
         redirect_url = self.get_user_role_url(user)
+
         if redirect_url:
             return redirect(redirect_url)
+
         return None
 
     def dispatch(self, request, *args, **kwargs):
         self.request = request
         redirect_response = self.redirect_user_to_role_view()
+
         if redirect_response:
             return redirect_response
+
         return super(HomeView, self).dispatch(request, *args, **kwargs)
 
 

@@ -211,7 +211,7 @@ class CorrectionMatchView(LoginRequiredMixin,
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
     template_name = "tally/corrections/match.html"
-    success_url = 'corrections-clerk'
+    success_url = 'corrections'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -310,8 +310,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
 
             return redirect(self.success_url)
         else:
-            return incorrect_checks(post_data, result_form,
-                                    'corrections-clerk')
+            return incorrect_checks(post_data, result_form, 'corrections')
 
 
 class ConfirmationView(LoginRequiredMixin,
@@ -329,4 +328,4 @@ class ConfirmationView(LoginRequiredMixin,
             self.get_context_data(result_form=result_form,
                                   header_text=_('Corrections'),
                                   next_step=_('Quality Control'),
-                                  start_url='corrections-clerk'))
+                                  start_url='corrections'))

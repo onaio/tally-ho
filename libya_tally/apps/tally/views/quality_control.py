@@ -128,7 +128,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
             # send to entry
             quality_control.active = False
 
-            url = 'quality-control-clerk'
+            url = 'quality-control'
             del self.request.session['result_form']
         else:
             raise SuspiciousOperation('Missing expected POST data')
@@ -153,4 +153,4 @@ class ConfirmationView(LoginRequiredMixin,
             self.get_context_data(result_form=result_form,
                                   header_text=_('Quality Control'),
                                   next_step=_('Archiving'),
-                                  start_url='quality-control-clerk'))
+                                  start_url='quality-control'))
