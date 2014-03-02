@@ -34,18 +34,15 @@ class RacesReportView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         per_ballot = self.get_per_ballot_progress()
-        completed = reduce(
-            lambda x, y: x + (1 if isinstance(y['percentage'], float) and
-                              y['percentage'] >= 100 else 0),
-            per_ballot, 0)
+        races = len(per_ballot)
+        completed = sum([1 for x in per_ballot if isinstance(
+            x['percentage'], float) and x['percentage'] >= 100])
 
         overview = {
-            'races': len(per_ballot),
-            'completed': completed
+            'races': races,
+            'completed': completed,
+            'percentage': round(completed / float(races) * 100, 2)
         }
-
-        overview['percentage'] = round(float(overview['completed']) / float(
-            overview['races']) * 100, 2)
 
         return self.render_to_response(
             self.get_context_data(

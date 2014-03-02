@@ -18,8 +18,8 @@ class OfficesReportView(LoginRequiredMixin,
 
         for office in Office.objects.all().order_by('number'):
             intaken = p.IntakenProgressReport().for_center_office(office)
-            not_intaken = p.NotRecievedProgressReport()\
-                .for_center_office(office)
+            not_intaken = p.NotRecievedProgressReport().for_center_office(
+                office)
             archived = p.ArchivedProgressReport().for_center_office(office)
             data.append({
                 'office': office,
@@ -28,6 +28,7 @@ class OfficesReportView(LoginRequiredMixin,
                 'not_intaken': not_intaken.number,
                 'archived': archived.number,
             })
+
         return data
 
     def get(self, *args, **kwargs):
