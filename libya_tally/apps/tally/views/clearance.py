@@ -1,4 +1,3 @@
-from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext as _
@@ -17,7 +16,7 @@ from libya_tally.libs.utils.time import now
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_state,\
     safe_form_in_state
-from libya_tally.libs.views.pagination import paginate
+from libya_tally.libs.views.pagination import paging
 from libya_tally.libs.views.session import session_matches_post_result_form
 
 
@@ -96,9 +95,7 @@ class DashboardView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         form_list = ResultForm.objects.filter(form_state=FormState.CLEARANCE)
-        paginator = Paginator(form_list, 100)
-        page = self.request.GET.get('page')
-        forms = paginate(paginator, page)
+        forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             forms=forms, is_clerk=is_clerk(self.request.user)))

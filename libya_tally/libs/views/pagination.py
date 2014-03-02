@@ -1,4 +1,11 @@
-from django.core.paginator import EmptyPage, PageNotAnInteger
+from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
+
+
+def paging(form_list, request):
+    paginator = Paginator(form_list, 100)
+    page = request.GET.get('page')
+
+    return paginate(paginator, page)
 
 
 def paginate(paginator, page):

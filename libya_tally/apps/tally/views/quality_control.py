@@ -21,14 +21,21 @@ from libya_tally.libs.views.form_state import safe_form_in_state, form_in_state
 
 
 def results_for_race(result_form, race_type):
+    """Return the results from this form for this specific race type.
+
+    :param result_form: The result form to return results for.
+    :param race_type: The type of results to return, component results of None.
+
+    :returns: A queryset of results for this form and race type.
+    """
+    results = result_form.results.filter(
+        active=True,
+        entry_version=EntryVersion.FINAL).order_by('candidate__order')
+
     if race_type is None:
-        results = result_form.results.filter(
-            candidate__race_type__gt=RaceType.WOMEN, active=True,
-            entry_version=EntryVersion.FINAL).order_by('candidate__order')
+        results = results.filter(candidate__race_type__gt=RaceType.WOMEN)
     else:
-        results = result_form.results.filter(
-            candidate__race_type=race_type, active=True,
-            entry_version=EntryVersion.FINAL).order_by('candidate__order')
+        results = results.filter(candidate__race_type=race_type)
 
     return results
 
@@ -46,8 +53,8 @@ class QualityControlView(LoginRequiredMixin,
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
-        return self.render_to_response(
-            self.get_context_data(form=form, header_text=_('Quality Control')))
+        return self.render_to_response(self.get_context_data(
+            form=form, header_text=_('Quality Control')))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -56,7 +63,6 @@ class QualityControlView(LoginRequiredMixin,
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
-
             form = safe_form_in_state(result_form, FormState.QUALITY_CONTROL,
                                       form)
 
@@ -64,7 +70,6 @@ class QualityControlView(LoginRequiredMixin,
                 return self.form_invalid(form)
 
             self.request.session['result_form'] = result_form.pk
-
             QualityControl.objects.create(result_form=result_form,
                                           user=self.request.user)
 

@@ -1,6 +1,4 @@
 from django.core.exceptions import SuspiciousOperation
-
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
@@ -21,44 +19,34 @@ from libya_tally.libs.models.enums.audit_resolution import\
     AuditResolution
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
+from libya_tally.libs.utils.dicts import flatten
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.exports import export_to_csv_response, \
     get_result_export_response
+from libya_tally.libs.views.pagination import paging
 
 
 ALL = '__all__'
 
 
 def duplicates():
+    """Build a list of result forms that are duplicates considering only forms
+    that are not unsubmitted.
+
+    :returns: A list of result forms in the system that are duplicates.
+    """
     dupes = ResultForm.objects.values(
         'center', 'ballot', 'station_number').annotate(
         Count('id')).order_by().filter(id__count__gt=1).filter(
         center__isnull=False, ballot__isnull=False,
         station_number__isnull=False).exclude(form_state=FormState.UNSUBMITTED)
 
-    pks = []
-    for item in dupes:
-        pks.extend([r.pk for r in ResultForm.objects.filter(
-            center=item['center'], ballot=item['ballot'],
-            station_number=item['station_number'])])
+    pks = flatten([map(lambda x: x['id'], ResultForm.objects.filter(
+        center=item['center'], ballot=item['ballot'],
+        station_number=item['station_number']).values('id'))
+        for item in dupes])
 
     return ResultForm.objects.filter(pk__in=pks)
-
-
-def paging(form_list, request):
-    paginator = Paginator(form_list, 100)
-    page = request.GET.get('page')
-
-    try:
-        forms = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        forms = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page.
-        forms = paginator.page(paginator.num_pages)
-
-    return forms
 
 
 class DashboardView(LoginRequiredMixin,
@@ -108,17 +96,7 @@ class CenterListView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         station_list = Station.objects.all()
-        paginator = Paginator(station_list, 100)
-        page = self.request.GET.get('page')
-
-        try:
-            stations = paginator.page(page)
-        except PageNotAnInteger:
-            # If page is not an integer, deliver first page.
-            stations = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page.
-            stations = paginator.page(paginator.num_pages)
+        stations = paging(station_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             stations=stations))
@@ -179,18 +157,7 @@ class FormListView(LoginRequiredMixin,
             return render_to_csv_response(form_list)
 
         form_list = ResultForm.objects.all()
-
-        paginator = Paginator(form_list, 100)
-        page = self.request.GET.get('page')
-
-        try:
-            forms = paginator.page(page)
-        except PageNotAnInteger:
-            # If page is not an integer, deliver first page.
-            forms = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page.
-            forms = paginator.page(paginator.num_pages)
+        forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             forms=forms))
