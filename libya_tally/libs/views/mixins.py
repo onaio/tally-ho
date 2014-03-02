@@ -66,7 +66,10 @@ class DatatablesDisplayFieldsMixin(object):
     display_fields = None
 
     def get_row(self, row):
-        '''Format a single row (if necessary)'''
+        """Format a single row if necessary.
+
+        :param row: The row to format.
+        """
 
         if self.display_fields is None:
             raise ImproperlyConfigured(

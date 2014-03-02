@@ -1,4 +1,4 @@
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext as _
@@ -17,7 +17,69 @@ from libya_tally.libs.utils.time import now
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.form_state import form_in_state,\
     safe_form_in_state
+from libya_tally.libs.views.pagination import paginate
 from libya_tally.libs.views.session import session_matches_post_result_form
+
+
+def clearance_action(post_data, clearance, result_form, url):
+    if 'forward' in post_data:
+        # forward to supervisor
+        clearance.reviewed_team = True
+        url = 'clearance-print'
+
+    if 'return' in post_data:
+        # return to audit team
+        clearance.reviewed_team = False
+        clearance.reviewed_supervisor = False
+
+    if 'implement' in post_data:
+        # take implementation action
+        clearance.reviewed_supervisor = True
+
+        if clearance.resolution_recommendation ==\
+                ClearanceResolution.RESET_TO_PREINTAKE:
+            clearance.active = False
+            result_form.form_state = FormState.UNSUBMITTED
+            if result_form.is_replacement:
+                result_form.center = None
+                result_form.station_number = None
+            result_form.save()
+
+    clearance.save()
+
+    return url
+
+
+def get_clearance(result_form, post_data, user, form):
+    """Fetch the clearance or build it form the result form and form.
+
+    :param result_form: The form get or create a clearance for.
+    :param post_data: The post data to create a clearance form from.
+    :param user: The user to assign this clearance to.
+    :param form: The form to create a new clearance from.
+    """
+    clearance = result_form.clearance
+
+    if clearance:
+        clearance = ClearanceForm(
+            post_data, instance=clearance).save(commit=False)
+
+        if groups.CLEARANCE_CLERK in user.groups.values_list(
+                'name', flat=True):
+            clearance.user = user
+        else:
+            clearance.supervisor = user
+    else:
+        clearance = form.save(commit=False)
+        clearance.result_form = result_form
+        clearance.user = user
+
+    if groups.CLEARANCE_CLERK in user.groups.values_list('name', flat=True):
+        clearance.date_team_modified = now()
+    else:
+        clearance.date_supervisor_modified = now()
+
+    return clearance
 
 
 def is_clerk(user):
@@ -36,15 +98,7 @@ class DashboardView(LoginRequiredMixin,
         form_list = ResultForm.objects.filter(form_state=FormState.CLEARANCE)
         paginator = Paginator(form_list, 100)
         page = self.request.GET.get('page')
-
-        try:
-            forms = paginator.page(page)
-        except PageNotAnInteger:
-            # If page is not an integer, deliver first page.
-            forms = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page.
-            forms = paginator.page(paginator.num_pages)
+        forms = paginate(paginator, page)
 
         return self.render_to_response(self.get_context_data(
             forms=forms, is_clerk=is_clerk(self.request.user)))
@@ -54,7 +108,6 @@ class DashboardView(LoginRequiredMixin,
         pk = post_data['result_form']
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.CLEARANCE)
-
         self.request.session['result_form'] = result_form.pk
 
         return redirect(self.success_url)
@@ -72,7 +125,6 @@ class ReviewView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         pk = self.request.session['result_form']
         result_form = get_object_or_404(ResultForm, pk=pk)
-
         form_class = self.get_form_class()
         clearance = result_form.clearance
         form = ClearanceForm(instance=clearance) if clearance\
@@ -88,64 +140,18 @@ class ReviewView(LoginRequiredMixin,
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.CLEARANCE)
-        clearance = result_form.clearance
         form = self.get_form(form_class)
 
         if form.is_valid():
             user = self.request.user
-            url = self.success_url
-
-            if clearance:
-                clearance = ClearanceForm(
-                    post_data, instance=clearance).save(commit=False)
-
-                if groups.CLEARANCE_CLERK in user.groups.values_list(
-                        'name', flat=True):
-                    clearance.user = user
-                else:
-                    clearance.supervisor = user
-            else:
-                clearance = form.save(commit=False)
-                clearance.result_form = result_form
-                clearance.user = user
-
-            if groups.CLEARANCE_CLERK in user.groups.values_list(
-                    'name', flat=True):
-                clearance.date_team_modified = now()
-            else:
-                clearance.date_supervisor_modified = now()
-
-            if 'forward' in post_data:
-                # forward to supervisor
-                clearance.reviewed_team = True
-                url = 'clearance-print'
-
-            if 'return' in post_data:
-                # return to audit team
-                clearance.reviewed_team = False
-                clearance.reviewed_supervisor = False
-
-            if 'implement' in post_data:
-                # take implementation action
-                clearance.reviewed_supervisor = True
-
-                if clearance.resolution_recommendation ==\
-                        ClearanceResolution.RESET_TO_PREINTAKE:
-                    clearance.active = False
-                    result_form.form_state = FormState.UNSUBMITTED
-                    if result_form.is_replacement:
-                        result_form.center = None
-                        result_form.station_number = None
-                    result_form.save()
-
-            clearance.save()
+            clearance = get_clearance(result_form, post_data, user, form)
+            url = clearance_action(post_data, clearance, result_form,
+                                   self.success_url)
 
             return redirect(url)
         else:
             return self.render_to_response(self.get_context_data(form=form,
                                            result_form=result_form))
-
-        return redirect(self.success_url)
 
 
 class PrintCoverView(LoginRequiredMixin,
@@ -157,9 +163,7 @@ class PrintCoverView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
-
         form_in_state(result_form, FormState.CLEARANCE)
-
         problems = result_form.clearance.get_problems()
 
         return self.render_to_response(
@@ -224,7 +228,6 @@ class CreateClearanceView(LoginRequiredMixin,
                 return self.form_invalid(form)
 
             result_form.reject(FormState.CLEARANCE)
-
             Clearance.objects.create(result_form=result_form,
                                      user=self.request.user)
 
