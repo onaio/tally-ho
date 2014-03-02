@@ -19,6 +19,15 @@ from libya_tally.libs.views.session import session_matches_post_result_form
 
 
 def audit_action(audit, post_data, result_form, url):
+    """Update an audit and result form based on post_date.
+
+    :param audit: The audit to modify.
+    :param post_data: The post data to look for strings in.
+    :param result_form: The result form to modify.
+    :param url: The a default url to return.
+
+    :returns: The url.
+    """
     if 'forward' in post_data:
         # forward to supervisor
         audit.reviewed_team = True
@@ -46,6 +55,16 @@ def audit_action(audit, post_data, result_form, url):
 
 
 def create_or_get_audit(post_data, user, result_form, form):
+    """Get or save an audit for the result form.
+
+    :param post_data: The form data to use in the audit form.
+    :param user: The user to assign to the audit as user or supervisor
+        depending on the user's group.
+    :param result_form: The result form to associate the audit with.
+    :param form: The form to create an audit from if one does not exist.
+
+    :returns: A retrived of created audit for the result form.
+    """
     audit = result_form.audit
 
     if audit:
@@ -72,6 +91,26 @@ def is_clerk(user):
     return groups.AUDIT_CLERK in user.groups.values_list('name', flat=True)
 
 
+def forms_for_user(user_is_clerk):
+    """Return the forms to display based on whether the user is a clerk or not.
+
+    Supervisors and admins can view all unreviewed forms in the Audit state,
+    Clerks can only view forms that have not been reviewed by the audit team.
+
+    :param user_is_clerk: True if the user is a Clerk, otherwise False.
+
+    :returns: A list of forms in the audit state for this user's group.
+    """
+    form_list = ResultForm.objects.filter(
+        form_state=FormState.AUDIT, audit__reviewed_supervisor=False)
+
+    if user_is_clerk:
+        form_list = form_list.filter(
+            form_state=FormState.AUDIT, audit__reviewed_team=False)
+
+    return form_list
+
+
 class DashboardView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     mixins.ReverseSuccessURLMixin,
@@ -82,16 +121,7 @@ class DashboardView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         user_is_clerk = is_clerk(self.request.user)
-
-        form_list = ResultForm.objects.filter(
-            form_state=FormState.AUDIT,
-            audit__reviewed_supervisor=False)
-
-        if user_is_clerk:
-            form_list = form_list.filter(
-                form_state=FormState.AUDIT,
-                audit__active=True,
-                audit__reviewed_team=False)
+        form_list = forms_for_user(user_is_clerk)
 
         paginator = Paginator(form_list, 100)
         page = self.request.GET.get('page')
@@ -171,9 +201,7 @@ class PrintCoverView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
-
         form_in_state(result_form, FormState.AUDIT)
-
         problems = result_form.audit.get_problems()
 
         return self.render_to_response(

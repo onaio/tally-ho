@@ -21,6 +21,7 @@ def check_quarantine(result_form, user):
     quarantine checks if any fail.
 
     :param result_form: The result form to run quarantine checks on.
+    :param user: The user to associate with an audit if any checks fail.
     """
     audit = None
 
@@ -39,7 +40,18 @@ def check_quarantine(result_form, user):
         result_form.save()
 
 
-def states_for_form(user, states, result_form):
+def states_for_form(user, result_form, states=[FormState.ARCHIVING]):
+    """Get the possible states for this result_form.
+
+    Archive supervisors can modify archived forms, check the user and see if
+    this state should be added.
+
+    :param user: The user to determine form states for.
+    :param result_form: The form to check the state of.
+    :param states: The initial states a form can be in.
+
+    :returns: A list of states that a form may be in.
+    """
     if groups.ARCHIVE_SUPERVISOR in groups.user_groups(user)\
             and result_form.form_state == FormState.ARCHIVED:
         states.append(FormState.ARCHIVED)
@@ -70,10 +82,7 @@ class ArchiveView(LoginRequiredMixin,
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
-
-            possible_states = states_for_form(
-                self.request.user, [FormState.ARCHIVING], result_form)
-
+            possible_states = states_for_form(self.request.user, result_form)
             form = safe_form_in_state(result_form, possible_states,
                                       form)
 
@@ -81,7 +90,6 @@ class ArchiveView(LoginRequiredMixin,
                 return self.form_invalid(form)
 
             check_quarantine(result_form, self.request.user)
-
             self.request.session['result_form'] = result_form.pk
 
             return redirect(self.success_url)
@@ -100,9 +108,7 @@ class ArchivePrintView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
-
-        possible_states = states_for_form(
-            self.request.user, [FormState.ARCHIVING], result_form)
+        possible_states = states_for_form(self.request.user, result_form)
 
         form_in_state(result_form, possible_states)
 
@@ -112,13 +118,9 @@ class ArchivePrintView(LoginRequiredMixin,
     @transaction.atomic
     def post(self, *args, **kwargs):
         post_data = self.request.POST
-        pk = session_matches_post_result_form(
-            post_data, self.request)
+        pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
-
-        possible_states = states_for_form(
-            self.request.user, [FormState.ARCHIVING], result_form)
-
+        possible_states = states_for_form(self.request.user, result_form)
         form_in_state(result_form, possible_states)
 
         result_form.form_state = FormState.AUDIT if result_form.audit else\
@@ -140,8 +142,6 @@ class ConfirmationView(LoginRequiredMixin,
         next_step = _('Quarantine') if result_form.audit else _('Archive')
         del self.request.session['result_form']
 
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  header_text=_('Archiving'),
-                                  next_step=next_step,
-                                  start_url='archive'))
+        return self.render_to_response(self.get_context_data(
+            result_form=result_form, header_text=_('Archiving'),
+            next_step=next_step, start_url='archive'))
