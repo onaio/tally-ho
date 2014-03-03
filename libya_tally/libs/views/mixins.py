@@ -8,6 +8,7 @@ from django.http import HttpResponseBadRequest
 from eztables.forms import DatatablesForm
 from operator import or_
 
+from libya_tally.libs.utils.collections import listify
 from libya_tally.libs.permissions import groups
 
 
@@ -17,40 +18,39 @@ class GroupRequiredMixin(object):
 
     def get_group_required(self):
         required_types = (list, tuple) + six.string_types
-        if self.group_required is None \
-                or (not isinstance(self.group_required, required_types)):
 
+        if self.group_required is None or not isinstance(
+                self.group_required, required_types):
             raise ImproperlyConfigured(
                 "'GroupRequiredMixin' requires "
                 "'group_required' attribute to be set and be one of the "
                 "following types: string, unicode, list, or tuple.")
+
         return self.group_required
 
     def check_membership(self, allowed_groups):
-        """ Check required group(s) """
+        """Check required group(s).
+
+        Verify that the user is in a permitted group, always returns True if
+        the user is a Super Administrator.
+
+        :param allowed_groups: The groups permitted.
+
+        :returns: True if user is in an allowed group, otherwise False.
+        """
         # super admin skips group check
-        user_groups = self.request.user.groups.values_list("name", flat=True)
+        user_groups = groups.user_groups(self.request.user)
 
-        if groups.SUPER_ADMINISTRATOR in user_groups:
-            return True
-
-        if not isinstance(allowed_groups, list):
-            allowed_groups = [allowed_groups]
-
-        for group in allowed_groups:
-            if group in user_groups:
-                return True
-
-        return False
+        return groups.SUPER_ADMINISTRATOR in user_groups or\
+            set(listify(allowed_groups)) & set(user_groups)
 
     def dispatch(self, request, *args, **kwargs):
         self.request = request
-        in_group = False
-        if self.request.user.is_authenticated():
-            in_group = self.check_membership(self.get_group_required())
 
-        if not in_group:
+        if not (self.request.user.is_authenticated() and
+                self.check_membership(self.get_group_required())):
             raise PermissionDenied
+
         return super(GroupRequiredMixin, self).dispatch(
             request, *args, **kwargs)
 
@@ -59,6 +59,7 @@ class ReverseSuccessURLMixin(object):
     def get_success_url(self):
         if self.success_url:
             self.success_url = reverse(self.success_url)
+
         return super(ReverseSuccessURLMixin, self).get_success_url()
 
 
@@ -69,17 +70,19 @@ class DatatablesDisplayFieldsMixin(object):
         """Format a single row if necessary.
 
         :param row: The row to format.
-        """
 
+        :raises: `ImproperlyConfigured` exception is class does not have a
+            display_fields member.
+
+        :returns: A list of data.
+        """
         if self.display_fields is None:
             raise ImproperlyConfigured(
-                u"`DatatablesDisplayMixin` requires a displa_fields tuple to"
+                u"`DatatablesDisplayMixin` requires a display_fields tuple to"
                 " be defined.")
 
-        data = {}
-        for field, name in self.display_fields:
-            data[field] = getattr(row, name)
-        return [data[field] for field in self.fields]
+        return [getattr(row, name) for field, name in self.display_fields if
+                field in self.fields]
 
     def process_dt_response(self, data):
         self.form = DatatablesForm(data)
@@ -92,12 +95,17 @@ class DatatablesDisplayFieldsMixin(object):
             return HttpResponseBadRequest()
 
     def global_search(self, queryset):
-        '''Filter a queryset with global search'''
+        """Filter a queryset using a global search.
 
+        :param queryset: The queryset to filter.
+
+        :returns: A filtered queryset.
+        """
         qs = copy.deepcopy(queryset)
         qs2 = copy.deepcopy(queryset)
         zero_start_term = False
         search = search_str = self.dt_data['sSearch']
+
         if search:
             if self.dt_data['bRegex']:
                 criterions = [Q(**{'%s__iregex' % field: search})
@@ -111,6 +119,7 @@ class DatatablesDisplayFieldsMixin(object):
                 for term in search.split():
                     if term.startswith(u'0'):
                         zero_start_term = True
+
                     criterions = (Q(**{'%s__icontains' % field: term})
                                   for field in self.get_db_fields())
                     search = reduce(or_, criterions)
@@ -130,4 +139,5 @@ class DatatablesDisplayFieldsMixin(object):
 
                 queryset = qs2.filter(Q(pk__in=qs.values('pk'))
                                       | Q(pk__in=queryset.values('pk')))
+
         return queryset
