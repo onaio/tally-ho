@@ -9,7 +9,7 @@ from libya_tally.libs.models.base_model import BaseModel
 from libya_tally.libs.models.enums.actions_prior import ActionsPrior
 from libya_tally.libs.models.enums.clearance_resolution import\
     ClearanceResolution
-from libya_tally.libs.utils.dicts import keys_if_value
+from libya_tally.libs.utils.collections import keys_if_value
 
 
 class Clearance(BaseModel):

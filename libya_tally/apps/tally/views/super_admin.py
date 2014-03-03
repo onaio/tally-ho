@@ -19,7 +19,7 @@ from libya_tally.libs.models.enums.audit_resolution import\
     AuditResolution
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.permissions import groups
-from libya_tally.libs.utils.dicts import flatten
+from libya_tally.libs.utils.collections import flatten
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.exports import export_to_csv_response, \
     get_result_export_response

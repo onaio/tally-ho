@@ -1,17 +1,9 @@
 from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import ugettext as _
 
+from libya_tally.libs.utils.collections import listify
 from libya_tally.libs.models.enums.form_state import FormState
 from libya_tally.libs.views.errors import add_generic_error
-
-
-def listify(maybe_list):
-    """Make maybe list a list if it is not.
-
-    :param maybe_list: A variable that may be a list.
-
-    :returns: A list."""
-    return [maybe_list] if not isinstance(maybe_list, list) else maybe_list
 
 
 def safe_form_in_state(result_form, states, form):
