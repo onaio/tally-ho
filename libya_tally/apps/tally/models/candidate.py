@@ -31,21 +31,29 @@ class Candidate(BaseModel):
             4: _('Component Tebu')
         }[self.race_type]
 
-    def num_votes(self, result_form):
+    def num_votes(self, result_form=None):
         """Return the number of final active votes for this candidate in the
         result form.
 
         :param result_form: The result form to restrict the sum over votes to.
 
-        :returns: The number of votes for this candidate and result form.
+        :returns: The number of votes for this candidate and result form or a
+            list of the number of results and the number of votes if a result
+            form not is passed.
         """
         results = self.results.filter(
-            result_form=result_form,
             entry_version=EntryVersion.FINAL,
             result_form__form_state=FormState.ARCHIVED,
             active=True)
 
-        return results.aggregate(models.Sum('votes')).values()[0] or 0
+        if result_form:
+            results = results.filter(result_form=result_form)
+            return results.aggregate(models.Sum('votes')).values()[0] or 0
+
+        results = results.distinct('entry_version', 'active', 'result_form')
+
+        # Distinct can not be combined with aggregate.
+        return [len(results), sum([r.votes for r in results])]
 
 
 reversion.register(Candidate)
