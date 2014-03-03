@@ -1,0 +1,18 @@
+language: python
+python:
+  - "2.7"
+virtualenv:
+  system_site_packages: true
+install:
+  - pip install -r requirements/common.pip --use-mirrors
+  - pip install flake8
+  - pip freeze # list our pip library versions
+script:
+  - python manage.py test
+notifications:
+  email:
+    - tech@ona.io
+  hipchat:
+    rooms:
+      secure: cfWcsNSVAq9vs0pFrT5VKrd7Be6uE8eDPuaOBVT+sGjRKoF7UgaY+jwHK6yaO+Iv+/4aBEsMb5Sc0qp0vQ7vwP9X9THO4Y+giFolQByKO74rnMEp/cn5Hdyv8r5UsHXLYj4MtipLAuD9wkZBOWjsbYfhhDZ6zJ7ZFztvYn/Fxoc=
+  irc: "irc.freenode.org#onatest"
