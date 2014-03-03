@@ -41,7 +41,7 @@ class RacesReportView(LoginRequiredMixin,
         overview = {
             'races': races,
             'completed': completed,
-            'percentage': round(completed / float(races) * 100, 2)
+            'percentage': p.rounded_percent(completed, races)
         }
 
         return self.render_to_response(

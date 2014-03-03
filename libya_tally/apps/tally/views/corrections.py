@@ -22,8 +22,8 @@ from libya_tally.libs.permissions import groups
 from libya_tally.libs.views.session import session_matches_post_result_form
 from libya_tally.libs.views import mixins
 from libya_tally.libs.views.corrections import get_matched_forms,\
-    get_results_for_race_type, save_component_results, save_final_results,\
-    save_general_results, save_women_results
+    candidate_results_for_race_type, save_component_results,\
+    save_final_results, save_general_results, save_women_results
 from libya_tally.libs.views.form_state import form_in_state, safe_form_in_state
 
 
@@ -80,9 +80,9 @@ def get_corrections_forms(result_form):
         race if there is one.
     """
     recon = get_recon_form(result_form) if result_form.has_recon else None
-    general = get_results_for_race_type(result_form, RaceType.GENERAL)
-    women = get_results_for_race_type(result_form, RaceType.WOMEN)
-    component = get_results_for_race_type(result_form, None)
+    general = candidate_results_for_race_type(result_form, RaceType.GENERAL)
+    women = candidate_results_for_race_type(result_form, RaceType.WOMEN)
+    component = candidate_results_for_race_type(result_form, None)
 
     # get name of component race type
     c_name = component[0][0].race_type_name if len(component) else None

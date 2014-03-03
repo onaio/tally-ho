@@ -6,20 +6,24 @@ from libya_tally.apps.tally.models.result_form import ResultForm
 from libya_tally.libs.models.enums.form_state import FormState
 
 
+def rounded_percent(numerator, denominator):
+    return round(100 * numerator / float(denominator), 2)
+
+
 class ProgressReport(object):
     queryset = ResultForm.distinct_forms()
 
     def get_queryset(self):
         if self.queryset is None or not isinstance(self.queryset, QuerySet):
             raise ImproperlyConfigured(
-                u"`queryset needs to be of instance QuerySet`")
+                u"queryset needs to be of instance QuerySet")
 
         return self.queryset
 
     def get_filtered_queryset(self):
         if not isinstance(self.filtered_queryset, QuerySet):
             raise ImproperlyConfigured(
-                u"`queryset needs to be of instance QuerySet`")
+                u"queryset needs to be of instance QuerySet")
 
         return self.filtered_queryset
 
@@ -36,8 +40,8 @@ class ProgressReport(object):
     def percentage_value(self):
         if self.denominator() <= 0:
             return _(u"No results")
-        return round(
-            100 * (float(self.numerator()) / float(self.denominator())), 2)
+
+        return rounded_percent(self.numerator(), self.denominator())
 
     percentage = property(percentage_value)
 

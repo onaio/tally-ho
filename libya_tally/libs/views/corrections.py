@@ -11,6 +11,12 @@ from libya_tally.libs.models.enums.race_type import RaceType
 
 
 def get_matched_forms(result_form):
+    """Return matches and not matching lists from data entry 1 and 2.
+
+    :param result_form: The result form to fetch data from.
+
+    :returns: A list of matches and a list is mismatches.
+    """
     results_v1 = Result.objects.filter(
         active=True,
         result_form=result_form,
@@ -33,16 +39,21 @@ def get_matched_forms(result_form):
     return matches, no_match
 
 
-def get_candidates(result_form, results=None):
+def get_candidates(results):
+    """Return ordered tuples of candidates and their results.
+
+    :param results: The results to get candidates from.
+
+    :returns: A list of tuples of candidates and the results associated with
+        them.
+    """
     candidates = OrderedDict()
-    if results is None:
-        results = result_form.results
 
     for result in results.order_by('candidate__race_type', 'candidate__order',
                                    'entry_version'):
         candidate = result.candidate
 
-        if candidate in candidates.keys():
+        if candidates.get(candidate):
             candidates[candidate].append(result)
         else:
             candidates.update({candidate: [result]})
@@ -51,31 +62,51 @@ def get_candidates(result_form, results=None):
 
 
 def get_results_for_race_type(result_form, race_type):
-    if race_type is None:
-        results = result_form.results.filter(
-            candidate__race_type__gt=RaceType.WOMEN,
-            active=True)
-    else:
-        results = result_form.results.filter(candidate__race_type=race_type,
-                                             active=True)
+    """Return the results for a result form and race type.
 
-    return get_candidates(result_form, results)
+    :param result_form: The result form to return data for.
+    :param race_type: The race type to get results for, get component results
+        if this is None.
+
+    :returns: A queryset of results.
+    """
+    results = result_form.results.filter(active=True)
+
+    return results.filter(candidate__race_type__gt=RaceType.WOMEN) if\
+        race_type is None else results.filter(candidate__race_type=race_type)
+
+
+def candidate_results_for_race_type(result_form, race_type):
+    """Return the candidates and results for a result form and race type.
+
+    :param result_form: The result form to return data for.
+    :param race_type: The race type to get results for, get component results
+        if this is None.
+
+    :returns: A list of tuples containing the candidate and all results for
+        that candidate.
+    """
+    return get_candidates(get_results_for_race_type(result_form, race_type))
 
 
 def save_candidate_results_by_prefix(prefix, result_form, post_data,
                                      race_type, user):
+    """Fetch fields from post_data based on prefix and save final results for
+    them.
+
+    :param prefix: The prefix to search for in the post data.
+    :param result_form: The result form to save final results for.
+    :param post_data: The data to pull candidate values from.
+    :param race_type: The race type to fetch results for.
+    :param user: The user to associate with the final results.
+
+    :raises: `ValidationError` if a selection is not found for every mismatched
+        candidate.
+    """
     prefix = 'candidate_%s_' % prefix
 
     candidate_fields = [f for f in post_data if f.startswith(prefix)]
-
-    if race_type is None:
-        results = result_form.results.filter(
-            candidate__race_type__gt=RaceType.WOMEN,
-            active=True)
-    else:
-        results = result_form.results.filter(
-            candidate__race_type=race_type, active=True)
-
+    results = get_results_for_race_type(result_form, race_type)
     matches, no_match = get_matched_results(result_form, results)
 
     if len(candidate_fields) != len(no_match):
@@ -101,9 +132,15 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
 
 
 def save_final_results(result_form, user):
+    """Save final results based on existing results.
+
+    :param result_form: The result form to save final results for.
+    :param user: The user to associate final results with.
+    """
     results = Result.objects.filter(
         result_form=result_form,
         entry_version=EntryVersion.DATA_ENTRY_2, active=True)
+
     for result in results:
         save_result(result.candidate, result_form, EntryVersion.FINAL,
                     result.votes, user)

@@ -2,10 +2,10 @@ import logging
 
 
 logger = logging.getLogger('tally')
-hdlr = logging.FileHandler('/var/log/tally-system/logs/tally.log')
+handler = logging.FileHandler('/var/log/tally-system/logs/tally.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 

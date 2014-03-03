@@ -33,6 +33,10 @@ def add_user_to_group(user, name):
 
 
 def create_demo_users_with_groups(password='data'):
+    """Create a demo user for each group.
+
+    :param password: The password for the demo users.
+    """
     for group in GROUPS:
         obj, created = Group.objects.get_or_create(name=group)
         username = group.replace(' ', '_').lower()
