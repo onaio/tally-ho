@@ -107,7 +107,7 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
 
     candidate_fields = [f for f in post_data if f.startswith(prefix)]
     results = get_results_for_race_type(result_form, race_type)
-    matches, no_match = get_matched_results(result_form, results)
+    no_match = get_matched_results(result_form, results)[1]
 
     if len(candidate_fields) != len(no_match):
         raise ValidationError(
