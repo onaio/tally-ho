@@ -9,5 +9,5 @@ data.tgz
 data
 results
 db.sqlite3
-libya_tally/static
+tally_system/static
 local_settings.py

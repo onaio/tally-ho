@@ -12,7 +12,7 @@ DEPLOYMENTS = {
         'ubuntu@54.80.106.68',
         'project': 'tally-system',
         'key_filename': os.path.expanduser('~/.ssh/ona.pem'),
-        'django_module': 'libya_tally.settings.local_settings'
+        'django_module': 'tally_system.settings.local_settings'
     },
 }
 
@@ -90,7 +90,7 @@ def server_setup(deployment_name, dbuser='dbuser', dbpass="dbpwd"):
             ' || (cd tally-system && git fetch)')
 
     with lcd(current_working_dir):
-        config_path = os.path.join(env.code_src, 'libya_tally',
+        config_path = os.path.join(env.code_src, 'tally_system',
                                    'settings', 'local_settings.py')
         put(config_path[1:], config_path)
         change_local_settings(env.django_module, dbuser, dbuser, dbpass)

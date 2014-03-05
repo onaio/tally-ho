@@ -10,7 +10,7 @@ DEPLOYMENTS = {
         'host_string': 'ubuntu@54.221.204.14',
         'project': 'tally-system',
         'key_filename': os.path.expanduser('~/.ssh/ona.pem'),
-        'django_config_module': 'libya_tally.settings.local_settings',
+        'django_config_module': 'tally_system.settings.local_settings',
         'pid': '/var/run/tally.pid',
     },
     'prod': {
@@ -19,7 +19,7 @@ DEPLOYMENTS = {
         'from_local': True,
         'host_string': 'hnec',  # configure .ssh/config for HNEC
         'project': 'tally-system',
-        'django_config_module': 'libya_tally.settings.local_settings',
+        'django_config_module': 'tally_system.settings.local_settings',
     }
 }
 
