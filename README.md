@@ -4,7 +4,8 @@
 
 ```bash
 git clone git@github.com:onaio/tally-system.git
-git clone git@github.com:onaio/libya-data.git data
+git clone git@github.com:onaio/libya-data.git
+mv libya-data data
 ```
 
 ### Make a virtual environment and install requirements
