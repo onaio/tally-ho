@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/onaio/tally-system.png?branch=master)](https://travis-ci.org/onaio/tally-system)
+
 ## Quick install
 
 ### Checkout the repos
