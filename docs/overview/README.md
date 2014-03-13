@@ -102,6 +102,8 @@ If the Clerk selects "Incorrect" the system moves the form to Clearance and the
 clerk is instructed to move the physical form the Clearance section.  If
 the Clerk selects "Abort" they are returned to the barcode entry screen.
 
+![](images/intake.png)
+
 ### Data Entry
 
 There are two data entry sections: Data Entry 1 and Data Entry 2.  To ensure
@@ -116,10 +118,14 @@ to the form in the order in which they appear on the ballot (and form).  The phy
 shows the number of results for each candidate.  The Data Entry Clerk must enter the 
 results for each candidate that appear on the form into the system.
 
+![](images/data-entry-results.png)
+
 If the form contains a reconcilliation component, the Clerk must also enter
 reconciliation information regarding the number of ballots, number of stampted
 votes, number of damaged votes, etc.  The system will use this information
 later when deciding whether to Audit the form.
+
+![](images/data-entry.png)
 
 After a Data Entry 1 Clerk has entered the form's information, the system moves the
 form to Data Entry 2 and the Clerk is instructed to move the physical form to
@@ -135,6 +141,8 @@ and 2 matches exactly the Clerk is simply displayed a message and the form is
 moved to quality control.  The Corrections Clerk begins by entering a barcode
 for the form they have received.
 
+![](images/corrections.png)
+
 If any entries do not match, the system displays the information entered 
 during Data Entry 1 and 2 side-by-side.  The Corrections Clerk must select the
 correct information and select "Submit Corrections", "Not Correct - Reject", or
@@ -145,6 +153,8 @@ If the Clerk chooses "Reject" the form is moved to Data Entry 1 and continues
 in the pipeline from there.  If the Clerk choose "Abort" no corrections are
 saved, the forms stays in corrections, and the Clerk is returned to the enter
 barcode entry screen.
+
+![](images/corrections-results.png)
 
 ### Quality Control
 
@@ -158,6 +168,8 @@ Clerks must selection "Correct", "Incorrect", or "Abort".  If the Clerk chooses
 form is move to Data Entry 1 and continues in the pipeline from there.  If the
 Clerk chooses "Abort" the form stays in quality control, and the Clerk is
 returned to the enter barcode screen.
+
+![](images/quality-control.png)
 
 ### Archiving
 
@@ -267,11 +279,15 @@ current state within the system.  This view is useful to determine where a form
 is in processing and to see how many forms from a particular center have been
 entered into the system.
 
+![](images/reports-progress.png)
+
 The *Reports Offices* list shows the percentage of forms in each state within
 the system.  This can be used to balance the Clerk assigned to specific
 stations.  For example, if there are twice as many forms in Data Entry 1 than
 in Data Entry 2, it may be wise to assign some Clerk from Data Entry 2 to Dat
 Entry 1.
+
+![](images/reports-race.png)
 
 This view also shows the number of Intaken and Archived form for each Office
 (analogous to a type of voting district).  This allows administrators to track
