@@ -30,9 +30,9 @@ Store the form data entered into the system.
     * Data Entry 2
     * Corrections
     * Quality Control
-    * Auditing: failed quarantine checks
-    * Archiving: passed quality control and quarantine checks but cover sheet not yet printed
-    * Archived: final state
+    * Archiving: passed quality control
+    * Audit: failed quarantine checks
+    * Archived: final state, results official
 * Transitions: the possible transitions from the current state.
 * Actions: the actions a user can perform.
     * Transitioning the form to a new state.
