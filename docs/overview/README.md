@@ -83,6 +83,8 @@ form is not a replacement form it will have a pre-assigned center and station.
 If it is a replacement form the clerk will next enter the center and station
 number for that form.
 
+![](images/intake.png)
+
 The original form or the replacement form is a duplicate if there is already a
 form in the system with the same ballot, center, and station.  If the form is a
 duplicate the system will move it to *Clearance* and instruct the clerk to move
@@ -101,8 +103,6 @@ clerk is instructed to move the physical form to the Data Entry 1 section.
 If the Clerk selects "Incorrect" the system moves the form to Clearance and the
 clerk is instructed to move the physical form the Clearance section.  If
 the Clerk selects "Abort" they are returned to the barcode entry screen.
-
-![](images/intake.png)
 
 ### Data Entry
 
@@ -187,6 +187,8 @@ Otherwise, the Archiving Clerk prints an *Archived* cover sheet and attaches it
 to the form.  The Clerk selects "Print Successful", moving the form to archived
 state.  The form is then filed away.
 
+![](images/archive.png)
+
 ## Review Stages
 
 As discussed above, there are two additional stages for exceptional forms that
@@ -221,6 +223,7 @@ recommendations made by a clerk for the form the choose
 the system moves form to Unsubmitted state, and the physical form is returned to
 the Intake Section.
 
+![](images/clearance.png)
 
 ### Audit
 
@@ -257,6 +260,8 @@ recommending that the form skip Quarantine Checks on its next time through the
 syste.  The form is then hidden from the Audit team and must then be reviewed
 by a Super Administration before moving to Data Entry 1.
 
+![](images/audit-review.png)
+
 ## Super Administrator Views
 
 Super administrators are able to perform additional operations and view
@@ -271,6 +276,8 @@ administrator must review and approve this case before the form state can
 change.  The *Forms Waiting For Approval* list shows those forms which a Super
 Administrator must review.  Rows in this list link to the Audit review view for
 the forms.
+
+![](images/admin-review.png)
 
 ### Reports Views
 
