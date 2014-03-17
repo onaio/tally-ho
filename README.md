@@ -28,3 +28,15 @@ address, and the third is the settings file.  Modify these arguments as needed.
 ```bash
 ./script/reload_all postgres 127.0.0.1 tally_system.settings.common
 ```
+
+## Demo Site
+
+### [tally.ona.io](http://tally.ona.io)
+
+Ona intermittently hosts a demo site of the Libya tally software at [tally.ona.io](http://tally.ona.io).
+
+If it is not running and you would like to see a demo, please [email us](mailto:info@ona.io).
+
+### Demo Users
+
+Please login as username `super_administrator`, password `datadata` to look around the demo site.
