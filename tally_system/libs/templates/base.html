@@ -3,7 +3,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+    <title>
+        {% if debug %}[STAGE] {% endif %}
+        {% block title %}{{ SITE_NAME }}{% endblock %}
+    </title>
     <meta name="description" content="{% block meta_description %}Libya Tally System{% endblock %}">
     <meta name="author" content="">
 
