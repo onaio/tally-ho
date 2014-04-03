@@ -6,15 +6,15 @@
 
 <h1>{% trans 'Quality Control' %}</h1>
 
-{% include 'tally/center_details.html' %}
+{% include 'center_details.html' %}
 
 <h2>{% trans header_text %} {% trans 'Results Section' %}</h2>
 
-{% include 'tally/quality_control/results.html' with results=results %}
+{% include 'quality_control/results.html' with results=results %}
 
 {% if results_component %}
 <h2>{% trans 'Component' %} {% trans 'Results Section' %}</h2>
-{% include 'tally/quality_control/results.html' with results=results_component %}
+{% include 'quality_control/results.html' with results=results_component %}
 {% endif %}
 
 

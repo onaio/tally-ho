@@ -33,7 +33,7 @@ def form_in_state(result_form, states):
     """
     states = listify(states)
 
-    if not result_form.form_state in states:
+    if result_form.form_state not in states:
         state_names = get_state_names(states)
 
         raise SuspiciousOperation(

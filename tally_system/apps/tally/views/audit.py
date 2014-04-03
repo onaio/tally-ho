@@ -116,7 +116,7 @@ class DashboardView(LoginRequiredMixin,
                     mixins.ReverseSuccessURLMixin,
                     FormView):
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
-    template_name = "tally/audit/dashboard.html"
+    template_name = "audit/dashboard.html"
     success_url = 'audit-review'
 
     def get(self, *args, **kwargs):
@@ -144,7 +144,7 @@ class ReviewView(LoginRequiredMixin,
                  FormView):
     form_class = AuditForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
-    template_name = "tally/audit/review.html"
+    template_name = "audit/review.html"
     success_url = 'audit'
 
     def get(self, *args, **kwargs):
@@ -185,7 +185,7 @@ class PrintCoverView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      TemplateView):
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
-    template_name = "tally/audit/print_cover.html"
+    template_name = "audit/print_cover.html"
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -219,7 +219,7 @@ class CreateAuditView(LoginRequiredMixin,
                       FormView):
     form_class = BarcodeForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
-    template_name = "tally/barcode_verify.html"
+    template_name = "barcode_verify.html"
     success_url = 'audit'
 
     def get(self, *args, **kwargs):

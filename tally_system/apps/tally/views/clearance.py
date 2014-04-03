@@ -90,7 +90,7 @@ class DashboardView(LoginRequiredMixin,
                     mixins.ReverseSuccessURLMixin,
                     FormView):
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
-    template_name = "tally/clearance/dashboard.html"
+    template_name = "clearance/dashboard.html"
     success_url = 'clearance-review'
 
     def get(self, *args, **kwargs):
@@ -116,7 +116,7 @@ class ReviewView(LoginRequiredMixin,
                  FormView):
     form_class = ClearanceForm
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
-    template_name = "tally/clearance/review.html"
+    template_name = "clearance/review.html"
     success_url = 'clearance'
 
     def get(self, *args, **kwargs):
@@ -155,7 +155,7 @@ class PrintCoverView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      TemplateView):
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
-    template_name = "tally/clearance/print_cover.html"
+    template_name = "clearance/print_cover.html"
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -189,7 +189,7 @@ class CreateClearanceView(LoginRequiredMixin,
     form_class = BarcodeForm
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     success_url = 'clearance'
-    template_name = "tally/barcode_verify.html"
+    template_name = "barcode_verify.html"
 
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -239,7 +239,7 @@ class NewFormView(LoginRequiredMixin,
     form_class = NewResultForm
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     success_url = 'clearance'
-    template_name = "tally/clearance/new_form.html"
+    template_name = "clearance/new_form.html"
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')

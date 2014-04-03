@@ -11,7 +11,7 @@ class OfficesReportView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
                         TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = 'tally/reports/offices.html'
+    template_name = 'reports/offices.html'
 
     def get_per_office_progress(self):
         data = []

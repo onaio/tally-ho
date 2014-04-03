@@ -6,24 +6,24 @@
 
 <h1>{% trans 'Quality Control' %}</h1>
 
-{% include 'tally/center_details.html' %}
+{% include 'center_details.html' %}
 
 {{ result_form.qualitycontrol.reviews_required_text }}
 
 {% if reconciliation_form %}
-{% include 'tally/quality_control/reconciliation.html' with form=reconciliation_form %}
+{% include 'quality_control/reconciliation.html' with form=reconciliation_form %}
 {% endif %}
 
 {% if results_general %}
-{% include 'tally/quality_control/results.html' with results=results_general header_text='General' %}
+{% include 'quality_control/results.html' with results=results_general header_text='General' %}
 {% endif %}
 
 {% if results_women %}
-{% include 'tally/quality_control/results.html' with results=results_women header_text='Women' %}
+{% include 'quality_control/results.html' with results=results_women header_text='Women' %}
 {% endif %}
 
 {% if results_component %}
-{% include 'tally/quality_control/results.html' with results=results_component header_text='Component' %}
+{% include 'quality_control/results.html' with results=results_component header_text='Component' %}
 {% endif %}
 
 <form name="form_correct" method="post" action="">

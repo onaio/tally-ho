@@ -28,25 +28,25 @@ GROUP_URLS = {
 
 def permission_denied(request):
     context = RequestContext(request)
-    return render_to_response('tally/errors/403.html',
+    return render_to_response('errors/403.html',
                               context_instance=context)
 
 
 def not_found(request):
     context = RequestContext(request)
-    return render_to_response('tally/errors/404.html',
+    return render_to_response('errors/404.html',
                               context_instance=context)
 
 
 def bad_request(request):
     context = RequestContext(request)
-    return render_to_response('tally/errors/400.html',
+    return render_to_response('errors/400.html',
                               context_instance=context)
 
 
 def server_error(request):
     context = RequestContext(request)
-    return render_to_response('tally/errors/500.html',
+    return render_to_response('errors/500.html',
                               context_instance=context)
 
 
@@ -57,13 +57,13 @@ def suspicious_error(request):
     if error_message:
         del request.session['error_message']
 
-    return render_to_response('tally/errors/suspicious.html',
+    return render_to_response('errors/suspicious.html',
                               {'error_message': error_message},
                               context_instance=context)
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
-    template_name = "tally/home.html"
+    template_name = "home.html"
 
     def get_user_role_url(self, user):
         if user.groups.count():
