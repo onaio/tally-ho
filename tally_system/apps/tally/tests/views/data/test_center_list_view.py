@@ -1,6 +1,6 @@
 from django.test import RequestFactory
 
-from tally_system.apps.tally.views.data import center_list_views as views
+from tally_system.apps.tally.views.data import center_list_view as views
 from tally_system.libs.permissions import groups
 from tally_system.libs.tests.test_base import TestBase
 
@@ -13,7 +13,7 @@ class TestSuperAdmin(TestBase):
         self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
 
     def test_center_list_view(self):
-        view = views.FormNotReceivedListView.as_view()
+        view = views.CenterListView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         response = view(request)
