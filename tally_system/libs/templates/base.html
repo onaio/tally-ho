@@ -11,13 +11,15 @@
     <meta name="author" content="">
 
     {% block styles %}
-      {% if locale == 'ar' %}
-      <link href="{{STATIC_URL}}css/bootstrap-rtl.css" rel="stylesheet" type="text/css" />
-      {% else %}
-      <link href="{{STATIC_URL}}css/bootstrap.css" rel="stylesheet" type="text/css" />
-      {% endif %}
-      <link href="{{STATIC_URL}}css/default.css" rel="stylesheet" type="text/css" />
-      <link href="{{STATIC_URL}}css/print.css" rel="stylesheet" type="text/css" />
+        {% if locale == 'ar' %}
+            <link href="{{STATIC_URL}}css/bootstrap-rtl.css" rel="stylesheet" type="text/css" />
+        {% else %}
+            <link href="{{STATIC_URL}}css/bootstrap.css" rel="stylesheet" type="text/css" />
+        {% endif %}
+        <link href="{{STATIC_URL}}css/default.css" rel="stylesheet" type="text/css" />
+        <link href="{{STATIC_URL}}css/print.css" rel="stylesheet" type="text/css" />
+        <link rel="shortcut icon" href="{{STATIC_URL}}images/favicon.ico" />
+        <link rel="icon" href="{{STATIC_URL}}images/favicon.ico" />
     {% endblock %}
   </head>
 
@@ -31,7 +33,7 @@
         <div class="container top-header print-section">
             <div class="row">
                 <div class="col-md-4 righter" dir="rtl">
-                    <img alt="Hnec-logo" class="hnec-logo" src="{{STATIC_URL}}img/hnec-logo.png">
+                    <img alt="Hnec-logo" class="hnec-logo" src="{{STATIC_URL}}images/hnec-logo.png">
                 </div>
 
                 <div class="col-md-4">
