@@ -17,4 +17,4 @@ class TestSuperAdmin(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         response = view(request)
-        self.assertContains(response, "Center List")
+        self.assertContains(response, "Center and Station List")

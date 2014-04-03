@@ -22,6 +22,8 @@ class CenterListDataView(LoginRequiredMixin,
         'station_number',
         'gender',
         'registrants',
+        'percent_received',
+        'percent_archived',
         'modified_date',
     )
     display_fields = (
@@ -32,6 +34,8 @@ class CenterListDataView(LoginRequiredMixin,
         ('station_number', 'station_number'),
         ('gender', 'gender_name'),
         ('registrants', 'registrants'),
+        ('percent_received', 'percent_received'),
+        ('percent_archived', 'percent_archived'),
         ('modified_date', 'modified_date_formatted'),
     )
 
@@ -43,6 +47,8 @@ class CenterListView(LoginRequiredMixin,
     template_name = "data/centers.html"
 
     def get(self, *args, **kwargs):
+        # check cache
+        Station.update_cache()
         station_list = Station.objects.all()
         stations = paging(station_list, self.request)
 
