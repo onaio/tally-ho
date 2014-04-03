@@ -173,7 +173,7 @@ class CorrectionView(LoginRequiredMixin,
                      FormView):
     form_class = BarcodeForm
     group_required = groups.CORRECTIONS_CLERK
-    template_name = "tally/barcode_verify.html"
+    template_name = "barcode_verify.html"
     success_url = 'corrections-match'
 
     def get(self, *args, **kwargs):
@@ -211,7 +211,7 @@ class CorrectionMatchView(LoginRequiredMixin,
                           FormView):
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
-    template_name = "tally/corrections/match.html"
+    template_name = "corrections/match.html"
     success_url = 'corrections'
 
     def get(self, *args, **kwargs):
@@ -255,7 +255,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
                              FormView):
     form_class = PassToQualityControlForm
     group_required = groups.CORRECTIONS_CLERK
-    template_name = "tally/corrections/required.html"
+    template_name = "corrections/required.html"
     success_url = 'corrections-success'
     failed_url = 'suspicious-error'
 
@@ -317,7 +317,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
 class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
-    template_name = "tally/success.html"
+    template_name = "success.html"
     group_required = groups.CORRECTIONS_CLERK
 
     def get(self, *args, **kwargs):

@@ -53,7 +53,7 @@ class DashboardView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/home.html"
+    template_name = "super_admin/home.html"
 
     def get(self, *args, **kwargs):
         group_logins = [g.lower().replace(' ', '_') for g in groups.GROUPS]
@@ -92,7 +92,7 @@ class CenterListView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/centers.html"
+    template_name = "super_admin/centers.html"
 
     def get(self, *args, **kwargs):
         station_list = Station.objects.all()
@@ -136,7 +136,7 @@ class FormListView(LoginRequiredMixin,
                    mixins.GroupRequiredMixin,
                    TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/forms.html"
+    template_name = "super_admin/forms.html"
 
     def get(self, *args, **kwargs):
         form_state = kwargs.get('state')
@@ -167,7 +167,7 @@ class FormProgressView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/form_progress.html"
+    template_name = "super_admin/form_progress.html"
 
     def get(self, *args, **kwargs):
         form_list = ResultForm.objects.exclude(
@@ -183,7 +183,7 @@ class FormDuplicatesView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
                          TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/form_duplicates.html"
+    template_name = "super_admin/form_duplicates.html"
 
     def get(self, *args, **kwargs):
         form_list = duplicates()
@@ -236,7 +236,7 @@ class FormActionView(LoginRequiredMixin,
                      mixins.ReverseSuccessURLMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/form_action.html"
+    template_name = "super_admin/form_action.html"
     success_url = 'form-action-view'
 
     def get(self, *args, **kwargs):
@@ -274,8 +274,8 @@ class FormNotReceivedListView(LoginRequiredMixin,
                               mixins.GroupRequiredMixin,
                               TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/forms_not_received.html"
-    header_template_name = "tally/super_admin/forms_not_received_header.html"
+    template_name = "super_admin/forms_not_received.html"
+    header_template_name = "super_admin/forms_not_received_header.html"
     queryset = ResultForm.unsubmitted_result_forms()
 
     headers = [
@@ -316,7 +316,7 @@ class ResultExportView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/result_export.html"
+    template_name = "super_admin/result_export.html"
 
     def get(self, *args, **kwargs):
         report = kwargs.get('report')
@@ -332,7 +332,7 @@ class RemoveCenterView(LoginRequiredMixin,
                        FormView):
     form_class = RemoveCenterForm
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/remove_center.html"
+    template_name = "super_admin/remove_center.html"
     success_url = 'super-administrator'
     success_message = _(u"Center Successfully Removed.")
 
@@ -363,7 +363,7 @@ class RemoveStationView(LoginRequiredMixin,
                         FormView):
     form_class = RemoveStationForm
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "tally/super_admin/remove_station.html"
+    template_name = "super_admin/remove_station.html"
     success_url = 'super-administrator'
     success_message = _(u"Station Successfully Removed.")
 

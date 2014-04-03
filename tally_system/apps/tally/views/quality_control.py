@@ -47,7 +47,7 @@ class QualityControlView(LoginRequiredMixin,
                          FormView):
     form_class = BarcodeForm
     group_required = groups.QUALITY_CONTROL_CLERK
-    template_name = "tally/barcode_verify.html"
+    template_name = "barcode_verify.html"
     success_url = 'quality-control-dashboard'
 
     def get(self, *args, **kwargs):
@@ -84,7 +84,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
                                   mixins.ReverseSuccessURLMixin,
                                   FormView):
     group_required = groups.QUALITY_CONTROL_CLERK
-    template_name = "tally/quality_control/dashboard.html"
+    template_name = "quality_control/dashboard.html"
     success_url = 'quality-control-success'
 
     def get(self, *args, **kwargs):
@@ -147,7 +147,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
 class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
-    template_name = "tally/success.html"
+    template_name = "success.html"
     group_required = groups.QUALITY_CONTROL_CLERK
 
     def get(self, *args, **kwargs):

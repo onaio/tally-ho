@@ -7,7 +7,7 @@
 <h1>{% trans 'Data Entry' %} {{ data_entry_number }}</h1>
     </div>
 
-{% include 'tally/center_details.html' %}
+{% include 'center_details.html' %}
 
 <form name="results" method="post" action="" onsubmit="return validate_results('{% trans "Some fields are blank!" %}');">
     {% if result_form.has_recon %}

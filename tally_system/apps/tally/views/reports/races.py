@@ -11,7 +11,7 @@ class RacesReportView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
                       TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = 'tally/reports/races.html'
+    template_name = 'reports/races.html'
 
     def get_per_ballot_progress(self):
         data = []

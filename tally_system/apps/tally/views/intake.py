@@ -33,7 +33,7 @@ class CenterDetailsView(LoginRequiredMixin,
                         FormView):
     form_class = BarcodeForm
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
-    template_name = "tally/barcode_verify.html"
+    template_name = "barcode_verify.html"
     success_url = 'check-center-details'
 
     def get(self, *args, **kwargs):
@@ -91,7 +91,7 @@ class EnterCenterView(LoginRequiredMixin,
                       FormView):
     form_class = CenterDetailsForm
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
-    template_name = "tally/enter_center_details.html"
+    template_name = "enter_center_details.html"
     success_url = 'check-center-details'
 
     def get(self, *args, **kwargs):
@@ -144,7 +144,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
-    template_name = "tally/check_center_details.html"
+    template_name = "check_center_details.html"
     success_url = "intake-check-center-details"
 
     def get(self, *args, **kwargs):
@@ -185,7 +185,7 @@ class PrintCoverView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      TemplateView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
-    template_name = "tally/intake/print_cover.html"
+    template_name = "intake/print_cover.html"
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -218,7 +218,7 @@ class PrintCoverView(LoginRequiredMixin,
 class ClearanceView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     TemplateView):
-    template_name = "tally/intake/clearance.html"
+    template_name = "intake/clearance.html"
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
@@ -240,7 +240,7 @@ class ClearanceView(LoginRequiredMixin,
 class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
-    template_name = "tally/success.html"
+    template_name = "success.html"
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 
     def get(self, *args, **kwargs):

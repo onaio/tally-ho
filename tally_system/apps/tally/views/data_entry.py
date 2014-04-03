@@ -111,7 +111,7 @@ def check_form_for_center_station(center, station_number, result_form):
     :raises: `SuspiciousOperation` if the result_form is not for this center
         and station.
     """
-    if not result_form in ResultForm.objects.filter(
+    if result_form not in ResultForm.objects.filter(
             center=center, station_number=station_number):
         raise SuspiciousOperation(
             _('Center and station numbers do not match'))
@@ -140,7 +140,7 @@ class DataEntryView(LoginRequiredMixin,
                     FormView):
     form_class = BarcodeForm
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
-    template_name = "tally/barcode_verify.html"
+    template_name = "barcode_verify.html"
     success_url = 'data-entry-enter-center-details'
 
     def get(self, *args, **kwargs):
@@ -185,7 +185,7 @@ class CenterDetailsView(LoginRequiredMixin,
                         FormView):
     form_class = CenterDetailsForm
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
-    template_name = "tally/enter_center_details.html"
+    template_name = "enter_center_details.html"
     success_url = 'enter-results'
 
     def get(self, *args, **kwargs):
@@ -245,7 +245,7 @@ class EnterResultsView(LoginRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
-    template_name = "tally/data_entry/enter_results_view.html"
+    template_name = "data_entry/enter_results_view.html"
     success_url = "data-entry-success"
 
     def get(self, *args, **kwargs):
@@ -330,7 +330,7 @@ class EnterResultsView(LoginRequiredMixin,
 class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
-    template_name = "tally/success.html"
+    template_name = "success.html"
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
 
     def get(self, *args, **kwargs):

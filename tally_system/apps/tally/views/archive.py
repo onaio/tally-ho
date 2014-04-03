@@ -66,7 +66,7 @@ class ArchiveView(LoginRequiredMixin,
                   FormView):
     form_class = BarcodeForm
     group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
-    template_name = "tally/barcode_verify.html"
+    template_name = "barcode_verify.html"
     success_url = 'archive-print'
 
     def get(self, *args, **kwargs):
@@ -103,7 +103,7 @@ class ArchivePrintView(LoginRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
     group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
-    template_name = "tally/archive/print_cover.html"
+    template_name = "archive/print_cover.html"
     success_url = 'archive-success'
 
     def get(self, *args, **kwargs):
@@ -134,7 +134,7 @@ class ArchivePrintView(LoginRequiredMixin,
 class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
-    template_name = "tally/success.html"
+    template_name = "success.html"
     group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
