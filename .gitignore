@@ -6,7 +6,7 @@
 .idea
 build
 data.tgz
-data
+/data
 results
 db.sqlite3
 tally_system/static
