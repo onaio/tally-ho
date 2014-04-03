@@ -7,7 +7,6 @@ from django.core.files.base import File
 from django.core.files.storage import default_storage
 from django.http import HttpResponse
 from django.utils import timezone
-from django.utils.encoding import smart_str
 from django.utils.translation import ugettext as _
 
 from tally_system.apps.tally.models.ballot import Ballot
