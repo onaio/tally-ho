@@ -6,9 +6,12 @@
 
 {% block content %}
 
-<h1>{% trans 'Form List' %}</h1>
+<h1>{{ header_text }}</h1>
 
 Export:
+{% if custom %}
+<a href="{% url 'form-not-received-view' 'csv' %}">{% trans 'All' %}</a>
+{% else %}
 <a href="{% url 'form-list' '__all__' %}">{% trans 'All' %}</a>
 <a href="{% url 'form-list' 'unsubmitted' %}">{% trans 'Unsubmitted' %}</a>
 <a href="{% url 'form-list' 'intake' %}">{% trans 'Intake' %}</a>
@@ -20,6 +23,7 @@ Export:
 <a href="{% url 'form-list' 'archived' %}">{% trans 'Archived' %}</a>
 <a href="{% url 'form-list' 'clearance' %}">{% trans 'Clearance' %}</a>
 <a href="{% url 'form-list' 'audit' %}">{% trans 'Audit' %}</a>
+{% endif %}
 <br/>
 <br/>
 
@@ -44,8 +48,7 @@ Export:
 
 {% block styles %}
     {{ block.super }}
-      <link href="{{STATIC_URL}}css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
-
+    <link href="{{STATIC_URL}}css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block javascript %}
