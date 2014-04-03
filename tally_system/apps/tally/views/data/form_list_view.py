@@ -68,7 +68,8 @@ class FormListView(LoginRequiredMixin,
             return render_to_csv_response(form_list)
 
         return self.render_to_response(
-            self.get_context_data(header_text=_('Form List')))
+            self.get_context_data(header_text=_('Form List'),
+                                  remote_url='form-list-data'))
 
 
 class FormNotReceivedListView(FormListView):
@@ -82,7 +83,8 @@ class FormNotReceivedListView(FormListView):
 
         return self.render_to_response(
             self.get_context_data(header_text=_('Forms Not Received'),
-                                  custom=True))
+                                  custom=True,
+                                  remote_url='form-not-received-data'))
 
 
 class FormNotReceivedDataView(FormListDataView):

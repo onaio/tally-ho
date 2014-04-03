@@ -56,4 +56,7 @@ Export:
 {% django_js %}
 {% datatables_js %}
 <script type="text/javascript" src="{{ STATIC_URL }}js/form_table.js"></script>
+<script type="text/javascript">
+    loadTableData('{{ remote_url }}');
+</script>
 {% endblock %}
