@@ -8,6 +8,7 @@ from tally_system.apps.tally.forms.password_change import PasswordChangeForm
 from tally_system.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile
+from tally_system.apps.tally.views.data import form_list_view
 from tally_system.apps.tally.views.reports import offices
 from tally_system.apps.tally.views.reports import races
 
@@ -53,13 +54,13 @@ urlpatterns = patterns(
         super_admin.CenterListDataView.as_view(),
         name='center-list-data'),
     url(r'^super-administrator/form-list$',
-        super_admin.FormListView.as_view(),
+        form_list_view.FormListView.as_view(),
         name='form-list'),
     url(r'^super-administrator/form-list/(?P<state>.*)/$',
-        super_admin.FormListView.as_view(),
+        form_list_view.FormListView.as_view(),
         name='form-list'),
     url(r'^super-administrator/form-list-data$',
-        super_admin.FormListDataView.as_view(),
+        form_list_view.FormListDataView.as_view(),
         name='form-list-data'),
     url(r'^super-administrator/form-progress$',
         super_admin.FormProgressView.as_view(),
@@ -77,20 +78,20 @@ urlpatterns = patterns(
         super_admin.FormDuplicatesDataView.as_view(),
         name='form-duplicates-data'),
     url(r'^super-administrator/form-not-received.(?P<format>(csv))$',
-        super_admin.FormNotReceivedListView.as_view(),
+        form_list_view.FormNotReceivedListView.as_view(),
         name='form-not-received-view'),
     url(r'^super-administrator/form-not-received$',
-        super_admin.FormNotReceivedListView.as_view(),
+        form_list_view.FormNotReceivedListView.as_view(),
         name='form-not-received-view'),
+    url(r'^super-administrator/form-not-received-data$',
+        form_list_view.FormNotReceivedDataView.as_view(),
+        name='form-not-received-data'),
     url(r'^super-administrator/results-(?P<report>.*).csv$',
         super_admin.ResultExportView.as_view(),
         name='result-export'),
     url(r'^super-administrator/results$',
         super_admin.ResultExportView.as_view(),
         name='result-export'),
-    url(r'^super-administrator/form-not-received-data$',
-        super_admin.FormNotReceivedDataView.as_view(),
-        name='form-not-received-data'),
     url(r'^super-administrator/remove-centre$',
         super_admin.RemoveCenterView.as_view(),
         name='remove-center'),
