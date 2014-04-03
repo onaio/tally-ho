@@ -75,7 +75,7 @@ def local_deploy():
 def deploy(deployment_name, branch='master'):
     setup_env(deployment_name)
 
-    if env.from_local:
+    if getattr(env, 'from_local', False):
         local_deploy()
         return
 
