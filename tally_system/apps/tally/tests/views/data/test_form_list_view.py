@@ -17,12 +17,11 @@ class TestSuperAdmin(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         response = view(request)
-        self.assertContains(response, "Forms Not Received List")
-        self.assertContains(response, "form_not_received.js")
+        self.assertContains(response, "Forms Not Received")
 
     def test_form_not_received_list_csv_view(self):
         view = views.FormNotReceivedListView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         response = view(request, format='csv')
-        self.assertContains(response, "Barcode")
+        self.assertContains(response, "barcode")
