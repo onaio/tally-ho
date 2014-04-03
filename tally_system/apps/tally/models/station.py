@@ -36,17 +36,21 @@ class Station(BaseModel):
         return u'%s - %s' % (self.center.code, self.station_number)
 
     @property
-    def gender_name(self):
-        return Gender.label(self.gender)
-
-    @property
     def center_code(self):
         return self.center.code if self.center else None
+
+    @property
+    def center_name(self):
+        return self.center.name if self.center else None
 
     @property
     def center_office(self):
         return self.center.office.name if self.center and self.center.office\
             else None
+
+    @property
+    def gender_name(self):
+        return Gender.label(self.gender)
 
     @property
     def result_forms(self):
@@ -56,10 +60,6 @@ class Station(BaseModel):
     @property
     def sub_constituency_code(self):
         return self.sub_constituency.code if self.sub_constituency else None
-
-    @property
-    def center_name(self):
-        return self.center.name if self.center else None
 
     def cache_archived_and_received(self):
         """Store the cached archived and received form percentages for this
