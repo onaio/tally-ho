@@ -7,7 +7,6 @@ from django.core.files.base import File
 from django.core.files.storage import default_storage
 from django.http import HttpResponse
 from django.utils import timezone
-from django.utils.encoding import smart_str
 from django.utils.translation import ugettext as _
 
 from tally_system.apps.tally.models.ballot import Ballot
@@ -57,33 +56,6 @@ def write_utf8(w, output):
 
 def valid_ballots():
     return Ballot.objects.exclude(number=54)
-
-
-def export_to_csv_response(queryset, headers, fields, filename='data.csv'):
-    """Export a queryset as a CSV.
-
-    :param queryset: The queryset to export.
-    :param headers: The headers for the CSV.
-    :param fields: The field in the querset to export.
-    :param filename: The file name to export as.
-
-    :returns: A a CSV file as an HTTP response.
-    """
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Desposition'] = 'attachment; filename=%s' % filename
-
-    w = csv.writer(response, csv.excel)
-    w.writerow([smart_str(col) for col in headers])
-
-    for obj in queryset:
-        row = []
-
-        for field in fields:
-            row.append(smart_str(getattr(obj, field)))
-
-        w.writerow(row)
-
-    return response
 
 
 def distinct_forms(ballot):

@@ -501,17 +501,6 @@ class ResultForm(BaseModel):
 
         return int(highest_barcode) + 1
 
-    @classmethod
-    def unsubmitted_result_forms(self):
-        not_in_states = [FormState.ARCHIVED, FormState.ARCHIVING,
-                         FormState.AUDIT, FormState.CLEARANCE,
-                         FormState.CORRECTION, FormState.DATA_ENTRY_1,
-                         FormState.DATA_ENTRY_2, FormState.INTAKE,
-                         FormState.QUALITY_CONTROL]
-
-        return ResultForm.objects.exclude(
-            Q(form_state__in=not_in_states) | Q(center__isnull=True))
-
     def intaken(self, center=None, station_number=None):
         """Check if another result form has been intaken for this center and
         station_number.
