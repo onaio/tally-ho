@@ -8,7 +8,7 @@ from tally_system.apps.tally.forms.password_change import PasswordChangeForm
 from tally_system.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile
-from tally_system.apps.tally.views.data import form_list_view
+from tally_system.apps.tally.views.data import center_list_view, form_list_view
 from tally_system.apps.tally.views.reports import offices
 from tally_system.apps.tally.views.reports import races
 
@@ -45,23 +45,33 @@ urlpatterns = patterns(
     url(r'^$', home.HomeView.as_view(), name='home'),
     url(r'^locale$', home.LocaleView.as_view(), name='home-locale'),
 
-    url(r'^super-administrator$',
-        super_admin.DashboardView.as_view(), name='super-administrator'),
-    url(r'^super-administrator/center-list$',
-        super_admin.CenterListView.as_view(),
+    url(r'^data/center-list$',
+        center_list_view.CenterListView.as_view(),
         name='center-list'),
-    url(r'^super-administrator/center-list-data$',
-        super_admin.CenterListDataView.as_view(),
+    url(r'^data/center-list-data$',
+        center_list_view.CenterListDataView.as_view(),
         name='center-list-data'),
-    url(r'^super-administrator/form-list$',
+    url(r'^data/form-list$',
         form_list_view.FormListView.as_view(),
         name='form-list'),
-    url(r'^super-administrator/form-list/(?P<state>.*)/$',
+    url(r'^data/form-list/(?P<state>.*)/$',
         form_list_view.FormListView.as_view(),
         name='form-list'),
-    url(r'^super-administrator/form-list-data$',
+    url(r'^data/form-list-data$',
         form_list_view.FormListDataView.as_view(),
         name='form-list-data'),
+    url(r'^data/form-not-received.(?P<format>(csv))$',
+        form_list_view.FormNotReceivedListView.as_view(),
+        name='form-not-received-view'),
+    url(r'^data/form-not-received$',
+        form_list_view.FormNotReceivedListView.as_view(),
+        name='form-not-received-view'),
+    url(r'^data/form-not-received-data$',
+        form_list_view.FormNotReceivedDataView.as_view(),
+        name='form-not-received-data'),
+
+    url(r'^super-administrator$',
+        super_admin.DashboardView.as_view(), name='super-administrator'),
     url(r'^super-administrator/form-progress$',
         super_admin.FormProgressView.as_view(),
         name='form-progress'),
@@ -77,15 +87,6 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-duplicates-data$',
         super_admin.FormDuplicatesDataView.as_view(),
         name='form-duplicates-data'),
-    url(r'^super-administrator/form-not-received.(?P<format>(csv))$',
-        form_list_view.FormNotReceivedListView.as_view(),
-        name='form-not-received-view'),
-    url(r'^super-administrator/form-not-received$',
-        form_list_view.FormNotReceivedListView.as_view(),
-        name='form-not-received-view'),
-    url(r'^super-administrator/form-not-received-data$',
-        form_list_view.FormNotReceivedDataView.as_view(),
-        name='form-not-received-data'),
     url(r'^super-administrator/results-(?P<report>.*).csv$',
         super_admin.ResultExportView.as_view(),
         name='result-export'),

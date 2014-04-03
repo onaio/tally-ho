@@ -6,9 +6,9 @@
 
 {% block content %}
 
-<h1>{% trans 'Center/Station List' %}</h1>
+<h1>{% trans 'Center List' %}</h1>
 
-<table id="centerlist">
+<table id="datalist">
     <thead>
         <tr>
             <th>{% trans 'Office' %}</th>
@@ -34,5 +34,8 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 {% django_js %}
 {% datatables_js %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/center_table.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/data_table.js"></script>
+<script type="text/javascript">
+    loadTableData('{{ remote_url }}');
+</script>
 {% endblock %}
