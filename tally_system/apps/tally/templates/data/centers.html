@@ -6,18 +6,20 @@
 
 {% block content %}
 
-<h1>{% trans 'Center/Station List' %}</h1>
+<h1>{% trans 'Center and Station List' %}</h1>
 
-<table id="centerlist">
+<table id="datalist">
     <thead>
         <tr>
             <th>{% trans 'Office' %}</th>
             <th>{% trans 'Voting district' %}</th>
             <th>{% trans 'Center Name' %}</th>
-            <th>{% trans 'Center No' %}</th>
+            <th>{% trans 'Center Number' %}</th>
+            <th>{% trans 'Station Number' %}</th>
             <th>{% trans 'Gender' %}</th>
             <th>{% trans 'Registrants' %}</th>
-            <th>{% trans 'Last Modified' %}</th>
+            <th>{% trans 'Received' %}</th>
+            <th>{% trans 'Archived' %}</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -34,5 +36,8 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 {% django_js %}
 {% datatables_js %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/center_table.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/data_table.js"></script>
+<script type="text/javascript">
+    loadTableData('{{ remote_url }}');
+</script>
 {% endblock %}

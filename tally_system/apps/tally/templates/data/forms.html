@@ -27,7 +27,7 @@ Export:
 <br/>
 <br/>
 
-<table id="formlist">
+<table id="datalist">
     <thead>
         <tr>
             <th>{% trans 'Barcode' %}</th>
@@ -55,7 +55,7 @@ Export:
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 {% django_js %}
 {% datatables_js %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/form_table.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/data_table.js"></script>
 <script type="text/javascript">
     loadTableData('{{ remote_url }}');
 </script>

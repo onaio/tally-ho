@@ -1,6 +1,6 @@
 function loadTableData(url) {
     $(function(){
-        $('#formlist').dataTable({
+        $('#datalist').dataTable({
             "bPaginate": true,
             "iDisplayLength": 50,
             "bProcessing": true,
