@@ -1,11 +1,17 @@
 function loadTableData(url) {
+    var parsedUrl = url;
+
+    try {
+        parsedUrl = Django.url(url);
+    } catch (DjangoJsError) {}
+
     $(function(){
         $('#datalist').dataTable({
             "bPaginate": true,
             "iDisplayLength": 50,
             "bProcessing": true,
             "bServerSide": true,
-            "sAjaxSource": Django.url(url),
+            "sAjaxSource": parsedUrl,
             "oLanguage": {
                 "sLengthMenu": 'Display <select>'+
                     '<option value="10">10</option>'+

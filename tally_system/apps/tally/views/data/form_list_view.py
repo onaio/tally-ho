@@ -4,6 +4,7 @@ from djqscsv import render_to_csv_response
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
+from tally_system.apps.tally.models.ballot import Ballot
 from tally_system.apps.tally.models.result_form import ResultForm
 from tally_system.libs.models.enums.form_state import FormState
 from tally_system.libs.permissions import groups
@@ -41,6 +42,17 @@ class FormListDataView(LoginRequiredMixin,
         ('ballot__race_type', 'ballot_race_type_name'),
         ('modified_date', 'modified_date_formatted'),
     )
+
+    def get_queryset(self):
+        qs = super(FormListDataView, self).get_queryset()
+        ballot_number = self.kwargs.get('ballot')
+
+        if ballot_number:
+            ballot = Ballot.objects.get(number=ballot_number)
+            qs = ResultForm.distinct_forms().filter(
+                ballot__number__in=ballot.form_ballot_numbers)
+
+        return qs
 
 
 class FormListView(LoginRequiredMixin,
@@ -89,3 +101,15 @@ class FormNotReceivedListView(FormListView):
 
 class FormNotReceivedDataView(FormListDataView):
     queryset = ResultForm.forms_in_state(FormState.UNSUBMITTED)
+
+
+class FormsForRaceView(FormListView):
+    group_require = groups.SUPER_ADMINISTRATOR
+
+    def get(self, *args, **kwargs):
+        ballot = kwargs.get('ballot')
+
+        return self.render_to_response(self.get_context_data(
+            header_text=_('Forms for Race %s' % ballot),
+            custom=True,
+            remote_url='/data/forms-for-race-data/%s/' % ballot))
