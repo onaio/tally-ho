@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1>{% trans 'Tally Centre Progress Report' %}</h1>
+<h1>{% trans 'Races Progress Report' %}</h1>
 
 <h3>{% trans 'Overview' %}</h3>
 <table class="table table-striped table-bordered">
@@ -33,7 +33,7 @@
     </tr>
 {% for rec in per_ballot %}
     <tr>
-        <td>{{ rec.ballot }}</td>
+        <td><a href="{% url 'forms-for-race' rec.ballot %}">{{ rec.ballot }}</a></td>
         <td>{{ rec.district }}</td>
         <td>{{ rec.race_type }}</td>
         <td>{{ rec.expected }}</td>
