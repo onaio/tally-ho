@@ -109,9 +109,9 @@ def reload_all(deployment_name):
                 env.django_config_module)
 
 
-def load_users(deployment_name):
+def manage(deployment_name, cmd):
     setup_env(deployment_name)
     with cd(env.code_src):
         with source(env.virtualenv):
-            run('python manage.py import_staff_list --settings=%s' %
-                env.django_config_module)
+            run('python manage.py %s --settings=%s' %
+                (cmd, env.django_config_module))
