@@ -38,6 +38,10 @@ address, and the third is the settings file.  Modify these arguments as needed.
 
 Ona intermittently hosts a demo site of the Libya tally software at [tally.ona.io](http://tally.ona.io).
 
+The demo user name and password (formatted as username/password) is:
+
+* super_administrator/datadata
+
 If it is not running and you would like to see a demo, please [email us](mailto:info@ona.io).
 
 ### Demo Users
