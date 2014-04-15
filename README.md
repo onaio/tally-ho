@@ -40,7 +40,7 @@ Ona intermittently hosts a demo site of the Libya tally software at [tally.ona.i
 
 The demo user name and password (formatted as username/password) is:
 
-* super_administrator/datadata
+* `super_administrator`/`datadata`
 
 If it is not running and you would like to see a demo, please [email us](mailto:info@ona.io).
 
