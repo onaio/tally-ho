@@ -1,4 +1,4 @@
-## Tally System Design Documentation
+## Tally-Ho! Design Documentation
 
 ### Objective
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# tally-system documentation build configuration file, created by
+# tally-ho documentation build configuration file, created by
 # sphinx-quickstart on Mon Mar  3 12:03:23 2014.
 #
 # This file is execfile()d with the current directory set to its
