@@ -2,7 +2,7 @@
 
 PROJECT_HOME=/var/www
 PROJECT_NAME="tally-system"
-DJANGO_SETTINGS_MODULE="tally_system.settings.local_settings"
+DJANGO_SETTINGS_MODULE="tally_ho.settings.local_settings"
 CODE_SRC="$PROJECT_HOME/$PROJECT_NAME"
 LOG_DIR="/var/log/$PROJECT_NAME"
 VENV="$PROJECT_HOME/.virtualenvs"
@@ -25,8 +25,8 @@ else
     cd $CODE_SRC && sudo cp -rT ~/$PROJECT_NAME/ ./
 fi
 
-config_path_tmp="$CODE_SRC/deploy/var/www/tally-system/tally_system/settings/local_settings.py"
-config_path="$CODE_SRC/tally_system/settings/local_settings.py"
+config_path_tmp="$CODE_SRC/deploy/var/www/tally-system/tally_ho/settings/local_settings.py"
+config_path="$CODE_SRC/tally_ho/settings/local_settings.py"
 sudo cp $config_path_tmp $config_path
 sudo sed -i.bak -e "s/REPLACE_DB_NAME/$DB_NAME/g" $config_path
 sudo sed -i.bak -e "s/REPLACE_DB_USER/$DB_USER/g" $config_path

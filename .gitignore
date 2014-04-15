@@ -9,5 +9,5 @@ data.tgz
 /data
 results
 db.sqlite3
-tally_system/static
+tally_ho/static
 local_settings.py
