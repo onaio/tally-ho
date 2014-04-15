@@ -134,8 +134,8 @@ class FormActionView(LoginRequiredMixin,
         audits = Audit.objects.filter(
             active=True,
             reviewed_supervisor=True,
-            resolution_recommendation=
-            AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE).all()
+            resolution_recommendation=AuditResolution.
+            MAKE_AVAILABLE_FOR_ARCHIVE).all()
 
         return self.render_to_response(self.get_context_data(
             audits=audits))
