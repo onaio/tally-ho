@@ -1,5 +1,5 @@
 import os
-from tally_system.settings.common import *  # flake8: noqa
+from tally_ho.settings.common import *  # flake8: noqa
 
 DEBUG = False
 
