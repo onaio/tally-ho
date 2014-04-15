@@ -5,7 +5,7 @@ DB_USERNAME=tally
 DB_PASS=tally
 DB_HOST=127.0.0.1
 APP_DIR=/var/www/tally-system
-DJANGO_SETTINGS_MODULE=tally_system.settings.local_settings
+DJANGO_SETTINGS_MODULE=tally_ho.settings.local_settings
 SUPERVISOR_CONF=/opt/supervisor.conf
 DATADIR="/var/lib/postgres/data"
 CONF="/var/lib/postgres/data/postgresql.conf"
@@ -61,9 +61,9 @@ command=/usr/local/bin/uwsgi
     -T
     --master
     --max-requests 5000
-    --static-map /static=/var/www/tally-system/tally_system/static
+    --static-map /static=/var/www/tally-system/tally_ho/static
     --static-map /static=/usr/local/lib/python2.7/dist-packages/django/contrib/admin/static
-    --module tally_system.wsgi:application
+    --module tally_ho.wsgi:application
 user=root
 autostart=true
 autorestart=true

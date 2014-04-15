@@ -37,7 +37,7 @@ ENV DATADIR /var/lib/postgres/data
 ENV APP_DIR /var/www/tally-system
 ENV VENV /var/www/.virtualenvs/tally-system
 ENV ACTIVATE /var/www/.virtualenvs/tally-system/bin/activate
-ENV DJANGO_SETTINGS_MODULE tally_system.settings.local_settings
+ENV DJANGO_SETTINGS_MODULE tally_ho.settings.local_settings
 
 ENV PIP_DOWNLOAD_CACHE /pip_download_cache
 RUN mkdir -p $PIP_DOWNLOAD_CACHE
