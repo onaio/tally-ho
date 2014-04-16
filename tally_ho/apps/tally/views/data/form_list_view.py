@@ -111,5 +111,5 @@ class FormsForRaceView(FormListView):
 
         return self.render_to_response(self.get_context_data(
             header_text=_('Forms for Race %s' % ballot),
-            custom=True,
+            none=True,
             remote_url='/data/forms-for-race-data/%s/' % ballot))

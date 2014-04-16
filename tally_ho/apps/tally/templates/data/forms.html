@@ -8,9 +8,12 @@
 
 <h1>{{ header_text }}</h1>
 
+{% if not none %}
 Export:
+{% endif %}
 {% if custom %}
 <a href="{% url 'form-not-received-view' 'csv' %}">{% trans 'All' %}</a>
+{% elif none %}
 {% else %}
 <a href="{% url 'form-list' '__all__' %}">{% trans 'All' %}</a>
 <a href="{% url 'form-list' 'unsubmitted' %}">{% trans 'Unsubmitted' %}</a>
