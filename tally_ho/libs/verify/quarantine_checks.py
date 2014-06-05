@@ -77,7 +77,8 @@ def pass_tampering(result_form):
     num_votes = result_form.num_votes
     number_ballots_expected = recon_form.number_ballots_expected
     diff = abs(num_votes - number_ballots_expected)
-    qc = QuarantineCheck.objects.get(method='pass_overvote')
+    # TODO Check if 'qc' variable must be QuarantineCheck object with method 'pass_tampering' or not
+    qc = QuarantineCheck.objects.get(method='pass_tampering')
     scaled_tolerance = (qc.value / 100) * (
         num_votes + number_ballots_expected) / 2
 
