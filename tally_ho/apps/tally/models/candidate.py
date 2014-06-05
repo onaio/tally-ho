@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
+from django.db.models import Q
 import reversion
 
 from tally_ho.apps.tally.models.ballot import Ballot
@@ -54,6 +55,53 @@ class Candidate(BaseModel):
 
         # Distinct can not be combined with aggregate.
         return [len(results), sum([r.votes for r in results])]
+
+    @property
+    def num_valid_votes(self):
+        """Return the number of final active votes for this candidate.
+
+        :returns: The number of votes
+        """
+        results = self.results.filter(
+            entry_version=EntryVersion.FINAL,
+            result_form__form_state=FormState.ARCHIVED,
+            active=True)
+
+        results = results.distinct('entry_version', 'active', 'result_form')
+
+        return sum([r.votes for r in results])
+
+    @property
+    def num_all_votes(self):
+        """Return the number of final active votes plus votes in forms in quarantine for this candidate.
+
+        :returns: The number of votes
+        """
+        results = self.results.filter(
+            entry_version=EntryVersion.FINAL,
+            active=True)
+
+        results = results.filter(Q(result_form__form_state = FormState.ARCHIVED) |
+                Q(result_form__form_state = FormState.AUDIT))
+
+        results = results.distinct('entry_version', 'active', 'result_form')
+
+        return sum([r.votes for r in results])
+
+    @property
+    def num_quarentine_votes(self):
+        """Return the number of final active votes plus votes in forms in quarantine for this candidate.
+
+        :returns: The number of votes
+        """
+        results = self.results.filter(
+            entry_version=EntryVersion.FINAL,
+            result_form__form_state = FormState.AUDIT,
+            active=True)
+
+        results = results.distinct('entry_version', 'active', 'result_form')
+
+        return sum([r.votes for r in results])
 
 
 reversion.register(Candidate)
