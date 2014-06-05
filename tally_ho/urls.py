@@ -201,9 +201,12 @@ urlpatterns = patterns(
         clearance.CreateClearanceView.as_view(),
         name='clearance-create'),
 
-    url(r'^reports/internal/offices',
+    url(r'^reports/internal/offices$',
         offices.OfficesReportView.as_view(),
         name='reports-offices'),
+    url(r'^reports/internal/offices/(?P<option>.*)/$',
+        offices.OfficesReportDownloadView.as_view(),
+        name='reports-offices-export'),
     url(r'^reports/internal/race',
         races.RacesReportView.as_view(),
         name='reports-races'),
