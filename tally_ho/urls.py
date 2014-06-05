@@ -143,7 +143,7 @@ urlpatterns = patterns(
         name='quality-control-dashboard'),
     url(r'^quality-control/reject$',
         TemplateView.as_view(
-            template_name='tally/quality_control/reject.html'),
+            template_name='quality_control/reject.html'),
         name='quality-control-reject'),
     url(r'^quality-control/success$',
         quality_control.ConfirmationView.as_view(),
@@ -200,6 +200,9 @@ urlpatterns = patterns(
     url(r'^clearance/create',
         clearance.CreateClearanceView.as_view(),
         name='clearance-create'),
+    url(r'^clearance/check-center-details$',
+        clearance.CheckCenterDetailsView.as_view(),
+        name='clearance-check-center-details'),
 
     url(r'^reports/internal/offices',
         offices.OfficesReportView.as_view(),
