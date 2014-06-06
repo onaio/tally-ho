@@ -146,6 +146,7 @@ class DataEntryView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        form_action = ''
         user = self.request.user
 
         if user_is_data_entry_1(user):
@@ -157,7 +158,8 @@ class DataEntryView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(
-                form=form, header_text=_('Data Entry %s') % entry_type))
+                form=form, header_text=_('Data Entry %s') % entry_type,
+                form_action=form_action))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()

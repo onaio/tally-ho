@@ -203,6 +203,9 @@ urlpatterns = patterns(
     url(r'^clearance/check-center-details$',
         clearance.CheckCenterDetailsView.as_view(),
         name='clearance-check-center-details'),
+    url(r'^clearance/add$',
+        clearance.AddClearanceFormView.as_view(),
+        name='clearance-add'),
 
     url(r'^reports/internal/offices$',
         offices.OfficesReportView.as_view(),

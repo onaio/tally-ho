@@ -1,3 +1,4 @@
+from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext as _
@@ -189,16 +190,18 @@ class CreateClearanceView(LoginRequiredMixin,
     form_class = BarcodeForm
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     success_url = 'clearance-check-center-details'
-    template_name = "barcode_verify.html"
+    template_name = 'barcode_verify.html'
 
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        form_action = reverse(self.success_url)
 
         return self.render_to_response(
             self.get_context_data(form=form, header_text=_(
-                'Create Clearance')))
+                'Create Clearance'), form_action=form_action))
 
+    # POST against itself is senseless. Changed to CheckCenterDetailsView.post
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -235,9 +238,10 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                              mixins.GroupRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
+    form_class = BarcodeForm
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
-    template_name = "check_clearance_center_details.html"
-    success_url = "clearance"
+    template_name = 'barcode_verify.html'
+    success_url = 'clearance-add'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -248,22 +252,38 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                                   header_text=_('Clearance')))
 
     def post(self, *args, **kwargs):
-        post_data = self.request.POST
-        pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        url = 'clearance'
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
 
-        if 'accept_submit' in post_data:
-            result_form.reject(FormState.CLEARANCE)
-            Clearance.objects.create(result_form=result_form,
-                                     user=self.request.user)
+        if form.is_valid():
+            barcode = form.cleaned_data['barcode']
+            result_form = get_object_or_404(ResultForm, barcode=barcode)
+
+            possible_states = [FormState.CORRECTION,
+                               FormState.DATA_ENTRY_1,
+                               FormState.DATA_ENTRY_2,
+                               FormState.INTAKE,
+                               FormState.QUALITY_CONTROL,
+                               FormState.ARCHIVING,
+                               FormState.UNSUBMITTED]
+
+            if groups.SUPER_ADMINISTRATOR in groups.user_groups(
+                    self.request.user):
+                possible_states.append(FormState.ARCHIVED)
+
+            form = safe_form_in_state(result_form, possible_states, form)
+
+            if form:
+                return self.form_invalid(form)
+
+            self.template_name = 'check_clearance_center_details.html'
+            form_action = reverse(self.success_url)
+            return self.render_to_response(
+                self.get_context_data(result_form=result_form,
+                                      header_text=_('Create Clearance'),
+                                      form_action=form_action))
         else:
-            del self.request.session['result_form']
-
-        result_form.date_seen = now()
-        result_form.save()
-
-        return redirect(url)
+            return self.form_invalid(form)
 
 
 class NewFormView(LoginRequiredMixin,
@@ -315,3 +335,25 @@ class NewFormView(LoginRequiredMixin,
         else:
             return self.render_to_response(self.get_context_data(
                 form=form, result_form=result_form))
+
+
+class AddClearanceFormView(LoginRequiredMixin,
+                           mixins.GroupRequiredMixin,
+                           FormView):
+    group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
+    success_url = 'clearance'
+
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+        pk = self.request.POST.get('result_form', None)
+        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        if 'accept_submit' in post_data:
+            result_form.reject(FormState.CLEARANCE)
+            Clearance.objects.create(result_form=result_form,
+                                     user=self.request.user)
+
+        result_form.date_seen = now()
+        result_form.save()
+
+        return redirect(self.success_url)

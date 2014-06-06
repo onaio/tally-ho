@@ -72,9 +72,11 @@ class ArchiveView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        form_action = ''
 
         return self.render_to_response(
-            self.get_context_data(form=form, header_text=_('Archiving')))
+            self.get_context_data(form=form, header_text=_('Archiving'),
+                                  form_action=form_action))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
