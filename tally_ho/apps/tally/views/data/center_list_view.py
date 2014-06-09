@@ -24,6 +24,8 @@ class CenterListDataView(LoginRequiredMixin,
         'registrants',
         'percent_received',
         'percent_archived',
+        'center__active',
+        'active',
     )
     display_fields = (
         ('center__office__name', 'center_office'),
@@ -35,6 +37,8 @@ class CenterListDataView(LoginRequiredMixin,
         ('registrants', 'registrants'),
         ('percent_received', 'percent_received'),
         ('percent_archived', 'percent_archived'),
+        ('center__active', 'center_active'),
+        ('active', 'station_active'),
     )
 
 

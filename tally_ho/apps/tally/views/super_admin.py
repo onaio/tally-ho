@@ -8,8 +8,10 @@ from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
+from tally_ho.apps.tally.forms.disable_entity_form import DisableEntityForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
@@ -201,6 +203,53 @@ class RemoveCenterView(LoginRequiredMixin,
             self.success_message = _(
                 u"Successfully removed center %(center)s"
                 % {'center': center.code})
+            return self.form_valid(form)
+        return self.form_invalid(form)
+
+class DisableEntityView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       mixins.ReverseSuccessURLMixin,
+                       SuccessMessageMixin,
+                       FormView):
+    form_class = DisableEntityForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/disable_entity.html"
+    success_url = 'center-list'
+
+
+    def get(self, *args, **kwargs):
+        print "Vamos bien"
+        stationNumber = kwargs.get('stationNumber')
+        centerCode = kwargs.get('centerCode')
+
+        entityName = u'Center' if centerCode else u'Station'
+
+        self.initial = { 'centerCodeInput': centerCode, 'stationNumberInput': stationNumber }
+        self.success_message = _(u"%s Successfully Disabled.") % entityName
+        print "vamos bien 2"
+        form_class = self.get_form_class()
+        print "vamos bien 3"
+        form = self.get_form(form_class)
+        print "vamos bien 4"
+
+        return self.render_to_response(
+            self.get_context_data(form=form))
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            entity = form.save()
+
+            if isinstance(entity, Center):
+                self.success_message = _(
+                    u"Successfully disabled center %(center)s"
+                    % {'center': entity.code})
+            else:
+                self.success_message = _(
+                    u"Successfully disabled station %(stationNumber)s"
+                    % {'stationNumber': entity.station_number})
             return self.form_valid(form)
         return self.form_invalid(form)
 
