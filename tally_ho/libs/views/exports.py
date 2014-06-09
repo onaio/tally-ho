@@ -267,6 +267,7 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
     for i in xrange(1, max_candidates + 1):
         header.append('candidate %s name' % i)
         header.append('candidate %s votes' % i)
+        header.append('candidate %s votes included quarantine' % i)
 
     complete_barcodes = []
 
@@ -302,7 +303,8 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
 
             for candidate in ballot.candidates.all():
                 num_results, votes = candidate.num_votes()
-                candidates_to_votes[candidate.full_name] = votes
+                all_votes = candidate.num_all_votes
+                candidates_to_votes[candidate.full_name] = [votes, all_votes]
                 num_results_ary.append(num_results)
 
             assert len(set(num_results_ary)) <= 1
@@ -317,14 +319,18 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
                     output['stations completed'] = num_results
 
             candidates_to_votes = OrderedDict((sorted(
-                candidates_to_votes.items(), key=lambda t: t[1],
+                candidates_to_votes.items(), key=lambda t: t[1][0],
                 reverse=True)))
+
+            #Checks changes in candidates positions
+            check_position_changes(candidates_to_votes)
 
             for i, item in enumerate(candidates_to_votes.items()):
                 candidate, votes = item
 
                 output['candidate %s name' % (i + 1)] = candidate
-                output['candidate %s votes' % (i + 1)] = votes
+                output['candidate %s votes' % (i + 1)] = votes[0]
+                output['candidate %s votes included quarantine' % (i + 1)] = votes[1]
 
             write_utf8(w, output)
 
@@ -336,6 +342,26 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
                                     output_duplicates=output_duplicates,
                                     output_to_file=output_to_file)
     return csv_file.name
+
+
+def check_position_changes(candidates_votes):
+    #Order candidates by valid votes and all votes included quarantine
+    sort_valid_votes = OrderedDict((sorted(
+                        candidates_votes.items(), key=lambda t: t[1][0],
+                        reverse=True)))
+    sort_all_votes = OrderedDict((sorted(
+                        candidates_votes.items(), key=lambda t: t[1][1],
+                        reverse=True)))
+
+    #Get first five candidates
+    valid_votes = dict(enumerate(sort_valid_votes.keys()[0:5]))
+    all_votes = dict(enumerate(sort_all_votes.keys()[0:5]))
+
+
+    #If they are not de same, warn the super-admin
+    if valid_votes != all_votes:
+        #TODO: how show be warn super admin?
+        pass
 
 
 def get_result_export_response(report):
@@ -358,6 +384,7 @@ def get_result_export_response(report):
     response = HttpResponse(content_type='text/csv')
 
     try:
+        #FIXME: if file it's been already generated, does not generate new one. correct??
         if not os.path.exists(filename):
             export_candidate_votes(save_barcodes=True, output_duplicates=True)
 
@@ -370,7 +397,8 @@ def get_result_export_response(report):
                 response.write(f.read())
         else:
             raise Exception(_(u"File Not found!"))
-    except Exception:
+
+    except Exception, e:
         response.write(_(u"Report not found."))
         response.status_code = 404
 

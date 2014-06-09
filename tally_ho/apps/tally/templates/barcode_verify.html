@@ -8,7 +8,7 @@
 
 <div class="form-instructions">{% trans 'Enter Barcode' %}</div>
 
-<form id="result_form" method="post" action="" onsubmit="return barcodes_match('{% trans 'Please enter barcodes.' %}','{% trans 'Wrong barcode length' %}','{% trans "Barcodes do not match!" %}');">
+<form id="result_form" method="post" action="{{ form_action }}" onsubmit="return barcodes_match('{% trans 'Please enter barcodes.' %}','{% trans 'Wrong barcode length' %}','{% trans "Barcodes do not match!" %}');">
     {% if form.non_field_errors %}
     <div class="text-danger">
         {{ form.non_field_errors }}<br/>
