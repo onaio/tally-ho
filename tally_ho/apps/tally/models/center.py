@@ -8,6 +8,7 @@ from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.dependencies import check_results_for_forms
 from tally_ho.libs.models.enums.center_type import CenterType
+from tally_ho.libs.models.enums.disable_reason import DisableReason
 
 
 class Center(BaseModel):
@@ -27,6 +28,8 @@ class Center(BaseModel):
     office = models.ForeignKey(Office, null=True)
     region = models.TextField()
     village = models.TextField()
+    active = models.BooleanField(default=True)
+    disable_reason = enum.EnumField(DisableReason, null=True)
 
     def remove(self):
         """Remove this center and related information.
