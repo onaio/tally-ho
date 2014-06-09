@@ -9,6 +9,9 @@
 {% if error_msg %}
 <h3>{{ error_msg }}</h3>
 {% endif %}
+
+{% include 'center_details.html' %}
+
 <a class="btn btn-primary" href="{% url 'intake' %}">{% trans 'Start new form' %}</a>
 
 {% endblock %}

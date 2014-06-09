@@ -66,18 +66,24 @@ class CenterDetailsView(LoginRequiredMixin,
             if form:
                 return self.form_invalid(form)
 
-            if result_form.intaken():
+            self.request.session['result_form'] = result_form.pk
+
+            duplicated_forms = result_form.get_duplicated_forms()
+            if duplicated_forms:
                 # a form already exists, send to clearance
                 self.request.session['intake-error'] = INTAKEN_MESSAGE
                 result_form.send_to_clearance()
+
+                for oneDuplicatedForm in duplicated_forms:
+                    if oneDuplicatedForm.form_state != FormState.CLEARANCE:
+                        oneDuplicatedForm.send_to_clearance()
+
                 return redirect('intake-clearance')
 
             if result_form.form_state != FormState.DATA_ENTRY_1:
                 result_form.form_state = FormState.INTAKE
                 result_form.user = user
                 result_form.save()
-
-            self.request.session['result_form'] = result_form.pk
 
             if result_form.center:
                 return redirect(url)
@@ -120,18 +126,26 @@ class EnterCenterView(LoginRequiredMixin,
             return self.form_invalid(form)
 
         if center_form.is_valid():
-            center_number = center_form.cleaned_data.get('center_number')
             station_number = center_form.cleaned_data.get('station_number')
-            center = Center.objects.get(code=center_number)
+            result_form.station_number = station_number
 
-            if result_form.intaken(center, station_number):
+            center_number = center_form.cleaned_data.get('center_number')
+            center = Center.objects.get(code=center_number)
+            result_form.center = center
+
+            duplicated_forms = result_form.get_duplicated_forms(center,
+                                                                station_number)
+            if duplicated_forms:
                 # a form already exists, send to clearance
                 self.request.session['intake-error'] = INTAKEN_MESSAGE
                 result_form.send_to_clearance()
+
+                for oneDuplicatedForm in duplicated_forms:
+                    if oneDuplicatedForm.form_state != FormState.CLEARANCE:
+                        oneDuplicatedForm.send_to_clearance()
+
                 return redirect('intake-clearance')
             else:
-                result_form.center = center
-                result_form.station_number = station_number
                 result_form.save()
 
             return redirect(self.success_url)
@@ -228,6 +242,10 @@ class ClearanceView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CLEARANCE])
         del self.request.session['result_form']
+
+        duplicated = result_form.get_duplicated_forms()
+        if duplicated:
+            result_form = duplicated[0]
 
         error_msg = self.request.session.get('intake-error')
 
