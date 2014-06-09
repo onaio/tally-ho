@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Disable Centre' %}</h1>
+
+<div class="form-instructions">{% trans 'Select center classification.' %}</div>
+
+<form name="disable-entity-form" method="post" action="" onsubmit="return confirm('{% trans "Confirm that you want to disable the centre!" %}');">
+    <div class="text-danger">
+        {{ form.non_field_errors }}<br/>
+        {{ form.errors }}
+        {{ form.non_field_errors }}
+    </div>
+    <table>
+        <tr>
+            <th><label>{% trans form.disableReason.label %}</label></th>
+        </tr>
+        {% if form.disableReason.errors %}
+        <tr>
+            <td>{{ form.disableReason.errors }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td>{{ form.disableReason }}</td>
+        </tr>
+        <tr>
+            <td>
+                <button type="submit" name="submit" class="btn btn-primary">{% trans "Disable Center" %}</button>
+            </td>
+        </tr>
+        {{ form.centerCodeInput }}
+        {{ form.stationNumberInput }}
+        {% csrf_token %}
+    </table>
+</form>
+
+{% endblock %}
