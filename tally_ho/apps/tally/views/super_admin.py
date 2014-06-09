@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count
@@ -20,7 +22,7 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.functions import disableEnableEntity
 from tally_ho.libs.views import mixins
-from tally_ho.libs.views.exports import get_result_export_response
+from tally_ho.libs.views.exports import get_result_export_response, valid_ballots, distinct_forms, SPECIAL_BALLOTS
 from tally_ho.libs.views.pagination import paging
 
 
@@ -42,6 +44,57 @@ def duplicates():
         for item in dupes])
 
     return ResultForm.objects.filter(pk__in=pks)
+
+
+def get_results_duplicates():
+    complete_barcodes = []
+
+    for ballot in valid_ballots():
+        forms = distinct_forms(ballot)
+        final_forms = ResultForm.forms_in_state(
+            FormState.ARCHIVED, pks=[r.pk for r in forms])
+
+        if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
+            complete_barcodes.extend([r.barcode for r in final_forms])
+
+    result_forms = ResultForm.objects\
+        .select_related().filter(barcode__in=complete_barcodes)
+
+    center_to_votes = defaultdict(list)
+    center_to_forms = defaultdict(list)
+
+    result_forms_founds = []
+
+    for result_form in result_forms:
+        # build list of votes for this barcode
+        vote_list = ()
+
+        for candidate in result_form.candidates:
+            votes = candidate.num_votes(result_form)
+            vote_list += (votes,)
+
+        # store votes for this forms center
+        center = result_form.center
+        center_to_votes[center.code].append(vote_list)
+        center_to_forms[center.code].append(result_form)
+
+    for code, vote_lists in center_to_votes.items():
+        votes_cast = sum([sum(l) for l in vote_lists]) > 0
+        num_vote_lists = len(vote_lists)
+        num_distinct_vote_lists = len(set(vote_lists))
+
+        if votes_cast and num_distinct_vote_lists < num_vote_lists:
+
+            for i, form in enumerate(center_to_forms[code]):
+                vote_list = vote_lists[i]
+                votes_cast = sum(vote_list) > 0
+                other_vote_lists = vote_lists[:i] + vote_lists[i + 1:]
+
+                if votes_cast and vote_list in other_vote_lists:
+                    form.results_duplicated = vote_list
+                    result_forms_founds.append(form)
+
+    return result_forms_founds
 
 
 class DashboardView(LoginRequiredMixin,
