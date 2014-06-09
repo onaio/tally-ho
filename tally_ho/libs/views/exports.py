@@ -398,7 +398,7 @@ def get_result_export_response(report):
         else:
             raise Exception(_(u"File Not found!"))
 
-    except Exception, e:
+    except Exception:
         response.write(_(u"Report not found."))
         response.status_code = 404
 
