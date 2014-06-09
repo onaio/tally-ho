@@ -141,6 +141,20 @@ class FormDuplicatesView(LoginRequiredMixin,
             forms=forms))
 
 
+class FormResultsDuplicatesView(LoginRequiredMixin,
+                         mixins.GroupRequiredMixin,
+                         TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/form_results_duplicates.html"
+
+    def get(self, *args, **kwargs):
+        form_list = get_results_duplicates()
+
+        forms = paging(form_list, self.request)
+
+        return self.render_to_response(self.get_context_data(forms=forms))
+
+
 class FormProgressDataView(LoginRequiredMixin,
                            mixins.GroupRequiredMixin,
                            mixins.DatatablesDisplayFieldsMixin,
