@@ -2,6 +2,7 @@ from django import forms
 from django.utils.translation import ugettext as _
 
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.validators import MinLengthValidator
 
 
@@ -76,7 +77,20 @@ class CenterDetailsForm(forms.Form):
                     raise forms.ValidationError(_(
                         u"Invalid Station Number for this Center"))
 
+                if not center.active:
+                    raise forms.ValidationError(_(
+                        u"Center is disabled"))
+
+                station = Station.objects.get(center__code = center_number, station_number = station_number)
+
+                if not station.active:
+                    raise forms.ValidationError(_(
+                        u"Station is disabled"))
+
             except Center.DoesNotExist:
                 raise forms.ValidationError(_(u"Center Number does not exist"))
+
+            except Station.DoesNotExist:
+                raise forms.ValidationError(_(u"Station Number does not exist"))
 
             return cleaned_data
