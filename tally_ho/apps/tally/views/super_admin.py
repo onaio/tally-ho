@@ -18,6 +18,7 @@ from tally_ho.libs.models.enums.audit_resolution import\
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
+from tally_ho.libs.utils.functions import disableEnableEntity
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import get_result_export_response
 from tally_ho.libs.views.pagination import paging
@@ -206,6 +207,7 @@ class RemoveCenterView(LoginRequiredMixin,
             return self.form_valid(form)
         return self.form_invalid(form)
 
+
 class DisableEntityView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
@@ -216,9 +218,7 @@ class DisableEntityView(LoginRequiredMixin,
     template_name = "super_admin/disable_entity.html"
     success_url = 'center-list'
 
-
     def get(self, *args, **kwargs):
-        print "Vamos bien"
         stationNumber = kwargs.get('stationNumber')
         centerCode = kwargs.get('centerCode')
 
@@ -226,11 +226,8 @@ class DisableEntityView(LoginRequiredMixin,
 
         self.initial = { 'centerCodeInput': centerCode, 'stationNumberInput': stationNumber }
         self.success_message = _(u"%s Successfully Disabled.") % entityName
-        print "vamos bien 2"
         form_class = self.get_form_class()
-        print "vamos bien 3"
         form = self.get_form(form_class)
-        print "vamos bien 4"
 
         return self.render_to_response(
             self.get_context_data(form=form))
@@ -252,6 +249,27 @@ class DisableEntityView(LoginRequiredMixin,
                     % {'stationNumber': entity.station_number})
             return self.form_valid(form)
         return self.form_invalid(form)
+
+
+class EnableEntityView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       mixins.ReverseSuccessURLMixin,
+                       SuccessMessageMixin,
+                       TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    success_url = 'center-list'
+
+    def get(self, *args, **kwargs):
+        stationNumber = kwargs.get('stationNumber')
+        centerCode = kwargs.get('centerCode')
+
+        entityName = u'Center' if not stationNumber else u'Station'
+
+        self.success_message = _(u"%s Successfully enabled.") % entityName
+
+        disableEnableEntity(centerCode, stationNumber)
+
+        return redirect(self.success_url)
 
 
 class RemoveStationView(LoginRequiredMixin,
