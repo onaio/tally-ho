@@ -8,6 +8,14 @@
 
 <h1>{% trans 'Center and Station List' %}</h1>
 
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
 <table id="datalist">
     <thead>
         <tr>
