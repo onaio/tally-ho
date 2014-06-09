@@ -38,8 +38,8 @@ class FormListDataView(LoginRequiredMixin,
         ('center__office__name', 'center_office'),
         ('center__office__number', 'center_office_number'),
         ('ballot__number', 'ballot_number'),
-        ('form_state', 'form_state_name'),
         ('ballot__race_type', 'ballot_race_type_name'),
+        ('form_state', 'form_state_name'),
         ('modified_date', 'modified_date_formatted'),
     )
 
