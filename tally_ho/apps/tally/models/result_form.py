@@ -158,7 +158,7 @@ class ResultForm(BaseModel):
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
     is_replacement = models.BooleanField(default=False)
 
-    #Field used in result duplicated list view
+    # Field used in result duplicated list view
     results_duplicated = []
 
     @property
@@ -504,15 +504,14 @@ class ResultForm(BaseModel):
 
         return int(highest_barcode) + 1
 
-    def intaken(self, center=None, station_number=None):
-        """Check if another result form has been intaken for this center and
-        station_number.
+    def get_duplicated_forms(self, center=None, station_number=None):
+        """Get all the result forms for this center and station_number.
 
         :param center: Check result forms from this center.
         :param station_number: Check result forms with this station number.
 
-        :returns: True if a form has already been intaken for this center,
-            station, ballot, and considering form state, otherwise False.
+        :returns: Array with the forms for this center, station, ballot,
+                  and considering form state.
         """
         if not center:
             center = self.center
@@ -525,19 +524,20 @@ class ResultForm(BaseModel):
             Q(station_number=station_number), Q(station_number__isnull=False),
             Q(ballot=self.ballot), Q(ballot__isnull=False))
 
-        if self.form_state == FormState.UNSUBMITTED:
+        if self.form_state in [FormState.UNSUBMITTED, FormState.CLEARANCE]:
             qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED))
         elif self.form_state == FormState.INTAKE:
             qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED)
                             | Q(form_state=FormState.INTAKE))
         else:
-            return False
+            return []
 
-        return qs.count() > 0
+        qs = qs.order_by('created_date')
+
+        return qs
 
     def send_to_clearance(self):
         self.form_state = FormState.CLEARANCE
         self.save()
-
 
 reversion.register(ResultForm)

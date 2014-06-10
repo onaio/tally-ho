@@ -22,7 +22,8 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.functions import disableEnableEntity
 from tally_ho.libs.views import mixins
-from tally_ho.libs.views.exports import get_result_export_response, valid_ballots, distinct_forms, SPECIAL_BALLOTS
+from tally_ho.libs.views.exports import get_result_export_response,\
+    valid_ballots, distinct_forms, SPECIAL_BALLOTS
 from tally_ho.libs.views.pagination import paging
 
 
@@ -142,8 +143,8 @@ class FormDuplicatesView(LoginRequiredMixin,
 
 
 class FormResultsDuplicatesView(LoginRequiredMixin,
-                         mixins.GroupRequiredMixin,
-                         TemplateView):
+                                mixins.GroupRequiredMixin,
+                                TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_results_duplicates.html"
 
@@ -276,10 +277,10 @@ class RemoveCenterView(LoginRequiredMixin,
 
 
 class DisableEntityView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       mixins.ReverseSuccessURLMixin,
-                       SuccessMessageMixin,
-                       FormView):
+                        mixins.GroupRequiredMixin,
+                        mixins.ReverseSuccessURLMixin,
+                        SuccessMessageMixin,
+                        FormView):
     form_class = DisableEntityForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/disable_entity.html"
@@ -291,7 +292,10 @@ class DisableEntityView(LoginRequiredMixin,
 
         entityName = u'Center' if centerCode else u'Station'
 
-        self.initial = { 'centerCodeInput': centerCode, 'stationNumberInput': stationNumber }
+        self.initial = {
+            'centerCodeInput': centerCode,
+            'stationNumberInput': stationNumber
+        }
         self.success_message = _(u"%s Successfully Disabled.") % entityName
         form_class = self.get_form_class()
         form = self.get_form(form_class)
