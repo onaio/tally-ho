@@ -11,6 +11,7 @@ from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.clearance_resolution import\
     ClearanceResolution
+from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
@@ -43,6 +44,14 @@ def clearance_action(post_data, clearance, result_form, url):
             if result_form.is_replacement:
                 result_form.center = None
                 result_form.station_number = None
+            result_form.save()
+        elif clearance.action_prior_to_recommendation ==\
+                ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD:
+            clearance.active = False
+            if not result_form.center or not result_form.station_number:
+                result_form.form_state = FormState.UNSUBMITTED
+            else:
+                result_form.form_state = FormState.CLEARANCE_PENDING_STATE
             result_form.save()
 
     clearance.save()
