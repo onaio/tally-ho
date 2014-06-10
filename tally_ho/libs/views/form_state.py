@@ -47,7 +47,8 @@ def form_in_state(result_form, states):
 def form_in_data_entry_state(result_form):
     """Check that result form is in a data entry state."""
     return form_in_state(result_form, [
-        FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2])
+        FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2,
+        FormState.CLEARANCE_PENDING_STATE, FormState.AUDIT_PENDING_STATE])
 
 
 def form_in_intake_state(result_form):
