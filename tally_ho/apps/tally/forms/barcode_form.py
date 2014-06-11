@@ -4,6 +4,8 @@ from django.core.validators import MinLengthValidator, MaxLengthValidator,\
 from django.utils.translation import ugettext as _
 
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.station import Station
 
 
 disable_copy_input = {
@@ -49,8 +51,19 @@ class BarcodeForm(forms.Form):
                 raise forms.ValidationError(_(u"Barcodes do not match!"))
 
             try:
-                ResultForm.objects.get(barcode=barcode)
+                result_form = ResultForm.objects.get(barcode=barcode)
             except ResultForm.DoesNotExist:
                 raise forms.ValidationError(_(u"Barcode does not exist."))
+            else:
+                if result_form.center and not result_form.center.active:
+                    raise forms.ValidationError(_(u"Center is disabled."))
+                elif result_form.station_number:
+                    try:
+                        station = Station.objects.get(station_number = result_form.station_number, center = result_form.center)
+                    except Station.DoesNotExist:
+                        raise forms.ValidationError(_(u"Station does not exist."))
+                    else:
+                        if not station.active:
+                            raise forms.ValidationError(_(u"Station disabled."))
 
             return cleaned_data
