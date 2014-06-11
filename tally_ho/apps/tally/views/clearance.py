@@ -45,8 +45,8 @@ def clearance_action(post_data, clearance, result_form, url):
                 result_form.center = None
                 result_form.station_number = None
             result_form.save()
-        elif clearance.action_prior_to_recommendation ==\
-                ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD:
+        elif clearance.action_prior_to_recommendation in\
+                [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD, ActionsPrior.REQUEST_COPY_FROM_FIELD]:
             clearance.active = False
             if not result_form.center or not result_form.station_number:
                 result_form.form_state = FormState.UNSUBMITTED
