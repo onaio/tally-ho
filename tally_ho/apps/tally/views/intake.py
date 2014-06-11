@@ -243,9 +243,9 @@ class ClearanceView(LoginRequiredMixin,
         form_in_state(result_form, [FormState.CLEARANCE])
         del self.request.session['result_form']
 
-        duplicated = result_form.get_duplicated_forms()
-        if duplicated:
-            result_form = duplicated[0]
+        older_duplicated = result_form.get_duplicated_forms().first()
+        if older_duplicated:
+            result_form = older_duplicated
 
         error_msg = self.request.session.get('intake-error')
 

@@ -29,7 +29,7 @@ The first argument is the database user, the second is the database host IP
 address, and the third is the settings file.  Modify these arguments as needed.
 
 ```bash
-./script/reload_all postgres 127.0.0.1 tally_ho.settings.common
+./scripts/reload_all postgres 127.0.0.1 tally_ho.settings.common
 ```
 
 ## Demo Site
