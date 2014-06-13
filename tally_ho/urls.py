@@ -8,7 +8,7 @@ from tally_ho.apps.tally.forms.password_change import PasswordChangeForm
 from tally_ho.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile
-from tally_ho.apps.tally.views.data import center_list_view, form_list_view
+from tally_ho.apps.tally.views.data import center_list_view, form_list_view, race_list_view
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 
@@ -51,6 +51,9 @@ urlpatterns = patterns(
     url(r'^data/center-list-data$',
         center_list_view.CenterListDataView.as_view(),
         name='center-list-data'),
+    url(r'^data/race-list$',
+        race_list_view.RaceListView.as_view(),
+        name='races-list'),
     url(r'^data/form-list$',
         form_list_view.FormListView.as_view(),
         name='form-list'),
@@ -111,6 +114,9 @@ urlpatterns = patterns(
     url(r'^super-administrator/enable/(?P<centerCode>(\d+))/(?P<stationNumber>(\d+))?$',
         super_admin.EnableEntityView.as_view(),
         name='enable'),
+    url(r'^super-administrator/disablerace/(?P<raceId>(\d+))$',
+        super_admin.DisableRaceView.as_view(),
+        name='disable-race'),
     url(r'^super-administrator/remove-station$',
         super_admin.RemoveStationView.as_view(),
         name='remove-station'),

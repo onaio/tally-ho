@@ -343,6 +343,46 @@ class EnableEntityView(LoginRequiredMixin,
         return redirect(self.success_url)
 
 
+class DisableRaceView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        mixins.ReverseSuccessURLMixin,
+                        SuccessMessageMixin,
+                        FormView):
+    form_class = DisableEntityForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/disable_entity.html"
+
+    success_url = 'races-list'
+
+    def get(self, *args, **kwargs):
+        race_id= kwargs.get('raceId')
+
+        self.initial = {
+            'centerCodeInput': None,
+            'stationNumberInput': None,
+            'raceIdInput': race_id,
+        }
+
+        self.success_message = _(u"Race Successfully Disabled.")
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form))
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            entity = form.save()
+
+            self.success_message = _(u"Successfully race disabled")
+
+            return self.form_valid(form)
+        return self.form_invalid(form)
+
+
 class RemoveStationView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
                         mixins.ReverseSuccessURLMixin,
