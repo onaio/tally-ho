@@ -3,10 +3,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.models.dependencies import check_results_for_forms
 from tally_ho.libs.models.enums.disable_reason import DisableReason
 from tally_ho.libs.validators import MinLengthValidator
-from tally_ho.libs.utils.functions import disableEnableEntity
+from tally_ho.libs.utils.functions import disableEnableEntity, disableEnableRace
 
 class DisableEntityForm(forms.Form):
 
@@ -17,11 +18,16 @@ class DisableEntityForm(forms.Form):
         coerce=int)
 
     centerCodeInput = forms.CharField(
-      required=True,
+      required=False,
       widget = forms.HiddenInput()
     )
 
     stationNumberInput = forms.CharField(
+      required=False,
+      widget=forms.HiddenInput()
+    )
+
+    raceIdInput = forms.CharField(
       required=False,
       widget=forms.HiddenInput()
     )
@@ -37,17 +43,31 @@ class DisableEntityForm(forms.Form):
             cleaned_data = super(DisableEntityForm, self).clean()
             centerCode = cleaned_data.get('centerCodeInput')
             stationNumber = cleaned_data.get('stationNumberInput')
+            raceId = cleaned_data.get('raceIdInput')
             disableReason = cleaned_data.get('disableReason')
 
-            try:
-                if stationNumber:
-                  entities = Station.objects.get(station_number = stationNumber, center__code = centerCode)
-                else:
-                  entities = Center.objects.get(code = centerCode)
-            except Center.DoesNotExist:
-                raise forms.ValidationError(u"Center Number does not exist")
-            except Station.DoesNotExist:
-                raise forms.ValidationError(u"Station Number does not exist")
+            print "CLEAN"
+            print raceId
+            print cleaned_data
+
+            if centerCode:
+                try:
+                    if stationNumber:
+                      entities = Station.objects.get(station_number = stationNumber, center__code = centerCode)
+                    else:
+                      entities = Center.objects.get(code = centerCode)
+                except Center.DoesNotExist:
+                    raise forms.ValidationError(u"Center Number does not exist")
+                except Station.DoesNotExist:
+                    raise forms.ValidationError(u"Station Number does not exist")
+            elif raceId:
+                try:
+                    entities = Ballot.objects.get(id = raceId)
+                except Ballot.DoesNotExist:
+                    raise forms.ValidationError(u"Race does not exist")
+            else:
+                print "ERRRRRRORRRR"
+                raise forms.ValidationError(u"Error")
 
             return cleaned_data
 
@@ -56,7 +76,14 @@ class DisableEntityForm(forms.Form):
         if self.is_valid():
             centerCode = self.cleaned_data.get('centerCodeInput')
             stationNumber = self.cleaned_data.get('stationNumberInput')
+            raceId = self.cleaned_data.get('raceIdInput')
             disableReason = self.cleaned_data.get('disableReason')
 
-            return disableEnableEntity(centerCode, stationNumber, disableReason)
+            result = None
+            if not raceId:
+                result = disableEnableEntity(centerCode, stationNumber, disableReason)
+            else:
+                result = disableEnableRace(raceId, disableReason)
+
+            return result
 
