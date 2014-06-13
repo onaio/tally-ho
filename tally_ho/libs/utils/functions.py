@@ -1,5 +1,6 @@
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.ballot import Ballot
 
 
 def disableEnableEntity(centerCode, stationNumber, disableReason = None):
@@ -31,6 +32,20 @@ def disableEnableEntity(centerCode, stationNumber, disableReason = None):
                 oneEntity.disable_reason = disableReason
 
             oneEntity.save()
+        return entity_to_return
+
+
+def disableEnableRace(raceId, disableReason = None):
+    entity_to_return = None
+    try:
+        entity_to_return = Ballot.objects.get(id = raceId)
+
+    except Ballot.DoesNotExist:
+        raise forms.ValidationError(_(u"Race does not exist"))
+    else:
+        entity_to_return.active = not entity_to_return.active
+
+        entity_to_return.save()
         return entity_to_return
 
 
