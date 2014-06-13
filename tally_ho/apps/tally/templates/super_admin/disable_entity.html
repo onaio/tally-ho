@@ -4,11 +4,11 @@
 
 {% block content %}
 
-<h1>{% trans 'Disable Centre' %}</h1>
+<h1>{% blocktrans %}Disable {{ entityName }}{% endblocktrans %}</h1>
 
-<div class="form-instructions">{% trans 'Select center classification.' %}</div>
+<div class="form-instructions">{% blocktrans %}Select {{ entity }} classification.{% endblocktrans %}</div>
 
-<form name="disable-entity-form" method="post" action="" onsubmit="return confirm('{% trans "Confirm that you want to disable the centre!" %}');">
+<form name="disable-entity-form" method="post" action="" onsubmit="return confirm('{% blocktrans %}Confirm that you want to disable the {{ entity }}!{% endblocktrans %}');">
     <div class="text-danger">
         {{ form.non_field_errors }}<br/>
         {{ form.errors }}
@@ -28,7 +28,7 @@
         </tr>
         <tr>
             <td>
-                <button type="submit" name="submit" class="btn btn-primary">{% trans "Disable Center" %}</button>
+              <button type="submit" name="submit" class="btn btn-primary">{% blocktrans %}Disable {{ entityName }}{% endblocktrans %}</button>
             </td>
         </tr>
         {{ form.centerCodeInput }}
