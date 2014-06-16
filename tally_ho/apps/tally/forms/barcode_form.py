@@ -41,6 +41,8 @@ class BarcodeForm(forms.Form):
     def clean(self):
         """Verify that barcode and barcode copy match and that the barcode is
         for a result form in the system.
+
+        Also checks if the center,station and/or races are enabled.
         """
         if self.is_valid():
             cleaned_data = super(BarcodeForm, self).clean()
@@ -65,5 +67,12 @@ class BarcodeForm(forms.Form):
                     else:
                         if not station.active:
                             raise forms.ValidationError(_(u"Station disabled."))
+                        elif station.sub_constituency:
+                            ballot = station.sub_constituency.get_ballot()
+                            print "ballot"
+                            print ballot.id
+                            print ballot.active
+                            if ballot and not ballot.active:
+                                raise forms.ValidationError(_(u"Race disabled."))
 
             return cleaned_data
