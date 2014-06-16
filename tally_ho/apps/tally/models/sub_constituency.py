@@ -37,5 +37,20 @@ class SubConstituency(BaseModel):
         else:
             return _('Undefined')
 
+    def get_ballot(self):
+        """Return the form type of ballots used in this subconstituency.
+
+        :returns: The type of ballot that is used in this subconstituency.
+        """
+        if self.ballot_women:
+            return self.ballot_women
+        elif self.ballot_general:
+            if self.ballot_component:
+                return self.ballot_component
+
+            return self.ballot_general
+        else:
+            return None
+
 
 reversion.register(SubConstituency)
