@@ -6,6 +6,14 @@
 
 <h1>{% trans 'Races List' %}</h1>
 
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
 <h3>{% trans "Per Race" %}</h3>
 <table class="table table-striped">
     <tr>
@@ -25,7 +33,13 @@
         <td>{{ rec.expected }}</td>
         <td>{{ rec.complete }}</td>
         <td>{{ rec.percentage }}</td>
-        <td><a href="{% url 'disable-race' rec.id %}" class="btn btn-default btn-small">{% trans 'Disable' %}</a></td>
+        <td>
+            {% if rec.active %}
+                <a href="{% url 'disable-race' rec.id %}" class="btn btn-default btn-small">{% trans 'Disable' %}</a>
+            {% else %}
+                <a href="{% url 'enable-race' rec.id %}" class="btn btn-default btn-small">{% trans 'Enable' %}</a>
+            {% endif %}
+        </td>
     </tr>
 {% endfor %}
 </table>

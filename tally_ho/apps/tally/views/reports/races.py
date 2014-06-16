@@ -29,6 +29,7 @@ class RacesReportView(LoginRequiredMixin,
                     'complete': archived.number,
                     'percentage': archived.percentage,
                     'id': ballot.id,
+                    'active': ballot.active
                 })
 
         return data

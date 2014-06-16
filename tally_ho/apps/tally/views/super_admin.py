@@ -6,6 +6,8 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
+from django.contrib import messages
+
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
@@ -20,7 +22,7 @@ from tally_ho.libs.models.enums.audit_resolution import\
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
-from tally_ho.libs.utils.functions import disableEnableEntity
+from tally_ho.libs.utils.functions import disableEnableEntity, disableEnableRace
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import get_result_export_response,\
     valid_ballots, distinct_forms, SPECIAL_BALLOTS
@@ -340,6 +342,8 @@ class EnableEntityView(LoginRequiredMixin,
 
         disableEnableEntity(centerCode, stationNumber)
 
+        messages.add_message(self.request, messages.INFO, self.success_message)
+
         return redirect(self.success_url)
 
 
@@ -377,10 +381,27 @@ class DisableRaceView(LoginRequiredMixin,
         if form.is_valid():
             entity = form.save()
 
-            self.success_message = _(u"Successfully race disabled")
+            self.success_message = _(u"Race Successfully disabled")
 
             return self.form_valid(form)
         return self.form_invalid(form)
+
+
+class EnableRaceView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       mixins.ReverseSuccessURLMixin,
+                       TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    success_url = 'races-list'
+
+    def get(self, *args, **kwargs):
+        raceId = kwargs.get('raceId')
+
+        disableEnableRace(raceId)
+
+        messages.add_message(self.request, messages.INFO, _(u"Race Successfully enabled."))
+
+        return redirect(self.success_url)
 
 
 class RemoveStationView(LoginRequiredMixin,

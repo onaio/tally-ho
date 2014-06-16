@@ -36,16 +36,21 @@ def disableEnableEntity(centerCode, stationNumber, disableReason = None):
 
 
 def disableEnableRace(raceId, disableReason = None):
-    entity_to_return = None
+    race = None
+
     try:
-        entity_to_return = Ballot.objects.get(id = raceId)
+        race = Ballot.objects.get(id = raceId)
 
     except Ballot.DoesNotExist:
         raise forms.ValidationError(_(u"Race does not exist"))
     else:
-        entity_to_return.active = not entity_to_return.active
+        race.active = not race.active
 
-        entity_to_return.save()
-        return entity_to_return
+        race.disable_reason = 0
+        if disableReason is not None:
+            race.disable_reason = disableReason
+
+        race.save()
+        return race
 
 
