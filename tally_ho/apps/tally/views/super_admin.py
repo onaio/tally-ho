@@ -292,7 +292,7 @@ class DisableEntityView(LoginRequiredMixin,
         stationNumber = kwargs.get('stationNumber')
         centerCode = kwargs.get('centerCode')
 
-        entityName = u'Center' if centerCode else u'Station'
+        entityName = u'Center' if not stationNumber else u'Station'
 
         self.initial = {
             'centerCodeInput': centerCode,
@@ -420,7 +420,8 @@ class RemoveStationView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         return self.render_to_response(
-            self.get_context_data(form=form))
+            self.get_context_data(form=form, entity=entityName.lower(),
+                                  entityName=entityName))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
