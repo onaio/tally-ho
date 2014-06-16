@@ -69,9 +69,6 @@ class BarcodeForm(forms.Form):
                             raise forms.ValidationError(_(u"Station disabled."))
                         elif station.sub_constituency:
                             ballot = station.sub_constituency.get_ballot()
-                            print "ballot"
-                            print ballot.id
-                            print ballot.active
                             if ballot and not ballot.active:
                                 raise forms.ValidationError(_(u"Race disabled."))
 
