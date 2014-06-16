@@ -20,7 +20,7 @@ disable_copy_input = {
 
 class BarcodeForm(forms.Form):
     error_messages = {'invalid': _(u"Expecting only numbers for barcodes")}
-    validators = [MaxLengthValidator(9), MinLengthValidator(9), RegexValidator(
+    validators = [MaxLengthValidator(255), MinLengthValidator(1), RegexValidator(
         regex=r'^[0-9]*$', message=_(u"Expecting only numbers for barcodes"))]
 
     barcode = forms.CharField(

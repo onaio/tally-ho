@@ -145,7 +145,7 @@ class ResultForm(BaseModel):
                                      related_name='created_user')
 
     audited_count = models.PositiveIntegerField(default=0)
-    barcode = models.CharField(max_length=9, unique=True)
+    barcode = models.CharField(max_length=255, unique=True)
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
     form_state = enum.EnumField(FormState)
