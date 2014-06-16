@@ -213,8 +213,9 @@ class FormActionView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
-        pk = self.request.session['result_form'] = post_data.get('result_form')
+        pk = post_data.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
+        self.request.session['result_form'] = result_form.pk
 
         if 'review' in post_data:
             return redirect('audit-review')
