@@ -86,6 +86,10 @@ class CenterDetailsForm(forms.Form):
                 if not station.active:
                     raise forms.ValidationError(_(
                         u"Station is disabled"))
+                elif station.sub_constituency:
+                    ballot = station.sub_constituency.get_ballot()
+                    if ballot and not ballot.active:
+                        raise forms.ValidationError(_(u"Race is disabled."))
 
             except Center.DoesNotExist:
                 raise forms.ValidationError(_(u"Center Number does not exist"))
