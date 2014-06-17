@@ -123,6 +123,9 @@ urlpatterns = patterns(
     url(r'^super-administrator/remove-station$',
         super_admin.RemoveStationView.as_view(),
         name='remove-station'),
+    url(r'^super-administrator/quarantine-checks$',
+        super_admin.QuarantineChecksListView.as_view(),
+        name='quarantine-checks'),
 
     url(r'^data-entry$', data_entry.DataEntryView.as_view(),
         name='data-entry'),

@@ -17,6 +17,7 @@ from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
@@ -435,3 +436,20 @@ class RemoveStationView(LoginRequiredMixin,
                                          'station': station.station_number})
             return self.form_valid(form)
         return self.form_invalid(form)
+
+
+class QuarantineChecksListView(LoginRequiredMixin,
+                                mixins.GroupRequiredMixin,
+                                TemplateView):
+    template_name = 'super_admin/quarantine_checks_list.html'
+    group_required = groups.SUPER_ADMINISTRATOR
+
+    def get(self, *args, **kwargs):
+        all_checks = QuarantineCheck.objects.all().order_by('id')
+
+        checks = paging(all_checks, self.request)
+
+        return self.render_to_response(self.get_context_data(
+            checks=checks))
+
+
