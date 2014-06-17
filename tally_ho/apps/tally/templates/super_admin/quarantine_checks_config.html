@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Quarantine checks List' %}</h1>
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form action="" method="post">
+    {% if form.non_field_errors %}
+    <div class="text-danger">
+        {{ form.non_field_errors }}<br/>
+    </div>
+    {% endif %}
+    <table class="table table-bordered">
+        <tr>
+            <td>{% trans 'Name:' %}</td>
+            <td>
+                {{ form.name.errors }}
+                {{ form.name }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans 'Value:' %}</td>
+            <td>
+                {{ form.value.errors }}
+                {{ form.value }}
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" name="result_form" value="{{ form.pk }}">
+    <button class="btn btn-small" type="submit" name="submit">
+        {% trans "Update" %}
+    </button>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

@@ -126,6 +126,9 @@ urlpatterns = patterns(
     url(r'^super-administrator/quarantine-checks$',
         super_admin.QuarantineChecksListView.as_view(),
         name='quarantine-checks'),
+    url(r'^super-administrator/quarantine-checks/config/(?P<checkId>(\d+))$',
+        super_admin.QuarantineChecksConfigView.as_view(),
+        name='quarantine-checks-config'),
 
     url(r'^data-entry$', data_entry.DataEntryView.as_view(),
         name='data-entry'),

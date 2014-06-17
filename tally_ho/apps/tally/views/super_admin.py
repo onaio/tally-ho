@@ -4,7 +4,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView, TemplateView, UpdateView
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
 
@@ -14,6 +14,7 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.disable_entity_form import DisableEntityForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
+from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -453,3 +454,17 @@ class QuarantineChecksListView(LoginRequiredMixin,
             checks=checks))
 
 
+class QuarantineChecksConfigView(LoginRequiredMixin,
+                                mixins.GroupRequiredMixin,
+                                mixins.ReverseSuccessURLMixin,
+                                UpdateView):
+    template_name = 'super_admin/quarantine_checks_config.html'
+    group_required = groups.SUPER_ADMINISTRATOR
+
+    model = QuarantineCheck
+    form_class = QuarantineCheckForm
+    success_url = 'quarantine-checks'
+
+    def get_object(self, queryset=None):
+        obj = QuarantineCheck.objects.get(id=self.kwargs['checkId'])
+        return obj
