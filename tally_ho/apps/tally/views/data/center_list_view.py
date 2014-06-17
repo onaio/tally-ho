@@ -41,6 +41,21 @@ class CenterListDataView(LoginRequiredMixin,
         ('active', 'station_active'),
     )
 
+    def render_to_response(self, form, **kwargs):
+        '''Render Datatables expected JSON format'''
+        page = self.get_page(form)
+
+        Station.update_percentages(page.object_list)
+
+        data = {
+            'iTotalRecords': page.paginator.count,
+            'iTotalDisplayRecords': page.paginator.count,
+            'sEcho': form.cleaned_data['sEcho'],
+            'aaData': self.get_rows(page.object_list),
+        }
+
+        return self.json_response(data)
+
 
 class CenterListView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
@@ -50,7 +65,6 @@ class CenterListView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         # check cache
-        Station.update_cache()
         station_list = Station.objects.all()
         stations = paging(station_list, self.request)
 
