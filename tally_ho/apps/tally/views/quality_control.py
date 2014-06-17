@@ -1,7 +1,7 @@
 from django.core.exceptions import SuspiciousOperation
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView
 from django.utils.translation import ugettext as _
 from guardian.mixins import LoginRequiredMixin
 
@@ -46,7 +46,9 @@ class QualityControlView(LoginRequiredMixin,
                          mixins.ReverseSuccessURLMixin,
                          FormView):
     form_class = BarcodeForm
-    group_required = groups.QUALITY_CONTROL_CLERK
+    group_required = [groups.QUALITY_CONTROL_CLERK,
+                      groups.ARCHIVE_CLERK,
+                      groups.ARCHIVE_SUPERVISOR]
     template_name = "barcode_verify.html"
     success_url = 'quality-control-dashboard'
 
@@ -56,7 +58,7 @@ class QualityControlView(LoginRequiredMixin,
         form_action = ''
 
         return self.render_to_response(self.get_context_data(
-            form=form, header_text=_('Quality Control'),
+            form=form, header_text=_('Quality Control & Archiving'),
             form_action=form_action))
 
     def post(self, *args, **kwargs):
@@ -85,9 +87,11 @@ class QualityControlDashboardView(LoginRequiredMixin,
                                   mixins.GroupRequiredMixin,
                                   mixins.ReverseSuccessURLMixin,
                                   FormView):
-    group_required = groups.QUALITY_CONTROL_CLERK
+    group_required = [groups.QUALITY_CONTROL_CLERK,
+                      groups.ARCHIVE_CLERK,
+                      groups.ARCHIVE_SUPERVISOR]
     template_name = "quality_control/dashboard.html"
-    success_url = 'quality-control-success'
+    success_url = 'archive-print'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -122,6 +126,8 @@ class QualityControlDashboardView(LoginRequiredMixin,
             quality_control.passed_women = True
             result_form.form_state = FormState.ARCHIVING
             result_form.save()
+
+            self.request.session['result_form'] = result_form.pk
         elif 'incorrect' in post_data:
             # send to reject page
             quality_control.passed_general = False
@@ -144,21 +150,3 @@ class QualityControlDashboardView(LoginRequiredMixin,
         quality_control.save()
 
         return redirect(url)
-
-
-class ConfirmationView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       TemplateView):
-    template_name = "success.html"
-    group_required = groups.QUALITY_CONTROL_CLERK
-
-    def get(self, *args, **kwargs):
-        pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        del self.request.session['result_form']
-
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  header_text=_('Quality Control'),
-                                  next_step=_('Archiving'),
-                                  start_url='quality-control'))

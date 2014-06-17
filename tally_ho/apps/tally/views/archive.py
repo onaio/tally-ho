@@ -4,8 +4,6 @@ from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.forms.barcode_form import\
-    BarcodeForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
@@ -13,8 +11,7 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.views.session import session_matches_post_result_form
 from tally_ho.libs.verify.quarantine_checks import quarantine_checks
 from tally_ho.libs.views import mixins
-from tally_ho.libs.views.form_state import form_in_state,\
-    safe_form_in_state
+from tally_ho.libs.views.form_state import form_in_state
 
 
 def check_quarantine(result_form, user):
@@ -60,51 +57,13 @@ def states_for_form(user, result_form, states=[FormState.ARCHIVING]):
     return states
 
 
-class ArchiveView(LoginRequiredMixin,
-                  mixins.GroupRequiredMixin,
-                  mixins.ReverseSuccessURLMixin,
-                  FormView):
-    form_class = BarcodeForm
-    group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
-    template_name = "barcode_verify.html"
-    success_url = 'archive-print'
-
-    def get(self, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        form_action = ''
-
-        return self.render_to_response(
-            self.get_context_data(form=form, header_text=_('Archiving'),
-                                  form_action=form_action))
-
-    def post(self, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-
-        if form.is_valid():
-            barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode)
-            possible_states = states_for_form(self.request.user, result_form)
-            form = safe_form_in_state(result_form, possible_states,
-                                      form)
-
-            if form:
-                return self.form_invalid(form)
-
-            check_quarantine(result_form, self.request.user)
-            self.request.session['result_form'] = result_form.pk
-
-            return redirect(self.success_url)
-        else:
-            return self.form_invalid(form)
-
-
 class ArchivePrintView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
-    group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
+    group_required = [groups.QUALITY_CONTROL_CLERK,
+                      groups.ARCHIVE_CLERK,
+                      groups.ARCHIVE_SUPERVISOR]
     template_name = "archive/print_cover.html"
     success_url = 'archive-success'
 
@@ -114,6 +73,7 @@ class ArchivePrintView(LoginRequiredMixin,
         possible_states = states_for_form(self.request.user, result_form)
 
         form_in_state(result_form, possible_states)
+        check_quarantine(result_form, self.request.user)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
@@ -137,7 +97,9 @@ class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
     template_name = "success.html"
-    group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
+    group_required = [groups.QUALITY_CONTROL_CLERK,
+                      groups.ARCHIVE_CLERK,
+                      groups.ARCHIVE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -146,5 +108,5 @@ class ConfirmationView(LoginRequiredMixin,
         del self.request.session['result_form']
 
         return self.render_to_response(self.get_context_data(
-            result_form=result_form, header_text=_('Archiving'),
-            next_step=next_step, start_url='archive'))
+            result_form=result_form, header_text=_('Quality Control & Archiving'),
+            next_step=next_step, start_url='quality-control'))

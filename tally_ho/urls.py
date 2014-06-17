@@ -154,9 +154,6 @@ urlpatterns = patterns(
         TemplateView.as_view(
             template_name='quality_control/reject.html'),
         name='quality-control-reject'),
-    url(r'^quality-control/success$',
-        quality_control.ConfirmationView.as_view(),
-        name='quality-control-success'),
 
     url(r'^corrections$',
         corrections.CorrectionView.as_view(),
@@ -171,9 +168,6 @@ urlpatterns = patterns(
         corrections.ConfirmationView.as_view(),
         name='corrections-success'),
 
-    url(r'^archive$',
-        archive.ArchiveView.as_view(),
-        name='archive'),
     url(r'^archive/print$',
         archive.ArchivePrintView.as_view(),
         name='archive-print'),
