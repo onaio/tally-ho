@@ -115,4 +115,14 @@ class Station(BaseModel):
         for station in out_of_date:
             station.cache_archived_and_received()
 
+    @classmethod
+    def update_percentages(cls, stations):
+        time_threshold = timezone.now() - timedelta(
+            hours=cls.state_cache_hours)
+
+        for station in stations:
+            if station.modified_date < time_threshold:
+                station.cache_archived_and_received()
+
+
 reversion.register(Station)
