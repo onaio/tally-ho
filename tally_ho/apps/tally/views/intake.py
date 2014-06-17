@@ -133,6 +133,8 @@ class EnterCenterView(LoginRequiredMixin,
             duplicated_forms = result_form.get_duplicated_forms(center,
                                                                 station_number)
             if duplicated_forms:
+                result_form.station_number = station_number
+                result_form.center = center
                 # a form already exists, send to clearance
                 self.request.session['intake-error'] = INTAKEN_MESSAGE
                 result_form.send_to_clearance()
