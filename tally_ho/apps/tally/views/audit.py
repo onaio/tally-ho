@@ -45,17 +45,17 @@ def audit_action(audit, post_data, result_form, url):
         if audit.resolution_recommendation ==\
                 AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE:
             audit.for_superadmin = True
-        elif audit.action_prior_to_recommendation in\
+        else:
+            if audit.action_prior_to_recommendation in\
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
                  ActionsPrior.REQUEST_COPY_FROM_FIELD]:
-            audit.active = False
-            result_form.form_state = FormState.AUDIT_PENDING_STATE
-            result_form.save()
+                 new_state=FormState.AUDIT_PENDING_STATE
+            else:
+                # move to data entry 1
+                new_state=FormState.DATA_ENTRY_1
 
-        else:
-            # move to data entry 1
             audit.active = False
-            result_form.reject()
+            result_form.reject(new_state=new_state)
 
     audit.save()
 
