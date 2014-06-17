@@ -19,6 +19,7 @@
         <th>{% trans 'Name' %}</th>
         <th>{% trans 'Modification date' %}</th>
         <th>{% trans 'Value' %}</th>
+        <th>{% trans 'Percentage' %}</th>
         <th>{% trans 'Actions' %}</th>
     </tr>
 {% for oneCheck in checks %}
@@ -26,6 +27,7 @@
         <td>{{ oneCheck.name }}</td>
         <td>{{ oneCheck.modified_date | date:"Y-m-d h:m" }}</td>
         <td>{{ oneCheck.value }}</td>
+        <td>{{ oneCheck.percentage }}</td>
         <td>
             <a href="{% url 'quarantine-checks-config' oneCheck.id %}" class="btn btn-default btn-small">{% trans 'Edit' %}</a>
         </td>

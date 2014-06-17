@@ -35,6 +35,13 @@
                 {{ form.value }}
             </td>
         </tr>
+        <tr>
+            <td>{% trans 'Percentage:' %}</td>
+            <td>
+                {{ form.percentage.errors }}
+                {{ form.percentage }}
+            </td>
+        </tr>
     </table>
     <input type="hidden" name="result_form" value="{{ form.pk }}">
     <button class="btn btn-small" type="submit" name="submit">
