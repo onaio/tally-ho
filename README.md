@@ -32,18 +32,10 @@ address, and the third is the settings file.  Modify these arguments as needed.
 ./script/reload_all postgres 127.0.0.1 tally_ho.settings.common
 ```
 
-## Demo Site
+## News
 
-### [tally.ona.io](http://tally.ona.io)
-
-Ona intermittently hosts a demo site of the Libya tally software at [tally.ona.io](http://tally.ona.io).
-
-The demo user name and password (formatted as username/password) is:
-
-* `super_administrator`/`datadata`
-
-If it is not running and you would like to see a demo, please [email us](mailto:info@ona.io).
+This is an [article about tally-ho](http://blog.ona.io/general/2014/06/12/Tally-Ho-Robust-Open-Source-Election-Software.html) and its use in Libya.
 
 ### Demo Users
 
-Please login as username `super_administrator`, password `datadata` to look around the demo site.
+The `create_demo_users` command will create demo users for each role with usernames like `super_administrator`, and password `data`.
