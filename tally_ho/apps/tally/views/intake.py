@@ -165,18 +165,23 @@ class CheckCenterDetailsView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
-        station_number = self.request.session.get('station_number')
-        center_number = self.request.session.get('center_number')
 
-        center = Center.objects.get(code=center_number)
         result_form = get_object_or_404(ResultForm, pk=pk)
 
-        result_form.station_number = station_number
-        result_form.center = center
-        form_in_intake_state(result_form)
+        # When result form has not center/station assigned.
+        if not result_form.center:
+            station_number = self.request.session.get('station_number')
+            center_number = self.request.session.get('center_number')
 
-        self.request.session['station_number'] = station_number
-        self.request.session['center_number'] = center_number
+            center = Center.objects.get(code=center_number)
+
+            result_form.station_number = station_number
+            result_form.center = center
+
+            self.request.session['station_number'] = station_number
+            self.request.session['center_number'] = center_number
+
+        form_in_intake_state(result_form)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
@@ -190,20 +195,22 @@ class CheckCenterDetailsView(LoginRequiredMixin,
         url = None
 
         if 'is_match' in post_data:
-            station_number = self.request.session.get('station_number')
-            center_number = self.request.session.get('center_number')
-            center = Center.objects.get(code=center_number)
+            # When result form has not center/station assigned.
+            if not result_form.center:
+                station_number = self.request.session.get('station_number')
+                center_number = self.request.session.get('center_number')
+                center = Center.objects.get(code=center_number)
 
-            result_form.station_number = station_number
-            result_form.center = center
-
-            # send to print cover
-            url = 'intake-printcover'
+                result_form.station_number = station_number
+                result_form.center = center
 
             if 'station_number' in self.request.session:
                 del self.request.session['station_number']
             if 'center_number' in self.request.session:
                 del self.request.session['center_number']
+
+            # send to print cover
+            url = 'intake-printcover'
 
         elif 'is_not_match' in post_data:
             # send to clearance
