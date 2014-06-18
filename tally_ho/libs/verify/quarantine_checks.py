@@ -5,14 +5,14 @@ from tally_ho.apps.tally.models.quarantine_check import\
 
 def create_quarantine_checks():
     quarantine_data = [
-        [_('Trigger 1 - Guard against overvoting'), 'pass_overvote', 10],
+        [_('Trigger 1 - Guard against overvoting'), 'pass_overvote', 10, 90],
         [_('Trigger 2 - Guard against errors and tampering with the form'),
-         'pass_tampering', 3]
+         'pass_tampering', 3, 3]
     ]
 
-    for name, method, value in quarantine_data:
+    for name, method, value, percentage in quarantine_data:
         QuarantineCheck.objects.get_or_create(
-            name=name, method=method, value=value)
+            name=name, method=method, value=value, percentage=percentage)
 
 
 def quarantine_checks():
@@ -51,7 +51,7 @@ def pass_overvote(result_form):
         return True
 
     qc = QuarantineCheck.objects.get(method='pass_overvote')
-    max_number_ballots = registrants + qc.value
+    max_number_ballots = (qc.percentage / 100) * registrants + qc.value
 
     return recon_form.number_ballots_used <= max_number_ballots
 
