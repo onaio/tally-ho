@@ -15,6 +15,7 @@ from tally_ho.libs.views.session import session_matches_post_result_form
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.form_state import form_in_intake_state,\
     safe_form_in_state, form_in_state
+from tally_ho.libs.views.errors import add_generic_error
 
 INTAKEN_MESSAGE = _('Duplicate of a form already entered into system.')
 
@@ -129,6 +130,13 @@ class EnterCenterView(LoginRequiredMixin,
             station_number = center_form.cleaned_data.get('station_number')
             center_number = center_form.cleaned_data.get('center_number')
             center = Center.objects.get(code=center_number)
+
+            #Checks if center ballot number and form ballot number are the same
+            if result_form.ballot.number != center.sub_constituency.code:
+                form = add_generic_error(center_form, _(u"Ballot number do not match for center and form"))
+                return self.render_to_response(self.get_context_data(
+                    form=form, header_text=_('Intake'),
+                    result_form=result_form))
 
             duplicated_forms = result_form.get_duplicated_forms(center,
                                                                 station_number)

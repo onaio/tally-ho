@@ -48,4 +48,7 @@ class NewResultForm(ModelForm):
         except Station.DoesNotExist:
             raise ValidationError(_('Station does no exist for the selected center'))
 
+        if ballot.number != center.sub_constituency.code:
+            raise ValidationError(_('Ballot number do not match for center and station'))
+
         return cleaned_data
