@@ -132,7 +132,7 @@ class EnterCenterView(LoginRequiredMixin,
             center = Center.objects.get(code=center_number)
 
             #Checks if center ballot number and form ballot number are the same
-            if result_form.ballot.number != center.sub_constituency.code:
+            if center.sub_constituency and result_form.ballot.number != center.sub_constituency.code:
                 form = add_generic_error(center_form, _(u"Ballot number do not match for center and form"))
                 return self.render_to_response(self.get_context_data(
                     form=form, header_text=_('Intake'),
