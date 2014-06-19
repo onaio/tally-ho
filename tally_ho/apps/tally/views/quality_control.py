@@ -46,9 +46,8 @@ class QualityControlView(LoginRequiredMixin,
                          mixins.ReverseSuccessURLMixin,
                          FormView):
     form_class = BarcodeForm
-    group_required = [groups.QUALITY_CONTROL_CLERK,
-                      groups.ARCHIVE_CLERK,
-                      groups.ARCHIVE_SUPERVISOR]
+    group_required = [groups.QUALITY_CONTROL_ARCHIVE_CLERK,
+                      groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR]
     template_name = "barcode_verify.html"
     success_url = 'quality-control-dashboard'
 
@@ -87,9 +86,8 @@ class QualityControlDashboardView(LoginRequiredMixin,
                                   mixins.GroupRequiredMixin,
                                   mixins.ReverseSuccessURLMixin,
                                   FormView):
-    group_required = [groups.QUALITY_CONTROL_CLERK,
-                      groups.ARCHIVE_CLERK,
-                      groups.ARCHIVE_SUPERVISOR]
+    group_required = [groups.QUALITY_CONTROL_ARCHIVE_CLERK,
+                      groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR]
     template_name = "quality_control/dashboard.html"
     success_url = 'archive-print'
 

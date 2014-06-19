@@ -10,8 +10,6 @@ from tally_ho.libs.permissions import groups
 
 GROUP_URLS = {
     groups.ADMINISTRATOR: "administrator",
-    groups.ARCHIVE_CLERK: "archive",
-    groups.ARCHIVE_SUPERVISOR: "archive",
     groups.AUDIT_CLERK: "audit",
     groups.AUDIT_SUPERVISOR: "audit",
     groups.CLEARANCE_CLERK: "clearance",
@@ -21,7 +19,8 @@ GROUP_URLS = {
     groups.DATA_ENTRY_2_CLERK: "data-entry",
     groups.INTAKE_CLERK: "intake",
     groups.INTAKE_SUPERVISOR: "intake",
-    groups.QUALITY_CONTROL_CLERK: "quality-control",
+    groups.QUALITY_CONTROL_ARCHIVE_CLERK: "quality-control",
+    groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR: "quality-control",
     groups.SUPER_ADMINISTRATOR: "super-administrator",
 }
 
