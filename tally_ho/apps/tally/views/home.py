@@ -9,7 +9,6 @@ from tally_ho.libs.permissions import groups
 
 
 GROUP_URLS = {
-    groups.ADMINISTRATOR: "administrator",
     groups.AUDIT_CLERK: "audit",
     groups.AUDIT_SUPERVISOR: "audit",
     groups.CLEARANCE_CLERK: "clearance",

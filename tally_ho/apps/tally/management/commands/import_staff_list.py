@@ -13,7 +13,6 @@ USER_LIST_PATH = 'data/user_list.csv'
 
 # Dict for all the variations on Clerk names.
 STAFF_ROLE_DICT = {
-    'ADMINISTRATOR': groups.ADMINISTRATOR,
     'AUDIT CLERK': groups.AUDIT_CLERK,
     'AUDIT SUPERVISOR': groups.AUDIT_SUPERVISOR,
     'CLEARANCE CLERK': groups.CLEARANCE_CLERK,
