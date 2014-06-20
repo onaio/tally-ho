@@ -50,7 +50,7 @@ def states_for_form(user, result_form, states=[FormState.ARCHIVING]):
 
     :returns: A list of states that a form may be in.
     """
-    if groups.ARCHIVE_SUPERVISOR in groups.user_groups(user)\
+    if groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR in groups.user_groups(user)\
             and result_form.form_state == FormState.ARCHIVED:
         states.append(FormState.ARCHIVED)
 
@@ -61,9 +61,8 @@ class ArchivePrintView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
-    group_required = [groups.QUALITY_CONTROL_CLERK,
-                      groups.ARCHIVE_CLERK,
-                      groups.ARCHIVE_SUPERVISOR]
+    group_required = [groups.QUALITY_CONTROL_ARCHIVE_CLERK,
+                      groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR]
     template_name = "archive/print_cover.html"
     success_url = 'archive-success'
 
@@ -97,9 +96,8 @@ class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
     template_name = "success.html"
-    group_required = [groups.QUALITY_CONTROL_CLERK,
-                      groups.ARCHIVE_CLERK,
-                      groups.ARCHIVE_SUPERVISOR]
+    group_required = [groups.QUALITY_CONTROL_ARCHIVE_CLERK,
+                      groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')

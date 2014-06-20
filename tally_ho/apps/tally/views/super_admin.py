@@ -21,6 +21,7 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.functions import disableEnableEntity
+from tally_ho.libs.utils.functions import disableEnableCandidate
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import get_result_export_response,\
     valid_ballots, distinct_forms, SPECIAL_BALLOTS
@@ -374,3 +375,39 @@ class RemoveStationView(LoginRequiredMixin,
                                          'station': station.station_number})
             return self.form_valid(form)
         return self.form_invalid(form)
+
+
+class EnableCandidateView(LoginRequiredMixin,
+                          mixins.GroupRequiredMixin,
+                          mixins.ReverseSuccessURLMixin,
+                          SuccessMessageMixin,
+                          TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    success_url = 'candidate-list'
+
+    def get(self, *args, **kwargs):
+        candidateId = kwargs.get('candidateId')
+
+        self.success_message = _(u"Candidate successfully enabled.")
+
+        disableEnableCandidate(candidateId)
+
+        return redirect(self.success_url)
+
+
+class DisableCandidateView(LoginRequiredMixin,
+                           mixins.GroupRequiredMixin,
+                           mixins.ReverseSuccessURLMixin,
+                           SuccessMessageMixin,
+                           TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    success_url = 'candidate-list'
+
+    def get(self, *args, **kwargs):
+        candidateId = kwargs.get('candidateId')
+
+        self.success_message = _(u"Candidate successfully disabled.")
+
+        disableEnableCandidate(candidateId)
+
+        return redirect(self.success_url)
