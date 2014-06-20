@@ -49,7 +49,7 @@ class FormListDataView(LoginRequiredMixin,
 
         if ballot_number:
             ballot = Ballot.objects.get(number=ballot_number)
-            qs = ResultForm.distinct_forms().filter(
+            qs = qs.filter(
                 ballot__number__in=ballot.form_ballot_numbers)
 
         return qs
