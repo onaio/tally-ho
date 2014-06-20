@@ -135,7 +135,6 @@ class ResultForm(BaseModel):
         app_label = 'tally'
 
     START_BARCODE = 10000000
-    MAX_BARCODE = 530000576
     OCV_CENTER_MIN = 80001
 
     ballot = models.ForeignKey(Ballot, null=True)
@@ -449,9 +448,7 @@ class ResultForm(BaseModel):
         return qs.filter(
             center__isnull=False,
             station_number__isnull=False,
-            ballot__isnull=False).extra(
-            where=["barcode::integer <= %s"],
-            params=[self.MAX_BARCODE]).order_by(
+            ballot__isnull=False).order_by(
             'center__id', 'station_number', 'ballot__id',
             'form_state').distinct(
             'center__id', 'station_number', 'ballot__id')
