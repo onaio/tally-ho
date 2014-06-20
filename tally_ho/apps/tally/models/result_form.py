@@ -538,6 +538,11 @@ class ResultForm(BaseModel):
 
     def send_to_clearance(self):
         self.form_state = FormState.CLEARANCE
+
+        if self.audit and self.audit.active:
+            audit = self.audit
+            audit.active = False
+            audit.save()
         self.save()
 
 reversion.register(ResultForm)
