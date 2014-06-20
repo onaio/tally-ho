@@ -152,7 +152,8 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'number of signatures',
             'received ballots papers',
             'valid votes',
-            'number registrants'
+            'number registrants',
+            'candidate status',
         ]
 
         w = csv.DictWriter(f, header)
@@ -174,6 +175,10 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
                 output['name'] = candidate.full_name
                 output['votes'] = votes
                 output['race number'] = candidate.ballot.number
+                if candidate.active:
+                    output['candidate status'] = 'enabled'
+                else:
+                    output['candidate status'] = 'disabled'
 
                 write_utf8(w, output)
 
