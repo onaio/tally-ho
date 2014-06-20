@@ -14,7 +14,8 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
 
 
-OUTPUT_PATH = 'results/candidate_votes.csv'
+OUTPUT_PATH = 'results/all_candidate_votes.csv'
+ACTIVE_OUTPUT_PATH = 'results/active_candidate_votes.csv'
 RESULTS_PATH = 'results/form_results.csv'
 DUPLICATE_RESULTS_PATH = 'results/duplicate_results.csv'
 SPECIAL_BALLOTS = None
@@ -250,7 +251,7 @@ def save_center_duplicates(center_to_votes, center_to_forms,
 
 
 def export_candidate_votes(save_barcodes=False, output_duplicates=True,
-                           output_to_file=True):
+                           output_to_file=True, show_disabled_candidates=True):
     """Export a spreadsheet of the candidates their votes for each race.
 
     :param save_barcodes: Generate barcode result file, default False.
@@ -265,9 +266,15 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
               'stations percent completed']
 
     max_candidates = 0
+
     for ballot in Ballot.objects.all():
-        if ballot.candidates.count() > max_candidates:
-            max_candidates = ballot.candidates.count()
+        if not show_disabled_candidates:
+            ballot_number = ballot.candidates.filter(active=True).count()
+        else:
+            ballot_number = ballot.candidates.count()
+
+        if ballot_number > max_candidates:
+            max_candidates = ballot_number
 
     for i in xrange(1, max_candidates + 1):
         header.append('candidate %s name' % i)
@@ -306,7 +313,11 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
             candidates_to_votes = {}
             num_results_ary = []
 
-            for candidate in ballot.candidates.all():
+            candidates = ballot.candidates.all()
+            if not show_disabled_candidates:
+                candidates = candidates.filter(active=True)
+
+            for candidate in candidates:
                 num_results, votes = candidate.num_votes()
                 all_votes = candidate.num_all_votes
                 candidates_to_votes[candidate.full_name] = [votes, all_votes]
@@ -340,7 +351,10 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
             write_utf8(w, output)
 
     if output_to_file:
-        save_csv_file_and_symlink(csv_file, OUTPUT_PATH)
+        if show_disabled_candidates:
+            save_csv_file_and_symlink(csv_file, OUTPUT_PATH)
+        else:
+            save_csv_file_and_symlink(csv_file, ACTIVE_OUTPUT_PATH)
 
     if save_barcodes:
         return save_barcode_results(complete_barcodes,
@@ -378,11 +392,15 @@ def get_result_export_response(report):
     """
     filename = 'not_found.csv'
     path = None
+    show_disabled = True
 
     if report == 'formresults':
         filename = os.path.join('results', 'form_results.csv')
-    elif report == 'candidates':
-        filename = os.path.join('results', 'candidate_votes.csv')
+    elif report == 'all-candidates':
+        filename = os.path.join('results', 'all_candidate_votes.csv')
+    elif report == 'active-candidates':
+        filename = os.path.join('results', 'active_candidate_votes.csv')
+        show_disabled = False
     elif report == 'duplicates':
         filename = os.path.join('results', 'duplicate_results.csv')
 
@@ -391,7 +409,8 @@ def get_result_export_response(report):
     try:
         #FIXME: if file it's been already generated, does not generate new one. correct??
         if not os.path.exists(filename):
-            export_candidate_votes(save_barcodes=True, output_duplicates=True)
+            export_candidate_votes(save_barcodes=True, output_duplicates=True,
+                                  show_disabled_candidates=show_disabled)
 
         path = os.readlink(filename)
         filename = os.path.basename(path)
