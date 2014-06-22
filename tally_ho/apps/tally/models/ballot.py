@@ -57,7 +57,7 @@ class Ballot(BaseModel):
         return self.number in self.COMPONENT_TO_BALLOTS.keys()
 
     def __unicode__(self):
-        return self.number
+        return u'%d' % self.number
 
 
 reversion.register(Ballot)
