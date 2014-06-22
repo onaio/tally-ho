@@ -48,7 +48,7 @@ def clearance_action(post_data, clearance, result_form, url):
             result_form.save()
         elif clearance.action_prior_to_recommendation in\
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD, ActionsPrior.REQUEST_COPY_FROM_FIELD]:
-            clearance.active = False
+            clearance.active = True
             if not result_form.center or not result_form.station_number:
                 result_form.form_state = FormState.UNSUBMITTED
             else:
@@ -142,6 +142,7 @@ class ReviewView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_class = self.get_form_class()
         clearance = result_form.clearance
+
         form = ClearanceForm(instance=clearance) if clearance\
             else self.get_form(form_class)
 
