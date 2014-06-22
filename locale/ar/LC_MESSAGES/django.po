@@ -957,7 +957,7 @@ msgstr "مرشح"
 
 #: tally_ho/apps/tally/templates/data/candidates.html:22
 msgid "Id"
-msgstr ""
+msgstr "معرف"
 
 #: tally_ho/apps/tally/templates/data/candidates.html:23
 #: tally_ho/apps/tally/templates/intake/print_cover.html:31
@@ -969,7 +969,7 @@ msgstr "الاسم "
 
 #: tally_ho/apps/tally/templates/data/candidates.html:24
 msgid "Order"
-msgstr ""
+msgstr "النظام"
 
 #: tally_ho/apps/tally/templates/data/candidates.html:25
 #, fuzzy
@@ -1045,7 +1045,7 @@ msgstr "محطة"
 #: tally_ho/apps/tally/templates/data/forms.html:15
 #: tally_ho/apps/tally/templates/data/forms.html:18
 msgid "All"
-msgstr ""
+msgstr "كل"
 
 #: tally_ho/apps/tally/templates/data/forms.html:19
 msgid "Unsubmitted"
@@ -1490,11 +1490,11 @@ msgstr "تاريخ الانشاء"
 
 #: tally_ho/apps/tally/templates/super_admin/disable_entity.html:9
 msgid "Select center classification."
-msgstr ""
+msgstr "اختر تصنيف مركز"
 
 #: tally_ho/apps/tally/templates/super_admin/disable_entity.html:11
 msgid "Confirm that you want to disable the centre!"
-msgstr ""
+msgstr "تأكيد أنك تريد تعطيل مركز!"
 
 #: tally_ho/apps/tally/templates/super_admin/disable_entity.html:31
 #: tally_ho/libs/utils/templates.py:10
