@@ -86,7 +86,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'tally',
-        'USER': 'postgres',
+        'USER': 'tally',
         'PASSWORD': 'tally',
         'HOST': '127.0.0.1',
     }
@@ -156,3 +156,5 @@ LOGGING = {
     'version': 1,
     'root': {'level': 'DEBUG' if DEBUG else 'INFO'},
 }
+
+

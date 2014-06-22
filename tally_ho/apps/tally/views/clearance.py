@@ -2,6 +2,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext as _
+from django.db.models import Q
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -47,7 +48,7 @@ def clearance_action(post_data, clearance, result_form, url):
             result_form.save()
         elif clearance.action_prior_to_recommendation in\
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD, ActionsPrior.REQUEST_COPY_FROM_FIELD]:
-            clearance.active = False
+            clearance.active = True
             if not result_form.center or not result_form.station_number:
                 result_form.form_state = FormState.UNSUBMITTED
             else:
@@ -104,7 +105,12 @@ class DashboardView(LoginRequiredMixin,
     success_url = 'clearance-review'
 
     def get(self, *args, **kwargs):
-        form_list = ResultForm.objects.filter(form_state=FormState.CLEARANCE)
+        form_list = ResultForm.objects
+        if is_clerk(self.request.user):
+            form_list = form_list.filter(form_state=FormState.CLEARANCE)
+        else:
+            form_list = form_list.filter(Q(form_state=FormState.CLEARANCE) |
+                                         Q(form_state=FormState.CLEARANCE_PENDING_STATE))
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
@@ -114,7 +120,9 @@ class DashboardView(LoginRequiredMixin,
         post_data = self.request.POST
         pk = post_data['result_form']
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.CLEARANCE)
+        valid_form_state = result_form.form_state
+        if (valid_form_state == FormState.CLEARANCE or valid_form_state == FormState.CLEARANCE_PENDING_STATE):
+            form_in_state(result_form, valid_form_state)
         self.request.session['result_form'] = result_form.pk
 
         return redirect(self.success_url)
@@ -134,6 +142,7 @@ class ReviewView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_class = self.get_form_class()
         clearance = result_form.clearance
+
         form = ClearanceForm(instance=clearance) if clearance\
             else self.get_form(form_class)
 
@@ -146,7 +155,9 @@ class ReviewView(LoginRequiredMixin,
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.CLEARANCE)
+        valid_form_state = result_form.form_state
+        if (valid_form_state == FormState.CLEARANCE or valid_form_state == FormState.CLEARANCE_PENDING_STATE):
+            form_in_state(result_form, valid_form_state)
         form = self.get_form(form_class)
 
         if form.is_valid():
