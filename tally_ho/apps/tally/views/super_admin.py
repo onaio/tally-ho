@@ -47,6 +47,24 @@ def duplicates():
 
     return ResultForm.objects.filter(pk__in=pks)
 
+def clearance_pendings():
+    """Build a list of result forms that are in clearance pending state considering only forms
+    that are not unsubmitted.
+
+    :returns: A list of result forms in the system that are in clearance pending state.
+    """
+
+    return ResultForm.objects.filter(form_state=FormState.CLEARANCE_PENDING_STATE)
+
+
+def audit_pendings():
+    """Build a list of result forms that are in audit pending state considering only forms
+    that are not unsubmitted.
+
+    :returns: A list of result forms in the system that are in audit pending state.
+    """
+    return ResultForm.objects.filter(form_state=FormState.AUDIT_PENDING_STATE)
+
 
 def get_results_duplicates():
     complete_barcodes = []
@@ -142,6 +160,34 @@ class FormDuplicatesView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             forms=forms))
 
+class FormClearancePendingsView(LoginRequiredMixin,
+                         mixins.GroupRequiredMixin,
+                         TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/form_clearance_pendings.html"
+
+    def get(self, *args, **kwargs):
+        form_list = clearance_pendings()
+
+        forms = paging(form_list, self.request)
+
+        return self.render_to_response(self.get_context_data(
+            forms=forms))
+
+class FormAuditPendingsView(LoginRequiredMixin,
+                         mixins.GroupRequiredMixin,
+                         TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/form_audit_pendings.html"
+
+    def get(self, *args, **kwargs):
+        form_list = audit_pendings()
+
+        forms = paging(form_list, self.request)
+
+        return self.render_to_response(self.get_context_data(
+            forms=forms))
+
 
 class FormResultsDuplicatesView(LoginRequiredMixin,
                                 mixins.GroupRequiredMixin,
@@ -192,6 +238,13 @@ class FormProgressDataView(LoginRequiredMixin,
 
 class FormDuplicatesDataView(FormProgressDataView):
     queryset = duplicates()
+
+class FormClearancePendingDataView(FormProgressDataView):
+    queryset = clearance_pendings()
+
+
+class FormAuditPendingDataView(FormProgressDataView):
+    queryset = audit_pendings()
 
 
 class FormActionView(LoginRequiredMixin,
