@@ -66,17 +66,17 @@ msgid "Barcode does not exist."
 msgstr "الرقم التسلسلي غير مطابق"
 
 #: tally_ho/apps/tally/forms/barcode_form.py:59
-#, fuzzy
+
 msgid "Center is disabled."
 msgstr "اسم المركز"
 
 #: tally_ho/apps/tally/forms/barcode_form.py:64
-#, fuzzy
+
 msgid "Station does not exist."
 msgstr "الرقم التسلسلي غير مطابق"
 
 #: tally_ho/apps/tally/forms/barcode_form.py:67
-#, fuzzy
+
 msgid "Station disabled."
 msgstr "رمز المحطة :"
 
@@ -132,25 +132,25 @@ msgid "Invalid Station Number for this Center"
 msgstr "رقم المحطة لهذا المركز غير صحيح"
 
 #: tally_ho/apps/tally/forms/center_details_form.py:82
-#, fuzzy
+
 msgid "Center is disabled"
 msgstr "اسم المركز"
 
 #: tally_ho/apps/tally/forms/center_details_form.py:88
-#, fuzzy
+
 msgid "Station is disabled"
 msgstr "رمز المحطة :"
 
 #: tally_ho/apps/tally/forms/center_details_form.py:91
 #: tally_ho/apps/tally/forms/remove_center_form.py:55
 #: tally_ho/libs/utils/functions.py:24
-#, fuzzy
+
 msgid "Center Number does not exist"
 msgstr "أرقام المركز غير متطابقة"
 
 #: tally_ho/apps/tally/forms/center_details_form.py:94
 #: tally_ho/libs/utils/functions.py:26
-#, fuzzy
+
 msgid "Station Number does not exist"
 msgstr "أرقام المركز غير متطابقة"
 
@@ -179,7 +179,6 @@ msgid "Ballot number do not match for center and station"
 msgstr "محطة لا يجدي موجودة لمركز المختار"
 
 #: tally_ho/apps/tally/forms/pass_to_quality_control_form.py:20
-#, fuzzy, python-format
 msgid "Result Form with key %s does not exit."
 msgstr "الاستمارة %s غير موجودة"
 
@@ -441,7 +440,7 @@ msgstr ""
 "الادخال 1. "
 
 #: tally_ho/apps/tally/models/result_form.py:96
-#, fuzzy
+
 msgid "Votes do not match!"
 msgstr "الرقم التسلسلي غير مطابق"
 
@@ -830,7 +829,7 @@ msgid "Clearance List"
 msgstr "قائمة التصحيح"
 
 #: tally_ho/apps/tally/templates/clearance/dashboard.html:11
-#, fuzzy
+
 msgid "New Clearance"
 msgstr "تحقق"
 
@@ -951,7 +950,6 @@ msgstr "غير صحيحة - مرفوضة"
 
 #: tally_ho/apps/tally/templates/data/candidates.html:9
 #: tally_ho/apps/tally/templates/super_admin/home.html:19
-#, fuzzy
 msgid "Candidate List"
 msgstr "مرشح"
 
@@ -972,7 +970,7 @@ msgid "Order"
 msgstr "النظام"
 
 #: tally_ho/apps/tally/templates/data/candidates.html:25
-#, fuzzy
+
 msgid "Ballot"
 msgstr "الرقم التسلسلي"
 
@@ -986,17 +984,17 @@ msgid "Race Type"
 msgstr "نوع التنافس"
 
 #: tally_ho/apps/tally/templates/data/candidates.html:27
-#, fuzzy
+
 msgid "Last Modification"
 msgstr "التعديل الاخير"
 
 #: tally_ho/apps/tally/templates/data/candidates.html:28
-#, fuzzy
+
 msgid "Candidate Status"
 msgstr "مرشح"
 
 #: tally_ho/apps/tally/templates/data/centers.html:9
-#, fuzzy
+
 msgid "Center and Station List"
 msgstr "قائمة المركز / المحطة"
 
@@ -1021,7 +1019,7 @@ msgid "Registrants"
 msgstr "عدد المسجلين"
 
 #: tally_ho/apps/tally/templates/data/centers.html:29
-#, fuzzy
+
 msgid "Received"
 msgstr "لم يتم الاستيلام"
 
@@ -1033,12 +1031,12 @@ msgid "Archived"
 msgstr "تم الارشفة"
 
 #: tally_ho/apps/tally/templates/data/centers.html:31
-#, fuzzy
+
 msgid "Center Status"
 msgstr "قائمة المركز / المحطة"
 
 #: tally_ho/apps/tally/templates/data/centers.html:32
-#, fuzzy
+
 msgid "Station Status"
 msgstr "محطة"
 
@@ -1112,7 +1110,7 @@ msgstr "رقم المركز"
 #: tally_ho/apps/tally/templates/reports/offices.html:32
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:19
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:19
-#, fuzzy
+
 msgid "Office Number"
 msgstr "اسم المكتب :"
 
@@ -1377,7 +1375,7 @@ msgstr "الى الارشيف"
 #: tally_ho/apps/tally/views/archive.py:109
 #: tally_ho/apps/tally/views/corrections.py:333
 #: tally_ho/apps/tally/views/quality_control.py:60
-#, fuzzy
+
 msgid "Quality Control & Archiving"
 msgstr "ضبط الجودة"
 
@@ -1420,7 +1418,7 @@ msgstr "نظرة عامة"
 
 #: tally_ho/apps/tally/templates/reports/offices.html:9
 #: tally_ho/apps/tally/templates/reports/offices.html:26
-#, fuzzy
+
 msgid "Export"
 msgstr "تقارير "
 
@@ -1451,7 +1449,7 @@ msgid "Intaken"
 msgstr "استقبال"
 
 #: tally_ho/apps/tally/templates/reports/races.html:7
-#, fuzzy
+
 msgid "Races Progress Report"
 msgstr "تقرير مركز الاحصاء"
 
@@ -1484,7 +1482,7 @@ msgid "Percentage Complete"
 msgstr "استعراض مكتمل"
 
 #: tally_ho/apps/tally/templates/super_admin/disable_entity.html:7
-#, fuzzy
+
 msgid "Disable Centre"
 msgstr "تاريخ الانشاء"
 
@@ -1498,12 +1496,12 @@ msgstr "تأكيد أنك تريد تعطيل مركز!"
 
 #: tally_ho/apps/tally/templates/super_admin/disable_entity.html:31
 #: tally_ho/libs/utils/templates.py:10
-#, fuzzy
+
 msgid "Disable Center"
 msgstr "تاريخ الانشاء"
 
 #: tally_ho/apps/tally/templates/super_admin/form_action.html:9
-#, fuzzy
+
 msgid "Forms Waiting For Approval"
 msgstr "نماذج قيد الانتظار"
 
@@ -1516,13 +1514,13 @@ msgid "Confirm"
 msgstr "موافقه"
 
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:9
-#, fuzzy
+
 msgid "Form Duplicates List"
 msgstr "متابعة النماذج"
 
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:17
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:17
-#, fuzzy
+
 msgid "Ballot Number"
 msgstr "الرقم التسلسلي"
 
@@ -1532,17 +1530,17 @@ msgid "Number of times rejected to DE1"
 msgstr "عدد المرات المرفوضه من ادخال البيانات 1"
 
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:9
-#, fuzzy
+
 msgid "Form Progress List"
 msgstr "متابعة النماذج"
 
 #: tally_ho/apps/tally/templates/super_admin/form_results_duplicates.html:7
-#, fuzzy
+
 msgid "Results Duplicated List"
 msgstr "متابعة النماذج"
 
 #: tally_ho/apps/tally/templates/super_admin/form_results_duplicates.html:18
-#, fuzzy
+
 msgid "State"
 msgstr "حالة النمودج"
 
@@ -1561,7 +1559,7 @@ msgstr "قائمة النمودج "
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:20
 #: tally_ho/apps/tally/views/data/form_list_view.py:97
-#, fuzzy
+
 msgid "Forms Not Received"
 msgstr "لم يتم الاستيلام"
 
@@ -1586,17 +1584,17 @@ msgid "Form Progress"
 msgstr "متابعة النماذج"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:30
-#, fuzzy
+
 msgid "Form Duplicates"
 msgstr "حالة النمودج"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:31
-#, fuzzy
+
 msgid "Form Results Duplicates"
 msgstr "حالة النمودج"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:32
-#, fuzzy
+
 msgid "Download Results"
 msgstr "استمارة نتائج فارغة"
 
@@ -1621,7 +1619,7 @@ msgid "Corrections Clerk"
 msgstr "موظف التصحيح"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:41
-#, fuzzy
+
 msgid "Quality Control & Archiving Clerk"
 msgstr "موظف ضمان الجودة"
 
@@ -1638,7 +1636,7 @@ msgid "Remove a Centre"
 msgstr "إزالة مركز"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:49
-#, fuzzy
+
 msgid "Remove a Station"
 msgstr "محطة"
 
@@ -1666,7 +1664,7 @@ msgstr "تأكيد أنك تريد حذف مركز!"
 
 #: tally_ho/apps/tally/templates/super_admin/remove_center.html:26
 #: tally_ho/apps/tally/templates/super_admin/remove_station.html:32
-#, fuzzy
+
 msgid "Delete Center"
 msgstr "تاريخ الانشاء"
 
@@ -1679,22 +1677,22 @@ msgid "Downloads"
 msgstr "Downloads"
 
 #: tally_ho/apps/tally/templates/super_admin/result_export.html:10
-#, fuzzy
+
 msgid "Result Form List"
 msgstr "قائمة النمودج "
 
 #: tally_ho/apps/tally/templates/super_admin/result_export.html:11
-#, fuzzy
+
 msgid "All Candidate Votes"
 msgstr "مرشح"
 
 #: tally_ho/apps/tally/templates/super_admin/result_export.html:12
-#, fuzzy
+
 msgid "Active Candidate Votes"
 msgstr "مرشح"
 
 #: tally_ho/apps/tally/templates/super_admin/result_export.html:13
-#, fuzzy
+
 msgid "Result Forms With Duplicate Results"
 msgstr "متابعة النماذج"
 
@@ -1712,7 +1710,7 @@ msgstr "أنشاء التدقيق"
 
 #: tally_ho/apps/tally/views/clearance.py:211
 #: tally_ho/apps/tally/views/clearance.py:292
-#, fuzzy
+
 msgid "Create Clearance"
 msgstr "تحقق"
 
@@ -1744,7 +1742,7 @@ msgid "Data Entry %s"
 msgstr "مدخل بيانات %s"
 
 #: tally_ho/apps/tally/views/intake.py:20
-#, fuzzy
+
 msgid "Duplicate of a form already entered into system."
 msgstr "توجد نسخة طبق الاصل من هذ ا النموذج مدخلة بالنظام"
 
@@ -1753,7 +1751,7 @@ msgid "Ballot number do not match for center and form"
 msgstr "عدد الاقتراع لا تتطابق لمركز وتشكيل"
 
 #: tally_ho/apps/tally/views/super_admin.py:259
-#, fuzzy
+
 msgid "Center Successfully Removed."
 msgstr "نقل استمارة ناجحة الى"
 
@@ -1763,12 +1761,10 @@ msgid "Successfully removed center %(center)s"
 msgstr "مركز إزالة بنجاح %(center)s"
 
 #: tally_ho/apps/tally/views/super_admin.py:301
-#, fuzzy, python-format
 msgid "%s Successfully Disabled."
 msgstr "نقل استمارة ناجحة الى "
 
 #: tally_ho/apps/tally/views/super_admin.py:317
-#, python-format
 msgid "Successfully disabled center %(center)s"
 msgstr "مركز المعوقين بنجاح %(center)s"
 
@@ -1778,37 +1774,30 @@ msgid "Successfully disabled station %(stationNumber)s"
 msgstr "محطة المعوقين بنجاح %(stationNumber)s"
 
 #: tally_ho/apps/tally/views/super_admin.py:341
-#, fuzzy, python-format
 msgid "%s Successfully enabled."
 msgstr "نقل استمارة ناجحة الى "
 
 #: tally_ho/apps/tally/views/super_admin.py:357
-#, fuzzy
 msgid "Station Successfully Removed."
 msgstr "نقل استمارة ناجحة الى "
 
 #: tally_ho/apps/tally/views/super_admin.py:373
-#, python-format
 msgid "Successfully removed station %(station)s from center %(center)s."
 msgstr "محطة إزالة بنجاح %(station)s من المركز %(center)s"
 
 #: tally_ho/apps/tally/views/super_admin.py:391
-#, fuzzy
 msgid "Candidate successfully enabled."
 msgstr "نقل استمارة ناجحة الى "
 
 #: tally_ho/apps/tally/views/super_admin.py:409
-#, fuzzy
 msgid "Candidate successfully disabled."
 msgstr "نقل استمارة ناجحة الى "
 
 #: tally_ho/apps/tally/views/data/form_list_view.py:113
-#, fuzzy, python-format
 msgid "Forms for Race %s"
 msgstr "لم يتم الاستيلام %s"
 
 #: tally_ho/libs/models/dependencies.py:11
-#, python-format
 msgid "Results exist for barcodes: %s"
 msgstr "توجد نتائج الباركود: %s"
 
@@ -1857,7 +1846,7 @@ msgid "Reset To Preintake"
 msgstr "اعادة عملية استلام النموذج"
 
 #: tally_ho/libs/models/enums/disable_reason.py:12
-#, fuzzy
+
 msgid "Not opened"
 msgstr "لم يتم الاستيلام"
 
@@ -1931,42 +1920,42 @@ msgid "Change my password"
 msgstr "تغيير كلمة itالمرور خاصتي"
 
 #: tally_ho/libs/utils/functions.py:48
-#, fuzzy
+
 msgid "Candidate does not exist"
 msgstr "الرقم التسلسلي غير مطابق"
 
 #: tally_ho/libs/utils/templates.py:13
-#, fuzzy
+
 msgid "Enable Center"
 msgstr "تاريخ الانشاء"
 
 #: tally_ho/libs/utils/templates.py:24
-#, fuzzy
+
 msgid "Disable Station"
 msgstr "محطة"
 
 #: tally_ho/libs/utils/templates.py:29
-#, fuzzy
+
 msgid "Enable Station"
 msgstr "محطة"
 
 #: tally_ho/libs/utils/templates.py:39
-#, fuzzy
+
 msgid "Disable Candidate"
 msgstr "مرشح"
 
 #: tally_ho/libs/utils/templates.py:43
-#, fuzzy
+
 msgid "Enable Candidate"
 msgstr "مرشح"
 
 #: tally_ho/libs/views/exports.py:423
-#, fuzzy
+
 msgid "File Not found!"
 msgstr "الصفحة غير موجودة"
 
 #: tally_ho/libs/views/exports.py:426
-#, fuzzy
+
 msgid "Report not found."
 msgstr "الصفحة غير موجودة"
 
