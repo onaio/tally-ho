@@ -320,27 +320,10 @@ class ConfirmationView(LoginRequiredMixin,
 
 class IntakePrintedView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
+                     mixins.PrintedResultFormMixin,
                      TemplateView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 
-    def render_to_response(self, context, **response_kwargs):
-        del context['view']
-        return HttpResponse(
-            json.dumps(context),
-            content_type='application/json',
-            **response_kwargs
-        )
-
-    def get(self, *args, **kwargs):
-        result_form_pk = kwargs.get('resultFormPk')
-
-        status = 'ok'
-        try:
-            result_form = ResultForm.objects.get(pk=result_form_pk);
-            result_form.intake_printed = True
-            result_form.save()
-        except ResultForm.DoesNotExist:
-            status = 'error'
-
-        return self.render_to_response(self.get_context_data(status = status))
-
+    def set_printed(self, result_form):
+        result_form.intake_printed = True
+        result_form.save()
