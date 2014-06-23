@@ -9,6 +9,14 @@ class ActionsPrior(enum.Enum):
     NONE_REQUIRED = 3
     EMPTY = 4
 
+    labels = {
+        EMPTY: _('Empty'),
+        REQUEST_COPY_FROM_FIELD: _(u"Request Copy From Field"),
+        REQUEST_AUDIT_ACTION_FROM_FIELD: _(u"Request Audit Action From Field"),
+        PENDING_ADVICE: _(u"Pending Advice"),
+        NONE_REQUIRED: _(u"None Required")
+    }
+
 
 ACTION_CHOICES = [
     (ActionsPrior.EMPTY, '----'),

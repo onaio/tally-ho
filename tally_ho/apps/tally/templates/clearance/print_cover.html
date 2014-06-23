@@ -20,18 +20,30 @@
         <td>{% trans 'Center Code:' %} </td><td>{{ result_form.center.code }}</td>
     </tr>
     <tr>
-        <td>{% trans 'Number of Registrants:' %} </td><td>{{ result_form.station.registrants }}</td>
+        <td>{% trans 'Number of Registrants:' %} </td>
+        <td>
+            {% if result_form.station.registrants %}{{ result_form.station.registrants }}
+            {% else %} {% trans 'None' %} {% endif %}
+        </td>
         <td>{% trans 'Station Code:' %} </td><td>{{ result_form.station_number }}</td>
     </tr>
     <tr>
 
-        <td>{% trans 'Date Created:' %} </td><td colspan="3">{{ result_form.date_seen }}</td>
+        <td>{% trans 'Date Created:' %} </td>
+        <td colspan="3">
+            {% if result_form.date_seen %}{{ result_form.date_seen }}
+            {% else %} {% trans 'None' %} {% endif %}
+        </td>
     </tr>
     <tr>
         <td>{% trans 'Date Team Modified:' %} </td><td colspan="3">{{ result_form.clearance.date_team_modified }}</td>
     </tr>
     <tr class="underline">
-        <td>{% trans 'Date Supervisor Modified:' %} </td><td colspan="3">{{ result_form.clearance.date_supervisor_modified }}</td>
+        <td>{% trans 'Date Supervisor Modified:' %} </td>
+        <td colspan="3">
+            {% if result_form.clearance.date_supervisor_modified %}{{ result_form.clearance.date_supervisor_modified }}
+            {% else %} {% trans 'None' %} {% endif %}
+        </td>
     </tr>
     <tr class="underline">
         <td colspan="4"><h4>{% trans 'Problem' %}</h4>
@@ -48,13 +60,13 @@
     <tr class="underline">
         <td colspan="4">
             <h4>{% trans 'Action Conducted' %}</h4>
-            {{ result_form.clearance.action_prior_name }}
+            {% trans result_form.clearance.action_prior_name %}
         </td>
     <tr>
     <tr class="underline">
         <td colspan="4">
             <h4>{% trans 'Resolution Recommendation' %}</h4>
-            {{ result_form.clearance.resolution_recommendation_name }}
+            {% trans result_form.clearance.resolution_recommendation_name %}
         </td>
     <tr>
         <td colspan="4">{% trans 'Team Comment:' %} {{ result_form.clearance.team_comment }}</td>
@@ -65,16 +77,22 @@
 </table>
 
 <div class="do-not-print">
+<span id='printed-url' data-url="{{ printed_url }}"></span>
 <form name="print_cover_form" method='post' action="">
     {% csrf_token %}
     <input type="hidden" name="result_form" value="{{result_form.pk}}" />
     <button class="btn btn-primary" type="button" name="print_cover_form" onclick="print_cover()">{% trans 'Print' %}</button>
-    <button class="btn btn-success" type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">{% trans 'Print Successful' %}</button>
+    {% if result_form.clearance_printed %}
+        <button class="btn btn-success" type="submit" id="submit_cover_form" name="submit_cover_form">{% trans 'Print Successful' %}</button>
+    {% else %}
+        <button class="btn btn-success" type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">{% trans 'Print Successful' %}</button>
+    {% endif %}
 </form>
 </div>
 
 {% endblock %}
 
 {% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/print_button_check.js"></script>
 {% endblock %}

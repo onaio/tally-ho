@@ -1,6 +1,10 @@
+import json
+
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.center_details_form import\
@@ -240,6 +244,7 @@ class PrintCoverView(LoginRequiredMixin,
                      TemplateView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     template_name = "intake/print_cover.html"
+    printed_url = 'intake-printed'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -249,7 +254,7 @@ class PrintCoverView(LoginRequiredMixin,
         form_in_state(result_form, possible_states)
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form, printed_url=reverse(self.printed_url, args=(pk,))))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
@@ -311,3 +316,14 @@ class ConfirmationView(LoginRequiredMixin,
                                   header_text=_('Intake'),
                                   next_step=_('Data Entry 1'),
                                   start_url='intake'))
+
+
+class IntakePrintedView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.PrintedResultFormMixin,
+                     TemplateView):
+    group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
+
+    def set_printed(self, result_form):
+        result_form.intake_printed = True
+        result_form.save()

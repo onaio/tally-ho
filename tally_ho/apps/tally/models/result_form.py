@@ -156,6 +156,8 @@ class ResultForm(BaseModel):
     skip_quarantine_checks = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
     is_replacement = models.BooleanField(default=False)
+    intake_printed = models.BooleanField(default=False)
+    clearance_printed = models.BooleanField(default=False)
 
     # Field used in result duplicated list view
     results_duplicated = []

@@ -168,6 +168,9 @@ urlpatterns = patterns(
     url(r'^intake/intaken',
         intake.ConfirmationView.as_view(),
         name='intaken'),
+    url(r'^intake/intake-printed/(?P<resultFormPk>(\d+))$',
+        intake.IntakePrintedView.as_view(),
+        name='intake-printed'),
 
     url(r'^quality-control/home$',
         quality_control.QualityControlView.as_view(),
@@ -234,6 +237,9 @@ urlpatterns = patterns(
     url(r'^clearance/add$',
         clearance.AddClearanceFormView.as_view(),
         name='clearance-add'),
+    url(r'^clearance/clearance-printed/(?P<resultFormPk>(\d+))$',
+        clearance.ClearancePrintedView.as_view(),
+        name='clearance-printed'),
 
     url(r'^reports/internal/offices$',
         offices.OfficesReportView.as_view(),

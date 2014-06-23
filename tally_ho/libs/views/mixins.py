@@ -1,15 +1,17 @@
 import copy
 import six
+import json
 
 from django.db.models import Q
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponse
 from eztables.forms import DatatablesForm
 from operator import or_
 
 from tally_ho.libs.utils.collections import listify
 from tally_ho.libs.permissions import groups
+from tally_ho.apps.tally.models.result_form import ResultForm
 
 
 # from django-braces
@@ -141,3 +143,29 @@ class DatatablesDisplayFieldsMixin(object):
                                       | Q(pk__in=queryset.values('pk')))
 
         return queryset
+
+
+class PrintedResultFormMixin(object):
+
+    def render_to_response(self, context, **response_kwargs):
+        del context['view']
+        return HttpResponse(
+            json.dumps(context),
+            content_type='application/json',
+            **response_kwargs
+        )
+
+    def get(self, *args, **kwargs):
+        result_form_pk = kwargs.get('resultFormPk')
+
+        status = 'ok'
+        try:
+            result_form = ResultForm.objects.get(pk=result_form_pk);
+            self.set_printed(result_form)
+        except ResultForm.DoesNotExist:
+            status = 'error'
+
+        return self.render_to_response(self.get_context_data(status = status))
+
+    def set_printed(self, result_form):
+        pass
