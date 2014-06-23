@@ -168,6 +168,9 @@ urlpatterns = patterns(
     url(r'^intake/intaken',
         intake.ConfirmationView.as_view(),
         name='intaken'),
+    url(r'^intake/intake-printed/(?P<resultFormPk>(\d+))$',
+        intake.IntakePrintedView.as_view(),
+        name='intake-printed'),
 
     url(r'^quality-control/home$',
         quality_control.QualityControlView.as_view(),
