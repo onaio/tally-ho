@@ -177,6 +177,7 @@ class PrintCoverView(LoginRequiredMixin,
                      TemplateView):
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     template_name = "clearance/print_cover.html"
+    printed_url = 'clearance-printed'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -186,7 +187,8 @@ class PrintCoverView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
-                                  problems=problems))
+                                  problems=problems,
+                                  printed_url = reverse(self.printed_url, args = (pk,))))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
@@ -377,3 +379,30 @@ class AddClearanceFormView(LoginRequiredMixin,
         result_form.save()
 
         return redirect(self.success_url)
+
+
+class ClearancePrintedView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     TemplateView):
+    group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
+
+    def render_to_response(self, context, **response_kwargs):
+        del context['view']
+        return HttpResponse(
+            json.dumps(context),
+            content_type='application/json',
+            **response_kwargs
+        )
+
+    def get(self, *args, **kwargs):
+        result_form_pk = kwargs.get('resultFormPk')
+
+        status = 'ok'
+        try:
+            result_form = ResultForm.objects.get(pk=result_form_pk);
+            result_form.clearance_printed = True
+            result_form.save()
+        except ResultForm.DoesNotExist:
+            status = 'error'
+
+        return self.render_to_response(self.get_context_data(status = status))

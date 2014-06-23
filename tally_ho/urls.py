@@ -237,6 +237,9 @@ urlpatterns = patterns(
     url(r'^clearance/add$',
         clearance.AddClearanceFormView.as_view(),
         name='clearance-add'),
+    url(r'^clearance/clearance-printed/(?P<resultFormPk>(\d+))$',
+        clearance.ClearancePrintedView.as_view(),
+        name='clearance-printed'),
 
     url(r'^reports/internal/offices$',
         offices.OfficesReportView.as_view(),
