@@ -9,28 +9,32 @@
 
 <h2 class="center do-not-print">{% trans 'Cover Form' %}</h2>
 
-<table id="coverform" class="print-table">
+<table id="coverform" class="print-table" cellpadding="5">
     {% include 'print_cover_common.html' %}
     <tr class="underline">
         <td>{% trans 'Intake: ' %}</td><td>{% trans 'Successful' %}</td>
+        <td></td>
     </tr>
     <tr>
         <td>{% trans 'Data Entry One:' %}</td>
         <td>{% trans 'Name:' %}
             <span class='underline'>________________________________________</span>
         </td>
+        <td></td>
     </tr>
     <tr class="underline">
         <td>{% trans 'Data Entry Two:' %}</td>
         <td>{% trans 'Name:' %}
             <span class='underline'>________________________________________</span>
         </td>
+        <td></td>
     </tr>
     <tr>
         <td rowspan="2">{% trans 'Corrections:' %}</td>
         <td>{% trans 'To Quality Control' %} [ ]</td><td>{% trans 'Name' %}
             <span class='underline'>________________________________________</span>
         </td>
+    </tr>
     <tr class="underline">
         <td>{% trans 'To Data Entry One' %} [ ]</td><td>{% trans 'Name' %}
             <span class='underline'>________________________________________</span>
@@ -41,6 +45,7 @@
         <td>{% trans 'To Archive' %} [ ]</td><td>{% trans 'Name' %}
             <span class='underline'>________________________________________</span>
         </td>
+    </tr>
     <tr>
         <td>{% trans 'To Data Entry One' %} [ ]</td><td>{% trans 'Name' %}
             <span class='underline'>________________________________________</span>
