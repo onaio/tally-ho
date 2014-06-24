@@ -65,7 +65,7 @@
         {% endif %}
 
         <span class="current">
-            Page {{ forms.number }} of {{ forms.paginator.num_pages }}.
+            {% trans 'Page'%}  {{forms.number}} {%  trans 'of' %} {{forms.paginator.num_pages}}
         </span>
 
         {% if forms.has_next %}
