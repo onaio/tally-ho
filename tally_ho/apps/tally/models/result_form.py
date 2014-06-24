@@ -227,6 +227,12 @@ class ResultForm(BaseModel):
             self.audit.reviewed_supervisor else _('No')
 
     @property
+    def audit_recommendation(self):
+        recomendation_index = self.audit.resolution_recommendation if\
+            self.audit else ""
+        return CLEARANCE_CHOICES[recomendation_index][1].capitalize()
+
+    @property
     def form_state_name(self):
         return FormState.label(self.form_state)
 

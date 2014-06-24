@@ -4,6 +4,6 @@ $(function(){
         "iDisplayLength": 50,
         "bProcessing": true,
         "bServerSide": true,
-        "sAjaxSource": Django.url('form-audit-pending-data')
+        "sAjaxSource": Django.url('form-audit-data')
     });
 });

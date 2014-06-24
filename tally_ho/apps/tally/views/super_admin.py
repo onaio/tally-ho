@@ -58,13 +58,14 @@ def clearance():
     return ResultForm.objects.filter(form_state=FormState.CLEARANCE)
 
 
-def audit_pendings():
-    """Build a list of result forms that are in audit pending state considering only forms
-    that are not unsubmitted.
+def audit():
+    """Build a list of result forms that are in audit pending state
+    considering only forms that are not unsubmitted.
 
-    :returns: A list of result forms in the system that are in audit pending state.
+    :returns: A list of result forms in the system that are in audit pending
+    state.
     """
-    return ResultForm.objects.filter(form_state=FormState.AUDIT_PENDING_STATE)
+    return ResultForm.objects.filter(form_state=FormState.AUDIT)
 
 
 def get_results_duplicates():
@@ -177,14 +178,14 @@ class FormClearanceView(LoginRequiredMixin,
             forms=forms))
 
 
-class FormAuditPendingsView(LoginRequiredMixin,
-                         mixins.GroupRequiredMixin,
-                         TemplateView):
+class FormAuditView(LoginRequiredMixin,
+                    mixins.GroupRequiredMixin,
+                    TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "super_admin/form_audit_pendings.html"
+    template_name = "super_admin/form_audit.html"
 
     def get(self, *args, **kwargs):
-        form_list = audit_pendings()
+        form_list = audit()
 
         forms = paging(form_list, self.request)
 
@@ -239,6 +240,42 @@ class FormProgressDataView(LoginRequiredMixin,
     )
 
 
+class FormAuditDataView(FormProgressDataView):
+    queryset = ResultForm.objects.filter(form_state=FormState.AUDIT)
+    fields = (
+        'barcode',
+        'center__code',
+        'station_number',
+        'ballot__number',
+        'center__office__name',
+        'center__office__number',
+        'ballot__race_type',
+        'rejected_count',
+        'modified_date',
+        'audit_recommendation'
+    )
+    display_fields = (
+        ('barcode', 'barcode'),
+        ('center__code', 'center_code'),
+        ('station_number', 'station_number'),
+        ('ballot__number', 'ballot_number'),
+        ('center__office__name', 'center_office'),
+        ('center__office__number', 'center_office_number'),
+        ('ballot__race_type', 'ballot_race_type_name'),
+        ('rejected_count', 'rejected_count'),
+        ('modified_date', 'modified_date_formatted'),
+        ('audit_recommendation', 'audit_recommendation'),
+    )
+
+    def sort_col_9(self, direction):
+        return ('%saudit__resolution_recommendation' % direction)
+
+    def global_search(self, queryset):
+        qs = super((FormAuditDataView), self).\
+            global_search(queryset, excludes=['audit_recommendation'])
+        return qs
+
+
 class FormDuplicatesDataView(FormProgressDataView):
     queryset = duplicates()
 
@@ -278,9 +315,6 @@ class FormClearanceDataView(FormProgressDataView):
             global_search(queryset, excludes=['clearance_recommendation'])
         return qs
 
-
-class FormAuditPendingDataView(FormProgressDataView):
-    queryset = audit_pendings()
 
 
 class FormActionView(LoginRequiredMixin,
