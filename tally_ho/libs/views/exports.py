@@ -302,7 +302,8 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
             num_stations_completed = final_forms.count()
 
             percent_complete = round(
-                100 * num_stations_completed / num_stations, 3)
+                100 * num_stations_completed / num_stations, 3) if num_stations\
+                else 0
 
             output = OrderedDict({
                 'ballot number': ballot.number,
