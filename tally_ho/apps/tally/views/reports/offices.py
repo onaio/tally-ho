@@ -19,9 +19,7 @@ def getOverviews():
             p.ArchivingProgressReport(),
             p.ArchivedProgressReport(),
             p.ClearanceProgressReport(),
-            p.ClearancePendingsProgressReport(),
             p.AuditProgressReport(),
-            p.AuditPendingsProgressReport(),
             p.NotRecievedProgressReport()
     ]
 

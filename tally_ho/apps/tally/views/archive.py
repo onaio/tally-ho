@@ -22,6 +22,7 @@ def check_quarantine(result_form, user):
     :param user: The user to associate with an audit if any checks fail.
     """
     audit = None
+    result_form.audit_set.update(active=False)
 
     if not result_form.skip_quarantine_checks:
         for passed_check, check in quarantine_checks():

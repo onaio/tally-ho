@@ -91,10 +91,6 @@ class ClearanceProgressReport(ProgressReport):
     filtered_queryset = ResultForm.forms_in_state(FormState.CLEARANCE)
     label = _(u"Clearance")
 
-class ClearancePendingsProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.CLEARANCE_PENDING_STATE)
-    label = _(u"Clearance Pendings")
-
 class DataEntry1ProgressReport(ProgressReport):
     filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_1)
     label = _(u"Data Entry 1")
@@ -123,10 +119,6 @@ class ArchivingProgressReport(ProgressReport):
 class AuditProgressReport(ProgressReport):
     filtered_queryset = ResultForm.forms_in_state(FormState.AUDIT)
     label = _(u"Audit")
-
-class AuditPendingsProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.AUDIT_PENDING_STATE)
-    label = _(u"Audit Pendings")
 
 
 class NotRecievedProgressReport(ProgressReport):
