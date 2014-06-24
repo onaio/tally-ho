@@ -47,14 +47,15 @@ def duplicates():
 
     return ResultForm.objects.filter(pk__in=pks)
 
-def clearance_pendings():
-    """Build a list of result forms that are in clearance pending state considering only forms
-    that are not unsubmitted.
 
-    :returns: A list of result forms in the system that are in clearance pending state.
+def clearance():
+    """Build a list of result forms that are in clearance state considering
+    only forms that are not unsubmitted.
+
+    :returns: A list of result forms in the system that are in clearance state.
     """
 
-    return ResultForm.objects.filter(form_state=FormState.CLEARANCE_PENDING_STATE)
+    return ResultForm.objects.filter(form_state=FormState.CLEARANCE)
 
 
 def audit_pendings():
@@ -160,19 +161,21 @@ class FormDuplicatesView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             forms=forms))
 
-class FormClearancePendingsView(LoginRequiredMixin,
-                         mixins.GroupRequiredMixin,
-                         TemplateView):
+
+class FormClearanceView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "super_admin/form_clearance_pendings.html"
+    template_name = "super_admin/form_clearance.html"
 
     def get(self, *args, **kwargs):
-        form_list = clearance_pendings()
+        form_list = clearance()
 
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             forms=forms))
+
 
 class FormAuditPendingsView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
@@ -239,8 +242,36 @@ class FormProgressDataView(LoginRequiredMixin,
 class FormDuplicatesDataView(FormProgressDataView):
     queryset = duplicates()
 
-class FormClearancePendingDataView(FormProgressDataView):
-    queryset = clearance_pendings()
+
+class FormClearanceDataView(FormProgressDataView):
+    queryset = ResultForm.objects.filter(clearances__active=True)
+    fields = (
+        'barcode',
+        'center__code',
+        'station_number',
+        'ballot__number',
+        'center__office__name',
+        'center__office__number',
+        'ballot__race_type',
+        'rejected_count',
+        'modified_date',
+        'clearance_recommendation'
+    )
+    display_fields = (
+        ('barcode', 'barcode'),
+        ('center__code', 'center_code'),
+        ('station_number', 'station_number'),
+        ('ballot__number', 'ballot_number'),
+        ('center__office__name', 'center_office'),
+        ('center__office__number', 'center_office_number'),
+        ('ballot__race_type', 'ballot_race_type_name'),
+        ('rejected_count', 'rejected_count'),
+        ('modified_date', 'modified_date_formatted'),
+        ('clearance_recommendation', 'clearance_recommendation'),
+    )
+
+    def sort_col_9(self, direction):
+        return ('%sclearances__resolution_recommendation' % direction)
 
 
 class FormAuditPendingDataView(FormProgressDataView):
