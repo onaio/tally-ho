@@ -6,9 +6,9 @@
 
 {% block content %}
 
-<h1>{% trans 'Form Audit Pending List' %}</h1>
+<h1>{% trans 'Form Clearance List' %}</h1>
 
-<table id="formauditpendinglist">
+<table id="formclearancelist">
     <thead>
         <tr>
             <th>{% trans 'Barcode' %}</th>
@@ -18,9 +18,9 @@
             <th>{% trans 'Office' %}</th>
             <th>{% trans 'Office Number' %}</th>
             <th>{% trans 'Race Type' %}</th>
-            <th>{% trans 'Form State' %}</th>
             <th>{% trans 'Number of times rejected to DE1' %}</th>
             <th>{% trans 'Last Modified' %}</th>
+            <th>{% trans 'Resolution Recomendation' %}</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -37,5 +37,5 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 {% django_js %}
 {% datatables_js %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/form_audit_pending_table.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/form_clearance_table.js"></script>
 {% endblock %}

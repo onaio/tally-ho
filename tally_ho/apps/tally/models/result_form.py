@@ -11,6 +11,7 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.libs.models.base_model import BaseModel
+from tally_ho.libs.models.enums.clearance_resolution import CLEARANCE_CHOICES
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
@@ -226,6 +227,12 @@ class ResultForm(BaseModel):
             self.audit.reviewed_supervisor else _('No')
 
     @property
+    def audit_recommendation(self):
+        recomendation_index = self.audit.resolution_recommendation if\
+            self.audit else ""
+        return CLEARANCE_CHOICES[recomendation_index][1].capitalize()
+
+    @property
     def form_state_name(self):
         return FormState.label(self.form_state)
 
@@ -329,6 +336,12 @@ class ResultForm(BaseModel):
     @property
     def clearance_team_reviewed_bool(self):
         return self.clearance and self.clearance.reviewed_team
+
+    @property
+    def clearance_recommendation(self):
+        recomendation_index = self.clearance.resolution_recommendation if\
+            self.clearance else ""
+        return CLEARANCE_CHOICES[recomendation_index][1].capitalize()
 
     @property
     def clearance_team_reviewed(self):
