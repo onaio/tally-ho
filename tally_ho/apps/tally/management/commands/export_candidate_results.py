@@ -9,3 +9,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         export_candidate_votes(save_barcodes=True, output_duplicates=True)
+        export_candidate_votes(save_barcodes=False, output_duplicates=False,
+                               show_disabled_candidates=False)

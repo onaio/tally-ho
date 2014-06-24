@@ -155,7 +155,7 @@ msgstr "أرقام المركز غير متطابقة"
 
 #: tally_ho/apps/tally/forms/disable_entity_form.py:14
 msgid "Expecting one option selected"
-msgstr ""
+msgstr "تتوقع خيار واحد مختارة"
 
 #: tally_ho/apps/tally/forms/disable_entity_form.py:16
 msgid "Select a reason"
@@ -838,6 +838,14 @@ msgstr "تحقق"
 msgid "Modified"
 msgstr "تعديل"
 
+#: tally_ho/apps/tally/templates/clearance/dashboard.html:68
+msgid "Page"
+msgstr "صفحة"
+
+#: tally_ho/apps/tally/templates/clearance/dashboard.html:68
+msgid "of"
+msgstr "من"
+
 #: tally_ho/apps/tally/templates/clearance/new_form.html:7
 msgid "Clearance: New Result Form"
 msgstr "تحقق : نتائج أستمارة جديدة "
@@ -1515,9 +1523,8 @@ msgstr "العمل المطلوب قبل"
 msgid "Confirm"
 msgstr "موافقه"
 
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:9
-#, fuzzy
-msgid "Form Audit Pending List"
+#: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:9
+msgid "Form Duplicates List"
 msgstr "متابعة النماذج"
 
 #: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:17
@@ -1538,10 +1545,6 @@ msgstr "عدد المرات المرفوضه من ادخال البيانات 1"
 #, fuzzy
 msgid "Form Clearance Pending List"
 msgstr "قائمة التصحيح"
-
-#: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:9
-msgid "Form Duplicates List"
-msgstr "متابعة النماذج"
 
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:9
 msgid "Form Progress List"
@@ -1991,6 +1994,27 @@ msgstr "خطأ : بيانات ناقصة "
 #: tally_ho/libs/views/session.py:22
 msgid "Session result_form does not match submitted data."
 msgstr "البيانات الناتجة غير مطابقه للنمودج المداخل"
+
+#~ msgid "GENERAL"
+#~ msgstr "العام"
+
+#~ msgid "None"
+#~ msgstr "لا شيء"
+
+#~ msgid "Search"
+#~ msgstr "بحث"
+
+#~ msgid "records"
+#~ msgstr "تسجيل"
+
+#~ msgid "Previous"
+#~ msgstr "سابق"
+
+#~ msgid "Next"
+#~ msgstr "التالي"
+
+#~ msgid "Back to top"
+#~ msgstr "مرة أخرى في أعلى"
 
 #~ msgid "Archiving Clerk"
 #~ msgstr "موظف الارشفه "
