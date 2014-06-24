@@ -273,6 +273,11 @@ class FormClearanceDataView(FormProgressDataView):
     def sort_col_9(self, direction):
         return ('%sclearances__resolution_recommendation' % direction)
 
+    def global_search(self, queryset):
+        qs = super(FormClearanceDataView, self).\
+            global_search(queryset, excludes=['clearance_recommendation'])
+        return qs
+
 
 class FormAuditPendingDataView(FormProgressDataView):
     queryset = audit_pendings()

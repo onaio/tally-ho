@@ -96,7 +96,7 @@ class DatatablesDisplayFieldsMixin(object):
         else:
             return HttpResponseBadRequest()
 
-    def global_search(self, queryset):
+    def global_search(self, queryset, excludes=None):
         """Filter a queryset using a global search.
 
         :param queryset: The queryset to filter.
@@ -107,11 +107,16 @@ class DatatablesDisplayFieldsMixin(object):
         qs2 = copy.deepcopy(queryset)
         zero_start_term = False
         search = search_str = self.dt_data['sSearch']
+        fields = self.get_db_fields()
+
+        if excludes:
+            for exclude in excludes:
+                fields.remove(exclude) if exclude in fields else None
 
         if search:
             if self.dt_data['bRegex']:
                 criterions = [Q(**{'%s__iregex' % field: search})
-                              for field in self.get_db_fields()
+                              for field in fields
                               if self.can_regex(field)]
 
                 if len(criterions) > 0:
@@ -123,7 +128,7 @@ class DatatablesDisplayFieldsMixin(object):
                         zero_start_term = True
 
                     criterions = (Q(**{'%s__icontains' % field: term})
-                                  for field in self.get_db_fields())
+                                  for field in fields)
                     search = reduce(or_, criterions)
                     queryset = queryset.filter(search)
 
@@ -135,7 +140,7 @@ class DatatablesDisplayFieldsMixin(object):
                         pass
                     else:
                         criterions = (Q(**{'%s__istartswith' % field: term})
-                                      for field in self.get_db_fields())
+                                      for field in fields)
                         search = reduce(or_, criterions)
                         qs = qs.filter(search)
 
