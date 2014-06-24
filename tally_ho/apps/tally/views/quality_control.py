@@ -67,7 +67,8 @@ class QualityControlView(LoginRequiredMixin,
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
             result_form = get_object_or_404(ResultForm, barcode=barcode)
-            form = safe_form_in_state(result_form, FormState.QUALITY_CONTROL,
+            form = safe_form_in_state(result_form, [FormState.QUALITY_CONTROL,
+                                                    FormState.ARCHIVING],
                                       form)
 
             if form:
@@ -94,7 +95,8 @@ class QualityControlDashboardView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
+        form_in_state(result_form, [FormState.QUALITY_CONTROL,
+                                    FormState.ARCHIVING])
 
         reconciliation_form = ReconForm(data=model_to_dict(
             result_form.reconciliationform
