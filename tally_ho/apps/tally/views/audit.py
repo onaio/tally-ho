@@ -103,11 +103,13 @@ def forms_for_user(user_is_clerk):
     :returns: A list of forms in the audit state for this user's group.
     """
     form_list = ResultForm.objects.filter(
-        form_state=FormState.AUDIT, audit__reviewed_supervisor=False)
+        form_state=FormState.AUDIT, audit__reviewed_supervisor=False,
+        audit__active=True)
 
     if user_is_clerk:
         form_list = form_list.filter(
-            form_state=FormState.AUDIT, audit__reviewed_team=False)
+            form_state=FormState.AUDIT, audit__reviewed_team=False,
+            audit__active=True)
 
     return form_list
 
