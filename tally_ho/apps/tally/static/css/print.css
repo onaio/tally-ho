@@ -17,4 +17,7 @@ a:link:after, a:visited:after {
     font-size:90%;
 }
 
+footer {
+    display: none;
+}
 }
