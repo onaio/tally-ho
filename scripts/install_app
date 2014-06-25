@@ -12,17 +12,20 @@ DB_PASS=tally
 DB_HOST=127.0.0.1
 USER=ubuntu
 ALLOW_HOST=any
+GIT="false"
 
 if [ $# -gt 0 ]; then
     DB_HOST=$1
 fi
 
-sudo stop tally
 
 if [[ $GIT == "true" ]]; then
     cd $PROJECT_HOME && (git clone git@github.com:onaio/tally-system.git || (cd tally-system && git fetch))
 else
-    cd $CODE_SRC && sudo cp -rT ~/$PROJECT_NAME/ ./
+    tar czvf $PROJECT_NAME.`date +%Y%M%d%H%m%s`.tar.gz $PROJECT_HOME/$PROJECT_NAME
+    rm -fr $PROJECT_HOME/$PROJECT_NAME
+    mkdir -p $PROJECT_HOME/$PROJECT_NAME
+    cp -rvT ~/$PROJECT_NAME $PROJECT_HOME/$PROJECT_NAME
 fi
 
 config_path_tmp="$CODE_SRC/deploy/var/www/tally-system/tally_ho/settings/local_settings.py"
@@ -38,7 +41,5 @@ sudo cp "$CODE_SRC/deploy/etc/nginx/sites-available/nginx.conf" /etc/nginx/sites
 sudo find $CODE_SRC -name '*.pyc' -exec sudo rm {} \;
 sudo chown -R $USER:$USER $PROJECT_HOME
 
-sudo /etc/init.d/nginx restart
 sudo mkdir -p /var/log/uwsgi
 sudo chown -R $USER /var/log/uwsgi
-sudo start tally
