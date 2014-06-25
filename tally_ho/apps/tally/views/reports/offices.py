@@ -11,7 +11,7 @@ from tally_ho.libs.views import mixins
 def getOverviews():
     overviews = [
             p.ExpectedProgressReport(),
-            p.IntakenProgressReport(),
+            p.IntakeProgressReport(),
             p.DataEntry1ProgressReport(),
             p.DataEntry2ProgressReport(),
             p.CorrectionProgressReport(),
