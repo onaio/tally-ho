@@ -54,10 +54,15 @@ def utf_8_encoder(unicode_csv_data):
         yield line.encode('utf-8')
 
 
-def add_row(name, username, role):
+def add_row(name, username, role, admin=None):
     try:
         first_name, last_name = assign_names(name)
         user = create_user(first_name, last_name, username)
+
+        permission = True if admin == 'Yes' else False
+        user.is_superuser = user.is_staff = permission
+        user.save()
+
     except Exception as e:
         print "User '%s' not created! '%s'" % (username, e)
     else:
@@ -109,12 +114,12 @@ class Command(BaseCommand):
 
             for row in reader:
                 try:
-                    name, username, role = row[0:3]
+                    name, username, role, admin = row[0:4]
                 except Exception as e:
                     print "Unable to add user in row: %s. Exception %s." %\
                         (row, e)
                 else:
-                    add_row(name, username, role)
+                    add_row(name, username, role, admin)
 
     def import_user_list(self):
         with codecs.open(USER_LIST_PATH, encoding='utf-8') as f:

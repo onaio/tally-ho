@@ -49,8 +49,9 @@ class Ballot(BaseModel):
 
     @property
     def form_ballot_numbers(self):
-        return Ballot.COMPONENT_TO_BALLOTS[self.number] if self.is_component\
-            else [self.number]
+        #return Ballot.COMPONENT_TO_BALLOTS[self.number] if self.is_component\
+        #    else [self.number]
+        return [self.number]
 
     @property
     def is_component(self):
