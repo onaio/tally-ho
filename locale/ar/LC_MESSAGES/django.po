@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-06-23 11:08+0000\n"
+"POT-Creation-Date: 2014-06-26 10:46+0000\n"
 "PO-Revision-Date: 2014-02-21 16:33+0000\n"
 "Last-Translator: MonaHago <missahmed230@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -45,8 +45,8 @@ msgstr "يقبل أرقام فقط في الرقم التسلسلي"
 #: tally_ho/apps/tally/templates/clearance/dashboard.html:30
 #: tally_ho/apps/tally/templates/data/forms.html:36
 #: tally_ho/apps/tally/templates/super_admin/form_action.html:14
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:14
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:14
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:14
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:14
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:14
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:14
 #: tally_ho/apps/tally/templates/super_admin/form_results_duplicates.html:14
@@ -94,8 +94,8 @@ msgstr "يقبل أرقام فقط في خانة رقم المركز"
 #: tally_ho/apps/tally/forms/remove_station_form.py:30
 #: tally_ho/apps/tally/templates/data/centers.html:25
 #: tally_ho/apps/tally/templates/super_admin/form_action.html:15
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:15
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:15
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:15
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:15
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:15
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:15
 msgid "Center Number"
@@ -110,8 +110,8 @@ msgstr "نسخة من رقم المركز"
 #: tally_ho/apps/tally/templates/data/centers.html:26
 #: tally_ho/apps/tally/templates/data/forms.html:38
 #: tally_ho/apps/tally/templates/super_admin/form_action.html:16
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:16
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:16
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:16
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:16
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:16
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:16
 msgid "Station Number"
@@ -225,7 +225,7 @@ msgstr "قائمة أصوات مرشح التصدير."
 msgid "Import polling data."
 msgstr "احضار  بيانات الاقتراع"
 
-#: tally_ho/apps/tally/management/commands/import_staff_list.py:99
+#: tally_ho/apps/tally/management/commands/import_staff_list.py:104
 msgid "Import staff list."
 msgstr "تصدير قائمة العاملين"
 
@@ -291,7 +291,7 @@ msgid "Component Tebu"
 msgstr "مكون التبو"
 
 #: tally_ho/apps/tally/models/center.py:53
-#: tally_ho/apps/tally/models/result_form.py:399
+#: tally_ho/apps/tally/models/result_form.py:414
 msgid "Special"
 msgstr "خاص"
 
@@ -419,20 +419,20 @@ msgstr "هل تم توقيع النوذج من قبل المسؤول عن محط
 msgid "Is the form dated?"
 msgstr "هل النموذج يحتوى تاريخ؟"
 
-#: tally_ho/apps/tally/models/result_form.py:19
+#: tally_ho/apps/tally/models/result_form.py:20
 msgid "Male"
 msgstr "ذكر"
 
-#: tally_ho/apps/tally/models/result_form.py:20
+#: tally_ho/apps/tally/models/result_form.py:21
 msgid "Female"
 msgstr "انثي"
 
-#: tally_ho/apps/tally/models/result_form.py:50
+#: tally_ho/apps/tally/models/result_form.py:51
 #: tally_ho/libs/views/corrections.py:30
 msgid "Result Form has no double entries."
 msgstr "نتيجة الاستمارة لا توجد به ادخال مزدوج"
 
-#: tally_ho/apps/tally/models/result_form.py:56
+#: tally_ho/apps/tally/models/result_form.py:57
 #, python-format
 msgid ""
 "Unexpected number of results in form %(barcode)s, return result form to Data "
@@ -441,24 +441,24 @@ msgstr ""
 "عدد غير متوقع من النتائج في النموذج %(barcode)s, ارجع نموذج النتائج الي "
 "الادخال 1. "
 
-#: tally_ho/apps/tally/models/result_form.py:96
+#: tally_ho/apps/tally/models/result_form.py:97
 msgid "Votes do not match!"
 msgstr "الرقم التسلسلي غير مطابق"
 
-#: tally_ho/apps/tally/models/result_form.py:123
+#: tally_ho/apps/tally/models/result_form.py:124
 msgid "Unexpected number of reconciliation forms"
 msgstr "عدد غير متوقع من استمارات التسوية"
 
-#: tally_ho/apps/tally/models/result_form.py:219
-#: tally_ho/apps/tally/models/result_form.py:224
-#: tally_ho/apps/tally/models/result_form.py:334
-#: tally_ho/apps/tally/models/result_form.py:340
+#: tally_ho/apps/tally/models/result_form.py:222
+#: tally_ho/apps/tally/models/result_form.py:227
+#: tally_ho/apps/tally/models/result_form.py:349
+#: tally_ho/apps/tally/models/result_form.py:355
 #: tally_ho/apps/tally/templates/corrections/comparison.html:16
 #: tally_ho/apps/tally/templates/corrections/required.html:29
 msgid "No"
 msgstr "لا "
 
-#: tally_ho/apps/tally/models/result_form.py:241
+#: tally_ho/apps/tally/models/result_form.py:250
 msgid "Corrections Required!"
 msgstr "التصحيحات المطلوبة!"
 
@@ -633,16 +633,18 @@ msgid "Archived by:"
 msgstr "المؤرشفة من قبل :"
 
 #: tally_ho/apps/tally/templates/archive/print_cover.html:52
-#: tally_ho/apps/tally/templates/audit/print_cover.html:71
-#: tally_ho/apps/tally/templates/clearance/print_cover.html:83
-#: tally_ho/apps/tally/templates/intake/print_cover.html:56
+#: tally_ho/apps/tally/templates/audit/print_cover.html:81
+#: tally_ho/apps/tally/templates/clearance/print_cover.html:94
+#: tally_ho/apps/tally/templates/intake/print_cover.html:62
 msgid "Print"
 msgstr "طباعة"
 
 #: tally_ho/apps/tally/templates/archive/print_cover.html:53
-#: tally_ho/apps/tally/templates/audit/print_cover.html:72
-#: tally_ho/apps/tally/templates/clearance/print_cover.html:84
-#: tally_ho/apps/tally/templates/intake/print_cover.html:57
+#: tally_ho/apps/tally/templates/audit/print_cover.html:82
+#: tally_ho/apps/tally/templates/clearance/print_cover.html:96
+#: tally_ho/apps/tally/templates/clearance/print_cover.html:98
+#: tally_ho/apps/tally/templates/intake/print_cover.html:64
+#: tally_ho/apps/tally/templates/intake/print_cover.html:66
 msgid "Print Successful"
 msgstr "طباعه ناجحة وحفظ"
 
@@ -732,30 +734,30 @@ msgstr "تاريخ تعديل المشرف:"
 msgid "Problem"
 msgstr "مشكله "
 
-#: tally_ho/apps/tally/templates/audit/print_cover.html:45
+#: tally_ho/apps/tally/templates/audit/print_cover.html:55
 #: tally_ho/apps/tally/templates/audit/review.html:31
-#: tally_ho/apps/tally/templates/clearance/print_cover.html:57
+#: tally_ho/apps/tally/templates/clearance/print_cover.html:67
 #: tally_ho/apps/tally/templates/clearance/review.html:32
 msgid "Other:"
 msgstr "أخري"
 
-#: tally_ho/apps/tally/templates/audit/print_cover.html:50
-#: tally_ho/apps/tally/templates/clearance/print_cover.html:62
+#: tally_ho/apps/tally/templates/audit/print_cover.html:60
+#: tally_ho/apps/tally/templates/clearance/print_cover.html:72
 msgid "Action Conducted"
 msgstr "اجراء التصرف"
 
-#: tally_ho/apps/tally/templates/audit/print_cover.html:56
-#: tally_ho/apps/tally/templates/clearance/print_cover.html:68
+#: tally_ho/apps/tally/templates/audit/print_cover.html:66
+#: tally_ho/apps/tally/templates/clearance/print_cover.html:78
 msgid "Resolution Recommendation"
 msgstr "الحلول الموصى بها"
 
-#: tally_ho/apps/tally/templates/audit/print_cover.html:60
-#: tally_ho/apps/tally/templates/clearance/print_cover.html:72
+#: tally_ho/apps/tally/templates/audit/print_cover.html:70
+#: tally_ho/apps/tally/templates/clearance/print_cover.html:82
 msgid "Team Comment:"
 msgstr "تعليق الفريق:"
 
-#: tally_ho/apps/tally/templates/audit/print_cover.html:63
-#: tally_ho/apps/tally/templates/clearance/print_cover.html:75
+#: tally_ho/apps/tally/templates/audit/print_cover.html:73
+#: tally_ho/apps/tally/templates/clearance/print_cover.html:85
 msgid "Supervisor Comment:"
 msgstr "تعليق المشرف :"
 
@@ -781,23 +783,23 @@ msgstr "نموذج معطل:"
 
 #: tally_ho/apps/tally/templates/audit/review.html:32
 #: tally_ho/apps/tally/templates/clearance/review.html:33
-msgid "Save"
-msgstr "حفظ"
-
-#: tally_ho/apps/tally/templates/audit/review.html:33
-#: tally_ho/apps/tally/templates/clearance/review.html:34
 msgid "Action Prior to Recommendation"
 msgstr "الحلول الموصى بها"
 
-#: tally_ho/apps/tally/templates/audit/review.html:34
-#: tally_ho/apps/tally/templates/clearance/review.html:35
+#: tally_ho/apps/tally/templates/audit/review.html:33
+#: tally_ho/apps/tally/templates/clearance/review.html:34
 msgid "Action prior to recommendation:"
 msgstr "الحلول الموصى بها"
 
-#: tally_ho/apps/tally/templates/audit/review.html:37
-#: tally_ho/apps/tally/templates/clearance/review.html:38
+#: tally_ho/apps/tally/templates/audit/review.html:36
+#: tally_ho/apps/tally/templates/clearance/review.html:37
 msgid "Resolution recommendation:"
 msgstr "الحلول الموصى بها"
+
+#: tally_ho/apps/tally/templates/audit/review.html:39
+#: tally_ho/apps/tally/templates/clearance/review.html:40
+msgid "Save"
+msgstr "حفظ"
 
 #: tally_ho/apps/tally/templates/audit/review.html:41
 #: tally_ho/apps/tally/templates/clearance/review.html:42
@@ -806,8 +808,8 @@ msgstr "تحيل إلى المشرف وطباعة الغلاف"
 
 #: tally_ho/apps/tally/templates/audit/review.html:43
 #: tally_ho/apps/tally/templates/clearance/review.html:44
-msgid "Implement Recommendation"
-msgstr "قم بتطبيق توصية"
+msgid "Mark Form as Resolved"
+msgstr "تم تعديل النموذج"
 
 #: tally_ho/apps/tally/templates/audit/review.html:44
 msgid "Return to Audit Team"
@@ -934,7 +936,7 @@ msgstr "نعم "
 
 #: tally_ho/apps/tally/templates/corrections/match.html:7
 #: tally_ho/apps/tally/views/corrections.py:332
-#: tally_ho/apps/tally/views/data_entry.py:347
+#: tally_ho/apps/tally/views/data_entry.py:344
 msgid "Corrections"
 msgstr "تصحيحات"
 
@@ -972,10 +974,10 @@ msgid "Id"
 msgstr "معرف"
 
 #: tally_ho/apps/tally/templates/data/candidates.html:23
-#: tally_ho/apps/tally/templates/intake/print_cover.html:31
-#: tally_ho/apps/tally/templates/intake/print_cover.html:35
-#: tally_ho/apps/tally/templates/intake/print_cover.html:41
+#: tally_ho/apps/tally/templates/intake/print_cover.html:34
+#: tally_ho/apps/tally/templates/intake/print_cover.html:39
 #: tally_ho/apps/tally/templates/intake/print_cover.html:45
+#: tally_ho/apps/tally/templates/intake/print_cover.html:50
 msgid "Name"
 msgstr "الاسم "
 
@@ -991,8 +993,8 @@ msgstr "الرقم التسلسلي"
 #: tally_ho/apps/tally/templates/data/forms.html:42
 #: tally_ho/apps/tally/templates/reports/races.html:29
 #: tally_ho/apps/tally/templates/super_admin/form_action.html:17
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:20
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:20
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:20
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:20
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:20
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:20
 msgid "Race Type"
@@ -1013,8 +1015,8 @@ msgstr "قائمة المركز / المحطة"
 #: tally_ho/apps/tally/templates/data/centers.html:22
 #: tally_ho/apps/tally/templates/data/forms.html:39
 #: tally_ho/apps/tally/templates/reports/offices.html:33
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:18
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:18
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:18
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:18
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:18
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:18
 msgid "Office"
@@ -1062,54 +1064,54 @@ msgstr "غير مدخلة"
 
 #: tally_ho/apps/tally/templates/data/forms.html:20
 #: tally_ho/apps/tally/templates/intake/clearance.html:7
-#: tally_ho/apps/tally/views/intake.py:46
-#: tally_ho/apps/tally/views/intake.py:113
-#: tally_ho/apps/tally/views/intake.py:138
-#: tally_ho/apps/tally/views/intake.py:162
-#: tally_ho/apps/tally/views/intake.py:196
-#: tally_ho/apps/tally/views/intake.py:311
+#: tally_ho/apps/tally/views/intake.py:50
+#: tally_ho/apps/tally/views/intake.py:117
+#: tally_ho/apps/tally/views/intake.py:149
+#: tally_ho/apps/tally/views/intake.py:173
+#: tally_ho/apps/tally/views/intake.py:207
+#: tally_ho/apps/tally/views/intake.py:323
 #: tally_ho/libs/reports/progress.py:87
 msgid "Intake"
 msgstr "استقبال"
 
 #: tally_ho/apps/tally/templates/data/forms.html:21
-#: tally_ho/apps/tally/views/intake.py:312
-#: tally_ho/libs/reports/progress.py:97
+#: tally_ho/apps/tally/views/intake.py:324
+#: tally_ho/libs/reports/progress.py:96
 msgid "Data Entry 1"
 msgstr "ادخال بيانات 1"
 
 #: tally_ho/apps/tally/templates/data/forms.html:22
-#: tally_ho/apps/tally/views/data_entry.py:346
-#: tally_ho/libs/reports/progress.py:102
+#: tally_ho/apps/tally/views/data_entry.py:343
+#: tally_ho/libs/reports/progress.py:101
 msgid "Data Entry 2"
 msgstr "ادخال بيانات 2"
 
 #: tally_ho/apps/tally/templates/data/forms.html:23
 #: tally_ho/apps/tally/views/corrections.py:185
-#: tally_ho/libs/reports/progress.py:107
+#: tally_ho/libs/reports/progress.py:106
 msgid "Correction"
 msgstr "تصحيح"
 
 #: tally_ho/apps/tally/templates/data/forms.html:24
 #: tally_ho/apps/tally/templates/quality_control/general.html:7
 #: tally_ho/apps/tally/templates/quality_control/reject.html:7
-#: tally_ho/libs/reports/progress.py:112
+#: tally_ho/libs/reports/progress.py:111
 msgid "Quality Control"
 msgstr "ضبط الجودة"
 
 #: tally_ho/apps/tally/templates/data/forms.html:25
-#: tally_ho/libs/reports/progress.py:117
+#: tally_ho/libs/reports/progress.py:116
 msgid "Archiving"
 msgstr "الارشفة"
 
 #: tally_ho/apps/tally/templates/data/forms.html:27
-#: tally_ho/apps/tally/views/clearance.py:272
+#: tally_ho/apps/tally/views/clearance.py:256
 #: tally_ho/libs/reports/progress.py:92
 msgid "Clearance"
 msgstr "تحقق"
 
 #: tally_ho/apps/tally/templates/data/forms.html:28
-#: tally_ho/libs/reports/progress.py:122
+#: tally_ho/libs/reports/progress.py:121
 msgid "Audit"
 msgstr "التدقيق"
 
@@ -1119,8 +1121,8 @@ msgstr "رقم المركز"
 
 #: tally_ho/apps/tally/templates/data/forms.html:40
 #: tally_ho/apps/tally/templates/reports/offices.html:32
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:19
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:19
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:19
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:19
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:19
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:19
 msgid "Office Number"
@@ -1133,8 +1135,6 @@ msgstr "منطقة التصويت :"
 
 #: tally_ho/apps/tally/templates/data/forms.html:43
 #: tally_ho/apps/tally/templates/super_admin/form_action.html:18
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:21
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:21
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:21
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:21
 msgid "Form State"
@@ -1142,8 +1142,8 @@ msgstr "حالة النمودج"
 
 #: tally_ho/apps/tally/templates/data/forms.html:44
 #: tally_ho/apps/tally/templates/super_admin/form_action.html:20
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:23
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:23
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:22
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:22
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:23
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:23
 msgid "Last Modified"
@@ -1151,7 +1151,7 @@ msgstr "التعديل الاخير"
 
 #: tally_ho/apps/tally/templates/data_entry/enter_results_view.html:7
 #: tally_ho/apps/tally/views/data_entry.py:68
-#: tally_ho/apps/tally/views/data_entry.py:351
+#: tally_ho/apps/tally/views/data_entry.py:348
 msgid "Data Entry"
 msgstr "ادخال بيانات"
 
@@ -1353,42 +1353,42 @@ msgstr "استقبال :"
 msgid "Successful"
 msgstr "نجاح"
 
-#: tally_ho/apps/tally/templates/intake/print_cover.html:18
+#: tally_ho/apps/tally/templates/intake/print_cover.html:19
 msgid "Data Entry One:"
 msgstr "ادخال البيانات الاول :"
 
-#: tally_ho/apps/tally/templates/intake/print_cover.html:19
-#: tally_ho/apps/tally/templates/intake/print_cover.html:25
+#: tally_ho/apps/tally/templates/intake/print_cover.html:20
+#: tally_ho/apps/tally/templates/intake/print_cover.html:27
 msgid "Name:"
 msgstr "الاسم :"
 
-#: tally_ho/apps/tally/templates/intake/print_cover.html:24
+#: tally_ho/apps/tally/templates/intake/print_cover.html:26
 msgid "Data Entry Two:"
 msgstr "ادخال البيانات التاني :"
 
-#: tally_ho/apps/tally/templates/intake/print_cover.html:30
+#: tally_ho/apps/tally/templates/intake/print_cover.html:33
 msgid "Corrections:"
 msgstr "التصحيح :"
 
-#: tally_ho/apps/tally/templates/intake/print_cover.html:31
+#: tally_ho/apps/tally/templates/intake/print_cover.html:34
 msgid "To Quality Control"
 msgstr "الى ضبط الجودة"
 
-#: tally_ho/apps/tally/templates/intake/print_cover.html:35
-#: tally_ho/apps/tally/templates/intake/print_cover.html:45
+#: tally_ho/apps/tally/templates/intake/print_cover.html:39
+#: tally_ho/apps/tally/templates/intake/print_cover.html:50
 msgid "To Data Entry One"
 msgstr "الى ادخال بيانات 1"
 
-#: tally_ho/apps/tally/templates/intake/print_cover.html:40
+#: tally_ho/apps/tally/templates/intake/print_cover.html:44
 msgid "Quality Control:"
 msgstr "ضبط الجودة :"
 
-#: tally_ho/apps/tally/templates/intake/print_cover.html:41
+#: tally_ho/apps/tally/templates/intake/print_cover.html:45
 msgid "To Archive"
 msgstr "الى الارشيف"
 
 #: tally_ho/apps/tally/templates/quality_control/dashboard.html:7
-#: tally_ho/apps/tally/views/archive.py:109
+#: tally_ho/apps/tally/views/archive.py:110
 #: tally_ho/apps/tally/views/corrections.py:333
 #: tally_ho/apps/tally/views/quality_control.py:60
 msgid "Quality Control & Archiving"
@@ -1523,28 +1523,39 @@ msgstr "العمل المطلوب قبل"
 msgid "Confirm"
 msgstr "موافقه"
 
-#: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:9
-msgid "Form Duplicates List"
-msgstr "متابعة النماذج"
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:9
+#, fuzzy
+msgid "Form Audit List"
+msgstr "قائمة المراجعة"
 
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:17
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:17
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:17
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:17
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:17
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:17
 msgid "Ballot Number"
 msgstr "الرقم التسلسلي"
 
-#: tally_ho/apps/tally/templates/super_admin/form_audit_pendings.html:22
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:22
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:21
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:21
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:22
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:22
 msgid "Number of times rejected to DE1"
 msgstr "عدد المرات المرفوضه من ادخال البيانات 1"
 
-#: tally_ho/apps/tally/templates/super_admin/form_clearance_pendings.html:9
+#: tally_ho/apps/tally/templates/super_admin/form_audit.html:23
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:23
 #, fuzzy
-msgid "Form Clearance Pending List"
+msgid "Resolution Recomendation"
+msgstr "الحلول الموصى بها"
+
+#: tally_ho/apps/tally/templates/super_admin/form_clearance.html:9
+#, fuzzy
+msgid "Form Clearance List"
 msgstr "قائمة التصحيح"
+
+#: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:9
+msgid "Form Duplicates List"
+msgstr "متابعة النماذج"
 
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:9
 msgid "Form Progress List"
@@ -1602,12 +1613,13 @@ msgstr "حالة النمودج"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:31
 #, fuzzy
-msgid "Form Clearance Pendings"
-msgstr "قائمة التصحيح"
+msgid "Form Clearance"
+msgstr "تحقق"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:32
-msgid "Form Audit Pendings"
-msgstr ""
+#, fuzzy
+msgid "Form Audit"
+msgstr "قائمة النمودج "
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:33
 msgid "Form Results Duplicates"
@@ -1708,20 +1720,20 @@ msgstr "مرشح"
 msgid "Result Forms With Duplicate Results"
 msgstr "متابعة النماذج"
 
-#: tally_ho/apps/tally/views/archive.py:105
+#: tally_ho/apps/tally/views/archive.py:106
 msgid "Quarantine"
 msgstr "الموقوف"
 
-#: tally_ho/apps/tally/views/archive.py:105
+#: tally_ho/apps/tally/views/archive.py:106
 msgid "Archive"
 msgstr "أرشيف"
 
-#: tally_ho/apps/tally/views/audit.py:240
+#: tally_ho/apps/tally/views/audit.py:235
 msgid "Create Audit"
 msgstr "أنشاء التدقيق"
 
-#: tally_ho/apps/tally/views/clearance.py:222
-#: tally_ho/apps/tally/views/clearance.py:303
+#: tally_ho/apps/tally/views/clearance.py:206
+#: tally_ho/apps/tally/views/clearance.py:287
 msgid "Create Clearance"
 msgstr "تحقق"
 
@@ -1738,71 +1750,72 @@ msgstr "يرجى تحديد النتائج الصحيحة لجميع الأصو�
 msgid "Results do not match."
 msgstr "النتائج غير متطابقة"
 
-#: tally_ho/apps/tally/views/data_entry.py:99
+#: tally_ho/apps/tally/views/data_entry.py:98
 #, python-format
 msgid "Return form to %s"
 msgstr "العودة الى النمودج  %s"
 
-#: tally_ho/apps/tally/views/data_entry.py:118
+#: tally_ho/apps/tally/views/data_entry.py:117
 msgid "Center and station numbers do not match"
 msgstr "رقم المركز والمحطة غير متطابقيين"
 
-#: tally_ho/apps/tally/views/data_entry.py:163
+#: tally_ho/apps/tally/views/data_entry.py:161
 #, python-format
 msgid "Data Entry %s"
 msgstr "مدخل بيانات %s"
 
-#: tally_ho/apps/tally/views/intake.py:20
+#: tally_ho/apps/tally/views/intake.py:24
 msgid "Duplicate of a form already entered into system."
 msgstr "توجد نسخة طبق الاصل من هذ ا النموذج مدخلة بالنظام"
 
-#: tally_ho/apps/tally/views/intake.py:136
-msgid "Ballot number do not match for center and form"
+#: tally_ho/apps/tally/views/intake.py:146
+#, fuzzy
+msgid "Ballot number do not match forcenter and form"
 msgstr "عدد الاقتراع لا تتطابق لمركز وتشكيل"
 
-#: tally_ho/apps/tally/views/super_admin.py:312
+#: tally_ho/apps/tally/views/super_admin.py:382
 msgid "Center Successfully Removed."
 msgstr "نقل استمارة ناجحة الى"
 
-#: tally_ho/apps/tally/views/super_admin.py:328
+#: tally_ho/apps/tally/views/super_admin.py:398
 #, python-format
 msgid "Successfully removed center %(center)s"
 msgstr "مركز إزالة بنجاح %(center)s"
 
-#: tally_ho/apps/tally/views/super_admin.py:354
+#: tally_ho/apps/tally/views/super_admin.py:424
 #, fuzzy, python-format
 msgid "%s Successfully Disabled."
 msgstr "نقل استمارة ناجحة الى "
 
-#: tally_ho/apps/tally/views/super_admin.py:370
+#: tally_ho/apps/tally/views/super_admin.py:440
 #, python-format
 msgid "Successfully disabled center %(center)s"
 msgstr "مركز المعوقين بنجاح %(center)s"
 
-#: tally_ho/apps/tally/views/super_admin.py:374
+#: tally_ho/apps/tally/views/super_admin.py:444
 #, python-format
 msgid "Successfully disabled station %(stationNumber)s"
 msgstr "محطة المعوقين بنجاح %(stationNumber)s"
 
-#: tally_ho/apps/tally/views/super_admin.py:394
+#: tally_ho/apps/tally/views/super_admin.py:464
 #, fuzzy, python-format
 msgid "%s Successfully enabled."
 msgstr "نقل استمارة ناجحة الى "
 
-#: tally_ho/apps/tally/views/super_admin.py:410
+#: tally_ho/apps/tally/views/super_admin.py:480
 msgid "Station Successfully Removed."
 msgstr "نقل استمارة ناجحة الى "
 
-#: tally_ho/apps/tally/views/super_admin.py:426
+#: tally_ho/apps/tally/views/super_admin.py:496
 #, python-format
 msgid "Successfully removed station %(station)s from center %(center)s."
 msgstr "محطة إزالة بنجاح %(station)s من المركز %(center)s"
 
-#: tally_ho/apps/tally/views/super_admin.py:444
+#: tally_ho/apps/tally/views/super_admin.py:514
 msgid "Candidate successfully enabled."
 msgstr "نقل استمارة ناجحة الى "
 
-#: tally_ho/apps/tally/views/super_admin.py:462
+#: tally_ho/apps/tally/views/super_admin.py:532
 msgid "Candidate successfully disabled."
 msgstr "نقل استمارة ناجحة الى "
 
@@ -1901,7 +1914,7 @@ msgstr "لا توجد نتائج"
 msgid "Expected"
 msgstr "مترقب"
 
-#: tally_ho/libs/reports/progress.py:127
+#: tally_ho/libs/reports/progress.py:126
 msgid "Not Received"
 msgstr "لم يتم الاستيلام"
 
@@ -1974,11 +1987,11 @@ msgstr "مرشح"
 msgid "Enable Candidate"
 msgstr "مرشح"
 
-#: tally_ho/libs/views/exports.py:423
+#: tally_ho/libs/views/exports.py:425
 msgid "File Not found!"
 msgstr "الصفحة غير موجودة"
 
-#: tally_ho/libs/views/exports.py:426
+#: tally_ho/libs/views/exports.py:428
 msgid "Report not found."
 msgstr "الصفحة غير موجودة"
 
@@ -1994,6 +2007,17 @@ msgstr "خطأ : بيانات ناقصة "
 #: tally_ho/libs/views/session.py:22
 msgid "Session result_form does not match submitted data."
 msgstr "البيانات الناتجة غير مطابقه للنمودج المداخل"
+
+#~ msgid "Implement Recommendation"
+#~ msgstr "قم بتطبيق توصية"
+
+#, fuzzy
+#~ msgid "Form Clearance Pending List"
+#~ msgstr "قائمة التصحيح"
+
+#, fuzzy
+#~ msgid "Form Clearance Pendings"
+#~ msgstr "قائمة التصحيح"
 
 #~ msgid "GENERAL"
 #~ msgstr "العام"
