@@ -26,7 +26,10 @@ class CenterListDataView(LoginRequiredMixin,
         'percent_archived',
         'center__active',
         'active',
+        'center__active',
+        'active',
     )
+
     display_fields = (
         ('center__office__name', 'center_office'),
         ('sub_constituency__code', 'sub_constituency_code'),
@@ -37,8 +40,12 @@ class CenterListDataView(LoginRequiredMixin,
         ('registrants', 'registrants'),
         ('percent_received', 'percent_received'),
         ('percent_archived', 'percent_archived'),
-        ('center__active', 'center_active'),
-        ('active', 'station_active'),
+        # FIXME Not use fields center__active and active for add external
+        # columns to the table.
+        ('center__active', 'center_status'),
+        ('active', 'station_status'),
+        ('center__active', 'center_edit'),
+        ('active', 'station_edit'),
     )
 
     def render_to_response(self, form, **kwargs):
