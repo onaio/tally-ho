@@ -330,5 +330,5 @@ class ConfirmationView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   header_text=_('Corrections'),
-                                  next_step=_('Quality Control'),
+                                  next_step=_('Quality Control & Archiving'),
                                   start_url='corrections'))

@@ -17,6 +17,7 @@
     <li><a href="{% url 'center-list' %}">{% trans 'Center List' %}</a></li>
     <li><a href="{% url 'races-list' %}">{% trans 'Races List' %}</a></li>
     <li><a href="{% url 'form-list' %}">{% trans 'Form List' %}</a></li>
+    <li><a href="{% url 'candidate-list' %}">{% trans 'Candidate List' %}</a></li>
     <li><a href="{% url 'form-not-received-view' %}">{% trans 'Forms Not Received' %}</a></li>
     <li><a href="{% url 'form-action-view' %}">{% trans 'Forms Waiting for Approval' %}</a></li>
     <li><a href="{% url 'quarantine-checks' %}">{% trans 'Quarantine Checks' %}</a></li>
@@ -29,6 +30,8 @@
     <li><a href="{% url 'reports-races' %}">{% trans 'Reports Races' %}</a></li>
     <li><a href="{% url 'form-progress' %}">{% trans 'Form Progress' %}</a></li>
     <li><a href="{% url 'form-duplicates' %}">{% trans 'Form Duplicates' %}</a></li>
+    <li><a href="{% url 'form-clearance' %}">{% trans 'Form Clearance' %}</a></li>
+    <li><a href="{% url 'form-audit' %}">{% trans 'Form Audit' %}</a></li>
     <li><a href="{% url 'form-results-duplicates' %}">{% trans 'Form Results Duplicates' %}</a></li>
     <li><a href="{% url 'result-export' %}">{% trans 'Download Results' %}</a></li>
 </ul>
@@ -39,8 +42,7 @@
     <li><a href="{% url 'clearance' %}">{% trans 'Clearance Clerk' %}</a></li>
     <li><a href="{% url 'data-entry' %}">{% trans 'Data Entry Clerk' %}</a></li>
     <li><a href="{% url 'corrections' %}">{% trans 'Corrections Clerk' %}</a></li>
-    <li><a href="{% url 'quality-control' %}">{% trans 'Quality Control Clerk' %}</a></li>
-    <li><a href="{% url 'archive' %}">{% trans 'Archiving Clerk' %}</a></li>
+    <li><a href="{% url 'quality-control' %}">{% trans 'Quality Control & Archiving Clerk' %}</a></li>
     <li><a href="{% url 'audit' %}">{% trans 'Audit Clerk' %}</a></li>
 </ul>
 

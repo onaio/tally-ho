@@ -1,6 +1,10 @@
+import json
+
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.center_details_form import\
@@ -15,6 +19,7 @@ from tally_ho.libs.views.session import session_matches_post_result_form
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.form_state import form_in_intake_state,\
     safe_form_in_state, form_in_state
+from tally_ho.libs.views.errors import add_generic_error
 
 INTAKEN_MESSAGE = _('Duplicate of a form already entered into system.')
 
@@ -127,15 +132,34 @@ class EnterCenterView(LoginRequiredMixin,
 
         if center_form.is_valid():
             station_number = center_form.cleaned_data.get('station_number')
-            result_form.station_number = station_number
-
             center_number = center_form.cleaned_data.get('center_number')
             center = Center.objects.get(code=center_number)
-            result_form.center = center
+
+            # Checks if center ballot number and form ballot number are the
+            # same
+            is_error = False
+            center_sub = center.sub_constituency
+            if center_sub:
+                is_general = result_form.ballot.number == center.sub_constituency.code
+                if not is_general:
+                    is_women = center_sub.ballot_women is not None
+                    if not is_women or\
+                            (is_women and result_form.ballot.number != center_sub.ballot_women.number):
+                        is_error = True
+
+            if is_error:
+                form = add_generic_error(center_form,
+                                         _(u"Ballot number do not match for"
+                                           u"center and form"))
+                return self.render_to_response(self.get_context_data(
+                    form=form, header_text=_('Intake'),
+                    result_form=result_form))
 
             duplicated_forms = result_form.get_duplicated_forms(center,
                                                                 station_number)
             if duplicated_forms:
+                result_form.station_number = station_number
+                result_form.center = center
                 # a form already exists, send to clearance
                 self.request.session['intake-error'] = INTAKEN_MESSAGE
                 result_form.send_to_clearance()
@@ -145,8 +169,9 @@ class EnterCenterView(LoginRequiredMixin,
                         oneDuplicatedForm.send_to_clearance()
 
                 return redirect('intake-clearance')
-            else:
-                result_form.save()
+
+            self.request.session['station_number'] = station_number
+            self.request.session['center_number'] = center_number
 
             return redirect(self.success_url)
         else:
@@ -165,7 +190,22 @@ class CheckCenterDetailsView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
+
         result_form = get_object_or_404(ResultForm, pk=pk)
+
+        # When result form has not center/station assigned.
+        if not result_form.center:
+            station_number = self.request.session.get('station_number')
+            center_number = self.request.session.get('center_number')
+
+            center = Center.objects.get(code=center_number)
+
+            result_form.station_number = station_number
+            result_form.center = center
+
+            self.request.session['station_number'] = station_number
+            self.request.session['center_number'] = center_number
+
         form_in_intake_state(result_form)
 
         return self.render_to_response(
@@ -180,8 +220,23 @@ class CheckCenterDetailsView(LoginRequiredMixin,
         url = None
 
         if 'is_match' in post_data:
+            # When result form has not center/station assigned.
+            if not result_form.center:
+                station_number = self.request.session.get('station_number')
+                center_number = self.request.session.get('center_number')
+                center = Center.objects.get(code=center_number)
+
+                result_form.station_number = station_number
+                result_form.center = center
+
+            if 'station_number' in self.request.session:
+                del self.request.session['station_number']
+            if 'center_number' in self.request.session:
+                del self.request.session['center_number']
+
             # send to print cover
             url = 'intake-printcover'
+
         elif 'is_not_match' in post_data:
             # send to clearance
             result_form.form_state = FormState.CLEARANCE
@@ -202,6 +257,7 @@ class PrintCoverView(LoginRequiredMixin,
                      TemplateView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     template_name = "intake/print_cover.html"
+    printed_url = 'intake-printed'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -211,7 +267,7 @@ class PrintCoverView(LoginRequiredMixin,
         form_in_state(result_form, possible_states)
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form, printed_url=reverse(self.printed_url, args=(pk,))))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
@@ -273,3 +329,14 @@ class ConfirmationView(LoginRequiredMixin,
                                   header_text=_('Intake'),
                                   next_step=_('Data Entry 1'),
                                   start_url='intake'))
+
+
+class IntakePrintedView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.PrintedResultFormMixin,
+                     TemplateView):
+    group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
+
+    def set_printed(self, result_form):
+        result_form.intake_printed = True
+        result_form.save()

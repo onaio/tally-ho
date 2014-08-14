@@ -52,15 +52,16 @@ class Ballot(BaseModel):
 
     @property
     def form_ballot_numbers(self):
-        return Ballot.COMPONENT_TO_BALLOTS[self.number] if self.is_component\
-            else [self.number]
+        #return Ballot.COMPONENT_TO_BALLOTS[self.number] if self.is_component\
+        #    else [self.number]
+        return [self.number]
 
     @property
     def is_component(self):
         return self.number in self.COMPONENT_TO_BALLOTS.keys()
 
     def __unicode__(self):
-        return self.number
+        return u'%d' % self.number
 
 
 reversion.register(Ballot)

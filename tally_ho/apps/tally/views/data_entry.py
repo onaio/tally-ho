@@ -29,7 +29,7 @@ from tally_ho.libs.views.session import session_matches_post_result_form
 
 def get_data_entry_number(form_state):
     """Return data entry number from form state."""
-    return 1 if form_state in [FormState.DATA_ENTRY_1, FormState.CLEARANCE_PENDING_STATE, FormState.AUDIT_PENDING_STATE] else 2
+    return 1 if form_state in [FormState.DATA_ENTRY_1] else 2
 
 
 def get_formset_and_candidates(result_form, post_data=None):
@@ -91,8 +91,7 @@ def check_group_for_state(result_form, user, form):
     if groups.SUPER_ADMINISTRATOR in groups.user_groups(user):
         return None
 
-    if ((result_form.form_state in [FormState.DATA_ENTRY_1,\
-            FormState.CLEARANCE_PENDING_STATE, FormState.AUDIT_PENDING_STATE] and
+    if ((result_form.form_state == FormState.DATA_ENTRY_1 and
        not user_is_data_entry_1(user)) or
        (result_form.form_state == FormState.DATA_ENTRY_2 and
             not user_is_data_entry_2(user))):
@@ -129,8 +128,7 @@ def check_state_and_group(result_form, user, form):
         None.
     """
     check_state = safe_form_in_state(result_form,
-            [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2,
-                FormState.AUDIT_PENDING_STATE, FormState.CLEARANCE_PENDING_STATE], form)
+            [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2], form)
     check_group = check_group_for_state(result_form, user, form)
 
     return check_state or check_group
@@ -294,8 +292,7 @@ class EnterResultsView(LoginRequiredMixin,
             entry_version = None
             new_state = None
 
-            if result_form.form_state in [FormState.DATA_ENTRY_1,\
-                    FormState.CLEARANCE_PENDING_STATE, FormState.AUDIT_PENDING_STATE]:
+            if result_form.form_state == FormState.DATA_ENTRY_1:
                 entry_version = EntryVersion.DATA_ENTRY_1
                 new_state = FormState.DATA_ENTRY_2
             else:

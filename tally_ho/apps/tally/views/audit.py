@@ -45,16 +45,10 @@ def audit_action(audit, post_data, result_form, url):
         if audit.resolution_recommendation ==\
                 AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE:
             audit.for_superadmin = True
-        elif audit.action_prior_to_recommendation in\
-                [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD, ActionsPrior.REQUEST_COPY_FROM_FIELD]:
-            audit.active = False
-            result_form.form_state = FormState.AUDIT_PENDING_STATE
-            result_form.save()
-
         else:
-            # move to data entry 1
+            new_state=FormState.DATA_ENTRY_1
             audit.active = False
-            result_form.reject()
+            result_form.reject(new_state=new_state)
 
     audit.save()
 
@@ -109,11 +103,13 @@ def forms_for_user(user_is_clerk):
     :returns: A list of forms in the audit state for this user's group.
     """
     form_list = ResultForm.objects.filter(
-        form_state=FormState.AUDIT, audit__reviewed_supervisor=False)
+        form_state=FormState.AUDIT, audit__reviewed_supervisor=False,
+        audit__active=True)
 
     if user_is_clerk:
         form_list = form_list.filter(
-            form_state=FormState.AUDIT, audit__reviewed_team=False)
+            form_state=FormState.AUDIT, audit__reviewed_team=False,
+            audit__active=True)
 
     return form_list
 

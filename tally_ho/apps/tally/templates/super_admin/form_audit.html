@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load js %}
+{% load eztables %}
+
+{% block content %}
+
+<h1>{% trans 'Form Audit List' %}</h1>
+
+<table id="formauditpendinglist">
+    <thead>
+        <tr>
+            <th>{% trans 'Barcode' %}</th>
+            <th>{% trans 'Center Number' %}</th>
+            <th>{% trans 'Station Number' %}</th>
+            <th>{% trans 'Ballot Number' %}</th>
+            <th>{% trans 'Office' %}</th>
+            <th>{% trans 'Office Number' %}</th>
+            <th>{% trans 'Race Type' %}</th>
+            <th>{% trans 'Number of times rejected to DE1' %}</th>
+            <th>{% trans 'Last Modified' %}</th>
+            <th>{% trans 'Resolution Recomendation' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+      <link href="{{STATIC_URL}}css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
+{% django_js %}
+{% datatables_js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/form_audit_table.js"></script>
+{% endblock %}

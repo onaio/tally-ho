@@ -9,6 +9,14 @@ class AuditResolution(enum.Enum):
     OTHER_CORRECTION_TO_DE_1 = 3
     MAKE_AVAILABLE_FOR_ARCHIVE = 4
 
+    labels = {
+        EMPTY: _('Empty'),
+        NO_PROBLEM_TO_DE_1: _(u"No Problem To Data Entry 1"),
+        CLARIFIED_FIGURES_TO_DE_1: _(u"Clarified Figures To Data Entry 1"),
+        OTHER_CORRECTION_TO_DE_1: _(u"Other Correction To Data Entry 1"),
+        MAKE_AVAILABLE_FOR_ARCHIVE: _(u"Make Available For Archive")
+    }
+
 
 AUDIT_CHOICES = [
     (AuditResolution.EMPTY, '----'),

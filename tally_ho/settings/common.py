@@ -86,7 +86,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'tally',
-        'USER': 'postgres',
+        'USER': 'tally',
         'PASSWORD': 'tally',
         'HOST': '127.0.0.1',
     }
@@ -141,6 +141,10 @@ STATICFILES_FINDERS = (
 
 LOGIN_REDIRECT_URL = '/'
 
+# CONSTANTS
+MIN_STATION_VALUE = 1
+MAX_STATION_VALUE = 102
+
 # Switch to True on production
 SESSION_COOKIE_SECURE = False
 
@@ -156,3 +160,5 @@ LOGGING = {
     'version': 1,
     'root': {'level': 'DEBUG' if DEBUG else 'INFO'},
 }
+
+

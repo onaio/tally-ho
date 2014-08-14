@@ -35,10 +35,20 @@
     </tr>
     <tr class="underline">
         <td colspan="4"><h4>{% trans 'Problem' %}</h4>
-    {% for problem in problems %}
-        <input type="checkbox" checked="checked" name="problem" value="problem">&nbsp;{% trans problem %}
-    <br />
-    {% endfor %}
+            <table id="problems" width="100%">
+            {% for problem in problems %}
+                {% if not forloop.counter|divisibleby:2 %}
+                <tr>
+                {% endif %}
+                    <td width="50%">
+                       <input type="checkbox" disabled="disabled" checked="checked" name="problem" value="problem">&nbsp;{% trans problem %}
+                       <br />
+                    </td>
+                {% if forloop.counter|divisibleby:2 %}
+                </tr>
+                {% endif %}
+            {% endfor %}
+            </table>
     {% if result_form.audit.other %}
     </td></tr>
     <tr>
@@ -76,5 +86,6 @@
 {% endblock %}
 
 {% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/print_button_check.js"></script>
 {% endblock %}

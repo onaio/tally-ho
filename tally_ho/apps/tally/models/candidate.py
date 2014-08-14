@@ -9,6 +9,7 @@ from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.race_type import RaceType
+from tally_ho.libs.utils.templates import getActiveCandidateLink
 
 
 class Candidate(BaseModel):
@@ -21,6 +22,7 @@ class Candidate(BaseModel):
     full_name = models.TextField()
     order = models.PositiveSmallIntegerField()
     race_type = enum.EnumField(RaceType)
+    active = models.BooleanField(default=True)
 
     @property
     def race_type_name(self):
@@ -103,5 +105,12 @@ class Candidate(BaseModel):
 
         return sum([r.votes for r in results])
 
+    @property
+    def ballot_number(self):
+        return self.ballot.number
+
+    @property
+    def candidate_active(self):
+        return getActiveCandidateLink(self) if self else None
 
 reversion.register(Candidate)

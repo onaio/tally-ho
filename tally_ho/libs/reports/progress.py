@@ -91,7 +91,6 @@ class ClearanceProgressReport(ProgressReport):
     filtered_queryset = ResultForm.forms_in_state(FormState.CLEARANCE)
     label = _(u"Clearance")
 
-
 class DataEntry1ProgressReport(ProgressReport):
     filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_1)
     label = _(u"Data Entry 1")

@@ -8,7 +8,8 @@ from tally_ho.apps.tally.forms.password_change import PasswordChangeForm
 from tally_ho.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile
-from tally_ho.apps.tally.views.data import center_list_view, form_list_view, race_list_view
+from tally_ho.apps.tally.views.data import center_list_view, form_list_view,\
+    candidate_list_view, race_list_view
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 
@@ -54,6 +55,12 @@ urlpatterns = patterns(
     url(r'^data/race-list$',
         race_list_view.RaceListView.as_view(),
         name='races-list'),
+    url(r'^data/candidate-list$',
+        candidate_list_view.CandidateListView.as_view(),
+        name='candidate-list'),
+    url(r'^data/candidate-list-data$',
+        candidate_list_view.CandidateListDataView.as_view(),
+        name='candidate-list-data'),
     url(r'^data/form-list$',
         form_list_view.FormListView.as_view(),
         name='form-list'),
@@ -87,6 +94,12 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-duplicates$',
         super_admin.FormDuplicatesView.as_view(),
         name='form-duplicates'),
+    url(r'^super-administrator/form-clearance$',
+        super_admin.FormClearanceView.as_view(),
+        name='form-clearance'),
+    url(r'^super-administrator/form-audit$',
+        super_admin.FormAuditView.as_view(),
+        name='form-audit'),
     url(r'^super-administrator/form-results-duplicates$',
         super_admin.FormResultsDuplicatesView.as_view(),
         name='form-results-duplicates'),
@@ -99,6 +112,12 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-duplicates-data$',
         super_admin.FormDuplicatesDataView.as_view(),
         name='form-duplicates-data'),
+    url(r'^super-administrator/form-clearance-data$',
+        super_admin.FormClearanceDataView.as_view(),
+        name='form-clearance-data'),
+    url(r'^super-administrator/form-audit-data$',
+        super_admin.FormAuditDataView.as_view(),
+        name='form-audit-data'),
     url(r'^super-administrator/results-(?P<report>.*).csv$',
         super_admin.ResultExportView.as_view(),
         name='result-export'),
@@ -126,6 +145,12 @@ urlpatterns = patterns(
     url(r'^super-administrator/enablerace/(?P<raceId>(\d+))$',
         super_admin.EnableRaceView.as_view(),
         name='enable-race'),
+    url(r'^super-administrator/candidate-disable/(?P<candidateId>(\d+))$',
+        super_admin.DisableCandidateView.as_view(),
+        name='candidate-disable'),
+    url(r'^super-administrator/candidate-enable/(?P<candidateId>(\d+))$',
+        super_admin.EnableCandidateView.as_view(),
+        name='candidate-enable'),
     url(r'^super-administrator/remove-station$',
         super_admin.RemoveStationView.as_view(),
         name='remove-station'),
@@ -170,6 +195,9 @@ urlpatterns = patterns(
     url(r'^intake/intaken',
         intake.ConfirmationView.as_view(),
         name='intaken'),
+    url(r'^intake/intake-printed/(?P<resultFormPk>(\d+))$',
+        intake.IntakePrintedView.as_view(),
+        name='intake-printed'),
 
     url(r'^quality-control/home$',
         quality_control.QualityControlView.as_view(),
@@ -181,9 +209,6 @@ urlpatterns = patterns(
         TemplateView.as_view(
             template_name='quality_control/reject.html'),
         name='quality-control-reject'),
-    url(r'^quality-control/success$',
-        quality_control.ConfirmationView.as_view(),
-        name='quality-control-success'),
 
     url(r'^corrections$',
         corrections.CorrectionView.as_view(),
@@ -198,9 +223,6 @@ urlpatterns = patterns(
         corrections.ConfirmationView.as_view(),
         name='corrections-success'),
 
-    url(r'^archive$',
-        archive.ArchiveView.as_view(),
-        name='archive'),
     url(r'^archive/print$',
         archive.ArchivePrintView.as_view(),
         name='archive-print'),
@@ -242,6 +264,9 @@ urlpatterns = patterns(
     url(r'^clearance/add$',
         clearance.AddClearanceFormView.as_view(),
         name='clearance-add'),
+    url(r'^clearance/clearance-printed/(?P<resultFormPk>(\d+))$',
+        clearance.ClearancePrintedView.as_view(),
+        name='clearance-printed'),
 
     url(r'^reports/internal/offices$',
         offices.OfficesReportView.as_view(),

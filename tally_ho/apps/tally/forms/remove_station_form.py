@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from tally_ho.apps.tally.models.center import Center
@@ -15,8 +16,9 @@ disable_copy_input = {
     'autocomplete': 'off',
     'class': 'form-control'
 }
-min_station_value = 1
-max_station_value = 102
+
+min_station_value = settings.MIN_STATION_VALUE
+max_station_value = settings.MAX_STATION_VALUE
 
 
 class RemoveStationForm(forms.Form):

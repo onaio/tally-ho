@@ -11,6 +11,7 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.libs.models.base_model import BaseModel
+from tally_ho.libs.models.enums.clearance_resolution import CLEARANCE_CHOICES
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
@@ -135,7 +136,6 @@ class ResultForm(BaseModel):
         app_label = 'tally'
 
     START_BARCODE = 10000000
-    MAX_BARCODE = 530000576
     OCV_CENTER_MIN = 80001
 
     ballot = models.ForeignKey(Ballot, null=True)
@@ -145,7 +145,7 @@ class ResultForm(BaseModel):
                                      related_name='created_user')
 
     audited_count = models.PositiveIntegerField(default=0)
-    barcode = models.CharField(max_length=9, unique=True)
+    barcode = models.CharField(max_length=255, unique=True)
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
     form_state = enum.EnumField(FormState)
@@ -157,6 +157,8 @@ class ResultForm(BaseModel):
     skip_quarantine_checks = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
     is_replacement = models.BooleanField(default=False)
+    intake_printed = models.BooleanField(default=False)
+    clearance_printed = models.BooleanField(default=False)
 
     # Field used in result duplicated list view
     results_duplicated = []
@@ -223,6 +225,12 @@ class ResultForm(BaseModel):
     def audit_supervisor_reviewed(self):
         return self.audit.supervisor.username if self.audit and\
             self.audit.reviewed_supervisor else _('No')
+
+    @property
+    def audit_recommendation(self):
+        recomendation_index = self.audit.resolution_recommendation if\
+            self.audit else ""
+        return CLEARANCE_CHOICES[recomendation_index][1].capitalize()
 
     @property
     def form_state_name(self):
@@ -328,6 +336,12 @@ class ResultForm(BaseModel):
     @property
     def clearance_team_reviewed_bool(self):
         return self.clearance and self.clearance.reviewed_team
+
+    @property
+    def clearance_recommendation(self):
+        recomendation_index = self.clearance.resolution_recommendation if\
+            self.clearance else ""
+        return CLEARANCE_CHOICES[recomendation_index][1].capitalize()
 
     @property
     def clearance_team_reviewed(self):
@@ -449,9 +463,7 @@ class ResultForm(BaseModel):
         return qs.filter(
             center__isnull=False,
             station_number__isnull=False,
-            ballot__isnull=False).extra(
-            where=["barcode::integer <= %s"],
-            params=[self.MAX_BARCODE]).order_by(
+            ballot__isnull=False).order_by(
             'center__id', 'station_number', 'ballot__id',
             'form_state').distinct(
             'center__id', 'station_number', 'ballot__id')
@@ -538,6 +550,11 @@ class ResultForm(BaseModel):
 
     def send_to_clearance(self):
         self.form_state = FormState.CLEARANCE
+
+        if self.audit and self.audit.active:
+            audit = self.audit
+            audit.active = False
+            audit.save()
         self.save()
 
 reversion.register(ResultForm)

@@ -33,7 +33,7 @@ class TestQualityControl(TestBase):
         request.user = self.user
         with self.assertRaises(PermissionDenied):
             view(request)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         response = view(request)
         response.render()
         self.assertIn('/accounts/logout/', response.content)
@@ -49,7 +49,7 @@ class TestQualityControl(TestBase):
         create_result_form(barcode,
                            form_state=FormState.QUALITY_CONTROL)
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlView.as_view()
         data = {'barcode': barcode, 'barcode_copy': barcode}
         request = self.factory.post('/', data=data)
@@ -68,7 +68,7 @@ class TestQualityControl(TestBase):
         create_result_form(barcode,
                            form_state=FormState.QUALITY_CONTROL)
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         view = views.QualityControlDashboardView.as_view()
@@ -98,7 +98,7 @@ class TestQualityControl(TestBase):
         quality_control.passed_women = True
         quality_control.save()
 
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk,
                 'correct': 1}
@@ -127,7 +127,7 @@ class TestQualityControl(TestBase):
         create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
 
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
@@ -153,7 +153,7 @@ class TestQualityControl(TestBase):
         create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
 
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
@@ -174,7 +174,7 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
@@ -196,7 +196,7 @@ class TestQualityControl(TestBase):
         self._create_and_login_user()
         create_reconciliation_form(result_form, self.user)
 
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
@@ -214,7 +214,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'correct': 1}
         request = self.factory.post('/', data=data)
@@ -240,7 +240,7 @@ class TestQualityControl(TestBase):
         create_recon_forms(result_form, self.user)
         create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'incorrect': 1}
         request = self.factory.post('/', data=data)
@@ -278,7 +278,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'abort': 1}
         request = self.factory.post('/', data=data)
@@ -307,7 +307,7 @@ class TestQualityControl(TestBase):
 
         create_candidates(result_form, self.user, name, votes, women_name)
 
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
@@ -329,7 +329,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'correct': 1}
         request = self.factory.post('/', data=data)
@@ -354,7 +354,7 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'incorrect': 1}
         request = self.factory.post('/', data=data)
@@ -386,7 +386,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'abort': 1}
         request = self.factory.post('/', data=data)
@@ -415,7 +415,7 @@ class TestQualityControl(TestBase):
 
         create_candidates(result_form, self.user, name, votes, women_name)
 
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
@@ -437,7 +437,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'correct': 1}
         request = self.factory.post('/', data=data)
@@ -461,7 +461,7 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'incorrect': 1}
         request = self.factory.post('/', data=data)
@@ -493,7 +493,7 @@ class TestQualityControl(TestBase):
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {'result_form': result_form.pk, 'abort': 1}
         request = self.factory.post('/', data=data)
@@ -509,7 +509,7 @@ class TestQualityControl(TestBase):
     def test_confirmation_get(self):
         result_form = create_result_form(form_state=FormState.ARCHIVING)
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.ConfirmationView.as_view()
         request = self.factory.get('/')
         request.user = self.user

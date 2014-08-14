@@ -29,7 +29,8 @@ from tally_ho.libs.models.enums.audit_resolution import\
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
-from tally_ho.libs.utils.functions import disableEnableEntity, disableEnableRace
+from tally_ho.libs.utils.functions import disableEnableEntity, disableEnableRace, \
+    disableEnableCandidate
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import get_result_export_response,\
     valid_ballots, distinct_forms, SPECIAL_BALLOTS
@@ -54,6 +55,26 @@ def duplicates():
         for item in dupes])
 
     return ResultForm.objects.filter(pk__in=pks)
+
+
+def clearance():
+    """Build a list of result forms that are in clearance state considering
+    only forms that are not unsubmitted.
+
+    :returns: A list of result forms in the system that are in clearance state.
+    """
+
+    return ResultForm.objects.filter(form_state=FormState.CLEARANCE)
+
+
+def audit():
+    """Build a list of result forms that are in audit pending state
+    considering only forms that are not unsubmitted.
+
+    :returns: A list of result forms in the system that are in audit pending
+    state.
+    """
+    return ResultForm.objects.filter(form_state=FormState.AUDIT)
 
 
 def get_results_duplicates():
@@ -151,6 +172,36 @@ class FormDuplicatesView(LoginRequiredMixin,
             forms=forms))
 
 
+class FormClearanceView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/form_clearance.html"
+
+    def get(self, *args, **kwargs):
+        form_list = clearance()
+
+        forms = paging(form_list, self.request)
+
+        return self.render_to_response(self.get_context_data(
+            forms=forms))
+
+
+class FormAuditView(LoginRequiredMixin,
+                    mixins.GroupRequiredMixin,
+                    TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/form_audit.html"
+
+    def get(self, *args, **kwargs):
+        form_list = audit()
+
+        forms = paging(form_list, self.request)
+
+        return self.render_to_response(self.get_context_data(
+            forms=forms))
+
+
 class FormResultsDuplicatesView(LoginRequiredMixin,
                                 mixins.GroupRequiredMixin,
                                 TemplateView):
@@ -198,8 +249,80 @@ class FormProgressDataView(LoginRequiredMixin,
     )
 
 
+class FormAuditDataView(FormProgressDataView):
+    queryset = ResultForm.objects.filter(form_state=FormState.AUDIT)
+    fields = (
+        'barcode',
+        'center__code',
+        'station_number',
+        'ballot__number',
+        'center__office__name',
+        'center__office__number',
+        'ballot__race_type',
+        'rejected_count',
+        'modified_date',
+        'audit_recommendation'
+    )
+    display_fields = (
+        ('barcode', 'barcode'),
+        ('center__code', 'center_code'),
+        ('station_number', 'station_number'),
+        ('ballot__number', 'ballot_number'),
+        ('center__office__name', 'center_office'),
+        ('center__office__number', 'center_office_number'),
+        ('ballot__race_type', 'ballot_race_type_name'),
+        ('rejected_count', 'rejected_count'),
+        ('modified_date', 'modified_date_formatted'),
+        ('audit_recommendation', 'audit_recommendation'),
+    )
+
+    def sort_col_9(self, direction):
+        return ('%saudit__resolution_recommendation' % direction)
+
+    def global_search(self, queryset):
+        qs = super((FormAuditDataView), self).\
+            global_search(queryset, excludes=['audit_recommendation'])
+        return qs
+
+
 class FormDuplicatesDataView(FormProgressDataView):
     queryset = duplicates()
+
+
+class FormClearanceDataView(FormProgressDataView):
+    queryset = ResultForm.objects.filter(clearances__active=True)
+    fields = (
+        'barcode',
+        'center__code',
+        'station_number',
+        'ballot__number',
+        'center__office__name',
+        'center__office__number',
+        'ballot__race_type',
+        'rejected_count',
+        'modified_date',
+        'clearance_recommendation'
+    )
+    display_fields = (
+        ('barcode', 'barcode'),
+        ('center__code', 'center_code'),
+        ('station_number', 'station_number'),
+        ('ballot__number', 'ballot_number'),
+        ('center__office__name', 'center_office'),
+        ('center__office__number', 'center_office_number'),
+        ('ballot__race_type', 'ballot_race_type_name'),
+        ('rejected_count', 'rejected_count'),
+        ('modified_date', 'modified_date_formatted'),
+        ('clearance_recommendation', 'clearance_recommendation'),
+    )
+
+    def sort_col_9(self, direction):
+        return ('%sclearances__resolution_recommendation' % direction)
+
+    def global_search(self, queryset):
+        qs = super(FormClearanceDataView, self).\
+            global_search(queryset, excludes=['clearance_recommendation'])
+        return qs
 
 
 class FormActionView(LoginRequiredMixin,
@@ -222,8 +345,9 @@ class FormActionView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
-        pk = self.request.session['result_form'] = post_data.get('result_form')
+        pk = post_data.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
+        self.request.session['result_form'] = result_form.pk
 
         if 'review' in post_data:
             return redirect('audit-review')
@@ -530,8 +654,8 @@ class RemoveStationView(LoginRequiredMixin,
 
 
 class QuarantineChecksListView(LoginRequiredMixin,
-                                mixins.GroupRequiredMixin,
-                                TemplateView):
+                               mixins.GroupRequiredMixin,
+                               TemplateView):
     template_name = 'super_admin/quarantine_checks_list.html'
     group_required = groups.SUPER_ADMINISTRATOR
 
@@ -545,9 +669,9 @@ class QuarantineChecksListView(LoginRequiredMixin,
 
 
 class QuarantineChecksConfigView(LoginRequiredMixin,
-                                mixins.GroupRequiredMixin,
-                                mixins.ReverseSuccessURLMixin,
-                                UpdateView):
+                                 mixins.GroupRequiredMixin,
+                                 mixins.ReverseSuccessURLMixin,
+                                 UpdateView):
     template_name = 'super_admin/quarantine_checks_config.html'
     group_required = groups.SUPER_ADMINISTRATOR
 
@@ -655,5 +779,39 @@ class EditStationView(LoginRequiredMixin,
         elif 'edit_submit' in post_data:
             self.success_url = reverse('edit-centre',
                                        kwargs={'centerCode': center_code})
+
+
+class EnableCandidateView(LoginRequiredMixin,
+                          mixins.GroupRequiredMixin,
+                          mixins.ReverseSuccessURLMixin,
+                          SuccessMessageMixin,
+                          TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    success_url = 'candidate-list'
+
+    def get(self, *args, **kwargs):
+        candidateId = kwargs.get('candidateId')
+
+        self.success_message = _(u"Candidate successfully enabled.")
+
+        disableEnableCandidate(candidateId)
+
+        return redirect(self.success_url)
+
+
+class DisableCandidateView(LoginRequiredMixin,
+                           mixins.GroupRequiredMixin,
+                           mixins.ReverseSuccessURLMixin,
+                           SuccessMessageMixin,
+                           TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    success_url = 'candidate-list'
+
+    def get(self, *args, **kwargs):
+        candidateId = kwargs.get('candidateId')
+
+        self.success_message = _(u"Candidate successfully disabled.")
+
+        disableEnableCandidate(candidateId)
 
         return redirect(self.success_url)

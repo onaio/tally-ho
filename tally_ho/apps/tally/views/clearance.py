@@ -2,6 +2,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext as _
+from django.db.models import Q
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -44,14 +45,6 @@ def clearance_action(post_data, clearance, result_form, url):
             if result_form.is_replacement:
                 result_form.center = None
                 result_form.station_number = None
-            result_form.save()
-        elif clearance.action_prior_to_recommendation in\
-                [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD, ActionsPrior.REQUEST_COPY_FROM_FIELD]:
-            clearance.active = False
-            if not result_form.center or not result_form.station_number:
-                result_form.form_state = FormState.UNSUBMITTED
-            else:
-                result_form.form_state = FormState.CLEARANCE_PENDING_STATE
             result_form.save()
 
     clearance.save()
@@ -166,6 +159,7 @@ class PrintCoverView(LoginRequiredMixin,
                      TemplateView):
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     template_name = "clearance/print_cover.html"
+    printed_url = 'clearance-printed'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -175,7 +169,8 @@ class PrintCoverView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
-                                  problems=problems))
+                                  problems=problems,
+                                  printed_url = reverse(self.printed_url, args = (pk,))))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
@@ -366,3 +361,14 @@ class AddClearanceFormView(LoginRequiredMixin,
         result_form.save()
 
         return redirect(self.success_url)
+
+
+class ClearancePrintedView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.PrintedResultFormMixin,
+                     TemplateView):
+    group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
+
+    def set_printed(self, result_form):
+        result_form.clearance_printed = True
+        result_form.save()
