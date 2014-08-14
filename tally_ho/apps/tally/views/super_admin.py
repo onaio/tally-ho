@@ -421,6 +421,7 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
     template_name = "super_admin/remove_center_confirmation.html"
     success_message = _(u"Center Successfully Removed.")
     slug_url_kwarg = 'centerCode'
+    success_url = 'center-list'
     slug_field = 'code'
 
     def get(self, request, *args, **kwargs):
