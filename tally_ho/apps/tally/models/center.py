@@ -55,5 +55,12 @@ class Center(BaseModel):
     def __unicode__(self):
         return u'%s - %s' % (self.code, self.name)
 
+    @property
+    def status(self):
+        return 'Enabled' if self.active else 'Disabled'
+
+    @property
+    def center_type_name(self):
+        return 'Special' if self.center_type == 1 else 'General'
 
 reversion.register(Center)

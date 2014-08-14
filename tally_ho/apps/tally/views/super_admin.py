@@ -1,22 +1,27 @@
 from collections import defaultdict
 
+from django.core.urlresolvers import reverse
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import FormView, TemplateView, UpdateView
+from django.views.generic.edit import UpdateView, DeleteView
+from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
 
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.disable_entity_form import DisableEntityForm
+from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
+from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
+from tally_ho.apps.tally.forms.edit_centre_form import EditCentreForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.audit_resolution import\
@@ -257,7 +262,6 @@ class RemoveCenterView(LoginRequiredMixin,
     form_class = RemoveCenterForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/remove_center.html"
-    success_url = 'super-administrator'
     success_message = _(u"Center Successfully Removed.")
 
     def get(self, *args, **kwargs):
@@ -276,8 +280,92 @@ class RemoveCenterView(LoginRequiredMixin,
             self.success_message = _(
                 u"Successfully removed center %(center)s"
                 % {'center': center.code})
-            return self.form_valid(form)
+            self.success_url = reverse('remove-center-confirmation',
+                                       kwargs={'centerCode': center.code})
+            return redirect(self.success_url)
         return self.form_invalid(form)
+
+
+class RemoveCenterConfirmationView(LoginRequiredMixin,
+                                   mixins.GroupRequiredMixin,
+                                   mixins.ReverseSuccessURLMixin,
+                                   SuccessMessageMixin,
+                                   DeleteView):
+    model = Center
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/remove_center_confirmation.html"
+    success_message = _(u"Center Successfully Removed.")
+    slug_url_kwarg = 'centerCode'
+    slug_field = 'code'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        context['next'] = request.META.get('HTTP_REFERER', None)
+
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        if 'abort_submit' in request.POST:
+            next_url = request.POST.get('next', None)
+
+            return redirect(next_url)
+        else:
+            return super(RemoveCenterConfirmationView, self).post(request,
+                                                                  *args,
+                                                                  **kwargs)
+
+
+class EditCentreView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.ReverseSuccessURLMixin,
+                     SuccessMessageMixin,
+                     UpdateView):
+    form_class = EditCentreForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/edit-center.html'
+    success_url = 'center-list'
+    success_message = _(u'Center Successfully Updated')
+
+    def get(self, *args, **kwargs):
+        center_code = kwargs.get('centerCode', None)
+        self.object = get_object_or_404(Center, code=center_code)
+
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        context = self.get_context_data(object=self.object, form=form,
+                                        center_code=center_code,
+                                        is_active=self.object.active)
+
+        return self.render_to_response(context)
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+        center_code = post_data.get('center_code', '')
+
+        if 'save_submit' in post_data:
+            centre = get_object_or_404(Center, code=center_code)
+
+            centreForm = EditCentreForm(self.request.POST, instance=centre)
+
+            if centreForm.is_valid():
+                self.object = centreForm.save()
+
+        elif 'enable_submit' in post_data:
+            self.success_url = reverse('enable',
+                                       kwargs={'centerCode': center_code})
+        elif 'disable_submit' in post_data:
+            self.success_url = reverse('disable',
+                                       kwargs={'centerCode': center_code})
+        elif 'delete_submit' in post_data:
+            self.success_url = reverse('remove-center-confirmation',
+                                       kwargs={'centerCode': center_code})
+
+        return redirect(self.success_url)
 
 
 class DisableEntityView(LoginRequiredMixin,

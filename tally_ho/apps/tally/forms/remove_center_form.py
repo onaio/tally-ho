@@ -15,7 +15,7 @@ disable_copy_input = {
     'class': 'form-control'
 }
 min_station_value = 1
-max_station_value = 53
+max_station_value = 102
 
 
 class RemoveCenterForm(forms.Form):
@@ -54,5 +54,4 @@ class RemoveCenterForm(forms.Form):
             except Center.DoesNotExist:
                 raise forms.ValidationError(_(u"Center Number does not exist"))
             else:
-                center.remove()
                 return center

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Remove Center' %}</h1>
+
+<form name="remove-center-form" method="post" action="" onsubmit="return confirm('{% trans "Confirm that you want to apply this action!" %}');">
+    <table class="table table-bordered infotable">
+        <tr><th>{% trans 'Center:' %}</th><td>{{ object.code }}</td></tr>
+        <tr><th>{% trans 'Center type:' %}</th><td>{{ object.center_type_name }}</td></tr>
+        <tr><th>{% trans 'Latitude:' %}</th>
+            {% if object.latitude %}<td>{{ object.latitude }}</td>
+            {% else %}<td></td>
+            {% endif %}
+        </tr>
+        <tr><th>{% trans 'Longitude:' %}</th>
+            {% if object.longitude %}<td>{{ object.longitude }}</td>
+            {% else %}<td></td>
+            {% endif %}
+        </tr>
+        <tr><th>{% trans 'Mahalla:' %}</th><td>{{ object.mahalla }}</td></tr>
+        <tr><th>{% trans 'Name:' %}</th><td>{{ object.name }}</td></tr>
+        <tr><th>{% trans 'Office:' %}</th><td>{{ object.office }}</td></tr>
+        <tr><th>{% trans 'Region:' %}</th><td>{{ object.region }}</td></tr>
+        <tr><th>{% trans 'Village:' %}</th><td>{{ object.village }}</td></tr>
+        <tr><th>{% trans 'Status:' %}</th><td>{{ object.status }}</td></tr>
+    </table>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" name="accept_submit" class="btn btn-success">{% trans "Accept" %}</button>
+    <button type="submit" name="abort_submit" class="btn btn-danger">{% trans "Abort" %}</button>
+    {% csrf_token %}
+</form>
+
+{% endblock %}
