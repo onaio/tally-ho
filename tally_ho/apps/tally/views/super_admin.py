@@ -380,7 +380,7 @@ class DisableEntityView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         stationNumber = kwargs.get('stationNumber')
-        centerCode = kwargs.get('centerCode')
+        centerCode = kwargs.get('centerCode', None)
 
         entityName = u'Center' if not stationNumber else u'Station'
 
@@ -393,7 +393,8 @@ class DisableEntityView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         return self.render_to_response(
-            self.get_context_data(form=form))
+            self.get_context_data(form=form, entity=entityName.lower(),
+                                  entityName=entityName))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -424,7 +425,7 @@ class EnableEntityView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         stationNumber = kwargs.get('stationNumber')
-        centerCode = kwargs.get('centerCode')
+        centerCode = kwargs.get('centerCode', None)
 
         entityName = u'Center' if not stationNumber else u'Station'
 
