@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Remove Station' %}</h1>
+
+<form name="remove-station-form" method="post" action="" onsubmit="return confirm('{% trans "Confirm that you want to apply this action!" %}');">
+    <table class="table table-bordered infotable">
+        <tr><th>{% trans 'Center:' %}</th><td>{{ object.center_code }}</td></tr>
+        <tr><th>{% trans 'Station number:' %}</th><td>{{ object.station_number }}</td></tr>
+        <tr><th>{% trans 'Subconstituency:' %}</th><td>{{ object.sub_constituency_code }}</td></tr>
+        <tr><th>{% trans 'Gender:' %}</th><td>{{ object.gender_name }}</td></tr>
+        <tr><th>{% trans 'Percent Archived:' %}</th><td>{{ object.percent_archived }}</td></tr>
+        <tr><th>{% trans 'Percent Received:' %}</th><td>{{ object.percent_received }}</td></tr>
+        <tr><th>{% trans 'Registrants:' %}</th>
+            {% if object.registrants %}
+            <td>{{ object.registrants }}</td></tr>
+            {% else %}
+            <td></td>
+            {% endif %}
+        {% if object.active %}
+        <tr><th>{% trans 'Status:' %}</th><td>{{ object.station_status }}</td></tr>
+        {% else %}
+        <tr><th>{% trans 'Status:' %}</th><td>{{ object.station_status }}</td></tr>
+        <tr><th>{% trans 'Disable reason:' %}</th><td>{{ object.disable_reason_name }}</td></tr>
+        {% endif %}
+    </table>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" name="accept_submit" class="btn btn-success">{% trans "Accept" %}</button>
+    <button type="submit" name="abort_submit" class="btn btn-danger">{% trans "Abort" %}</button>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

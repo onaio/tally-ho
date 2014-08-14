@@ -16,7 +16,7 @@ disable_copy_input = {
     'class': 'form-control'
 }
 min_station_value = 1
-max_station_value = 53
+max_station_value = 102
 
 
 class RemoveStationForm(forms.Form):
@@ -65,7 +65,6 @@ class RemoveStationForm(forms.Form):
             center_number = self.cleaned_data.get('center_number')
             station_number = self.cleaned_data.get('station_number')
 
-            station = Station.objects.filter(
-                center__code=center_number, station_number=station_number)[0]
-            station.remove()
-            return station
+            station = Station.objects.filter(center__code=center_number,
+                                             station_number=station_number)
+            return station.first()

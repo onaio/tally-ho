@@ -502,7 +502,6 @@ class RemoveStationView(LoginRequiredMixin,
     form_class = RemoveStationForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/remove_station.html"
-    success_url = 'super-administrator'
     success_message = _(u"Station Successfully Removed.")
 
     def get(self, *args, **kwargs):
@@ -510,8 +509,7 @@ class RemoveStationView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         return self.render_to_response(
-            self.get_context_data(form=form, entity=entityName.lower(),
-                                  entityName=entityName))
+            self.get_context_data(form=form))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -523,7 +521,10 @@ class RemoveStationView(LoginRequiredMixin,
                 u"Successfully removed station %(station)s from "
                 u"center %(center)s." % {'center': station.center.code,
                                          'station': station.station_number})
-            return self.form_valid(form)
+            self.success_url = reverse('remove-station-confirmation',
+                                       kwargs={'centerCode': station.center_code,
+                                               'stationNumber': station.station_number})
+            return redirect(self.success_url)
         return self.form_invalid(form)
 
 
@@ -556,3 +557,102 @@ class QuarantineChecksConfigView(LoginRequiredMixin,
     def get_object(self, queryset=None):
         obj = QuarantineCheck.objects.get(id=self.kwargs['checkId'])
         return obj
+
+
+class RemoveStationConfirmationView(LoginRequiredMixin,
+                                    mixins.GroupRequiredMixin,
+                                    mixins.ReverseSuccessURLMixin,
+                                    SuccessMessageMixin,
+                                    DeleteView):
+    model = Station
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/remove_station_confirmation.html"
+    success_message = _(u"Station Successfully Removed.")
+
+    def get(self, request, *args, **kwargs):
+        center_code = kwargs.get('centerCode', None)
+        station_number = kwargs.get('stationNumber', None)
+
+        self.object = self.get_object(center_code, station_number)
+        context = self.get_context_data(object=self.object)
+        context['next'] = request.META.get('HTTP_REFERER', None)
+
+        return self.render_to_response(context)
+
+    def get_object(self, center_code, station_number):
+        return get_object_or_404(Station, center__code=center_code,
+                                 station_number=station_number)
+
+    def post(self, request, *args, **kwargs):
+        if 'abort_submit' in request.POST:
+            next_url = request.POST.get('next', None)
+
+            return redirect(next_url)
+        else:
+            return super(RemoveStationConfirmationView, self).post(request,
+                                                                   *args,
+                                                                   **kwargs)
+
+
+class EditStationView(LoginRequiredMixin,
+                      mixins.GroupRequiredMixin,
+                      mixins.ReverseSuccessURLMixin,
+                      SuccessMessageMixin,
+                      UpdateView):
+    form_class = EditStationForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/edit-station.html'
+    success_url = 'center-list'
+    success_message = _(u'Station Successfully Updated')
+
+    def get(self, *args, **kwargs):
+        station_number = kwargs.get('stationNumber', None)
+        center_code = kwargs.get('centerCode', None)
+        self.object = get_object_or_404(Station, center__code=center_code,
+                                        station_number=station_number)
+
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        context = self.get_context_data(object=self.object, form=form,
+                                        station_number=station_number,
+                                        center_code=center_code,
+                                        is_active=self.object.active,
+                                        center_is_active=self.object.center.active)
+
+        return self.render_to_response(context)
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def post(self, *args, **kwargs):
+        post_data = self.request.POST
+        center_code = post_data.get('center_code', '')
+        station_number = post_data.get('station_number', '')
+
+        if 'save_submit' in post_data:
+            station = get_object_or_404(Station, center__code=center_code,
+                                        station_number=station_number)
+
+            stationForm = EditStationForm(self.request.POST, instance=station)
+
+            if stationForm.is_valid():
+                self.object = stationForm.save()
+
+        elif 'enable_submit' in post_data:
+            self.success_url = reverse('enable',
+                                       kwargs={'centerCode': center_code,
+                                               'stationNumber': station_number})
+        elif 'disable_submit' in post_data:
+            self.success_url = reverse('disable',
+                                       kwargs={'centerCode': center_code,
+                                               'stationNumber': station_number})
+        elif 'delete_submit' in post_data:
+            self.success_url = reverse('remove-station-confirmation',
+                                       kwargs={'centerCode': center_code,
+                                               'stationNumber': station_number})
+        elif 'edit_submit' in post_data:
+            self.success_url = reverse('edit-centre',
+                                       kwargs={'centerCode': center_code})
+
+        return redirect(self.success_url)

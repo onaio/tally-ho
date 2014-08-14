@@ -8,13 +8,13 @@
 
 <div class="form-instructions">{% trans 'Enter the centre and station number to delete.' %}</div>
 
-<form name="remove-station-form" method="post" action="" onsubmit="return confirm('{% trans "Confirm that you want to delete the station!" %}');">
+<form name="remove-station-form" method="post" action="">
     {% if form.non_field_errors %}
     <div class="text-danger">
         {{ form.non_field_errors }}<br/>
     </div>
     {% endif %}
-    <table>
+    <table class="formtable">
         <tr>
             <td><label>{% trans form.center_number.label %}</label></td>
             <td>{{ form.center_number.errors }}
@@ -28,6 +28,7 @@
             </td>
         </tr>
         <tr>
+            <td></td>
             <td>
                 <button type="submit" name="submit" class="btn btn-primary">{% trans "Delete Station" %}</button>
             </td>
