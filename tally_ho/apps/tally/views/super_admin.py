@@ -9,6 +9,7 @@ from django.views.generic.edit import UpdateView, DeleteView
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
+from django.http import HttpResponseRedirect
 
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
@@ -692,7 +693,19 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
     model = Station
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/remove_station_confirmation.html"
+    success_url = 'center-list'
     success_message = _(u"Station Successfully Removed.")
+
+    def delete(self, request, *args, **kwargs):
+        center_code = kwargs.get('centerCode', None)
+        station_number = kwargs.get('stationNumber', None)
+
+        self.object = self.get_object(center_code, station_number)
+        success_url = self.get_success_url()
+
+        self.object.delete()
+
+        return HttpResponseRedirect(success_url)
 
     def get(self, request, *args, **kwargs):
         center_code = kwargs.get('centerCode', None)
@@ -780,6 +793,7 @@ class EditStationView(LoginRequiredMixin,
             self.success_url = reverse('edit-centre',
                                        kwargs={'centerCode': center_code})
 
+        return redirect(self.success_url)
 
 class EnableCandidateView(LoginRequiredMixin,
                           mixins.GroupRequiredMixin,
