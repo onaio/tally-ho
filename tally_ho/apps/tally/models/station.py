@@ -12,8 +12,8 @@ from tally_ho.libs.models.dependencies import check_results_for_forms
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.utils.numbers import rounded_safe_div_percent
-from tally_ho.libs.utils.templates import getActiveCenterLink
-from tally_ho.libs.utils.templates import getActiveStationLink
+from tally_ho.libs.utils.templates import getEditCenterLink
+from tally_ho.libs.utils.templates import getEditStationLink
 from tally_ho.libs.models.enums.disable_reason import DisableReason
 
 
@@ -49,12 +49,20 @@ class Station(BaseModel):
         return self.center.name if self.center else None
 
     @property
-    def center_active(self):
-        return getActiveCenterLink(self) if self.center else None
+    def center_edit(self):
+        return getEditCenterLink(self) if self.center else None
 
     @property
-    def station_active(self):
-        return getActiveStationLink(self) if self else None
+    def station_edit(self):
+        return getEditStationLink(self) if self else None
+
+    @property
+    def station_status(self):
+        return ('Enabled' if self.active else 'Disabled') if self else None
+
+    @property
+    def center_status(self):
+        return ('Enabled' if self.center.active else 'Disabled') if self else None
 
     @property
     def center_office(self):
@@ -73,6 +81,10 @@ class Station(BaseModel):
     @property
     def sub_constituency_code(self):
         return self.sub_constituency.code if self.sub_constituency else None
+
+    @property
+    def disable_reason_name(self):
+        return DisableReason.text_equivalents[self.disable_reason]
 
     def cache_archived_and_received(self):
         """Store the cached archived and received form percentages for this
