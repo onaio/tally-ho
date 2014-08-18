@@ -224,6 +224,54 @@ def import_stations(tally = None, stations_file = None):
                 station_number=station_number)
 
 
+def import_candidates(tally = None, candidates_file = None, ballot_file = None):
+    candidates_file_to_parse = candidates_file  if candidates_file else open(CANDIDATES_PATH, 'rU')
+    ballot_file_to_parse = ballot_file if ballot_file else open(BALLOT_ORDER_PATH, 'rU')
+
+    id_to_ballot_order = {}
+
+    with ballot_file_to_parse as f:
+        reader = csv.reader(f)
+        reader.next()  # ignore header
+
+        for row in reader:
+            id_, ballot_number = row
+            id_to_ballot_order[id_] = ballot_number
+
+    with candidates_file_to_parse as f:
+        reader = csv.reader(f)
+        reader.next()  # ignore header
+
+        for row in reader:
+            candidate_id = row[0]
+            code = row[7]
+            full_name = row[14]
+            race_code = row[18]
+
+            race_type = get_race_type(race_code)
+
+            try:
+                sub_constituency = SubConstituency.objects.get(
+                    code=code, tally=tally)
+
+                if race_type != RaceType.WOMEN:
+                    ballot = sub_constituency.ballot_general
+                else:
+                    ballot = sub_constituency.ballot_women
+
+            except SubConstituency.DoesNotExist:
+                ballot = Ballot.objects.get(number=code, tally=tally)
+                sub_constituency = ballot.sc_component
+
+            _, created = Candidate.objects.get_or_create(
+                ballot=ballot,
+                candidate_id=candidate_id,
+                full_name=unicode(full_name, 'utf-8'),
+                order=id_to_ballot_order[candidate_id],
+                race_type=race_type,
+                tally=tally)
+
+
 class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
 
@@ -245,49 +293,6 @@ class Command(BaseCommand):
 
         print '[INFO] import result forms'
         self.import_result_forms(RESULT_FORMS_PATH)
-
-    def import_candidates(self):
-        id_to_ballot_order = {}
-
-        with open(BALLOT_ORDER_PATH, 'rU') as f:
-            reader = csv.reader(f)
-            reader.next()  # ignore header
-
-            for row in reader:
-                id_, ballot_number = row
-                id_to_ballot_order[id_] = ballot_number
-
-        with open(CANDIDATES_PATH, 'rU') as f:
-            reader = csv.reader(f)
-            reader.next()  # ignore header
-
-            for row in reader:
-                candidate_id = row[0]
-                code = row[7]
-                full_name = row[14]
-                race_code = row[18]
-
-                race_type = get_race_type(race_code)
-
-                try:
-                    sub_constituency = SubConstituency.objects.get(
-                        code=code)
-
-                    if race_type != RaceType.WOMEN:
-                        ballot = sub_constituency.ballot_general
-                    else:
-                        ballot = sub_constituency.ballot_women
-
-                except SubConstituency.DoesNotExist:
-                    ballot = Ballot.objects.get(number=code)
-                    sub_constituency = ballot.sc_component
-
-                _, created = Candidate.objects.get_or_create(
-                    ballot=ballot,
-                    candidate_id=candidate_id,
-                    full_name=full_name,
-                    order=id_to_ballot_order[candidate_id],
-                    race_type=race_type)
 
     def import_result_forms(self, path):
         replacement_count = 0

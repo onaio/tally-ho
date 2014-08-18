@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1>{% trans 'Quarantine checks List' %}</h1>
+<h1>{% trans 'Create tally' %}</h1>
 
 {% if messages %}
 <ul class="text-info">
@@ -47,6 +47,20 @@
             <td>
                 {{ form.stations_file.errors }}
                 {{ form.stations_file }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans form.candidates_file.label %}:</td>
+            <td>
+                {{ form.candidates_file.errors }}
+                {{ form.candidates_file }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans form.ballots_order_file.label %}:</td>
+            <td>
+                {{ form.ballots_order_file.errors }}
+                {{ form.ballots_order_file }}
             </td>
         </tr>
     </table>
