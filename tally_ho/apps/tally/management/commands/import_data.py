@@ -73,6 +73,115 @@ def strip_non_numeric(string):
     except ValueError:
         return None
 
+def import_sub_constituencies_and_ballots(tally = None, subconst_file = None):
+    file_to_parse = subconst_file if subconst_file else open(SUB_CONSTITUENCIES_PATH, 'rU')
+
+    with file_to_parse as f:
+        reader = csv.reader(f)
+        reader.next()  # ignore header
+
+        for row in reader:
+            if invalid_line(row):
+                next
+
+            row = empty_strings_to_none(row)
+
+            try:
+                code_value, field_office, races, ballot_number_general,\
+                    ballot_number_women, number_of_ballots,\
+                    ballot_number_component = row[:7]
+
+                code_value = int(code_value)
+                number_of_ballots = number_of_ballots and int(
+                    number_of_ballots)
+
+                ballot_component = None
+                ballot_general = None
+                ballot_women = None
+
+                if ballot_number_component:
+                    component_race_type = get_component_race_type(
+                        ballot_number_component,
+                        tally=tally)
+
+                    ballot_component, _ = Ballot.objects.get_or_create(
+                        number=int(ballot_number_component),
+                        race_type=component_race_type,
+                        tally=tally)
+
+                if ballot_number_general:
+                    ballot_general, _ = Ballot.objects.get_or_create(
+                        number=int(ballot_number_general),
+                        race_type=RaceType.GENERAL,
+                        tally=tally)
+
+                if ballot_number_women:
+                    ballot_women, _ = Ballot.objects.get_or_create(
+                        number=int(ballot_number_women),
+                        race_type=RaceType.WOMEN,
+                        tally=tally)
+
+                if number_of_ballots == 2 and not (
+                        ballot_general and ballot_women):
+                    raise Exception(
+                        'Missing ballot data: expected 2 ballots, missing '
+                        + ('general' if ballot_number_women else 'women'))
+
+                _, created = SubConstituency.objects.get_or_create(
+                    code=code_value,
+                    field_office=field_office,
+                    races=races,
+                    ballot_component=ballot_component,
+                    ballot_general=ballot_general,
+                    ballot_women=ballot_women,
+                    number_of_ballots=number_of_ballots,
+                    tally=tally)
+
+            except ValueError:
+                pass
+
+
+def import_centers(tally = None, centers_file = None):
+    file_to_parse = centers_file if centers_file else open(CENTERS_PATH, 'rU')
+
+    with file_to_parse as f:
+        reader = csv.reader(f)
+        reader.next()  # ignore header
+
+        for row in reader:
+            if not invalid_line(row):
+                sc_code = row[6]
+                sub_constituency = None
+
+                if sc_code == SPECIAL_VOTING:
+                    center_type = CenterType.SPECIAL
+                else:
+                    sc_code = int(row[6])
+                    sub_constituency = SubConstituency.objects.get(
+                        code=sc_code)
+                    center_type = CenterType.GENERAL
+
+                try:
+                    office_number = int(row[3])
+                except ValueError:
+                    office_number = None
+
+                office, _ = Office.objects.get_or_create(
+                    number=office_number,
+                    name=row[4].strip())
+
+                Center.objects.get_or_create(
+                    region=row[1],
+                    code=row[2],
+                    office=office,
+                    sub_constituency=sub_constituency,
+                    name=row[8],
+                    mahalla=row[9],
+                    village=row[10],
+                    center_type=center_type,
+                    longitude=strip_non_numeric(row[12]),
+                    latitude=strip_non_numeric(row[13]))
+
 
 class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
@@ -82,10 +191,10 @@ class Command(BaseCommand):
         create_permission_groups()
 
         print '[INFO] import sub constituencies'
-        self.import_sub_constituencies_and_ballots()
+        import_sub_constituencies_and_ballots()
 
         print '[INFO] import centers'
-        self.import_centers()
+        import_centers()
 
         print '[INFO] import stations'
         self.import_stations()
@@ -95,105 +204,6 @@ class Command(BaseCommand):
 
         print '[INFO] import result forms'
         self.import_result_forms(RESULT_FORMS_PATH)
-
-    def import_sub_constituencies_and_ballots(self):
-        with open(SUB_CONSTITUENCIES_PATH, 'rU') as f:
-            reader = csv.reader(f)
-            reader.next()  # ignore header
-
-            for row in reader:
-                if invalid_line(row):
-                    next
-
-                row = empty_strings_to_none(row)
-
-                try:
-                    code_value, field_office, races, ballot_number_general,\
-                        ballot_number_women, number_of_ballots,\
-                        ballot_number_component = row[:7]
-
-                    code_value = int(code_value)
-                    number_of_ballots = number_of_ballots and int(
-                        number_of_ballots)
-
-                    ballot_component = None
-                    ballot_general = None
-                    ballot_women = None
-
-                    if ballot_number_component:
-                        component_race_type = get_component_race_type(
-                            ballot_number_component)
-
-                        ballot_component, _ = Ballot.objects.get_or_create(
-                            number=ballot_number_component,
-                            race_type=component_race_type)
-
-                    if ballot_number_general:
-                        ballot_general, _ = Ballot.objects.get_or_create(
-                            number=ballot_number_general,
-                            race_type=RaceType.GENERAL)
-
-                    if ballot_number_women:
-                        ballot_women, _ = Ballot.objects.get_or_create(
-                            number=ballot_number_women,
-                            race_type=RaceType.WOMEN)
-
-                    if number_of_ballots == 2 and not (
-                            ballot_general and ballot_women):
-                        raise Exception(
-                            'Missing ballot data: expected 2 ballots, missing '
-                            + ('general' if ballot_number_women else 'women'))
-
-                    _, created = SubConstituency.objects.get_or_create(
-                        code=code_value,
-                        field_office=field_office,
-                        races=races,
-                        ballot_component=ballot_component,
-                        ballot_general=ballot_general,
-                        ballot_women=ballot_women,
-                        number_of_ballots=number_of_ballots)
-
-                except ValueError:
-                    pass
-
-    def import_centers(self):
-        with open(CENTERS_PATH, 'rU') as f:
-            reader = csv.reader(f)
-            reader.next()  # ignore header
-
-            for row in reader:
-                if not invalid_line(row):
-                    sc_code = row[6]
-                    sub_constituency = None
-
-                    if sc_code == SPECIAL_VOTING:
-                        center_type = CenterType.SPECIAL
-                    else:
-                        sc_code = int(row[6])
-                        sub_constituency = SubConstituency.objects.get(
-                            code=sc_code)
-                        center_type = CenterType.GENERAL
-
-                    try:
-                        office_number = int(row[3])
-                    except ValueError:
-                        office_number = None
-
-                    office, _ = Office.objects.get_or_create(
-                        number=office_number,
-                        name=row[4].strip())
-
-                    Center.objects.get_or_create(
-                        region=row[1],
-                        code=row[2],
-                        office=office,
-                        sub_constituency=sub_constituency,
-                        name=row[8],
-                        mahalla=row[9],
-                        village=row[10],
-                        center_type=center_type,
-                        longitude=strip_non_numeric(row[12]),
-                        latitude=strip_non_numeric(row[13]))
 
     def import_stations(self):
         with open(STATIONS_PATH, 'rU') as f:
