@@ -11,5 +11,4 @@ class Tally(BaseModel):
 
     name = models.CharField(max_length=255, null=False, blank=False)
     active = models.BooleanField(default=True)
-    election_date = models.DateField(null=False, blank=False)
     disable_reason = enum.EnumField(DisableReason, null=True)
