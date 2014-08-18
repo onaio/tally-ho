@@ -158,7 +158,8 @@ def import_centers(tally = None, centers_file = None):
                 else:
                     sc_code = int(row[6])
                     sub_constituency = SubConstituency.objects.get(
-                        code=sc_code)
+                        code=sc_code,
+                        tally=tally)
                     center_type = CenterType.GENERAL
 
                 try:
@@ -168,19 +169,21 @@ def import_centers(tally = None, centers_file = None):
 
                 office, _ = Office.objects.get_or_create(
                     number=office_number,
-                    name=row[4].strip())
+                    name=row[4].strip(),
+                    tally=tally)
 
                 Center.objects.get_or_create(
                     region=row[1],
                     code=row[2],
                     office=office,
                     sub_constituency=sub_constituency,
-                    name=row[8],
+                    name=unicode(row[8], 'utf-8'),
                     mahalla=row[9],
                     village=row[10],
                     center_type=center_type,
                     longitude=strip_non_numeric(row[12]),
-                    latitude=strip_non_numeric(row[13]))
+                    latitude=strip_non_numeric(row[13]),
+                    tally=tally)
 
 
 class Command(BaseCommand):

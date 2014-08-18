@@ -5,7 +5,8 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.libs.views import mixins
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.import_data import import_sub_constituencies_and_ballots
+from tally_ho.apps.tally.management.commands.import_data import import_sub_constituencies_and_ballots, \
+        import_centers
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.forms.tally_form import TallyForm
 
@@ -33,5 +34,7 @@ class CreateTallyView(LoginRequiredMixin,
         tally = Tally.objects.create(name = self.request.POST['name'])
 
         import_sub_constituencies_and_ballots(tally, self.request.FILES['subconst_file'])
+
+        import_centers(tally, self.request.FILES['centers_file'])
 
         return redirect(self.success_url)

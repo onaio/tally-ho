@@ -14,7 +14,7 @@ disable_copy_input = {
 class TallyForm(forms.Form):
     name = forms.CharField(label='Tally name', required=True)
     subconst_file = forms.FileField(label='Subconstituency file', required=True)
-    #centers_file = forms.FileField(label='Centers file', required=True)
+    centers_file = forms.FileField(label='Centers file', required=True)
     #stations_file = forms.FileField(label='Stations file', required=True)
 
     def __init__(self, *args, **kargs):

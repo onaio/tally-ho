@@ -35,6 +35,13 @@
                 {{ form.subconst_file }}
             </td>
         </tr>
+        <tr>
+            <td>{% trans form.centers_file.label %}:</td>
+            <td>
+                {{ form.centers_file.errors }}
+                {{ form.centers_file }}
+            </td>
+        </tr>
     </table>
     <input type="hidden" name="result_form" value="{{ form.pk }}">
     <button class="btn btn-success btn-small" type="submit" name="submit">
