@@ -10,6 +10,7 @@ import reversion
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.clearance_resolution import CLEARANCE_CHOICES
 from tally_ho.libs.models.enums.form_state import FormState
@@ -134,6 +135,7 @@ def clean_reconciliation_forms(recon_queryset):
 class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
+        unique_together = (('barcode', 'tally'), ('serial_number', 'tally'))
 
     START_BARCODE = 10000000
     OCV_CENTER_MIN = 80001
@@ -145,7 +147,7 @@ class ResultForm(BaseModel):
                                      related_name='created_user')
 
     audited_count = models.PositiveIntegerField(default=0)
-    barcode = models.CharField(max_length=255, unique=True)
+    barcode = models.CharField(max_length=255)
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
     form_state = enum.EnumField(FormState)
@@ -153,12 +155,13 @@ class ResultForm(BaseModel):
     name = models.CharField(max_length=256, null=True)
     office = models.ForeignKey(Office, blank=True, null=True)
     rejected_count = models.PositiveIntegerField(default=0)
-    serial_number = models.PositiveIntegerField(unique=True, null=True)
+    serial_number = models.PositiveIntegerField(null=True)
     skip_quarantine_checks = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
     is_replacement = models.BooleanField(default=False)
     intake_printed = models.BooleanField(default=False)
     clearance_printed = models.BooleanField(default=False)
+    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='result_forms')
 
     # Field used in result duplicated list view
     results_duplicated = []
