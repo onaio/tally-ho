@@ -4,6 +4,7 @@ from django_enumfield import enum
 from django.db.models import Q
 import reversion
 
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.entry_version import EntryVersion
@@ -23,6 +24,7 @@ class Candidate(BaseModel):
     order = models.PositiveSmallIntegerField()
     race_type = enum.EnumField(RaceType)
     active = models.BooleanField(default=True)
+    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='candidates')
 
     @property
     def race_type_name(self):
@@ -83,8 +85,8 @@ class Candidate(BaseModel):
             entry_version=EntryVersion.FINAL,
             active=True)
 
-        results = results.filter(Q(result_form__form_state = FormState.ARCHIVED) |
-                Q(result_form__form_state = FormState.AUDIT))
+        results = results.filter(Q(result_form__form_state=FormState.ARCHIVED) |
+                                 Q(result_form__form_state=FormState.AUDIT))
 
         results = results.distinct('entry_version', 'active', 'result_form')
 
@@ -98,7 +100,7 @@ class Candidate(BaseModel):
         """
         results = self.results.filter(
             entry_version=EntryVersion.FINAL,
-            result_form__form_state = FormState.AUDIT,
+            result_form__form_state=FormState.AUDIT,
             active=True)
 
         results = results.distinct('entry_version', 'active', 'result_form')

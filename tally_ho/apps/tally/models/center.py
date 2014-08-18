@@ -3,6 +3,7 @@ from django.utils.translation import ugettext as _
 from django_enumfield import enum
 import reversion
 
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.base_model import BaseModel
@@ -30,6 +31,7 @@ class Center(BaseModel):
     village = models.TextField()
     active = models.BooleanField(default=True)
     disable_reason = enum.EnumField(DisableReason, null=True)
+    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='centers')
 
     def remove(self):
         """Remove this center and related information.

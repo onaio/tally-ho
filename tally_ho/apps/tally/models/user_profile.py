@@ -1,10 +1,15 @@
+import reversion
+
 from django.contrib.auth.models import User
 from django.db import models
-import reversion
+
+from tally_ho.apps.tally.models.tally import Tally
 
 
 class UserProfile(User):
     reset_password = models.BooleanField(default=True)
+    administrated_tallies = models.ManyToManyField(Tally, blank=True, null=True, default=None, related_name='administrators')
+    tally = models.ForeignKey(Tally, blank=True, null=True, related_name='users')
 
     class Meta:
         app_label = 'tally'
