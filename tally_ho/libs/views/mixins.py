@@ -43,8 +43,14 @@ class GroupRequiredMixin(object):
         # super admin skips group check
         user_groups = groups.user_groups(self.request.user)
 
-        return groups.SUPER_ADMINISTRATOR in user_groups or\
-            set(listify(allowed_groups)) & set(user_groups)
+        if len(listify(allowed_groups)) == 1 and \
+                groups.TALLY_MANAGER in listify(allowed_groups):
+            return groups.TALLY_MANAGER in user_groups;
+
+        else:
+            return groups.TALLY_MANAGER in user_groups or\
+                    groups.SUPER_ADMINISTRATOR in user_groups or\
+                    set(listify(allowed_groups)) & set(user_groups)
 
     def dispatch(self, request, *args, **kwargs):
         self.request = request
