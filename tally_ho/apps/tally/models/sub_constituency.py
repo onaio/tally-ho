@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 import reversion
 
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.models.base_model import BaseModel
 
@@ -20,6 +21,7 @@ class SubConstituency(BaseModel):
     field_office = models.CharField(max_length=256)
     number_of_ballots = models.PositiveSmallIntegerField(null=True)
     races = models.PositiveSmallIntegerField(null=True)
+    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='sub_constituencies')
 
     @property
     def form_type(self):
