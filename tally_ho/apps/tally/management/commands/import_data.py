@@ -186,6 +186,44 @@ def import_centers(tally = None, centers_file = None):
                     tally=tally)
 
 
+def import_stations(tally = None, stations_file = None):
+    file_to_parse = stations_file if stations_file else open(STATIONS_PATH, 'rU')
+
+    with file_to_parse as f:
+        reader = csv.reader(f)
+        reader.next()  # ignore header
+
+        for row in reader:
+            center_code, center_name, sc_code, station_number, gender,\
+                registrants = row[0:6]
+
+            try:
+                center = Center.objects.get(code=center_code, tally=tally)
+            except Center.DoesNotExist:
+                center, created = Center.objects.get_or_create(
+                    code=center_code,
+                    name=unicode(center_name, 'utf-8'),
+                    tally=tally)
+
+            try:
+                # attempt to convert SC to a number
+                sc_code = int(float(sc_code))
+                sub_constituency = SubConstituency.objects.get(
+                    code=sc_code, tally=tally)
+            except (SubConstituency.DoesNotExist, ValueError):
+                print('[WARNING] SubConstituency "%s" does not exist' %
+                      sc_code)
+
+            gender = getattr(Gender, gender.upper())
+
+            _, created = Station.objects.get_or_create(
+                center=center,
+                sub_constituency=sub_constituency,
+                gender=gender,
+                registrants=empty_string_to(registrants, None),
+                station_number=station_number)
+
+
 class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
 
@@ -200,47 +238,13 @@ class Command(BaseCommand):
         import_centers()
 
         print '[INFO] import stations'
-        self.import_stations()
+        import_stations()
 
         print '[INFO] import candidates'
         self.import_candidates()
 
         print '[INFO] import result forms'
         self.import_result_forms(RESULT_FORMS_PATH)
-
-    def import_stations(self):
-        with open(STATIONS_PATH, 'rU') as f:
-            reader = csv.reader(f)
-            reader.next()  # ignore header
-
-            for row in reader:
-                center_code, center_name, sc_code, station_number, gender,\
-                    registrants = row[0:6]
-
-                try:
-                    center = Center.objects.get(code=center_code)
-                except Center.DoesNotExist:
-                    center, created = Center.objects.get_or_create(
-                        code=center_code,
-                        name=center_name)
-
-                try:
-                    # attempt to convert SC to a number
-                    sc_code = int(float(sc_code))
-                    sub_constituency = SubConstituency.objects.get(
-                        code=sc_code)
-                except (SubConstituency.DoesNotExist, ValueError):
-                    print('[WARNING] SubConstituency "%s" does not exist' %
-                          sc_code)
-
-                gender = getattr(Gender, gender.upper())
-
-                _, created = Station.objects.get_or_create(
-                    center=center,
-                    sub_constituency=sub_constituency,
-                    gender=gender,
-                    registrants=empty_string_to(registrants, None),
-                    station_number=station_number)
 
     def import_candidates(self):
         id_to_ballot_order = {}

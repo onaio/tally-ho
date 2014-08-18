@@ -42,6 +42,13 @@
                 {{ form.centers_file }}
             </td>
         </tr>
+        <tr>
+            <td>{% trans form.stations_file.label %}:</td>
+            <td>
+                {{ form.stations_file.errors }}
+                {{ form.stations_file }}
+            </td>
+        </tr>
     </table>
     <input type="hidden" name="result_form" value="{{ form.pk }}">
     <button class="btn btn-success btn-small" type="submit" name="submit">

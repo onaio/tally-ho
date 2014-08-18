@@ -6,9 +6,10 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.libs.views import mixins
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.management.commands.import_data import import_sub_constituencies_and_ballots, \
-        import_centers
+        import_centers, import_stations
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.forms.tally_form import TallyForm
+
 
 class DashboardView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
@@ -21,6 +22,7 @@ class DashboardView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             groups=group_logins))
+
 
 class CreateTallyView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
@@ -36,5 +38,7 @@ class CreateTallyView(LoginRequiredMixin,
         import_sub_constituencies_and_ballots(tally, self.request.FILES['subconst_file'])
 
         import_centers(tally, self.request.FILES['centers_file'])
+
+        import_stations(tally, self.request.FILES['stations_file'])
 
         return redirect(self.success_url)
