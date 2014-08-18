@@ -280,6 +280,8 @@ urlpatterns = patterns(
 
     url(r'^tally-manager$',
         tally_manager.DashboardView.as_view(), name='tally-manager'),
+    url(r'^tally-manager/create-tally$',
+        tally_manager.CreateTallyView.as_view(), name='create-tally'),
 
     url(r'^operation-not-allowed',
         home.suspicious_error, name='suspicious-error'),
