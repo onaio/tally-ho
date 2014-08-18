@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Dashboard' %}</h1>
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<h3>{% trans 'Data views' %}</h3>
+<ul>
+    <li><a href="">{% trans 'Tallies List' %}</a></li>
+</ul>
+
+
+<h3>{% trans 'Other Operations' %}</h3>
+<ul>
+    <li><a href="">{% trans 'Remove a Tally' %}</a></li>
+</ul>
+
+{% if debug %}
+<h3>{% trans 'Users and groups' %}</h3>
+
+<h4>{% trans 'Demo groups and passwords (formatted as login/pass):' %}</h4>
+<ul>
+    {% for group in groups %}
+    <li>{{ group }}/data</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}

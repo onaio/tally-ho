@@ -7,7 +7,7 @@ from tally_ho.apps.tally.forms.login_form import LoginForm
 from tally_ho.apps.tally.forms.password_change import PasswordChangeForm
 from tally_ho.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
-    super_admin, profile
+    super_admin, profile, tally_manager
 from tally_ho.apps.tally.views.data import center_list_view, form_list_view,\
     candidate_list_view, race_list_view
 from tally_ho.apps.tally.views.reports import offices
@@ -277,6 +277,9 @@ urlpatterns = patterns(
     url(r'^reports/internal/race',
         races.RacesReportView.as_view(),
         name='reports-races'),
+
+    url(r'^tally-manager$',
+        tally_manager.DashboardView.as_view(), name='tally-manager'),
 
     url(r'^operation-not-allowed',
         home.suspicious_error, name='suspicious-error'),
