@@ -150,6 +150,44 @@ def import_sub_constituencies_and_ballots(tally = None, subconst_file = None):
     return elements_processed
 
 
+def process_center_row(tally, row):
+    if not invalid_line(row):
+        sc_code = row[6]
+        sub_constituency = None
+
+        if sc_code == SPECIAL_VOTING:
+            center_type = CenterType.SPECIAL
+        else:
+            sc_code = int(row[6])
+            sub_constituency = SubConstituency.objects.get(
+                code=sc_code,
+                tally=tally)
+            center_type = CenterType.GENERAL
+
+        try:
+            office_number = int(row[3])
+        except ValueError:
+            office_number = None
+
+        office, _ = Office.objects.get_or_create(
+            number=office_number,
+            name=row[4].strip(),
+            tally=tally)
+
+        Center.objects.get_or_create(
+            region=row[1],
+            code=row[2],
+            office=office,
+            sub_constituency=sub_constituency,
+            name=unicode(row[8], 'utf-8'),
+            mahalla=row[9],
+            village=row[10],
+            center_type=center_type,
+            longitude=strip_non_numeric(row[12]),
+            latitude=strip_non_numeric(row[13]),
+            tally=tally)
+
+
 def import_centers(tally = None, centers_file = None):
     file_to_parse = centers_file if centers_file else open(CENTERS_PATH, 'rU')
 
@@ -158,41 +196,7 @@ def import_centers(tally = None, centers_file = None):
         reader.next()  # ignore header
 
         for row in reader:
-            if not invalid_line(row):
-                sc_code = row[6]
-                sub_constituency = None
-
-                if sc_code == SPECIAL_VOTING:
-                    center_type = CenterType.SPECIAL
-                else:
-                    sc_code = int(row[6])
-                    sub_constituency = SubConstituency.objects.get(
-                        code=sc_code,
-                        tally=tally)
-                    center_type = CenterType.GENERAL
-
-                try:
-                    office_number = int(row[3])
-                except ValueError:
-                    office_number = None
-
-                office, _ = Office.objects.get_or_create(
-                    number=office_number,
-                    name=row[4].strip(),
-                    tally=tally)
-
-                Center.objects.get_or_create(
-                    region=row[1],
-                    code=row[2],
-                    office=office,
-                    sub_constituency=sub_constituency,
-                    name=unicode(row[8], 'utf-8'),
-                    mahalla=row[9],
-                    village=row[10],
-                    center_type=center_type,
-                    longitude=strip_non_numeric(row[12]),
-                    latitude=strip_non_numeric(row[13]),
-                    tally=tally)
+            process_center_row(tally, row)
 
 
 def import_stations(tally = None, stations_file = None):
