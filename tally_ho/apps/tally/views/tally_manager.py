@@ -14,7 +14,8 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.libs.views import mixins
 from tally_ho.libs.permissions import groups
-from tally_ho.apps.tally.management.commands.import_data import process_sub_constituency_row
+from tally_ho.apps.tally.management.commands.import_data import process_sub_constituency_row, \
+        process_center_row
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.forms.tally_form import TallyForm
 
@@ -66,43 +67,20 @@ class CreateTallyView(LoginRequiredMixin,
             for chunk in self.request.FILES['subconst_file'].chunks():
                 destination.write(chunk)
 
-            subconst_file_lines = sum(1 for line in destination)
+            reader = csv.reader(self.request.FILES['subconst_file'])
+            subconst_file_lines = sum(1 for line in reader)
 
-        #import time
+        centers_file = 'centers_' + str(tally.id) + '.csv'
+        with open(UPLOADED_FILES_PATH + centers_file, 'wb+') as destination2:
+            for chunk in self.request.FILES['centers_file'].chunks():
+                destination2.write(chunk)
 
-        #before = time.time()
+            reader = csv.reader(self.request.FILES['centers_file'])
+            centers_file_lines = sum(1 for line in reader)
 
-        #import_sub_constituencies_and_ballots(tally, self.request.FILES['subconst_file'])
-
-        #sub_time = time.time()
-        #print "Subcontituencies created in %s seconds" % (str(sub_time - before))
-
-        #import_centers(tally, self.request.FILES['centers_file'])
-
-        #centers_time = time.time()
-        #print "Centers created in %s seconds" % (str(centers_time - sub_time))
-
-        #import_stations(tally, self.request.FILES['stations_file'])
-
-        #stations_time = time.time()
-        #print "Stations created in %s seconds" % (str(stations_time - centers_time))
-
-        #import_candidates(tally, self.request.FILES['candidates_file'], self.request.FILES['ballots_order_file'])
-
-        #candidates_time = time.time()
-        #print "Candidates created in %s seconds" % (str(candidates_time - stations_time))
-
-        #import_result_forms(tally, self.request.FILES['result_forms_file'])
-
-        #forms_time = time.time()
-        #print "Result forms created in %s seconds" % (str(forms_time - candidates_time))
-
-        #final = time.time() - before
-
-        #print "Final: " + str(final)
-
-        #self.success_message = _(u"Tally created successfully.")
-        url_kwargs = {'tally_id': tally.id, 'subconst_file': subconst_file, 'subconst_file_lines': subconst_file_lines}
+        url_kwargs = {'tally_id': tally.id, 'subconst_file': subconst_file,
+                'subconst_file_lines': subconst_file_lines, 'centers_file': centers_file,
+                'centers_file_lines': centers_file_lines}
         return HttpResponseRedirect(reverse(self.success_url, kwargs=url_kwargs))
 
 
@@ -114,10 +92,9 @@ class BatchView(LoginRequiredMixin,
     template_name = "tally_manager/batch_progress.html"
 
     def get(self, request, *args, **kwargs):
-        kwargs['current_step'] = 'step1'
+        #kwargs['current_step'] = 'step1'
         kwargs['offset'] = 0
-        context = self.get_context_data(**kwargs)
-        return self.render_to_response(context)
+        return super(BatchView, self).get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         try:
@@ -125,12 +102,19 @@ class BatchView(LoginRequiredMixin,
         except Tally.DoesNotExist:
             tally = None
 
-        offset = request.POST.get('offset', 0)
+        offset = int(request.POST.get('offset', 0))
+        currentStep = int(request.POST.get('step', 1))
 
-        subconst_file = open(UPLOADED_FILES_PATH + kwargs['subconst_file'], 'rU')
-        subconst_file_lines = kwargs['subconst_file_lines']
+        if currentStep == 1:
+            subconst_file = open(UPLOADED_FILES_PATH + kwargs['subconst_file'], 'rU')
+            subconst_file_lines = int(kwargs['subconst_file_lines'])
 
-        elements_processed = import_sub_constituencies_and_ballots(tally, subconst_file, int(subconst_file_lines), int(offset))
+            elements_processed = import_sub_constituencies_and_ballots(tally, subconst_file, subconst_file_lines, offset)
+        elif  currentStep == 2:
+            centers_file = open(UPLOADED_FILES_PATH + kwargs['centers_file'], 'rU')
+            centers_file_lines = int(kwargs['centers_file_lines'])
+
+            elements_processed = import_centers(tally, centers_file, centers_file_lines, offset)
 
         return HttpResponse(json.dumps({'status': 'OK', 'elements_processed': elements_processed}), content_type='application/json')
 
@@ -143,14 +127,27 @@ def import_sub_constituencies_and_ballots(tally, file_to_parse, file_lines, offs
 
         count = 0
         for row in reader:
-            print "Num: " + str(count)
-            print "Offset: " + str(offset)
-            print "%d >= %d and %d < (%d + %d)" % (count, offset, count, offset, BATCH_BLOCK_SIZE)
-            print "==================="
             if count >= offset and count < (offset + BATCH_BLOCK_SIZE):
                 count += 1
                 process_sub_constituency_row(tally, row)
 
                 elements_processed += 1
+
+    return elements_processed
+
+def import_centers(tally, file_to_parse, file_lines, offset):
+    elements_processed = 0;
+
+    with file_to_parse as f:
+        reader = csv.reader(f)
+
+        count = 0
+        for line, row in enumerate(reader):
+            if count >= offset and count < (offset + BATCH_BLOCK_SIZE):
+                if line != 0:
+                    process_center_row(tally, row)
+
+                elements_processed += 1
+            count += 1
 
     return elements_processed
