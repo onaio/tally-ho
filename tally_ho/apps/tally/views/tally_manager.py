@@ -109,33 +109,18 @@ class BatchView(LoginRequiredMixin,
             subconst_file = open(UPLOADED_FILES_PATH + kwargs['subconst_file'], 'rU')
             subconst_file_lines = int(kwargs['subconst_file_lines'])
 
-            elements_processed = import_sub_constituencies_and_ballots(tally, subconst_file, subconst_file_lines, offset)
+            elements_processed = import_rows_batch(tally, subconst_file, subconst_file_lines, offset, process_sub_constituency_row)
+
         elif  currentStep == 2:
             centers_file = open(UPLOADED_FILES_PATH + kwargs['centers_file'], 'rU')
             centers_file_lines = int(kwargs['centers_file_lines'])
 
-            elements_processed = import_centers(tally, centers_file, centers_file_lines, offset)
+            elements_processed = import_rows_batch(tally, centers_file, centers_file_lines, offset, process_center_row)
 
         return HttpResponse(json.dumps({'status': 'OK', 'elements_processed': elements_processed}), content_type='application/json')
 
 
-def import_sub_constituencies_and_ballots(tally, file_to_parse, file_lines, offset):
-    elements_processed = 0;
-
-    with file_to_parse as f:
-        reader = csv.reader(f)
-
-        count = 0
-        for row in reader:
-            if count >= offset and count < (offset + BATCH_BLOCK_SIZE):
-                count += 1
-                process_sub_constituency_row(tally, row)
-
-                elements_processed += 1
-
-    return elements_processed
-
-def import_centers(tally, file_to_parse, file_lines, offset):
+def import_rows_batch(tally, file_to_parse, file_lines, offset, function):
     elements_processed = 0;
 
     with file_to_parse as f:
@@ -145,7 +130,7 @@ def import_centers(tally, file_to_parse, file_lines, offset):
         for line, row in enumerate(reader):
             if count >= offset and count < (offset + BATCH_BLOCK_SIZE):
                 if line != 0:
-                    process_center_row(tally, row)
+                    function(tally, row)
 
                 elements_processed += 1
             count += 1
