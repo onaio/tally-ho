@@ -12,14 +12,21 @@
 <div id="progressbar1"></div>
 
 <div class="batch">
-    <p>{% trans "Total elements" %}: <span id="offset1">{{ offset }}</span>/<span id="total1">{{ subconst_file_lines }}</span></p>
+    <p>{% trans "Total elements" %}: <span id="offset1">0</span>/<span id="total1">{{ subconst_file_lines }}</span></p>
 </div>
 
 <h2>{% trans 'Centers import progress' %}</h2>
 <div id="progressbar2"></div>
 
 <div class="batch">
-    <p>{% trans "Total elements" %}: <span id="offset2">{{ offset }}</span>/<span id="total2">{{ centers_file_lines }}</span></p>
+    <p>{% trans "Total elements" %}: <span id="offset2">0</span>/<span id="total2">{{ centers_file_lines }}</span></p>
+</div>
+
+<h2>{% trans 'Stations import progress' %}</h2>
+<div id="progressbar3"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset3">0</span>/<span id="total3">{{ stations_file_lines }}</span></p>
 </div>
 
 <div id="route" class="hidden" style="display:none">{{ request.path }}</div>
@@ -40,24 +47,16 @@
 <script type="text/javascript">
 
 var currentStep = 0;
+var totalSteps = 3;
 
-//STEP 1
-var elementsProcessed1 = parseInt($('#offset1').html());
-var total1 = parseInt($('#total1').html());
+for (i = 1; i <= totalSteps; i++) {
+    var total = parseInt($('#total' + i).html());
 
-$('#progressbar1').progressbar({
-    value: false,
-    max: total1
-});
-
-//STEP 2
-var elementsProcessed2 = parseInt($('#offset2').html());
-var total2 = parseInt($('#total2').html());
-
-$('#progressbar2').progressbar({
-    value: false,
-    max: total2
-});
+    $('#progressbar' + i).progressbar({
+        value: false,
+        max: total
+    });
+}
 
 $(document).ready(function() {
     currentStep = 1;
@@ -89,7 +88,7 @@ function doRequest() {
     }
     else {
         console.log("ENTRA");
-        if (currentStep < 2) {
+        if (currentStep < totalSteps) {
             currentStep += 1;
             doRequest();
         }
