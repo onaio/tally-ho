@@ -63,12 +63,18 @@
                 {{ form.ballots_order_file }}
             </td>
         </tr>
+        <tr>
+            <td>{% trans form.result_forms_file.label %}:</td>
+            <td>
+                {{ form.result_forms_file.errors }}
+                {{ form.result_forms_file }}
+            </td>
+        </tr>
     </table>
-    <input type="hidden" name="result_form" value="{{ form.pk }}">
     <button class="btn btn-success btn-small" type="submit" name="submit">
         {% trans "Save" %}
     </button>
-    <a href="{% url 'quarantine-checks' %}" class="btn btn-danger btn-small">
+    <a href="{% url 'tally-manager' %}" class="btn btn-danger btn-small">
         {% trans "Cancel" %}
     </a>
     {% csrf_token %}

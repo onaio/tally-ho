@@ -282,6 +282,8 @@ urlpatterns = patterns(
         tally_manager.DashboardView.as_view(), name='tally-manager'),
     url(r'^tally-manager/create-tally$',
         tally_manager.CreateTallyView.as_view(), name='create-tally'),
+    url(r'^tally-manager/create-tally/batch-view/(?P<tally_id>.*)/(?P<subconst_file>.*)/(?P<subconst_file_lines>(\d+))/$',
+        tally_manager.BatchView.as_view(), name='batch-view'),
 
     url(r'^operation-not-allowed',
         home.suspicious_error, name='suspicious-error'),

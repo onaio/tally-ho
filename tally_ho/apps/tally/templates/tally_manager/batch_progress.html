@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load js %}
+{% load eztables %}
+
+{% block content %}
+
+<h1>{% trans 'Import progress' %}</h1>
+
+<h2>{% trans 'Subconstituencies import progress' %}</h2>
+<div id="progressbar"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset">{{ offset }}</span>/<span id="total">{{ subconst_file_lines }}</span></p>
+</div>
+
+<div id="route" class="hidden" style="display:none">{{ request.path }}</div>
+<div id="route_destination" style="display:none">{% url 'tally-manager' %}</div>
+<div id="errors_number" style="display:none">0</div>
+
+{% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+      <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery-ui.min.css" />
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
+{% django_js %}
+<script src="{{ STATIC_URL }}js/jquery-ui.min.js"></script>
+<script type="text/javascript">
+
+var elementsProcessed = parseInt($('#offset').html());
+var total = parseInt($('#total').html());
+
+$('#progressbar').progressbar({
+    value: false,
+    max: total
+});
+
+$(document).ready(function() {
+    doRequest(elementsProcessed);
+});
+
+function doRequest(elementsProcessed) {
+    if (elementsProcessed < total) {
+        $.ajax({
+            url: $('#route').html(),
+            //    timeout: 30000,
+            type: 'POST',
+            data: {
+                offset: $('#offset').html(),
+            },
+            success: function (data) {
+                if (data.status == 'OK') {
+                    console.log(data.elements_processed)
+                    elementsProcessed += data.elements_processed;
+                    $('#offset').html(elementsProcessed);
+                    $('#progressbar').progressbar('option', 'value', elementsProcessed);
+                    doRequest(elementsProcessed);
+                }
+            }
+        });
+    }
+    else {
+        //if (parseInt($('#errors_number').html()) > 0) {
+        //    location.href = $("#route_destination").html() + '?errors=' + parseInt($('#errors_number').html());
+        //}
+        //else {
+        //    location.href = $("#route_destination").html();
+        //}
+    }
+}
+</script>
+{% endblock %}
