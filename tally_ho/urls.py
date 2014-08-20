@@ -9,7 +9,7 @@ from tally_ho.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile, tally_manager
 from tally_ho.apps.tally.views.data import center_list_view, form_list_view,\
-    candidate_list_view, race_list_view
+    candidate_list_view, race_list_view, tally_list_view
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 
@@ -290,6 +290,12 @@ urlpatterns = patterns(
         '(?P<ballots_order_file>.*)/'
         '(?P<result_forms_file>.*)/(?P<result_forms_file_lines>(\d+))/$',
         tally_manager.BatchView.as_view(), name='batch-view'),
+    url(r'^tally-manager/data/tally-list$',
+        tally_list_view.TallyListView.as_view(),
+        name='tally-list'),
+    url(r'^tally-manager/data/tally-list-data$',
+        tally_list_view.TallyListDataView.as_view(),
+        name='tally-list-data'),
 
     url(r'^operation-not-allowed',
         home.suspicious_error, name='suspicious-error'),
