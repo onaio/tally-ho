@@ -9,6 +9,7 @@
 <h1>{% trans 'Import progress' %}</h1>
 
 <h2>{% trans 'Subconstituencies import progress' %}</h2>
+
 <div id="progressbar1"></div>
 
 <div class="batch">
@@ -91,7 +92,6 @@ function doRequest() {
             },
             success: function (data) {
                 if (data.status == 'OK') {
-                    console.log(data.elements_processed)
                     elementsProcessed += data.elements_processed;
                     $('#offset' + currentStep).html(elementsProcessed);
                     $('#progressbar' + currentStep).progressbar('option', 'value', elementsProcessed);
@@ -105,12 +105,9 @@ function doRequest() {
             currentStep += 1;
             doRequest();
         }
-        //if (parseInt($('#errors_number').html()) > 0) {
-        //    location.href = $("#route_destination").html() + '?errors=' + parseInt($('#errors_number').html());
-        //}
-        //else {
-        //    location.href = $("#route_destination").html();
-        //}
+        else {
+            location.href = $("#route_destination").html();
+        }
     }
 }
 </script>
