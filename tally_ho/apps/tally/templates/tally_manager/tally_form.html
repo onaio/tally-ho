@@ -70,6 +70,13 @@
                 {{ form.result_forms_file }}
             </td>
         </tr>
+        <tr>
+            <td>{% trans form.administrators.label %}:</td>
+            <td>
+                {{ form.administrators.errors }}
+                {{ form.administrators }}
+            </td>
+        </tr>
     </table>
     <button class="btn btn-success btn-small" type="submit" name="submit">
         {% trans "Save" %}

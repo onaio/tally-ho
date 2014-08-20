@@ -17,6 +17,7 @@ from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.management.commands.import_data import process_sub_constituency_row, \
         process_center_row, process_station_row, process_candidate_row, process_results_form_row
 from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.forms.tally_form import TallyForm
 
 
@@ -93,25 +94,30 @@ class CreateTallyView(LoginRequiredMixin,
     success_url = 'batch-view'
 
     def form_valid(self, form):
-        tally = Tally.objects.create(name = self.request.POST['name'])
+        data = form.cleaned_data
+        tally = Tally.objects.create(name=data['name'])
+
+        for user in UserProfile.objects.filter(id__in=data['administrators']):
+            tally.administrators.add(user)
+        tally.save()
 
         subconst_file = 'subcontituencies_%d.csv' % (tally.id)
-        subconst_file_lines = save_file(self.request.FILES['subconst_file'], subconst_file)
+        subconst_file_lines = save_file(data['subconst_file'], subconst_file)
 
         centers_file = 'centers_%d.csv' % (tally.id)
-        centers_file_lines = save_file(self.request.FILES['centers_file'], centers_file)
+        centers_file_lines = save_file(data['centers_file'], centers_file)
 
         stations_file = 'stations_%d.csv' % (tally.id)
-        stations_file_lines = save_file(self.request.FILES['stations_file'], stations_file)
+        stations_file_lines = save_file(data['stations_file'], stations_file)
 
         candidates_file = 'candidates_%d.csv' % (tally.id)
-        candidates_file_lines = save_file(self.request.FILES['candidates_file'], candidates_file)
+        candidates_file_lines = save_file(data['candidates_file'], candidates_file)
 
         ballots_order_file = 'ballot_order_%d.csv' % (tally.id)
-        ballots_order_file_lines = save_file(self.request.FILES['ballots_order_file'], ballots_order_file)
+        ballots_order_file_lines = save_file(data['ballots_order_file'], ballots_order_file)
 
         result_forms_file = 'result_forms_%d.csv' % (tally.id)
-        result_forms_file_lines = save_file(self.request.FILES['result_forms_file'], result_forms_file)
+        result_forms_file_lines = save_file(data['result_forms_file'], result_forms_file)
 
         url_kwargs = {'tally_id': tally.id, 'subconst_file': subconst_file,
                 'subconst_file_lines': subconst_file_lines,
