@@ -23,4 +23,7 @@ class UserProfile(User):
 
         super(UserProfile, self).save(*args, **kwargs)
 
+    def __unicode__(self):
+        return '%s - %s %s' % (self.username, self.first_name, self.last_name)
+
 reversion.register(UserProfile)
