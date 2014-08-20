@@ -12,3 +12,6 @@ class Tally(BaseModel):
     name = models.CharField(max_length=255, null=False, blank=False)
     active = models.BooleanField(default=True)
     disable_reason = enum.EnumField(DisableReason, null=True)
+
+    def __unicode__(self):
+        return u'%d - %s' % (self.id, self.name)
