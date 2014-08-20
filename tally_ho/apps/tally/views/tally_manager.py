@@ -15,7 +15,7 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.libs.views import mixins
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.management.commands.import_data import process_sub_constituency_row, \
-        process_center_row, process_station_row, process_candidate_row
+        process_center_row, process_station_row, process_candidate_row, process_results_form_row
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.forms.tally_form import TallyForm
 
@@ -110,12 +110,16 @@ class CreateTallyView(LoginRequiredMixin,
         ballots_order_file = 'ballot_order_%d.csv' % (tally.id)
         ballots_order_file_lines = save_file(self.request.FILES['ballots_order_file'], ballots_order_file)
 
+        result_forms_file = 'result_forms_%d.csv' % (tally.id)
+        result_forms_file_lines = save_file(self.request.FILES['result_forms_file'], result_forms_file)
+
         url_kwargs = {'tally_id': tally.id, 'subconst_file': subconst_file,
                 'subconst_file_lines': subconst_file_lines,
                 'centers_file': centers_file, 'centers_file_lines': centers_file_lines,
                 'stations_file': stations_file, 'stations_file_lines': stations_file_lines,
                 'candidates_file': candidates_file, 'candidates_file_lines': candidates_file_lines,
-                'ballots_order_file': ballots_order_file,}
+                'ballots_order_file': ballots_order_file,
+                'result_forms_file': result_forms_file, 'result_forms_file_lines': result_forms_file_lines}
         return HttpResponseRedirect(reverse(self.success_url, kwargs=url_kwargs))
 
 
@@ -160,6 +164,12 @@ class BatchView(LoginRequiredMixin,
 
             ballots_order_file = open(UPLOADED_FILES_PATH + kwargs['ballots_order_file'], 'rU')
             process_function = process_candidate_row
+
+        elif currentStep == 5:
+            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['result_forms_file'], 'rU')
+            file_lines = int(kwargs['result_forms_file_lines'])
+
+            process_function = process_results_form_row
 
         elements_processed = import_rows_batch(tally, file_to_parse, file_lines, offset, process_function, ballots_order_file=ballots_order_file)
 

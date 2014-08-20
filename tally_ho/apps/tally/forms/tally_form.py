@@ -20,7 +20,7 @@ class TallyForm(forms.Form):
     stations_file = forms.FileField(label='Stations file', required=True)
     candidates_file = forms.FileField(label='Candidates file', required=True)
     ballots_order_file = forms.FileField(label='Ballot order file', required=True)
-    #result_forms_file = forms.FileField(label='Result forms file', required=True)
+    result_forms_file = forms.FileField(label='Result forms file', required=True)
 
     def __init__(self, *args, **kargs):
         super(TallyForm, self).__init__(*args, **kargs)
