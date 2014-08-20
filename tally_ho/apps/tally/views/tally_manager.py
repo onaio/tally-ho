@@ -20,6 +20,13 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.forms.tally_form import TallyForm
 from tally_ho.apps.tally.forms.tally_files_form import TallyFilesForm
+from tally_ho.apps.tally.models.ballot import Ballot
+from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 
 
 BATCH_BLOCK_SIZE = 100
@@ -109,8 +116,17 @@ class TallyUpdateView(LoginRequiredMixin,
     success_url = 'tally-list'
 
     def get_object(self, queryset=None):
-        obj = Tally.objects.get(id=self.kwargs['tally_id'])
-        return obj
+        self.object = Tally.objects.get(id=self.kwargs['tally_id'])
+        return self.object
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        context = self.get_context_data(tally_id=self.kwargs['tally_id'], form=form)
+
+        return self.render_to_response(context)
 
 
 class TallyFilesFormView(LoginRequiredMixin,
@@ -129,9 +145,17 @@ class TallyFilesFormView(LoginRequiredMixin,
         return initial
 
     def form_valid(self, form):
-        print ("ENTRA")
         data = form.cleaned_data
         tally_id = data['tally_id']
+
+        tally = Tally.objects.get(id=tally_id)
+        SubConstituency.objects.filter(tally=tally).delete()
+        Ballot.objects.filter(tally=tally).delete()
+        Center.objects.filter(tally=tally).delete()
+        Office.objects.filter(tally=tally).delete()
+        Ballot.objects.filter(tally=tally).delete()
+        Candidate.objects.filter(tally=tally).delete()
+        ResultForm.objects.filter(tally=tally).delete()
 
         subconst_file = 'subcontituencies_%d.csv' % (tally_id)
         subconst_file_lines = save_file(data['subconst_file'], subconst_file)

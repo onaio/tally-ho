@@ -28,7 +28,6 @@ class TallyForm(forms.ModelForm):
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs.setdefault('initial', {})
             initial['administrators'] = [admin.pk for admin in kwargs['instance'].administrators.all()]
-            print initial
 
         super(TallyForm, self).__init__(*args, **kwargs)
         self.fields['name'].widget.attrs.update({'class' : 'form-control'})
