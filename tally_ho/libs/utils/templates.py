@@ -58,3 +58,12 @@ def getActiveCandidateLink(candidate):
                                               unicode(_('Enable Candidate')))
 
     return buttonHtml
+
+
+def getTallyAdministerLink(tally):
+    #FIXME: adds tally id once super-administrator needs it
+    url = reverse('super-administrator')
+    buttonHtml = '<a href="%s" class ="btn btn-default btn-small">%s</a>' %  \
+                (url, unicode(_('Admin view')))
+
+    return buttonHtml
