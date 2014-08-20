@@ -83,8 +83,20 @@ class DashboardView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             groups=group_logins))
 
-
 class CreateTallyView(LoginRequiredMixin,
+        mixins.GroupRequiredMixin,
+        CreateView):
+    group_required = groups.TALLY_MANAGER
+    template_name = "tally_manager/tally_form.html"
+    form_class = TallyForm
+    model = Tally
+    success_url = 'tally-manager'
+
+    def get_success_url(self):
+        return reverse(self.success_url)
+
+
+class CreateFilesTallyView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     SuccessMessageMixin,
                     FormView):
