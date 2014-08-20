@@ -19,6 +19,7 @@ from tally_ho.apps.tally.management.commands.import_data import process_sub_cons
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.forms.tally_form import TallyForm
+from tally_ho.apps.tally.forms.tally_files_form import TallyFilesForm
 
 
 BATCH_BLOCK_SIZE = 100
@@ -83,55 +84,58 @@ class DashboardView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             groups=group_logins))
 
+
 class CreateTallyView(LoginRequiredMixin,
-        mixins.GroupRequiredMixin,
-        CreateView):
+                    mixins.GroupRequiredMixin,
+                    CreateView):
     group_required = groups.TALLY_MANAGER
     template_name = "tally_manager/tally_form.html"
     form_class = TallyForm
-    model = Tally
-    success_url = 'tally-manager'
+    success_url = 'tally-files-form'
 
     def get_success_url(self):
-        return reverse(self.success_url)
+        return reverse(self.success_url, kwargs={'tally_id': self.object.id})
 
 
-class CreateFilesTallyView(LoginRequiredMixin,
+class TallyFilesFormView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     SuccessMessageMixin,
                     FormView):
     group_required = groups.TALLY_MANAGER
-    template_name = "tally_manager/tally_form.html"
-    form_class = TallyForm
+    template_name = "tally_manager/tally_files_form.html"
+    form_class = TallyFilesForm
     success_url = 'batch-view'
 
+    def get_initial(self):
+        initial = super(TallyFilesFormView, self).get_initial()
+        initial['tally_id'] = self.kwargs['tally_id']
+
+        return initial
+
     def form_valid(self, form):
+        print ("ENTRA")
         data = form.cleaned_data
-        tally = Tally.objects.create(name=data['name'])
+        tally_id = data['tally_id']
 
-        for user in UserProfile.objects.filter(id__in=data['administrators']):
-            tally.administrators.add(user)
-        tally.save()
-
-        subconst_file = 'subcontituencies_%d.csv' % (tally.id)
+        subconst_file = 'subcontituencies_%d.csv' % (tally_id)
         subconst_file_lines = save_file(data['subconst_file'], subconst_file)
 
-        centers_file = 'centers_%d.csv' % (tally.id)
+        centers_file = 'centers_%d.csv' % (tally_id)
         centers_file_lines = save_file(data['centers_file'], centers_file)
 
-        stations_file = 'stations_%d.csv' % (tally.id)
+        stations_file = 'stations_%d.csv' % (tally_id)
         stations_file_lines = save_file(data['stations_file'], stations_file)
 
-        candidates_file = 'candidates_%d.csv' % (tally.id)
+        candidates_file = 'candidates_%d.csv' % (tally_id)
         candidates_file_lines = save_file(data['candidates_file'], candidates_file)
 
-        ballots_order_file = 'ballot_order_%d.csv' % (tally.id)
+        ballots_order_file = 'ballot_order_%d.csv' % (tally_id)
         ballots_order_file_lines = save_file(data['ballots_order_file'], ballots_order_file)
 
-        result_forms_file = 'result_forms_%d.csv' % (tally.id)
+        result_forms_file = 'result_forms_%d.csv' % (tally_id)
         result_forms_file_lines = save_file(data['result_forms_file'], result_forms_file)
 
-        url_kwargs = {'tally_id': tally.id, 'subconst_file': subconst_file,
+        url_kwargs = {'tally_id': tally_id, 'subconst_file': subconst_file,
                 'subconst_file_lines': subconst_file_lines,
                 'centers_file': centers_file, 'centers_file_lines': centers_file_lines,
                 'stations_file': stations_file, 'stations_file_lines': stations_file_lines,

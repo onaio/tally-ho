@@ -33,6 +33,9 @@ class TallyForm(forms.ModelForm):
 
     def save(self):
         instance = forms.ModelForm.save(self)
+
         instance.administrators.clear()
         for admin in self.cleaned_data['administrators']:
             instance.administrators.add(admin)
+
+        return instance
