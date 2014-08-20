@@ -243,6 +243,36 @@ def import_stations(tally = None, stations_file = None):
             process_station_row(tally, row)
 
 
+def process_candidate_row(tally, row, id_to_ballot_order):
+    candidate_id = row[0]
+    code = row[7]
+    full_name = row[14]
+    race_code = row[18]
+
+    race_type = get_race_type(race_code)
+
+    try:
+        sub_constituency = SubConstituency.objects.get(
+            code=code, tally=tally)
+
+        if race_type != RaceType.WOMEN:
+            ballot = sub_constituency.ballot_general
+        else:
+            ballot = sub_constituency.ballot_women
+
+    except SubConstituency.DoesNotExist:
+        ballot = Ballot.objects.get(number=code, tally=tally)
+        sub_constituency = ballot.sc_component
+
+    _, created = Candidate.objects.get_or_create(
+        ballot=ballot,
+        candidate_id=candidate_id,
+        full_name=unicode(full_name, 'utf-8'),
+        order=id_to_ballot_order[candidate_id],
+        race_type=race_type,
+        tally=tally)
+
+
 def import_candidates(tally = None, candidates_file = None, ballot_file = None):
     candidates_file_to_parse = candidates_file  if candidates_file else open(CANDIDATES_PATH, 'rU')
     ballot_file_to_parse = ballot_file if ballot_file else open(BALLOT_ORDER_PATH, 'rU')
@@ -262,33 +292,7 @@ def import_candidates(tally = None, candidates_file = None, ballot_file = None):
         reader.next()  # ignore header
 
         for row in reader:
-            candidate_id = row[0]
-            code = row[7]
-            full_name = row[14]
-            race_code = row[18]
-
-            race_type = get_race_type(race_code)
-
-            try:
-                sub_constituency = SubConstituency.objects.get(
-                    code=code, tally=tally)
-
-                if race_type != RaceType.WOMEN:
-                    ballot = sub_constituency.ballot_general
-                else:
-                    ballot = sub_constituency.ballot_women
-
-            except SubConstituency.DoesNotExist:
-                ballot = Ballot.objects.get(number=code, tally=tally)
-                sub_constituency = ballot.sc_component
-
-            _, created = Candidate.objects.get_or_create(
-                ballot=ballot,
-                candidate_id=candidate_id,
-                full_name=unicode(full_name, 'utf-8'),
-                order=id_to_ballot_order[candidate_id],
-                race_type=race_type,
-                tally=tally)
+            process_candidate_row(tally, row, id_to_ballot_order)
 
 
 def import_result_forms(tally = None, result_forms_file = None):
