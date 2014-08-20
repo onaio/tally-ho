@@ -295,6 +295,64 @@ def import_candidates(tally = None, candidates_file = None, ballot_file = None):
             process_candidate_row(tally, row, id_to_ballot_order)
 
 
+def process_results_form_row(tally, row):
+    replacement_count = 0
+
+    row = empty_strings_to_none(row)
+    ballot_number, code, station_number, gender, name,\
+        office_name, _, barcode, serial_number = row
+
+    ballot = Ballot.objects.get(number=ballot_number, tally=tally)
+    gender = gender and getattr(Gender, gender.upper())
+    center = None
+
+    try:
+        center = Center.objects.get(code=code, tally=tally)
+    except Center.DoesNotExist:
+        pass
+
+    office = None
+
+    if office_name:
+        try:
+            office = Office.objects.get(name=office_name.strip(), tally=tally)
+        except Office.DoesNotExist:
+            print('[WARNING] Office "%s" does not exist' %
+                  office_name)
+
+    is_replacement = True if center is None else False
+
+    if is_replacement:
+        replacement_count = 1
+
+    kwargs = {
+        'barcode': barcode,
+        'ballot': ballot,
+        'center': center,
+        'gender': gender,
+        'name': name,
+        'office': office,
+        'serial_number': serial_number,
+        'station_number': station_number,
+        'form_state': FormState.UNSUBMITTED,
+        'is_replacement': is_replacement,
+        'tally': tally
+    }
+
+    try:
+        form = ResultForm.objects.get(barcode=barcode, tally=tally)
+        #print '[INFO] Found with barcode: %s' % barcode
+    except ResultForm.DoesNotExist:
+        #print '[INFO] Create with barcode: %s' % barcode
+        ResultForm.objects.create(**kwargs)
+    else:
+        if is_replacement:
+            form.is_replacement = is_replacement
+            form.save()
+
+    return replacement_count
+
+
 def import_result_forms(tally = None, result_forms_file = None):
     file_to_parse = result_forms_file  if result_forms_file else open(RESULT_FORMS_PATH, 'rU')
     replacement_count = 0
@@ -304,57 +362,7 @@ def import_result_forms(tally = None, result_forms_file = None):
         reader.next()  # ignore header
 
         for row in reader:
-            row = empty_strings_to_none(row)
-            ballot_number, code, station_number, gender, name,\
-                office_name, _, barcode, serial_number = row
-
-            ballot = Ballot.objects.get(number=ballot_number, tally=tally)
-            gender = gender and getattr(Gender, gender.upper())
-            center = None
-
-            try:
-                center = Center.objects.get(code=code, tally=tally)
-            except Center.DoesNotExist:
-                pass
-
-            office = None
-
-            if office_name:
-                try:
-                    office = Office.objects.get(name=office_name.strip(), tally=tally)
-                except Office.DoesNotExist:
-                    print('[WARNING] Office "%s" does not exist' %
-                          office_name)
-
-            is_replacement = True if center is None else False
-
-            if is_replacement:
-                replacement_count += 1
-
-            kwargs = {
-                'barcode': barcode,
-                'ballot': ballot,
-                'center': center,
-                'gender': gender,
-                'name': name,
-                'office': office,
-                'serial_number': serial_number,
-                'station_number': station_number,
-                'form_state': FormState.UNSUBMITTED,
-                'is_replacement': is_replacement,
-                'tally': tally
-            }
-
-            try:
-                form = ResultForm.objects.get(barcode=barcode, tally=tally)
-                #print '[INFO] Found with barcode: %s' % barcode
-            except ResultForm.DoesNotExist:
-                #print '[INFO] Create with barcode: %s' % barcode
-                ResultForm.objects.create(**kwargs)
-            else:
-                if is_replacement:
-                    form.is_replacement = is_replacement
-                    form.save()
+            replacement_count += process_results_form_row(tally, row)
 
     print '[INFO] Number of replacement forms: %s' % replacement_count
 
