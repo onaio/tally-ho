@@ -24,12 +24,14 @@ class TallyForm(forms.ModelForm):
                                                     widget=forms.CheckboxSelectMultiple())
 
     def __init__(self, *args, **kwargs):
-        super(TallyForm, self).__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs.update({'class' : 'form-control'})
 
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs.setdefault('initial', {})
             initial['administrators'] = [admin.pk for admin in kwargs['instance'].administrators.all()]
+            print initial
+
+        super(TallyForm, self).__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs.update({'class' : 'form-control'})
 
     def save(self):
         instance = forms.ModelForm.save(self)

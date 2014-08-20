@@ -282,6 +282,8 @@ urlpatterns = patterns(
         tally_manager.DashboardView.as_view(), name='tally-manager'),
     url(r'^tally-manager/create-tally$',
         tally_manager.CreateTallyView.as_view(), name='create-tally'),
+    url(r'^tally-manager/update-tally/(?P<tally_id>(\d+))/$',
+        tally_manager.TallyUpdateView.as_view(), name='update-tally'),
     url(r'^tally-manager/tally-files/(?P<tally_id>(\d+))/$',
         tally_manager.TallyFilesFormView.as_view(), name='tally-files-form'),
     url(r'^tally-manager/create-tally/batch-view/(?P<tally_id>.*)/'

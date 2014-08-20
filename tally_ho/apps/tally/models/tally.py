@@ -3,7 +3,7 @@ from django_enumfield import enum
 
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.disable_reason import DisableReason
-from tally_ho.libs.utils.templates import getTallyAdministerLink
+from tally_ho.libs.utils.templates import getTallyAdministerLink, getTallyEditLink
 
 
 class Tally(BaseModel):
@@ -20,3 +20,7 @@ class Tally(BaseModel):
     @property
     def administer_button(self):
         return getTallyAdministerLink(self)
+
+    @property
+    def edit_button(self):
+        return getTallyEditLink(self)

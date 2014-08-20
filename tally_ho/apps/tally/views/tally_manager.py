@@ -3,7 +3,7 @@ import urllib
 import json
 import csv
 
-from django.views.generic import FormView, TemplateView, CreateView
+from django.views.generic import FormView, TemplateView, CreateView, UpdateView
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.messages.views import SuccessMessageMixin
@@ -95,6 +95,22 @@ class CreateTallyView(LoginRequiredMixin,
 
     def get_success_url(self):
         return reverse(self.success_url, kwargs={'tally_id': self.object.id})
+
+
+class TallyUpdateView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.ReverseSuccessURLMixin,
+                     UpdateView):
+    template_name = 'tally_manager/tally_form.html'
+    group_required = groups.TALLY_MANAGER
+
+    model = Tally
+    form_class = TallyForm
+    success_url = 'tally-list'
+
+    def get_object(self, queryset=None):
+        obj = Tally.objects.get(id=self.kwargs['tally_id'])
+        return obj
 
 
 class TallyFilesFormView(LoginRequiredMixin,

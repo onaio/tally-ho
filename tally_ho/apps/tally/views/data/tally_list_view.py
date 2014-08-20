@@ -20,6 +20,7 @@ class TallyListDataView(LoginRequiredMixin,
         'created_date',
         'modified_date',
         'active',
+        'active',
     )
     display_fields = (
         ('id', 'id'),
@@ -27,6 +28,7 @@ class TallyListDataView(LoginRequiredMixin,
         ('created_date', 'created_date'),
         ('modified_date', 'modified_date'),
         ('active', 'administer_button'),
+        ('active', 'edit_button'),
     )
 
 
