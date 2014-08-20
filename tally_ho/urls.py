@@ -285,7 +285,9 @@ urlpatterns = patterns(
     url(r'^tally-manager/create-tally/batch-view/(?P<tally_id>.*)/'
         '(?P<subconst_file>.*)/(?P<subconst_file_lines>(\d+))/'
         '(?P<centers_file>.*)/(?P<centers_file_lines>(\d+))/'
-        '(?P<stations_file>.*)/(?P<stations_file_lines>(\d+))/$',
+        '(?P<stations_file>.*)/(?P<stations_file_lines>(\d+))/'
+        '(?P<candidates_file>.*)/(?P<candidates_file_lines>(\d+))/'
+        '(?P<ballots_order_file>.*)/$',
         tally_manager.BatchView.as_view(), name='batch-view'),
 
     url(r'^operation-not-allowed',

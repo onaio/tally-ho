@@ -15,7 +15,7 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.libs.views import mixins
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.management.commands.import_data import process_sub_constituency_row, \
-        process_center_row, process_station_row
+        process_center_row, process_station_row, process_candidate_row
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.forms.tally_form import TallyForm
 
@@ -37,8 +37,20 @@ def save_file(file_uploaded, file_name):
     return num_lines
 
 
-def import_rows_batch(tally, file_to_parse, file_lines, offset, function):
+def import_rows_batch(tally, file_to_parse, file_lines, offset, function, **kwargs):
     elements_processed = 0;
+    id_to_ballot_order = {}
+
+    if kwargs.has_key('ballots_order_file') and kwargs.get('ballots_order_file'):
+        ballot_file_to_parse = kwargs.get('ballots_order_file')
+
+        with ballot_file_to_parse as f:
+            reader = csv.reader(f)
+            reader.next()  # ignore header
+
+            for row in reader:
+                id_, ballot_number = row
+                id_to_ballot_order[id_] = ballot_number
 
     with file_to_parse as f:
         reader = csv.reader(f)
@@ -47,7 +59,10 @@ def import_rows_batch(tally, file_to_parse, file_lines, offset, function):
         for line, row in enumerate(reader):
             if count >= offset and count < (offset + BATCH_BLOCK_SIZE):
                 if line != 0:
-                    function(tally, row)
+                    if not id_to_ballot_order:
+                        function(tally, row)
+                    else:
+                        function(tally, row, id_to_ballot_order)
 
                 elements_processed += 1
             count += 1
@@ -80,19 +95,27 @@ class CreateTallyView(LoginRequiredMixin,
     def form_valid(self, form):
         tally = Tally.objects.create(name = self.request.POST['name'])
 
-        subconst_file = 'subcontituencies_' + str(tally.id) + '.csv'
+        subconst_file = 'subcontituencies_%d.csv' % (tally.id)
         subconst_file_lines = save_file(self.request.FILES['subconst_file'], subconst_file)
 
-        centers_file = 'centers_' + str(tally.id) + '.csv'
+        centers_file = 'centers_%d.csv' % (tally.id)
         centers_file_lines = save_file(self.request.FILES['centers_file'], centers_file)
 
-        stations_file = 'stations_' + str(tally.id) + '.csv'
+        stations_file = 'stations_%d.csv' % (tally.id)
         stations_file_lines = save_file(self.request.FILES['stations_file'], stations_file)
+
+        candidates_file = 'candidates_%d.csv' % (tally.id)
+        candidates_file_lines = save_file(self.request.FILES['candidates_file'], candidates_file)
+
+        ballots_order_file = 'ballot_order_%d.csv' % (tally.id)
+        ballots_order_file_lines = save_file(self.request.FILES['ballots_order_file'], ballots_order_file)
 
         url_kwargs = {'tally_id': tally.id, 'subconst_file': subconst_file,
                 'subconst_file_lines': subconst_file_lines,
                 'centers_file': centers_file, 'centers_file_lines': centers_file_lines,
-                'stations_file': stations_file, 'stations_file_lines': stations_file_lines}
+                'stations_file': stations_file, 'stations_file_lines': stations_file_lines,
+                'candidates_file': candidates_file, 'candidates_file_lines': candidates_file_lines,
+                'ballots_order_file': ballots_order_file,}
         return HttpResponseRedirect(reverse(self.success_url, kwargs=url_kwargs))
 
 
@@ -112,22 +135,32 @@ class BatchView(LoginRequiredMixin,
         offset = int(request.POST.get('offset', 0))
         currentStep = int(request.POST.get('step', 1))
 
+        ballots_order_file = None
         if currentStep == 1:
-            subconst_file = open(UPLOADED_FILES_PATH + kwargs['subconst_file'], 'rU')
-            subconst_file_lines = int(kwargs['subconst_file_lines'])
+            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['subconst_file'], 'rU')
+            file_lines = int(kwargs['subconst_file_lines'])
 
-            elements_processed = import_rows_batch(tally, subconst_file, subconst_file_lines, offset, process_sub_constituency_row)
+            process_function = process_sub_constituency_row
 
         elif currentStep == 2:
-            centers_file = open(UPLOADED_FILES_PATH + kwargs['centers_file'], 'rU')
-            centers_file_lines = int(kwargs['centers_file_lines'])
+            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['centers_file'], 'rU')
+            file_lines = int(kwargs['centers_file_lines'])
 
-            elements_processed = import_rows_batch(tally, centers_file, centers_file_lines, offset, process_center_row)
+            process_function = process_center_row
 
         elif currentStep == 3:
-            centers_file = open(UPLOADED_FILES_PATH + kwargs['stations_file'], 'rU')
-            centers_file_lines = int(kwargs['stations_file_lines'])
+            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['stations_file'], 'rU')
+            file_lines = int(kwargs['stations_file_lines'])
 
-            elements_processed = import_rows_batch(tally, centers_file, centers_file_lines, offset, process_station_row)
+            process_function = process_station_row
+
+        elif currentStep == 4:
+            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['candidates_file'], 'rU')
+            file_lines = int(kwargs['candidates_file_lines'])
+
+            ballots_order_file = open(UPLOADED_FILES_PATH + kwargs['ballots_order_file'], 'rU')
+            process_function = process_candidate_row
+
+        elements_processed = import_rows_batch(tally, file_to_parse, file_lines, offset, process_function, ballots_order_file=ballots_order_file)
 
         return HttpResponse(json.dumps({'status': 'OK', 'elements_processed': elements_processed}), content_type='application/json')

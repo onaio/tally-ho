@@ -29,6 +29,13 @@
     <p>{% trans "Total elements" %}: <span id="offset3">0</span>/<span id="total3">{{ stations_file_lines }}</span></p>
 </div>
 
+<h2>{% trans 'Candidates import progress' %}</h2>
+<div id="progressbar4"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset4">0</span>/<span id="total4">{{ candidates_file_lines }}</span></p>
+</div>
+
 <div id="route" class="hidden" style="display:none">{{ request.path }}</div>
 <div id="route_destination" style="display:none">{% url 'tally-manager' %}</div>
 <div id="errors_number" style="display:none">0</div>
@@ -47,7 +54,7 @@
 <script type="text/javascript">
 
 var currentStep = 0;
-var totalSteps = 3;
+var totalSteps = 4;
 
 for (i = 1; i <= totalSteps; i++) {
     var total = parseInt($('#total' + i).html());
@@ -87,7 +94,6 @@ function doRequest() {
         });
     }
     else {
-        console.log("ENTRA");
         if (currentStep < totalSteps) {
             currentStep += 1;
             doRequest();
