@@ -4,7 +4,11 @@
 
 {% block content %}
 
-<h1>{% trans 'Create tally' %}</h1>
+{% if tally_id %}
+    <h1>{% trans 'Edit tally' %}</h1>
+{% else %}
+    <h1>{% trans 'Create tally' %}</h1>
+{% endif %}
 
 {% if messages %}
 <ul class="text-info">
@@ -39,15 +43,19 @@
     <button class="btn btn-success btn-small" type="submit" name="submit">
         {% trans "Save" %}
     </button>
-    <a href="{% url 'tally-manager' %}" class="btn btn-danger btn-small">
-        {% trans "Cancel" %}
-    </a>
     {% if tally_id %}
+        <a href="{% url 'tally-list' %}" class="btn btn-danger btn-small">
+            {% trans "Cancel" %}
+        </a>
         <a href="{% url 'tally-files-form' tally_id=tally_id %}" class="btn btn-default btn-small">
             {% trans "Reupload files" %}
         </a>
         <a href="{% url 'remove-tally' tally_id=tally_id %}" class="btn btn-default btn-small">
             {% trans "Remove tally" %}
+        </a>
+    {% else %}
+        <a href="{% url 'tally-manager' %}" class="btn btn-danger btn-small">
+            {% trans "Cancel" %}
         </a>
     {% endif %}
     {% csrf_token %}
