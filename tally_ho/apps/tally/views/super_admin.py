@@ -143,6 +143,7 @@ class TalliesView(LoginRequiredMixin,
 
 class DashboardView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
+                    mixins.TallyAccessMixin,
                     TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/home.html"

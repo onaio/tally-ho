@@ -88,7 +88,7 @@ urlpatterns = patterns(
 
     url(r'^super-administrator/tallies$',
         super_admin.TalliesView.as_view(), name='super-administrator-tallies'),
-    url(r'^super-administrator$',
+    url(r'^super-administrator/(?P<tally_id>.*)/$',
         super_admin.DashboardView.as_view(), name='super-administrator'),
     url(r'^super-administrator/form-progress$',
         super_admin.FormProgressView.as_view(),

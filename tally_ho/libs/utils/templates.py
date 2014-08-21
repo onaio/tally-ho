@@ -61,8 +61,7 @@ def getActiveCandidateLink(candidate):
 
 
 def getTallyAdministerLink(tally):
-    #FIXME: adds tally id once super-administrator needs it
-    url = reverse('super-administrator')
+    url = reverse('super-administrator', kwargs={'tally_id': tally.id})
     buttonHtml = '<a href="%s" class ="btn btn-default btn-small">%s</a>' %  \
                 (url, unicode(_('Admin view')))
 
@@ -70,7 +69,6 @@ def getTallyAdministerLink(tally):
 
 
 def getTallyEditLink(tally):
-    #FIXME: adds tally id once super-administrator needs it
     url = reverse('update-tally', kwargs={'tally_id': tally.id})
     buttonHtml = '<a href="%s" class ="btn btn-default btn-small">%s</a>' %  \
                 (url, unicode(_('Edit tally')))
