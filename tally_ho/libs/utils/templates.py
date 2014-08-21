@@ -50,11 +50,11 @@ def getActiveStationLink(station):
 def getActiveCandidateLink(candidate):
     buttonHtml = 'Candidate disabled'
     if candidate.active:
-        url = reverse('candidate-disable', args=[candidate.candidate_id])
+        url = reverse('candidate-disable', args=[candidate.tally.id, candidate.id])
         buttonHtml = '<a href="%s">%s</a>' % (url,
                                               unicode(_('Disable Candidate')))
     elif not candidate.active:
-        url = reverse('candidate-enable', args=[candidate.candidate_id])
+        url = reverse('candidate-enable', args=[candidate.tally.id, candidate.id])
         buttonHtml = '<a href="%s">%s</a>' % (url,
                                               unicode(_('Enable Candidate')))
 

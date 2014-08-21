@@ -1,4 +1,6 @@
 from django.views.generic import TemplateView
+from django.core.urlresolvers import reverse
+
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
@@ -10,6 +12,7 @@ from tally_ho.libs.views.pagination import paging
 
 class CandidateListDataView(LoginRequiredMixin,
                             mixins.GroupRequiredMixin,
+                            mixins.TallyAccessMixin,
                             mixins.DatatablesDisplayFieldsMixin,
                             DatatablesView):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -33,18 +36,29 @@ class CandidateListDataView(LoginRequiredMixin,
         ('active', 'candidate_active'),
     )
 
+    def get_queryset(self):
+        qs = super(CandidateListDataView, self).get_queryset()
+        tally_id = self.kwargs.get('tally_id')
+
+        qs = qs.filter(tally__id=tally_id)
+
+        return qs
+
 
 class CandidateListView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
                         TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/candidates.html"
 
     def get(self, *args, **kwargs):
         # check cache
-        candidate_list = Candidate.objects.all()
+        tally_id = kwargs['tally_id']
+
+        candidate_list = Candidate.objects.filter(tally__id=tally_id)
         candidates = paging(candidate_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             candidates=candidates,
-            remote_url='candidate-list-data'))
+            remote_url=reverse('candidate-list-data', kwargs={'tally_id': tally_id})))

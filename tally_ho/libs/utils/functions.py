@@ -63,7 +63,7 @@ def disableEnableCandidate(candidateId):
     status_target = False
 
     try:
-        entity_to_return = Candidate.objects.get(candidate_id=candidateId)
+        entity_to_return = Candidate.objects.get(id=candidateId)
         status_target = not entity_to_return.active
 
     except Candidate.DoesNotExist:

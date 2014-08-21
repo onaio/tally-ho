@@ -870,12 +870,13 @@ class EnableCandidateView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         candidateId = kwargs.get('candidateId')
+        tally_id= kwargs.get('tally_id')
 
         self.success_message = _(u"Candidate successfully enabled.")
 
         disableEnableCandidate(candidateId)
 
-        return redirect(self.success_url)
+        return redirect(self.success_url, tally_id=tally_id)
 
 
 class DisableCandidateView(LoginRequiredMixin,
@@ -888,9 +889,10 @@ class DisableCandidateView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         candidateId = kwargs.get('candidateId')
+        tally_id= kwargs.get('tally_id')
 
         self.success_message = _(u"Candidate successfully disabled.")
 
         disableEnableCandidate(candidateId)
 
-        return redirect(self.success_url)
+        return redirect(self.success_url, tally_id=tally_id)
