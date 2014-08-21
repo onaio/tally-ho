@@ -403,6 +403,12 @@ class RemoveCenterView(LoginRequiredMixin,
     success_message = _(u"Center Successfully Removed.")
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id', None)
+
+        self.initial = {
+            'tally_id': tally_id,
+        }
+
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
@@ -419,7 +425,8 @@ class RemoveCenterView(LoginRequiredMixin,
                 u"Successfully removed center %(center)s"
                 % {'center': center.code})
             self.success_url = reverse('remove-center-confirmation',
-                                       kwargs={'centerCode': center.code})
+                                       kwargs={'centerCode': center.code,
+                                            'tally_id': center.tally.id})
             return redirect(self.success_url)
         return self.form_invalid(form)
 
@@ -665,6 +672,12 @@ class RemoveStationView(LoginRequiredMixin,
     success_message = _(u"Station Successfully Removed.")
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        self.initial = {
+            'tally_id': tally_id,
+        }
+
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
@@ -683,7 +696,8 @@ class RemoveStationView(LoginRequiredMixin,
                                          'station': station.station_number})
             self.success_url = reverse('remove-station-confirmation',
                                        kwargs={'centerCode': station.center_code,
-                                               'stationNumber': station.station_number})
+                                               'stationNumber': station.station_number,
+                                               'tally_id': station.center.tally.id})
             return redirect(self.success_url)
         return self.form_invalid(form)
 

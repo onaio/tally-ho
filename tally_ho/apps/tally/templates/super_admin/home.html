@@ -49,8 +49,8 @@
 
 <h3>{% trans 'Admin Operations' %}</h3>
 <ul>
-    <li><a href="{% url 'remove-center' %}">{% trans 'Remove a Centre' %}</a></li>
-    <li><a href="{% url 'remove-station' %}">{% trans 'Remove a Station' %}</a></li>
+    <li><a href="{% url 'remove-center' tally_id=tally_id %}">{% trans 'Remove a Centre' %}</a></li>
+    <li><a href="{% url 'remove-station' tally_id=tally_id %}">{% trans 'Remove a Station' %}</a></li>
 </ul>
 
 {% if debug %}
