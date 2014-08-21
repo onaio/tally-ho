@@ -66,7 +66,7 @@ class DisableEntityForm(forms.Form):
                     raise forms.ValidationError(u"Station Number does not exist")
             elif raceId:
                 try:
-                    entities = Ballot.objects.get(tally__id=tally__id, id = raceId)
+                    entities = Ballot.objects.get(id = raceId)
                 except Ballot.DoesNotExist:
                     raise forms.ValidationError(u"Race does not exist")
             else:

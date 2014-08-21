@@ -13,10 +13,10 @@ class RacesReportView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'reports/races.html'
 
-    def get_per_ballot_progress(self):
+    def get_per_ballot_progress(self, tally_id = None):
         data = []
 
-        for ballot in valid_ballots():
+        for ballot in valid_ballots(tally_id):
             archived = p.ArchivedProgressReport().for_ballot(ballot)
             sc = ballot.sub_constituency
 

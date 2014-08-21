@@ -55,9 +55,9 @@ def write_utf8(w, output):
                 for k, v in output.items()})
 
 
-def valid_ballots():
+def valid_ballots(tally_id = None):
     #return Ballot.objects.exclude(number=54)
-    return Ballot.objects.all()
+    return Ballot.objects.filter(tally__id=tally_id)
 
 
 def distinct_forms(ballot):

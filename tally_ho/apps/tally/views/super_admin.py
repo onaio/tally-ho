@@ -614,6 +614,7 @@ class DisableRaceView(LoginRequiredMixin,
     template_name = "super_admin/disable_entity.html"
 
     success_url = 'races-list'
+    tally_id = None
 
     def get(self, *args, **kwargs):
         race_id= kwargs.get('raceId')
@@ -634,6 +635,7 @@ class DisableRaceView(LoginRequiredMixin,
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        self.tally_id = self.kwargs['tally_id']
 
         if form.is_valid():
             entity = form.save()
@@ -653,12 +655,13 @@ class EnableRaceView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         raceId = kwargs.get('raceId')
+        tally_id = self.kwargs['tally_id']
 
         disableEnableRace(raceId)
 
         messages.add_message(self.request, messages.INFO, _(u"Race Successfully enabled."))
 
-        return redirect(self.success_url)
+        return redirect(self.success_url, tally_id=tally_id)
 
 
 class RemoveStationView(LoginRequiredMixin,

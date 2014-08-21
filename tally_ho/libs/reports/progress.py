@@ -49,9 +49,9 @@ class ProgressReport(object):
         obj = self.__class__()
 
         obj.filtered_queryset = self.get_filtered_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers)
+            ballot__number__in=ballot.form_ballot_numbers, tally=ballot.tally)
         obj.queryset = self.get_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers)
+            ballot__number__in=ballot.form_ballot_numbers, tally=ballot.tally)
 
         return obj
 
