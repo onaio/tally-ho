@@ -16,7 +16,7 @@
 <ul>
     <li><a href="{% url 'center-list' tally_id=tally_id %}">{% trans 'Center List' %}</a></li>
     <li><a href="{% url 'races-list' tally_id=tally_id %}">{% trans 'Races List' %}</a></li>
-    <li><a href="{% url 'form-list' %}">{% trans 'Form List' %}</a></li>
+    <li><a href="{% url 'form-list' tally_id=tally_id %}">{% trans 'Form List' %}</a></li>
     <li><a href="{% url 'candidate-list' %}">{% trans 'Candidate List' %}</a></li>
     <li><a href="{% url 'form-not-received-view' %}">{% trans 'Forms Not Received' %}</a></li>
     <li><a href="{% url 'form-action-view' %}">{% trans 'Forms Waiting for Approval' %}</a></li>
