@@ -6,12 +6,15 @@ from django.db.models import Q
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseBadRequest, HttpResponse
+from django.shortcuts import get_object_or_404
 from eztables.forms import DatatablesForm
 from operator import or_
 
 from tally_ho.libs.utils.collections import listify
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.apps.tally.models.tally import Tally
 
 
 # from django-braces
@@ -180,3 +183,36 @@ class PrintedResultFormMixin(object):
 
     def set_printed(self, result_form):
         pass
+
+
+class TallyAccessMixin(object):
+
+
+    def has_tally_access(self, userprofile, tally):
+        user_groups = groups.user_groups(userprofile)
+
+        has_access = False
+        if groups.TALLY_MANAGER in user_groups:
+            has_access = True
+
+        elif groups.SUPER_ADMINISTRATOR in user_groups and \
+                userprofile.administrated_tallies.filter(id=tally.id):
+            has_access = True
+
+        elif userprofile.tally == tally:
+            has_access = True
+
+        return False
+
+
+    def dispatch(self, request, *args, **kwargs):
+        self.request = request
+        tally_id = kwargs.get('tally_id')
+
+        tally = get_object_or_404(ResultForm, id=tally_id)
+        user_profile = UserProfile.objects.get(id=self.request.user.id)
+
+        if not(self.has_tally_access(user_profile, tally)):
+            raise PermissionDenied
+
+        return super(TallyAccessMixin, self).dispatch(request, *args, **kwargs)
