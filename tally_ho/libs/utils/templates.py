@@ -23,7 +23,8 @@ def getActiveCenterLink(station):
 
 
 def getEditStationLink(station):
-    url = reverse('edit-station', args=[station.center.code,
+    url = reverse('edit-station', args=[station.center.tally.id,
+                                        station.center.code,
                                         station.station_number])
     buttonHtml = '<a href="%s" class="btn btn-default btn-small">%s</a>' % (url, unicode(_('Edit Station')))
 

@@ -729,37 +729,43 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
     template_name = "super_admin/remove_station_confirmation.html"
     success_url = 'center-list'
     success_message = _(u"Station Successfully Removed.")
+    tally_id = None
 
     def delete(self, request, *args, **kwargs):
         center_code = kwargs.get('centerCode', None)
         station_number = kwargs.get('stationNumber', None)
+        tally_id = kwargs.get('tally_id', None)
 
-        self.object = self.get_object(center_code, station_number)
+        self.object = self.get_object(center_code, station_number, tally_id)
         success_url = self.get_success_url()
 
         self.object.delete()
 
-        return HttpResponseRedirect(success_url)
+        return redirect(success_url, tally_id=tally_id)
 
     def get(self, request, *args, **kwargs):
         center_code = kwargs.get('centerCode', None)
         station_number = kwargs.get('stationNumber', None)
+        tally_id = kwargs.get('tally_id', None)
 
-        self.object = self.get_object(center_code, station_number)
+        self.object = self.get_object(center_code, station_number, tally_id)
         context = self.get_context_data(object=self.object)
         context['next'] = request.META.get('HTTP_REFERER', None)
 
         return self.render_to_response(context)
 
-    def get_object(self, center_code, station_number):
+    def get_object(self, center_code, station_number, tally_id):
         return get_object_or_404(Station, center__code=center_code,
-                                 station_number=station_number)
+                                 station_number=station_number,
+                                 center__tally__id=tally_id)
 
     def post(self, request, *args, **kwargs):
+        self.tally_id = self.kwargs['tally_id']
+
         if 'abort_submit' in request.POST:
             next_url = request.POST.get('next', None)
 
-            return redirect(next_url)
+            return redirect(next_url, tally_id=self.tally_id)
         else:
             return super(RemoveStationConfirmationView, self).post(request,
                                                                    *args,
@@ -780,8 +786,11 @@ class EditStationView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         station_number = kwargs.get('stationNumber', None)
         center_code = kwargs.get('centerCode', None)
+        tally_id = kwargs.get('tally_id', None)
+
         self.object = get_object_or_404(Station, center__code=center_code,
-                                        station_number=station_number)
+                                        station_number=station_number,
+                                        center__tally__id=tally_id)
 
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -801,10 +810,12 @@ class EditStationView(LoginRequiredMixin,
         post_data = self.request.POST
         center_code = post_data.get('center_code', '')
         station_number = post_data.get('station_number', '')
+        tally_id = self.kwargs.get('tally_id', None)
 
         if 'save_submit' in post_data:
             station = get_object_or_404(Station, center__code=center_code,
-                                        station_number=station_number)
+                                        station_number=station_number,
+                                        center__tally__id=tally_id)
 
             stationForm = EditStationForm(self.request.POST, instance=station)
 
@@ -814,20 +825,23 @@ class EditStationView(LoginRequiredMixin,
         elif 'enable_submit' in post_data:
             self.success_url = reverse('enable',
                                        kwargs={'centerCode': center_code,
-                                               'stationNumber': station_number})
+                                               'stationNumber': station_number,
+                                               'tally_id': tally_id})
         elif 'disable_submit' in post_data:
             self.success_url = reverse('disable',
                                        kwargs={'centerCode': center_code,
-                                               'stationNumber': station_number})
+                                               'stationNumber': station_number,
+                                               'tally_id': tally_id})
         elif 'delete_submit' in post_data:
             self.success_url = reverse('remove-station-confirmation',
                                        kwargs={'centerCode': center_code,
-                                               'stationNumber': station_number})
+                                               'stationNumber': station_number,
+                                               'tally_id': tally_id})
         elif 'edit_submit' in post_data:
             self.success_url = reverse('edit-centre',
                                        kwargs={'centerCode': center_code})
 
-        return redirect(self.success_url)
+        return redirect(self.success_url, tally_id=tally_id)
 
 class EnableCandidateView(LoginRequiredMixin,
                           mixins.GroupRequiredMixin,

@@ -162,10 +162,10 @@ urlpatterns = patterns(
     url(r'^super-administrator/quarantine-checks/config/(?P<checkId>(\d+))$',
         super_admin.QuarantineChecksConfigView.as_view(),
         name='quarantine-checks-config'),
-    url(r'^super-administrator/remove-station/(?P<centerCode>(\d+))/(?P<stationNumber>(\d+))$',
+    url(r'^super-administrator/remove-station/(?P<tally_id>(\d+))/(?P<centerCode>(\d+))/(?P<stationNumber>(\d+))$',
         super_admin.RemoveStationConfirmationView.as_view(),
         name='remove-station-confirmation'),
-    url(r'^super-administrator/edit-station/(?P<centerCode>(\d+))/(?P<stationNumber>(\d+))$',
+    url(r'^super-administrator/edit-station/(?P<tally_id>(\d+))/(?P<centerCode>(\d+))/(?P<stationNumber>(\d+))$',
         super_admin.EditStationView.as_view(),
         name='edit-station'),
 
