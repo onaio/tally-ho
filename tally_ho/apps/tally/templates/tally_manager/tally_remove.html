@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Create tally' %}</h1>
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form action="" method="post" enctype="multipart/form-data">
+    {% if form.non_field_errors %}
+    <div class="text-danger">
+        {{ form.non_field_errors }}<br/>
+    </div>
+    {% endif %}
+    {% trans 'Are you sure you want to remove this tally? It will remove all the data related to it' %}
+    <table class="table table-bordered">
+        <tr>
+            <td>{% trans 'Name' %}:</td>
+            <td>
+                {{ object.name }}
+            </td>
+        </tr>
+    </table>
+    <a class="btn btn-danger btn-small" href="{% url 'update-tally' tally_id=object.id %}">
+        {% trans "Cancel" %}
+    </a>
+    <button class="btn btn-success btn-small" type="submit" name="submit">
+        {% trans "Remove" %}
+    </button>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

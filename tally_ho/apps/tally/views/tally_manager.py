@@ -3,7 +3,7 @@ import urllib
 import json
 import csv
 
-from django.views.generic import FormView, TemplateView, CreateView, UpdateView
+from django.views.generic import FormView, TemplateView, CreateView, UpdateView, DeleteView
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.messages.views import SuccessMessageMixin
@@ -127,6 +127,20 @@ class TallyUpdateView(LoginRequiredMixin,
         context = self.get_context_data(tally_id=self.kwargs['tally_id'], form=form)
 
         return self.render_to_response(context)
+
+
+class TallyRemoveView(LoginRequiredMixin,
+                    mixins.GroupRequiredMixin,
+                    mixins.ReverseSuccessURLMixin,
+                    DeleteView):
+    template_name = 'tally_manager/tally_remove.html'
+    group_required= groups.TALLY_MANAGER
+    model = Tally
+    success_url = 'tally-list'
+
+    def get_object(self, queryset=None):
+        self.object = Tally.objects.get(id=self.kwargs['tally_id'])
+        return self.object
 
 
 class TallyFilesFormView(LoginRequiredMixin,

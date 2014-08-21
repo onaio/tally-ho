@@ -46,6 +46,9 @@
         <a href="{% url 'tally-files-form' tally_id=tally_id %}" class="btn btn-default btn-small">
             {% trans "Reupload files" %}
         </a>
+        <a href="{% url 'remove-tally' tally_id=tally_id %}" class="btn btn-default btn-small">
+            {% trans "Remove tally" %}
+        </a>
     {% endif %}
     {% csrf_token %}
 </form>
