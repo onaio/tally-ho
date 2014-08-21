@@ -12,7 +12,7 @@
 Export:
 {% endif %}
 {% if custom %}
-<a href="{% url 'form-not-received-view' 'csv' %}">{% trans 'All' %}</a>
+<a href="{% url 'form-not-received-view' 'csv' tally_id %}">{% trans 'All' %}</a>
 {% elif none %}
 {% else %}
 <a href="{% url 'form-list' tally_id '__all__' %}">{% trans 'All' %}</a>

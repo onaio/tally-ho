@@ -500,7 +500,9 @@ class ResultForm(BaseModel):
         if not pks:
             pks = cls.distinct_form_pks()
 
-        return cls.objects.filter(id__in=pks, form_state=state, tally__id=tally_id)
+        if tally_id:
+            return cls.objects.filter(id__in=pks, form_state=state, tally__id=tally_id)
+        return cls.objects.filter(id__in=pks, form_state=state)
 
     @classmethod
     def generate_barcode(cls):

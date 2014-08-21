@@ -108,7 +108,9 @@ class FormNotReceivedListView(FormListView):
         return self.render_to_response(
             self.get_context_data(header_text=_('Forms Not Received'),
                                   custom=True,
-                                  remote_url='form-not-received-data'))
+                                  remote_url=reverse('form-not-received-data',
+                                      kwargs={'tally_id':tally_id}),
+                                  tally_id=tally_id))
 
 
 class FormNotReceivedDataView(FormListDataView):
