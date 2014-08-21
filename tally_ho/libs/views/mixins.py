@@ -202,7 +202,7 @@ class TallyAccessMixin(object):
         elif userprofile.tally == tally:
             has_access = True
 
-        return False
+        return has_access
 
 
     def dispatch(self, request, *args, **kwargs):
