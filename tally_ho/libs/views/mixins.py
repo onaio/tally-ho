@@ -69,7 +69,10 @@ class GroupRequiredMixin(object):
 class ReverseSuccessURLMixin(object):
     def get_success_url(self):
         if self.success_url:
-            self.success_url = reverse(self.success_url)
+            if hasattr(self, 'tally_id'):
+                self.success_url = reverse(self.success_url, kwargs={'tally_id': self.tally_id})
+            else:
+                self.success_url = reverse(self.success_url)
 
         return super(ReverseSuccessURLMixin, self).get_success_url()
 

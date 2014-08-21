@@ -1,4 +1,5 @@
 from django.views.generic import TemplateView
+from django.core.urlresolvers import reverse
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
@@ -10,6 +11,7 @@ from tally_ho.libs.views.pagination import paging
 
 class CenterListDataView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
+                         mixins.TallyAccessMixin,
                          mixins.DatatablesDisplayFieldsMixin,
                          DatatablesView):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -48,6 +50,15 @@ class CenterListDataView(LoginRequiredMixin,
         ('active', 'station_edit'),
     )
 
+    def get_queryset(self):
+        qs = super(CenterListDataView, self).get_queryset()
+        tally_id = self.kwargs.get('tally_id')
+
+        if tally_id:
+            qs = qs.filter(center__tally__id=tally_id)
+
+        return qs
+
     def render_to_response(self, form, **kwargs):
         '''Render Datatables expected JSON format'''
         page = self.get_page(form)
@@ -66,6 +77,7 @@ class CenterListDataView(LoginRequiredMixin,
 
 class CenterListView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/centers.html"
@@ -77,4 +89,4 @@ class CenterListView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             stations=stations,
-            remote_url='center-list-data'))
+            remote_url=reverse('center-list-data', kwargs=kwargs)))

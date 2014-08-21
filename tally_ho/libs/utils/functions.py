@@ -4,23 +4,25 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 
 
-def disableEnableEntity(centerCode, stationNumber, disableReason=None):
+def disableEnableEntity(centerCode, stationNumber, disableReason=None, tally_id = None):
     entities = []
     entity_to_return = None
     status_target = False
     try:
         if stationNumber:
             entity_to_return = Station.objects.get(station_number=stationNumber,
-                                                   center__code=centerCode)
+                                                   center__code=centerCode,
+                                                   center__tally__id=tally_id)
             status_target = not entity_to_return.active
 
             entities.append(entity_to_return)
         else:
-            entity_to_return = Center.objects.get(code=centerCode)
+            entity_to_return = Center.objects.get(code=centerCode, tally__id=tally_id)
             status_target = not entity_to_return.active
 
             entities.append(entity_to_return)
-            entities += Station.objects.filter(center__code=centerCode)
+            entities += Station.objects.filter(center__code=centerCode,
+                                            center__tally__id=tally_id)
     except Center.DoesNotExist:
         raise forms.ValidationError(_(u"Center Number does not exist"))
     except Station.DoesNotExist:

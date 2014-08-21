@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 def getEditCenterLink(station):
-    url = reverse('edit-centre', args=[station.center.code])
+    url = reverse('edit-centre', args=[station.center.tally.id, station.center.code])
     buttonHtml = '<a href="%s" class="btn btn-default btn-small">%s</a>' % (url, unicode(_('Edit Center')))
 
     return buttonHtml

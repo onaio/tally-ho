@@ -150,9 +150,9 @@ class DashboardView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         group_logins = [g.lower().replace(' ', '_') for g in groups.GROUPS]
+        kwargs['groups'] = group_logins
 
-        return self.render_to_response(self.get_context_data(
-            groups=group_logins))
+        return self.render_to_response(self.get_context_data(**kwargs))
 
 
 class FormProgressView(LoginRequiredMixin,
@@ -436,6 +436,7 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
     slug_url_kwarg = 'centerCode'
     success_url = 'center-list'
     slug_field = 'code'
+    tally_id = None
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -444,11 +445,16 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
 
         return self.render_to_response(context)
 
+    def get_object(self, queryset=None):
+        return Center.objects.get(code=self.kwargs['centerCode'], tally__id=self.kwargs['tally_id'])
+
     def post(self, request, *args, **kwargs):
+        self.tally_id = self.kwargs['tally_id']
+
         if 'abort_submit' in request.POST:
             next_url = request.POST.get('next', None)
 
-            return redirect(next_url)
+            return redirect(next_url, tally_id=self.kwargs['tally_id'])
         else:
             return super(RemoveCenterConfirmationView, self).post(request,
                                                                   *args,
@@ -457,6 +463,7 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
 
 class EditCentreView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
                      mixins.ReverseSuccessURLMixin,
                      SuccessMessageMixin,
                      UpdateView):
@@ -468,7 +475,8 @@ class EditCentreView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         center_code = kwargs.get('centerCode', None)
-        self.object = get_object_or_404(Center, code=center_code)
+        tally_id = kwargs.get('tally_id', None)
+        self.object = get_object_or_404(Center, tally__id=tally_id, code=center_code)
 
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -485,9 +493,10 @@ class EditCentreView(LoginRequiredMixin,
     def post(self, *args, **kwargs):
         post_data = self.request.POST
         center_code = post_data.get('center_code', '')
+        tally_id = self.kwargs.get('tally_id', None)
 
         if 'save_submit' in post_data:
-            centre = get_object_or_404(Center, code=center_code)
+            centre = get_object_or_404(Center, tally__id=tally_id, code=center_code)
 
             centreForm = EditCentreForm(self.request.POST, instance=centre)
 
@@ -496,19 +505,23 @@ class EditCentreView(LoginRequiredMixin,
 
         elif 'enable_submit' in post_data:
             self.success_url = reverse('enable',
-                                       kwargs={'centerCode': center_code})
+                                        kwargs={'centerCode': center_code,
+                                            'tally_id': tally_id})
         elif 'disable_submit' in post_data:
             self.success_url = reverse('disable',
-                                       kwargs={'centerCode': center_code})
+                                       kwargs={'centerCode': center_code,
+                                            'tally_id': tally_id})
         elif 'delete_submit' in post_data:
             self.success_url = reverse('remove-center-confirmation',
-                                       kwargs={'centerCode': center_code})
+                                       kwargs={'centerCode': center_code,
+                                           'tally_id': tally_id,})
 
-        return redirect(self.success_url)
+        return redirect(self.success_url, tally_id=tally_id)
 
 
 class DisableEntityView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
                         mixins.ReverseSuccessURLMixin,
                         SuccessMessageMixin,
                         FormView):
@@ -520,10 +533,12 @@ class DisableEntityView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         stationNumber = kwargs.get('stationNumber')
         centerCode = kwargs.get('centerCode', None)
+        tally_id = kwargs.get('tally_id', None)
 
         entityName = u'Center' if not stationNumber else u'Station'
 
         self.initial = {
+            'tally_id': tally_id,
             'centerCodeInput': centerCode,
             'stationNumberInput': stationNumber
         }
@@ -538,6 +553,7 @@ class DisableEntityView(LoginRequiredMixin,
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        tally_id = kwargs.get('tally_id', None)
 
         if form.is_valid():
             entity = form.save()
@@ -550,12 +566,15 @@ class DisableEntityView(LoginRequiredMixin,
                 self.success_message = _(
                     u"Successfully disabled station %(stationNumber)s"
                     % {'stationNumber': entity.station_number})
-            return self.form_valid(form)
+
+            return redirect(self.success_url, tally_id=tally_id)
+
         return self.form_invalid(form)
 
 
 class EnableEntityView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        mixins.ReverseSuccessURLMixin,
                        SuccessMessageMixin,
                        TemplateView):
@@ -565,16 +584,17 @@ class EnableEntityView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         stationNumber = kwargs.get('stationNumber')
         centerCode = kwargs.get('centerCode', None)
+        tally_id = kwargs.get('tally_id')
 
         entityName = u'Center' if not stationNumber else u'Station'
 
         self.success_message = _(u"%s Successfully enabled.") % entityName
 
-        disableEnableEntity(centerCode, stationNumber)
+        disableEnableEntity(centerCode, stationNumber, tally_id=tally_id)
 
         messages.add_message(self.request, messages.INFO, self.success_message)
 
-        return redirect(self.success_url)
+        return redirect(self.success_url, tally_id=tally_id)
 
 
 class DisableRaceView(LoginRequiredMixin,
