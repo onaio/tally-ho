@@ -341,6 +341,7 @@ class FormClearanceDataView(FormProgressDataView):
 
 class FormActionView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
                      mixins.ReverseSuccessURLMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -348,11 +349,13 @@ class FormActionView(LoginRequiredMixin,
     success_url = 'form-action-view'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
         audits = Audit.objects.filter(
             active=True,
             reviewed_supervisor=True,
             resolution_recommendation=AuditResolution.
-            MAKE_AVAILABLE_FOR_ARCHIVE).all()
+            MAKE_AVAILABLE_FOR_ARCHIVE,
+            result_form__tally__id=tally_id).all()
 
         return self.render_to_response(self.get_context_data(
             audits=audits))

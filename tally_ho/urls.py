@@ -105,7 +105,7 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-results-duplicates$',
         super_admin.FormResultsDuplicatesView.as_view(),
         name='form-results-duplicates'),
-    url(r'^super-administrator/form-action-list$',
+    url(r'^super-administrator/form-action-list/(?P<tally_id>(\d+))/$',
         super_admin.FormActionView.as_view(),
         name='form-action-view'),
     url(r'^super-administrator/form-progress-data$',
