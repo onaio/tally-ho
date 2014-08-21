@@ -86,6 +86,8 @@ urlpatterns = patterns(
         form_list_view.FormListDataView.as_view(),
         name='forms-for-race-data'),
 
+    url(r'^super-administrator/tallies$',
+        super_admin.TalliesView.as_view(), name='super-administrator-tallies'),
     url(r'^super-administrator$',
         super_admin.DashboardView.as_view(), name='super-administrator'),
     url(r'^super-administrator/form-progress$',

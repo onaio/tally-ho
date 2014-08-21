@@ -20,7 +20,7 @@ GROUP_URLS = {
     groups.INTAKE_SUPERVISOR: "intake",
     groups.QUALITY_CONTROL_ARCHIVE_CLERK: "quality-control",
     groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR: "quality-control",
-    groups.SUPER_ADMINISTRATOR: "super-administrator",
+    groups.SUPER_ADMINISTRATOR: "super-administrator-tallies",
     groups.TALLY_MANAGER: "tally-manager",
 }
 

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Tallies' %}</h1>
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<ul>
+    {% for tally in userprofile.administrated_tallies.all %}
+        <li><a href="{% url 'super-administrator' %}">{{ tally }}</a></li>
+    {% empty %}
+    <li>{% trans 'You have no tally assigned to be administrated.' %}</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

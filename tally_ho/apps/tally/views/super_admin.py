@@ -25,6 +25,7 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
@@ -127,6 +128,17 @@ def get_results_duplicates():
                     result_forms_founds.append(form)
 
     return result_forms_founds
+
+
+class TalliesView(LoginRequiredMixin,
+                mixins.GroupRequiredMixin,
+                TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/tallies.html"
+
+    def get(self, request, *args, **kwargs):
+        kwargs['userprofile'] = UserProfile.objects.get(id=self.request.user.id)
+        return super(TalliesView, self).get(request, *args, **kwargs)
 
 
 class DashboardView(LoginRequiredMixin,
