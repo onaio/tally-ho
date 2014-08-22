@@ -202,7 +202,8 @@ class FormClearanceView(LoginRequiredMixin,
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
-            forms=forms))
+            forms=forms,
+            remote_url=reverse('form-clearance-data', kwargs={'tally_id': kwargs['tally_id']})))
 
 
 class FormAuditView(LoginRequiredMixin,

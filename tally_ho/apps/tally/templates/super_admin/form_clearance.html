@@ -8,7 +8,7 @@
 
 <h1>{% trans 'Form Clearance List' %}</h1>
 
-<table id="formclearancelist">
+<table id="datalist">
     <thead>
         <tr>
             <th>{% trans 'Barcode' %}</th>
@@ -37,5 +37,8 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 {% django_js %}
 {% datatables_js %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/form_clearance_table.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/data_table.js"></script>
+<script type="text/javascript">
+    loadTableData('{{ remote_url }}');
+</script>
 {% endblock %}
