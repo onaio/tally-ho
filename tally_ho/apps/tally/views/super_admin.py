@@ -39,21 +39,21 @@ from tally_ho.libs.views.exports import get_result_export_response,\
 from tally_ho.libs.views.pagination import paging
 
 
-def duplicates():
+def duplicates(tally_id=None):
     """Build a list of result forms that are duplicates considering only forms
     that are not unsubmitted.
 
     :returns: A list of result forms in the system that are duplicates.
     """
     dupes = ResultForm.objects.values(
-        'center', 'ballot', 'station_number').annotate(
+        'center', 'ballot', 'station_number', 'tally__id').annotate(
         Count('id')).order_by().filter(id__count__gt=1).filter(
         center__isnull=False, ballot__isnull=False,
-        station_number__isnull=False).exclude(form_state=FormState.UNSUBMITTED)
+        station_number__isnull=False, tally__id=tally_id).exclude(form_state=FormState.UNSUBMITTED)
 
     pks = flatten([map(lambda x: x['id'], ResultForm.objects.filter(
         center=item['center'], ballot=item['ballot'],
-        station_number=item['station_number']).values('id'))
+        station_number=item['station_number'], tally__id=item['tally__id']).values('id'))
         for item in dupes])
 
     return ResultForm.objects.filter(pk__in=pks)
@@ -185,7 +185,9 @@ class FormDuplicatesView(LoginRequiredMixin,
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
-            forms=forms))
+            forms=forms,
+            remote_url=reverse('form-duplicates-data',
+                kwargs={'tally_id': kwargs['tally_id']})))
 
 
 class FormClearanceView(LoginRequiredMixin,
@@ -312,7 +314,11 @@ class FormAuditDataView(FormProgressDataView):
 
 
 class FormDuplicatesDataView(FormProgressDataView):
-    queryset = duplicates()
+
+    def get_queryset(self):
+        self.queryset = duplicates(self.kwargs['tally_id'])
+
+        return super(FormDuplicatesDataView, self).get_queryset()
 
 
 class FormClearanceDataView(FormProgressDataView):
