@@ -175,6 +175,7 @@ class FormProgressView(LoginRequiredMixin,
 
 class FormDuplicatesView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
+                         mixins.TallyAccessMixin,
                          TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_duplicates.html"
@@ -192,6 +193,7 @@ class FormDuplicatesView(LoginRequiredMixin,
 
 class FormClearanceView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
                         TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_clearance.html"
@@ -208,6 +210,7 @@ class FormClearanceView(LoginRequiredMixin,
 
 class FormAuditView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
+                    mixins.TallyAccessMixin,
                     TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_audit.html"
