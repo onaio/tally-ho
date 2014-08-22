@@ -79,10 +79,10 @@ urlpatterns = patterns(
     url(r'^data/form-not-received-data/(?P<tally_id>(\d+))/$',
         form_list_view.FormNotReceivedDataView.as_view(),
         name='form-not-received-data'),
-    url(r'^data/forms-for-race/(?P<ballot>.*)/$',
+    url(r'^data/forms-for-race/(?P<tally_id>(\d+))/(?P<ballot>.*)/$',
         form_list_view.FormsForRaceView.as_view(),
         name='forms-for-race'),
-    url(r'^data/forms-for-race-data/(?P<ballot>.*)/$',
+    url(r'^data/forms-for-race-data/(?P<tally_id>(\d+))/(?P<ballot>.*)/$',
         form_list_view.FormListDataView.as_view(),
         name='forms-for-race-data'),
 

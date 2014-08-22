@@ -54,7 +54,7 @@ class FormListDataView(LoginRequiredMixin,
         qs = qs.filter(tally__id=tally_id)
 
         if ballot_number:
-            ballot = Ballot.objects.get(number=ballot_number)
+            ballot = Ballot.objects.get(number=ballot_number, tally__id=tally_id)
             qs = qs.filter(
                 ballot__number__in=ballot.form_ballot_numbers)
 
@@ -122,8 +122,9 @@ class FormsForRaceView(FormListView):
 
     def get(self, *args, **kwargs):
         ballot = kwargs.get('ballot')
+        tally_id = kwargs.get('tally_id')
 
         return self.render_to_response(self.get_context_data(
             header_text=_('Forms for Race %s' % ballot),
             none=True,
-            remote_url='/data/forms-for-race-data/%s/' % ballot))
+            remote_url=reverse('forms-for-race-data', args=[tally_id, ballot])))

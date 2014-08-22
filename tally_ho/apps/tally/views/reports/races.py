@@ -37,6 +37,8 @@ class RacesReportView(LoginRequiredMixin,
         return data
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
+
         per_ballot = self.get_per_ballot_progress()
         races = len(per_ballot)
         completed = sum([1 for x in per_ballot if isinstance(
@@ -51,4 +53,5 @@ class RacesReportView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(
                 overview=overview,
-                per_ballot=per_ballot))
+                per_ballot=per_ballot,
+                tally_id=tally_id))
