@@ -552,7 +552,8 @@ class ResultForm(BaseModel):
         if not station_number:
             station_number = self.station_number
 
-        qs = ResultForm.objects.filter(
+        qs = ResultForm.objects.filter(tally=self.tally)
+        qs = qs.filter(
             Q(center=center), Q(center__isnull=False),
             Q(station_number=station_number), Q(station_number__isnull=False),
             Q(ballot=self.ballot), Q(ballot__isnull=False))

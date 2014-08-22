@@ -407,6 +407,7 @@ class FormActionView(LoginRequiredMixin,
 
 class ResultExportView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/result_export.html"

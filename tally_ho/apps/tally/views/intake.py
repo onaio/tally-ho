@@ -34,14 +34,19 @@ def states_for_form(user, states, result_form):
 
 class CenterDetailsView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
     form_class = BarcodeForm
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     template_name = "barcode_verify.html"
     success_url = 'check-center-details'
+    tally_id = None
 
     def get(self, *args, **kwargs):
+        self.initial = {
+            'tally_id': kwargs['tally_id']
+        }
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         form_action = ''
@@ -51,12 +56,13 @@ class CenterDetailsView(LoginRequiredMixin,
                                   form_action=form_action))
 
     def post(self, *args, **kwargs):
+        self.tally_id = kwargs['tally_id']
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode)
+            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=self.tally_id)
             url = self.success_url
             user = self.request.user
             possible_states = states_for_form(
@@ -91,15 +97,16 @@ class CenterDetailsView(LoginRequiredMixin,
                 result_form.save()
 
             if result_form.center:
-                return redirect(url)
+                return redirect(url, tally_id=self.tally_id)
             else:
-                return redirect('intake-enter-center')
+                return redirect('intake-enter-center', tally_id=self.tally_id)
         else:
             return self.form_invalid(form)
 
 
 class EnterCenterView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
+                      mixins.TallyAccessMixin,
                       mixins.ReverseSuccessURLMixin,
                       FormView):
     form_class = CenterDetailsForm
@@ -108,6 +115,9 @@ class EnterCenterView(LoginRequiredMixin,
     success_url = 'check-center-details'
 
     def get(self, *args, **kwargs):
+        self.initial = {
+            'tally_id': kwargs['tally_id']
+        }
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         pk = self.request.session.get('result_form')
@@ -182,6 +192,7 @@ class EnterCenterView(LoginRequiredMixin,
 
 class CheckCenterDetailsView(LoginRequiredMixin,
                              mixins.GroupRequiredMixin,
+                             mixins.TallyAccessMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
@@ -190,6 +201,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
+        tally_id = kwargs['tally_id']
 
         result_form = get_object_or_404(ResultForm, pk=pk)
 
@@ -198,7 +210,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             station_number = self.request.session.get('station_number')
             center_number = self.request.session.get('center_number')
 
-            center = Center.objects.get(code=center_number)
+            center = Center.objects.get(code=center_number, tally__id=tally_id)
 
             result_form.station_number = station_number
             result_form.center = center
@@ -214,6 +226,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
+        tally_id = self.kwargs['tally_id']
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_intake_state(result_form)
@@ -224,7 +237,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             if not result_form.center:
                 station_number = self.request.session.get('station_number')
                 center_number = self.request.session.get('center_number')
-                center = Center.objects.get(code=center_number)
+                center = Center.objects.get(code=center_number, tally__id=tally_id)
 
                 result_form.station_number = station_number
                 result_form.center = center
@@ -249,17 +262,19 @@ class CheckCenterDetailsView(LoginRequiredMixin,
         result_form.date_seen = now()
         result_form.save()
 
-        return redirect(url)
+        return redirect(url, tally_id=tally_id)
 
 
 class PrintCoverView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
                      TemplateView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     template_name = "intake/print_cover.html"
     printed_url = 'intake-printed'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         possible_states = states_for_form(self.request.user,
@@ -271,6 +286,7 @@ class PrintCoverView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
+        tally_id = self.kwargs['tally_id']
 
         if 'result_form' in post_data:
             pk = session_matches_post_result_form(post_data, self.request)
@@ -281,7 +297,7 @@ class PrintCoverView(LoginRequiredMixin,
             result_form.form_state = FormState.DATA_ENTRY_1
             result_form.save()
 
-            return redirect('intaken')
+            return redirect('intaken', tally_id=tally_id)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
@@ -289,11 +305,13 @@ class PrintCoverView(LoginRequiredMixin,
 
 class ClearanceView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
+                    mixins.TallyAccessMixin,
                     TemplateView):
     template_name = "intake/clearance.html"
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.CLEARANCE])
@@ -310,16 +328,19 @@ class ClearanceView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(error_msg=error_msg,
-                                  result_form=result_form))
+                                  result_form=result_form,
+                                  tally_id=tally_id))
 
 
 class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        TemplateView):
     template_name = "success.html"
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         del self.request.session['result_form']
@@ -328,7 +349,8 @@ class ConfirmationView(LoginRequiredMixin,
             self.get_context_data(result_form=result_form,
                                   header_text=_('Intake'),
                                   next_step=_('Data Entry 1'),
-                                  start_url='intake'))
+                                  start_url='intake',
+                                  tally_id=tally_id))
 
 
 class IntakePrintedView(LoginRequiredMixin,
