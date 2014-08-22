@@ -79,19 +79,19 @@ def audit():
     return ResultForm.objects.filter(form_state=FormState.AUDIT)
 
 
-def get_results_duplicates():
+def get_results_duplicates(tally_id):
     complete_barcodes = []
 
-    for ballot in valid_ballots():
-        forms = distinct_forms(ballot)
+    for ballot in valid_ballots(tally_id):
+        forms = distinct_forms(ballot, tally_id)
         final_forms = ResultForm.forms_in_state(
-            FormState.ARCHIVED, pks=[r.pk for r in forms])
+            FormState.ARCHIVED, pks=[r.pk for r in forms], tally_id=tally_id)
 
         if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
             complete_barcodes.extend([r.barcode for r in final_forms])
 
     result_forms = ResultForm.objects\
-        .select_related().filter(barcode__in=complete_barcodes)
+        .select_related().filter(barcode__in=complete_barcodes, tally__id=tally_id)
 
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
@@ -232,7 +232,7 @@ class FormResultsDuplicatesView(LoginRequiredMixin,
     template_name = "super_admin/form_results_duplicates.html"
 
     def get(self, *args, **kwargs):
-        form_list = get_results_duplicates()
+        form_list = get_results_duplicates(kwargs['tally_id'])
 
         forms = paging(form_list, self.request)
 

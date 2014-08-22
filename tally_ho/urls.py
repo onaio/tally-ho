@@ -102,7 +102,7 @@ urlpatterns = patterns(
     url(r'^super-administrator/form-audit/(?P<tally_id>(\d+))/$',
         super_admin.FormAuditView.as_view(),
         name='form-audit'),
-    url(r'^super-administrator/form-results-duplicates$',
+    url(r'^super-administrator/form-results-duplicates/(?P<tally_id>(\d+))/$',
         super_admin.FormResultsDuplicatesView.as_view(),
         name='form-results-duplicates'),
     url(r'^super-administrator/form-action-list/(?P<tally_id>(\d+))/$',

@@ -60,7 +60,7 @@ def valid_ballots(tally_id = None):
     return Ballot.objects.filter(tally__id=tally_id)
 
 
-def distinct_forms(ballot):
+def distinct_forms(ballot, tally_id):
     """Return the distinct forms for a ballot based on its type.
 
     If there are no forms for a ballot assume that it is a component ballot and
@@ -70,10 +70,10 @@ def distinct_forms(ballot):
 
     :returns: The list of result forms.
     """
-    forms = ResultForm.distinct_filter(ballot.resultform_set)
+    forms = ResultForm.distinct_filter(ballot.resultform_set, tally_id)
 
     if not forms:
-        forms = ResultForm.distinct_for_component(ballot)
+        forms = ResultForm.distinct_for_component(ballot, tally_id)
 
     return forms
 
