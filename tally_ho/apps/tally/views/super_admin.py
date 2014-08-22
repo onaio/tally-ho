@@ -397,6 +397,7 @@ class ResultExportView(LoginRequiredMixin,
 
 class RemoveCenterView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        mixins.ReverseSuccessURLMixin,
                        SuccessMessageMixin,
                        FormView):
@@ -436,6 +437,7 @@ class RemoveCenterView(LoginRequiredMixin,
 
 class RemoveCenterConfirmationView(LoginRequiredMixin,
                                    mixins.GroupRequiredMixin,
+                                   mixins.TallyAccessMixin,
                                    mixins.ReverseSuccessURLMixin,
                                    SuccessMessageMixin,
                                    DeleteView):
@@ -609,6 +611,7 @@ class EnableEntityView(LoginRequiredMixin,
 
 class DisableRaceView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
                         mixins.ReverseSuccessURLMixin,
                         SuccessMessageMixin,
                         FormView):
@@ -651,6 +654,7 @@ class DisableRaceView(LoginRequiredMixin,
 
 class EnableRaceView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        mixins.ReverseSuccessURLMixin,
                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -669,6 +673,7 @@ class EnableRaceView(LoginRequiredMixin,
 
 class RemoveStationView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
                         mixins.ReverseSuccessURLMixin,
                         SuccessMessageMixin,
                         FormView):
@@ -741,6 +746,7 @@ class QuarantineChecksConfigView(LoginRequiredMixin,
 
 class RemoveStationConfirmationView(LoginRequiredMixin,
                                     mixins.GroupRequiredMixin,
+                                    mixins.TallyAccessMixin,
                                     mixins.ReverseSuccessURLMixin,
                                     SuccessMessageMixin,
                                     DeleteView):
@@ -794,6 +800,7 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
 
 class EditStationView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
+                      mixins.TallyAccessMixin,
                       mixins.ReverseSuccessURLMixin,
                       SuccessMessageMixin,
                       UpdateView):
@@ -865,6 +872,7 @@ class EditStationView(LoginRequiredMixin,
 
 class EnableCandidateView(LoginRequiredMixin,
                           mixins.GroupRequiredMixin,
+                          mixins.TallyAccessMixin,
                           mixins.ReverseSuccessURLMixin,
                           SuccessMessageMixin,
                           TemplateView):
@@ -884,6 +892,7 @@ class EnableCandidateView(LoginRequiredMixin,
 
 class DisableCandidateView(LoginRequiredMixin,
                            mixins.GroupRequiredMixin,
+                           mixins.TallyAccessMixin,
                            mixins.ReverseSuccessURLMixin,
                            SuccessMessageMixin,
                            TemplateView):
