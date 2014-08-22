@@ -463,8 +463,16 @@ class ResultForm(BaseModel):
 
         :returns: A distinct, ordered, and filtered queryset.
         """
+        if tally_id:
+            return qs.filter(
+                tally__id=tally_id,
+                center__isnull=False,
+                station_number__isnull=False,
+                ballot__isnull=False).order_by(
+                'center__id', 'station_number', 'ballot__id',
+                'form_state').distinct(
+                'center__id', 'station_number', 'ballot__id')
         return qs.filter(
-            tally__id=tally_id,
             center__isnull=False,
             station_number__isnull=False,
             ballot__isnull=False).order_by(
@@ -487,7 +495,10 @@ class ResultForm(BaseModel):
 
     @classmethod
     def distinct_forms(cls, tally_id=None):
-        return cls.distinct_filter(cls.objects, tally_id)
+        if tally_id:
+            return cls.distinct_filter(cls.objects, tally_id)
+
+        return cls.distinct_filter(cls.objects)
 
     @classmethod
     def distinct_form_pks(cls, tally_id=None):
@@ -495,7 +506,10 @@ class ResultForm(BaseModel):
         # this leads to not choosing the archived replacement form.
         # TODO use a subquery that preserves the distinct and the order by
         # or cache this.
-        return [r.pk for r in cls.distinct_filter(cls.distinct_forms(tally_id), tally_id)]
+        if tally_id:
+            return [r.pk for r in cls.distinct_filter(cls.distinct_forms(tally_id), tally_id)]
+
+        return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
 
     @classmethod
     def forms_in_state(cls, state, pks=None, tally_id=None):
