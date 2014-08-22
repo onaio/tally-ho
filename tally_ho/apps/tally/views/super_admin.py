@@ -157,6 +157,7 @@ class DashboardView(LoginRequiredMixin,
 
 class FormProgressView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_progress.html"
@@ -168,7 +169,8 @@ class FormProgressView(LoginRequiredMixin,
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
-            forms=forms))
+            forms=forms,
+            remote_url=reverse('form-progress-data', kwargs={'tally_id': kwargs['tally_id']})))
 
 
 class FormDuplicatesView(LoginRequiredMixin,
@@ -232,11 +234,11 @@ class FormResultsDuplicatesView(LoginRequiredMixin,
 
 class FormProgressDataView(LoginRequiredMixin,
                            mixins.GroupRequiredMixin,
+                           mixins.TallyAccessMixin,
                            mixins.DatatablesDisplayFieldsMixin,
                            DatatablesView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
-    queryset = ResultForm.objects.exclude(form_state=FormState.UNSUBMITTED)
     fields = (
         'barcode',
         'center__code',
@@ -261,6 +263,16 @@ class FormProgressDataView(LoginRequiredMixin,
         ('rejected_count', 'rejected_count'),
         ('modified_date', 'modified_date_formatted'),
     )
+
+    def get_queryset(self):
+        qs = super(FormProgressDataView, self).get_queryset()
+
+        tally_id = self.kwargs['tally_id']
+
+        qs = qs.filter(tally__id=tally_id)
+        qs = qs.exclude(form_state=FormState.UNSUBMITTED)
+
+        return qs
 
 
 class FormAuditDataView(FormProgressDataView):
