@@ -413,8 +413,9 @@ class ResultExportView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         report = kwargs.get('report')
+        tally_id = kwargs.get('tally_id')
         if report:
-            return get_result_export_response(report)
+            return get_result_export_response(report, int(tally_id))
         return super(ResultExportView, self).get(*args, **kwargs)
 
 
