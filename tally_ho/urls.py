@@ -276,7 +276,7 @@ urlpatterns = patterns(
     url(r'^reports/internal/offices/(?P<tally_id>(\d+))/(?P<option>.*)/$',
         offices.OfficesReportDownloadView.as_view(),
         name='reports-offices-export'),
-    url(r'^reports/internal/race',
+    url(r'^reports/internal/race/(?P<tally_id>(\d+))/$',
         races.RacesReportView.as_view(),
         name='reports-races'),
 

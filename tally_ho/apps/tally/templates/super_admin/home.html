@@ -27,7 +27,7 @@
 <h3>{% trans 'Reports' %}</h3>
 <ul>
     <li><a href="{% url 'reports-offices' tally_id=tally_id %}">{% trans 'Reports Offices' %}</a></li>
-    <li><a href="{% url 'reports-races' %}">{% trans 'Reports Races' %}</a></li>
+    <li><a href="{% url 'reports-races' tally_id=tally_id %}">{% trans 'Reports Races' %}</a></li>
     <li><a href="{% url 'form-progress' %}">{% trans 'Form Progress' %}</a></li>
     <li><a href="{% url 'form-duplicates' %}">{% trans 'Form Duplicates' %}</a></li>
     <li><a href="{% url 'form-clearance' %}">{% trans 'Form Clearance' %}</a></li>

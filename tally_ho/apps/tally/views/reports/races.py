@@ -13,11 +13,13 @@ class RacesReportView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'reports/races.html'
 
-    def get_per_ballot_progress(self, tally_id = None):
+    def get_per_ballot_progress(self):
         data = []
+        tally_id = self.kwargs.get('tally_id')
 
+        archived = p.ArchivedProgressReport(tally_id)
         for ballot in valid_ballots(tally_id):
-            archived = p.ArchivedProgressReport().for_ballot(ballot)
+            archived_result = archived.for_ballot(ballot)
             sc = ballot.sub_constituency
 
             if sc:
@@ -25,9 +27,9 @@ class RacesReportView(LoginRequiredMixin,
                     'ballot': ballot.number,
                     'district': sc.code,
                     'race_type': ballot.race_type_name,
-                    'expected': archived.denominator,
-                    'complete': archived.number,
-                    'percentage': archived.percentage,
+                    'expected': archived_result['denominator'],
+                    'complete': archived_result['number'],
+                    'percentage': archived_result['percentage'],
                     'id': ballot.id,
                     'active': ballot.active
                 })

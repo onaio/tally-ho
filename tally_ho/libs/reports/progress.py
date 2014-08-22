@@ -30,37 +30,45 @@ class ProgressReport(object):
 
         return self.filtered_queryset
 
-    def numerator(self):
-        return self.get_filtered_queryset().count()
+    def numerator(self, filtered_queryset=None):
+        if not filtered_queryset:
+            return self.get_filtered_queryset().count()
+
+        return filtered_queryset.count()
 
     number = property(numerator)
 
-    def denominator(self):
-        return self.queryset.count()
+    def denominator(self, queryset=None):
+        if not queryset:
+            return self.queryset.count()
+
+        return queryset.count()
 
     total = property(denominator)
 
-    def percentage_value(self):
-        if self.denominator() <= 0:
+    def percentage_value(self, queryset=None, filtered_queryset=None):
+        if self.denominator(queryset) <= 0:
             return _(u"No results")
 
-        return rounded_percent(self.numerator(), self.denominator())
+        return rounded_percent(self.numerator(filtered_queryset), self.denominator(queryset))
 
     percentage = property(percentage_value)
 
     def for_ballot(self, ballot):
 
-        self.filtered_queryset = self.get_filtered_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers, tally__id=self.tally)
-        self.queryset = self.get_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers, tally__id=self.tally)
+        filtered_queryset = self.get_filtered_queryset().filter(
+            ballot__number__in=ballot.form_ballot_numbers, tally__id=self.tally_id)
+        queryset = self.get_queryset().filter(
+            ballot__number__in=ballot.form_ballot_numbers, tally__id=self.tally_id)
 
-        return self
+        return {'denominator': self.denominator(queryset),
+                'number': self.numerator(filtered_queryset),
+                'percentage': self.percentage_value(queryset, filtered_queryset)}
 
     def for_center_office(self, office):
 
         filtered_queryset = self.get_filtered_queryset().filter(center__office=office)
-        queryset = self.get_queryset().filter(center__office=office)
+        #queryset = self.get_queryset().filter(center__office=office)
 
         return filtered_queryset.count()
 
