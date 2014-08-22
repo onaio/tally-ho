@@ -452,7 +452,7 @@ class ResultForm(BaseModel):
         return candidates
 
     @classmethod
-    def distinct_filter(self, qs):
+    def distinct_filter(self, qs, tally_id=None):
         """Add a distinct filter onto a queryset.
 
         Return a queryset that accounts for duplicate replacement forms, orders
@@ -464,6 +464,7 @@ class ResultForm(BaseModel):
         :returns: A distinct, ordered, and filtered queryset.
         """
         return qs.filter(
+            tally__id=tally_id,
             center__isnull=False,
             station_number__isnull=False,
             ballot__isnull=False).order_by(
@@ -472,7 +473,7 @@ class ResultForm(BaseModel):
             'center__id', 'station_number', 'ballot__id')
 
     @classmethod
-    def distinct_for_component(cls, ballot):
+    def distinct_for_component(cls, ballot, tally_id=None):
         """Return the distinct result forms for this ballot, taking into
         account the possiblity of a component ballot.
 
@@ -481,24 +482,25 @@ class ResultForm(BaseModel):
         :returns: A distinct list of result forms.
         """
         return cls.distinct_filter(cls.objects.filter(
-            ballot__number__in=ballot.form_ballot_numbers))
+            ballot__number__in=ballot.form_ballot_numbers,
+            tally__id=tally_id))
 
     @classmethod
-    def distinct_forms(cls):
-        return cls.distinct_filter(cls.objects)
+    def distinct_forms(cls, tally_id=None):
+        return cls.distinct_filter(cls.objects, tally_id)
 
     @classmethod
-    def distinct_form_pks(cls):
+    def distinct_form_pks(cls, tally_id=None):
         # Calling '.values(id)' here does not preserve the distinct order by,
         # this leads to not choosing the archived replacement form.
         # TODO use a subquery that preserves the distinct and the order by
         # or cache this.
-        return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
+        return [r.pk for r in cls.distinct_filter(cls.distinct_forms(tally_id), tally_id)]
 
     @classmethod
     def forms_in_state(cls, state, pks=None, tally_id=None):
         if not pks:
-            pks = cls.distinct_form_pks()
+            pks = cls.distinct_form_pks(tally_id)
 
         if tally_id:
             return cls.objects.filter(id__in=pks, form_state=state, tally__id=tally_id)

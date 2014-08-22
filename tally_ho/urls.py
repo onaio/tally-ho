@@ -270,10 +270,10 @@ urlpatterns = patterns(
         clearance.ClearancePrintedView.as_view(),
         name='clearance-printed'),
 
-    url(r'^reports/internal/offices$',
+    url(r'^reports/internal/offices/(?P<tally_id>(\d+))/$',
         offices.OfficesReportView.as_view(),
         name='reports-offices'),
-    url(r'^reports/internal/offices/(?P<option>.*)/$',
+    url(r'^reports/internal/offices/(?P<tally_id>(\d+))/(?P<option>.*)/$',
         offices.OfficesReportDownloadView.as_view(),
         name='reports-offices-export'),
     url(r'^reports/internal/race',

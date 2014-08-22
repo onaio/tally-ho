@@ -19,14 +19,14 @@
     <li><a href="{% url 'form-list' tally_id=tally_id %}">{% trans 'Form List' %}</a></li>
     <li><a href="{% url 'candidate-list' tally_id=tally_id %}">{% trans 'Candidate List' %}</a></li>
     <li><a href="{% url 'form-not-received-view' tally_id=tally_id %}">{% trans 'Forms Not Received' %}</a></li>
-    <li><a href="{% url 'form-action-view' tally_id=tally_id%}">{% trans 'Forms Waiting for Approval' %}</a></li>
+    <li><a href="{% url 'form-action-view' tally_id=tally_id %}">{% trans 'Forms Waiting for Approval' %}</a></li>
     <li><a href="{% url 'quarantine-checks' %}">{% trans 'Quarantine Checks' %}</a></li>
 </ul>
 
 
 <h3>{% trans 'Reports' %}</h3>
 <ul>
-    <li><a href="{% url 'reports-offices' %}">{% trans 'Reports Offices' %}</a></li>
+    <li><a href="{% url 'reports-offices' tally_id=tally_id %}">{% trans 'Reports Offices' %}</a></li>
     <li><a href="{% url 'reports-races' %}">{% trans 'Reports Races' %}</a></li>
     <li><a href="{% url 'form-progress' %}">{% trans 'Form Progress' %}</a></li>
     <li><a href="{% url 'form-duplicates' %}">{% trans 'Form Duplicates' %}</a></li>
