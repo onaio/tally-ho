@@ -218,7 +218,8 @@ class FormAuditView(LoginRequiredMixin,
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
-            forms=forms))
+            forms=forms,
+            remote_url=reverse('form-audit-data', args=[kwargs['tally_id']])))
 
 
 class FormResultsDuplicatesView(LoginRequiredMixin,
