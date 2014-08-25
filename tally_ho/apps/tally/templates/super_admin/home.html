@@ -40,7 +40,7 @@
 <ul>
     <li><a href="{% url 'intake' tally_id=tally_id %}">{% trans 'Intake Clerk' %}</a></li>
     <li><a href="{% url 'clearance' %}">{% trans 'Clearance Clerk' %}</a></li>
-    <li><a href="{% url 'data-entry' %}">{% trans 'Data Entry Clerk' %}</a></li>
+    <li><a href="{% url 'data-entry' tally_id=tally_id %}">{% trans 'Data Entry Clerk' %}</a></li>
     <li><a href="{% url 'corrections' %}">{% trans 'Corrections Clerk' %}</a></li>
     <li><a href="{% url 'quality-control' %}">{% trans 'Quality Control & Archiving Clerk' %}</a></li>
     <li><a href="{% url 'audit' %}">{% trans 'Audit Clerk' %}</a></li>
