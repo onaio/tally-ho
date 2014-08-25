@@ -61,4 +61,5 @@ class CandidateListView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             candidates=candidates,
-            remote_url=reverse('candidate-list-data', kwargs={'tally_id': tally_id})))
+            remote_url=reverse('candidate-list-data', kwargs={'tally_id': tally_id}),
+            tally_id=tally_id))

@@ -83,10 +83,12 @@ class CenterListView(LoginRequiredMixin,
     template_name = "data/centers.html"
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         # check cache
         station_list = Station.objects.all()
         stations = paging(station_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             stations=stations,
-            remote_url=reverse('center-list-data', kwargs=kwargs)))
+            remote_url=reverse('center-list-data', kwargs=kwargs),
+            tally_id=tally_id))

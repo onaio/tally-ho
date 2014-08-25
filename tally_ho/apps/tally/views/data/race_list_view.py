@@ -15,7 +15,7 @@ class RaceListView(RacesReportView):
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        ballots = self.get_per_ballot_progress(tally_id)
+        ballots = self.get_per_ballot_progress()
 
         ballots = paging(ballots, self.request)
 

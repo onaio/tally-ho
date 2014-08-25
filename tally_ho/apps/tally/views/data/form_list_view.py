@@ -127,4 +127,5 @@ class FormsForRaceView(FormListView):
         return self.render_to_response(self.get_context_data(
             header_text=_('Forms for Race %s' % ballot),
             none=True,
+            tally_id=tally_id,
             remote_url=reverse('forms-for-race-data', args=[tally_id, ballot])))
