@@ -60,6 +60,7 @@ def states_for_form(user, result_form, states=[FormState.ARCHIVING]):
 
 class ArchivePrintView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
     group_required = [groups.QUALITY_CONTROL_ARCHIVE_CLERK,
@@ -68,6 +69,7 @@ class ArchivePrintView(LoginRequiredMixin,
     success_url = 'archive-success'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         possible_states = states_for_form(self.request.user, result_form)
@@ -80,6 +82,7 @@ class ArchivePrintView(LoginRequiredMixin,
 
     @transaction.atomic
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
@@ -90,7 +93,7 @@ class ArchivePrintView(LoginRequiredMixin,
             FormState.ARCHIVED
         result_form.save()
 
-        return redirect(self.success_url)
+        return redirect(self.success_url, tally_id=tally_id)
 
 
 class ConfirmationView(LoginRequiredMixin,
@@ -101,6 +104,7 @@ class ConfirmationView(LoginRequiredMixin,
                       groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         next_step = _('Quarantine') if result_form.audit else _('Archive')
@@ -108,4 +112,5 @@ class ConfirmationView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             result_form=result_form, header_text=_('Quality Control & Archiving'),
-            next_step=next_step, start_url='quality-control'))
+            next_step=next_step, start_url='quality-control',
+            tally_id=tally_id))

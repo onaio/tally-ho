@@ -202,13 +202,13 @@ urlpatterns = patterns(
         intake.IntakePrintedView.as_view(),
         name='intake-printed'),
 
-    url(r'^quality-control/home$',
+    url(r'^quality-control/home/(?P<tally_id>(\d+))/$',
         quality_control.QualityControlView.as_view(),
         name='quality-control'),
-    url(r'^quality-control/dashboard$',
+    url(r'^quality-control/dashboard/(?P<tally_id>(\d+))/$',
         quality_control.QualityControlDashboardView.as_view(),
         name='quality-control-dashboard'),
-    url(r'^quality-control/reject$',
+    url(r'^quality-control/reject/(?P<tally_id>(\d+))/$',
         TemplateView.as_view(
             template_name='quality_control/reject.html'),
         name='quality-control-reject'),
@@ -226,10 +226,10 @@ urlpatterns = patterns(
         corrections.ConfirmationView.as_view(),
         name='corrections-success'),
 
-    url(r'^archive/print$',
+    url(r'^archive/print/(?P<tally_id>(\d+))/$',
         archive.ArchivePrintView.as_view(),
         name='archive-print'),
-    url(r'^archive/success$',
+    url(r'^archive/success/(?P<tally_id>(\d+))/$',
         archive.ConfirmationView.as_view(),
         name='archive-success'),
 

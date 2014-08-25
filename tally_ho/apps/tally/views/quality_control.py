@@ -43,6 +43,7 @@ def results_for_race(result_form, race_type):
 
 class QualityControlView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
+                         mixins.TallyAccessMixin,
                          mixins.ReverseSuccessURLMixin,
                          FormView):
     form_class = BarcodeForm
@@ -52,21 +53,27 @@ class QualityControlView(LoginRequiredMixin,
     success_url = 'quality-control-dashboard'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        self.initial = {
+            'tally_id': tally_id,
+        }
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         form_action = ''
 
         return self.render_to_response(self.get_context_data(
             form=form, header_text=_('Quality Control & Archiving'),
-            form_action=form_action))
+            form_action=form_action,
+            tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode)
+            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
             form = safe_form_in_state(result_form, [FormState.QUALITY_CONTROL,
                                                     FormState.ARCHIVING],
                                       form)
@@ -78,13 +85,14 @@ class QualityControlView(LoginRequiredMixin,
             QualityControl.objects.create(result_form=result_form,
                                           user=self.request.user)
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.form_invalid(form)
 
 
 class QualityControlDashboardView(LoginRequiredMixin,
                                   mixins.GroupRequiredMixin,
+                                  mixins.TallyAccessMixin,
                                   mixins.ReverseSuccessURLMixin,
                                   FormView):
     group_required = [groups.QUALITY_CONTROL_ARCHIVE_CLERK,
@@ -93,6 +101,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
     success_url = 'archive-print'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, [FormState.QUALITY_CONTROL,
@@ -110,9 +119,11 @@ class QualityControlDashboardView(LoginRequiredMixin,
                                   reconciliation_form=reconciliation_form,
                                   results_component=results_component,
                                   results_women=results_women,
-                                  results_general=results_general))
+                                  results_general=results_general,
+                                  tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
@@ -149,4 +160,4 @@ class QualityControlDashboardView(LoginRequiredMixin,
 
         quality_control.save()
 
-        return redirect(url)
+        return redirect(url, tally_id=tally_id)
