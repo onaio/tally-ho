@@ -59,24 +59,24 @@ def duplicates(tally_id=None):
     return ResultForm.objects.filter(pk__in=pks)
 
 
-def clearance():
+def clearance(tally_id=None):
     """Build a list of result forms that are in clearance state considering
     only forms that are not unsubmitted.
 
     :returns: A list of result forms in the system that are in clearance state.
     """
 
-    return ResultForm.objects.filter(form_state=FormState.CLEARANCE)
+    return ResultForm.objects.filter(form_state=FormState.CLEARANCE, tally__id=tally_id)
 
 
-def audit():
+def audit(tally_id=None):
     """Build a list of result forms that are in audit pending state
     considering only forms that are not unsubmitted.
 
     :returns: A list of result forms in the system that are in audit pending
     state.
     """
-    return ResultForm.objects.filter(form_state=FormState.AUDIT)
+    return ResultForm.objects.filter(form_state=FormState.AUDIT, tally__id=tally_id)
 
 
 def get_results_duplicates(tally_id):
@@ -170,6 +170,7 @@ class FormProgressView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             forms=forms,
+            tally_id=kwargs['tally_id'],
             remote_url=reverse('form-progress-data', kwargs={'tally_id': kwargs['tally_id']})))
 
 
@@ -181,12 +182,14 @@ class FormDuplicatesView(LoginRequiredMixin,
     template_name = "super_admin/form_duplicates.html"
 
     def get(self, *args, **kwargs):
-        form_list = duplicates()
+        tally_id = kwargs.get('tally_id')
+        form_list = duplicates(tally_id)
 
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             forms=forms,
+            tally_id=tally_id,
             remote_url=reverse('form-duplicates-data',
                 kwargs={'tally_id': kwargs['tally_id']})))
 
@@ -199,13 +202,15 @@ class FormClearanceView(LoginRequiredMixin,
     template_name = "super_admin/form_clearance.html"
 
     def get(self, *args, **kwargs):
-        form_list = clearance()
+        tally_id = kwargs.get('tally_id')
+        form_list = clearance(tally_id)
 
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             forms=forms,
-            remote_url=reverse('form-clearance-data', kwargs={'tally_id': kwargs['tally_id']})))
+            tally_id=tally_id,
+            remote_url=reverse('form-clearance-data', kwargs={'tally_id': tally_id})))
 
 
 class FormAuditView(LoginRequiredMixin,
@@ -216,12 +221,14 @@ class FormAuditView(LoginRequiredMixin,
     template_name = "super_admin/form_audit.html"
 
     def get(self, *args, **kwargs):
-        form_list = audit()
+        tally_id = kwargs.get('tally_id')
+        form_list = audit(tally_id)
 
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             forms=forms,
+            tally_id=tally_id,
             remote_url=reverse('form-audit-data', args=[kwargs['tally_id']])))
 
 
@@ -232,11 +239,14 @@ class FormResultsDuplicatesView(LoginRequiredMixin,
     template_name = "super_admin/form_results_duplicates.html"
 
     def get(self, *args, **kwargs):
-        form_list = get_results_duplicates(kwargs['tally_id'])
+        tally_id = kwargs.get('tally_id')
+        form_list = get_results_duplicates(tally_id)
 
         forms = paging(form_list, self.request)
 
-        return self.render_to_response(self.get_context_data(forms=forms))
+        return self.render_to_response(
+                self.get_context_data(forms=forms,
+                    tally_id=tally_id))
 
 
 class FormProgressDataView(LoginRequiredMixin,
@@ -381,16 +391,18 @@ class FormActionView(LoginRequiredMixin,
             result_form__tally__id=tally_id).all()
 
         return self.render_to_response(self.get_context_data(
-            audits=audits))
+            audits=audits,
+            tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
         post_data = self.request.POST
         pk = post_data.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         self.request.session['result_form'] = result_form.pk
 
         if 'review' in post_data:
-            return redirect('audit-review')
+            return redirect('audit-review', tally_id=tally_id)
         elif 'confirm' in post_data:
             result_form.reject()
             result_form.skip_quarantine_checks = True
@@ -400,7 +412,7 @@ class FormActionView(LoginRequiredMixin,
             audit.active = False
             audit.save()
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             raise SuspiciousOperation('Unknown POST response type')
 
@@ -442,7 +454,8 @@ class RemoveCenterView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         return self.render_to_response(
-            self.get_context_data(form=form))
+            self.get_context_data(form=form,
+                tally_id=tally_id))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -479,6 +492,7 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
         context['next'] = request.META.get('HTTP_REFERER', None)
+        context['tally_id'] = kwargs.get('tally_id')
 
         return self.render_to_response(context)
 
@@ -520,7 +534,8 @@ class EditCentreView(LoginRequiredMixin,
 
         context = self.get_context_data(object=self.object, form=form,
                                         center_code=center_code,
-                                        is_active=self.object.active)
+                                        is_active=self.object.active,
+                                        tally_id=tally_id)
 
         return self.render_to_response(context)
 
@@ -585,7 +600,8 @@ class DisableEntityView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(form=form, entity=entityName.lower(),
-                                  entityName=entityName))
+                                  entityName=entityName,
+                                  tally_id=tally_id))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -648,6 +664,7 @@ class DisableRaceView(LoginRequiredMixin,
     tally_id = None
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         race_id= kwargs.get('raceId')
 
         self.initial = {
@@ -661,7 +678,8 @@ class DisableRaceView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         return self.render_to_response(
-            self.get_context_data(form=form))
+            self.get_context_data(form=form,
+                tally_id=tally_id))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -718,7 +736,8 @@ class RemoveStationView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         return self.render_to_response(
-            self.get_context_data(form=form))
+            self.get_context_data(form=form,
+                tally_id=tally_id))
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -800,7 +819,7 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id', None)
 
         self.object = self.get_object(center_code, station_number, tally_id)
-        context = self.get_context_data(object=self.object)
+        context = self.get_context_data(object=self.object, tally_id=tally_id)
         context['next'] = request.META.get('HTTP_REFERER', None)
 
         return self.render_to_response(context)
@@ -851,7 +870,8 @@ class EditStationView(LoginRequiredMixin,
                                         station_number=station_number,
                                         center_code=center_code,
                                         is_active=self.object.active,
-                                        center_is_active=self.object.center.active)
+                                        center_is_active=self.object.center.active,
+                                        tally_id=tally_id)
 
         return self.render_to_response(context)
 
