@@ -43,7 +43,7 @@
     <li><a href="{% url 'data-entry' tally_id=tally_id %}">{% trans 'Data Entry Clerk' %}</a></li>
     <li><a href="{% url 'corrections' tally_id=tally_id %}">{% trans 'Corrections Clerk' %}</a></li>
     <li><a href="{% url 'quality-control' tally_id=tally_id %}">{% trans 'Quality Control & Archiving Clerk' %}</a></li>
-    <li><a href="{% url 'audit' %}">{% trans 'Audit Clerk' %}</a></li>
+    <li><a href="{% url 'audit' tally_id=tally_id %}">{% trans 'Audit Clerk' %}</a></li>
 </ul>
 
 
