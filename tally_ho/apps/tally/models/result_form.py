@@ -521,7 +521,7 @@ class ResultForm(BaseModel):
         return cls.objects.filter(id__in=pks, form_state=state)
 
     @classmethod
-    def generate_barcode(cls):
+    def generate_barcode(cls, tally_id=None):
         """Create a new barcode.
 
         Create a new barcode that is not already in the system by taking the
@@ -531,7 +531,7 @@ class ResultForm(BaseModel):
 
         :returns: A new unique integer barcode.
         """
-        result_forms = cls.objects.all().order_by('-barcode')
+        result_forms = cls.objects.filter(tally__id=tally_id).order_by('-barcode')
         highest_barcode = result_forms[0].barcode if result_forms else\
             cls.START_BARCODE
 

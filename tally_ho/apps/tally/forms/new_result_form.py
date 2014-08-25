@@ -1,8 +1,11 @@
-from django.forms import ModelForm, ValidationError
+from django.forms import ModelForm, ValidationError, IntegerField, HiddenInput, ModelChoiceField
 from django.utils.translation import ugettext as _
 
 from tally_ho.apps.tally.models import ResultForm
 from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.ballot import Ballot
 
 disable_copy_input = {
     'onCopy': 'return false;',
@@ -23,6 +26,16 @@ class NewResultForm(ModelForm):
                                      'gender',
                                      'station_number']
 
+    tally_id = IntegerField(widget=HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        super(NewResultForm, self).__init__(*args, **kwargs)
+
+        if self.initial.get('tally_id'):
+            self.fields['center'] = ModelChoiceField(queryset=Center.objects.filter(tally__id=self.initial['tally_id']))
+            self.fields['office'] = ModelChoiceField(queryset=Office.objects.filter(tally__id=self.initial['tally_id']))
+            self.fields['ballot'] = ModelChoiceField(queryset=Ballot.objects.filter(tally__id=self.initial['tally_id']))
+
     def clean(self):
         cleaned_data = super(NewResultForm, self).clean()
 
@@ -30,6 +43,9 @@ class NewResultForm(ModelForm):
         center = cleaned_data['center'] if 'center' in cdata_keys else None
         station_number = cleaned_data['station_number'] if 'station_number' in cdata_keys else None
         ballot = cleaned_data['ballot'] if 'ballot' in cdata_keys else None
+
+        if not center or not station_number or not ballot:
+            raise ValidationError(_('All fields are mandatory'))
 
         #TODO: enable this once enabling/disabling races is implemented
         #if ballot and not ballot.active:
