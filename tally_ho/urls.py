@@ -45,6 +45,7 @@ urlpatterns = patterns(
     '',
     url(r'^$', home.HomeView.as_view(), name='home'),
     url(r'^locale$', home.LocaleView.as_view(), name='home-locale'),
+    url(r'^not-tally$', home.NoTallyView.as_view(), name='home-no-tally'),
 
     url(r'^data/center-list/(?P<tally_id>(\d+))/$',
         center_list_view.CenterListView.as_view(),
