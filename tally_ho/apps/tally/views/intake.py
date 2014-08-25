@@ -44,8 +44,9 @@ class CenterDetailsView(LoginRequiredMixin,
     tally_id = None
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
         self.initial = {
-            'tally_id': kwargs['tally_id']
+            'tally_id': tally_id
         }
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -53,7 +54,8 @@ class CenterDetailsView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(form=form, header_text=_('Intake'),
-                                  form_action=form_action))
+                                  form_action=form_action,
+                                  tally_id=tally_id))
 
     def post(self, *args, **kwargs):
         self.tally_id = kwargs['tally_id']
@@ -115,8 +117,9 @@ class EnterCenterView(LoginRequiredMixin,
     success_url = 'check-center-details'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
         self.initial = {
-            'tally_id': kwargs['tally_id']
+            'tally_id': tally_id
         }
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -125,9 +128,11 @@ class EnterCenterView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(form=form, header_text=_('Intake'),
-                                  result_form=result_form))
+                                  result_form=result_form,
+                                  tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         form_class = self.get_form_class()
         center_form = self.get_form(form_class)
@@ -163,7 +168,8 @@ class EnterCenterView(LoginRequiredMixin,
                                            u"center and form"))
                 return self.render_to_response(self.get_context_data(
                     form=form, header_text=_('Intake'),
-                    result_form=result_form))
+                    result_form=result_form,
+                    tally_id=tally_id))
 
             duplicated_forms = result_form.get_duplicated_forms(center,
                                                                 station_number)
@@ -178,12 +184,12 @@ class EnterCenterView(LoginRequiredMixin,
                     if oneDuplicatedForm.form_state != FormState.CLEARANCE:
                         oneDuplicatedForm.send_to_clearance()
 
-                return redirect('intake-clearance')
+                return redirect('intake-clearance', tally_id=tally_id)
 
             self.request.session['station_number'] = station_number
             self.request.session['center_number'] = center_number
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.render_to_response(self.get_context_data(
                 form=center_form, header_text=_('Intake'),
@@ -222,7 +228,8 @@ class CheckCenterDetailsView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
-                                  header_text=_('Intake')))
+                                  header_text=_('Intake'),
+                                  tally_id=tally_id))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
@@ -282,7 +289,9 @@ class PrintCoverView(LoginRequiredMixin,
         form_in_state(result_form, possible_states)
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form, printed_url=reverse(self.printed_url, args=(pk,))))
+            self.get_context_data(result_form=result_form,
+                    printed_url=reverse(self.printed_url, args=(pk,),),
+                    tally_id=tally_id))
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
@@ -300,7 +309,7 @@ class PrintCoverView(LoginRequiredMixin,
             return redirect('intaken', tally_id=tally_id)
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form, tally_id=tally_id))
 
 
 class ClearanceView(LoginRequiredMixin,
