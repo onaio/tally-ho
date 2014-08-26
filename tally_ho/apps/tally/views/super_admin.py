@@ -428,6 +428,7 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
         self.object = self.get_object()
         context = self.get_context_data(object=self.object)
         context['next'] = request.META.get('HTTP_REFERER', None)
+        print(context['next'])
 
         return self.render_to_response(context)
 

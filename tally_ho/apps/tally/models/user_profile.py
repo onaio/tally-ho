@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.db import models
 
 from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.templates import getEditUserLink
 
 
 class UserProfile(User):
@@ -22,5 +24,13 @@ class UserProfile(User):
             self.set_password(self.username)
 
         super(UserProfile, self).save(*args, **kwargs)
+
+    @property
+    def get_edit_link(self):
+        return getEditUserLink(self) if self else None
+
+    @property
+    def is_administrator(self):
+        return groups.SUPER_ADMINISTRATOR in self.groups.values_list('name', flat=True)
 
 reversion.register(UserProfile)

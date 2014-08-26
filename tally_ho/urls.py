@@ -9,7 +9,7 @@ from tally_ho.apps.tally.views import archive, audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile, tally_manager
 from tally_ho.apps.tally.views.data import center_list_view, form_list_view,\
-    candidate_list_view, race_list_view
+    candidate_list_view, race_list_view, user_list_view
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 
@@ -280,6 +280,21 @@ urlpatterns = patterns(
 
     url(r'^tally-manager$',
         tally_manager.DashboardView.as_view(), name='tally-manager'),
+    url(r'^tally-manager/user-list/(?P<role>(user|admin))$',
+        user_list_view.UserListView.as_view(),
+        name='user-list'),
+    url(r'^tally-manager/user-list-data/(?P<role>(user|admin))$',
+        user_list_view.UserListDataView.as_view(),
+        name='user-list-data'),
+    url(r'^tally-manager/edit-user/(?P<userId>(\d+))$',
+        tally_manager.EditUserView.as_view(),
+        name='edit-user'),
+    url(r'^tally-manager/create-user/(?P<role>(user|admin))$',
+        tally_manager.CreateUserView.as_view(),
+        name='create-user'),
+    url(r'^tally-manager/remove-user/(?P<userId>.+)$',
+        tally_manager.RemoveUserConfirmationView.as_view(),
+        name='remove-user-confirmation'),
 
     url(r'^operation-not-allowed',
         home.suspicious_error, name='suspicious-error'),

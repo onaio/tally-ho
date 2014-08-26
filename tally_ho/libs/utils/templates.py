@@ -58,3 +58,10 @@ def getActiveCandidateLink(candidate):
                                               unicode(_('Enable Candidate')))
 
     return buttonHtml
+
+
+def getEditUserLink(user):
+    url = reverse('edit-user', args=[user.id])
+    buttonHtml = '<a href="%s" class="btn btn-default btn-small">%s</a>' % (url, unicode(_('Edit')))
+
+    return buttonHtml

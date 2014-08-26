@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load js %}
+{% load eztables %}
+
+{% block content %}
+
+{% if is_admin %}
+<h1>{% trans 'Administrators List' %}</h1>
+{% else %}
+<h1>{% trans 'Users List' %}</h1>
+{% endif %}
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<div>
+  <a class="btn btn-small btn-success pull-right" href="{% url 'create-user' role %}" role="button">
+        {% if is_admin %}
+        {% trans "New administrator" %}
+        {% else %}
+        {% trans "New user" %}
+        {% endif %}
+    </a>
+</div>
+<table id="datalist">
+    <thead>
+        <tr>
+            <th>{% trans 'Name' %}</th>
+            <th>{% trans 'Email' %}</th>
+            <th>{% trans 'First Name' %}</th>
+            <th>{% trans 'Last Name' %}</th>
+            <th>{% trans 'Actions' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+      <link href="{{STATIC_URL}}css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
+{% django_js %}
+{% datatables_js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/data_table.js"></script>
+<script type="text/javascript">
+    loadTableData('{{ remote_url }}');
+</script>
+{% endblock %}
