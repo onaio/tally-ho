@@ -8,6 +8,11 @@
 
 <h1>{% trans 'Center and Station List' %}</h1>
 
+Export:
+<a href="{% url 'center-list-csv' tally_id 'csv' %}">{% trans 'Download' %}</a>
+<br/>
+<br/>
+
 {% if messages %}
 <ul class="text-info">
     {% for message in messages %}
