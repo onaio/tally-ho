@@ -137,7 +137,8 @@ class DashboardView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = post_data['result_form']
-        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.AUDIT)
 
         self.request.session['result_form'] = result_form.pk
@@ -156,9 +157,9 @@ class ReviewView(LoginRequiredMixin,
     success_url = 'audit'
 
     def get(self, *args, **kwargs):
-        tally_id=kwargs.get('tally_id')
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session['result_form']
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
 
         form_class = self.get_form_class()
         audit = result_form.audit
@@ -172,11 +173,14 @@ class ReviewView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         tally_id=kwargs.get('tally_id')
+
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.AUDIT)
 
         if form.is_valid():
@@ -203,8 +207,10 @@ class PrintCoverView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.AUDIT)
+
         problems = result_form.audit.get_problems()
 
         return self.render_to_response(
@@ -219,7 +225,7 @@ class PrintCoverView(LoginRequiredMixin,
         if 'result_form' in post_data:
             pk = session_matches_post_result_form(post_data, self.request)
 
-            result_form = get_object_or_404(ResultForm, pk=pk)
+            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
             form_in_state(result_form, FormState.AUDIT)
             del self.request.session['result_form']
 

@@ -227,7 +227,7 @@ class CorrectionMatchView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, [FormState.CORRECTION])
 
         return self.render_to_response(
@@ -242,7 +242,7 @@ class CorrectionMatchView(LoginRequiredMixin,
         if form.is_valid():
             pk = session_matches_post_result_form(
                 form.cleaned_data, self.request)
-            result_form = get_object_or_404(ResultForm, pk=pk)
+            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
             form_in_state(result_form, [FormState.CORRECTION])
 
             if not result_form.corrections_passed:
@@ -289,7 +289,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, [FormState.CORRECTION])
 
         return self.corrections_response(result_form)
@@ -298,7 +298,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
         tally_id = self.kwargs['tally_id']
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.CORRECTION)
 
         if 'submit_corrections' in post_data:
@@ -340,7 +340,7 @@ class ConfirmationView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         del self.request.session['result_form']
 
         return self.render_to_response(

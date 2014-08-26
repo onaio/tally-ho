@@ -124,7 +124,7 @@ class EnterCenterView(LoginRequiredMixin,
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
 
         return self.render_to_response(
             self.get_context_data(form=form, header_text=_('Intake'),
@@ -138,7 +138,7 @@ class EnterCenterView(LoginRequiredMixin,
         center_form = self.get_form(form_class)
 
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form = safe_form_in_state(result_form, FormState.INTAKE,
                                   center_form)
 
@@ -209,7 +209,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
         pk = self.request.session.get('result_form')
         tally_id = kwargs['tally_id']
 
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
 
         # When result form has not center/station assigned.
         if not result_form.center:
@@ -235,7 +235,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
         post_data = self.request.POST
         tally_id = self.kwargs['tally_id']
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_intake_state(result_form)
         url = None
 
@@ -283,7 +283,7 @@ class PrintCoverView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         possible_states = states_for_form(self.request.user,
                                           [FormState.INTAKE], result_form)
         form_in_state(result_form, possible_states)
@@ -299,7 +299,7 @@ class PrintCoverView(LoginRequiredMixin,
 
         if 'result_form' in post_data:
             pk = session_matches_post_result_form(post_data, self.request)
-            result_form = get_object_or_404(ResultForm, pk=pk)
+            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
             possible_states = states_for_form(self.request.user,
                                               [FormState.INTAKE], result_form)
             form_in_state(result_form, possible_states)
@@ -322,7 +322,7 @@ class ClearanceView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, [FormState.CLEARANCE])
         del self.request.session['result_form']
 
@@ -351,7 +351,7 @@ class ConfirmationView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         del self.request.session['result_form']
 
         return self.render_to_response(

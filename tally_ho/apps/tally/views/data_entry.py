@@ -205,7 +205,7 @@ class CenterDetailsView(LoginRequiredMixin,
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_data_entry_state(result_form)
 
         return self.render_to_response(
@@ -220,7 +220,7 @@ class CenterDetailsView(LoginRequiredMixin,
         form = self.get_form(form_class)
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
 
         if form.is_valid():
             check_form = check_state_and_group(
@@ -267,7 +267,7 @@ class EnterResultsView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_data_entry_state(result_form)
         formset, forms_and_candidates = get_formset_and_candidates(result_form)
         reconciliation_form = ReconForm()
@@ -286,7 +286,7 @@ class EnterResultsView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_data_entry_state(result_form)
         formset, forms_and_candidates = get_formset_and_candidates(result_form,
                                                                    post_data)
@@ -356,7 +356,7 @@ class ConfirmationView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         del self.request.session['result_form']
 
         next_step = _('Data Entry 2') if result_form.form_state ==\

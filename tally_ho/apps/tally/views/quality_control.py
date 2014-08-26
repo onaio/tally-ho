@@ -103,7 +103,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, [FormState.QUALITY_CONTROL,
                                     FormState.ARCHIVING])
 
@@ -126,7 +126,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         quality_control = result_form.qualitycontrol
         url = self.success_url
 
