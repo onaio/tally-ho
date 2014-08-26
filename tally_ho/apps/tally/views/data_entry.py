@@ -355,6 +355,7 @@ class ConfirmationView(LoginRequiredMixin,
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         del self.request.session['result_form']
@@ -367,4 +368,4 @@ class ConfirmationView(LoginRequiredMixin,
                                   header_text=_('Data Entry'),
                                   next_step=next_step,
                                   start_url='data-entry',
-                                  tally_id=kwargs.get('tally_id')))
+                                  tally_id=tally_id))

@@ -288,6 +288,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
                                   tally_id=tally_id))
 
     def get(self, *args, **kwargs):
+        tally_id = self.kwargs['tally_id']
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, [FormState.CORRECTION])

@@ -148,7 +148,7 @@ class EnterCenterView(LoginRequiredMixin,
         if center_form.is_valid():
             station_number = center_form.cleaned_data.get('station_number')
             center_number = center_form.cleaned_data.get('center_number')
-            center = Center.objects.get(code=center_number)
+            center = Center.objects.get(code=center_number, tally__id=tally_id)
 
             # Checks if center ballot number and form ballot number are the
             # same
