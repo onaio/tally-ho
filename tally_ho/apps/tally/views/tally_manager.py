@@ -114,6 +114,7 @@ class EditUserView(LoginRequiredMixin,
             return EditUserProfileForm
 
     def get_success_url(self):
+        self.object = self.get_object()
         role = 'admin' if self.object.is_administrator else 'user'
 
         return reverse('user-list', kwargs={'role': role})
