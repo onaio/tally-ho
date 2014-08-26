@@ -61,9 +61,13 @@ class ProgressReport(object):
         queryset = self.get_queryset().filter(
             ballot__number__in=ballot.form_ballot_numbers, tally__id=self.tally_id)
 
-        return {'denominator': self.denominator(queryset),
-                'number': self.numerator(filtered_queryset),
-                'percentage': self.percentage_value(queryset, filtered_queryset)}
+        denominator = queryset.count()
+        number = filtered_queryset.count()
+        percentage = rounded_percent(number, denominator) if denominator > 0 else _(u"No results")
+
+        return {'denominator': denominator,
+                'number': number,
+                'percentage': percentage}
 
     def for_center_office(self, office):
 
