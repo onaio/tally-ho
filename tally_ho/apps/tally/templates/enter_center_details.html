@@ -48,6 +48,7 @@
                 <button type="submit" name="submit" class="btn btn-primary">{% trans "Submit" %}</button>
             </td>
         </tr>
+        {{ form.tally_id }}
         {% csrf_token %}
     </table>
 </form>

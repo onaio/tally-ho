@@ -33,6 +33,7 @@
                 <button type="submit" name="submit" class="btn btn-primary">{% trans "Delete Station" %}</button>
             </td>
         </tr>
+        {{ form.tally_id }}
         {% csrf_token %}
     </table>
 </form>

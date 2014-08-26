@@ -136,6 +136,7 @@ def check_state_and_group(result_form, user, form):
 
 class DataEntryView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
+                    mixins.TallyAccessMixin,
                     mixins.ReverseSuccessURLMixin,
                     FormView):
     form_class = BarcodeForm
@@ -144,6 +145,10 @@ class DataEntryView(LoginRequiredMixin,
     success_url = 'data-entry-enter-center-details'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        self.initial = {
+            'tally_id': tally_id,
+        }
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         form_action = ''
@@ -159,15 +164,16 @@ class DataEntryView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(
                 form=form, header_text=_('Data Entry %s') % entry_type,
-                form_action=form_action))
+                form_action=form_action, tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode)
+            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
             check_form = check_state_and_group(
                 result_form, self.request.user, form)
 
@@ -176,13 +182,14 @@ class DataEntryView(LoginRequiredMixin,
 
             self.request.session['result_form'] = result_form.pk
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.form_invalid(form)
 
 
 class CenterDetailsView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
                         mixins.ReverseSuccessURLMixin,
                         FormView):
     form_class = CenterDetailsForm
@@ -191,23 +198,29 @@ class CenterDetailsView(LoginRequiredMixin,
     success_url = 'enter-results'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        self.initial = {
+            'tally_id': tally_id,
+         }
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_data_entry_state(result_form)
 
         return self.render_to_response(
             self.get_context_data(form=form,
                                   result_form=result_form,
-                                  header_text=get_header_text(result_form)))
+                                  header_text=get_header_text(result_form),
+                                  tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
 
         if form.is_valid():
             check_form = check_state_and_group(
@@ -217,7 +230,7 @@ class CenterDetailsView(LoginRequiredMixin,
                 return self.form_invalid(check_form)
 
             center_number = form.cleaned_data['center_number']
-            center = Center.objects.get(code=center_number)
+            center = Center.objects.get(code=center_number, tally__id=tally_id)
             station_number = form.cleaned_data['station_number']
 
             try:
@@ -236,14 +249,15 @@ class CenterDetailsView(LoginRequiredMixin,
             if check_form:
                 return self.form_invalid(check_form)
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.render_to_response(self.get_context_data(form=form,
-                                           result_form=result_form))
+                                           result_form=result_form, tally_id=tally_id))
 
 
 class EnterResultsView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
@@ -251,8 +265,9 @@ class EnterResultsView(LoginRequiredMixin,
     success_url = "data-entry-success"
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_data_entry_state(result_form)
         formset, forms_and_candidates = get_formset_and_candidates(result_form)
         reconciliation_form = ReconForm()
@@ -263,13 +278,15 @@ class EnterResultsView(LoginRequiredMixin,
                                   forms_and_candidates=forms_and_candidates,
                                   reconciliation_form=reconciliation_form,
                                   result_form=result_form,
-                                  data_entry_number=data_entry_number))
+                                  data_entry_number=data_entry_number,
+                                  tally_id=tally_id))
 
     @transaction.atomic
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_data_entry_state(result_form)
         formset, forms_and_candidates = get_formset_and_candidates(result_form,
                                                                    post_data)
@@ -319,25 +336,28 @@ class EnterResultsView(LoginRequiredMixin,
             result_form.form_state = new_state
             result_form.save()
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.render_to_response(self.get_context_data(
                 formset=formset,
                 forms_and_candidates=forms_and_candidates,
                 reconciliation_form=recon_form,
                 result_form=result_form,
-                data_entry_number=data_entry_number))
+                data_entry_number=data_entry_number,
+                tally_id=tally_id))
 
 
 class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        TemplateView):
     template_name = "success.html"
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         del self.request.session['result_form']
 
         next_step = _('Data Entry 2') if result_form.form_state ==\
@@ -347,4 +367,5 @@ class ConfirmationView(LoginRequiredMixin,
             self.get_context_data(result_form=result_form,
                                   header_text=_('Data Entry'),
                                   next_step=next_step,
-                                  start_url='data-entry'))
+                                  start_url='data-entry',
+                                  tally_id=tally_id))

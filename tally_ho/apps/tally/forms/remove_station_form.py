@@ -30,11 +30,14 @@ class RemoveStationForm(forms.Form):
         validators=validators,
         widget=forms.NumberInput(attrs=disable_copy_input),
         label=_(u"Center Number"))
+
     station_number = forms.IntegerField(min_value=min_station_value,
                                         max_value=max_station_value,
                                         widget=forms.TextInput(
                                             attrs=disable_copy_input),
                                         label=_(u"Station Number"))
+
+    tally_id = forms.IntegerField(widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
         super(RemoveStationForm, self).__init__(*args, **kwargs)
@@ -45,9 +48,10 @@ class RemoveStationForm(forms.Form):
             cleaned_data = super(RemoveStationForm, self).clean()
             center_number = cleaned_data.get('center_number')
             station_number = cleaned_data.get('station_number')
+            tally_id = cleaned_data.get('tally_id')
 
             try:
-                center = Center.objects.get(code=center_number)
+                center = Center.objects.get(code=center_number, tally__id=tally_id)
                 stations = center.stations.all()
                 valid_station_numbers = [s.station_number for s in stations]
 
@@ -66,7 +70,9 @@ class RemoveStationForm(forms.Form):
         if self.is_valid():
             center_number = self.cleaned_data.get('center_number')
             station_number = self.cleaned_data.get('station_number')
+            tally_id = self.cleaned_data.get('tally_id')
 
             station = Station.objects.filter(center__code=center_number,
-                                             station_number=station_number)
+                                             station_number=station_number,
+                                             center__tally__id=tally_id)
             return station.first()

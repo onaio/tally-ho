@@ -10,6 +10,7 @@ import reversion
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.clearance_resolution import CLEARANCE_CHOICES
 from tally_ho.libs.models.enums.form_state import FormState
@@ -134,6 +135,7 @@ def clean_reconciliation_forms(recon_queryset):
 class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
+        unique_together = (('barcode', 'tally'), ('serial_number', 'tally'))
 
     START_BARCODE = 10000000
     OCV_CENTER_MIN = 80001
@@ -145,7 +147,7 @@ class ResultForm(BaseModel):
                                      related_name='created_user')
 
     audited_count = models.PositiveIntegerField(default=0)
-    barcode = models.CharField(max_length=255, unique=True)
+    barcode = models.CharField(max_length=255)
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
     form_state = enum.EnumField(FormState)
@@ -153,12 +155,13 @@ class ResultForm(BaseModel):
     name = models.CharField(max_length=256, null=True)
     office = models.ForeignKey(Office, blank=True, null=True)
     rejected_count = models.PositiveIntegerField(default=0)
-    serial_number = models.PositiveIntegerField(unique=True, null=True)
+    serial_number = models.PositiveIntegerField(null=True)
     skip_quarantine_checks = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
     is_replacement = models.BooleanField(default=False)
     intake_printed = models.BooleanField(default=False)
     clearance_printed = models.BooleanField(default=False)
+    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='result_forms')
 
     # Field used in result duplicated list view
     results_duplicated = []
@@ -449,7 +452,7 @@ class ResultForm(BaseModel):
         return candidates
 
     @classmethod
-    def distinct_filter(self, qs):
+    def distinct_filter(self, qs, tally_id=None):
         """Add a distinct filter onto a queryset.
 
         Return a queryset that accounts for duplicate replacement forms, orders
@@ -460,6 +463,15 @@ class ResultForm(BaseModel):
 
         :returns: A distinct, ordered, and filtered queryset.
         """
+        if tally_id:
+            return qs.filter(
+                tally__id=tally_id,
+                center__isnull=False,
+                station_number__isnull=False,
+                ballot__isnull=False).order_by(
+                'center__id', 'station_number', 'ballot__id',
+                'form_state').distinct(
+                'center__id', 'station_number', 'ballot__id')
         return qs.filter(
             center__isnull=False,
             station_number__isnull=False,
@@ -469,7 +481,7 @@ class ResultForm(BaseModel):
             'center__id', 'station_number', 'ballot__id')
 
     @classmethod
-    def distinct_for_component(cls, ballot):
+    def distinct_for_component(cls, ballot, tally_id=None):
         """Return the distinct result forms for this ballot, taking into
         account the possiblity of a component ballot.
 
@@ -478,29 +490,38 @@ class ResultForm(BaseModel):
         :returns: A distinct list of result forms.
         """
         return cls.distinct_filter(cls.objects.filter(
-            ballot__number__in=ballot.form_ballot_numbers))
+            ballot__number__in=ballot.form_ballot_numbers,
+            tally__id=tally_id))
 
     @classmethod
-    def distinct_forms(cls):
+    def distinct_forms(cls, tally_id=None):
+        if tally_id:
+            return cls.distinct_filter(cls.objects, tally_id)
+
         return cls.distinct_filter(cls.objects)
 
     @classmethod
-    def distinct_form_pks(cls):
+    def distinct_form_pks(cls, tally_id=None):
         # Calling '.values(id)' here does not preserve the distinct order by,
         # this leads to not choosing the archived replacement form.
         # TODO use a subquery that preserves the distinct and the order by
         # or cache this.
+        if tally_id:
+            return [r.pk for r in cls.distinct_filter(cls.distinct_forms(tally_id), tally_id)]
+
         return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
 
     @classmethod
-    def forms_in_state(cls, state, pks=None):
+    def forms_in_state(cls, state, pks=None, tally_id=None):
         if not pks:
-            pks = cls.distinct_form_pks()
+            pks = cls.distinct_form_pks(tally_id)
 
+        if tally_id:
+            return cls.objects.filter(id__in=pks, form_state=state, tally__id=tally_id)
         return cls.objects.filter(id__in=pks, form_state=state)
 
     @classmethod
-    def generate_barcode(cls):
+    def generate_barcode(cls, tally_id=None):
         """Create a new barcode.
 
         Create a new barcode that is not already in the system by taking the
@@ -510,7 +531,7 @@ class ResultForm(BaseModel):
 
         :returns: A new unique integer barcode.
         """
-        result_forms = cls.objects.all().order_by('-barcode')
+        result_forms = cls.objects.filter(tally__id=tally_id).order_by('-barcode')
         highest_barcode = result_forms[0].barcode if result_forms else\
             cls.START_BARCODE
 
@@ -531,7 +552,8 @@ class ResultForm(BaseModel):
         if not station_number:
             station_number = self.station_number
 
-        qs = ResultForm.objects.filter(
+        qs = ResultForm.objects.filter(tally=self.tally)
+        qs = qs.filter(
             Q(center=center), Q(center__isnull=False),
             Q(station_number=station_number), Q(station_number__isnull=False),
             Q(ballot=self.ballot), Q(ballot__isnull=False))

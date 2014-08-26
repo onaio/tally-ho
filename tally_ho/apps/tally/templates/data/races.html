@@ -35,9 +35,9 @@
         <td>{{ rec.percentage }}</td>
         <td>
             {% if rec.active %}
-                <a href="{% url 'disable-race' rec.id %}" class="btn btn-default btn-small">{% trans 'Disable' %}</a>
+                <a href="{% url 'disable-race' tally_id rec.id %}" class="btn btn-default btn-small">{% trans 'Disable' %}</a>
             {% else %}
-                <a href="{% url 'enable-race' rec.id %}" class="btn btn-default btn-small">{% trans 'Enable' %}</a>
+                <a href="{% url 'enable-race' tally_id rec.id %}" class="btn btn-default btn-small">{% trans 'Enable' %}</a>
             {% endif %}
         </td>
     </tr>

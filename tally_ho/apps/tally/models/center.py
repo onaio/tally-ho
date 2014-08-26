@@ -16,12 +16,13 @@ class Center(BaseModel):
     class Meta:
         app_label = 'tally'
         ordering = ['code']
+        unique_together = ('code', 'tally')
 
     sub_constituency = models.ForeignKey(SubConstituency,
                                          related_name='centers', null=True)
 
     center_type = enum.EnumField(CenterType)
-    code = models.PositiveIntegerField(unique=True)  # a.k.a. Center Number
+    code = models.PositiveIntegerField()  # a.k.a. Center Number
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
     mahalla = models.TextField()

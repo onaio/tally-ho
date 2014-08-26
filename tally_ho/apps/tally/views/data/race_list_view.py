@@ -14,9 +14,11 @@ class RaceListView(RacesReportView):
     template_name = "data/races.html"
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         ballots = self.get_per_ballot_progress()
+
         ballots = paging(ballots, self.request)
 
         return self.render_to_response(
             self.get_context_data(
-                ballots=ballots))
+                ballots=ballots, tally_id=tally_id))

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{{ header_text }}</h1>
+
+<h4 class="headertxt">{% trans 'No tally assgined' %}</h4>
+<div class="subtitle">{% trans 'Currently you do not have a tally assigned' %}</div>
+<br>
+{% endblock %}
+

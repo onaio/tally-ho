@@ -33,4 +33,7 @@ class UserProfile(User):
     def is_administrator(self):
         return groups.SUPER_ADMINISTRATOR in self.groups.values_list('name', flat=True)
 
+    def __unicode__(self):
+        return '%s - %s %s' % (self.username, self.first_name, self.last_name)
+
 reversion.register(UserProfile)

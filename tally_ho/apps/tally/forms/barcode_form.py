@@ -34,6 +34,8 @@ class BarcodeForm(forms.Form):
         widget=forms.NumberInput(
             attrs=disable_copy_input), label=_(u"Barcode Copy"))
 
+    tally_id = forms.IntegerField(widget=forms.HiddenInput())
+
     def __init__(self, *args, **kwargs):
         super(BarcodeForm, self).__init__(*args, **kwargs)
         self.fields['barcode'].widget.attrs['autofocus'] = 'on'
@@ -48,12 +50,13 @@ class BarcodeForm(forms.Form):
             cleaned_data = super(BarcodeForm, self).clean()
             barcode = cleaned_data.get('barcode')
             barcode_copy = cleaned_data.get('barcode_copy')
+            tally_id = cleaned_data.get('tally_id')
 
             if barcode != barcode_copy:
                 raise forms.ValidationError(_(u"Barcodes do not match!"))
 
             try:
-                result_form = ResultForm.objects.get(barcode=barcode)
+                result_form = ResultForm.objects.get(barcode=barcode, tally__id=tally_id)
             except ResultForm.DoesNotExist:
                 raise forms.ValidationError(_(u"Barcode does not exist."))
             else:

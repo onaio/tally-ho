@@ -17,6 +17,11 @@ class DisableEntityForm(forms.Form):
         label=_(u"Select a reason"),
         coerce=int)
 
+    tally_id = forms.CharField(
+      required=False,
+      widget = forms.HiddenInput()
+    )
+
     centerCodeInput = forms.CharField(
       required=False,
       widget = forms.HiddenInput()
@@ -41,21 +46,20 @@ class DisableEntityForm(forms.Form):
     def clean(self):
         if self.is_valid():
             cleaned_data = super(DisableEntityForm, self).clean()
+            tally_id = cleaned_data.get('tally_id')
             centerCode = cleaned_data.get('centerCodeInput')
             stationNumber = cleaned_data.get('stationNumberInput')
             raceId = cleaned_data.get('raceIdInput')
             disableReason = cleaned_data.get('disableReason')
 
-            print "CLEAN"
-            print raceId
-            print cleaned_data
-
             if centerCode:
                 try:
                     if stationNumber:
-                      entities = Station.objects.get(station_number = stationNumber, center__code = centerCode)
+                      entities = Station.objects.get(station_number = stationNumber,
+                                                    center__code = centerCode,
+                                                    center__tally__id = tally_id)
                     else:
-                      entities = Center.objects.get(code = centerCode)
+                      entities = Center.objects.get(tally__id=tally_id, code = centerCode)
                 except Center.DoesNotExist:
                     raise forms.ValidationError(u"Center Number does not exist")
                 except Station.DoesNotExist:
@@ -66,7 +70,6 @@ class DisableEntityForm(forms.Form):
                 except Ballot.DoesNotExist:
                     raise forms.ValidationError(u"Race does not exist")
             else:
-                print "ERRRRRRORRRR"
                 raise forms.ValidationError(u"Error")
 
             return cleaned_data
@@ -74,6 +77,7 @@ class DisableEntityForm(forms.Form):
 
     def save(self):
         if self.is_valid():
+            tally_id = self.cleaned_data.get('tally_id')
             centerCode = self.cleaned_data.get('centerCodeInput')
             stationNumber = self.cleaned_data.get('stationNumberInput')
             raceId = self.cleaned_data.get('raceIdInput')
@@ -81,7 +85,7 @@ class DisableEntityForm(forms.Form):
 
             result = None
             if not raceId:
-                result = disableEnableEntity(centerCode, stationNumber, disableReason)
+                result = disableEnableEntity(centerCode, stationNumber, disableReason, tally_id)
             else:
                 result = disableEnableRace(raceId, disableReason)
 

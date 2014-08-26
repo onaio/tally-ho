@@ -47,6 +47,8 @@ class CenterDetailsForm(forms.Form):
                                                  attrs=disable_copy_input),
                                              label=_(u"Station Number Copy"))
 
+    tally_id = forms.IntegerField(widget=forms.HiddenInput)
+
     def __init__(self, *args, **kwargs):
         super(CenterDetailsForm, self).__init__(*args, **kwargs)
         self.fields['center_number'].widget.attrs['autofocus'] = 'on'
@@ -63,6 +65,7 @@ class CenterDetailsForm(forms.Form):
             center_number_copy = cleaned_data.get('center_number_copy')
             station_number = cleaned_data.get('station_number')
             station_number_copy = cleaned_data.get('station_number_copy')
+            tally_id = cleaned_data.get('tally_id')
 
             if center_number != center_number_copy:
                 raise forms.ValidationError(_(u"Center Numbers do not match"))
@@ -71,7 +74,7 @@ class CenterDetailsForm(forms.Form):
                 raise forms.ValidationError(_(u"Station Numbers do not match"))
 
             try:
-                center = Center.objects.get(code=center_number)
+                center = Center.objects.get(code=center_number, tally__id=tally_id)
                 valid_station_numbers = [
                     d.values()[0] for d in
                     center.stations.values('station_number')]
@@ -84,7 +87,7 @@ class CenterDetailsForm(forms.Form):
                     raise forms.ValidationError(_(
                         u"Center is disabled"))
 
-                station = Station.objects.get(center__code = center_number, station_number = station_number)
+                station = Station.objects.get(center = center, station_number = station_number)
 
                 if not station.active:
                     raise forms.ValidationError(_(

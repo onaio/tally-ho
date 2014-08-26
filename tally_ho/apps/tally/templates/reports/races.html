@@ -33,7 +33,7 @@
     </tr>
 {% for rec in per_ballot %}
     <tr>
-        <td><a href="{% url 'forms-for-race' rec.ballot %}">{{ rec.ballot }}</a></td>
+        <td><a href="{% url 'forms-for-race' tally_id rec.ballot %}">{{ rec.ballot }}</a></td>
         <td>{{ rec.district }}</td>
         <td>{{ rec.race_type }}</td>
         <td>{{ rec.expected }}</td>

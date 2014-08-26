@@ -1,6 +1,9 @@
 from django.views.generic import TemplateView
+from django.core.urlresolvers import reverse
+
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
+from djqscsv import render_to_csv_response
 
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.permissions import groups
@@ -10,6 +13,7 @@ from tally_ho.libs.views.pagination import paging
 
 class CenterListDataView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
+                         mixins.TallyAccessMixin,
                          mixins.DatatablesDisplayFieldsMixin,
                          DatatablesView):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -48,6 +52,15 @@ class CenterListDataView(LoginRequiredMixin,
         ('active', 'station_edit'),
     )
 
+    def get_queryset(self):
+        qs = super(CenterListDataView, self).get_queryset()
+        tally_id = self.kwargs.get('tally_id')
+
+        if tally_id:
+            qs = qs.filter(center__tally__id=tally_id)
+
+        return qs
+
     def render_to_response(self, form, **kwargs):
         '''Render Datatables expected JSON format'''
         page = self.get_page(form)
@@ -66,15 +79,39 @@ class CenterListDataView(LoginRequiredMixin,
 
 class CenterListView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/centers.html"
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        format_ = kwargs.get('format')
+
+        if format_ and format_ == 'csv':
+            station_list = Station.objects.filter(center__tally__id=tally_id)
+
+            station_list = station_list.values(
+                    'center__office__name', 'sub_constituency__code',
+                    'center__name', 'center__code', 'station_number',
+                    'gender', 'registrants', 'percent_received',
+                    'percent_archived',).order_by('center__code')
+
+            header_map = {'center__office__name': 'office name',
+                    'sub_constituency__code': 'subconstituency code',
+                    'center__name': 'center name',
+                    'center__code': 'center code',}
+
+            return render_to_csv_response(station_list,
+                    filename='centers_and_station',
+                    append_datestamp=True,
+                    field_header_map=header_map)
+
         # check cache
-        station_list = Station.objects.all()
+        station_list = Station.objects.filter(center__tally__id = tally_id)
         stations = paging(station_list, self.request)
 
         return self.render_to_response(self.get_context_data(
             stations=stations,
-            remote_url='center-list-data'))
+            remote_url=reverse('center-list-data', kwargs=kwargs),
+            tally_id=tally_id))
