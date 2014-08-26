@@ -234,6 +234,7 @@ class FormAuditView(LoginRequiredMixin,
 
 class FormResultsDuplicatesView(LoginRequiredMixin,
                                 mixins.GroupRequiredMixin,
+                                mixins.TallyAccessMixin,
                                 TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_results_duplicates.html"
