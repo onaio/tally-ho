@@ -959,7 +959,7 @@ class DisableCandidateView(LoginRequiredMixin,
 
 class EditUserView(LoginRequiredMixin,
         mixins.GroupRequiredMixin,
-        mixins.TallyAccessMixinyy,
+        mixins.TallyAccessMixin,
         mixins.ReverseSuccessURLMixin,
         SuccessMessageMixin,
         UpdateView):
@@ -997,7 +997,7 @@ class EditUserView(LoginRequiredMixin,
 
 class CreateUserView(LoginRequiredMixin,
         mixins.GroupRequiredMixin,
-        mixins.TallyAccessMixinyy,
+        mixins.TallyAccessMixin,
         CreateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'tally_manager/edit_user_profile.html'
