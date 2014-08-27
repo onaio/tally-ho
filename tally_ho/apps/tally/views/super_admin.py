@@ -521,7 +521,7 @@ class EditCentreView(LoginRequiredMixin,
                      UpdateView):
     form_class = EditCentreForm
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = 'super_admin/edit-center.html'
+    template_name = 'super_admin/edit_center.html'
     success_url = 'center-list'
     success_message = _(u'Center Successfully Updated')
 
@@ -851,7 +851,7 @@ class EditStationView(LoginRequiredMixin,
                       UpdateView):
     form_class = EditStationForm
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = 'super_admin/edit-station.html'
+    template_name = 'super_admin/edit_station.html'
     success_url = 'center-list'
     success_message = _(u'Station Successfully Updated')
 
