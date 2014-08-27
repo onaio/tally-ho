@@ -13,7 +13,7 @@ class UserListDataView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.DatatablesDisplayFieldsMixin,
                        DatatablesView):
-    group_required = groups.TALLY_MANAGER
+    group_required = [groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]
     model = UserProfile
     fields = (
         'username',
@@ -38,27 +38,17 @@ class UserListDataView(LoginRequiredMixin,
 
     def get_queryset(self):
         qs = super(UserListDataView, self).get_queryset()
+        tally_id = self.kwargs.get('tally_id')
 
         if self.role == 'admin':
             qs = qs.filter(groups__name__exact=groups.SUPER_ADMINISTRATOR)
         else:
             qs = qs.filter(groups__in=Group.objects.all().exclude(name__in=[groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER]))
 
+        if tally_id:
+            qs = qs.filter(tally__id=tally_id)
+
         return qs
-
-    def render_to_response(self, form, **kwargs):
-        '''Render Datatables expected JSON format'''
-
-        page = self.get_page(form)
-
-        data = {
-            'iTotalRecords': page.paginator.count,
-            'iTotalDisplayRecords': page.paginator.count,
-            'sEcho': form.cleaned_data['sEcho'],
-            'aaData': self.get_rows(page.object_list),
-        }
-
-        return self.json_response(data)
 
 
 class UserListView(LoginRequiredMixin,
@@ -76,3 +66,23 @@ class UserListView(LoginRequiredMixin,
                role=role,
                is_admin=is_admin,
                remote_url=reverse('user-list-data', kwargs={'role': role})))
+
+
+class UserTallyListView(LoginRequiredMixin,
+                   mixins.GroupRequiredMixin,
+                   mixins.TallyAccessMixin,
+                   TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "data/users.html"
+
+    def get(self, *args, **kwargs):
+        # check cache
+        tally_id = kwargs.get('tally_id')
+        is_admin = False
+        role='user'
+
+        return self.render_to_response(self.get_context_data(
+            role=role,
+            is_admin=is_admin,
+            remote_url=reverse('user-tally-list-data', kwargs={'tally_id': tally_id}),
+            tally_id=tally_id))

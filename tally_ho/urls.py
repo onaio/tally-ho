@@ -172,6 +172,12 @@ urlpatterns = patterns(
     url(r'^super-administrator/edit-station/(?P<tally_id>(\d+))/(?P<centerCode>(\d+))/(?P<stationNumber>(\d+))$',
         super_admin.EditStationView.as_view(),
         name='edit-station'),
+    url(r'^super-admin/user-list/(?P<tally_id>(\d+))/$',
+        user_list_view.UserTallyListView.as_view(),
+        name='user-tally-list'),
+    url(r'^super-admin/user-list-data/(?P<tally_id>(\d+))/$',
+        user_list_view.UserListDataView.as_view(),
+        name='user-tally-list-data'),
 
     url(r'^data-entry/(?P<tally_id>(\d+))/$', data_entry.DataEntryView.as_view(),
         name='data-entry'),
