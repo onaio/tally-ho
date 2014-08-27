@@ -142,9 +142,10 @@ class ResultForm(BaseModel):
 
     ballot = models.ForeignKey(Ballot, null=True)
     center = models.ForeignKey(Center, blank=True, null=True)
-    user = models.ForeignKey(User, null=True)
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     created_user = models.ForeignKey(User, null=True,
-                                     related_name='created_user')
+                                     related_name='created_user',
+                                     on_delete=models.SET_NULL)
 
     audited_count = models.PositiveIntegerField(default=0)
     barcode = models.CharField(max_length=255)

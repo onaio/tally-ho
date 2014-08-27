@@ -15,7 +15,7 @@ class Result(BaseModel):
 
     candidate = models.ForeignKey(Candidate, related_name='results')
     result_form = models.ForeignKey(ResultForm, related_name='results')
-    user = models.ForeignKey(User, null=True)
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     active = models.BooleanField(default=True)
     entry_version = enum.EnumField(EntryVersion)
