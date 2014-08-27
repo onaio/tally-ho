@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group, User
 
+
 AUDIT_CLERK = "Audit Clerk"
 AUDIT_SUPERVISOR = "Audit Supervisor"
 CLEARANCE_CLERK = "Clearance Clerk"
@@ -37,10 +38,12 @@ def create_demo_users_with_groups(password='data'):
 
     :param password: The password for the demo users.
     """
+    from tally_ho.apps.tally.models.user_profile import UserProfile
+
     for group in GROUPS:
         obj, created = Group.objects.get_or_create(name=group)
         username = group.replace(' ', '_').lower()
-        user, created = User.objects.get_or_create(username=username[0:30],
+        user, created = UserProfile.objects.get_or_create(username=username[0:30],
                                                    first_name=group[0:30])
         user.set_password(password)
         user.save()
