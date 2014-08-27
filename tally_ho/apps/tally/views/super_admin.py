@@ -9,7 +9,7 @@ from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 
 from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
@@ -958,10 +958,11 @@ class DisableCandidateView(LoginRequiredMixin,
 
 
 class EditUserView(LoginRequiredMixin,
-                   mixins.GroupRequiredMixin,
-                   mixins.ReverseSuccessURLMixin,
-                   SuccessMessageMixin,
-                   UpdateView):
+        mixins.GroupRequiredMixin,
+        mixins.TallyAccessMixinyy,
+        mixins.ReverseSuccessURLMixin,
+        SuccessMessageMixin,
+        UpdateView):
     model = UserProfile
     form_class = EditUserProfileForm
     group_required = groups.SUPER_ADMINISTRATOR
@@ -985,10 +986,19 @@ class EditUserView(LoginRequiredMixin,
     def get_success_url(self):
         return reverse('user-tally-list', kwargs={'tally_id': self.kwargs.get('tally_id')})
 
+    def get_object(self, queryset=None):
+        user = super(EditUserView, self).get_object(queryset)
+
+        if not user.tally or user.tally.id != int(self.kwargs.get('tally_id')):
+            raise Http404
+
+        return user
+
 
 class CreateUserView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     CreateView):
+        mixins.GroupRequiredMixin,
+        mixins.TallyAccessMixinyy,
+        CreateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'tally_manager/edit_user_profile.html'
     model = UserProfile
