@@ -86,3 +86,13 @@ class UserTallyListView(LoginRequiredMixin,
             is_admin=is_admin,
             remote_url=reverse('user-tally-list-data', kwargs={'tally_id': tally_id}),
             tally_id=tally_id))
+
+
+class UserTallyListDataView(UserListDataView):
+    display_fields = (
+        ('username', 'username'),
+        ('email', 'email'),
+        ('first_name', 'first_name'),
+        ('last_name', 'last_name'),
+        ('is_active', 'get_edit_tally_link'),
+    )

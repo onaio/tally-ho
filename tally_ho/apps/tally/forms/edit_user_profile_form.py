@@ -1,7 +1,9 @@
 from django.contrib.auth.models import Group
-from django.forms import ModelForm, TextInput, Select, PasswordInput, ModelChoiceField, SelectMultiple, RadioSelect
+from django.forms import ModelForm, TextInput, Select, PasswordInput, \
+        ModelChoiceField, SelectMultiple, RadioSelect, HiddenInput
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.permissions import groups
 
 disable_copy_input = {
@@ -52,12 +54,21 @@ class EditUserProfileForm(ModelForm):
             if key not in self.MANDATORY_FIELDS:
                 self.fields[key].required = False
 
+        if self.initial.get('tally_id'):
+            self.fields['tally'].initial = self.initial.get('tally_id')
+            self.fields['tally'].widget = HiddenInput()
+
     def save(self):
         user = super(EditUserProfileForm, self).save()
         group = self.cleaned_data.get('group')
 
         user.groups.clear()
         user.groups.add(group)
+
+        if self.initial.get('tally_id'):
+            tally = Tally.objects.get(id=self.initial.get('tally_id'))
+            user.tally = tally
+            user.save()
 
         return user
 

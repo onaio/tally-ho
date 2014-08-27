@@ -21,13 +21,19 @@
 {% endif %}
 
 <div>
-  <a class="btn btn-small btn-success pull-right" href="{% url 'create-user' role %}" role="button">
-        {% if is_admin %}
-        {% trans "New administrator" %}
-        {% else %}
-        {% trans "New user" %}
-        {% endif %}
-    </a>
+    {% if tally_id %}
+        <a class="btn btn-small btn-success pull-right" href="{% url 'create-user-tally' tally_id %}" role="button">
+            {% trans "New user"%}
+        </a>
+    {% else %}
+        <a class="btn btn-small btn-success pull-right" href="{% url 'create-user' role %}" role="button">
+            {% if is_admin %}
+            {% trans "New administrator" %}
+            {% else %}
+            {% trans "New user" %}
+            {% endif %}
+        </a>
+    {% endif %}
 </div>
 <table id="datalist">
     <thead>

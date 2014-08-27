@@ -30,6 +30,10 @@ class UserProfile(User):
         return getEditUserLink(self) if self else None
 
     @property
+    def get_edit_tally_link(self):
+        return getEditUserLink(self, True) if self else None
+
+    @property
     def is_administrator(self):
         return groups.SUPER_ADMINISTRATOR in self.groups.values_list('name', flat=True)
 

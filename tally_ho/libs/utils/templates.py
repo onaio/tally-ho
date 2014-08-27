@@ -61,8 +61,11 @@ def getActiveCandidateLink(candidate):
     return buttonHtml
 
 
-def getEditUserLink(user):
-    url = reverse('edit-user', args=[user.id])
+def getEditUserLink(user, is_tally = False):
+    if is_tally and user.tally:
+        url = reverse('edit-user-tally', args=[user.tally.id, user.id])
+    else:
+        url = reverse('edit-user', args=[user.id])
     buttonHtml = '<a href="%s" class="btn btn-default btn-small">%s</a>' % (url, unicode(_('Edit')))
 
     return buttonHtml

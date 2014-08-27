@@ -5,7 +5,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic.edit import UpdateView, DeleteView
+from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
@@ -20,6 +20,7 @@ from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_centre_form import EditCentreForm
+from tally_ho.apps.tally.forms.edit_user_profile_form import EditUserProfileForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
@@ -954,3 +955,57 @@ class DisableCandidateView(LoginRequiredMixin,
         disableEnableCandidate(candidateId)
 
         return redirect(self.success_url, tally_id=tally_id)
+
+
+class EditUserView(LoginRequiredMixin,
+                   mixins.GroupRequiredMixin,
+                   mixins.ReverseSuccessURLMixin,
+                   SuccessMessageMixin,
+                   UpdateView):
+    model = UserProfile
+    form_class = EditUserProfileForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'tally_manager/edit_user_profile.html'
+    slug_url_kwarg = 'user_id'
+    slug_field = 'id'
+
+    def get_initial(self):
+        initial = super(EditUserView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super(EditUserView, self).get_context_data(**kwargs)
+        context['is_admin'] = False
+        context['tally_id'] = self.kwargs.get('tally_id')
+
+        return context
+
+    def get_success_url(self):
+        return reverse('user-tally-list', kwargs={'tally_id': self.kwargs.get('tally_id')})
+
+
+class CreateUserView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     CreateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'tally_manager/edit_user_profile.html'
+    model = UserProfile
+    form_class = EditUserProfileForm
+
+    def get_initial(self):
+        initial = super(CreateUserView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super(CreateUserView, self).get_context_data(**kwargs)
+        context['is_admin'] = False
+        context['tally_id'] = self.kwargs.get('tally_id')
+
+        return context
+
+    def get_success_url(self):
+        return reverse('user-tally-list', kwargs={'tally_id': self.kwargs.get('tally_id')})
