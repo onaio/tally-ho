@@ -44,7 +44,8 @@ def create_demo_users_with_groups(password='data'):
         obj, created = Group.objects.get_or_create(name=group)
         username = group.replace(' ', '_').lower()
         user, created = UserProfile.objects.get_or_create(username=username[0:30],
-                                                   first_name=group[0:30])
+                                                   first_name=group[0:30],
+                                                   reset_password=False)
         user.set_password(password)
         user.save()
         user.groups.add(obj)
