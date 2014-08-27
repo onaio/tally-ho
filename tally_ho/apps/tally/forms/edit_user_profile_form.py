@@ -1,5 +1,5 @@
 from django.contrib.auth.models import Group
-from django.forms import ModelForm, TextInput, Select, PasswordInput, ModelChoiceField
+from django.forms import ModelForm, TextInput, Select, PasswordInput, ModelChoiceField, SelectMultiple, RadioSelect
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
@@ -24,7 +24,7 @@ class EditUserProfileForm(ModelForm):
                                      'first_name',
                                      'last_name',
                                      'email',
-                                     'groups',
+                                     #'groups',
                                      'tally',
                                      ]
 
@@ -34,14 +34,17 @@ class EditUserProfileForm(ModelForm):
             'first_name': TextInput(attrs={'size': 50}),
             'last_name': TextInput(attrs={'size': 50}),
             'email': TextInput(attrs={'size': 50}),
-            'groups': Select(attrs={'class': 'selector'})
+            #'groups': Select(attrs={'class': 'selector'})
         }
+
+    qs = Group.objects.exclude(name__in=[groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER])
+    group = ModelChoiceField(queryset=qs)
 
     def __init__(self, *args, **kwargs):
 
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs.setdefault('initial', {})
-            initial['groups'] = kwargs['instance'].groups.first()
+            initial['group'] = kwargs['instance'].groups.first()
 
         super(EditUserProfileForm, self).__init__(*args, **kwargs)
 
@@ -49,8 +52,14 @@ class EditUserProfileForm(ModelForm):
             if key not in self.MANDATORY_FIELDS:
                 self.fields[key].required = False
 
-        qs = Group.objects.exclude(name__in=[groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER])
-        self.fields['groups'] = ModelChoiceField(queryset=qs)
+    def save(self):
+        user = super(EditUserProfileForm, self).save()
+        group = self.cleaned_data.get('group')
+
+        user.groups.clear()
+        user.groups.add(group)
+
+        return user
 
 
 class EditAdminProfileForm(ModelForm):
