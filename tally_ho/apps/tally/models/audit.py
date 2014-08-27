@@ -20,7 +20,7 @@ class Audit(BaseModel):
     quarantine_checks = models.ManyToManyField(QuarantineCheck)
     result_form = models.ForeignKey(ResultForm)
     supervisor = models.ForeignKey(User, related_name='audit_user', null=True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     active = models.BooleanField(default=True)
     for_superadmin = models.BooleanField(default=False)

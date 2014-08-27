@@ -11,7 +11,7 @@ from tally_ho.libs.utils.templates import getEditUserLink
 class UserProfile(User):
     reset_password = models.BooleanField(default=True)
     administrated_tallies = models.ManyToManyField(Tally, blank=True, null=True, default=None, related_name='administrators')
-    tally = models.ForeignKey(Tally, blank=True, null=True, related_name='users')
+    tally = models.ForeignKey(Tally, blank=True, null=True, related_name='users', on_delete=models.SET_NULL)
 
     class Meta:
         app_label = 'tally'

@@ -12,7 +12,7 @@ class QualityControl(BaseModel):
         app_label = 'tally'
 
     result_form = models.ForeignKey(ResultForm)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     active = models.BooleanField(default=True)
     passed_general = models.NullBooleanField()
