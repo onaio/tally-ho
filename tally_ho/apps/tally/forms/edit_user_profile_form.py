@@ -17,12 +17,11 @@ disable_copy_input = {
 
 
 class EditUserProfileForm(ModelForm):
-    MANDATORY_FIELDS = []
+    MANDATORY_FIELDS = ['username', 'group']
 
     class Meta:
         model = UserProfile
         fields = localized_fields = ['username',
-                                     'password',
                                      'first_name',
                                      'last_name',
                                      'email',
@@ -32,7 +31,6 @@ class EditUserProfileForm(ModelForm):
 
         widgets = {
             'username': TextInput(attrs={'size': 50}),
-            'password': PasswordInput(),
             'first_name': TextInput(attrs={'size': 50}),
             'last_name': TextInput(attrs={'size': 50}),
             'email': TextInput(attrs={'size': 50}),
@@ -40,7 +38,7 @@ class EditUserProfileForm(ModelForm):
         }
 
     qs = Group.objects.exclude(name__in=[groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER])
-    group = ModelChoiceField(queryset=qs)
+    group = ModelChoiceField(queryset=qs, required=True)
 
     def __init__(self, *args, **kwargs):
 
@@ -70,11 +68,16 @@ class EditUserProfileForm(ModelForm):
             user.tally = tally
             user.save()
 
+        if not user.password:
+            user.set_password(user.username)
+            user.reset_password = True
+            user.save()
+
         return user
 
 
 class EditAdminProfileForm(ModelForm):
-    MANDATORY_FIELDS = []
+    MANDATORY_FIELDS = ['username']
 
     class Meta:
         model = UserProfile
@@ -104,4 +107,9 @@ class EditAdminProfileForm(ModelForm):
 
         super_admin = Group.objects.get(name=groups.SUPER_ADMINISTRATOR)
         user.groups.add(super_admin)
+
+        if not user.password:
+            user.set_password(user.username)
+            user.reset_password = True
+
         user.save()
