@@ -24,25 +24,24 @@
             {% endif %}
         </tr>
     </table>
-    <input type="hidden" name="center_code" value="{{ center_code }}">
     <button class="btn btn-small btn-success" type="submit" name="save_submit">
         {% trans "Save" %}
     </button>
-    <button class="btn btn-small btn-default" type="submit" name="abort_submit">
+    <a class="btn btn-small btn-default" href="{% url 'center-list' tally_id %}" role"button">
         {% trans "Abort" %}
-    </button>
+    </a>
     {% if is_active %}
-    <button class="btn btn-small" type="submit" name="disable_submit">
+    <a class="btn btn-small btn-default" href="{% url 'disable' tally_id center_code %}" role="button">
         {% trans "Disable" %}
-    </button>
+    </a>
     {% else %}
-    <button class="btn btn-small" type="submit" name="enable_submit">
+    <a class="btn btn-small btn-default" href="{% url 'enable' tally_id center_code %}" role="button">
         {% trans "Enable" %}
-    </button>
+    </a>
     {% endif %}
-    <button class="btn btn-small btn-danger pull-right" type="submit" name="delete_submit">
+    <a class="btn btn-small btn-danger pull-right" href="{% url 'remove-center-confirmation' tally_id center_code %}" role="button">
         {% trans "Delete" %}
-    </button>
+    </a>
     {% csrf_token %}
 </form>
 

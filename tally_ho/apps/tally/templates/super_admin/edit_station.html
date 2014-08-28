@@ -11,7 +11,7 @@
 <form name="form" method="post" action="">
     <table class="table table-bordered">
         <tr>
-            <td>{% trans 'Centre:' %}</td>
+            <td>{% trans 'Center:' %}</td>
             <td>{{ center_code }}</td>
         </tr>
         <tr>
@@ -28,32 +28,30 @@
             {% endif %}
         </tr>
     </table>
-    <input type="hidden" name="center_code" value="{{ center_code }}">
-    <input type="hidden" name="station_number" value="{{ station_number }}">
     <button class="btn btn-small btn-success" type="submit" name="save_submit">
         {% trans "Save" %}
     </button>
-    <button class="btn btn-small btn-default" type="submit" name="abort_submit">
+    <a class="btn btn-small btn-default" href="{% url 'center-list' tally_id %}" role="button">
         {% trans "Abort" %}
-    </button>
+    </a>
     {% if is_active and center_is_active %}
-    <button class="btn btn-small" type="submit" name="disable_submit">
+    <a class="btn btn-small btn-default" href="{% url 'disable' tally_id center_code station_number %}" role="button">
         {% trans "Disable" %}
-    </button>
+    </a>
     {% elif not is_active and center_is_active %}
-    <button class="btn btn-small" type="submit" name="enable_submit">
+    <a class="btn btn-small btn-default" href="{% url 'enable' tally_id center_code station_number %}" role="button">
         {% trans "Enable" %}
-    </button>
+    </a>
     {% else %}
-    <button class="btn btn-small btn-link" type="submit" name="edit_submit">
+    <a class="btn btn-small btn-link" href="{% url 'edit-center' tally_id center_code %}" role="button">
         <!-- {% trans "Enable action is not allowed because the center is disable. Click here to edit center" %} -->
         {% trans "Click here to edit center" %}
-    </button>
+    </a>
     <span>{% trans "Enable action is not allowed because the center is disable." %}</span>
     {% endif %}
-    <button class="btn btn-small btn-danger pull-right" type="submit" name="delete_submit">
+    <a class="btn btn-small btn-danger pull-right" href="{% url 'remove-station-confirmation' tally_id center_code station_number %}" role="button">
         {% trans "Delete" %}
-    </button>
+    </a>
     {% csrf_token %}
 </form>
 

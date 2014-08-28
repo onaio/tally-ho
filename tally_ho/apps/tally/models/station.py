@@ -12,8 +12,7 @@ from tally_ho.libs.models.dependencies import check_results_for_forms
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.utils.numbers import rounded_safe_div_percent
-from tally_ho.libs.utils.templates import getEditCenterLink
-from tally_ho.libs.utils.templates import getEditStationLink
+from tally_ho.libs.utils.templates import getEditsLink
 from tally_ho.libs.models.enums.disable_reason import DisableReason
 
 
@@ -49,12 +48,8 @@ class Station(BaseModel):
         return self.center.name if self.center else None
 
     @property
-    def center_edit(self):
-        return getEditCenterLink(self) if self.center else None
-
-    @property
-    def station_edit(self):
-        return getEditStationLink(self) if self else None
+    def get_edit_links(self):
+        return getEditsLink(self) if self else None
 
     @property
     def station_status(self):

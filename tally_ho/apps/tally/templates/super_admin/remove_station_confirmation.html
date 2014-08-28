@@ -6,7 +6,7 @@
 
 <h1>{% trans 'Remove Station' %}</h1>
 
-<form name="remove-station-form" method="post" action="" onsubmit="return confirm('{% trans "Confirm that you want to apply this action!" %}');">
+<form name="remove-station-form" method="post" action="">
     <table class="table table-bordered infotable">
         <tr><th>{% trans 'Center:' %}</th><td>{{ object.center_code }}</td></tr>
         <tr><th>{% trans 'Station number:' %}</th><td>{{ object.station_number }}</td></tr>

@@ -30,8 +30,6 @@ class CenterListDataView(LoginRequiredMixin,
         'percent_archived',
         'center__active',
         'active',
-        'center__active',
-        'active',
     )
 
     display_fields = (
@@ -44,12 +42,10 @@ class CenterListDataView(LoginRequiredMixin,
         ('registrants', 'registrants'),
         ('percent_received', 'percent_received'),
         ('percent_archived', 'percent_archived'),
-        # FIXME Not use fields center__active and active for add external
-        # columns to the table.
         ('center__active', 'center_status'),
         ('active', 'station_status'),
-        ('center__active', 'center_edit'),
-        ('active', 'station_edit'),
+        # Used to add external columns to the table.
+        ('active', 'get_edit_links'),
     )
 
     def get_queryset(self):
@@ -108,7 +104,7 @@ class CenterListView(LoginRequiredMixin,
                     field_header_map=header_map)
 
         # check cache
-        station_list = Station.objects.filter(center__tally__id = tally_id)
+        station_list = Station.objects.filter(center__tally__id=tally_id)
         stations = paging(station_list, self.request)
 
         return self.render_to_response(self.get_context_data(

@@ -184,3 +184,11 @@ table.print-table td {
 table.print-table td h4 {
     margin-top: 0;
 }
+
+table.reduce-size {
+    font-size: 12px;
+}
+
+a.vertical-margin {
+    margin: 2px;
+}

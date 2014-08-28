@@ -30,5 +30,5 @@ class TestOffices(TestBase):
         response = view(request)
 
         self.assertContains(response, 'Per Office')
-        self.assertContains(response, 'Tally Centre Progress Report')
+        self.assertContains(response, 'Tally Center Progress Report')
         self.assertContains(response, "<td>Not Received</td>")

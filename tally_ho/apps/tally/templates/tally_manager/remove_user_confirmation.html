@@ -10,7 +10,7 @@
 <h1>{% trans 'Remove User' %}</h1>
 {% endif %}
 
-<form name="remove-user-form" method="post" action="" onsubmit="return confirm('{% trans "Confirm that you want to apply this action!" %}');">
+<form name="remove-user-form" method="post" action="">
     <table class="table table-bordered infotable">
         <tr><th>{% trans 'Username:' %}</th><td>{{ object.username }}</td></tr>
         <tr><th>{% trans 'First Name:' %}</th><td>{{ object.first_name }}</td></tr>
