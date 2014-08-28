@@ -1,6 +1,8 @@
 from django.contrib.auth.models import Group
 from django.forms import ModelForm, TextInput, Select, PasswordInput, \
-        ModelChoiceField, SelectMultiple, RadioSelect, HiddenInput
+        ModelChoiceField, SelectMultiple, RadioSelect, HiddenInput, \
+        BooleanField, CheckboxInput
+from django.utils.translation import ugettext_lazy as _
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.models.tally import Tally
@@ -17,30 +19,27 @@ disable_copy_input = {
 
 
 class EditUserProfileForm(ModelForm):
-    MANDATORY_FIELDS = []
+    MANDATORY_FIELDS = ['username', 'group']
 
     class Meta:
         model = UserProfile
         fields = localized_fields = ['username',
-                                     'password',
                                      'first_name',
                                      'last_name',
                                      'email',
-                                     #'groups',
                                      'tally',
                                      ]
 
         widgets = {
             'username': TextInput(attrs={'size': 50}),
-            'password': PasswordInput(),
             'first_name': TextInput(attrs={'size': 50}),
             'last_name': TextInput(attrs={'size': 50}),
             'email': TextInput(attrs={'size': 50}),
-            #'groups': Select(attrs={'class': 'selector'})
         }
 
     qs = Group.objects.exclude(name__in=[groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER])
-    group = ModelChoiceField(queryset=qs)
+    group = ModelChoiceField(queryset=qs, required=True)
+    reboot_password = BooleanField(label=_('Reset password'), widget=CheckboxInput())
 
     def __init__(self, *args, **kwargs):
 
@@ -48,7 +47,11 @@ class EditUserProfileForm(ModelForm):
             initial = kwargs.setdefault('initial', {})
             initial['group'] = kwargs['instance'].groups.first()
 
+
         super(EditUserProfileForm, self).__init__(*args, **kwargs)
+
+        if 'instance' not in kwargs or not kwargs['instance']:
+            self.fields['reboot_password'].widget = HiddenInput()
 
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:
@@ -61,6 +64,7 @@ class EditUserProfileForm(ModelForm):
     def save(self):
         user = super(EditUserProfileForm, self).save()
         group = self.cleaned_data.get('group')
+        reboot_password = self.cleaned_data.get('reboot_password')
 
         user.groups.clear()
         user.groups.add(group)
@@ -70,11 +74,16 @@ class EditUserProfileForm(ModelForm):
             user.tally = tally
             user.save()
 
+        if not user.password or reboot_password:
+            user.set_password(user.username)
+            user.reset_password = True
+            user.save()
+
         return user
 
 
 class EditAdminProfileForm(ModelForm):
-    MANDATORY_FIELDS = []
+    MANDATORY_FIELDS = ['username']
 
     class Meta:
         model = UserProfile
@@ -92,8 +101,13 @@ class EditAdminProfileForm(ModelForm):
             'email': TextInput(attrs={'size': 50}),
         }
 
+    reboot_password = BooleanField(label=_('Reset password'), widget=CheckboxInput())
+
     def __init__(self, *args, **kwargs):
         super(EditAdminProfileForm, self).__init__(*args, **kwargs)
+
+        if 'instance' not in kwargs or not kwargs['instance']:
+            self.fields['reboot_password'].widget = HiddenInput()
 
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:
@@ -101,7 +115,13 @@ class EditAdminProfileForm(ModelForm):
 
     def save(self):
         user = super(EditAdminProfileForm, self).save()
+        reboot_password = self.cleaned_data.get('reboot_password')
 
         super_admin = Group.objects.get(name=groups.SUPER_ADMINISTRATOR)
         user.groups.add(super_admin)
+
+        if not user.password or reboot_password:
+            user.set_password(user.username)
+            user.reset_password = True
+
         user.save()
