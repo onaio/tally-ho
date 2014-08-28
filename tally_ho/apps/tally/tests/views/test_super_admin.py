@@ -96,9 +96,6 @@ class TestSuperAdmin(TestBase):
         response = view(request)
         self.assertContains(response, 'name="center_number"')
         self.assertContains(response, '<form name="remove-center-form"')
-        self.assertContains(response,
-                            "confirm('Confirm that you want to "
-                            "delete the center!")
 
     def test_remove_center_post_invalid(self):
         view = views.RemoveCenterView.as_view()
@@ -155,9 +152,6 @@ class TestSuperAdmin(TestBase):
         self.assertContains(response, 'name="center_number"')
         self.assertContains(response, 'name="station_number"')
         self.assertContains(response, '<form name="remove-station-form"')
-        self.assertContains(response,
-                            "confirm('Confirm that you want to "
-                            "delete the station!")
 
     def test_remove_station_post_invalid(self):
         station = 1

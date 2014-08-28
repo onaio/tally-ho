@@ -8,7 +8,7 @@
 
 <div class="form-instructions">{% blocktrans %}Select {{ entity }} classification.{% endblocktrans %}</div>
 
-<form name="disable-entity-form" method="post" action="" onsubmit="return confirm('{% blocktrans %}Confirm that you want to disable the {{ entity }}!{% endblocktrans %}');">
+<form name="disable-entity-form" method="post" action="">
     <div class="text-danger">
         {{ form.non_field_errors }}<br/>
         {{ form.errors }}
