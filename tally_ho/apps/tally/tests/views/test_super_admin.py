@@ -98,7 +98,7 @@ class TestSuperAdmin(TestBase):
         self.assertContains(response, '<form name="remove-center-form"')
         self.assertContains(response,
                             "confirm('Confirm that you want to "
-                            "delete the centre!")
+                            "delete the center!")
 
     def test_remove_center_post_invalid(self):
         view = views.RemoveCenterView.as_view()
@@ -140,12 +140,12 @@ class TestSuperAdmin(TestBase):
         self.assertContains(response, u"Results exist for barcodes")
         self.assertContains(response, result_form.barcode)
 
-    def test_remove_centre_link(self):
+    def test_remove_center_link(self):
         view = views.DashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         response = view(request)
-        self.assertContains(response, "Remove a Centre</a>")
+        self.assertContains(response, "Remove a Center</a>")
 
     def test_remove_station_get(self):
         view = views.RemoveStationView.as_view()

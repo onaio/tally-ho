@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 def getEditsLink(station):
-    url_center = reverse('edit-centre', args=[station.center.tally.id,
+    url_center = reverse('edit-center', args=[station.center.tally.id,
                                               station.center.code])
     url_station = reverse('edit-station', args=[station.center.tally.id,
                                                 station.center.code,

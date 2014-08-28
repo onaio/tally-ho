@@ -11,7 +11,7 @@
 <form name="form" method="post" action="">
     <table class="table table-bordered">
         <tr>
-            <td>{% trans 'Centre:' %}</td>
+            <td>{% trans 'Center:' %}</td>
             <td>{{ center_code }}</td>
         </tr>
         <tr>
@@ -43,7 +43,7 @@
         {% trans "Enable" %}
     </a>
     {% else %}
-    <a class="btn btn-small btn-link" href="{% url 'edit-centre' tally_id center_code %}" role="button">
+    <a class="btn btn-small btn-link" href="{% url 'edit-center' tally_id center_code %}" role="button">
         <!-- {% trans "Enable action is not allowed because the center is disable. Click here to edit center" %} -->
         {% trans "Click here to edit center" %}
     </a>

@@ -19,7 +19,7 @@ from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
-from tally_ho.apps.tally.forms.edit_centre_form import EditCentreForm
+from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import EditUserProfileForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.center import Center
@@ -514,20 +514,20 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
                                                                   **kwargs)
 
 
-class EditCentreView(LoginRequiredMixin,
+class EditCenterView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      mixins.TallyAccessMixin,
                      mixins.ReverseSuccessURLMixin,
                      SuccessMessageMixin,
                      UpdateView):
     model = Center
-    form_class = EditCentreForm
+    form_class = EditCenterForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/edit_center.html'
     success_message = _(u'Center Successfully Updated')
 
     def get_context_data(self, **kwargs):
-        context = super(EditCentreView, self).get_context_data(**kwargs)
+        context = super(EditCenterView, self).get_context_data(**kwargs)
         context['center_code'] = self.kwargs.get('center_code', None)
         context['tally_id'] = self.kwargs.get('tally_id', None)
         context['is_active'] = self.object.active

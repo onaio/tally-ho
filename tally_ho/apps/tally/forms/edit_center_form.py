@@ -11,7 +11,7 @@ disable_copy_input = {
 }
 
 
-class EditCentreForm(ModelForm):
+class EditCenterForm(ModelForm):
     MANDATORY_FIELDS = []
 
     class Meta:
@@ -34,7 +34,7 @@ class EditCentreForm(ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super(EditCentreForm, self).__init__(*args, **kwargs)
+        super(EditCenterForm, self).__init__(*args, **kwargs)
 
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:
