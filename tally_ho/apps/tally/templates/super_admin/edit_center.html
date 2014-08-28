@@ -27,8 +27,8 @@
     <button class="btn btn-small btn-success" type="submit" name="save_submit">
         {% trans "Save" %}
     </button>
-    <a class="btn btn-small btn-default" href="{% url 'center-list' tally_id %}" role"button">
-        {% trans "Abort" %}
+    <a class="btn btn-small btn-danger" href="{% url 'center-list' tally_id %}" role"button">
+        {% trans "Cancel" %}
     </a>
     {% if is_active %}
     <a class="btn btn-small btn-default" href="{% url 'disable' tally_id center_code %}" role="button">
@@ -39,7 +39,7 @@
         {% trans "Enable" %}
     </a>
     {% endif %}
-    <a class="btn btn-small btn-danger pull-right" href="{% url 'remove-center-confirmation' tally_id center_code %}" role="button">
+    <a class="btn btn-small btn-warning pull-right" href="{% url 'remove-center-confirmation' tally_id center_code %}" role="button">
         {% trans "Delete" %}
     </a>
     {% csrf_token %}

@@ -37,7 +37,7 @@
         {% endif %}
     </table>
     <button type="submit" name="accept_submit" class="btn btn-success">{% trans "Accept" %}</button>
-    <a class="btn btn-danger" href="{% url 'edit-user' object.id %}" role="button">{% trans "Abort" %}</a>
+    <a class="btn btn-danger" href="{% url 'edit-user' object.id %}" role="button">{% trans "Cancel" %}</a>
     {% csrf_token %}
 </form>
 
