@@ -43,19 +43,19 @@ class CenterDetailsView(LoginRequiredMixin,
     success_url = 'check-center-details'
     tally_id = None
 
-    def get(self, *args, **kwargs):
-        tally_id = kwargs['tally_id']
-        self.initial = {
-            'tally_id': tally_id
-        }
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        form_action = ''
+    def get_context_data(self, **kwargs):
+        context = super(CenterDetailsView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
+        context['form_action'] = ''
+        context['header_text'] = _('Intake')
 
-        return self.render_to_response(
-            self.get_context_data(form=form, header_text=_('Intake'),
-                                  form_action=form_action,
-                                  tally_id=tally_id))
+        return context
+
+    def get_initial(self):
+        initial = super(CenterDetailsView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
 
     def post(self, *args, **kwargs):
         self.tally_id = kwargs['tally_id']
@@ -116,20 +116,24 @@ class EnterCenterView(LoginRequiredMixin,
     template_name = "enter_center_details.html"
     success_url = 'check-center-details'
 
-    def get(self, *args, **kwargs):
-        tally_id = kwargs['tally_id']
-        self.initial = {
-            'tally_id': tally_id
-        }
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
 
-        return self.render_to_response(
-            self.get_context_data(form=form, header_text=_('Intake'),
-                                  result_form=result_form,
-                                  tally_id=tally_id))
+        context = super(EnterCenterView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['form_action'] = ''
+        context['header_text'] = _('Intake')
+        context['result_form'] = get_object_or_404(ResultForm, pk=pk,
+                                                    tally__id=tally_id)
+
+        return context
+
+    def get_initial(self):
+        initial = super(EnterCenterView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
 
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')

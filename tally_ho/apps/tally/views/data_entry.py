@@ -144,14 +144,9 @@ class DataEntryView(LoginRequiredMixin,
     template_name = "barcode_verify.html"
     success_url = 'data-entry-enter-center-details'
 
-    def get(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id')
-        self.initial = {
-            'tally_id': tally_id,
-        }
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        form_action = ''
+    def get_context_data(self, **kwargs):
+        context = super(DataEntryView, self).get_context_data(**kwargs)
+
         user = self.request.user
 
         if user_is_data_entry_1(user):
@@ -161,10 +156,17 @@ class DataEntryView(LoginRequiredMixin,
         else:
             entry_type = 'Admin'
 
-        return self.render_to_response(
-            self.get_context_data(
-                form=form, header_text=_('Data Entry %s') % entry_type,
-                form_action=form_action, tally_id=tally_id))
+        context['tally_id'] = self.kwargs.get('tally_id')
+        context['form_action'] = ''
+        context['header_text'] = _('Data Entry %s') % entry_type
+
+        return context
+
+    def get_initial(self):
+        initial = super(DataEntryView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
 
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
@@ -252,7 +254,8 @@ class CenterDetailsView(LoginRequiredMixin,
             return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.render_to_response(self.get_context_data(form=form,
-                                           result_form=result_form, tally_id=tally_id))
+                                           result_form=result_form, tally_id=tally_id,
+                                           header_text=get_header_text(result_form)))
 
 
 class EnterResultsView(LoginRequiredMixin,
