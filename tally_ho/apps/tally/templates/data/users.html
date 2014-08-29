@@ -22,15 +22,15 @@
 
 <div>
     {% if tally_id %}
-        <a class="btn btn-small btn-success pull-right" href="{% url 'create-user-tally' tally_id %}" role="button">
-            {% trans "New user"%}
+        <a class="btn btn-small btn-primary pull-right" href="{% url 'create-user-tally' tally_id %}" role="button">
+            {% trans "New User"%}
         </a>
     {% else %}
         <a class="btn btn-small btn-success pull-right" href="{% url 'create-user' role %}" role="button">
             {% if is_admin %}
-            {% trans "New administrator" %}
+            {% trans "New Administrator" %}
             {% else %}
-            {% trans "New user" %}
+            {% trans "New User" %}
             {% endif %}
         </a>
     {% endif %}

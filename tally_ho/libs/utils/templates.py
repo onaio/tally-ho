@@ -73,7 +73,7 @@ def getEditUserLink(user, is_tally = False):
 def getTallyAdministerLink(tally):
     url = reverse('super-administrator', kwargs={'tally_id': tally.id})
     buttonHtml = '<a href="%s" class ="btn btn-default btn-small">%s</a>' %  \
-                (url, unicode(_('Admin view')))
+                (url, unicode(_('Admin View')))
 
     return buttonHtml
 
@@ -81,6 +81,6 @@ def getTallyAdministerLink(tally):
 def getTallyEditLink(tally):
     url = reverse('update-tally', kwargs={'tally_id': tally.id})
     buttonHtml = '<a href="%s" class ="btn btn-default btn-small">%s</a>' %  \
-                (url, unicode(_('Edit tally')))
+                (url, unicode(_('Edit')))
 
     return buttonHtml

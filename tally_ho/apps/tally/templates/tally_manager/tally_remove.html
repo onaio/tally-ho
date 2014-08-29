@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1>{% trans 'Create tally' %}</h1>
+<h1>{% trans 'Delete Tally' %}</h1>
 
 {% if messages %}
 <ul class="text-info">
@@ -20,7 +20,7 @@
         {{ form.non_field_errors }}<br/>
     </div>
     {% endif %}
-    {% trans 'Are you sure you want to remove this tally? It will remove all the data related to it' %}
+    {% trans 'Are you sure you want to delete this tally? It will delete all the data related to it' %}
     <table class="table table-bordered">
         <tr>
             <td>{% trans 'Name' %}:</td>
@@ -29,12 +29,12 @@
             </td>
         </tr>
     </table>
-    <a class="btn btn-danger btn-small" href="{% url 'update-tally' tally_id=object.id %}">
+    <button class="btn btn-success" type="submit" name="submit">
+        {% trans "Accept" %}
+    </button>
+    <a class="btn btn-danger" href="{% url 'update-tally' tally_id=object.id %}">
         {% trans "Cancel" %}
     </a>
-    <button class="btn btn-success btn-small" type="submit" name="submit">
-        {% trans "Remove" %}
-    </button>
     {% csrf_token %}
 </form>
 

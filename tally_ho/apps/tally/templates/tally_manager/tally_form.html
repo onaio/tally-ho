@@ -5,9 +5,9 @@
 {% block content %}
 
 {% if tally_id %}
-    <h1>{% trans 'Edit tally' %}</h1>
+    <h1>{% trans 'Edit Tally' %}</h1>
 {% else %}
-    <h1>{% trans 'Create tally' %}</h1>
+    <h1>{% trans 'Create Tally' %}</h1>
 {% endif %}
 
 {% if messages %}
@@ -48,10 +48,10 @@
             {% trans "Cancel" %}
         </a>
         <a href="{% url 'tally-files-form' tally_id=tally_id %}" class="btn btn-default btn-small">
-            {% trans "Reupload files" %}
+            {% trans "Reupload Files" %}
         </a>
-        <a href="{% url 'remove-tally' tally_id=tally_id %}" class="btn btn-default btn-small">
-            {% trans "Remove tally" %}
+        <a href="{% url 'remove-tally' tally_id=tally_id %}" class="btn btn-warning btn-small pull-right">
+            {% trans "Delete" %}
         </a>
     {% else %}
         <a href="{% url 'tally-manager' %}" class="btn btn-danger btn-small">

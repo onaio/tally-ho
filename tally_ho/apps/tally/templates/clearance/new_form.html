@@ -17,9 +17,10 @@
         {{ form.as_table }}
     </table>
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
-    <button class="btn btn-small" type="submit" name="submit">
-        {% trans "Create Form" %}
+    <button class="btn btn-small btn-success" type="submit" name="submit">
+        {% trans "Save" %}
     </button>
+    <a class="btn btn-small btn-danger" href="{% url 'clearance' tally_id %}" role="button">{% trans "Cancel" %}</a>
     {% csrf_token %}
 </form>
 
