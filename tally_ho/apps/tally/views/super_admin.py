@@ -445,19 +445,17 @@ class RemoveCenterView(LoginRequiredMixin,
     template_name = "super_admin/remove_center.html"
     success_message = _(u"Center Successfully Removed.")
 
-    def get(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id', None)
+    def get_context_data(self, **kwargs):
+        context = super(RemoveCenterView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
 
-        self.initial = {
-            'tally_id': tally_id,
-        }
+        return context
 
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+    def get_initial(self):
+        initial = super(RemoveCenterView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
 
-        return self.render_to_response(
-            self.get_context_data(form=form,
-                tally_id=tally_id))
+        return initial
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
@@ -700,19 +698,17 @@ class RemoveStationView(LoginRequiredMixin,
     template_name = "super_admin/remove_station.html"
     success_message = _(u"Station Successfully Removed.")
 
-    def get(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id')
+    def get_context_data(self, **kwargs):
+        context = super(RemoveStationView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
 
-        self.initial = {
-            'tally_id': tally_id,
-        }
+        return context
 
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+    def get_initial(self):
+        initial = super(RemoveStationView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
 
-        return self.render_to_response(
-            self.get_context_data(form=form,
-                                  tally_id=tally_id))
+        return initial
 
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
