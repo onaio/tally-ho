@@ -192,3 +192,7 @@ table.reduce-size {
 a.vertical-margin {
     margin: 2px;
 }
+
+table.select-max-width > tbody  > tr > td > select {
+    width: 200px;
+}
