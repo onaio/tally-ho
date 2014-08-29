@@ -246,19 +246,19 @@ class CreateAuditView(LoginRequiredMixin,
     template_name = "barcode_verify.html"
     success_url = 'audit'
 
-    def get(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id')
-        self.initial = {
-            'tally_id': tally_id
-        }
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        form_action = ''
+    def get_context_data(self, **kwargs):
+        context = super(CreateAuditView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
+        context['header_text'] = _('Create Audit')
+        context['form_action'] = ''
 
-        return self.render_to_response(
-            self.get_context_data(form=form, header_text=_(
-                'Create Audit'), form_action=form_action,
-                tally_id=tally_id))
+        return context
+
+    def get_initial(self):
+        initial = super(CreateAuditView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
 
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')

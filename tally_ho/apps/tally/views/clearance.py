@@ -211,19 +211,21 @@ class CreateClearanceView(LoginRequiredMixin,
     success_url = 'clearance-check-center-details'
     template_name = 'barcode_verify.html'
 
-    def get(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id')
-        self.initial = {
-            'tally_id': tally_id,
-        }
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        form_action = reverse(self.success_url, kwargs={'tally_id': tally_id})
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id')
+        context = super(CreateClearanceView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['header_text'] = _('Create Clearance')
+        context['form_action'] = reverse(self.success_url,
+                                        kwargs={'tally_id': tally_id})
 
-        return self.render_to_response(
-            self.get_context_data(form=form, header_text=_(
-                'Create Clearance'), form_action=form_action,
-                tally_id=tally_id))
+        return context
+
+    def get_initial(self):
+        initial = super(CreateClearanceView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
 
     # POST against itself is senseless. Changed to CheckCenterDetailsView.post
     def post(self, *args, **kwargs):
@@ -268,19 +270,25 @@ class CheckCenterDetailsView(LoginRequiredMixin,
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     template_name = 'barcode_verify.html'
     success_url = 'clearance-add'
-
-    def get(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id')
-        self.inital = {
-            'tally_id': tally_id,
-        }
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
 
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  header_text=_('Clearance'),
-                                  tally_id=tally_id))
+        context = super(CheckCenterDetailsView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['header_text'] = _('Clearance')
+        context['form_action'] = reverse(self.success_url,
+                                        kwargs={'tally_id': tally_id})
+        context['result_form'] = get_object_or_404(ResultForm,
+                                            pk=pk, tally__id=tally_id)
+
+        return context
+
+    def get_initial(self):
+        initial = super(CheckCenterDetailsView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
 
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
