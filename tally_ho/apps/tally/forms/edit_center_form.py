@@ -12,7 +12,7 @@ disable_copy_input = {
 
 
 class EditCenterForm(ModelForm):
-    MANDATORY_FIELDS = []
+    MANDATORY_FIELDS = ['name', 'office']
 
     class Meta:
         model = Center
