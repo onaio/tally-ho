@@ -20,21 +20,27 @@
 </ul>
 {% endif %}
 
-<div>
-    {% if tally_id %}
-        <a class="btn btn-small btn-primary pull-right" href="{% url 'create-user-tally' tally_id %}" role="button">
-            {% trans "New User"%}
-        </a>
-    {% else %}
-        <a class="btn btn-small btn-success pull-right" href="{% url 'create-user' role %}" role="button">
-            {% if is_admin %}
-            {% trans "New Administrator" %}
-            {% else %}
-            {% trans "New User" %}
-            {% endif %}
-        </a>
-    {% endif %}
-</div>
+ {% if tally_id %}
+<form method="get" action="{% url 'create-user-tally' tally_id%}">
+    <button type="submit" class="btn btn-primary btn-small pull-right">
+        {% trans 'New User' %}
+    </button>
+</form>
+{% else %}
+<form method="get" action="{% url 'create-user' role %}">
+  <button type="submit" class="btn btn-primary btn-small pull-right">
+        {% if is_admin %}
+        {% trans "New Administrator" %}
+        {% else %}
+        {% trans "New User" %}
+        {% endif %}
+    </button>
+</form>
+{% endif %}
+
+<br/>
+<br/>
+
 <table id="datalist">
     <thead>
         <tr>
