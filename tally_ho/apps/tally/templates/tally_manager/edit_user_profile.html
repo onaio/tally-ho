@@ -26,18 +26,24 @@
         {% trans "Save" %}
     </button>
     {% if is_admin %}
-    <a class="btn btn-small btn-danger" href="{% url 'user-list' "admin" %}" role="button">
-        {% trans "Cancel" %}
-    </a>
+        <a class="btn btn-small btn-danger" href="{% url 'user-list' "admin" %}" role="button">
+            {% trans "Cancel" %}
+        </a>
         {% if object.id %}
         <a class="btn btn-small btn-warning pull-right" href="{% url 'remove-user-confirmation' object.id %}" role="button">
             {% trans "Delete" %}
         </a>
         {% endif %}
     {% else %}
-    <a class="btn btn-small btn-danger" href="{% url 'user-list' "user" %}" role="button">
-        {% trans "Cancel" %}
-    </a>
+        {% if tally_id %}
+        <a class="btn btn-small btn-danger" href="{% url 'user-tally-list' tally_id %}" role="button">
+            {% trans "Cancel" %}
+        </a>
+        {% else %}
+        <a class="btn btn-small btn-danger" href="{% url 'user-list' "user" %}" role="button">
+            {% trans "Cancel" %}
+        </a>
+        {% endif %}
         {% if object.id %}
         <a class="btn btn-small btn-warning pull-right" href="{% url 'remove-user-confirmation' object.id %}" role="button">
             {% trans "Delete" %}
