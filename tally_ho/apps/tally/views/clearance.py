@@ -372,24 +372,30 @@ class NewFormView(LoginRequiredMixin,
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = ResultForm.objects.get(pk=pk, )
 
-        if result_form.center or result_form.station_number\
-                or result_form.ballot or result_form.office:
-            # We are writing a form we should not be, bail out.
-            del self.request.session['result_form']
-            return redirect('clearance', tally_id=tally_id)
-
-        result_form.created_user = self.request.user
-        form = NewResultForm(post_data, instance=result_form, initial=self.initial)
-
-        if form.is_valid():
-            form.save()
-            del self.request.session['result_form']
+        if 'abort-submit' in self.request.POST:
+            result_form.delete()
 
             return redirect(self.success_url, tally_id=tally_id)
         else:
-            return self.render_to_response(self.get_context_data(
-                form=form, result_form=result_form,
-                tally_id=tally_id))
+
+            if result_form.center or result_form.station_number\
+                    or result_form.ballot or result_form.office:
+                # We are writing a form we should not be, bail out.
+                del self.request.session['result_form']
+                return redirect(self.success_url, tally_id=tally_id)
+
+            result_form.created_user = self.request.user
+            form = NewResultForm(post_data, instance=result_form, initial=self.initial)
+
+            if form.is_valid():
+                form.save()
+                del self.request.session['result_form']
+
+                return redirect(self.success_url, tally_id=tally_id)
+            else:
+                return self.render_to_response(self.get_context_data(
+                    form=form, result_form=result_form,
+                    tally_id=tally_id))
 
 
 class AddClearanceFormView(LoginRequiredMixin,
