@@ -12,3 +12,4 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.apps.tally.models.tally import Tally

@@ -19,7 +19,7 @@ class Clearance(BaseModel):
     result_form = models.ForeignKey(ResultForm, related_name='clearances')
     supervisor = models.ForeignKey(User, null=True,
                                    related_name='clearance_user')
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     active = models.BooleanField(default=True)
     reviewed_supervisor = models.BooleanField(default=False)

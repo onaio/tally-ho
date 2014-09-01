@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load js %}
+{% load eztables %}
+
+{% block content %}
+
+{% if is_admin %}
+<h1>{% trans 'Administrators List' %}</h1>
+{% else %}
+<h1>{% trans 'Users List' %}</h1>
+{% endif %}
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+ {% if tally_id %}
+<form method="get" action="{% url 'create-user-tally' tally_id%}">
+    <button type="submit" class="btn btn-primary btn-small pull-right">
+        {% trans 'New User' %}
+    </button>
+</form>
+{% else %}
+<form method="get" action="{% url 'create-user' role %}">
+  <button type="submit" class="btn btn-primary btn-small pull-right">
+        {% if is_admin %}
+        {% trans "New Administrator" %}
+        {% else %}
+        {% trans "New User" %}
+        {% endif %}
+    </button>
+</form>
+{% endif %}
+
+<br/>
+<br/>
+
+<table id="datalist">
+    <thead>
+        <tr>
+            <th>{% trans 'Name' %}</th>
+            <th>{% trans 'Email' %}</th>
+            <th>{% trans 'First Name' %}</th>
+            <th>{% trans 'Last Name' %}</th>
+            <th>{% trans 'Actions' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+      <link href="{{STATIC_URL}}css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
+{% django_js %}
+{% datatables_js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/data_table.js"></script>
+<script type="text/javascript">
+    loadTableData('{{ remote_url }}');
+</script>
+{% endblock %}

@@ -8,7 +8,20 @@
 
 <h1>{% trans 'Center and Station List' %}</h1>
 
-<table id="datalist">
+Export:
+<a href="{% url 'center-list-csv' tally_id 'csv' %}">{% trans 'Download' %}</a>
+<br/>
+<br/>
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<table id="datalist" class="reduce-size">
     <thead>
         <tr>
             <th>{% trans 'Office' %}</th>
@@ -20,6 +33,9 @@
             <th>{% trans 'Registrants' %}</th>
             <th>{% trans 'Received' %}</th>
             <th>{% trans 'Archived' %}</th>
+            <th>{% trans 'Center status' %}</th>
+            <th>{% trans 'Station status' %}</th>
+            <th>{% trans 'Edit' %}</th>
         </tr>
     </thead>
     <tbody></tbody>

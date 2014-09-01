@@ -70,6 +70,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
     'tally_ho.libs.utils.context_processors.debug',
     'tally_ho.libs.utils.context_processors.is_superadmin',
+    'tally_ho.libs.utils.context_processors.is_tallymanager',
     'tally_ho.libs.utils.context_processors.locale',
     'tally_ho.libs.utils.context_processors.site_name',
 )
@@ -86,7 +87,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'tally',
-        'USER': 'postgres',
+        'USER': 'tally',
         'PASSWORD': 'tally',
         'HOST': '127.0.0.1',
     }
@@ -141,6 +142,10 @@ STATICFILES_FINDERS = (
 
 LOGIN_REDIRECT_URL = '/'
 
+# CONSTANTS
+MIN_STATION_VALUE = 1
+MAX_STATION_VALUE = 102
+
 # Switch to True on production
 SESSION_COOKIE_SECURE = False
 
@@ -156,3 +161,5 @@ LOGGING = {
     'version': 1,
     'root': {'level': 'DEBUG' if DEBUG else 'INFO'},
 }
+
+

@@ -11,7 +11,7 @@ class Archive(BaseModel):
         app_label = 'tally'
 
     result_form = models.ForeignKey(ResultForm)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
 
 reversion.register(Archive)

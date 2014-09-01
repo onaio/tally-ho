@@ -1,5 +1,7 @@
 from django import forms
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+
 
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.libs.models.dependencies import check_results_for_forms
@@ -14,8 +16,9 @@ disable_copy_input = {
     'autocomplete': 'off',
     'class': 'form-control'
 }
-min_station_value = 1
-max_station_value = 53
+
+min_station_value = settings.MIN_STATION_VALUE
+max_station_value = settings.MAX_STATION_VALUE
 
 
 class RemoveCenterForm(forms.Form):
@@ -28,6 +31,8 @@ class RemoveCenterForm(forms.Form):
         widget=forms.NumberInput(attrs=disable_copy_input),
         label=_(u"Center Number"))
 
+    tally_id = forms.IntegerField(widget=forms.HiddenInput())
+
     def __init__(self, *args, **kwargs):
         super(RemoveCenterForm, self).__init__(*args, **kwargs)
         self.fields['center_number'].widget.attrs['autofocus'] = 'on'
@@ -36,9 +41,10 @@ class RemoveCenterForm(forms.Form):
         if self.is_valid():
             cleaned_data = super(RemoveCenterForm, self).clean()
             center_number = cleaned_data.get('center_number')
+            tally_id = cleaned_data.get('tally_id')
 
             try:
-                center = Center.objects.get(code=center_number)
+                center = Center.objects.get(code=center_number, tally__id=tally_id)
             except Center.DoesNotExist:
                 raise forms.ValidationError(u"Center Number does not exist")
             else:
@@ -49,10 +55,10 @@ class RemoveCenterForm(forms.Form):
     def save(self):
         if self.is_valid():
             center_number = self.cleaned_data.get('center_number')
+            tally_id = self.cleaned_data.get('tally_id')
             try:
-                center = Center.objects.get(code=center_number)
+                center = Center.objects.get(code=center_number, tally__id=tally_id)
             except Center.DoesNotExist:
                 raise forms.ValidationError(_(u"Center Number does not exist"))
             else:
-                center.remove()
                 return center

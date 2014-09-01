@@ -29,7 +29,7 @@ class TestArchive(TestBase):
         request.user = self.user
         with self.assertRaises(PermissionDenied):
             view(request)
-        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         request.session = session
         response = view(request)
         response.render()
@@ -46,7 +46,7 @@ class TestArchive(TestBase):
         self._create_and_login_user()
         barcode = '123456789'
         create_result_form(form_state=FormState.ARCHIVING)
-        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.ArchiveView.as_view()
         data = {'barcode': barcode, 'barcode_copy': barcode}
         request = self.factory.post('/', data=data)
@@ -61,7 +61,7 @@ class TestArchive(TestBase):
         self._create_and_login_user()
         barcode = '123456789'
         create_result_form(form_state=FormState.ARCHIVED)
-        self._add_user_to_group(self.user, groups.ARCHIVE_SUPERVISOR)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR)
         view = views.ArchiveView.as_view()
         data = {'barcode': barcode, 'barcode_copy': barcode}
         request = self.factory.post('/', data=data)
@@ -83,7 +83,7 @@ class TestArchive(TestBase):
             center=center, station_number=1)
         recon_form = create_reconciliation_form(
             result_form, self.user, number_unstamped_ballots=0)
-        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.ArchiveView.as_view()
         data = {'barcode': barcode, 'barcode_copy': barcode}
         request = self.factory.post('/', data=data)
@@ -114,7 +114,7 @@ class TestArchive(TestBase):
             result_form, self.user, number_ballots_inside_box=21,
             number_unstamped_ballots=0)
         create_candidates(result_form, self.user, votes=1, num_results=10)
-        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.ArchiveView.as_view()
         data = {'barcode': barcode, 'barcode_copy': barcode}
         request = self.factory.post('/', data=data)
@@ -146,7 +146,7 @@ class TestArchive(TestBase):
             center=center, station_number=1)
         create_reconciliation_form(
             result_form, self.user, number_unstamped_ballots=1000)
-        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.ArchiveView.as_view()
         data = {'barcode': barcode, 'barcode_copy': barcode}
         request = self.factory.post('/', data=data)
@@ -172,7 +172,7 @@ class TestArchive(TestBase):
         result_form = create_result_form(form_state=FormState.ARCHIVING,
                                          center=center,
                                          station_number=station_number)
-        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.ArchivePrintView.as_view()
         request = self.factory.get('/')
         request.session = {'result_form': result_form.pk}
@@ -191,7 +191,7 @@ class TestArchive(TestBase):
         result_form = create_result_form(form_state=FormState.ARCHIVED,
                                          center=center,
                                          station_number=station_number)
-        self._add_user_to_group(self.user, groups.ARCHIVE_SUPERVISOR)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR)
         view = views.ArchivePrintView.as_view()
         request = self.factory.get('/')
         request.session = {'result_form': result_form.pk}
@@ -218,7 +218,7 @@ class TestArchive(TestBase):
         audit = create_audit(result_form, self.user)
         audit.quarantine_checks.add(quarantine_check)
 
-        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.ArchivePrintView.as_view()
         request = self.factory.get('/')
         request.session = {'result_form': result_form.pk}
@@ -230,7 +230,7 @@ class TestArchive(TestBase):
 
     def test_print_post(self):
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
 
         result_form = create_result_form(form_state=FormState.ARCHIVING)
         view = views.ArchivePrintView.as_view()
@@ -247,7 +247,7 @@ class TestArchive(TestBase):
 
     def test_print_post_supervisor(self):
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.ARCHIVE_SUPERVISOR)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR)
 
         result_form = create_result_form(form_state=FormState.ARCHIVED)
         view = views.ArchivePrintView.as_view()
@@ -265,7 +265,7 @@ class TestArchive(TestBase):
     def test_confirmation_get(self):
         result_form = create_result_form(form_state=FormState.ARCHIVING)
         self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.ARCHIVE_CLERK)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_ARCHIVE_CLERK)
         view = views.ConfirmationView.as_view()
         request = self.factory.get('/')
         request.user = self.user

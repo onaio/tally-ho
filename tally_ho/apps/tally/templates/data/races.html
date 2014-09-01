@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Races List' %}</h1>
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<h3>{% trans "Per Race" %}</h3>
+<table class="table table-striped">
+    <tr>
+        <th>{% trans 'Race Number' %}</th>
+        <th>{% trans 'Voting District' %}</th>
+        <th>{% trans 'Race Type' %}</th>
+        <th>{% trans 'Forms Expected' %}</th>
+        <th>{% trans 'Forms Complete' %}</th>
+        <th>{% trans 'Percentage Complete' %}</th>
+        <th>{% trans 'Actions' %}</th>
+    </tr>
+{% for rec in ballots %}
+    <tr>
+        <td>{{ rec.ballot }}</td>
+        <td>{{ rec.district }}</td>
+        <td>{{ rec.race_type }}</td>
+        <td>{{ rec.expected }}</td>
+        <td>{{ rec.complete }}</td>
+        <td>{{ rec.percentage }}</td>
+        <td>
+            {% if rec.active %}
+                <a href="{% url 'disable-race' tally_id rec.id %}" class="btn btn-default btn-small">{% trans 'Disable' %}</a>
+            {% else %}
+                <a href="{% url 'enable-race' tally_id rec.id %}" class="btn btn-default btn-small">{% trans 'Enable' %}</a>
+            {% endif %}
+        </td>
+    </tr>
+{% endfor %}
+</table>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if ballots.has_previous %}
+            <a href="?page={{ ballots.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ ballots.number }} of {{ ballots.paginator.num_pages }}.
+        </span>
+
+        {% if ballots.has_next %}
+            <a href="?page={{ ballots.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+
+{% endblock %}

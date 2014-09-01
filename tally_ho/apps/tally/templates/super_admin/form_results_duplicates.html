@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Results Duplicated List' %}</h1>
+
+<br/>
+<br/>
+
+<table class="table table-bordered table-striped">
+    <tr>
+        <th>{% trans 'Barcode' %}</th>
+        <th>{% trans 'Center Name' %}</th>
+        <th>{% trans 'Center ID' %}</th>
+        <th>{% trans 'Station' %}</th>
+        <th>{% trans 'State' %}</th>
+        <th>{% trans 'Modified' %}</th>
+        <th>{% trans 'Votes' %}</th>
+    </tr>
+{% for form in forms %}
+    <tr>
+        <td>{{ form.barcode }}</td>
+        <td>{{ form.center.name }}</td>
+        <td>{{ form.center.code }}</td>
+        <td>{{ form.station_number }}</td>
+        <td>{{ form.form_state_name }}</td>
+        <td>{{ form.modified_date }}</td>
+        <td>{{ form.results_duplicated }}</td>
+    </tr>
+{% endfor %}
+</table>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if forms.has_previous %}
+            <a href="?page={{ forms.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ forms.number }} of {{ forms.paginator.num_pages }}.
+        </span>
+
+        {% if forms.has_next %}
+            <a href="?page={{ forms.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

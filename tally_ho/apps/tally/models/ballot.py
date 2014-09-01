@@ -3,8 +3,10 @@ from django.utils.translation import ugettext as _
 from django_enumfield import enum
 import reversion
 
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.race_type import RaceType
+from tally_ho.libs.models.enums.disable_reason import DisableReason
 
 
 class Ballot(BaseModel):
@@ -21,6 +23,9 @@ class Ballot(BaseModel):
 
     number = models.PositiveSmallIntegerField()
     race_type = enum.EnumField(RaceType)
+    active = models.BooleanField(default=True)
+    disable_reason = enum.EnumField(DisableReason, null=True, default=None)
+    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='ballots')
 
     @property
     def race_type_name(self):
@@ -49,15 +54,16 @@ class Ballot(BaseModel):
 
     @property
     def form_ballot_numbers(self):
-        return Ballot.COMPONENT_TO_BALLOTS[self.number] if self.is_component\
-            else [self.number]
+        #return Ballot.COMPONENT_TO_BALLOTS[self.number] if self.is_component\
+        #    else [self.number]
+        return [self.number]
 
     @property
     def is_component(self):
         return self.number in self.COMPONENT_TO_BALLOTS.keys()
 
     def __unicode__(self):
-        return self.number
+        return u'%d' % self.number
 
 
 reversion.register(Ballot)

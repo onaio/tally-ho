@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Tally data files' %}</h1>
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form action="" method="post" enctype="multipart/form-data">
+    {% if form.non_field_errors %}
+    <div class="text-danger">
+        {{ form.non_field_errors }}<br/>
+    </div>
+    {% endif %}
+    <table class="table table-bordered">
+        <tr>
+            <td>{% trans form.subconst_file.label %}:</td>
+            <td>
+                {{ form.subconst_file.errors }}
+                {{ form.subconst_file }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans form.centers_file.label %}:</td>
+            <td>
+                {{ form.centers_file.errors }}
+                {{ form.centers_file }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans form.stations_file.label %}:</td>
+            <td>
+                {{ form.stations_file.errors }}
+                {{ form.stations_file }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans form.candidates_file.label %}:</td>
+            <td>
+                {{ form.candidates_file.errors }}
+                {{ form.candidates_file }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans form.ballots_order_file.label %}:</td>
+            <td>
+                {{ form.ballots_order_file.errors }}
+                {{ form.ballots_order_file }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans form.result_forms_file.label %}:</td>
+            <td>
+                {{ form.result_forms_file.errors }}
+                {{ form.result_forms_file }}
+            </td>
+        </tr>
+    </table>
+    {{ form.tally_id }}
+    <button class="btn btn-success btn-small" type="submit" name="submit">
+        {% trans "Save" %}
+    </button>
+    <a href="{% url 'tally-manager' %}" class="btn btn-danger btn-small">
+        {% trans "Cancel" %}
+    </a>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

@@ -11,7 +11,10 @@ def rounded_percent(numerator, denominator):
 
 
 class ProgressReport(object):
-    queryset = ResultForm.distinct_forms()
+
+    def __init__(self, tally_id):
+        self.tally_id = tally_id
+        self.filtered_queryset = self.queryset = ResultForm.distinct_forms(tally_id)
 
     def get_queryset(self):
         if self.queryset is None or not isinstance(self.queryset, QuerySet):
@@ -27,101 +30,159 @@ class ProgressReport(object):
 
         return self.filtered_queryset
 
-    def numerator(self):
-        return self.get_filtered_queryset().count()
+    def numerator(self, filtered_queryset=None):
+        if not filtered_queryset:
+            return self.get_filtered_queryset().count()
+
+        return filtered_queryset.count()
 
     number = property(numerator)
 
-    def denominator(self):
-        return self.queryset.count()
+    def denominator(self, queryset=None):
+        if not queryset:
+            return self.queryset.count()
+
+        return queryset.count()
 
     total = property(denominator)
 
-    def percentage_value(self):
-        if self.denominator() <= 0:
+    def percentage_value(self, queryset=None, filtered_queryset=None):
+        if self.denominator(queryset) <= 0:
             return _(u"No results")
 
-        return rounded_percent(self.numerator(), self.denominator())
+        return rounded_percent(self.numerator(filtered_queryset), self.denominator(queryset))
 
     percentage = property(percentage_value)
 
     def for_ballot(self, ballot):
-        obj = self.__class__()
 
-        obj.filtered_queryset = self.get_filtered_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers)
-        obj.queryset = self.get_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers)
+        filtered_queryset = self.get_filtered_queryset().filter(
+            ballot__number__in=ballot.form_ballot_numbers, tally__id=self.tally_id)
+        queryset = self.get_queryset().filter(
+            ballot__number__in=ballot.form_ballot_numbers, tally__id=self.tally_id)
 
-        return obj
+        denominator = queryset.count()
+        number = filtered_queryset.count()
+        percentage = rounded_percent(number, denominator) if denominator > 0 else _(u"No results")
+
+        return {'denominator': denominator,
+                'number': number,
+                'percentage': percentage}
 
     def for_center_office(self, office):
-        obj = self.__class__()
-        obj.filtered_queryset = \
-            self.get_filtered_queryset().filter(center__office=office)
-        obj.queryset = self.get_queryset().filter(center__office=office)
 
-        return obj
+        filtered_queryset = self.get_filtered_queryset().filter(center__office=office)
+        #queryset = self.get_queryset().filter(center__office=office)
+
+        return filtered_queryset.count()
 
 
 class ExpectedProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.distinct_forms()
     label = _(u"Expected")
+
+    def __init__(self, tally_id):
+        super(ExpectedProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.distinct_forms(self.tally_id)
 
 
 class IntakenProgressReport(ProgressReport):
-    pks = ResultForm.distinct_form_pks()
-
-    filtered_queryset = ResultForm.objects.filter(
-        id__in=pks).exclude(form_state=FormState.UNSUBMITTED)
     label = _(u"Intaken")
+
+    def __init__(self, tally_id):
+        super(IntakenProgressReport, self).__init__(tally_id)
+
+        pks = ResultForm.distinct_form_pks(self.tally_id)
+
+        self.filtered_queryset = ResultForm.objects.filter(
+            id__in=pks).exclude(form_state=FormState.UNSUBMITTED)
 
 
 class ArchivedProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.ARCHIVED)
     label = _(u"Archived")
+
+    def __init__(self, tally_id):
+        super(ArchivedProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.ARCHIVED, tally_id=self.tally_id)
 
 
 class IntakeProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.INTAKE)
     label = _(u"Intake")
+
+    def __init__(self, tally_id):
+        super(IntakeProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.INTAKE, tally_id=self.tally_id)
 
 
 class ClearanceProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.CLEARANCE)
     label = _(u"Clearance")
+
+    def __init__(self, tally_id):
+        super(ClearanceProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.CLEARANCE, tally_id=self.tally_id)
 
 
 class DataEntry1ProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_1)
     label = _(u"Data Entry 1")
+
+    def __init__(self, tally_id):
+        super(DataEntry1ProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_1, tally_id=self.tally_id)
 
 
 class DataEntry2ProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_2)
     label = _(u"Data Entry 2")
+
+    def __init__(self, tally_id):
+        super(DataEntry2ProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_2, tally_id=self.tally_id)
 
 
 class CorrectionProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.CORRECTION)
     label = _(u"Correction")
+
+    def __init__(self, tally_id):
+        super(CorrectionProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.CORRECTION, tally_id=self.tally_id)
 
 
 class QualityControlProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.QUALITY_CONTROL)
     label = _(u"Quality Control")
+
+    def __init__(self, tally_id):
+        super(QualityControlProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.QUALITY_CONTROL, tally_id=self.tally_id)
 
 
 class ArchivingProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.ARCHIVING)
     label = _(u"Archiving")
+
+    def __init__(self, tally_id):
+        super(ArchivingProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.ARCHIVING, tally_id=self.tally_id)
 
 
 class AuditProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.AUDIT)
     label = _(u"Audit")
+
+    def __init__(self, tally_id):
+        super(AuditProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.AUDIT, tally_id=self.tally_id)
 
 
 class NotRecievedProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.UNSUBMITTED)
     label = _(u"Not Received")
+
+    def __init__(self, tally_id):
+        super(NotRecievedProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.forms_in_state(FormState.UNSUBMITTED, tally_id=self.tally_id)
