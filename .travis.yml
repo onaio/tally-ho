@@ -1,6 +1,6 @@
 language: python
 python:
-  - '2.7'
+  - '3.6.5'
 install:
   - pip install -r requirements/common.pip
   - pip install flake8
@@ -10,9 +10,4 @@ before_script:
 script:
   - python manage.py test
 notifications:
-  email:
-    - tech@ona.io
-  hipchat:
-    rooms:
-      secure: cfWcsNSVAq9vs0pFrT5VKrd7Be6uE8eDPuaOBVT+sGjRKoF7UgaY+jwHK6yaO+Iv+/4aBEsMb5Sc0qp0vQ7vwP9X9THO4Y+giFolQByKO74rnMEp/cn5Hdyv8r5UsHXLYj4MtipLAuD9wkZBOWjsbYfhhDZ6zJ7ZFztvYn/Fxoc=
-  irc: 'irc.freenode.org#onatest'
+  slack: onaio:snkNXgprD498qQv4DgRREKJF
