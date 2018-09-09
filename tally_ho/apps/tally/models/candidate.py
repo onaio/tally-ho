@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext as _
-from django_enumfield import enum
+from enumfields import EnumField
 import reversion
 
 from tally_ho.apps.tally.models.ballot import Ballot
@@ -14,12 +14,13 @@ class Candidate(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    ballot = models.ForeignKey(Ballot, related_name='candidates')
+    ballot = models.ForeignKey(Ballot, related_name='candidates',
+                               on_delete=models.PROTECT)
 
     candidate_id = models.PositiveIntegerField()
     full_name = models.TextField()
     order = models.PositiveSmallIntegerField()
-    race_type = enum.EnumField(RaceType)
+    race_type = EnumField(RaceType)
 
     @property
     def race_type_name(self):

@@ -3,7 +3,7 @@ import six
 
 from django.db.models import Q
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseBadRequest
 from eztables.forms import DatatablesForm
 from operator import or_

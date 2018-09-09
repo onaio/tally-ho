@@ -203,7 +203,7 @@ def save_center_duplicates(center_to_votes, center_to_forms,
 
     :returns: The name of the temporary file that results have been output to.
     """
-    print '[INFO] Exporting vote duplicate records'
+    print('[INFO] Exporting vote duplicate records')
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
 

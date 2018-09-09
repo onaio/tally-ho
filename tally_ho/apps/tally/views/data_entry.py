@@ -1,7 +1,7 @@
 from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
 from django.forms.formsets import formset_factory
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView

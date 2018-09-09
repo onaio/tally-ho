@@ -1,8 +1,8 @@
-from django_enumfield import enum
+from enum import Enum
 from django.utils.translation import ugettext_lazy as _
 
 
-class ActionsPrior(enum.Enum):
+class ActionsPrior(Enum):
     REQUEST_COPY_FROM_FIELD = 0
     REQUEST_AUDIT_ACTION_FROM_FIELD = 1
     PENDING_ADVICE = 2

@@ -38,7 +38,6 @@ INSTALLED_APPS = (
     'guardian',
     'reversion',
     'tally_ho.apps.tally',
-    'south',
     'tracking',
 )
 
@@ -118,9 +117,6 @@ TEMPLATE_DIRS = (
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-NOSE_PLUGINS = [
-    'tally_ho.libs.nose_plugins.SilenceSouth'
-]
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',

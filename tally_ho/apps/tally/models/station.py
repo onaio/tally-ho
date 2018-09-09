@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import reversion
 from django.db import models
-from django_enumfield import enum
+from enumfields import EnumField
 from django.utils import timezone
 
 from tally_ho.apps.tally.models.center import Center
@@ -18,11 +18,15 @@ class Station(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    center = models.ForeignKey(Center, related_name='stations')
-    sub_constituency = models.ForeignKey(
-        SubConstituency, null=True, related_name='stations')
+    center = models.ForeignKey(Center,
+                               on_delete=models.PROTECT,
+                               related_name='stations')
+    sub_constituency = models.ForeignKey(SubConstituency,
+                                         null=True,
+                                         on_delete=models.PROTECT,
+                                         related_name='stations')
 
-    gender = enum.EnumField(Gender)
+    gender = EnumField(Gender)
     percent_archived = models.DecimalField(default=0, max_digits=5,
                                            decimal_places=2)
     percent_received = models.DecimalField(default=0, max_digits=5,
@@ -101,5 +105,6 @@ class Station(BaseModel):
 
         for station in out_of_date:
             station.cache_archived_and_received()
+
 
 reversion.register(Station)

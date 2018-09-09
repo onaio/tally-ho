@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
-from django_enumfield import enum
+from enumfields import EnumField
 import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -16,10 +16,12 @@ class Clearance(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    result_form = models.ForeignKey(ResultForm, related_name='clearances')
+    result_form = models.ForeignKey(ResultForm, related_name='clearances',
+                                    on_delete=models.PROTECT)
     supervisor = models.ForeignKey(User, null=True,
+                                   on_delete=models.PROTECT,
                                    related_name='clearance_user')
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
     reviewed_supervisor = models.BooleanField(default=False)
@@ -37,9 +39,9 @@ class Clearance(BaseModel):
     other = models.TextField(null=True, blank=True)
 
     # Recommendations
-    action_prior_to_recommendation = enum.EnumField(
+    action_prior_to_recommendation = EnumField(
         ActionsPrior, blank=True, null=True, default=4)
-    resolution_recommendation = enum.EnumField(
+    resolution_recommendation = EnumField(
         ClearanceResolution, null=True, blank=True, default=0)
 
     # Comments

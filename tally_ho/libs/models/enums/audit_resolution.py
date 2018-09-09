@@ -1,8 +1,8 @@
-from django_enumfield import enum
+from enum import Enum
 from django.utils.translation import ugettext_lazy as _
 
 
-class AuditResolution(enum.Enum):
+class AuditResolution(Enum):
     EMPTY = 0
     NO_PROBLEM_TO_DE_1 = 1
     CLARIFIED_FIGURES_TO_DE_1 = 2

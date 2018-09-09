@@ -1,8 +1,8 @@
-from django_enumfield import enum
+from enum import Enum
 from django.utils.translation import ugettext_lazy as _
 
 
-class ClearanceResolution(enum.Enum):
+class ClearanceResolution(Enum):
     EMPTY = 0
     PENDING_FIELD_INPUT = 1
     PASS_TO_ADMINISTRATOR = 2

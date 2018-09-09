@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
-from django_enumfield import enum
+from enumfields import EnumField
 import reversion
 
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
@@ -18,9 +18,10 @@ class Audit(BaseModel):
         app_label = 'tally'
 
     quarantine_checks = models.ManyToManyField(QuarantineCheck)
-    result_form = models.ForeignKey(ResultForm)
-    supervisor = models.ForeignKey(User, related_name='audit_user', null=True)
-    user = models.ForeignKey(User)
+    result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
+    supervisor = models.ForeignKey(User, related_name='audit_user', null=True,
+                                   on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
     for_superadmin = models.BooleanField(default=False)
@@ -35,9 +36,9 @@ class Audit(BaseModel):
     other = models.TextField(null=True, blank=True)
 
     # Recommendations
-    action_prior_to_recommendation = enum.EnumField(ActionsPrior, blank=True,
-                                                    null=True, default=4)
-    resolution_recommendation = enum.EnumField(
+    action_prior_to_recommendation = EnumField(ActionsPrior, blank=True,
+                                               null=True, default=4)
+    resolution_recommendation = EnumField(
         AuditResolution, null=True, blank=True, default=0)
 
     # Comments
@@ -67,5 +68,6 @@ class Audit(BaseModel):
 
     def resolution_recommendation_name(self):
         return dict(AUDIT_CHOICES).get(self.resolution_recommendation)
+
 
 reversion.register(Audit)

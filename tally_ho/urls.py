@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
@@ -14,8 +14,7 @@ from tally_ho.apps.tally.views.reports import races
 
 admin.autodiscover()
 
-accounts_urls = patterns(
-    '',
+accounts_urls = [
     url(r'^login/$',
         profile.login,
         {
@@ -24,24 +23,26 @@ accounts_urls = patterns(
         },
         name='login'),
     url(r'^password_change/$',
-        'django.contrib.auth.views.password_change',
+        auth_views.PasswordChangeView.as_view(),
         {
             'password_change_form': PasswordChangeForm,
             'post_change_redirect': '/'},
         name='password_change'),
     url(r'^password_change/done/$',
-        'django.contrib.auth.views.password_change_done',
+        auth_views.PasswordChangeDoneView.as_view(),
         name='password_change_done'),
-    url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
-)
+    url(r'^logout/$',
+        auth_views.LogoutView.as_view(),
+        {'next_page': '/'},
+        name='logout'),
+]
 
 handler403 = 'tally_ho.apps.tally.views.home.permission_denied'
 handler404 = 'tally_ho.apps.tally.views.home.not_found'
 handler400 = 'tally_ho.apps.tally.views.home.bad_request'
 handler500 = 'tally_ho.apps.tally.views.home.server_error'
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', home.HomeView.as_view(), name='home'),
     url(r'^locale$', home.LocaleView.as_view(), name='home-locale'),
 
@@ -212,7 +213,6 @@ urlpatterns = patterns(
         home.suspicious_error, name='suspicious-error'),
 
     url(r'^accounts/', include(accounts_urls)),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^tracking/', include('tracking.urls')),
-    url(r'^djangojs/', include('djangojs.urls')),
-)
+]

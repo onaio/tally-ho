@@ -11,10 +11,13 @@ class SubConstituency(BaseModel):
         app_label = 'tally'
 
     ballot_component = models.ForeignKey(Ballot, null=True,
+                                         on_delete=models.PROTECT,
                                          related_name='sc_component')
     ballot_general = models.ForeignKey(Ballot, null=True,
+                                       on_delete=models.PROTECT,
                                        related_name='sc_general')
     ballot_women = models.ForeignKey(Ballot, null=True,
+                                     on_delete=models.PROTECT,
                                      related_name='sc_women')
     code = models.PositiveSmallIntegerField()  # aka SubCon number
     field_office = models.CharField(max_length=256)

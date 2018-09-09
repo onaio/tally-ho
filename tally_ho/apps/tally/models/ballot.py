@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext as _
-from django_enumfield import enum
+from enumfields import EnumField
 import reversion
 
 from tally_ho.libs.models.base_model import BaseModel
@@ -20,7 +20,7 @@ class Ballot(BaseModel):
     }
 
     number = models.PositiveSmallIntegerField()
-    race_type = enum.EnumField(RaceType)
+    race_type = EnumField(RaceType)
 
     @property
     def race_type_name(self):

@@ -1,6 +1,7 @@
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count
+from django.db.utils import ProgrammingError
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
@@ -27,18 +28,22 @@ def duplicates():
 
     :returns: A list of result forms in the system that are duplicates.
     """
-    dupes = ResultForm.objects.values(
-        'center', 'ballot', 'station_number').annotate(
-        Count('id')).order_by().filter(id__count__gt=1).filter(
-        center__isnull=False, ballot__isnull=False,
-        station_number__isnull=False).exclude(form_state=FormState.UNSUBMITTED)
+    try:
+        dupes = ResultForm.objects.values(
+            'center', 'ballot', 'station_number').annotate(
+            Count('id')).order_by().filter(id__count__gt=1).filter(
+            center__isnull=False, ballot__isnull=False,
+            station_number__isnull=False).exclude(
+                form_state=FormState.UNSUBMITTED)
 
-    pks = flatten([map(lambda x: x['id'], ResultForm.objects.filter(
-        center=item['center'], ballot=item['ballot'],
-        station_number=item['station_number']).values('id'))
-        for item in dupes])
+        pks = flatten([map(lambda x: x['id'], ResultForm.objects.filter(
+            center=item['center'], ballot=item['ballot'],
+            station_number=item['station_number']).values('id'))
+            for item in dupes])
 
-    return ResultForm.objects.filter(pk__in=pks)
+        return ResultForm.objects.filter(pk__in=pks)
+    except ProgrammingError:
+        return []
 
 
 class DashboardView(LoginRequiredMixin,

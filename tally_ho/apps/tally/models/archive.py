@@ -10,8 +10,8 @@ class Archive(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    result_form = models.ForeignKey(ResultForm)
-    user = models.ForeignKey(User)
+    result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
 
 
 reversion.register(Archive)
