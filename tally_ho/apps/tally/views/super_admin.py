@@ -5,7 +5,6 @@ from django.db.utils import ProgrammingError
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
-from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
@@ -92,8 +91,7 @@ class FormDuplicatesView(LoginRequiredMixin,
 
 class FormProgressDataView(LoginRequiredMixin,
                            mixins.GroupRequiredMixin,
-                           mixins.DatatablesDisplayFieldsMixin,
-                           DatatablesView):
+                           TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
     queryset = ResultForm.objects.exclude(form_state=FormState.UNSUBMITTED)

@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
-{% load js %}
-{% load eztables %}
 
 {% block content %}
 
@@ -24,20 +22,4 @@
     </thead>
     <tbody></tbody>
 </table>
-{% endblock %}
-
-{% block styles %}
-    {{ block.super }}
-      <link href="{{STATIC_URL}}css/jquery.dataTables.css" rel="stylesheet" type="text/css" />
-
-{% endblock %}
-
-{% block javascript %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
-{% django_js %}
-{% datatables_js %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/data_table.js"></script>
-<script type="text/javascript">
-    loadTableData('{{ remote_url }}');
-</script>
 {% endblock %}

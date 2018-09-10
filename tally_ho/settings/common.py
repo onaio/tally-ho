@@ -32,8 +32,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django_nose',
-    'djangojs',
-    'eztables',
     'guardian',
     'reversion',
     'tally_ho.apps.tally',

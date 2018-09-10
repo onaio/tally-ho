@@ -8,4 +8,3 @@ django-reversion==3.0.0
 psycopg2-binary==2.7.5
 six==1.11.0
 mock==2.0.0
-django-eztables==0.3.2

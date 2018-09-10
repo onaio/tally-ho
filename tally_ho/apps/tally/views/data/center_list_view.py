@@ -1,5 +1,4 @@
 from django.views.generic import TemplateView
-from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.station import Station
@@ -10,8 +9,7 @@ from tally_ho.libs.views.pagination import paging
 
 class CenterListDataView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
-                         mixins.DatatablesDisplayFieldsMixin,
-                         DatatablesView):
+                         TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station
     fields = (
