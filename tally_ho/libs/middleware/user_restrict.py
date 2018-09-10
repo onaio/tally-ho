@@ -11,10 +11,10 @@ class UserRestrictMiddleware(object):
 
         try:
             last_login = request.user.last_login
-        except:
+        except Exception:
             last_login = 0
 
-        if unicode(last_login) == unicode(datetime.now())[:19]:
+        if str(last_login) == str(datetime.now())[:19]:
             previous_visitors = Visitor.objects.filter(
                 user=request.user).exclude(ip_address=ip_address)
 

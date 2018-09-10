@@ -26,7 +26,7 @@ def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL,
     candidate_name = 'candidate name'
     candidate = create_candidate(ballot, candidate_name, race_type)
 
-    for i in xrange(num):
+    for i in range(num):
         Result.objects.create(
             candidate=candidate,
             result_form=result_form,

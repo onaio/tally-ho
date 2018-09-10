@@ -22,7 +22,7 @@ class Command(BaseCommand):
         user = User.objects.all()[0]
         for i, result_form in enumerate(ResultForm.objects.all()):
             if i % 100 == 0:
-                print 'Result Form %d' % i
+                print('Result Form %d' % i)
 
             if result_form.form_state == FormState.UNSUBMITTED and\
                     result_form.ballot:

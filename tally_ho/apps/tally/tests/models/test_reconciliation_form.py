@@ -17,8 +17,8 @@ class TestReconciliationForm(TestBase):
     def test_number_ballots_used_results(self):
         expected_votes = 0
 
-        for num_results in xrange(1, 4):
-            for votes in xrange(1, 4):
+        for num_results in range(1, 4):
+            for votes in range(1, 4):
                 result_form = create_result_form()
                 create_candidates(result_form, self.user, votes=votes,
                                   num_results=num_results)
