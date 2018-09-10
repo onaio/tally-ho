@@ -227,7 +227,7 @@ class ResultForm(BaseModel):
 
     @property
     def form_state_name(self):
-        return self.form_state.name
+        return self.form_state.label
 
     @property
     def gender_name(self):

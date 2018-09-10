@@ -1,8 +1,8 @@
 from django import forms
 
 from tally_ho.apps.tally.models.clearance import Clearance
-from tally_ho.libs.models.enums import actions_prior
-from tally_ho.libs.models.enums import clearance_resolution
+from tally_ho.libs.models.enums.actions_prior import ActionsPrior
+from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
 
 
 class ClearanceForm(forms.ModelForm):
@@ -25,7 +25,7 @@ class ClearanceForm(forms.ModelForm):
 
     other = forms.CharField(required=False)
     action_prior_to_recommendation = forms.TypedChoiceField(
-        required=False, choices=actions_prior.ACTION_CHOICES, coerce=int)
+        required=False, choices=ActionsPrior.choices(), coerce=int)
     resolution_recommendation = forms.TypedChoiceField(
-        required=False, choices=clearance_resolution.CLEARANCE_CHOICES,
+        required=False, choices=ClearanceResolution.choices(),
         coerce=int)

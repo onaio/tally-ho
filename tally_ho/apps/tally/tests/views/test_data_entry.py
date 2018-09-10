@@ -201,7 +201,8 @@ class TestDataEntry(TestBase):
         request.session = result_form_data
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Data Entry 2')
+        response.render()
+        self.assertIn(b'Data Entry 2', response.content)
 
     def test_enter_results_has_candidates(self):
         code = '12345'

@@ -1,8 +1,8 @@
 from django import forms
 
 from tally_ho.apps.tally.models.audit import Audit
-from tally_ho.libs.models.enums import actions_prior
-from tally_ho.libs.models.enums import audit_resolution
+from tally_ho.libs.models.enums.actions_prior import ActionsPrior
+from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 
 
 class AuditForm(forms.ModelForm):
@@ -23,8 +23,8 @@ class AuditForm(forms.ModelForm):
 
     other = forms.CharField(required=False)
     action_prior_to_recommendation = forms.TypedChoiceField(
-        required=False, choices=actions_prior.ACTION_CHOICES,
+        required=False, choices=ActionsPrior.choices(),
         coerce=int)
     resolution_recommendation = forms.TypedChoiceField(
-        required=False, choices=audit_resolution.AUDIT_CHOICES,
+        required=False, choices=AuditResolution.choices(),
         coerce=int)

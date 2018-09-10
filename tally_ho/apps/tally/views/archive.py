@@ -102,6 +102,7 @@ class ArchivePrintView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
+    form_class = BarcodeForm
     group_required = [groups.ARCHIVE_CLERK, groups.ARCHIVE_SUPERVISOR]
     template_name = "archive/print_cover.html"
     success_url = 'archive-success'

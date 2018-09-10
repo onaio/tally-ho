@@ -4,6 +4,7 @@ from django.test import RequestFactory
 
 from tally_ho.apps.tally.views import audit as views
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import create_audit,\
@@ -29,7 +30,7 @@ class TestAudit(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
         response = view(request)
         response.render()
-        self.assertIn('/accounts/logout/', response.content)
+        self.assertIn(b'/accounts/logout/', response.content)
         return response
 
     def test_dashboard_get(self):
@@ -126,11 +127,13 @@ class TestAudit(TestBase):
         request.session = data
         response = view(request)
 
+        self.assertEqual(response.status_code, 302)
+
         audit = result_form.audit
         self.assertEqual(audit.user, self.user)
         self.assertEqual(audit.reviewed_team, False)
-        self.assertEqual(audit.action_prior_to_recommendation, 1)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(audit.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
 
     def test_review_post_audit_exists(self):
         self._create_and_login_user(username='alice')
@@ -148,11 +151,13 @@ class TestAudit(TestBase):
         request.session = data
         response = view(request)
 
+        self.assertEqual(response.status_code, 302)
+
         audit = result_form.audit
         self.assertEqual(audit.user, self.user)
         self.assertEqual(audit.reviewed_team, False)
-        self.assertEqual(audit.action_prior_to_recommendation, 1)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(audit.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
 
     def test_review_post_forward(self):
         result_form = create_result_form(form_state=FormState.AUDIT)
@@ -169,11 +174,13 @@ class TestAudit(TestBase):
         request.session = data
         response = view(request)
 
+        self.assertEqual(response.status_code, 302)
+
         audit = result_form.audit
         self.assertEqual(audit.user, self.user)
         self.assertEqual(audit.reviewed_team, True)
-        self.assertEqual(audit.action_prior_to_recommendation, 1)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(audit.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
 
     def test_review_post_supervisor(self):
         # save audit as clerk
@@ -203,10 +210,12 @@ class TestAudit(TestBase):
         request.session = data
         response = view(request)
 
+        self.assertEqual(response.status_code, 302)
+
         audit = result_form.audit
         self.assertEqual(audit.supervisor, self.user)
-        self.assertEqual(audit.action_prior_to_recommendation, 1)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(audit.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
 
     def test_review_post_supervisor_return(self):
         # save audit as clerk
@@ -237,11 +246,13 @@ class TestAudit(TestBase):
         request.session = data
         response = view(request)
 
+        self.assertEqual(response.status_code, 302)
+
         audit = result_form.audit
         self.assertEqual(audit.supervisor, self.user)
-        self.assertEqual(audit.action_prior_to_recommendation, 1)
+        self.assertEqual(audit.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
         self.assertEqual(audit.reviewed_team, False)
-        self.assertEqual(response.status_code, 302)
 
     def test_review_post_supervisor_implement(self):
         # save audit as clerk
@@ -273,13 +284,15 @@ class TestAudit(TestBase):
         request.session = data
         response = view(request)
 
+        self.assertEqual(response.status_code, 302)
+
         audit = result_form.audit
         self.assertEqual(audit.supervisor, self.user)
         self.assertEqual(audit.reviewed_supervisor, True)
         self.assertEqual(audit.reviewed_team, True)
         self.assertEqual(audit.for_superadmin, True)
-        self.assertEqual(audit.action_prior_to_recommendation, 1)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(audit.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
 
     def test_review_post_supervisor_implement_de1(self):
         # save audit as clerk
@@ -314,6 +327,8 @@ class TestAudit(TestBase):
         request.session = data
         response = view(request)
 
+        self.assertEqual(response.status_code, 302)
+
         audit = Audit.objects.get(result_form=result_form)
         self.assertEqual(audit.supervisor, self.user)
         self.assertTrue(audit.reviewed_supervisor)
@@ -330,8 +345,8 @@ class TestAudit(TestBase):
         for result in audit.result_form.reconciliationform_set.all():
             self.assertFalse(result.active)
 
-        self.assertEqual(audit.action_prior_to_recommendation, 1)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(audit.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
 
     def test_create_audit_get(self):
         self._create_and_login_user()

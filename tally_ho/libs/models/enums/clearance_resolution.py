@@ -1,5 +1,6 @@
-from enum import Enum
 from django.utils.translation import ugettext_lazy as _
+
+from tally_ho.libs.utils.enum import Enum
 
 
 class ClearanceResolution(Enum):
@@ -8,10 +9,10 @@ class ClearanceResolution(Enum):
     PASS_TO_ADMINISTRATOR = 2
     RESET_TO_PREINTAKE = 3
 
-
-CLEARANCE_CHOICES = [
-    (ClearanceResolution.EMPTY, '----'),
-    (ClearanceResolution.PENDING_FIELD_INPUT, _(u"Pending Field Input")),
-    (ClearanceResolution.PASS_TO_ADMINISTRATOR, _(u"Pass To Administrator")),
-    (ClearanceResolution.RESET_TO_PREINTAKE, _(u"Reset To Preintake"))
-]
+    CHOICES = [
+        (EMPTY, '----'),
+        (PENDING_FIELD_INPUT, _(u"Pending Field Input")),
+        (PASS_TO_ADMINISTRATOR,
+            _(u"Pass To Administrator")),
+        (RESET_TO_PREINTAKE, _(u"Reset To Preintake"))
+    ]

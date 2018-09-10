@@ -5,6 +5,7 @@ from django.test import RequestFactory
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.views import clearance as views
+from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
@@ -31,7 +32,7 @@ class TestClearance(TestBase):
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
         response = view(request)
         response.render()
-        self.assertIn('/accounts/logout/', response.content)
+        self.assertIn(b'/accounts/logout/', response.content)
         return response
 
     def test_dashboard_get(self):
@@ -141,7 +142,8 @@ class TestClearance(TestBase):
         self.assertEqual(clearance.user, self.user)
         self.assertNotEqual(clearance.date_team_modified, None)
         self.assertEqual(clearance.reviewed_team, False)
-        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(clearance.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
         self.assertEqual(response.status_code, 302)
 
     def test_review_post_forward(self):
@@ -162,7 +164,8 @@ class TestClearance(TestBase):
         clearance = result_form.clearance
         self.assertEqual(clearance.user, self.user)
         self.assertEqual(clearance.reviewed_team, True)
-        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(clearance.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
         self.assertEqual(response.status_code, 302)
 
     def test_review_post_supervisor(self):
@@ -197,7 +200,8 @@ class TestClearance(TestBase):
         self.assertEqual(clearance.supervisor, self.user)
         self.assertNotEqual(clearance.date_supervisor_modified, None)
         self.assertNotEqual(clearance.date_team_modified, None)
-        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(clearance.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
         self.assertEqual(response.status_code, 302)
 
     def test_review_post_supervisor_return(self):
@@ -231,7 +235,8 @@ class TestClearance(TestBase):
 
         clearance = result_form.clearance
         self.assertEqual(clearance.supervisor, self.user)
-        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(clearance.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
         self.assertEqual(clearance.reviewed_team, False)
         self.assertEqual(response.status_code, 302)
 
@@ -278,7 +283,8 @@ class TestClearance(TestBase):
         self.assertFalse(clearance.active)
         self.assertTrue(clearance.reviewed_supervisor)
         self.assertTrue(clearance.reviewed_team)
-        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(clearance.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
@@ -322,6 +328,8 @@ class TestClearance(TestBase):
         request.session = data
         response = view(request)
 
+        self.assertEqual(response.status_code, 302)
+
         clearance = result_form.clearances.all()[0]
         result_form.reload()
 
@@ -329,9 +337,9 @@ class TestClearance(TestBase):
         self.assertFalse(clearance.active)
         self.assertTrue(clearance.reviewed_supervisor)
         self.assertTrue(clearance.reviewed_team)
-        self.assertEqual(clearance.action_prior_to_recommendation, 1)
+        self.assertEqual(clearance.action_prior_to_recommendation,
+                         ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
 
-        self.assertEqual(response.status_code, 302)
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
         self.assertIsNone(result_form.center)
         self.assertIsNone(result_form.station_number)

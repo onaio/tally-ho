@@ -33,14 +33,14 @@ class TestArchive(TestBase):
         request.session = session
         response = view(request)
         response.render()
-        self.assertIn('/accounts/logout/', response.content)
+        self.assertIn(b'/accounts/logout/', response.content)
         return response
 
     def test_archive_get(self):
         response = self._common_view_tests(views.ArchiveView.as_view())
 
         self.assertContains(response, 'Archiving')
-        self.assertIn('<form id="result_form"', response.content)
+        self.assertIn(b'<form id="result_form"', response.content)
 
     def test_archive_post(self):
         self._create_and_login_user()

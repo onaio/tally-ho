@@ -8,8 +8,7 @@ from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
-from tally_ho.libs.models.enums.audit_resolution import AuditResolution,\
-    AUDIT_CHOICES
+from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.utils.collections import keys_if_value
 
 
@@ -64,10 +63,10 @@ class Audit(BaseModel):
         return keys_if_value(problem_fields)
 
     def action_prior_name(self):
-        return _(ActionsPrior.label(self.action_prior_to_recommendation))
+        return _(self.action_prior_to_recommendation.label)
 
     def resolution_recommendation_name(self):
-        return dict(AUDIT_CHOICES).get(self.resolution_recommendation)
+        return _(self.resolution_recommendation.label)
 
 
 reversion.register(Audit)

@@ -66,7 +66,7 @@ class Clearance(BaseModel):
         return self.action_prior_to_recommendation.name
 
     def resolution_recommendation_name(self):
-        return ClearanceResolution.label(self.resolution_recommendation)
+        return self.resolution_recommendation.label
 
 
 reversion.register(Clearance)

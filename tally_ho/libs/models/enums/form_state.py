@@ -1,4 +1,4 @@
-from enum import Enum
+from tally_ho.libs.utils.enum import Enum
 
 
 class FormState(Enum):

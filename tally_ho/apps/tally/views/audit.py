@@ -115,6 +115,7 @@ class DashboardView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     mixins.ReverseSuccessURLMixin,
                     FormView):
+    form_class = AuditForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
     template_name = "audit/dashboard.html"
     success_url = 'audit-review'
