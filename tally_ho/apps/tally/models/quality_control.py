@@ -11,8 +11,8 @@ class QualityControl(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    result_form = models.ForeignKey(ResultForm)
-    user = models.ForeignKey(User)
+    result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
     passed_general = models.NullBooleanField()

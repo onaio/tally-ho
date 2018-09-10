@@ -14,7 +14,7 @@ class TestOffices(TestBase):
         self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
 
     def test_overview_report_get(self):
-        for i in xrange(1, 11):
+        for i in range(1, 11):
             center = create_center()
             ballot = create_ballot()
             create_result_form(

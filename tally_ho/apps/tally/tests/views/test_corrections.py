@@ -1,5 +1,5 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
@@ -26,7 +26,7 @@ def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL,
     candidate_name = 'candidate name'
     candidate = create_candidate(ballot, candidate_name, race_type)
 
-    for i in xrange(num):
+    for i in range(num):
         Result.objects.create(
             candidate=candidate,
             result_form=result_form,
@@ -60,13 +60,14 @@ class TestCorrections(TestBase):
         request.session = session
         response = view(request)
         response.render()
-        self.assertIn('/accounts/logout/', response.content)
+        self.assertIn(b'/accounts/logout/', response.content)
         return response
 
     def test_corrections_page(self):
         response = self._common_view_tests(views.CorrectionView.as_view())
-        self.assertContains(response, 'Correction')
-        self.assertIn('<form id="result_form"', response.content)
+        response.render()
+        self.assertIn(b'Correction', response.content)
+        self.assertIn(b'<form id="result_form"', response.content)
 
     def test_corrections_barcode_length(self):
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
@@ -237,9 +238,10 @@ class TestCorrections(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.CORRECTION)
-        self.assertContains(
-            response,
-            u"Please select correct results for all mis-matched votes.")
+        response.render()
+        self.assertIn(
+            b"Please select correct results for all mis-matched votes.",
+            response.content)
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 4)
 
@@ -450,7 +452,8 @@ class TestCorrections(TestBase):
         request.user = self.user
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Reconciliation')
+        response.render()
+        self.assertIn(b'Reconciliation', response.content)
 
     def test_recon_get_double_entry_recon_form(self):
         view = views.CorrectionRequiredView.as_view()
@@ -470,7 +473,8 @@ class TestCorrections(TestBase):
         request.user = self.user
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Reconciliation')
+        response.render()
+        self.assertIn(b'Reconciliation', response.content)
 
     def test_recon_post(self):
         view = views.CorrectionRequiredView.as_view()

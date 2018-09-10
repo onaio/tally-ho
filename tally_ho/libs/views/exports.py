@@ -21,7 +21,7 @@ SPECIAL_BALLOTS = None
 
 
 def path_with_timestamp(path):
-    if isinstance(path, basestring):
+    if isinstance(path, str):
         tmp = path.split('.')
         time_str = timezone.now().strftime('%Y%m%d_%H-%M-%S')
         tmp.insert(len(tmp) - 1, time_str)
@@ -50,7 +50,7 @@ def write_utf8(w, output):
     :param w: A stream to write a row to.
     :param output: A dict to encode as utf8.
     """
-    w.writerow({k: v.encode('utf8') if isinstance(v, basestring) else v
+    w.writerow({k: v.encode('utf8') if isinstance(v, str) else v
                 for k, v in output.items()})
 
 
@@ -203,7 +203,7 @@ def save_center_duplicates(center_to_votes, center_to_forms,
 
     :returns: The name of the temporary file that results have been output to.
     """
-    print '[INFO] Exporting vote duplicate records'
+    print('[INFO] Exporting vote duplicate records')
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
 
@@ -218,8 +218,8 @@ def save_center_duplicates(center_to_votes, center_to_forms,
             num_distinct_vote_lists = len(set(vote_lists))
 
             if votes_cast and num_distinct_vote_lists < num_vote_lists:
-                print ('[WARNING] Matching votes for center %s, %s vote lists'
-                       % (code, num_vote_lists))
+                print('[WARNING] Matching votes for center %s, %s vote lists'
+                      % (code, num_vote_lists))
 
                 for i, form in enumerate(center_to_forms[code]):
                     vote_list = vote_lists[i]
@@ -264,7 +264,7 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
         if ballot.candidates.count() > max_candidates:
             max_candidates = ballot.candidates.count()
 
-    for i in xrange(1, max_candidates + 1):
+    for i in range(1, max_candidates + 1):
         header.append('candidate %s name' % i)
         header.append('candidate %s votes' % i)
 
@@ -309,11 +309,11 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
 
             for num_results in num_results_ary:
                 if num_stations_completed != num_results:
-                    print ('[WARNING] Number stations complete (%s) not '
-                           'equal to num_results (%s) for ballot %s (general'
-                           ' ballot %s)' % (
-                               num_stations_completed, num_results,
-                               ballot.number, general_ballot.number))
+                    print('[WARNING] Number stations complete (%s) not '
+                          'equal to num_results (%s) for ballot %s (general'
+                          ' ballot %s)' % (
+                              num_stations_completed, num_results,
+                              ballot.number, general_ballot.number))
                     output['stations completed'] = num_results
 
             candidates_to_votes = OrderedDict((sorted(

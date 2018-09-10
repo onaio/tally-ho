@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django_enumfield import enum
+from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -13,12 +13,18 @@ class Result(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    candidate = models.ForeignKey(Candidate, related_name='results')
-    result_form = models.ForeignKey(ResultForm, related_name='results')
-    user = models.ForeignKey(User, null=True)
+    candidate = models.ForeignKey(Candidate,
+                                  related_name='results',
+                                  on_delete=models.PROTECT)
+    result_form = models.ForeignKey(ResultForm,
+                                    related_name='results',
+                                    on_delete=models.PROTECT)
+    user = models.ForeignKey(User,
+                             null=True,
+                             on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
-    entry_version = enum.EnumField(EntryVersion)
+    entry_version = EnumIntegerField(EntryVersion)
     votes = models.PositiveIntegerField()
 
 

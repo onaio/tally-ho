@@ -1,6 +1,6 @@
-from django_enumfield import enum
+from enum import Enum
 
 
-class CenterType(enum.Enum):
+class CenterType(Enum):
     GENERAL = 0
     SPECIAL = 1

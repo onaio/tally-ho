@@ -1,5 +1,5 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
@@ -29,7 +29,7 @@ class TestIntake(TestBase):
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         response = view(request)
         response.render()
-        self.assertIn('/accounts/logout/', response.content)
+        self.assertIn(b'/accounts/logout/', response.content)
         return response
 
     def test_center_detail_view(self):

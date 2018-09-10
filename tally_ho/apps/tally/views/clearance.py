@@ -89,6 +89,7 @@ class DashboardView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     mixins.ReverseSuccessURLMixin,
                     FormView):
+    form_class = ClearanceForm
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     template_name = "clearance/dashboard.html"
     success_url = 'clearance-review'

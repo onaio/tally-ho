@@ -63,6 +63,6 @@ def get_state_names(states):
     :returns: A string of state names join with 'or'
     """
     states = listify(states)
-    state_names = [str(FormState.label(s)) for s in states]
+    state_names = [s.name for s in states]
 
     return " or ".join(state_names)

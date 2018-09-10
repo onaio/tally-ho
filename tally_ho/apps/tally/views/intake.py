@@ -144,6 +144,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
+    form_class = CenterDetailsForm
     template_name = "check_center_details.html"
     success_url = "intake-check-center-details"
 

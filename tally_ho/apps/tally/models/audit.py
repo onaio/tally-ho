@@ -1,15 +1,14 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
-from django_enumfield import enum
+from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
-from tally_ho.libs.models.enums.audit_resolution import AuditResolution,\
-    AUDIT_CHOICES
+from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.utils.collections import keys_if_value
 
 
@@ -18,9 +17,10 @@ class Audit(BaseModel):
         app_label = 'tally'
 
     quarantine_checks = models.ManyToManyField(QuarantineCheck)
-    result_form = models.ForeignKey(ResultForm)
-    supervisor = models.ForeignKey(User, related_name='audit_user', null=True)
-    user = models.ForeignKey(User)
+    result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
+    supervisor = models.ForeignKey(User, related_name='audit_user', null=True,
+                                   on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
     for_superadmin = models.BooleanField(default=False)
@@ -35,9 +35,9 @@ class Audit(BaseModel):
     other = models.TextField(null=True, blank=True)
 
     # Recommendations
-    action_prior_to_recommendation = enum.EnumField(ActionsPrior, blank=True,
-                                                    null=True, default=4)
-    resolution_recommendation = enum.EnumField(
+    action_prior_to_recommendation = EnumIntegerField(ActionsPrior, blank=True,
+                                                      null=True, default=4)
+    resolution_recommendation = EnumIntegerField(
         AuditResolution, null=True, blank=True, default=0)
 
     # Comments
@@ -63,9 +63,10 @@ class Audit(BaseModel):
         return keys_if_value(problem_fields)
 
     def action_prior_name(self):
-        return _(ActionsPrior.label(self.action_prior_to_recommendation))
+        return _(self.action_prior_to_recommendation.label)
 
     def resolution_recommendation_name(self):
-        return dict(AUDIT_CHOICES).get(self.resolution_recommendation)
+        return _(self.resolution_recommendation.label)
+
 
 reversion.register(Audit)

@@ -15,7 +15,7 @@ class TestHomeView(TestBase):
         self._create_and_login_user()
         response = self.view(self.request)
         self.assertContains(response, 'Dashboard')
-        self.assertIn('/accounts/logout/', response.content)
+        self.assertIn(b'/accounts/logout/', response.content)
 
     def test_intake_clerk_is_redirected(self):
         self._create_and_login_user()

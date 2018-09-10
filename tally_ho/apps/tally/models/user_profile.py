@@ -18,4 +18,5 @@ class UserProfile(User):
 
         super(UserProfile, self).save(*args, **kwargs)
 
+
 reversion.register(UserProfile)

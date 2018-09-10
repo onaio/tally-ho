@@ -1,9 +1,9 @@
 from datetime import datetime
+from importlib import import_module
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
-from django.utils.importlib import import_module
-
 from mock import patch
 
 from tally_ho.libs.middleware.idle_timeout import IdleTimeout

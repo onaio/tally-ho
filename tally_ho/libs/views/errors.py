@@ -1,4 +1,4 @@
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 
 
 def add_generic_error(form, message):

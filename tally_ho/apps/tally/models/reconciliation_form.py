@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django_enumfield import enum
+from enumfields import EnumIntegerField
 from django.utils.translation import ugettext_lazy as _
 import reversion
 
@@ -13,11 +13,11 @@ class ReconciliationForm(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    result_form = models.ForeignKey(ResultForm)
-    user = models.ForeignKey(User)
+    result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
-    entry_version = enum.EnumField(EntryVersion)
+    entry_version = EnumIntegerField(EntryVersion)
     ballot_number_from = models.CharField(_('from:'), max_length=256)
     ballot_number_to = models.CharField(_('to:'), max_length=256)
     is_stamped = models.BooleanField(_('Is the form stamped?'))

@@ -1,7 +1,7 @@
-from django_enumfield import enum
+from enum import Enum
 
 
-class RaceType(enum.Enum):
+class RaceType(Enum):
     GENERAL = 0
     WOMEN = 1
     COMPONENT_AMAZIGH = 2

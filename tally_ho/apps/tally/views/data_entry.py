@@ -1,7 +1,7 @@
 from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
 from django.forms.formsets import formset_factory
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
@@ -13,6 +13,7 @@ from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.forms.candidate_form import CandidateForm
 from tally_ho.apps.tally.forms.candidate_formset import\
     BaseCandidateFormSet
+from tally_ho.apps.tally.forms.new_result_form import NewResultForm
 from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.result import Result
@@ -244,6 +245,7 @@ class EnterResultsView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.ReverseSuccessURLMixin,
                        FormView):
+    form_class = NewResultForm
     group_required = [groups.DATA_ENTRY_1_CLERK, groups.DATA_ENTRY_2_CLERK]
     template_name = "data_entry/enter_results_view.html"
     success_url = "data-entry-success"

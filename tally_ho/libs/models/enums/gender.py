@@ -1,7 +1,7 @@
-from django_enumfield import enum
+from enum import Enum
 
 
-class Gender(enum.Enum):
+class Gender(Enum):
     MALE = 0
     FEMALE = 1
     UNISEX = 3

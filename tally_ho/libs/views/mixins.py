@@ -1,12 +1,7 @@
-import copy
 import six
 
-from django.db.models import Q
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseBadRequest
-from eztables.forms import DatatablesForm
-from operator import or_
+from django.urls import reverse
 
 from tally_ho.libs.utils.collections import listify
 from tally_ho.libs.permissions import groups
@@ -47,7 +42,7 @@ class GroupRequiredMixin(object):
     def dispatch(self, request, *args, **kwargs):
         self.request = request
 
-        if not (self.request.user.is_authenticated() and
+        if not (self.request.user.is_authenticated and
                 self.check_membership(self.get_group_required())):
             raise PermissionDenied
 
@@ -61,83 +56,3 @@ class ReverseSuccessURLMixin(object):
             self.success_url = reverse(self.success_url)
 
         return super(ReverseSuccessURLMixin, self).get_success_url()
-
-
-class DatatablesDisplayFieldsMixin(object):
-    display_fields = None
-
-    def get_row(self, row):
-        """Format a single row if necessary.
-
-        :param row: The row to format.
-
-        :raises: `ImproperlyConfigured` exception is class does not have a
-            display_fields member.
-
-        :returns: A list of data.
-        """
-        if self.display_fields is None:
-            raise ImproperlyConfigured(
-                u"`DatatablesDisplayMixin` requires a display_fields tuple to"
-                " be defined.")
-
-        return [getattr(row, name) for field, name in self.display_fields if
-                field in self.fields]
-
-    def process_dt_response(self, data):
-        self.form = DatatablesForm(data)
-
-        if self.form.is_valid():
-            self.object_list = self.get_queryset()
-
-            return self.render_to_response(self.form)
-        else:
-            return HttpResponseBadRequest()
-
-    def global_search(self, queryset):
-        """Filter a queryset using a global search.
-
-        :param queryset: The queryset to filter.
-
-        :returns: A filtered queryset.
-        """
-        qs = copy.deepcopy(queryset)
-        qs2 = copy.deepcopy(queryset)
-        zero_start_term = False
-        search = search_str = self.dt_data['sSearch']
-
-        if search:
-            if self.dt_data['bRegex']:
-                criterions = [Q(**{'%s__iregex' % field: search})
-                              for field in self.get_db_fields()
-                              if self.can_regex(field)]
-
-                if len(criterions) > 0:
-                    search = reduce(or_, criterions)
-                    queryset = queryset.filter(search)
-            else:
-                for term in search.split():
-                    if term.startswith(u'0'):
-                        zero_start_term = True
-
-                    criterions = (Q(**{'%s__icontains' % field: term})
-                                  for field in self.get_db_fields())
-                    search = reduce(or_, criterions)
-                    queryset = queryset.filter(search)
-
-            if zero_start_term:
-                for term in search_str.split():
-                    try:
-                        term = int(term)
-                    except ValueError:
-                        pass
-                    else:
-                        criterions = (Q(**{'%s__istartswith' % field: term})
-                                      for field in self.get_db_fields())
-                        search = reduce(or_, criterions)
-                        qs = qs.filter(search)
-
-                queryset = qs2.filter(Q(pk__in=qs.values('pk'))
-                                      | Q(pk__in=queryset.values('pk')))
-
-        return queryset

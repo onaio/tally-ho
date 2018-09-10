@@ -49,7 +49,7 @@ def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
                             dialect=dialect, **kwargs)
     for row in csv_reader:
         # decode UTF-8 back to Unicode, cell by cell:
-        yield [unicode(cell, 'utf-8') for cell in row]
+        yield [str(cell, 'utf-8') for cell in row]
 
 
 def utf_8_encoder(unicode_csv_data):
@@ -62,7 +62,7 @@ def add_row(name, username, role):
         first_name, last_name = assign_names(name)
         user = create_user(first_name, last_name, username)
     except Exception as e:
-        print "User '%s' not created! '%s'" % (username, e)
+        print("User '%s' not created! '%s'" % (username, e))
     else:
         system_role = STAFF_ROLE_DICT.get(role.upper().strip())
 
@@ -71,9 +71,9 @@ def add_row(name, username, role):
                 name=system_role)
             user.groups.add(group)
         else:
-            print (
-                "Unable to add user %s to unknown group '%s'."
-                % (username, role))
+            print(
+               "Unable to add user %s to unknown group '%s'."
+               % (username, role))
 
 
 def assign_names(name):
@@ -114,8 +114,8 @@ class Command(BaseCommand):
                 try:
                     name, username, role = row[0:3]
                 except Exception as e:
-                    print "Unable to add user in row: %s. Exception %s." %\
-                        (row, e)
+                    print("Unable to add user in row: %s. Exception %s." %
+                          (row, e))
                 else:
                     add_row(name, username, role)
 
@@ -128,7 +128,7 @@ class Command(BaseCommand):
                 try:
                     username, name, role = row[0:3]
                 except Exception as e:
-                    print "Unable to add user in row: '%s'. Exception '%s'." %\
-                        (row, e)
+                    print("Unable to add user in row: '%s'. Exception '%s'." %
+                          (row, e))
                 else:
                     add_row(name, username, role)

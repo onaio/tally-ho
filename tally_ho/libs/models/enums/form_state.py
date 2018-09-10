@@ -1,7 +1,7 @@
-from django_enumfield import enum
+from tally_ho.libs.utils.enum import Enum
 
 
-class FormState(enum.Enum):
+class FormState(Enum):
     ARCHIVED = 0
     ARCHIVING = 1
     AUDIT = 2

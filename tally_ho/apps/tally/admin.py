@@ -9,4 +9,5 @@ class UserProfileAdmin(admin.ModelAdmin):
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
 
+
 admin.site.register(UserProfile, UserProfileAdmin)

@@ -10,7 +10,7 @@ class QuarantineCheck(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    user = models.ForeignKey(User, null=True)
+    user = models.ForeignKey(User, null=True, on_delete=models.PROTECT)
 
     name = models.CharField(max_length=256, unique=True)
     method = models.CharField(max_length=256, unique=True)

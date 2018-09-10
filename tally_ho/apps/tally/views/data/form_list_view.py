@@ -1,7 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 from djqscsv import render_to_csv_response
-from eztables.views import DatatablesView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.ballot import Ballot
@@ -16,8 +15,7 @@ ALL = '__all__'
 
 class FormListDataView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
-                       mixins.DatatablesDisplayFieldsMixin,
-                       DatatablesView):
+                       TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
     fields = (

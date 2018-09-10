@@ -1,6 +1,5 @@
-from django.core.urlresolvers import reverse
-from django.shortcuts import redirect, render_to_response
-from django.template import RequestContext
+from django.urls import reverse
+from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
 
 from guardian.mixins import LoginRequiredMixin
@@ -27,39 +26,30 @@ GROUP_URLS = {
 
 
 def permission_denied(request):
-    context = RequestContext(request)
-    return render_to_response('errors/403.html',
-                              context_instance=context)
+    return render(request, 'errors/403.html')
 
 
 def not_found(request):
-    context = RequestContext(request)
-    return render_to_response('errors/404.html',
-                              context_instance=context)
+    return render(request, 'errors/404.html')
 
 
 def bad_request(request):
-    context = RequestContext(request)
-    return render_to_response('errors/400.html',
-                              context_instance=context)
+    return render(request, 'errors/400.html')
 
 
 def server_error(request):
-    context = RequestContext(request)
-    return render_to_response('errors/500.html',
-                              context_instance=context)
+    return render(request, 'errors/500.html')
 
 
 def suspicious_error(request):
-    context = RequestContext(request)
     error_message = request.session.get('error_message')
 
     if error_message:
         del request.session['error_message']
 
-    return render_to_response('errors/suspicious.html',
-                              {'error_message': error_message},
-                              context_instance=context)
+    return render(request,
+                  'errors/suspicious.html',
+                  {'error_message': error_message})
 
 
 class HomeView(LoginRequiredMixin, TemplateView):

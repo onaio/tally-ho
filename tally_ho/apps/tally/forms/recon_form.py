@@ -41,7 +41,7 @@ class ReconForm(ModelForm):
         self.fields['ballot_number_from'].widget.attrs['autofocus'] = 'on'
 
         for field in self.fields:
-            for k, v in disable_copy_input.iteritems():
+            for k, v in list(disable_copy_input.items()):
                 self.fields[field].widget.attrs[k] = v
 
             if self.fields[field].required:

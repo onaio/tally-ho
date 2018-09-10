@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from functools import reduce
 import csv
 import re
 
@@ -78,22 +79,22 @@ class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
 
     def handle(self, *args, **kwargs):
-        print '[INFO] creating groups'
+        print('[INFO] creating groups')
         create_permission_groups()
 
-        print '[INFO] import sub constituencies'
+        print('[INFO] import sub constituencies')
         self.import_sub_constituencies_and_ballots()
 
-        print '[INFO] import centers'
+        print('[INFO] import centers')
         self.import_centers()
 
-        print '[INFO] import stations'
+        print('[INFO] import stations')
         self.import_stations()
 
-        print '[INFO] import candidates'
+        print('[INFO] import candidates')
         self.import_candidates()
 
-        print '[INFO] import result forms'
+        print('[INFO] import result forms')
         self.import_result_forms(RESULT_FORMS_PATH)
 
     def import_sub_constituencies_and_ballots(self):
@@ -322,13 +323,13 @@ class Command(BaseCommand):
 
                 try:
                     form = ResultForm.objects.get(barcode=barcode)
-                    print '[INFO] Found with barcode: %s' % barcode
+                    print('[INFO] Found with barcode: %s' % barcode)
                 except ResultForm.DoesNotExist:
-                    print '[INFO] Create with barcode: %s' % barcode
+                    print('[INFO] Create with barcode: %s' % barcode)
                     ResultForm.objects.create(**kwargs)
                 else:
                     if is_replacement:
                         form.is_replacement = is_replacement
                         form.save()
 
-        print '[INFO] Number of replacement forms: %s' % replacement_count
+        print('[INFO] Number of replacement forms: %s' % replacement_count)

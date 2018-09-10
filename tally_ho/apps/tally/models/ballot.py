@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext as _
-from django_enumfield import enum
+from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.libs.models.base_model import BaseModel
@@ -20,14 +20,14 @@ class Ballot(BaseModel):
     }
 
     number = models.PositiveSmallIntegerField()
-    race_type = enum.EnumField(RaceType)
+    race_type = EnumIntegerField(RaceType)
 
     @property
     def race_type_name(self):
         if self.sc_general.all() and self.sc_general.all()[0].ballot_component:
             return _('General and Component')
 
-        return _(RaceType.label(self.race_type))
+        return _(self.race_type.name)
 
     @property
     def sub_constituency(self):
