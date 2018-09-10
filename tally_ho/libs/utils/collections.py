@@ -6,7 +6,7 @@ def flatten(l):
 
 
 def keys_if_value(d):
-    return [k for k, v in d.iteritems() if v]
+    return [k for k, v in d.items() if v]
 
 
 def listify(maybe_list):

@@ -51,7 +51,6 @@ def server_error(request):
 
 
 def suspicious_error(request):
-    context = RequestContext(request)
     error_message = request.session.get('error_message')
 
     if error_message:
@@ -59,7 +58,7 @@ def suspicious_error(request):
 
     return render_to_response('errors/suspicious.html',
                               {'error_message': error_message},
-                              context_instance=context)
+                              context=RequestContext(request))
 
 
 class HomeView(LoginRequiredMixin, TemplateView):

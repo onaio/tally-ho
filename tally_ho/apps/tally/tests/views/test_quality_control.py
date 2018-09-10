@@ -36,13 +36,13 @@ class TestQualityControl(TestBase):
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         response = view(request)
         response.render()
-        self.assertIn('/accounts/logout/', response.content)
+        self.assertIn(b'/accounts/logout/', response.content)
         return response
 
     def test_quality_control_get(self):
         response = self._common_view_tests(views.QualityControlView.as_view())
         self.assertContains(response, 'Quality Control')
-        self.assertIn('<form id="result_form"', response.content)
+        self.assertIn(b'<form id="result_form"', response.content)
 
     def test_quality_control_post(self):
         barcode = '123456789'

@@ -81,9 +81,15 @@ def get_corrections_forms(result_form):
         race if there is one.
     """
     recon = get_recon_form(result_form) if result_form.has_recon else None
-    general = candidate_results_for_race_type(result_form, RaceType.GENERAL)
-    women = candidate_results_for_race_type(result_form, RaceType.WOMEN)
-    component = candidate_results_for_race_type(result_form, None)
+    general = candidate_results_for_race_type(result_form,
+                                              RaceType.GENERAL,
+                                              num_results=2)
+    women = candidate_results_for_race_type(result_form,
+                                            RaceType.WOMEN,
+                                            num_results=2)
+    component = candidate_results_for_race_type(result_form,
+                                                None,
+                                                num_results=2)
 
     # get name of component race type
     c_name = component[0][0].race_type_name if len(component) else None

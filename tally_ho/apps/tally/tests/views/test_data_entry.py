@@ -31,7 +31,7 @@ class TestDataEntry(TestBase):
         self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         response = view(request)
         response.render()
-        self.assertIn('/accounts/logout/', response.content)
+        self.assertIn(b'/accounts/logout/', response.content)
         return response
 
     def _post_enter_results(self, result_form):
@@ -45,7 +45,7 @@ class TestDataEntry(TestBase):
     def test_data_entry_view(self):
         response = self._common_view_tests(views.DataEntryView.as_view())
         self.assertContains(response, 'Data Entry')
-        self.assertIn('<form id="result_form"', response.content)
+        self.assertIn(b'<form id="result_form"', response.content)
 
     def test_center_detail_center_number_length(self):
         code = '12345'

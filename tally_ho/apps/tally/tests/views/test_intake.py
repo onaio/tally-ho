@@ -29,7 +29,7 @@ class TestIntake(TestBase):
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         response = view(request)
         response.render()
-        self.assertIn('/accounts/logout/', response.content)
+        self.assertIn(b'/accounts/logout/', response.content)
         return response
 
     def test_center_detail_view(self):

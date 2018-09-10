@@ -39,9 +39,10 @@ def get_matched_forms(result_form):
     return matches, no_match
 
 
-def get_candidates(results):
+def get_candidates(results, num_results=None):
     """Return ordered tuples of candidates and their results.
 
+    :param num_results: Enforce a particular number of results, default None.
     :param results: The results to get candidates from.
 
     :returns: A list of tuples of candidates and the results associated with
@@ -58,7 +59,8 @@ def get_candidates(results):
         else:
             candidates.update({candidate: [result]})
 
-    return [[c] + r for c, r in candidates.iteritems()]
+    return [[c] + r[0:num_results] if num_results else r
+            for c, r in candidates.items()]
 
 
 def get_results_for_race_type(result_form, race_type):
@@ -76,17 +78,19 @@ def get_results_for_race_type(result_form, race_type):
         race_type is None else results.filter(candidate__race_type=race_type)
 
 
-def candidate_results_for_race_type(result_form, race_type):
+def candidate_results_for_race_type(result_form, race_type, num_results=None):
     """Return the candidates and results for a result form and race type.
 
     :param result_form: The result form to return data for.
     :param race_type: The race type to get results for, get component results
         if this is None.
+    :param num_results: Enforce a particular number of results, default None.
 
     :returns: A list of tuples containing the candidate and all results for
         that candidate.
     """
-    return get_candidates(get_results_for_race_type(result_form, race_type))
+    return get_candidates(get_results_for_race_type(result_form, race_type),
+                          num_results)
 
 
 def save_candidate_results_by_prefix(prefix, result_form, post_data,

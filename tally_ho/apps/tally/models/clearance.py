@@ -63,7 +63,7 @@ class Clearance(BaseModel):
         return keys_if_value(problem_fields)
 
     def action_prior_name(self):
-        return ActionsPrior.label(self.action_prior_to_recommendation)
+        return self.action_prior_to_recommendation.name
 
     def resolution_recommendation_name(self):
         return ClearanceResolution.label(self.resolution_recommendation)
