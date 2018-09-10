@@ -1,6 +1,6 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.contrib.auth.models import AnonymousUser
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.views import quality_control as views

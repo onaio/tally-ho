@@ -48,7 +48,7 @@ class GroupRequiredMixin(object):
     def dispatch(self, request, *args, **kwargs):
         self.request = request
 
-        if not (self.request.user.is_authenticated() and
+        if not (self.request.user.is_authenticated and
                 self.check_membership(self.get_group_required())):
             raise PermissionDenied
 

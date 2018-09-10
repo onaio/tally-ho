@@ -18,7 +18,6 @@ SECRET_KEY = 'el7%8*2=m()uxvg%ebet#o81y(qi%yi-k&&4iz^z=sces+i9lt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = ['localhost']
 
 
@@ -58,22 +57,6 @@ MIDDLEWARE_CLASSES = (
     'tally_ho.libs.middleware.exception_logging.ExceptionLoggingMiddleware'
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.tz',
-    'django.core.context_processors.request',
-    'django.contrib.messages.context_processors.messages',
-    'tally_ho.libs.utils.context_processors.debug',
-    'tally_ho.libs.utils.context_processors.is_superadmin',
-    'tally_ho.libs.utils.context_processors.locale',
-    'tally_ho.libs.utils.context_processors.site_name',
-)
-
-
 ROOT_URLCONF = 'tally_ho.urls'
 
 WSGI_APPLICATION = 'tally_ho.wsgi.application'
@@ -112,16 +95,34 @@ AUTHENTICATION_BACKENDS = (
 
 ANONYMOUS_USER_ID = -1
 
-TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'libs', 'templates'),
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'libs', 'templates'),
+                 os.path.join(BASE_DIR, 'apps', 'tally', 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.template.context_processors.request',
+                'django.contrib.messages.context_processors.messages',
+                'tally_ho.libs.utils.context_processors.debug',
+                'tally_ho.libs.utils.context_processors.is_superadmin',
+                'tally_ho.libs.utils.context_processors.locale',
+                'tally_ho.libs.utils.context_processors.site_name',
+            ],
+            # SECURITY WARNING: don't run with debug turned on in production!
+            'debug': True
+        },
+    },
+]
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
 
 SITE_ID = 1
 

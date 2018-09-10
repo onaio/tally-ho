@@ -5,7 +5,7 @@ from django.db.models import Q, Sum
 from django.db.utils import ProgrammingError
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as _
-from enumfields import EnumField
+from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.ballot import Ballot
@@ -151,8 +151,8 @@ class ResultForm(BaseModel):
     barcode = models.CharField(max_length=9, unique=True)
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
-    form_state = EnumField(FormState)
-    gender = EnumField(Gender, null=True)
+    form_state = EnumIntegerField(FormState)
+    gender = EnumIntegerField(Gender, null=True)
     name = models.CharField(max_length=256, null=True)
     office = models.ForeignKey(Office, blank=True, null=True,
                                on_delete=models.PROTECT)
@@ -236,7 +236,8 @@ class ResultForm(BaseModel):
 
     @property
     def num_votes(self):
-        return self.results_final.aggregate(Sum('votes')).values()[0] or 0
+        return list(
+            self.results_final.aggregate(Sum('votes')).values())[0] or 0
 
     @property
     def corrections_required_text(self):

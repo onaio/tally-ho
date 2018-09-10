@@ -6,6 +6,7 @@ from django.test import RequestFactory
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.views import clearance as views
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import create_ballot, create_clearance,\
     create_recon_forms, create_candidates, create_result_form, create_center, \
@@ -393,7 +394,7 @@ class TestClearance(TestBase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(result_form.created_user, self.request.user)
-        self.assertEqual(result_form.gender, 0)
+        self.assertEqual(result_form.gender, Gender.MALE)
         self.assertIn('clearance', response['location'])
 
     def test_new_form_post_invalid(self):

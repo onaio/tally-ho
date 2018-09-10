@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from enumfields import EnumField
+from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -24,7 +24,7 @@ class Result(BaseModel):
                              on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
-    entry_version = EnumField(EntryVersion)
+    entry_version = EnumIntegerField(EntryVersion)
     votes = models.PositiveIntegerField()
 
 

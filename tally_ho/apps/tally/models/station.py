@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import reversion
 from django.db import models
-from enumfields import EnumField
+from enumfields import EnumIntegerField
 from django.utils import timezone
 
 from tally_ho.apps.tally.models.center import Center
@@ -26,7 +26,7 @@ class Station(BaseModel):
                                          on_delete=models.PROTECT,
                                          related_name='stations')
 
-    gender = EnumField(Gender)
+    gender = EnumIntegerField(Gender)
     percent_archived = models.DecimalField(default=0, max_digits=5,
                                            decimal_places=2)
     percent_received = models.DecimalField(default=0, max_digits=5,

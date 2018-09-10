@@ -1,7 +1,8 @@
 from django.core.exceptions import SuspiciousOperation
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import FormView, TemplateView
+from django.views.generic import TemplateView
+from django.views.generic.edit import FormView
 from django.utils.translation import ugettext as _
 from guardian.mixins import LoginRequiredMixin
 
@@ -83,6 +84,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
                                   mixins.GroupRequiredMixin,
                                   mixins.ReverseSuccessURLMixin,
                                   FormView):
+    form_class = BarcodeForm
     group_required = groups.QUALITY_CONTROL_CLERK
     template_name = "quality_control/dashboard.html"
     success_url = 'quality-control-success'

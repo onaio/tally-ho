@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext as _
-from enumfields import EnumField
+from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.office import Office
@@ -19,7 +19,7 @@ class Center(BaseModel):
                                          on_delete=models.PROTECT,
                                          related_name='centers', null=True)
 
-    center_type = EnumField(CenterType)
+    center_type = EnumIntegerField(CenterType)
     code = models.PositiveIntegerField(unique=True)  # a.k.a. Center Number
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)

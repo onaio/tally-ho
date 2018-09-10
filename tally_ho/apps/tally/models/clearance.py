@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
-from enumfields import EnumField
+from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -39,9 +39,9 @@ class Clearance(BaseModel):
     other = models.TextField(null=True, blank=True)
 
     # Recommendations
-    action_prior_to_recommendation = EnumField(
+    action_prior_to_recommendation = EnumIntegerField(
         ActionsPrior, blank=True, null=True, default=4)
-    resolution_recommendation = EnumField(
+    resolution_recommendation = EnumIntegerField(
         ClearanceResolution, null=True, blank=True, default=0)
 
     # Comments
