@@ -29,7 +29,7 @@ def source(path):
 
 
 def exit_with_error(message):
-    print message
+    print(message)
     sys.exit(1)
 
 
