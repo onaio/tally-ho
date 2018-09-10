@@ -1,124 +1,117 @@
 import os
+from subprocess import call
 import sys
 
-from fabric.api import env, run, cd, lcd, sudo, put
-from fabric.contrib import files
-
+from fabric.api import cd, env, prefix, run
 
 DEPLOYMENTS = {
-    'default': {
-        'home': '/var/www',
-        'host_string':
-        'ubuntu@54.80.106.68',
+    'dev': {
+        'home': '/var/www/',
+        'host_string': 'ubuntu@54.221.204.14',
         'project': 'tally-system',
         'key_filename': os.path.expanduser('~/.ssh/ona.pem'),
-        'django_module': 'tally_ho.settings.local_settings'
+        'django_config_module': 'tally_ho.settings.local_settings',
+        'pid': '/var/run/tally.pid',
     },
+    'prod': {
+        'home': '/var/www/',
+        'db_host': '192.168.1.1',
+        'from_local': True,
+        'host_string': 'hnec',  # configure .ssh/config for HNEC
+        'project': 'tally-system',
+        'django_config_module': 'tally_ho.settings.local_settings',
+    }
 }
 
-current_working_dir = os.path.dirname(__file__)
+
+def source(path):
+    return prefix('source %s' % path)
 
 
-def run_in_virtualenv(command):
-    d = {
-        'activate': os.path.join(
-            env.virtualenv, env.project, 'bin', 'activate'),
-        'command': command,
-    }
-    run('source %(activate)s && %(command)s' % d)
+def exit_with_error(message):
+    print(message)
+    sys.exit(1)
 
 
 def check_key_filename(deployment_name):
     if 'key_filename' in DEPLOYMENTS[deployment_name] and \
        not os.path.exists(DEPLOYMENTS[deployment_name]['key_filename']):
-        print "Cannot find required permissions file: %s" % \
-            DEPLOYMENTS[deployment_name]['key_filename']
-
-        return False
-
-    return True
+        exit_with_error("Cannot find required permissions file: %s" %
+                        DEPLOYMENTS[deployment_name]['key_filename'])
 
 
 def setup_env(deployment_name):
-    env.update(DEPLOYMENTS[deployment_name])
+    deployment = DEPLOYMENTS.get(deployment_name)
 
-    if not check_key_filename(deployment_name):
-        sys.exit(1)
+    if deployment is None:
+        exit_with_error('Deployment "%s" not found.' % deployment_name)
+
+    env.update(deployment)
+
+    check_key_filename(deployment_name)
+
+    env.virtualenv = os.path.join(env.home, '.virtualenvs',
+                                  env.project, 'bin', 'activate')
 
     env.code_src = os.path.join(env.home, env.project)
-    env.virtualenv = os.path.join(env.home, '.virtualenvs')
+    env.pip_requirements_file = os.path.join(env.code_src,
+                                             'requirements/common.pip')
 
 
-def change_local_settings(config_module, dbname, dbuser, dbpass,
-                          dbhost='127.0.0.1'):
-    config_path = os.path.join(
-        env.code_src, config_module.replace('.', '/') + '.py')
-    if files.exists(config_path):
-        files.sed(config_path, 'REPLACE_DB_NAME', dbname)
-        files.sed(config_path, 'REPLACE_DB_USER', dbuser)
-        files.sed(config_path, 'REPLACE_DB_PASSWORD', dbpass)
-        files.sed(config_path, 'REPLACE_DB_HOST', dbhost)
+def local_deploy():
+    env.use_ssh_config = True
+    call(['./scripts/deploy'])
+
+    run('rm -rf %s' % env.project)
+    run('tar xzvf %s.tgz' % env.project)
+    run('mv %s-clean %s' % (env.project, env.project))
+
+    # remove existing deploy and clean new deploy
+    run('find %s -name "*.pyc" -exec rm -rf {} \;' % env.project)
+    run('find %s -name "._*" -exec rm -rf {} \;' % env.project)
+    run('./%s/scripts/install_app %s' % (env.project, env.db_host))
 
 
-def system_setup(deployment_name, dbuser='dbuser', dbpass="dbpwd"):
-    setup_env(deployment_name)
-    sudo('sh -c \'echo "deb http://apt.postgresql.org/pub/repos/apt/'
-         ' precise-pgdg main" >> /etc/apt/sources.list\'')
-    sudo('wget --quiet -O - http://apt.postgresql.org/pub'
-         '/repos/apt/ACCC4CF8.asc | apt-key add -')
-    sudo('apt-get update')
-    sudo('apt-get install -y nginx git python-setuptools python-dev binutils'
-         ' libproj-dev gdal-bin Postgresql-9.3-postgis libpq-dev')
-    sudo('easy_install pip')
-    sudo('pip install virtualenvwrapper uwsgi')
-
-    run('sudo -u postgres psql -U postgres -d postgres'
-        ' -c "CREATE USER %s with password \'%s\';"' % (dbuser, dbpass))
-    run('sudo -u postgres psql -U postgres -d postgres'
-        ' -c "CREATE DATABASE %s OWNER %s;"' % (dbuser, dbuser))
-
-
-def server_setup(deployment_name, dbuser='dbuser', dbpass="dbpwd"):
-    system_setup(deployment_name, dbuser, dbpass)
+def deploy(deployment_name, branch='master'):
     setup_env(deployment_name)
 
-    sudo('mkdir -p %s' % env.home)
-    sudo('chown -R ubuntu %s' % env.home)
+    if getattr(env, 'from_local', False):
+        local_deploy()
+        return
 
-    with cd(env.home):
-        run('git clone git@github.com:onaio/tally-system.git'
-            ' || (cd tally-system && git fetch)')
+    with cd(env.code_src):
+        run("git fetch origin")
+        run("git checkout origin/%s" % branch)
 
-    with lcd(current_working_dir):
-        config_path = os.path.join(env.code_src, 'tally_ho',
-                                   'settings', 'local_settings.py')
-        put(config_path[1:], config_path)
-        change_local_settings(env.django_module, dbuser, dbuser, dbpass)
+        run('find . -name "*.pyc" -exec rm -rf {} \;')
+        run('find . -name "._" -exec rm -rf {} \;')
 
-        put('./etc/init/tally.conf', '/etc/init/tally.conf', use_sudo=True)
-        put('./etc/nginx/sites-available/nginx.conf',
-            '/etc/nginx/sites-available/tally.conf', use_sudo=True)
-        sudo('ln -s /etc/nginx/sites-available/tally.conf'
-             ' /etc/nginx/sites-enabled/tally')
-    data = {
-        'venv': env.virtualenv, 'project': env.project
-    }
-    run('WORKON_HOME=%(venv)s source /usr/local/bin/virtualenvwrapper.sh'
-        ' && WORKON_HOME=%(venv)s mkvirtualenv %(project)s' % data)
-    run('echo "export WORKON_HOME=%(venv)s" >> ~/.bashrc' % data)
-    run('echo "export DJANGO_SETTINGS_MODULE=%s" >> ~/.bashrc'
-        % env.django_module)
+    with source(env.virtualenv):
+        run("pip install -r %s" % env.pip_requirements_file)
 
-    with cd(os.path.join(env.home, env.project)):
-        run_in_virtualenv('pip install -r requirements/common.pip')
-        run_in_virtualenv("python manage.py syncdb --noinput --settings='%s'"
-                          % env.django_module)
-        run_in_virtualenv("python manage.py migrate --settings='%s'"
-                          % env.django_module)
-        run_in_virtualenv("python manage.py collectstatic --noinput"
-                          " --settings='%s'" % env.django_module)
+    with cd(env.code_src):
+        config_module = env.django_config_module
 
-    sudo('/etc/init.d/nginx restart')
-    sudo('mkdir -p /var/log/uwsgi')
-    sudo('chown -R ubuntu /var/log/uwsgi')
-    sudo('start tally')
+        with source(env.virtualenv):
+            run("python manage.py syncdb --settings=%s" % config_module)
+            run("python manage.py migrate --settings=%s" % config_module)
+            run("python manage.py collectstatic --settings=%s --noinput"
+                % config_module)
+
+    run("sudo /usr/local/bin/uwsgi --reload %s" % env.pid)
+
+
+def reload_all(deployment_name):
+    setup_env(deployment_name)
+    with cd(env.code_src):
+        with source(env.virtualenv):
+            run('./scripts/reload_all tally 127.0.0.1 %s' %
+                env.django_config_module)
+
+
+def manage(deployment_name, cmd):
+    setup_env(deployment_name)
+    with cd(env.code_src):
+        with source(env.virtualenv):
+            run('python manage.py %s --settings=%s' %
+                (cmd, env.django_config_module))
