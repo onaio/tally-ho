@@ -25,22 +25,22 @@ class TestMiddleware(TestCase):
 
     @patch('tally_ho.libs.middleware.idle_timeout.time')
     def test_idle_timeout_last_visit_is_set(self, time_mock):
-        idt = IdleTimeout()
+        idt = IdleTimeout(lambda x: x)
         t1 = 1391795951
         time_mock.return_value = t1
         self.assertNotIn('last_visit', self.request.session)
-        idt.process_request(self.request)
+        idt.__call__(self.request)
         self.assertIn('last_visit', self.request.session)
         self.assertEqual(self.request.session['last_visit'], t1)
 
     @patch('tally_ho.libs.middleware.idle_timeout.datetime')
     def test_idle_timeout_user_logged_out(self, datetime_mock):
-        idt = IdleTimeout()
+        idt = IdleTimeout(lambda x: x)
         t1 = 1391795951
         t2 = 1391800228
         datetime_mock.now.return_value = datetime.fromtimestamp(t2)
         datetime_mock.fromtimestamp = datetime.fromtimestamp
         settings.IDLE_TIMEOUT = 2  # 2 minutes
         self.request.session['last_visit'] = t1
-        idt.process_request(self.request)
+        idt.__call__(self.request)
         self.assertNotIn('last_visit', self.request.session)
