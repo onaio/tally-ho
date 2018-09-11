@@ -38,7 +38,7 @@ INSTALLED_APPS = (
     'tracking',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'tracking.middleware.VisitorTrackingMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -147,6 +147,8 @@ TRACK_PAGEVIEWS = True
 
 LOCALE_PATHS = (os.path.realpath(os.path.join(BASE_DIR, '..', 'locale')),)
 
+# Logging
+LOG_FILE_PATH = os.path.join(BASE_DIR, '..', 'dev.log')
 LOGGING = {
     'version': 1,
     'root': {'level': 'DEBUG' if DEBUG else 'INFO'},

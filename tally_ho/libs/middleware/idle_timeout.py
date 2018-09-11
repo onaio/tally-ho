@@ -5,7 +5,10 @@ from django.contrib import auth
 
 
 class IdleTimeout(object):
-    def process_request(self, request):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
         if request.user.is_authenticated:
             last_visit = request.session.get('last_visit')
 
@@ -20,3 +23,5 @@ class IdleTimeout(object):
             if request.user.is_authenticated:
                 # if user is not logged out, set the new last_visit
                 request.session['last_visit'] = int(time())
+
+        return self.get_response(request)
