@@ -1,0 +1,6 @@
+./scripts/create_database tally postgres 127.0.0.1 tally_ho.settings.common
+python manage.py create_demo_users
+python manage.py create_fake_data
+python manage.py create_groups
+python manage.py create_quarantine_checks
+python manage.py runserver

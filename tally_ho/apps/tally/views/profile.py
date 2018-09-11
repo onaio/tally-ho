@@ -5,7 +5,8 @@ from tally_ho.apps.tally.models.user_profile import UserProfile
 
 
 def login(request, *args, **kwargs):
-    response = auth_views.login(request, *args, **kwargs)
+    view = auth_views.LoginView.as_view()
+    response = view(request, *args, **kwargs)
 
     if response.status_code == 302:
         try:

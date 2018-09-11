@@ -6,7 +6,10 @@ from datetime import datetime
 class UserRestrictMiddleware(object):
     """Prevents more than one user logging in at once from two different IPs.
     """
-    def process_request(self, request):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
         ip_address = request.META.get('REMOTE_ADDR', '')
 
         try:
@@ -23,3 +26,5 @@ class UserRestrictMiddleware(object):
                     session_key=visitor.session_key).delete()
                 visitor.user = None
                 visitor.save()
+
+        return self.get_response(request)
