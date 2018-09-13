@@ -100,7 +100,7 @@ class Command(BaseCommand):
     def import_sub_constituencies_and_ballots(self):
         with open(SUB_CONSTITUENCIES_PATH, 'rU') as f:
             reader = csv.reader(f)
-            reader.next()  # ignore header
+            next(reader)  # ignore header
 
             for row in reader:
                 if invalid_line(row):
@@ -160,7 +160,7 @@ class Command(BaseCommand):
     def import_centers(self):
         with open(CENTERS_PATH, 'rU') as f:
             reader = csv.reader(f)
-            reader.next()  # ignore header
+            next(reader)  # ignore header
 
             for row in reader:
                 if not invalid_line(row):
@@ -199,7 +199,7 @@ class Command(BaseCommand):
     def import_stations(self):
         with open(STATIONS_PATH, 'rU') as f:
             reader = csv.reader(f)
-            reader.next()  # ignore header
+            next(reader)  # ignore header
 
             for row in reader:
                 center_code, center_name, sc_code, station_number, gender,\
@@ -233,17 +233,20 @@ class Command(BaseCommand):
     def import_candidates(self):
         id_to_ballot_order = {}
 
-        with open(BALLOT_ORDER_PATH, 'rU') as f:
-            reader = csv.reader(f)
-            reader.next()  # ignore header
+        try:
+            with open(BALLOT_ORDER_PATH, 'rU') as f:
+                reader = csv.reader(f)
+                next(reader)  # ignore header
 
-            for row in reader:
-                id_, ballot_number = row
-                id_to_ballot_order[id_] = ballot_number
+                for row in reader:
+                    id_, ballot_number = row
+                    id_to_ballot_order[id_] = ballot_number
+        except FileNotFoundError:
+            pass
 
         with open(CANDIDATES_PATH, 'rU') as f:
             reader = csv.reader(f)
-            reader.next()  # ignore header
+            next(reader)  # ignore header
 
             for row in reader:
                 candidate_id = row[0]
@@ -270,7 +273,7 @@ class Command(BaseCommand):
                     ballot=ballot,
                     candidate_id=candidate_id,
                     full_name=full_name,
-                    order=id_to_ballot_order[candidate_id],
+                    order=id_to_ballot_order.get(candidate_id, 0),
                     race_type=race_type)
 
     def import_result_forms(self, path):
@@ -278,7 +281,7 @@ class Command(BaseCommand):
 
         with open(path, 'rU') as f:
             reader = csv.reader(f)
-            reader.next()  # ignore header
+            next(reader)  # ignore header
 
             for row in reader:
                 row = empty_strings_to_none(row)

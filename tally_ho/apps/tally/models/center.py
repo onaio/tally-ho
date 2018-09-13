@@ -19,7 +19,7 @@ class Center(BaseModel):
                                          on_delete=models.PROTECT,
                                          related_name='centers', null=True)
 
-    center_type = EnumIntegerField(CenterType)
+    center_type = EnumIntegerField(CenterType, null=True)
     code = models.PositiveIntegerField(unique=True)  # a.k.a. Center Number
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
