@@ -1,5 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
+from django_datatables_view.base_datatable_view import BaseDatatableView
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 
@@ -15,10 +16,10 @@ ALL = '__all__'
 
 class FormListDataView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
-                       TemplateView):
+                       BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
-    fields = (
+    columns = (
         'barcode',
         'center__code',
         'station_number',
@@ -28,17 +29,6 @@ class FormListDataView(LoginRequiredMixin,
         'ballot__race_type',
         'form_state',
         'modified_date',
-    )
-    display_fields = (
-        ('barcode', 'barcode'),
-        ('center__code', 'center_code'),
-        ('station_number', 'station_number'),
-        ('center__office__name', 'center_office'),
-        ('center__office__number', 'center_office_number'),
-        ('ballot__number', 'ballot_number'),
-        ('form_state', 'form_state_name'),
-        ('ballot__race_type', 'ballot_race_type_name'),
-        ('modified_date', 'modified_date_formatted'),
     )
 
     def get_queryset(self):
@@ -66,7 +56,7 @@ class FormListView(LoginRequiredMixin,
             if form_state == ALL:
                 form_list = ResultForm.objects.all()
             else:
-                form_state = FormState.get(form_state)
+                form_state = FormState[form_state.upper()]
                 form_list = ResultForm.forms_in_state(form_state.value)
 
             form_list = form_list.values(

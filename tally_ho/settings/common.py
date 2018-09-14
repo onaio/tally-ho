@@ -151,5 +151,17 @@ LOCALE_PATHS = (os.path.realpath(os.path.join(BASE_DIR, '..', 'locale')),)
 LOG_FILE_PATH = os.path.join(BASE_DIR, '..', 'dev.log')
 LOGGING = {
     'version': 1,
-    'root': {'level': 'DEBUG' if DEBUG else 'INFO'},
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else os.getenv(
+                'DJANGO_LOG_LEVEL', 'INFO'),
+        },
+    },
 }
