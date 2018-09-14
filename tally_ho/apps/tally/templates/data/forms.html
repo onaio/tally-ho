@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
 
-{% load i18n %}
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with remote_url=remote_url %}
+{% endblock %}
 
 {% block content %}
 
@@ -28,7 +37,7 @@ Export:
 <br/>
 <br/>
 
-<table id="datalist">
+<table class="datatable">
     <thead>
         <tr>
             <th>{% trans 'Barcode' %}</th>
