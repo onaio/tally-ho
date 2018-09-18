@@ -21,12 +21,12 @@ class FormListDataView(LoginRequiredMixin,
     model = ResultForm
     columns = (
         'barcode',
-        'center__code',
+        'center.code',
         'station_number',
-        'center__office__name',
-        'center__office__number',
-        'ballot__number',
-        'ballot__race_type',
+        'center.office.name',
+        'center.office.number',
+        'ballot.number',
+        'ballot.race_type',
         'form_state',
         'modified_date',
     )

@@ -13,10 +13,10 @@ class CenterListDataView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station
     columns = (
-        'center__office__name',
-        'sub_constituency__code',
-        'center__name',
-        'center__code',
+        'center.office.name',
+        'sub_constituency.code',
+        'center.name',
+        'center.code',
         'station_number',
         'gender',
         'registrants',
