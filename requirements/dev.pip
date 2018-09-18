@@ -1,5 +1,6 @@
 -r common.pip
 coverage
+django-debug-toolbar
 flake8
 ipython
 ipdb

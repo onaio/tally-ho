@@ -19,6 +19,7 @@ SECRET_KEY = 'el7%8*2=m()uxvg%ebet#o81y(qi%yi-k&&4iz^z=sces+i9lt'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 ALLOWED_HOSTS = ['localhost']
+INTERNAL_IPS = ["127.0.0.1"]
 
 
 # Application definition
@@ -38,6 +39,9 @@ INSTALLED_APPS = (
     'tracking',
 )
 
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar',)
+
 MIDDLEWARE = (
     'tracking.middleware.VisitorTrackingMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -52,8 +56,11 @@ MIDDLEWARE = (
     'tally_ho.libs.middleware.user_restrict.UserRestrictMiddleware',
     'tally_ho.libs.middleware.disable_clientside_caching.'
     'DisableClientsideCachingMiddleware',
-    'tally_ho.libs.middleware.exception_logging.ExceptionLoggingMiddleware'
+    'tally_ho.libs.middleware.exception_logging.ExceptionLoggingMiddleware',
 )
+
+if DEBUG:
+    MIDDLEWARE += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
 
 ROOT_URLCONF = 'tally_ho.urls'
 
