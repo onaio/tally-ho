@@ -1,6 +1,12 @@
-./scripts/create_database tally postgres 127.0.0.1 tally_ho.settings.common
+SETTINGS=tally_ho.settings.common
+./scripts/create_database tally postgres 127.0.0.1 $SETTINGS
+if [ -d data ]; then
+    python manage.py import_data --settings=$SETTINGS
+    python manage.py import_staff_list --settings=$SETTINGS
+else
+    python manage.py create_fake_data
+    python manage.py create_groups
+fi
 python manage.py create_demo_users
-python manage.py create_fake_data
-python manage.py create_groups
 python manage.py create_quarantine_checks
 python manage.py runserver
