@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = 'el7%8*2=m()uxvg%ebet#o81y(qi%yi-k&&4iz^z=sces+i9lt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['localhost']
 INTERNAL_IPS = ["127.0.0.1"]
 
@@ -39,9 +39,6 @@ INSTALLED_APPS = (
     'tracking',
 )
 
-if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar',)
-
 MIDDLEWARE = (
     'tracking.middleware.VisitorTrackingMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -58,9 +55,6 @@ MIDDLEWARE = (
     'DisableClientsideCachingMiddleware',
     'tally_ho.libs.middleware.exception_logging.ExceptionLoggingMiddleware',
 )
-
-if DEBUG:
-    MIDDLEWARE += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
 
 ROOT_URLCONF = 'tally_ho.urls'
 
@@ -156,19 +150,3 @@ LOCALE_PATHS = (os.path.realpath(os.path.join(BASE_DIR, '..', 'locale')),)
 
 # Logging
 LOG_FILE_PATH = os.path.join(BASE_DIR, '..', 'dev.log')
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else os.getenv(
-                'DJANGO_LOG_LEVEL', 'INFO'),
-        },
-    },
-}

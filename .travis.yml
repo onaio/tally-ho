@@ -8,6 +8,6 @@ install:
 before_script:
   - psql -c 'CREATE DATABASE tally;' -U postgres
 script:
-  - python manage.py test --settings=tally_ho.settings.test
+  - python manage.py test
 notifications:
   slack: onaio:snkNXgprD498qQv4DgRREKJF
