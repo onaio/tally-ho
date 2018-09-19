@@ -213,7 +213,6 @@ class CreateClearanceView(LoginRequiredMixin,
                                FormState.DATA_ENTRY_2,
                                FormState.INTAKE,
                                FormState.QUALITY_CONTROL,
-                               FormState.ARCHIVING,
                                FormState.UNSUBMITTED]
 
             if groups.SUPER_ADMINISTRATOR in groups.user_groups(

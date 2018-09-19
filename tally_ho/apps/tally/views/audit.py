@@ -241,7 +241,6 @@ class CreateAuditView(LoginRequiredMixin,
             possible_states = [FormState.CORRECTION,
                                FormState.DATA_ENTRY_1,
                                FormState.DATA_ENTRY_2,
-                               FormState.ARCHIVING,
                                FormState.QUALITY_CONTROL]
 
             if groups.SUPER_ADMINISTRATOR in groups.user_groups(

@@ -41,7 +41,7 @@ def check_quarantine(result_form, user):
         result_form.save()
 
 
-def states_for_form(user, result_form, states=[FormState.ARCHIVING]):
+def states_for_form(user, result_form, states=[FormState.QUALITY_CONTROL]):
     """Get the possible states for this result_form.
 
     Archive supervisors can modify archived forms, check the user and see if
