@@ -33,7 +33,7 @@ class ProgressReport(object):
     number = property(numerator)
 
     def denominator(self):
-        return self.queryset.count()
+        return self.get_queryset().count()
 
     total = property(denominator)
 
@@ -110,11 +110,6 @@ class CorrectionProgressReport(ProgressReport):
 class QualityControlProgressReport(ProgressReport):
     filtered_queryset = ResultForm.forms_in_state(FormState.QUALITY_CONTROL)
     label = _(u"Quality Control")
-
-
-class ArchivingProgressReport(ProgressReport):
-    filtered_queryset = ResultForm.forms_in_state(FormState.ARCHIVING)
-    label = _(u"Archiving")
 
 
 class AuditProgressReport(ProgressReport):
