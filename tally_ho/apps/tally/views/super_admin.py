@@ -5,6 +5,7 @@ from django.db.utils import ProgrammingError
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
+from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
@@ -91,37 +92,27 @@ class FormDuplicatesView(LoginRequiredMixin,
 
 class FormProgressDataView(LoginRequiredMixin,
                            mixins.GroupRequiredMixin,
-                           TemplateView):
+                           BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
+    # TODO: queryset is not correct for current version
     queryset = ResultForm.objects.exclude(form_state=FormState.UNSUBMITTED)
-    fields = (
+    columns = (
         'barcode',
-        'center__code',
+        'center.code',
         'station_number',
-        'ballot__number',
-        'center__office__name',
-        'center__office__number',
-        'ballot__race_type',
+        'ballot.number',
+        'center.office.name',
+        'center.office.number',
+        'ballot.race_type',
         'form_state',
         'rejected_count',
         'modified_date',
     )
-    display_fields = (
-        ('barcode', 'barcode'),
-        ('center__code', 'center_code'),
-        ('station_number', 'station_number'),
-        ('ballot__number', 'ballot_number'),
-        ('center__office__name', 'center_office'),
-        ('center__office__number', 'center_office_number'),
-        ('ballot__race_type', 'ballot_race_type_name'),
-        ('form_state', 'form_state_name'),
-        ('rejected_count', 'rejected_count'),
-        ('modified_date', 'modified_date_formatted'),
-    )
 
 
 class FormDuplicatesDataView(FormProgressDataView):
+    # TODO: queryset is not correct for current version
     queryset = duplicates()
 
 
