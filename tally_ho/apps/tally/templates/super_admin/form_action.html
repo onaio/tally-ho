@@ -1,14 +1,12 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
-{% load js %}
-{% load eztables %}
 
 {% block content %}
 
 <h1>{% trans 'Forms Waiting For Approval' %}</h1>
 
-<table id="formprogresslist" class="table table-striped">
+<table class="datatable table table-striped">
     <thead>
         <tr>
             <th>{% trans 'Barcode' %}</th>

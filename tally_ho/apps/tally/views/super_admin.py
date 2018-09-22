@@ -19,10 +19,9 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import get_result_export_response
-from tally_ho.libs.views.pagination import paging
 
 
-def duplicates():
+def duplicates(qs):
     """Build a list of result forms that are duplicates considering only forms
     that are not unsubmitted.
 
@@ -41,7 +40,7 @@ def duplicates():
             station_number=item['station_number']).values('id'))
             for item in dupes])
 
-        return ResultForm.objects.filter(pk__in=pks)
+        return qs.filter(pk__in=pks)
     except ProgrammingError:
         return []
 
@@ -65,15 +64,6 @@ class FormProgressView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_progress.html"
 
-    def get(self, *args, **kwargs):
-        form_list = ResultForm.objects.exclude(
-            form_state=FormState.UNSUBMITTED)
-
-        forms = paging(form_list, self.request)
-
-        return self.render_to_response(self.get_context_data(
-            forms=forms))
-
 
 class FormDuplicatesView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
@@ -81,22 +71,12 @@ class FormDuplicatesView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_duplicates.html"
 
-    def get(self, *args, **kwargs):
-        form_list = duplicates()
-
-        forms = paging(form_list, self.request)
-
-        return self.render_to_response(self.get_context_data(
-            forms=forms))
-
 
 class FormProgressDataView(LoginRequiredMixin,
                            mixins.GroupRequiredMixin,
                            BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
-    # TODO: queryset is not correct for current version
-    queryset = ResultForm.objects.exclude(form_state=FormState.UNSUBMITTED)
     columns = (
         'barcode',
         'center.code',
@@ -110,10 +90,13 @@ class FormProgressDataView(LoginRequiredMixin,
         'modified_date',
     )
 
+    def filter_queryset(self, qs):
+        return qs.exclude(form_state=FormState.UNSUBMITTED)
+
 
 class FormDuplicatesDataView(FormProgressDataView):
-    # TODO: queryset is not correct for current version
-    queryset = duplicates()
+    def filter_queryset(self, qs):
+        return duplicates(qs)
 
 
 class FormActionView(LoginRequiredMixin,
