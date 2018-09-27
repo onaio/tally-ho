@@ -6,7 +6,7 @@ from django.views.generic import TemplateView
 
 from tally_ho.apps.tally.forms.login_form import LoginForm
 from tally_ho.apps.tally.forms.password_change import PasswordChangeForm
-from tally_ho.apps.tally.views import archive, audit, clearance,\
+from tally_ho.apps.tally.views import audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile
 from tally_ho.apps.tally.views.data import center_list_view, form_list_view
@@ -149,6 +149,9 @@ urlpatterns = [
          TemplateView.as_view(
              template_name='tally/quality_control/reject.html'),
          name='quality-control-reject'),
+    path('quality-control/print',
+         quality_control.PrintView.as_view(),
+         name='quality-control-print'),
     path('quality-control/success',
          quality_control.ConfirmationView.as_view(),
          name='quality-control-success'),
@@ -165,16 +168,6 @@ urlpatterns = [
     path('corrections/success',
          corrections.ConfirmationView.as_view(),
          name='corrections-success'),
-
-    path('archive',
-         archive.ArchiveView.as_view(),
-         name='archive'),
-    path('archive/print',
-         archive.ArchivePrintView.as_view(),
-         name='archive-print'),
-    path('archive/success',
-         archive.ConfirmationView.as_view(),
-         name='archive-success'),
 
     path('audit',
          audit.DashboardView.as_view(),

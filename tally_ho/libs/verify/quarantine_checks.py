@@ -1,4 +1,5 @@
 from django.utils.translation import ugettext as _
+from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.quarantine_check import\
     QuarantineCheck
 
@@ -82,3 +83,27 @@ def pass_tampering(result_form):
         num_votes + number_ballots_expected) / 2
 
     return diff <= scaled_tolerance
+
+
+def check_quarantine(result_form, user):
+    """Run quarantine checks.  Create an audit with links to the failed
+    quarantine checks if any fail.
+
+    :param result_form: The result form to run quarantine checks on.
+    :param user: The user to associate with an audit if any checks fail.
+    """
+    audit = None
+
+    if not result_form.skip_quarantine_checks:
+        for passed_check, check in quarantine_checks():
+            if not passed_check(result_form):
+                if not audit:
+                    audit = Audit.objects.create(
+                        user=user,
+                        result_form=result_form)
+
+                audit.quarantine_checks.add(check)
+
+    if audit:
+        result_form.audited_count += 1
+        result_form.save()
