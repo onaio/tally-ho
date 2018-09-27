@@ -1,9 +1,12 @@
 from django.db import models
-from django_enumfield import enum
+from enumfields import EnumIntegerField
 
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.disable_reason import DisableReason
-from tally_ho.libs.utils.templates import getTallyAdministerLink, getTallyEditLink
+from tally_ho.libs.utils.templates import (
+    get_tally_administer_link,
+    get_tally_edit_link,
+)
 
 
 class Tally(BaseModel):
@@ -12,15 +15,15 @@ class Tally(BaseModel):
 
     name = models.CharField(max_length=255, null=False, blank=False)
     active = models.BooleanField(default=True)
-    disable_reason = enum.EnumField(DisableReason, null=True)
+    disable_reason = EnumIntegerField(DisableReason, null=True)
 
     def __unicode__(self):
         return u'%d - %s' % (self.id, self.name)
 
     @property
     def administer_button(self):
-        return getTallyAdministerLink(self)
+        return get_tally_administer_link(self)
 
     @property
     def edit_button(self):
-        return getTallyEditLink(self)
+        return get_tally_edit_link(self)

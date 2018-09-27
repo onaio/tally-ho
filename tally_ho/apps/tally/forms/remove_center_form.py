@@ -44,7 +44,8 @@ class RemoveCenterForm(forms.Form):
             tally_id = cleaned_data.get('tally_id')
 
             try:
-                center = Center.objects.get(code=center_number, tally__id=tally_id)
+                center = Center.objects.get(code=center_number,
+                                            tally__id=tally_id)
             except Center.DoesNotExist:
                 raise forms.ValidationError(u"Center Number does not exist")
             else:
@@ -57,7 +58,8 @@ class RemoveCenterForm(forms.Form):
             center_number = self.cleaned_data.get('center_number')
             tally_id = self.cleaned_data.get('tally_id')
             try:
-                center = Center.objects.get(code=center_number, tally__id=tally_id)
+                center = Center.objects.get(code=center_number,
+                                            tally__id=tally_id)
             except Center.DoesNotExist:
                 raise forms.ValidationError(_(u"Center Number does not exist"))
             else:

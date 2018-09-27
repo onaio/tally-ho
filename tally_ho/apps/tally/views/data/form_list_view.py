@@ -1,8 +1,8 @@
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
-from django_datatables_view.base_datatable_view import BaseDatatableView
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
+from django_datatables_view.base_datatable_view import BaseDatatableView
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 
@@ -34,15 +34,16 @@ class FormListDataView(LoginRequiredMixin,
         'modified_date',
     )
 
-    def get_queryset(self):
-        qs = super(FormListDataView, self).get_queryset()
-        ballot_number = self.kwargs.get('ballot')
-        tally_id = self.kwargs.get('tally_id')
+    def filter_queryset(self, qs):
+        ballot_number = self.request.GET.get('ballot[value]', None)
+        tally_id = self.request.GET.get('tally_id[value]', None)
 
-        qs = qs.filter(tally__id=tally_id)
+        if tally_id:
+            qs = qs.filter(tally__id=tally_id)
 
         if ballot_number:
-            ballot = Ballot.objects.get(number=ballot_number, tally__id=tally_id)
+            ballot = Ballot.objects.get(number=ballot_number,
+                                        tally__id=tally_id)
             qs = qs.filter(
                 ballot__number__in=ballot.form_ballot_numbers)
 
@@ -65,7 +66,8 @@ class FormListView(LoginRequiredMixin,
                 form_list = ResultForm.objects.filter(tally__id=tally_id)
             else:
                 form_state = FormState[form_state.upper()]
-                form_list = ResultForm.forms_in_state(form_state.value, tally_id=tally_id)
+                form_list = ResultForm.forms_in_state(form_state.value,
+                                                      tally_id=tally_id)
 
             form_list = form_list.values(
                 'barcode', 'form_state', 'gender', 'station_number',
@@ -77,8 +79,9 @@ class FormListView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(header_text=_('Form List'),
-                                  remote_url=reverse('form-list-data',
-                                                     kwargs={'tally_id':tally_id}),
+                                  remote_url=reverse(
+                                      'form-list-data',
+                                      kwargs={'tally_id': tally_id}),
                                   tally_id=tally_id))
 
 
@@ -90,19 +93,22 @@ class FormNotReceivedListView(FormListView):
         tally_id = kwargs.get('tally_id')
 
         if format_ == 'csv':
-            form_list = ResultForm.forms_in_state(FormState.UNSUBMITTED, tally_id=tally_id)
+            form_list = ResultForm.forms_in_state(FormState.UNSUBMITTED,
+                                                  tally_id=tally_id)
             return render_to_csv_response(form_list)
 
         return self.render_to_response(
             self.get_context_data(header_text=_('Forms Not Received'),
                                   custom=True,
-                                  remote_url=reverse('form-not-received-data',
-                                      kwargs={'tally_id':tally_id}),
+                                  remote_url=reverse(
+                                      'form-not-received-data',
+                                      kwargs={'tally_id': tally_id}),
                                   tally_id=tally_id))
 
 
 class FormNotReceivedDataView(FormListDataView):
-    queryset = ResultForm.forms_in_state(FormState.UNSUBMITTED)
+    def filter_queryset(self, qs):
+        return ResultForm.forms_in_state(FormState.UNSUBMITTED)
 
 
 class FormsForRaceView(FormListView):
@@ -116,4 +122,5 @@ class FormsForRaceView(FormListView):
             header_text=_('Forms for Race %s' % ballot),
             none=True,
             tally_id=tally_id,
-            remote_url=reverse('forms-for-race-data', args=[tally_id, ballot])))
+            remote_url=reverse('forms-for-race-data',
+                               args=[tally_id, ballot])))

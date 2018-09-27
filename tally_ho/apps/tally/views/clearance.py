@@ -1,8 +1,7 @@
-from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
+from django.urls import reverse
 from django.utils.translation import ugettext as _
-from django.db.models import Q
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -13,7 +12,6 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.enums.clearance_resolution import\
     ClearanceResolution
-from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
@@ -101,7 +99,8 @@ class DashboardView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        form_list = ResultForm.objects.filter(form_state=FormState.CLEARANCE, tally__id=tally_id)
+        form_list = ResultForm.objects.filter(
+            form_state=FormState.CLEARANCE, tally__id=tally_id)
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
@@ -160,8 +159,10 @@ class ReviewView(LoginRequiredMixin,
 
             return redirect(url, tally_id=tally_id)
         else:
-            return self.render_to_response(self.get_context_data(form=form,
-                                           result_form=result_form, tally_id=tally_id))
+            return self.render_to_response(
+                self.get_context_data(form=form,
+                                      result_form=result_form,
+                                      tally_id=tally_id))
 
 
 class PrintCoverView(LoginRequiredMixin,
@@ -182,7 +183,8 @@ class PrintCoverView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   problems=problems,
-                                  printed_url = reverse(self.printed_url, args = (pk,)),
+                                  printed_url=reverse(
+                                      self.printed_url, args=(pk,)),
                                   tally_id=tally_id))
 
     def post(self, *args, **kwargs):
@@ -192,7 +194,9 @@ class PrintCoverView(LoginRequiredMixin,
         if 'result_form' in post_data:
             pk = session_matches_post_result_form(post_data, self.request)
 
-            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            pk=pk,
+                                            tally__id=tally_id)
             form_in_state(result_form, FormState.CLEARANCE)
             del self.request.session['result_form']
 
@@ -200,7 +204,7 @@ class PrintCoverView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
-                tally_id=tally_id))
+                                  tally_id=tally_id))
 
 
 class CreateClearanceView(LoginRequiredMixin,
@@ -218,7 +222,7 @@ class CreateClearanceView(LoginRequiredMixin,
         context['tally_id'] = tally_id
         context['header_text'] = _('Create Clearance')
         context['form_action'] = reverse(self.success_url,
-                                        kwargs={'tally_id': tally_id})
+                                         kwargs={'tally_id': tally_id})
 
         return context
 
@@ -236,7 +240,9 @@ class CreateClearanceView(LoginRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            barcode=barcode,
+                                            tally__id=tally_id)
 
             possible_states = [FormState.CORRECTION,
                                FormState.DATA_ENTRY_1,
@@ -271,17 +277,20 @@ class CheckCenterDetailsView(LoginRequiredMixin,
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
     template_name = 'barcode_verify.html'
     success_url = 'clearance-add'
+
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
 
-        context = super(CheckCenterDetailsView, self).get_context_data(**kwargs)
+        context = super(
+            CheckCenterDetailsView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
         context['header_text'] = _('Clearance')
         context['form_action'] = reverse(self.success_url,
-                                        kwargs={'tally_id': tally_id})
+                                         kwargs={'tally_id': tally_id})
         context['result_form'] = get_object_or_404(ResultForm,
-                                            pk=pk, tally__id=tally_id)
+                                                   pk=pk,
+                                                   tally__id=tally_id)
 
         return context
 
@@ -298,7 +307,9 @@ class CheckCenterDetailsView(LoginRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            barcode=barcode,
+                                            tally__id=tally_id)
 
             possible_states = [FormState.CORRECTION,
                                FormState.DATA_ENTRY_1,
@@ -317,7 +328,9 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                 return self.form_invalid(form)
 
             self.template_name = 'check_clearance_center_details.html'
-            form_action = reverse(self.success_url, kwargs={'tally_id':tally_id})
+            form_action = reverse(self.success_url,
+                                  kwargs={'tally_id': tally_id})
+
             return self.render_to_response(
                 self.get_context_data(result_form=result_form,
                                       header_text=_('Create Clearance'),
@@ -385,7 +398,9 @@ class NewFormView(LoginRequiredMixin,
                 return redirect(self.success_url, tally_id=tally_id)
 
             result_form.created_user = self.request.user
-            form = NewResultForm(post_data, instance=result_form, initial=self.initial)
+            form = NewResultForm(post_data,
+                                 instance=result_form,
+                                 initial=self.initial)
 
             if form.is_valid():
                 form.save()
@@ -423,9 +438,9 @@ class AddClearanceFormView(LoginRequiredMixin,
 
 
 class ClearancePrintedView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.PrintedResultFormMixin,
-                     TemplateView):
+                           mixins.GroupRequiredMixin,
+                           mixins.PrintedResultFormMixin,
+                           TemplateView):
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
 
     def set_printed(self, result_form):

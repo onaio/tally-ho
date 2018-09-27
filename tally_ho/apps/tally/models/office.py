@@ -11,9 +11,13 @@ class Office(BaseModel):
         ordering = ['name']
         unique_together = ('name', 'tally')
 
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=255)
     number = models.IntegerField(null=True)
-    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='offices')
+    tally = models.ForeignKey(Tally,
+                              null=True,
+                              blank=True,
+                              related_name='offices',
+                              on_delete=models.PROTECT)
 
 
 reversion.register(Office)

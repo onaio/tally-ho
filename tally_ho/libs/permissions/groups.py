@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 
 
 AUDIT_CLERK = "Audit Clerk"
@@ -10,16 +10,16 @@ DATA_ENTRY_1_CLERK = "Data Entry 1 Clerk"
 DATA_ENTRY_2_CLERK = "Data Entry 2 Clerk"
 INTAKE_CLERK = "Intake Clerk"
 INTAKE_SUPERVISOR = "Intake Supervisor"
-QUALITY_CONTROL_ARCHIVE_CLERK = "Quality Control Archive Clerk"
-QUALITY_CONTROL_ARCHIVE_SUPERVISOR = "Quality Control Archive Supervisor"
+QUALITY_CONTROL_CLERK = "Quality Control Clerk"
+QUALITY_CONTROL_SUPERVISOR = "Quality Control Supervisor"
 SUPER_ADMINISTRATOR = "Super Administrator"
 TALLY_MANAGER = 'Tally Manager'
 
-GROUPS = [QUALITY_CONTROL_ARCHIVE_SUPERVISOR, AUDIT_CLERK,
+GROUPS = [QUALITY_CONTROL_SUPERVISOR, AUDIT_CLERK,
           AUDIT_SUPERVISOR, CLEARANCE_CLERK, CLEARANCE_SUPERVISOR,
           CORRECTIONS_CLERK, DATA_ENTRY_1_CLERK,
           DATA_ENTRY_2_CLERK, INTAKE_SUPERVISOR, INTAKE_CLERK,
-          QUALITY_CONTROL_ARCHIVE_CLERK, SUPER_ADMINISTRATOR,
+          QUALITY_CONTROL_CLERK, SUPER_ADMINISTRATOR,
           TALLY_MANAGER]
 
 
@@ -43,9 +43,10 @@ def create_demo_users_with_groups(password='data'):
     for group in GROUPS:
         obj, created = Group.objects.get_or_create(name=group)
         username = group.replace(' ', '_').lower()
-        user, created = UserProfile.objects.get_or_create(username=username[0:30],
-                                                   first_name=group[0:30],
-                                                   reset_password=False)
+        user, created = UserProfile.objects.get_or_create(
+            username=username[0:30],
+            first_name=group[0:30],
+            reset_password=False)
         user.set_password(password)
         user.save()
         user.groups.add(obj)

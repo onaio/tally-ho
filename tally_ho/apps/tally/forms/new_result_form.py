@@ -1,4 +1,10 @@
-from django.forms import ModelForm, ValidationError, IntegerField, HiddenInput, ModelChoiceField
+from django.forms import (
+    ModelForm,
+    ValidationError,
+    IntegerField,
+    HiddenInput,
+    ModelChoiceField,
+)
 from django.utils.translation import ugettext as _
 
 from tally_ho.apps.tally.models import ResultForm
@@ -32,39 +38,48 @@ class NewResultForm(ModelForm):
         super(NewResultForm, self).__init__(*args, **kwargs)
 
         if self.initial.get('tally_id'):
-            self.fields['center'] = ModelChoiceField(queryset=Center.objects.filter(tally__id=self.initial['tally_id']))
-            self.fields['office'] = ModelChoiceField(queryset=Office.objects.filter(tally__id=self.initial['tally_id']))
-            self.fields['ballot'] = ModelChoiceField(queryset=Ballot.objects.filter(tally__id=self.initial['tally_id']))
+            self.fields['center'] = ModelChoiceField(
+                queryset=Center.objects.filter(
+                    tally__id=self.initial['tally_id']))
+            self.fields['office'] = ModelChoiceField(
+                queryset=Office.objects.filter(
+                    tally__id=self.initial['tally_id']))
+            self.fields['ballot'] = ModelChoiceField(
+                queryset=Ballot.objects.filter(
+                    tally__id=self.initial['tally_id']))
 
     def clean(self):
         cleaned_data = super(NewResultForm, self).clean()
 
-        cdata_keys = cleaned_data.keys()
-        center = cleaned_data['center'] if 'center' in cdata_keys else None
-        station_number = cleaned_data['station_number'] if 'station_number' in cdata_keys else None
-        ballot = cleaned_data['ballot'] if 'ballot' in cdata_keys else None
+        center = cleaned_data.get('center', None)
+        station_number = cleaned_data.get('station_number', None)
+        ballot = cleaned_data.get('ballot', None)
 
         if not center or not station_number or not ballot:
             raise ValidationError(_('All fields are mandatory'))
 
-        #TODO: enable this once enabling/disabling races is implemented
-        #if ballot and not ballot.active:
-        #    raise ValidationError(_('Race for ballot is disabled'))
+        # TODO: enable this once enabling/disabling races is implemented
+        # if ballot and not ballot.active:
+        #     raise ValidationError(_('Race for ballot is disabled'))
 
         if center and not center.active:
             raise ValidationError(_('Selected center is disabled'))
 
         try:
             if station_number:
-                station = Station.objects.get(station_number = station_number, center = center)
+                station = Station.objects.get(station_number=station_number,
+                                              center=center)
 
                 if not station.active:
                     raise ValidationError(_('Selected station is disabled'))
 
         except Station.DoesNotExist:
-            raise ValidationError(_('Station does no exist for the selected center'))
+            raise ValidationError(
+                _('Station does no exist for the selected center'))
 
-        if center.sub_constituency and ballot.number != center.sub_constituency.code:
-            raise ValidationError(_('Ballot number do not match for center and station'))
+        if center.sub_constituency and \
+                ballot.number != center.sub_constituency.code:
+            raise ValidationError(
+                _('Ballot number do not match for center and station'))
 
         return cleaned_data

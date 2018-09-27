@@ -1,7 +1,12 @@
 from django.contrib.auth.models import Group
-from django.forms import ModelForm, TextInput, Select, PasswordInput, \
-        ModelChoiceField, SelectMultiple, RadioSelect, HiddenInput, \
-        BooleanField, CheckboxInput
+from django.forms import (
+    ModelForm,
+    TextInput,
+    ModelChoiceField,
+    HiddenInput,
+    BooleanField,
+    CheckboxInput,
+)
 from django.utils.translation import ugettext_lazy as _
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
@@ -37,16 +42,17 @@ class EditUserProfileForm(ModelForm):
             'email': TextInput(attrs={'size': 50}),
         }
 
-    qs = Group.objects.exclude(name__in=[groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER])
+    qs = Group.objects.exclude(name__in=[groups.SUPER_ADMINISTRATOR,
+                                         groups.TALLY_MANAGER])
     group = ModelChoiceField(queryset=qs, required=True)
-    reboot_password = BooleanField(label=_('Reset password'), widget=CheckboxInput())
+    reboot_password = BooleanField(label=_('Reset password'),
+                                   widget=CheckboxInput())
 
     def __init__(self, *args, **kwargs):
 
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs.setdefault('initial', {})
             initial['group'] = kwargs['instance'].groups.first()
-
 
         super(EditUserProfileForm, self).__init__(*args, **kwargs)
 
@@ -101,7 +107,8 @@ class EditAdminProfileForm(ModelForm):
             'email': TextInput(attrs={'size': 50}),
         }
 
-    reboot_password = BooleanField(label=_('Reset password'), widget=CheckboxInput())
+    reboot_password = BooleanField(label=_('Reset password'),
+                                   widget=CheckboxInput())
 
     def __init__(self, *args, **kwargs):
         super(EditAdminProfileForm, self).__init__(*args, **kwargs)

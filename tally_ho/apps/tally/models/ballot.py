@@ -25,8 +25,11 @@ class Ballot(BaseModel):
     race_type = EnumIntegerField(RaceType)
     active = models.BooleanField(default=True)
     disable_reason = EnumIntegerField(DisableReason, null=True, default=None)
-    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='ballots')
-
+    tally = models.ForeignKey(Tally,
+                              null=True,
+                              blank=True,
+                              related_name='ballots',
+                              on_delete=models.PROTECT)
 
     @property
     def race_type_name(self):

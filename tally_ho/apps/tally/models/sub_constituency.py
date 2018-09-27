@@ -24,7 +24,11 @@ class SubConstituency(BaseModel):
     field_office = models.CharField(max_length=256)
     number_of_ballots = models.PositiveSmallIntegerField(null=True)
     races = models.PositiveSmallIntegerField(null=True)
-    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='sub_constituencies')
+    tally = models.ForeignKey(Tally,
+                              null=True,
+                              blank=True,
+                              related_name='sub_constituencies',
+                              on_delete=models.PROTECT)
 
     @property
     def form_type(self):

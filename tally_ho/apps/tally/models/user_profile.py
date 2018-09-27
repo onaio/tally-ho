@@ -10,8 +10,16 @@ from tally_ho.libs.utils.templates import get_edit_user_link
 
 class UserProfile(User):
     reset_password = models.BooleanField(default=True)
-    administrated_tallies = models.ManyToManyField(Tally, blank=True, null=True, default=None, related_name='administrators')
-    tally = models.ForeignKey(Tally, blank=True, null=True, related_name='users', on_delete=models.PROTECT)
+    administrated_tallies = models.ManyToManyField(
+        Tally,
+        blank=True,
+        default=None,
+        related_name='administrators')
+    tally = models.ForeignKey(Tally,
+                              blank=True,
+                              null=True,
+                              related_name='users',
+                              on_delete=models.PROTECT)
 
     class Meta:
         app_label = 'tally'
@@ -35,9 +43,11 @@ class UserProfile(User):
 
     @property
     def is_administrator(self):
-        return groups.SUPER_ADMINISTRATOR in self.groups.values_list('name', flat=True)
+        return groups.SUPER_ADMINISTRATOR in self.groups.values_list(
+            'name', flat=True)
 
     def __unicode__(self):
         return '%s - %s %s' % (self.username, self.first_name, self.last_name)
+
 
 reversion.register(UserProfile)

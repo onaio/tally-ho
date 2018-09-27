@@ -1,20 +1,18 @@
 from django.views.generic import TemplateView
-from eztables.views import DatatablesView
+from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
-from tally_ho.libs.views.pagination import paging
 
 
 class TallyListDataView(LoginRequiredMixin,
-                            mixins.GroupRequiredMixin,
-                            mixins.DatatablesDisplayFieldsMixin,
-                            DatatablesView):
+                        mixins.GroupRequiredMixin,
+                        BaseDatatableView):
     group_required = groups.TALLY_MANAGER
     model = Tally
-    fields = (
+    columns = (
         'id',
         'name',
         'created_date',
@@ -22,27 +20,14 @@ class TallyListDataView(LoginRequiredMixin,
         'active',
         'active',
     )
-    display_fields = (
-        ('id', 'id'),
-        ('name', 'name'),
-        ('created_date', 'created_date'),
-        ('modified_date', 'modified_date'),
-        ('active', 'administer_button'),
-        ('active', 'edit_button'),
-    )
 
 
 class TallyListView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        TemplateView):
+                    mixins.GroupRequiredMixin,
+                    TemplateView):
     group_required = groups.TALLY_MANAGER
     template_name = "data/tallies.html"
 
     def get(self, *args, **kwargs):
-        # check cache
-        tally_list = Tally.objects.all()
-        tallies = paging(tally_list, self.request)
-
         return self.render_to_response(self.get_context_data(
-            tallies=tallies,
             remote_url='tally-list-data'))

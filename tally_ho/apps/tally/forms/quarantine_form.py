@@ -20,7 +20,7 @@ class QuarantineCheckForm(ModelForm):
 
     def __init__(self, *args, **kargs):
         super(QuarantineCheckForm, self).__init__(*args, **kargs)
-        self.fields['name'].widget.attrs.update({'class' : 'form-control'})
-        self.fields['value'].widget.attrs.update({'class' : 'form-control'})
-        self.fields['percentage'].widget.attrs.update({'class' : 'form-control'})
-
+        self.fields['name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['value'].widget.attrs.update({'class': 'form-control'})
+        self.fields['percentage'].widget.attrs.update(
+            {'class': 'form-control'})

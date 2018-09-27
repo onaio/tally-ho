@@ -14,7 +14,8 @@ class ProgressReport(object):
 
     def __init__(self, tally_id):
         self.tally_id = tally_id
-        self.filtered_queryset = self.queryset = ResultForm.distinct_forms(tally_id)
+        self.filtered_queryset = self.queryset = \
+            ResultForm.distinct_forms(tally_id)
 
     def get_queryset(self):
         if self.queryset is None or not isinstance(self.queryset, QuerySet):
@@ -50,29 +51,32 @@ class ProgressReport(object):
         if self.denominator(queryset) <= 0:
             return _(u"No results")
 
-        return rounded_percent(self.numerator(filtered_queryset), self.denominator(queryset))
+        return rounded_percent(self.numerator(filtered_queryset),
+                               self.denominator(queryset))
 
     percentage = property(percentage_value)
 
     def for_ballot(self, ballot):
 
         filtered_queryset = self.get_filtered_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers, tally__id=self.tally_id)
+            ballot__number__in=ballot.form_ballot_numbers,
+            tally__id=self.tally_id)
         queryset = self.get_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers, tally__id=self.tally_id)
+            ballot__number__in=ballot.form_ballot_numbers,
+            tally__id=self.tally_id)
 
         denominator = queryset.count()
         number = filtered_queryset.count()
-        percentage = rounded_percent(number, denominator) if denominator > 0 else _(u"No results")
+        percentage = rounded_percent(number, denominator) if denominator > 0\
+            else _(u"No results")
 
         return {'denominator': denominator,
                 'number': number,
                 'percentage': percentage}
 
     def for_center_office(self, office):
-
-        filtered_queryset = self.get_filtered_queryset().filter(center__office=office)
-        #queryset = self.get_queryset().filter(center__office=office)
+        filtered_queryset = self.get_filtered_queryset().filter(
+            center__office=office)
 
         return filtered_queryset.count()
 
@@ -104,7 +108,8 @@ class ArchivedProgressReport(ProgressReport):
     def __init__(self, tally_id):
         super(ArchivedProgressReport, self).__init__(tally_id)
 
-        self.filtered_queryset = ResultForm.forms_in_state(FormState.ARCHIVED, tally_id=self.tally_id)
+        self.filtered_queryset = ResultForm.forms_in_state(
+            FormState.ARCHIVED, tally_id=self.tally_id)
 
 
 class IntakeProgressReport(ProgressReport):
@@ -113,7 +118,8 @@ class IntakeProgressReport(ProgressReport):
     def __init__(self, tally_id):
         super(IntakeProgressReport, self).__init__(tally_id)
 
-        self.filtered_queryset = ResultForm.forms_in_state(FormState.INTAKE, tally_id=self.tally_id)
+        self.filtered_queryset = ResultForm.forms_in_state(
+            FormState.INTAKE, tally_id=self.tally_id)
 
 
 class ClearanceProgressReport(ProgressReport):
@@ -122,7 +128,8 @@ class ClearanceProgressReport(ProgressReport):
     def __init__(self, tally_id):
         super(ClearanceProgressReport, self).__init__(tally_id)
 
-        self.filtered_queryset = ResultForm.forms_in_state(FormState.CLEARANCE, tally_id=self.tally_id)
+        self.filtered_queryset = ResultForm.forms_in_state(
+            FormState.CLEARANCE, tally_id=self.tally_id)
 
 
 class DataEntry1ProgressReport(ProgressReport):
@@ -131,7 +138,8 @@ class DataEntry1ProgressReport(ProgressReport):
     def __init__(self, tally_id):
         super(DataEntry1ProgressReport, self).__init__(tally_id)
 
-        self.filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_1, tally_id=self.tally_id)
+        self.filtered_queryset = ResultForm.forms_in_state(
+            FormState.DATA_ENTRY_1, tally_id=self.tally_id)
 
 
 class DataEntry2ProgressReport(ProgressReport):
@@ -140,7 +148,8 @@ class DataEntry2ProgressReport(ProgressReport):
     def __init__(self, tally_id):
         super(DataEntry2ProgressReport, self).__init__(tally_id)
 
-        self.filtered_queryset = ResultForm.forms_in_state(FormState.DATA_ENTRY_2, tally_id=self.tally_id)
+        self.filtered_queryset = ResultForm.forms_in_state(
+            FormState.DATA_ENTRY_2, tally_id=self.tally_id)
 
 
 class CorrectionProgressReport(ProgressReport):
@@ -149,7 +158,8 @@ class CorrectionProgressReport(ProgressReport):
     def __init__(self, tally_id):
         super(CorrectionProgressReport, self).__init__(tally_id)
 
-        self.filtered_queryset = ResultForm.forms_in_state(FormState.CORRECTION, tally_id=self.tally_id)
+        self.filtered_queryset = ResultForm.forms_in_state(
+            FormState.CORRECTION, tally_id=self.tally_id)
 
 
 class QualityControlProgressReport(ProgressReport):
@@ -158,7 +168,8 @@ class QualityControlProgressReport(ProgressReport):
     def __init__(self, tally_id):
         super(QualityControlProgressReport, self).__init__(tally_id)
 
-        self.filtered_queryset = ResultForm.forms_in_state(FormState.QUALITY_CONTROL, tally_id=self.tally_id)
+        self.filtered_queryset = ResultForm.forms_in_state(
+            FormState.QUALITY_CONTROL, tally_id=self.tally_id)
 
 
 class AuditProgressReport(ProgressReport):
@@ -167,7 +178,8 @@ class AuditProgressReport(ProgressReport):
     def __init__(self, tally_id):
         super(AuditProgressReport, self).__init__(tally_id)
 
-        self.filtered_queryset = ResultForm.forms_in_state(FormState.AUDIT, tally_id=self.tally_id)
+        self.filtered_queryset = ResultForm.forms_in_state(
+            FormState.AUDIT, tally_id=self.tally_id)
 
 
 class NotRecievedProgressReport(ProgressReport):
@@ -176,4 +188,5 @@ class NotRecievedProgressReport(ProgressReport):
     def __init__(self, tally_id):
         super(NotRecievedProgressReport, self).__init__(tally_id)
 
-        self.filtered_queryset = ResultForm.forms_in_state(FormState.UNSUBMITTED, tally_id=self.tally_id)
+        self.filtered_queryset = ResultForm.forms_in_state(
+            FormState.UNSUBMITTED, tally_id=self.tally_id)

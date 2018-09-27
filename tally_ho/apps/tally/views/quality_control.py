@@ -76,7 +76,9 @@ class QualityControlView(LoginRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            barcode=barcode,
+                                            tally__id=tally_id)
             form = safe_form_in_state(result_form, [FormState.QUALITY_CONTROL,
                                                     FormState.ARCHIVING],
                                       form)

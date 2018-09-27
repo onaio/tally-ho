@@ -1,10 +1,7 @@
-import json
-
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
-from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.urls import reverse
+from django.utils.translation import ugettext as _
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.center_details_form import\
@@ -64,7 +61,9 @@ class CenterDetailsView(LoginRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=self.tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            barcode=barcode,
+                                            tally__id=self.tally_id)
             url = self.success_url
             user = self.request.user
             possible_states = states_for_form(
@@ -125,7 +124,7 @@ class EnterCenterView(LoginRequiredMixin,
         context['form_action'] = ''
         context['header_text'] = _('Intake')
         context['result_form'] = get_object_or_404(ResultForm, pk=pk,
-                                                    tally__id=tally_id)
+                                                   tally__id=tally_id)
 
         return context
 
@@ -159,11 +158,14 @@ class EnterCenterView(LoginRequiredMixin,
             is_error = False
             center_sub = center.sub_constituency
             if center_sub:
-                is_general = result_form.ballot.number == center.sub_constituency.code
+                is_general = result_form.ballot.number == \
+                        center.sub_constituency.code
                 if not is_general:
                     is_women = center_sub.ballot_women is not None
-                    if not is_women or\
-                            (is_women and result_form.ballot.number != center_sub.ballot_women.number):
+                    if not is_women or (
+                            is_women and
+                            result_form.ballot.number !=
+                            center_sub.ballot_women.number):
                         is_error = True
 
             if is_error:
@@ -249,7 +251,8 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             if not result_form.center:
                 station_number = self.request.session.get('station_number')
                 center_number = self.request.session.get('center_number')
-                center = Center.objects.get(code=center_number, tally__id=tally_id)
+                center = Center.objects.get(code=center_number,
+                                            tally__id=tally_id)
 
                 result_form.station_number = station_number
                 result_form.center = center
@@ -294,7 +297,8 @@ class PrintCoverView(LoginRequiredMixin,
         form_in_state(result_form, possible_states)
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form,
+            self.get_context_data(
+                    result_form=result_form,
                     printed_url=reverse(self.printed_url, args=(pk,),),
                     tally_id=tally_id))
 
@@ -304,7 +308,9 @@ class PrintCoverView(LoginRequiredMixin,
 
         if 'result_form' in post_data:
             pk = session_matches_post_result_form(post_data, self.request)
-            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            pk=pk,
+                                            tally__id=tally_id)
             possible_states = states_for_form(self.request.user,
                                               [FormState.INTAKE], result_form)
             form_in_state(result_form, possible_states)
@@ -368,9 +374,9 @@ class ConfirmationView(LoginRequiredMixin,
 
 
 class IntakePrintedView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.PrintedResultFormMixin,
-                     TemplateView):
+                        mixins.GroupRequiredMixin,
+                        mixins.PrintedResultFormMixin,
+                        TemplateView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 
     def set_printed(self, result_form):

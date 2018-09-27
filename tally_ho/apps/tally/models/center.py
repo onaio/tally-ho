@@ -33,7 +33,11 @@ class Center(BaseModel):
     village = models.TextField()
     active = models.BooleanField(default=True)
     disable_reason = EnumIntegerField(DisableReason, null=True)
-    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='centers')
+    tally = models.ForeignKey(Tally,
+                              null=True,
+                              blank=True,
+                              related_name='centers',
+                              on_delete=models.PROTECT)
 
     def remove(self):
         """Remove this center and related information.
@@ -66,5 +70,6 @@ class Center(BaseModel):
     @property
     def center_type_name(self):
         return 'Special' if self.center_type == 1 else 'General'
+
 
 reversion.register(Center)

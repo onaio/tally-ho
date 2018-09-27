@@ -25,7 +25,11 @@ class Candidate(BaseModel):
     order = models.PositiveSmallIntegerField()
     race_type = EnumIntegerField(RaceType)
     active = models.BooleanField(default=True)
-    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='candidates')
+    tally = models.ForeignKey(Tally,
+                              null=True,
+                              blank=True,
+                              related_name='candidates',
+                              on_delete=models.PROTECT)
 
     @property
     def race_type_name(self):
@@ -78,7 +82,8 @@ class Candidate(BaseModel):
 
     @property
     def num_all_votes(self):
-        """Return the number of final active votes plus votes in forms in quarantine for this candidate.
+        """Return the number of final active votes plus votes in forms in
+        quarantine for this candidate.
 
         :returns: The number of votes
         """
@@ -86,8 +91,9 @@ class Candidate(BaseModel):
             entry_version=EntryVersion.FINAL,
             active=True)
 
-        results = results.filter(Q(result_form__form_state=FormState.ARCHIVED) |
-                                 Q(result_form__form_state=FormState.AUDIT))
+        results = results.filter(
+            Q(result_form__form_state=FormState.ARCHIVED) |
+            Q(result_form__form_state=FormState.AUDIT))
 
         results = results.distinct('entry_version', 'active', 'result_form')
 
@@ -95,7 +101,8 @@ class Candidate(BaseModel):
 
     @property
     def num_quarentine_votes(self):
-        """Return the number of final active votes plus votes in forms in quarantine for this candidate.
+        """Return the number of final active votes plus votes in forms in
+        quarantine for this candidate.
 
         :returns: The number of votes
         """
@@ -115,5 +122,6 @@ class Candidate(BaseModel):
     @property
     def candidate_active(self):
         return get_active_candidate_link(self) if self else None
+
 
 reversion.register(Candidate)

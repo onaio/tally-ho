@@ -10,7 +10,6 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.form_state import form_in_state,\
@@ -46,7 +45,7 @@ def audit_action(audit, post_data, result_form, url):
                 AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE:
             audit.for_superadmin = True
         else:
-            new_state=FormState.DATA_ENTRY_1
+            new_state = FormState.DATA_ENTRY_1
             audit.active = False
             result_form.reject(new_state=new_state)
 
@@ -173,7 +172,7 @@ class ReviewView(LoginRequiredMixin,
             tally_id=tally_id))
 
     def post(self, *args, **kwargs):
-        tally_id=kwargs.get('tally_id')
+        tally_id = kwargs.get('tally_id')
 
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -226,7 +225,9 @@ class PrintCoverView(LoginRequiredMixin,
         if 'result_form' in post_data:
             pk = session_matches_post_result_form(post_data, self.request)
 
-            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            pk=pk,
+                                            tally__id=tally_id)
             form_in_state(result_form, FormState.AUDIT)
             del self.request.session['result_form']
 
@@ -234,7 +235,7 @@ class PrintCoverView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
-                tally_id=tally_id))
+                                  tally_id=tally_id))
 
 
 class CreateAuditView(LoginRequiredMixin,
@@ -268,7 +269,9 @@ class CreateAuditView(LoginRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            barcode=barcode,
+                                            tally__id=tally_id)
 
             possible_states = [FormState.CORRECTION,
                                FormState.DATA_ENTRY_1,

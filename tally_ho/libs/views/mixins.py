@@ -44,7 +44,7 @@ class GroupRequiredMixin(object):
 
         if len(listify(allowed_groups)) == 1 and \
                 groups.TALLY_MANAGER in listify(allowed_groups):
-            return groups.TALLY_MANAGER in user_groups;
+            return groups.TALLY_MANAGER in user_groups
 
         else:
             return groups.TALLY_MANAGER in user_groups or\
@@ -66,7 +66,8 @@ class ReverseSuccessURLMixin(object):
     def get_success_url(self):
         if self.success_url:
             if hasattr(self, 'tally_id'):
-                self.success_url = reverse(self.success_url, kwargs={'tally_id': self.tally_id})
+                self.success_url = reverse(self.success_url,
+                                           kwargs={'tally_id': self.tally_id})
             else:
                 self.success_url = reverse(self.success_url)
 
@@ -87,12 +88,12 @@ class PrintedResultFormMixin(object):
 
         status = 'ok'
         try:
-            result_form = ResultForm.objects.get(pk=result_form_pk);
+            result_form = ResultForm.objects.get(pk=result_form_pk)
             self.set_printed(result_form)
         except ResultForm.DoesNotExist:
             status = 'error'
 
-        return self.render_to_response(self.get_context_data(status = status))
+        return self.render_to_response(self.get_context_data(status=status))
 
     def set_printed(self, result_form):
         pass

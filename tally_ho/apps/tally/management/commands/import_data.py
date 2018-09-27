@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from functools import reduce
 import csv
 import re
 
@@ -135,9 +136,10 @@ def process_sub_constituency_row(tally, row):
         pass
 
 
-def import_sub_constituencies_and_ballots(tally = None, subconst_file = None):
-    file_to_parse = subconst_file if subconst_file else open(SUB_CONSTITUENCIES_PATH, 'rU')
-    elements_processed = 0;
+def import_sub_constituencies_and_ballots(tally=None, subconst_file=None):
+    file_to_parse = subconst_file if subconst_file else open(
+        SUB_CONSTITUENCIES_PATH, 'rU')
+    elements_processed = 0
 
     with file_to_parse as f:
         reader = csv.reader(f)
@@ -179,7 +181,7 @@ def process_center_row(tally, row):
             code=row[2],
             office=office,
             sub_constituency=sub_constituency,
-            name=unicode(row[8], 'utf-8'),
+            name=row[8],
             mahalla=row[9],
             village=row[10],
             center_type=center_type,
@@ -188,7 +190,7 @@ def process_center_row(tally, row):
             tally=tally)
 
 
-def import_centers(tally = None, centers_file = None):
+def import_centers(tally=None, centers_file=None):
     file_to_parse = centers_file if centers_file else open(CENTERS_PATH, 'rU')
 
     with file_to_parse as f:
@@ -208,7 +210,7 @@ def process_station_row(tally, row):
     except Center.DoesNotExist:
         center, created = Center.objects.get_or_create(
             code=center_code,
-            name=unicode(center_name, 'utf-8'),
+            name=center_name,
             tally=tally)
 
     try:
@@ -217,7 +219,7 @@ def process_station_row(tally, row):
         sub_constituency = SubConstituency.objects.get(
             code=sc_code, tally=tally)
     except (SubConstituency.DoesNotExist, ValueError):
-        #FIXME: What to do if SubConstituency does not exist
+        # FIXME What to do if SubConstituency does not exist
         sub_constituency = None
         print('[WARNING] SubConstituency "%s" does not exist' %
               sc_code)
@@ -232,8 +234,9 @@ def process_station_row(tally, row):
         station_number=station_number)
 
 
-def import_stations(tally = None, stations_file = None):
-    file_to_parse = stations_file if stations_file else open(STATIONS_PATH, 'rU')
+def import_stations(tally=None, stations_file=None):
+    file_to_parse = stations_file if stations_file else open(
+        STATIONS_PATH, 'rU')
 
     with file_to_parse as f:
         reader = csv.reader(f)
@@ -267,15 +270,19 @@ def process_candidate_row(tally, row, id_to_ballot_order):
     _, created = Candidate.objects.get_or_create(
         ballot=ballot,
         candidate_id=candidate_id,
-        full_name=unicode(full_name, 'utf-8'),
+        full_name=full_name,
         order=id_to_ballot_order[candidate_id],
         race_type=race_type,
         tally=tally)
 
 
-def import_candidates(tally = None, candidates_file = None, ballot_file = None):
-    candidates_file_to_parse = candidates_file  if candidates_file else open(CANDIDATES_PATH, 'rU')
-    ballot_file_to_parse = ballot_file if ballot_file else open(BALLOT_ORDER_PATH, 'rU')
+def import_candidates(tally=None,
+                      candidates_file=None,
+                      ballot_file=None):
+    candidates_file_to_parse = candidates_file if candidates_file else open(
+        CANDIDATES_PATH, 'rU')
+    ballot_file_to_parse = ballot_file if ballot_file else open(
+        BALLOT_ORDER_PATH, 'rU')
 
     id_to_ballot_order = {}
 
@@ -341,9 +348,7 @@ def process_results_form_row(tally, row):
 
     try:
         form = ResultForm.objects.get(barcode=barcode, tally=tally)
-        #print '[INFO] Found with barcode: %s' % barcode
     except ResultForm.DoesNotExist:
-        #print '[INFO] Create with barcode: %s' % barcode
         ResultForm.objects.create(**kwargs)
     else:
         if is_replacement:
@@ -353,8 +358,9 @@ def process_results_form_row(tally, row):
     return replacement_count
 
 
-def import_result_forms(tally = None, result_forms_file = None):
-    file_to_parse = result_forms_file  if result_forms_file else open(RESULT_FORMS_PATH, 'rU')
+def import_result_forms(tally=None, result_forms_file=None):
+    file_to_parse = result_forms_file if result_forms_file else open(
+        RESULT_FORMS_PATH, 'rU')
     replacement_count = 0
 
     with file_to_parse as f:
@@ -364,28 +370,27 @@ def import_result_forms(tally = None, result_forms_file = None):
         for row in reader:
             replacement_count += process_results_form_row(tally, row)
 
-    print '[INFO] Number of replacement forms: %s' % replacement_count
+    print('[INFO] Number of replacement forms: %s' % replacement_count)
 
 
 class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
 
     def handle(self, *args, **kwargs):
-        print '[INFO] creating groups'
+        print('[INFO] creating groups')
         create_permission_groups()
 
-        print '[INFO] import sub constituencies'
+        print('[INFO] import sub constituencies')
         import_sub_constituencies_and_ballots()
 
-        print '[INFO] import centers'
+        print('[INFO] import centers')
         import_centers()
 
-        print '[INFO] import stations'
+        print('[INFO] import stations')
         import_stations()
 
-        print '[INFO] import candidates'
+        print('[INFO] import candidates')
         import_candidates()
 
-        print '[INFO] import result forms'
+        print('[INFO] import result forms')
         import_result_forms()
-

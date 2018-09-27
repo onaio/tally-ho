@@ -4,7 +4,6 @@ from django.core.validators import MinLengthValidator, MaxLengthValidator,\
 from django.utils.translation import ugettext as _
 
 from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
 
 
@@ -20,8 +19,14 @@ disable_copy_input = {
 
 class BarcodeForm(forms.Form):
     error_messages = {'invalid': _(u"Expecting only numbers for barcodes")}
-    validators = [MaxLengthValidator(255), MinLengthValidator(1), RegexValidator(
-        regex=r'^[0-9]*$', message=_(u"Expecting only numbers for barcodes"))]
+    validators = [
+        MaxLengthValidator(255),
+        MinLengthValidator(1),
+        RegexValidator(
+            regex=r'^[0-9]*$',
+            message=_(u"Expecting only numbers for barcodes")
+        ),
+    ]
 
     barcode = forms.CharField(
         error_messages=error_messages,
@@ -56,7 +61,8 @@ class BarcodeForm(forms.Form):
                 raise forms.ValidationError(_(u"Barcodes do not match!"))
 
             try:
-                result_form = ResultForm.objects.get(barcode=barcode, tally__id=tally_id)
+                result_form = ResultForm.objects.get(barcode=barcode,
+                                                     tally__id=tally_id)
             except ResultForm.DoesNotExist:
                 raise forms.ValidationError(_(u"Barcode does not exist."))
             else:
@@ -64,15 +70,20 @@ class BarcodeForm(forms.Form):
                     raise forms.ValidationError(_(u"Center is disabled."))
                 elif result_form.station_number:
                     try:
-                        station = Station.objects.get(station_number = result_form.station_number, center = result_form.center)
+                        station = Station.objects.get(
+                            station_number=result_form.station_number,
+                            center=result_form.center)
                     except Station.DoesNotExist:
-                        raise forms.ValidationError(_(u"Station does not exist."))
+                        raise forms.ValidationError(
+                            _(u"Station does not exist."))
                     else:
                         if not station.active:
-                            raise forms.ValidationError(_(u"Station disabled."))
+                            raise forms.ValidationError(
+                                _(u"Station disabled."))
                         elif station.sub_constituency:
                             ballot = station.sub_constituency.get_ballot()
                             if ballot and not ballot.active:
-                                raise forms.ValidationError(_(u"Race disabled."))
+                                raise forms.ValidationError(
+                                    _(u"Race disabled."))
 
             return cleaned_data

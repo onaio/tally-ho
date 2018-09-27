@@ -67,7 +67,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'tally',
-        'USER': 'tally',
+        'USER': 'postgres',
         'PASSWORD': 'tally',
         'HOST': '127.0.0.1',
     }
@@ -154,5 +154,3 @@ LOCALE_PATHS = (os.path.realpath(os.path.join(BASE_DIR, '..', 'locale')),)
 
 # Logging
 LOG_FILE_PATH = os.path.join(BASE_DIR, '..', 'dev.log')
-
-

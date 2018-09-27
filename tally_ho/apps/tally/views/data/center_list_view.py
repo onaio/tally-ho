@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.views.generic import TemplateView
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -47,15 +47,23 @@ class CenterListView(LoginRequiredMixin,
             station_list = Station.objects.filter(center__tally__id=tally_id)
 
             station_list = station_list.values(
-                    'center__office__name', 'sub_constituency__code',
-                    'center__name', 'center__code', 'station_number',
-                    'gender', 'registrants', 'percent_received',
-                    'percent_archived',).order_by('center__code')
+                'center__office__name',
+                'sub_constituency__code',
+                'center__name',
+                'center__code',
+                'station_number',
+                'gender',
+                'registrants',
+                'percent_received',
+                'percent_archived',
+            ).order_by('center__code')
 
-            header_map = {'center__office__name': 'office name',
-                    'sub_constituency__code': 'subconstituency code',
-                    'center__name': 'center name',
-                    'center__code': 'center code',}
+            header_map = {
+                'center__office__name': 'office name',
+                'sub_constituency__code': 'subconstituency code',
+                'center__name': 'center name',
+                'center__code': 'center code',
+            }
 
             return render_to_csv_response(station_list,
                                           filename='centers_and_station',

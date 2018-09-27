@@ -18,8 +18,8 @@ GROUP_URLS = {
     groups.DATA_ENTRY_2_CLERK: "data-entry",
     groups.INTAKE_CLERK: "intake",
     groups.INTAKE_SUPERVISOR: "intake",
-    groups.QUALITY_CONTROL_ARCHIVE_CLERK: "quality-control",
-    groups.QUALITY_CONTROL_ARCHIVE_SUPERVISOR: "quality-control",
+    groups.QUALITY_CONTROL_CLERK: "quality-control",
+    groups.QUALITY_CONTROL_SUPERVISOR: "quality-control",
     groups.SUPER_ADMINISTRATOR: "super-administrator-tallies",
     groups.TALLY_MANAGER: "tally-manager",
 }
@@ -60,7 +60,8 @@ class HomeView(LoginRequiredMixin, TemplateView):
             user_group = user.groups.all()[0]
 
             kwargs = {}
-            if user_group.name not in [groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]:
+            if user_group.name not in [groups.TALLY_MANAGER,
+                                       groups.SUPER_ADMINISTRATOR]:
                 userprofile = UserProfile.objects.get(id=user.id)
                 if not userprofile.tally:
                     return reverse('home-no-tally')

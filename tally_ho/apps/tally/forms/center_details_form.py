@@ -74,7 +74,8 @@ class CenterDetailsForm(forms.Form):
                 raise forms.ValidationError(_(u"Station Numbers do not match"))
 
             try:
-                center = Center.objects.get(code=center_number, tally__id=tally_id)
+                center = Center.objects.get(code=center_number,
+                                            tally__id=tally_id)
                 valid_station_numbers = [
                     list(d.values())[0] for d in
                     center.stations.values('station_number')]
@@ -87,7 +88,8 @@ class CenterDetailsForm(forms.Form):
                     raise forms.ValidationError(_(
                         u"Center is disabled"))
 
-                station = Station.objects.get(center = center, station_number = station_number)
+                station = Station.objects.get(center=center,
+                                              station_number=station_number)
 
                 if not station.active:
                     raise forms.ValidationError(_(
@@ -101,6 +103,7 @@ class CenterDetailsForm(forms.Form):
                 raise forms.ValidationError(_(u"Center Number does not exist"))
 
             except Station.DoesNotExist:
-                raise forms.ValidationError(_(u"Station Number does not exist"))
+                raise forms.ValidationError(
+                    _(u"Station Number does not exist"))
 
             return cleaned_data

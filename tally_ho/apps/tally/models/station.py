@@ -16,6 +16,10 @@ from tally_ho.libs.utils.templates import get_edits_link
 from tally_ho.libs.models.enums.disable_reason import DisableReason
 
 
+def status_to_str(status):
+    return ('Enabled' if status else 'Disabled')
+
+
 class Station(BaseModel):
     class Meta:
         app_label = 'tally'
@@ -57,11 +61,11 @@ class Station(BaseModel):
 
     @property
     def station_status(self):
-        return ('Enabled' if self.active else 'Disabled') if self else None
+        return status_to_str(self.active) if self else None
 
     @property
     def center_status(self):
-        return ('Enabled' if self.center.active else 'Disabled') if self else None
+        return status_to_str(self.center.active) if self else None
 
     @property
     def center_office(self):

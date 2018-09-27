@@ -66,7 +66,7 @@ def local_deploy():
     run('tar xzvf %s.tgz' % env.project)
     run('mv %s-clean %s' % (env.project, env.project))
 
-    ## remove existing deploy and clean new deploy
+    # remove existing deploy and clean new deploy
     run('find %s -name "*.pyc" -exec rm -rf {} \;' % env.project)
     run('find %s -name "._*" -exec rm -rf {} \;' % env.project)
     run('./%s/scripts/install_app %s' % (env.project, env.db_host))
@@ -88,7 +88,9 @@ def manage_functions(deployment_name):
 def deploy(deployment_name, branch='master'):
     setup_env(deployment_name)
     env.use_ssh_config = True
-    run('sudo service monit stop && sudo service nginx stop && sudo stop tally')
+    run('sudo service monit stop && '
+        'sudo service nginx stop && '
+        'sudo stop tally')
 
     if getattr(env, 'from_local', False):
         local_deploy()
@@ -105,7 +107,9 @@ def deploy(deployment_name, branch='master'):
 
     manage_functions(deployment_name)
 
-    run('sudo start tally && sudo service nginx start && sudo service monit start')
+    run('sudo start tally && '
+        'sudo service nginx start && '
+        'sudo service monit start')
 
 
 def reload_all(deployment_name):

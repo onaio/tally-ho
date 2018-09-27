@@ -55,8 +55,7 @@ def write_utf8(w, output):
                 for k, v in output.items()})
 
 
-def valid_ballots(tally_id = None):
-    #return Ballot.objects.exclude(number=54)
+def valid_ballots(tally_id=None):
     return Ballot.objects.filter(tally__id=tally_id)
 
 
@@ -161,8 +160,8 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
         w = csv.DictWriter(f, header)
         w.writeheader()
 
-        result_forms = ResultForm.objects\
-            .select_related().filter(barcode__in=complete_barcodes, tally__id=tally_id)
+        result_forms = ResultForm.objects.select_related().filter(
+            barcode__in=complete_barcodes, tally__id=tally_id)
 
         for result_form in result_forms:
             # build list of votes for this barcode
@@ -193,8 +192,10 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
         save_csv_file_and_symlink(csv_file, RESULTS_PATH % tally_id)
 
     if output_duplicates:
-        return save_center_duplicates(center_to_votes, center_to_forms,
-                                      output_to_file=output_to_file, tally_id=tally_id)
+        return save_center_duplicates(center_to_votes,
+                                      center_to_forms,
+                                      output_to_file=output_to_file,
+                                      tally_id=tally_id)
     return csv_file.name
 
 
@@ -247,13 +248,17 @@ def save_center_duplicates(center_to_votes, center_to_forms,
                         write_utf8(w, output)
 
     if output_to_file:
-        return save_csv_file_and_symlink(csv_file, DUPLICATE_RESULTS_PATH % tally_id)
+        return save_csv_file_and_symlink(csv_file,
+                                         DUPLICATE_RESULTS_PATH % tally_id)
 
     return csv_file.name
 
 
-def export_candidate_votes(save_barcodes=False, output_duplicates=True,
-                           output_to_file=True, show_disabled_candidates=True, tally_id=None):
+def export_candidate_votes(save_barcodes=False,
+                           output_duplicates=True,
+                           output_to_file=True,
+                           show_disabled_candidates=True,
+                           tally_id=None):
     """Export a spreadsheet of the candidates their votes for each race.
 
     :param save_barcodes: Generate barcode result file, default False.
@@ -304,8 +309,8 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
             num_stations_completed = final_forms.count()
 
             percent_complete = round(
-                100 * num_stations_completed / num_stations, 3) if num_stations\
-                else 0
+                100 * num_stations_completed / num_stations, 3) if \
+                num_stations else 0
 
             output = OrderedDict({
                 'ballot number': ballot.number,
@@ -341,7 +346,7 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
                 candidates_to_votes.items(), key=lambda t: t[1][0],
                 reverse=True)))
 
-            #Checks changes in candidates positions
+            # Checks changes in candidates positions
             check_position_changes(candidates_to_votes)
 
             for i, item in enumerate(candidates_to_votes.items()):
@@ -349,7 +354,8 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
 
                 output['candidate %s name' % (i + 1)] = candidate
                 output['candidate %s votes' % (i + 1)] = votes[0]
-                output['candidate %s votes included quarantine' % (i + 1)] = votes[1]
+                output['candidate %s votes included quarantine' %
+                       (i + 1)] = votes[1]
 
             write_utf8(w, output)
 
@@ -368,7 +374,8 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
 
 
 def check_position_changes(candidates_votes):
-    #Order candidates by valid votes and all votes included quarantine
+    """Order candidates by valid votes and all votes included quarantine
+    """
     sort_valid_votes = OrderedDict((sorted(
                         candidates_votes.items(), key=lambda t: t[1][0],
                         reverse=True)))
@@ -376,14 +383,13 @@ def check_position_changes(candidates_votes):
                         candidates_votes.items(), key=lambda t: t[1][1],
                         reverse=True)))
 
-    #Get first five candidates
+    # Get first five candidates
     valid_votes = dict(enumerate(sort_valid_votes.keys()[0:5]))
     all_votes = dict(enumerate(sort_all_votes.keys()[0:5]))
 
-
-    #If they are not de same, warn the super-admin
+    # If they are not de same, warn the super-admin
     if valid_votes != all_votes:
-        #TODO: how show be warn super admin?
+        # TODO: how show be warn super admin?
         pass
 
 
@@ -401,20 +407,26 @@ def get_result_export_response(report, tally_id):
     if report == 'formresults':
         filename = os.path.join('results', 'form_results_%d.csv' % tally_id)
     elif report == 'all-candidates':
-        filename = os.path.join('results', 'all_candidate_votes_%d.csv' % tally_id)
+        filename = os.path.join('results',
+                                'all_candidate_votes_%d.csv' % tally_id)
     elif report == 'active-candidates':
-        filename = os.path.join('results', 'active_candidate_votes_%d.csv' % tally_id)
+        filename = os.path.join('results',
+                                'active_candidate_votes_%d.csv' % tally_id)
         show_disabled = False
     elif report == 'duplicates':
-        filename = os.path.join('results', 'duplicate_results_%d.csv' % tally_id)
+        filename = os.path.join('results',
+                                'duplicate_results_%d.csv' % tally_id)
 
     response = HttpResponse(content_type='text/csv')
 
     try:
-        #FIXME: if file it's been already generated, does not generate new one. correct??
+        # FIXME: if file it's been already generated,
+        # does not generate new one. correct??
         if not os.path.exists(filename):
-            export_candidate_votes(save_barcodes=True, output_duplicates=True,
-                                  show_disabled_candidates=show_disabled, tally_id=tally_id)
+            export_candidate_votes(save_barcodes=True,
+                                   output_duplicates=True,
+                                   show_disabled_candidates=show_disabled,
+                                   tally_id=tally_id)
 
         path = os.readlink(filename)
         filename = os.path.basename(path)

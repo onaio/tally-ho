@@ -128,8 +128,10 @@ def check_state_and_group(result_form, user, form):
     :returns: A form with an error the form and user do not match, otherwise
         None.
     """
-    check_state = safe_form_in_state(result_form,
-            [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2], form)
+    check_state = safe_form_in_state(
+        result_form,
+        [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2],
+        form)
     check_group = check_group_for_state(result_form, user, form)
 
     return check_state or check_group
@@ -176,7 +178,9 @@ class DataEntryView(LoginRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            barcode=barcode,
+                                            tally__id=tally_id)
             check_form = check_state_and_group(
                 result_form, self.request.user, form)
 
@@ -254,9 +258,11 @@ class CenterDetailsView(LoginRequiredMixin,
 
             return redirect(self.success_url, tally_id=tally_id)
         else:
-            return self.render_to_response(self.get_context_data(form=form,
-                                           result_form=result_form, tally_id=tally_id,
-                                           header_text=get_header_text(result_form)))
+            return self.render_to_response(self.get_context_data(
+                form=form,
+                result_form=result_form,
+                tally_id=tally_id,
+                header_text=get_header_text(result_form)))
 
 
 class EnterResultsView(LoginRequiredMixin,

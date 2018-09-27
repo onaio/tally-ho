@@ -1,28 +1,36 @@
+from django import forms
+from django.utils.translation import ugettext_lazy as _
+
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 
 
-def disableEnableEntity(centerCode, stationNumber, disableReason=None, tally_id = None):
+def disableEnableEntity(centerCode,
+                        stationNumber,
+                        disableReason=None,
+                        tally_id=None):
     entities = []
     entity_to_return = None
     status_target = False
     try:
         if stationNumber:
-            entity_to_return = Station.objects.get(station_number=stationNumber,
-                                                   center__code=centerCode,
-                                                   center__tally__id=tally_id)
+            entity_to_return = Station.objects.get(
+                station_number=stationNumber,
+                center__code=centerCode,
+                center__tally__id=tally_id)
             status_target = not entity_to_return.active
 
             entities.append(entity_to_return)
         else:
-            entity_to_return = Center.objects.get(code=centerCode, tally__id=tally_id)
+            entity_to_return = Center.objects.get(code=centerCode,
+                                                  tally__id=tally_id)
             status_target = not entity_to_return.active
 
             entities.append(entity_to_return)
             entities += Station.objects.filter(center__code=centerCode,
-                                            center__tally__id=tally_id)
+                                               center__tally__id=tally_id)
     except Center.DoesNotExist:
         raise forms.ValidationError(_(u"Center Number does not exist"))
     except Station.DoesNotExist:
@@ -39,11 +47,11 @@ def disableEnableEntity(centerCode, stationNumber, disableReason=None, tally_id 
         return entity_to_return
 
 
-def disableEnableRace(raceId, disableReason = None):
+def disableEnableRace(race_id, disableReason=None):
     race = None
 
     try:
-        race = Ballot.objects.get(id = raceId)
+        race = Ballot.objects.get(id=race_id)
 
     except Ballot.DoesNotExist:
         raise forms.ValidationError(_(u"Race does not exist"))

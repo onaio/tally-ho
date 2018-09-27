@@ -20,7 +20,9 @@ from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
-from tally_ho.apps.tally.forms.edit_user_profile_form import EditUserProfileForm
+from tally_ho.apps.tally.forms.edit_user_profile_form import (
+    EditUserProfileForm,
+)
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
@@ -32,11 +34,18 @@ from tally_ho.libs.models.enums.audit_resolution import\
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
-from tally_ho.libs.utils.functions import disableEnableEntity, disableEnableRace, \
-    disableEnableCandidate
+from tally_ho.libs.utils.functions import (
+    disableEnableEntity,
+    disableEnableRace,
+    disableEnableCandidate,
+)
 from tally_ho.libs.views import mixins
-from tally_ho.libs.views.exports import get_result_export_response,\
-    valid_ballots, distinct_forms, SPECIAL_BALLOTS
+from tally_ho.libs.views.exports import (
+    get_result_export_response,
+    valid_ballots,
+    distinct_forms,
+    SPECIAL_BALLOTS,
+)
 from tally_ho.libs.views.pagination import paging
 
 
@@ -49,13 +58,18 @@ def duplicates(qs, tally_id=None):
     dupes = ResultForm.objects.values(
         'center', 'ballot', 'station_number', 'tally__id').annotate(
         Count('id')).order_by().filter(id__count__gt=1).filter(
-        center__isnull=False, ballot__isnull=False,
-        station_number__isnull=False, tally__id=tally_id).exclude(form_state=FormState.UNSUBMITTED)
+            center__isnull=False,
+            ballot__isnull=False,
+            station_number__isnull=False,
+            tally__id=tally_id,
+        ).exclude(form_state=FormState.UNSUBMITTED)
 
     pks = flatten([map(lambda x: x['id'], ResultForm.objects.filter(
-        center=item['center'], ballot=item['ballot'],
-        station_number=item['station_number'], tally__id=item['tally__id']).values('id'))
-        for item in dupes])
+        center=item['center'],
+        ballot=item['ballot'],
+        station_number=item['station_number'],
+        tally__id=item['tally__id'],
+    ).values('id')) for item in dupes])
 
     return qs.filter(pk__in=pks)
 
@@ -67,7 +81,8 @@ def clearance(tally_id=None):
     :returns: A list of result forms in the system that are in clearance state.
     """
 
-    return ResultForm.objects.filter(form_state=FormState.CLEARANCE, tally__id=tally_id)
+    return ResultForm.objects.filter(form_state=FormState.CLEARANCE,
+                                     tally__id=tally_id)
 
 
 def audit(tally_id=None):
@@ -77,7 +92,8 @@ def audit(tally_id=None):
     :returns: A list of result forms in the system that are in audit pending
     state.
     """
-    return ResultForm.objects.filter(form_state=FormState.AUDIT, tally__id=tally_id)
+    return ResultForm.objects.filter(form_state=FormState.AUDIT,
+                                     tally__id=tally_id)
 
 
 def get_results_duplicates(tally_id):
@@ -92,7 +108,8 @@ def get_results_duplicates(tally_id):
             complete_barcodes.extend([r.barcode for r in final_forms])
 
     result_forms = ResultForm.objects\
-        .select_related().filter(barcode__in=complete_barcodes, tally__id=tally_id)
+        .select_related().filter(barcode__in=complete_barcodes,
+                                 tally__id=tally_id)
 
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
@@ -138,7 +155,8 @@ class TalliesView(LoginRequiredMixin,
     template_name = "super_admin/tallies.html"
 
     def get(self, request, *args, **kwargs):
-        kwargs['userprofile'] = UserProfile.objects.get(id=self.request.user.id)
+        kwargs['userprofile'] = UserProfile.objects.get(
+            id=self.request.user.id)
         return super(TalliesView, self).get(request, *args, **kwargs)
 
 
@@ -355,7 +373,7 @@ class RemoveCenterView(LoginRequiredMixin,
                 % {'center': center.code})
             self.success_url = reverse('remove-center-confirmation',
                                        kwargs={'center_code': center.code,
-                                            'tally_id': center.tally.id})
+                                               'tally_id': center.tally.id})
             return redirect(self.success_url)
         return self.form_invalid(form)
 
@@ -384,7 +402,8 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
         return self.render_to_response(context)
 
     def get_object(self, queryset=None):
-        return Center.objects.get(code=self.kwargs['center_code'], tally__id=self.kwargs['tally_id'])
+        return Center.objects.get(code=self.kwargs['center_code'],
+                                  tally__id=self.kwargs['tally_id'])
 
     def post(self, request, *args, **kwargs):
         self.tally_id = self.kwargs['tally_id']
@@ -525,7 +544,7 @@ class DisableRaceView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        race_id= kwargs.get('raceId')
+        race_id = kwargs.get('raceId')
 
         self.initial = {
             'centerCodeInput': None,
@@ -569,7 +588,9 @@ class EnableRaceView(LoginRequiredMixin,
 
         disableEnableRace(raceId)
 
-        messages.add_message(self.request, messages.INFO, _(u"Race Successfully enabled."))
+        messages.add_message(self.request,
+                             messages.INFO,
+                             _(u"Race Successfully enabled."))
 
         return redirect(self.success_url, tally_id=tally_id)
 
@@ -605,12 +626,16 @@ class RemoveStationView(LoginRequiredMixin,
             station = form.save()
             self.success_message = _(
                 u"Successfully removed station %(station)s from "
-                u"center %(center)s." % {'center': station.center.code,
-                                         'station': station.station_number})
-            self.success_url = reverse('remove-station-confirmation',
-                                       kwargs={'center_code': station.center_code,
-                                               'station_number': station.station_number,
-                                               'tally_id': station.center.tally.id})
+                u"center %(center)s." % {
+                    'center': station.center.code,
+                    'station': station.station_number
+                })
+            self.success_url = reverse(
+                'remove-station-confirmation',
+                kwargs={
+                    'center_code': station.center_code,
+                    'station_number': station.station_number,
+                    'tally_id': station.center.tally.id})
             return redirect(self.success_url)
         return self.form_invalid(form)
 
@@ -769,7 +794,7 @@ class DisableCandidateView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         candidate_id = kwargs.get('candidateId')
-        tally_id= kwargs.get('tally_id')
+        tally_id = kwargs.get('tally_id')
 
         self.success_message = _(u"Candidate successfully disabled.")
 
@@ -805,7 +830,8 @@ class EditUserView(LoginRequiredMixin,
         return context
 
     def get_success_url(self):
-        return reverse('user-tally-list', kwargs={'tally_id': self.kwargs.get('tally_id')})
+        return reverse('user-tally-list',
+                       kwargs={'tally_id': self.kwargs.get('tally_id')})
 
     def get_object(self, queryset=None):
         user = super(EditUserView, self).get_object(queryset)
@@ -839,4 +865,5 @@ class CreateUserView(LoginRequiredMixin,
         return context
 
     def get_success_url(self):
-        return reverse('user-tally-list', kwargs={'tally_id': self.kwargs.get('tally_id')})
+        return reverse('user-tally-list',
+                       kwargs={'tally_id': self.kwargs.get('tally_id')})

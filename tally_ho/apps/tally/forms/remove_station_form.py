@@ -51,7 +51,8 @@ class RemoveStationForm(forms.Form):
             tally_id = cleaned_data.get('tally_id')
 
             try:
-                center = Center.objects.get(code=center_number, tally__id=tally_id)
+                center = Center.objects.get(code=center_number,
+                                            tally__id=tally_id)
                 stations = center.stations.all()
                 valid_station_numbers = [s.station_number for s in stations]
 

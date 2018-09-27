@@ -51,7 +51,7 @@ def save_final_recon_form(updated, user, result_form):
     recon_form_final.save()
 
 
-def incorrect_checks(post_data, result_form, success_url, tally_id = None):
+def incorrect_checks(post_data, result_form, success_url, tally_id=None):
     """Perform non-success operations on a result form give the post data.
 
     :param post_data: Data to determine the appropriate action for.
@@ -206,7 +206,9 @@ class CorrectionView(LoginRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            barcode=barcode,
+                                            tally__id=tally_id)
             form = safe_form_in_state(result_form, FormState.CORRECTION, form)
 
             if form:
@@ -250,7 +252,9 @@ class CorrectionMatchView(LoginRequiredMixin,
         if form.is_valid():
             pk = session_matches_post_result_form(
                 form.cleaned_data, self.request)
-            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+            result_form = get_object_or_404(ResultForm,
+                                            pk=pk,
+                                            tally__id=tally_id)
             form_in_state(result_form, [FormState.CORRECTION])
 
             if not result_form.corrections_passed:
@@ -336,7 +340,10 @@ class CorrectionRequiredView(LoginRequiredMixin,
 
             return redirect(self.success_url, tally_id=tally_id)
         else:
-            return incorrect_checks(post_data, result_form, 'corrections', tally_id)
+            return incorrect_checks(post_data,
+                                    result_form,
+                                    'corrections',
+                                    tally_id)
 
 
 class ConfirmationView(LoginRequiredMixin,

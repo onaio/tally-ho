@@ -1,21 +1,34 @@
-import json
 import csv
+import json
 
-from django.views.generic import FormView, TemplateView, CreateView, UpdateView, DeleteView
-from django.utils.translation import ugettext_lazy as _
 from django.contrib.messages.views import SuccessMessageMixin
-from django.core.urlresolvers import reverse
+from django.views.generic import (
+    FormView,
+    TemplateView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+)
 from django.http import HttpResponseRedirect, HttpResponse
-
+from django.urls import reverse
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.libs.views import mixins
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.user_profile import UserProfile
-from tally_ho.apps.tally.forms.edit_user_profile_form import EditUserProfileForm
-from tally_ho.apps.tally.forms.edit_user_profile_form import EditAdminProfileForm
-from tally_ho.apps.tally.management.commands.import_data import process_sub_constituency_row, \
-    process_center_row, process_station_row, process_candidate_row, process_results_form_row
+from tally_ho.apps.tally.forms.edit_user_profile_form import (
+    EditUserProfileForm,
+)
+from tally_ho.apps.tally.forms.edit_user_profile_form import (
+    EditAdminProfileForm,
+)
+from tally_ho.apps.tally.management.commands.import_data import (
+    process_sub_constituency_row,
+    process_center_row,
+    process_station_row,
+    process_candidate_row,
+    process_results_form_row,
+)
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.forms.tally_form import TallyForm
 from tally_ho.apps.tally.forms.tally_files_form import TallyFilesForm
@@ -44,13 +57,17 @@ def save_file(file_uploaded, file_name):
     return num_lines
 
 
-def import_rows_batch(tally, file_to_parse, file_lines, offset, function, **kwargs):
-    elements_processed = 0;
+def import_rows_batch(tally,
+                      file_to_parse,
+                      file_lines,
+                      offset,
+                      function,
+                      **kwargs):
+    elements_processed = 0
     id_to_ballot_order = {}
+    ballot_file_to_parse = kwargs.get('ballots_order_file', False)
 
-    if kwargs.has_key('ballots_order_file') and kwargs.get('ballots_order_file'):
-        ballot_file_to_parse = kwargs.get('ballots_order_file')
-
+    if ballot_file_to_parse:
         with ballot_file_to_parse as f:
             reader = csv.reader(f)
             reader.next()  # ignore header
@@ -132,7 +149,8 @@ class RemoveUserConfirmationView(LoginRequiredMixin,
     slug_field = 'id'
 
     def get_context_data(self, **kwargs):
-        context = super(RemoveUserConfirmationView, self).get_context_data(**kwargs)
+        context = super(
+            RemoveUserConfirmationView, self).get_context_data(**kwargs)
         context['is_admin'] = self.object.is_administrator
         context['all_tallies'] = self.object.administrated_tallies.all()
 
@@ -169,8 +187,8 @@ class CreateUserView(LoginRequiredMixin,
 
 
 class CreateTallyView(LoginRequiredMixin,
-                    mixins.GroupRequiredMixin,
-                    CreateView):
+                      mixins.GroupRequiredMixin,
+                      CreateView):
     group_required = groups.TALLY_MANAGER
     template_name = "tally_manager/tally_form.html"
     form_class = TallyForm
@@ -181,9 +199,9 @@ class CreateTallyView(LoginRequiredMixin,
 
 
 class TallyUpdateView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.ReverseSuccessURLMixin,
-                     UpdateView):
+                      mixins.GroupRequiredMixin,
+                      mixins.ReverseSuccessURLMixin,
+                      UpdateView):
     template_name = 'tally_manager/tally_form.html'
     group_required = groups.TALLY_MANAGER
 
@@ -200,17 +218,18 @@ class TallyUpdateView(LoginRequiredMixin,
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
-        context = self.get_context_data(tally_id=self.kwargs['tally_id'], form=form)
+        context = self.get_context_data(tally_id=self.kwargs['tally_id'],
+                                        form=form)
 
         return self.render_to_response(context)
 
 
 class TallyRemoveView(LoginRequiredMixin,
-                    mixins.GroupRequiredMixin,
-                    mixins.ReverseSuccessURLMixin,
-                    DeleteView):
+                      mixins.GroupRequiredMixin,
+                      mixins.ReverseSuccessURLMixin,
+                      DeleteView):
     template_name = 'tally_manager/tally_remove.html'
-    group_required= groups.TALLY_MANAGER
+    group_required = groups.TALLY_MANAGER
     model = Tally
     success_url = 'tally-list'
 
@@ -220,9 +239,9 @@ class TallyRemoveView(LoginRequiredMixin,
 
 
 class TallyFilesFormView(LoginRequiredMixin,
-                    mixins.GroupRequiredMixin,
-                    SuccessMessageMixin,
-                    FormView):
+                         mixins.GroupRequiredMixin,
+                         SuccessMessageMixin,
+                         FormView):
     group_required = groups.TALLY_MANAGER
     template_name = "tally_manager/tally_files_form.html"
     form_class = TallyFilesForm
@@ -257,28 +276,38 @@ class TallyFilesFormView(LoginRequiredMixin,
         stations_file_lines = save_file(data['stations_file'], stations_file)
 
         candidates_file = 'candidates_%d.csv' % (tally_id)
-        candidates_file_lines = save_file(data['candidates_file'], candidates_file)
+        candidates_file_lines = save_file(data['candidates_file'],
+                                          candidates_file)
 
         ballots_order_file = 'ballot_order_%d.csv' % (tally_id)
-        ballots_order_file_lines = save_file(data['ballots_order_file'], ballots_order_file)
+        ballots_order_file_lines = save_file(data['ballots_order_file'],
+                                             ballots_order_file)
 
         result_forms_file = 'result_forms_%d.csv' % (tally_id)
-        result_forms_file_lines = save_file(data['result_forms_file'], result_forms_file)
+        result_forms_file_lines = save_file(data['result_forms_file'],
+                                            result_forms_file)
 
-        url_kwargs = {'tally_id': tally_id, 'subconst_file': subconst_file,
-                'subconst_file_lines': subconst_file_lines,
-                'centers_file': centers_file, 'centers_file_lines': centers_file_lines,
-                'stations_file': stations_file, 'stations_file_lines': stations_file_lines,
-                'candidates_file': candidates_file, 'candidates_file_lines': candidates_file_lines,
-                'ballots_order_file': ballots_order_file,
-                'result_forms_file': result_forms_file, 'result_forms_file_lines': result_forms_file_lines}
-        return HttpResponseRedirect(reverse(self.success_url, kwargs=url_kwargs))
+        url_kwargs = {'tally_id': tally_id,
+                      'subconst_file': subconst_file,
+                      'subconst_file_lines': subconst_file_lines,
+                      'centers_file': centers_file,
+                      'centers_file_lines': centers_file_lines,
+                      'stations_file': stations_file,
+                      'stations_file_lines': stations_file_lines,
+                      'candidates_file': candidates_file,
+                      'candidates_file_lines': candidates_file_lines,
+                      'ballots_order_file': ballots_order_file_lines,
+                      'result_forms_file': result_forms_file,
+                      'result_forms_file_lines': result_forms_file_lines}
+
+        return HttpResponseRedirect(reverse(self.success_url,
+                                            kwargs=url_kwargs))
 
 
 class BatchView(LoginRequiredMixin,
-        mixins.GroupRequiredMixin,
-        SuccessMessageMixin,
-        TemplateView):
+                mixins.GroupRequiredMixin,
+                SuccessMessageMixin,
+                TemplateView):
     group_required = groups.TALLY_MANAGER
     template_name = "tally_manager/batch_progress.html"
 
@@ -293,36 +322,51 @@ class BatchView(LoginRequiredMixin,
 
         ballots_order_file = None
         if currentStep == 1:
-            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['subconst_file'], 'rU')
+            file_to_parse = open(
+                UPLOADED_FILES_PATH + kwargs['subconst_file'], 'rU')
             file_lines = int(kwargs['subconst_file_lines'])
 
             process_function = process_sub_constituency_row
 
         elif currentStep == 2:
-            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['centers_file'], 'rU')
+            file_to_parse = open(
+                UPLOADED_FILES_PATH + kwargs['centers_file'], 'rU')
             file_lines = int(kwargs['centers_file_lines'])
 
             process_function = process_center_row
 
         elif currentStep == 3:
-            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['stations_file'], 'rU')
+            file_to_parse = open(
+                UPLOADED_FILES_PATH + kwargs['stations_file'], 'rU')
             file_lines = int(kwargs['stations_file_lines'])
 
             process_function = process_station_row
 
         elif currentStep == 4:
-            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['candidates_file'], 'rU')
+            file_to_parse = open(
+                UPLOADED_FILES_PATH + kwargs['candidates_file'], 'rU')
             file_lines = int(kwargs['candidates_file_lines'])
 
-            ballots_order_file = open(UPLOADED_FILES_PATH + kwargs['ballots_order_file'], 'rU')
+            ballots_order_file = open(
+                UPLOADED_FILES_PATH + kwargs['ballots_order_file'], 'rU')
             process_function = process_candidate_row
 
         elif currentStep == 5:
-            file_to_parse = open(UPLOADED_FILES_PATH + kwargs['result_forms_file'], 'rU')
+            file_to_parse = open(
+                UPLOADED_FILES_PATH + kwargs['result_forms_file'], 'rU')
             file_lines = int(kwargs['result_forms_file_lines'])
 
             process_function = process_results_form_row
 
-        elements_processed = import_rows_batch(tally, file_to_parse, file_lines, offset, process_function, ballots_order_file=ballots_order_file)
+        elements_processed = import_rows_batch(
+            tally,
+            file_to_parse,
+            file_lines,
+            offset,
+            process_function,
+            ballots_order_file=ballots_order_file)
 
-        return HttpResponse(json.dumps({'status': 'OK', 'elements_processed': elements_processed}), content_type='application/json')
+        return HttpResponse(json.dumps({
+            'status': 'OK',
+            'elements_processed': elements_processed}),
+                            content_type='application/json')

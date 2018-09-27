@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
 from django.db.models import Q, Sum
-from django.db.utils import ProgrammingError
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as _
 from enumfields import EnumIntegerField
@@ -13,7 +12,7 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
-from tally_ho.libs.models.enums.clearance_resolution import CLEARANCE_CHOICES
+from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
@@ -165,7 +164,11 @@ class ResultForm(BaseModel):
     is_replacement = models.BooleanField(default=False)
     intake_printed = models.BooleanField(default=False)
     clearance_printed = models.BooleanField(default=False)
-    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='result_forms')
+    tally = models.ForeignKey(Tally,
+                              null=True,
+                              blank=True,
+                              related_name='result_forms',
+                              on_delete=models.PROTECT)
 
     # Field used in result duplicated list view
     results_duplicated = []
@@ -237,7 +240,8 @@ class ResultForm(BaseModel):
     def audit_recommendation(self):
         recomendation_index = self.audit.resolution_recommendation if\
             self.audit else ""
-        return CLEARANCE_CHOICES[recomendation_index][1].capitalize()
+        return ClearanceResolution.CHOICES[
+                  recomendation_index][1].capitalize()
 
     @property
     def form_state_name(self):
@@ -349,7 +353,8 @@ class ResultForm(BaseModel):
     def clearance_recommendation(self):
         recomendation_index = self.clearance.resolution_recommendation if\
             self.clearance else ""
-        return CLEARANCE_CHOICES[recomendation_index][1].capitalize()
+        return ClearanceResolution.CHOICES[
+            recomendation_index][1].capitalize()
 
     @property
     def clearance_team_reviewed(self):
@@ -512,7 +517,8 @@ class ResultForm(BaseModel):
         # TODO use a subquery that preserves the distinct and the order by
         # or cache this.
         if tally_id:
-            return [r.pk for r in cls.distinct_filter(cls.distinct_forms(tally_id), tally_id)]
+            return [r.pk for r in cls.distinct_filter(
+                cls.distinct_forms(tally_id), tally_id)]
 
         return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
 
@@ -522,7 +528,9 @@ class ResultForm(BaseModel):
             pks = cls.distinct_form_pks(tally_id)
 
         if tally_id:
-            return cls.objects.filter(id__in=pks, form_state=state, tally__id=tally_id)
+            return cls.objects.filter(id__in=pks,
+                                      form_state=state,
+                                      tally__id=tally_id)
         return cls.objects.filter(id__in=pks, form_state=state)
 
     @classmethod
@@ -536,7 +544,8 @@ class ResultForm(BaseModel):
 
         :returns: A new unique integer barcode.
         """
-        result_forms = cls.objects.filter(tally__id=tally_id).order_by('-barcode')
+        result_forms = cls.objects.filter(
+            tally__id=tally_id).order_by('-barcode')
         highest_barcode = result_forms[0].barcode if result_forms else\
             cls.START_BARCODE
 
@@ -583,5 +592,6 @@ class ResultForm(BaseModel):
             audit.active = False
             audit.save()
         self.save()
+
 
 reversion.register(ResultForm)
