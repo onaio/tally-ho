@@ -93,9 +93,9 @@ class TestQualityControl(TestBase):
         self._create_and_login_user()
         result_form = ResultForm.objects.get(barcode=barcode)
         quality_control = create_quality_control(result_form, self.user)
-        quality_control.passed_general = True
-        quality_control.passed_reconciliation = True
-        quality_control.passed_women = True
+        quality_control.passed_general = False
+        quality_control.passed_reconciliation = False
+        quality_control.passed_women = False
         quality_control.save()
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -111,7 +111,11 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/success',
                       response['location'])
-        self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+        quality_control = result_form.qualitycontrol
+        self.assertTrue(quality_control.passed_general)
+        self.assertTrue(quality_control.passed_reconciliation)
+        self.assertTrue(quality_control.passed_women)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
 
     def test_dashboard_get_double_recon(self):
         barcode = '123456789'
@@ -228,7 +232,7 @@ class TestQualityControl(TestBase):
                       response['location'])
         quality_control = QualityControl.objects.get(
             pk=result_form.qualitycontrol.pk)
-        self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertTrue(quality_control.passed_reconciliation)
 
     def test_reconciliation_post_incorrect(self):
@@ -343,7 +347,7 @@ class TestQualityControl(TestBase):
                       response['location'])
         quality_control = QualityControl.objects.get(
             pk=result_form.qualitycontrol.pk)
-        self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertTrue(quality_control.passed_general)
 
     def test_general_post_incorrect(self):
@@ -450,7 +454,7 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/success',
                       response['location'])
         quality_control = result_form.qualitycontrol_set.all()[0]
-        self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertTrue(quality_control.passed_women)
 
     def test_women_post_incorrect(self):
