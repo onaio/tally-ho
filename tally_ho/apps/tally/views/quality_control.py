@@ -89,8 +89,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
     form_class = BarcodeForm
     group_required = groups.QUALITY_CONTROL_CLERK
     template_name = "quality_control/dashboard.html"
-    success_url = 'archive-print'
-    success_url = 'quality-control-success'
+    success_url = 'quality-control-print'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -157,7 +156,7 @@ class PrintView(LoginRequiredMixin,
     form_class = BarcodeForm
     group_required = groups.QUALITY_CONTROL_CLERK
     template_name = "quality_control/print_cover.html"
-    success_url = 'qualit-control-success'
+    success_url = 'quality-control-success'
 
     def get(self, *args, **kwargs):
         """Display print view with a cover for audit if an audit exists
@@ -202,5 +201,5 @@ class ConfirmationView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   header_text=_('Quality Control'),
-                                  next_step=_('Archived'),
+                                  next_step=_('Archiving'),
                                   start_url='quality-control'))

@@ -5,12 +5,14 @@ from django.test import RequestFactory
 
 from tally_ho.apps.tally.views import quality_control as views
 from tally_ho.apps.tally.models.quality_control import QualityControl
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import create_candidates,\
     create_reconciliation_form, create_recon_forms, create_result_form,\
-    create_center, create_station, TestBase
+    create_center, create_station, create_audit, TestBase
+from tally_ho.libs.verify.quarantine_checks import create_quarantine_checks
 
 
 def create_quality_control(result_form, user):
@@ -109,7 +111,7 @@ class TestQualityControl(TestBase):
         result_form = ResultForm.objects.get(pk=result_form.pk)
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/success',
+        self.assertIn('quality-control/print',
                       response['location'])
         quality_control = result_form.qualitycontrol
         self.assertTrue(quality_control.passed_general)
@@ -228,7 +230,7 @@ class TestQualityControl(TestBase):
         result_form.reload()
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/success',
+        self.assertIn('quality-control/print',
                       response['location'])
         quality_control = QualityControl.objects.get(
             pk=result_form.qualitycontrol.pk)
@@ -343,7 +345,7 @@ class TestQualityControl(TestBase):
         result_form.reload()
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/success',
+        self.assertIn('quality-control/print',
                       response['location'])
         quality_control = QualityControl.objects.get(
             pk=result_form.qualitycontrol.pk)
@@ -451,7 +453,7 @@ class TestQualityControl(TestBase):
         result_form.reload()
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn('quality-control/success',
+        self.assertIn('quality-control/print',
                       response['location'])
         quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
@@ -510,6 +512,160 @@ class TestQualityControl(TestBase):
         quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertEqual(quality_control.active, False)
 
+    def test_quality_control_post_quarantine_pass_with_zero_diff(self):
+        center = create_center()
+        create_station(center)
+        create_quarantine_checks()
+        self._create_and_login_user()
+        result_form = create_result_form(
+            form_state=FormState.QUALITY_CONTROL,
+            center=center, station_number=1)
+        recon_form = create_reconciliation_form(
+            result_form, self.user, number_unstamped_ballots=0)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {'correct': 1, 'result_form': result_form.pk}
+        request = self.factory.post('/', data=data)
+        request.session = {'result_form': result_form.pk}
+        request.user = self.user
+        response = view(request)
+        result_form.reload()
+
+        self.assertEqual(result_form.num_votes,
+                         recon_form.number_ballots_expected)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(result_form.form_state, FormState.AUDIT)
+        self.assertIsNone(result_form.audit)
+        self.assertEqual(result_form.audited_count, 0)
+        self.assertIn('quality-control/print', response['location'])
+
+    def test_quality_control_post_quarantine_pass_below_tolerance(self):
+        center = create_center()
+        create_station(center)
+        create_quarantine_checks()
+        self._create_and_login_user()
+        result_form = create_result_form(
+            form_state=FormState.QUALITY_CONTROL,
+            center=center, station_number=1)
+        recon_form = create_reconciliation_form(
+            result_form, self.user, number_ballots_inside_box=21,
+            number_unstamped_ballots=0)
+        create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user, votes=1, num_results=10)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {'correct': 1, 'result_form': result_form.pk}
+        request = self.factory.post('/', data=data)
+        request.session = {'result_form': result_form.pk}
+        request.user = self.user
+        response = view(request)
+        result_form.reload()
+
+        self.assertEqual(result_form.num_votes,
+                         recon_form.number_ballots_expected)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(result_form.form_state, FormState.AUDIT)
+        self.assertTrue(result_form.audit)
+        self.assertEqual(result_form.audit.quarantine_checks.count(), 1)
+        self.assertEqual(
+            result_form.audit.quarantine_checks.all()[0].name[:9], 'Trigger 1')
+        self.assertEqual(result_form.audited_count, 1)
+        self.assertIn('quality-control/print', response['location'])
+
+    def test_quality_control_post_quarantine(self):
+        center = create_center()
+        create_station(center)
+        create_quarantine_checks()
+        self._create_and_login_user()
+        result_form = create_result_form(
+            form_state=FormState.QUALITY_CONTROL,
+            center=center, station_number=1)
+        create_reconciliation_form(
+            result_form, self.user, number_unstamped_ballots=1000)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {'correct': 1, 'result_form': result_form.pk}
+        request = self.factory.post('/', data=data)
+        request.session = {'result_form': result_form.pk}
+        request.user = self.user
+        response = view(request)
+        result_form.reload()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(result_form.form_state, FormState.AUDIT)
+        self.assertTrue(result_form.audit)
+        self.assertEqual(result_form.audit.quarantine_checks.count(), 2)
+        self.assertEqual(result_form.audit.user, self.user)
+        self.assertEqual(result_form.audited_count, 1)
+        self.assertIn('quality-control/print', response['location'])
+
+    def test_print_success_get(self):
+        self._create_and_login_user()
+        code = '12345'
+        station_number = 1
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,
+                                         center=center,
+                                         station_number=station_number)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.PrintView.as_view()
+        request = self.factory.get('/')
+        request.session = {'result_form': result_form.pk}
+        request.user = self.user
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Successful Archive')
+
+    def test_print_quarantine_get(self):
+        self._create_and_login_user()
+        code = '12345'
+        station_number = 1
+        center = create_center(code)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,
+                                         center=center,
+                                         station_number=station_number)
+        quarantine_check = QuarantineCheck.objects.create(
+            user=self.user,
+            name='1',
+            method='1',
+            value=1)
+        audit = create_audit(result_form, self.user)
+        audit.quarantine_checks.add(quarantine_check)
+
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.PrintView.as_view()
+        request = self.factory.get('/')
+        request.session = {'result_form': result_form.pk}
+        request.user = self.user
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Quarantined')
+
+    def test_print_post(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+
+        result_form = create_result_form(form_state=FormState.QUALITY_CONTROL)
+        view = views.PrintView.as_view()
+        data = {'result_form': result_form.pk}
+        request = self.factory.post('/', data=data)
+        request.session = data
+        request.user = self.user
+        response = view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/quality-control/success', response['location'])
+
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+
     def test_confirmation_get(self):
         result_form = create_result_form(form_state=FormState.ARCHIVED)
         self._create_and_login_user()
@@ -520,6 +676,6 @@ class TestQualityControl(TestBase):
         request.session = {'result_form': result_form.pk}
         response = view(request)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Archived')
+        self.assertContains(response, 'Archiving')
         self.assertContains(response, reverse('quality-control'))
         self.assertEqual(request.session.get('result_form'), None)
