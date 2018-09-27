@@ -46,28 +46,39 @@ def results_for_race(result_form, race_type):
 
 class QualityControlView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
+                         mixins.TallyAccessMixin,
                          mixins.ReverseSuccessURLMixin,
                          FormView):
     form_class = BarcodeForm
-    group_required = groups.QUALITY_CONTROL_CLERK
+    group_required = [groups.QUALITY_CONTROL_CLERK,
+                      groups.QUALITY_CONTROL_SUPERVISOR]
     template_name = "barcode_verify.html"
     success_url = 'quality-control-dashboard'
 
-    def get(self, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+    def get_context_data(self, **kwargs):
+        context = super(QualityControlView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
+        context['form_action'] = ''
+        context['header_text'] = _('Quality Control & Archiving')
 
-        return self.render_to_response(self.get_context_data(
-            form=form, header_text=_('Quality Control')))
+        return context
+
+    def get_initial(self):
+        initial = super(QualityControlView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode)
-            form = safe_form_in_state(result_form, FormState.QUALITY_CONTROL,
+            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
+            form = safe_form_in_state(result_form, [FormState.QUALITY_CONTROL,
+                                                    FormState.ARCHIVING],
                                       form)
 
             if form:
@@ -77,24 +88,28 @@ class QualityControlView(LoginRequiredMixin,
             QualityControl.objects.create(result_form=result_form,
                                           user=self.request.user)
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.form_invalid(form)
 
 
 class QualityControlDashboardView(LoginRequiredMixin,
                                   mixins.GroupRequiredMixin,
+                                  mixins.TallyAccessMixin,
                                   mixins.ReverseSuccessURLMixin,
                                   FormView):
     form_class = BarcodeForm
-    group_required = groups.QUALITY_CONTROL_CLERK
+    group_required = [groups.QUALITY_CONTROL_CLERK,
+                      groups.QUALITY_CONTROL_SUPERVISOR]
     template_name = "quality_control/dashboard.html"
     success_url = 'quality-control-print'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
-        form_in_state(result_form, FormState.QUALITY_CONTROL)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+        form_in_state(result_form, [FormState.QUALITY_CONTROL,
+                                    FormState.ARCHIVING])
 
         reconciliation_form = ReconForm(data=model_to_dict(
             result_form.reconciliationform
@@ -108,12 +123,14 @@ class QualityControlDashboardView(LoginRequiredMixin,
                                   reconciliation_form=reconciliation_form,
                                   results_component=results_component,
                                   results_women=results_women,
-                                  results_general=results_general))
+                                  results_general=results_general,
+                                  tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         quality_control = result_form.qualitycontrol
         url = self.success_url
 
@@ -123,6 +140,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
             quality_control.passed_reconciliation = True
             quality_control.passed_women = True
             result_form.save()
+
             # run quarantine checks
             check_quarantine(result_form, self.request.user)
         elif 'incorrect' in post_data:
@@ -146,7 +164,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
 
         quality_control.save()
 
-        return redirect(url)
+        return redirect(url, tally_id=tally_id)
 
 
 class PrintView(LoginRequiredMixin,
@@ -154,7 +172,8 @@ class PrintView(LoginRequiredMixin,
                 mixins.ReverseSuccessURLMixin,
                 FormView):
     form_class = BarcodeForm
-    group_required = groups.QUALITY_CONTROL_CLERK
+    group_required = [groups.QUALITY_CONTROL_CLERK,
+                      groups.QUALITY_CONTROL_SUPERVISOR]
     template_name = "quality_control/print_cover.html"
     success_url = 'quality-control-success'
 
@@ -191,7 +210,8 @@ class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
     template_name = "success.html"
-    group_required = groups.QUALITY_CONTROL_CLERK
+    group_required = [groups.QUALITY_CONTROL_CLERK,
+                      groups.QUALITY_CONTROL_SUPERVISOR]
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')

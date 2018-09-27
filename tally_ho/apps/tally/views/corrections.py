@@ -51,7 +51,7 @@ def save_final_recon_form(updated, user, result_form):
     recon_form_final.save()
 
 
-def incorrect_checks(post_data, result_form, success_url):
+def incorrect_checks(post_data, result_form, success_url, tally_id = None):
     """Perform non-success operations on a result form give the post data.
 
     :param post_data: Data to determine the appropriate action for.
@@ -68,7 +68,7 @@ def incorrect_checks(post_data, result_form, success_url):
     else:
         raise SuspiciousOperation('Unknown POST response type')
 
-    return redirect(success_url)
+    return redirect(success_url, tally_id=tally_id)
 
 
 def get_corrections_forms(result_form):
@@ -175,6 +175,7 @@ def save_recon(post_data, user, result_form):
 
 class CorrectionView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
                      mixins.ReverseSuccessURLMixin,
                      FormView):
     form_class = BarcodeForm
@@ -182,20 +183,30 @@ class CorrectionView(LoginRequiredMixin,
     template_name = "barcode_verify.html"
     success_url = 'corrections-match'
 
-    def get(self, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id')
 
-        return self.render_to_response(
-            self.get_context_data(form=form, header_text=_('Correction')))
+        context = super(CorrectionView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['form_action'] = ''
+        context['header_text'] = _('Corrections')
+
+        return context
+
+    def get_initial(self):
+        initial = super(CorrectionView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode)
+            result_form = get_object_or_404(ResultForm, barcode=barcode, tally__id=tally_id)
             form = safe_form_in_state(result_form, FormState.CORRECTION, form)
 
             if form:
@@ -204,15 +215,16 @@ class CorrectionView(LoginRequiredMixin,
             self.request.session['result_form'] = result_form.pk
 
             if result_form.corrections_passed:
-                return redirect(self.success_url)
+                return redirect(self.success_url, tally_id=tally_id)
             else:
-                return redirect('corrections-required')
+                return redirect('corrections-required', tally_id=tally_id)
         else:
             return self.form_invalid(form)
 
 
 class CorrectionMatchView(LoginRequiredMixin,
                           mixins.GroupRequiredMixin,
+                          mixins.TallyAccessMixin,
                           mixins.ReverseSuccessURLMixin,
                           FormView):
     form_class = PassToQualityControlForm
@@ -221,22 +233,24 @@ class CorrectionMatchView(LoginRequiredMixin,
     success_url = 'corrections'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, [FormState.CORRECTION])
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form, tally_id=tally_id))
 
     @transaction.atomic
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
         if form.is_valid():
             pk = session_matches_post_result_form(
                 form.cleaned_data, self.request)
-            result_form = get_object_or_404(ResultForm, pk=pk)
+            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
             form_in_state(result_form, [FormState.CORRECTION])
 
             if not result_form.corrections_passed:
@@ -250,13 +264,14 @@ class CorrectionMatchView(LoginRequiredMixin,
 
             del self.request.session['result_form']
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.form_invalid(form)
 
 
 class CorrectionRequiredView(LoginRequiredMixin,
                              mixins.GroupRequiredMixin,
+                             mixins.TallyAccessMixin,
                              mixins.ReverseSuccessURLMixin,
                              FormView):
     form_class = PassToQualityControlForm
@@ -266,6 +281,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
     failed_url = 'suspicious-error'
 
     def corrections_response(self, result_form, errors=None):
+        tally_id = self.kwargs.get('tally_id')
         recon, results_general, results_women, results_component, c_name =\
             get_corrections_forms(result_form)
 
@@ -276,19 +292,22 @@ class CorrectionRequiredView(LoginRequiredMixin,
                                   candidates_general=results_general,
                                   candidates_component=results_component,
                                   candidates_women=results_women,
-                                  component_name=c_name))
+                                  component_name=c_name,
+                                  tally_id=tally_id))
 
     def get(self, *args, **kwargs):
+        tally_id = self.kwargs['tally_id']
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, [FormState.CORRECTION])
 
         return self.corrections_response(result_form)
 
-    def post(self, race_type):
+    def post(self, *args, **kwargs):
+        tally_id = self.kwargs['tally_id']
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.CORRECTION)
 
         if 'submit_corrections' in post_data:
@@ -310,29 +329,32 @@ class CorrectionRequiredView(LoginRequiredMixin,
                 if result_form.form_state == FormState.DATA_ENTRY_1:
                     result_form.save()
 
-                return redirect(self.failed_url)
+                return redirect(self.failed_url, tally_id=tally_id)
             else:
                 result_form.form_state = FormState.QUALITY_CONTROL
                 result_form.save()
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
-            return incorrect_checks(post_data, result_form, 'corrections')
+            return incorrect_checks(post_data, result_form, 'corrections', tally_id)
 
 
 class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
                        TemplateView):
     template_name = "success.html"
     group_required = groups.CORRECTIONS_CLERK
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         del self.request.session['result_form']
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   header_text=_('Corrections'),
-                                  next_step=_('Quality Control'),
-                                  start_url='corrections'))
+                                  next_step=_('Quality Control & Archiving'),
+                                  start_url='corrections',
+                                  tally_id=tally_id))

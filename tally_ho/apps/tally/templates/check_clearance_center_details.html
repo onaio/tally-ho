@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{{ header_text }}</h1>
+
+<h4 class="headertxt">{% trans 'Check Center Details Against Form' %}</h4>
+
+{% include 'center_details.html' %}
+
+<form name="form_clearance_check_center" method="post" action="{{ form_action }}">
+    <input type="hidden" name="result_form" value="{{ result_form.pk }}">
+    <button type="submit" name="accept_submit" class="btn btn-success">{% trans "Accept" %}</button>
+    <button type="submit" name="abort_submit" class="btn btn-danger">{% trans "Cancel" %}</button>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

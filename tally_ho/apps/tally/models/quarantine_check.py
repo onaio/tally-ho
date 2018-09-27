@@ -15,6 +15,7 @@ class QuarantineCheck(BaseModel):
     name = models.CharField(max_length=256, unique=True)
     method = models.CharField(max_length=256, unique=True)
     value = models.FloatField()
+    percentage = models.FloatField(default=100)
 
     def local_name(self):
         return _(self.name)

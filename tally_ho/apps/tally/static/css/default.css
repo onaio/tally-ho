@@ -179,8 +179,20 @@ table.print-table{
 }
 
 table.print-table td {
-    padding: 10px 6px;
+    padding: 6px;
 }
 table.print-table td h4 {
     margin-top: 0;
+}
+
+table.reduce-size {
+    font-size: 12px;
+}
+
+a.vertical-margin {
+    margin: 2px;
+}
+
+table.select-max-width > tbody  > tr > td > select {
+    width: 200px;
 }

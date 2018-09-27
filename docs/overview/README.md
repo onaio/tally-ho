@@ -323,9 +323,10 @@ not yet intaken.
 ### Results Exports
 
 The *Downloads* section allows Super Administrators to export both simple and
-deteailed results views.  The *Candidate Votes* download shows a simple
-spreadsheet of the leading candidates and their votes accross all ballots.  The
-*Result Form List* returns a detailed file of the results entered for every
+deteailed results views.  The *All Candidate Votes* download shows a simple
+spreadsheet of the leading candidates and their votes accross all ballots. The 
+same for *Active Candidate Votes* which only shows votes for active candidates.
+The *Result Form List* returns a detailed file of the results entered for every
 result form and associated information about that result form, e.g. gender,
 ballot, center, and station.
 

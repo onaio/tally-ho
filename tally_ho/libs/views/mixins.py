@@ -1,10 +1,16 @@
 import six
+import json
 
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
 from tally_ho.libs.utils.collections import listify
 from tally_ho.libs.permissions import groups
+from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.apps.tally.models.tally import Tally
 
 
 # from django-braces
@@ -36,8 +42,14 @@ class GroupRequiredMixin(object):
         # super admin skips group check
         user_groups = groups.user_groups(self.request.user)
 
-        return groups.SUPER_ADMINISTRATOR in user_groups or\
-            set(listify(allowed_groups)) & set(user_groups)
+        if len(listify(allowed_groups)) == 1 and \
+                groups.TALLY_MANAGER in listify(allowed_groups):
+            return groups.TALLY_MANAGER in user_groups;
+
+        else:
+            return groups.TALLY_MANAGER in user_groups or\
+                    groups.SUPER_ADMINISTRATOR in user_groups or\
+                    set(listify(allowed_groups)) & set(user_groups)
 
     def dispatch(self, request, *args, **kwargs):
         self.request = request
@@ -53,6 +65,64 @@ class GroupRequiredMixin(object):
 class ReverseSuccessURLMixin(object):
     def get_success_url(self):
         if self.success_url:
-            self.success_url = reverse(self.success_url)
+            if hasattr(self, 'tally_id'):
+                self.success_url = reverse(self.success_url, kwargs={'tally_id': self.tally_id})
+            else:
+                self.success_url = reverse(self.success_url)
 
         return super(ReverseSuccessURLMixin, self).get_success_url()
+
+
+class PrintedResultFormMixin(object):
+    def render_to_response(self, context, **response_kwargs):
+        del context['view']
+        return HttpResponse(
+            json.dumps(context),
+            content_type='application/json',
+            **response_kwargs
+        )
+
+    def get(self, *args, **kwargs):
+        result_form_pk = kwargs.get('resultFormPk')
+
+        status = 'ok'
+        try:
+            result_form = ResultForm.objects.get(pk=result_form_pk);
+            self.set_printed(result_form)
+        except ResultForm.DoesNotExist:
+            status = 'error'
+
+        return self.render_to_response(self.get_context_data(status = status))
+
+    def set_printed(self, result_form):
+        pass
+
+
+class TallyAccessMixin(object):
+    def has_tally_access(self, userprofile, tally):
+        user_groups = groups.user_groups(userprofile)
+
+        has_access = False
+        if groups.TALLY_MANAGER in user_groups:
+            has_access = True
+
+        elif groups.SUPER_ADMINISTRATOR in user_groups and \
+                userprofile.administrated_tallies.filter(id=tally.id):
+            has_access = True
+
+        elif userprofile.tally == tally:
+            has_access = True
+
+        return has_access
+
+    def dispatch(self, request, *args, **kwargs):
+        self.request = request
+        tally_id = kwargs.get('tally_id')
+
+        tally = get_object_or_404(Tally, id=tally_id)
+        user_profile = UserProfile.objects.get(id=self.request.user.id)
+
+        if not(self.has_tally_access(user_profile, tally)):
+            raise PermissionDenied
+
+        return super(TallyAccessMixin, self).dispatch(request, *args, **kwargs)

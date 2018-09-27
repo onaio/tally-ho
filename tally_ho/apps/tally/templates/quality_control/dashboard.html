@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1>{% trans 'Quality Control' %}</h1>
+<h1>{% trans 'Quality Control & Archiving' %}</h1>
 
 {% include 'center_details.html' %}
 
@@ -30,7 +30,7 @@
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <button class="btn btn-success" type="submit" name="correct">{% trans "Correct" %}</button>
     <button class="btn btn-danger" type="submit" name="incorrect">{% trans "Incorrect" %}</button>
-    <button class="btn btn-default" type="submit" name="abort">{% trans "Abort" %}</button>
+    <button class="btn btn-default" type="submit" name="abort">{% trans "Cancel" %}</button>
     {% csrf_token %}
 </form>
 

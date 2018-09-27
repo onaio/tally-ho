@@ -9,6 +9,6 @@
 <h4 class="headertxt">{% trans 'Form successful move to' %} {{ next_step }}</h4>
 <div class="subtitle">{% trans 'Barcode:' %} {{ result_form.barcode }}</div>
 <br>
-<a href="{% url start_url %}" class="btn btn-primary">{% trans 'Start new form' %}</a>
+<a href="{% url start_url tally_id %}" class="btn btn-primary">{% trans 'Start new form' %}</a>
 {% endblock %}
 

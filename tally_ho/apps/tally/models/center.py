@@ -3,17 +3,20 @@ from django.utils.translation import ugettext as _
 from enumfields import EnumIntegerField
 import reversion
 
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.dependencies import check_results_for_forms
 from tally_ho.libs.models.enums.center_type import CenterType
+from tally_ho.libs.models.enums.disable_reason import DisableReason
 
 
 class Center(BaseModel):
     class Meta:
         app_label = 'tally'
         ordering = ['code']
+        unique_together = ('code', 'tally')
 
     sub_constituency = models.ForeignKey(SubConstituency,
                                          on_delete=models.PROTECT,
@@ -28,6 +31,9 @@ class Center(BaseModel):
     office = models.ForeignKey(Office, on_delete=models.PROTECT, null=True)
     region = models.TextField()
     village = models.TextField()
+    active = models.BooleanField(default=True)
+    disable_reason = EnumIntegerField(DisableReason, null=True)
+    tally = models.ForeignKey(Tally, null=True, blank=True, related_name='centers')
 
     def remove(self):
         """Remove this center and related information.
@@ -53,5 +59,12 @@ class Center(BaseModel):
     def __unicode__(self):
         return u'%s - %s' % (self.code, self.name)
 
+    @property
+    def status(self):
+        return 'Enabled' if self.active else 'Disabled'
+
+    @property
+    def center_type_name(self):
+        return 'Special' if self.center_type == 1 else 'General'
 
 reversion.register(Center)

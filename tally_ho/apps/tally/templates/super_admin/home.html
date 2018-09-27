@@ -14,37 +14,44 @@
 {% endif %}
 <h3>{% trans 'Data views' %}</h3>
 <ul>
-    <li><a href="{% url 'center-list' %}">{% trans 'Center List' %}</a></li>
-    <li><a href="{% url 'form-list' %}">{% trans 'Form List' %}</a></li>
-    <li><a href="{% url 'form-not-received-view' %}">{% trans 'Forms Not Received' %}</a></li>
-    <li><a href="{% url 'form-action-view' %}">{% trans 'Forms Waiting for Approval' %}</a></li>
+    <li><a href="{% url 'user-tally-list' tally_id %}">{% trans 'Users List' %}</a></li>
+    <li><a href="{% url 'center-list' tally_id=tally_id %}">{% trans 'Center List' %}</a></li>
+    <li><a href="{% url 'races-list' tally_id=tally_id %}">{% trans 'Races List' %}</a></li>
+    <li><a href="{% url 'form-list' tally_id=tally_id %}">{% trans 'Form List' %}</a></li>
+    <li><a href="{% url 'candidate-list' tally_id=tally_id %}">{% trans 'Candidate List' %}</a></li>
+    <li><a href="{% url 'form-not-received-view' tally_id=tally_id %}">{% trans 'Forms Not Received' %}</a></li>
+    <li><a href="{% url 'form-action-view' tally_id=tally_id %}">{% trans 'Forms Waiting for Approval' %}</a></li>
+    <li><a href="{% url 'quarantine-checks' %}">{% trans 'Quarantine Checks' %}</a></li>
 </ul>
 
 
 <h3>{% trans 'Reports' %}</h3>
 <ul>
-    <li><a href="{% url 'reports-offices' %}">{% trans 'Reports Offices' %}</a></li>
-    <li><a href="{% url 'reports-races' %}">{% trans 'Reports Races' %}</a></li>
-    <li><a href="{% url 'form-progress' %}">{% trans 'Form Progress' %}</a></li>
-    <li><a href="{% url 'form-duplicates' %}">{% trans 'Form Duplicates' %}</a></li>
-    <li><a href="{% url 'result-export' %}">{% trans 'Download Results' %}</a></li>
+    <li><a href="{% url 'reports-offices' tally_id=tally_id %}">{% trans 'Reports Offices' %}</a></li>
+    <li><a href="{% url 'reports-races' tally_id=tally_id %}">{% trans 'Reports Races' %}</a></li>
+    <li><a href="{% url 'form-progress' tally_id=tally_id %}">{% trans 'Form Progress' %}</a></li>
+    <li><a href="{% url 'form-duplicates' tally_id=tally_id %}">{% trans 'Form Duplicates' %}</a></li>
+    <li><a href="{% url 'form-clearance' tally_id=tally_id %}">{% trans 'Form Clearance' %}</a></li>
+    <li><a href="{% url 'form-audit' tally_id=tally_id %}">{% trans 'Form Audit' %}</a></li>
+    <li><a href="{% url 'form-results-duplicates' tally_id=tally_id %}">{% trans 'Form Results Duplicates' %}</a></li>
+    <li><a href="{% url 'result-export' tally_id=tally_id %}">{% trans 'Download Results' %}</a></li>
 </ul>
 
 <h3>{% trans 'Other user views' %}</h3>
 <ul>
-    <li><a href="{% url 'intake' %}">{% trans 'Intake Clerk' %}</a></li>
-    <li><a href="{% url 'clearance' %}">{% trans 'Clearance Clerk' %}</a></li>
-    <li><a href="{% url 'data-entry' %}">{% trans 'Data Entry Clerk' %}</a></li>
-    <li><a href="{% url 'corrections' %}">{% trans 'Corrections Clerk' %}</a></li>
-    <li><a href="{% url 'quality-control' %}">{% trans 'Quality Control Clerk' %}</a></li>
-    <li><a href="{% url 'audit' %}">{% trans 'Audit Clerk' %}</a></li>
+    <li><a href="{% url 'intake' tally_id=tally_id %}">{% trans 'Intake Clerk' %}</a></li>
+    <li><a href="{% url 'clearance' tally_id=tally_id %}">{% trans 'Clearance Clerk' %}</a></li>
+    <li><a href="{% url 'data-entry' tally_id=tally_id %}">{% trans 'Data Entry Clerk' %}</a></li>
+    <li><a href="{% url 'corrections' tally_id=tally_id %}">{% trans 'Corrections Clerk' %}</a></li>
+    <li><a href="{% url 'quality-control' tally_id=tally_id %}">{% trans 'Quality Control & Archiving Clerk' %}</a></li>
+    <li><a href="{% url 'audit' tally_id=tally_id %}">{% trans 'Audit Clerk' %}</a></li>
 </ul>
 
 
 <h3>{% trans 'Admin Operations' %}</h3>
 <ul>
-    <li><a href="{% url 'remove-center' %}">{% trans 'Remove a Centre' %}</a></li>
-    <li><a href="{% url 'remove-station' %}">{% trans 'Remove a Station' %}</a></li>
+    <li><a href="{% url 'remove-center' tally_id=tally_id %}">{% trans 'Remove a Center' %}</a></li>
+    <li><a href="{% url 'remove-station' tally_id=tally_id %}">{% trans 'Remove a Station' %}</a></li>
 </ul>
 
 {% if debug %}

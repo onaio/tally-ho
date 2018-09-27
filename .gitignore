@@ -11,3 +11,9 @@ results
 db.sqlite3
 tally_ho/static
 local_settings.py
+
+# log files
+*.log
+
+# vim temp files
+*.sw?

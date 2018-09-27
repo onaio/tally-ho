@@ -2,7 +2,7 @@ function barcodes_match(empty_message, length_message, mismatch_message) {
     var barcode = document.getElementById('id_barcode');
     var barcode_copy = document.getElementById('id_barcode_copy');
 
-    if (barcode.value.length == 9 && barcode.value == barcode_copy.value) {
+    if (barcode.value == barcode_copy.value) {
         barcode_copy.parentNode.setAttribute('class', 'has-success');
         return true;
     }
@@ -11,7 +11,7 @@ function barcodes_match(empty_message, length_message, mismatch_message) {
     if (barcode.value == "" || barcode_copy.value == "") {
         barcode.parentNode.setAttribute('class', 'has-error');
         alert(empty_message);
-    } else if (barcode.value.length < 9) {
+    } else if (barcode.value.length < 1) {
         barcode.parentNode.setAttribute('class', 'has-error');
         alert(length_message);
     }
@@ -45,17 +45,19 @@ $(document).ready(function() {
     });
 
     $("#id_barcode_copy").focusout(function(evt) {
-        if ($("#id_barcode_copy").val() != '' && $('#id_barcode').val() != $("#id_barcode_copy").val()) {
+        if ($("#id_barcode_copy").val().length == $("#id_barcode").val().length &&
+                $('#id_barcode').val() != $("#id_barcode_copy").val()) {
             show_barcode_hide_placeholder();
         }
     });
 
     $("#id_barcode_copy").keyup(function(evt) {
-        if ($("#id_barcode_copy").val().length == 9 && $("#id_barcode").val() == $("#id_barcode_copy").val()) {
+        if ($("#id_barcode_copy").val().length == $("#id_barcode").val().length &&
+                $("#id_barcode").val() == $("#id_barcode_copy").val()) {
             show_barcode_hide_placeholder();
             $("#id_barcode").parent().addClass('has-success');
             $("#id_barcode_copy").parent().addClass('has-success');
-        } else if ($("#id_barcode_copy").val().length == 9) {
+        } else if ($("#id_barcode_copy").val().length == $("#id_barcode").val().length) {
             show_barcode_hide_placeholder();
             $("#id_barcode").parent().addClass('has-error');
             $("#id_barcode_copy").parent().addClass('has-error');

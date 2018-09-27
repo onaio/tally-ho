@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% blocktrans %}Disable {{ entityName }}{% endblocktrans %}</h1>
+
+<div class="form-instructions">{% blocktrans %}Select {{ entity }} classification.{% endblocktrans %}</div>
+
+<form name="disable-entity-form" method="post" action="">
+    <div class="text-danger">
+        {{ form.non_field_errors }}<br/>
+        {{ form.errors }}
+        {{ form.non_field_errors }}
+    </div>
+    <table>
+        <tr>
+            <th><label>{% trans form.disableReason.label %}</label></th>
+        </tr>
+        {% if form.disableReason.errors %}
+        <tr>
+            <td>{{ form.disableReason.errors }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td>{{ form.disableReason }}</td>
+        </tr>
+        <tr>
+            <td>
+              <button type="submit" name="submit" class="btn btn-primary">{% blocktrans %}Disable {{ entityName }}{% endblocktrans %}</button>
+            </td>
+        </tr>
+        {{ form.centerCodeInput }}
+        {{ form.stationNumberInput }}
+        {{ form.raceIdInput }}
+        {{ form.tally_id }}
+        {% csrf_token %}
+    </table>
+</form>
+
+{% endblock %}

@@ -1,8 +1,6 @@
 from django.contrib.auth.models import Group, User
 
-ADMINISTRATOR = "Administrator"
-ARCHIVE_CLERK = "Archive Clerk"
-ARCHIVE_SUPERVISOR = "Archive Supervisor"
+
 AUDIT_CLERK = "Audit Clerk"
 AUDIT_SUPERVISOR = "Audit Supervisor"
 CLEARANCE_CLERK = "Clearance Clerk"
@@ -12,14 +10,17 @@ DATA_ENTRY_1_CLERK = "Data Entry 1 Clerk"
 DATA_ENTRY_2_CLERK = "Data Entry 2 Clerk"
 INTAKE_CLERK = "Intake Clerk"
 INTAKE_SUPERVISOR = "Intake Supervisor"
-QUALITY_CONTROL_CLERK = "Quality Control Clerk"
+QUALITY_CONTROL_ARCHIVE_CLERK = "Quality Control Archive Clerk"
+QUALITY_CONTROL_ARCHIVE_SUPERVISOR = "Quality Control Archive Supervisor"
 SUPER_ADMINISTRATOR = "Super Administrator"
+TALLY_MANAGER = 'Tally Manager'
 
-GROUPS = [ADMINISTRATOR, ARCHIVE_CLERK, ARCHIVE_SUPERVISOR, AUDIT_CLERK,
+GROUPS = [QUALITY_CONTROL_ARCHIVE_SUPERVISOR, AUDIT_CLERK,
           AUDIT_SUPERVISOR, CLEARANCE_CLERK, CLEARANCE_SUPERVISOR,
-          CORRECTIONS_CLERK, DATA_ENTRY_1_CLERK, DATA_ENTRY_2_CLERK,
-          INTAKE_SUPERVISOR, INTAKE_CLERK, QUALITY_CONTROL_CLERK,
-          SUPER_ADMINISTRATOR]
+          CORRECTIONS_CLERK, DATA_ENTRY_1_CLERK,
+          DATA_ENTRY_2_CLERK, INTAKE_SUPERVISOR, INTAKE_CLERK,
+          QUALITY_CONTROL_ARCHIVE_CLERK, SUPER_ADMINISTRATOR,
+          TALLY_MANAGER]
 
 
 def create_permission_groups():
@@ -37,11 +38,14 @@ def create_demo_users_with_groups(password='data'):
 
     :param password: The password for the demo users.
     """
+    from tally_ho.apps.tally.models.user_profile import UserProfile
+
     for group in GROUPS:
         obj, created = Group.objects.get_or_create(name=group)
         username = group.replace(' ', '_').lower()
-        user, created = User.objects.get_or_create(
-            username=username, first_name=group)
+        user, created = UserProfile.objects.get_or_create(username=username[0:30],
+                                                   first_name=group[0:30],
+                                                   reset_password=False)
         user.set_password(password)
         user.save()
         user.groups.add(obj)

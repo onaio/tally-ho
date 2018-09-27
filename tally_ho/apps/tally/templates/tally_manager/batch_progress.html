@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load js %}
+{% load eztables %}
+
+{% block content %}
+
+<h1>{% trans 'Import progress' %}</h1>
+
+<h2>{% trans 'Subconstituencies import progress' %}</h2>
+
+<div id="progressbar1"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset1">0</span>/<span id="total1">{{ subconst_file_lines }}</span></p>
+</div>
+
+<h2>{% trans 'Centers import progress' %}</h2>
+<div id="progressbar2"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset2">0</span>/<span id="total2">{{ centers_file_lines }}</span></p>
+</div>
+
+<h2>{% trans 'Stations import progress' %}</h2>
+<div id="progressbar3"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset3">0</span>/<span id="total3">{{ stations_file_lines }}</span></p>
+</div>
+
+<h2>{% trans 'Candidates import progress' %}</h2>
+<div id="progressbar4"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset4">0</span>/<span id="total4">{{ candidates_file_lines }}</span></p>
+</div>
+
+<h2>{% trans 'Result forms import progress' %}</h2>
+<div id="progressbar5"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset5">0</span>/<span id="total5">{{ result_forms_file_lines }}</span></p>
+</div>
+
+<div id="route" class="hidden" style="display:none">{{ request.path }}</div>
+<div id="route_destination" style="display:none">{% url 'tally-manager' %}</div>
+<div id="errors_number" style="display:none">0</div>
+
+{% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+      <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery-ui.min.css" />
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
+{% django_js %}
+<script src="{{ STATIC_URL }}js/jquery-ui.min.js"></script>
+<script type="text/javascript">
+
+var currentStep = 0;
+var totalSteps = 5;
+
+for (i = 1; i <= totalSteps; i++) {
+    var total = parseInt($('#total' + i).html());
+
+    $('#progressbar' + i).progressbar({
+        value: false,
+        max: total
+    });
+}
+
+$(document).ready(function() {
+    currentStep = 1;
+    doRequest();
+});
+
+function doRequest() {
+    elementsProcessed = parseInt($('#offset' + currentStep ).html());
+    total = parseInt($('#total' + currentStep).html());
+    if (elementsProcessed < total) {
+        $.ajax({
+            url: $('#route').html(),
+            //    timeout: 30000,
+            type: 'POST',
+            data: {
+                offset: $('#offset' + currentStep).html(),
+                step: currentStep
+            },
+            success: function (data) {
+                if (data.status == 'OK') {
+                    elementsProcessed += data.elements_processed;
+                    $('#offset' + currentStep).html(elementsProcessed);
+                    $('#progressbar' + currentStep).progressbar('option', 'value', elementsProcessed);
+                    doRequest();
+                }
+            }
+        });
+    }
+    else {
+        if (currentStep < totalSteps) {
+            currentStep += 1;
+            doRequest();
+        }
+        else {
+            location.href = $("#route_destination").html();
+        }
+    }
+}
+</script>
+{% endblock %}

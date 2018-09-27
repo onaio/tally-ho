@@ -4,9 +4,9 @@
 
 {% block content %}
 
-<h1>{% trans 'Tally Centre Progress Report' %}</h1>
+<h1>{% trans 'Tally Center Progress Report' %}</h1>
 
-<h3>{% trans 'Overview' %}</h3>
+<h3>{% trans 'Overview' %}</h3> <a href="{% url 'reports-offices-export' tally_id 'overview' %}">{% trans 'Export' %}</a>
 <table class="table table-striped">
     <tr>
         <th>{% trans 'Number' %}</th>
@@ -23,7 +23,7 @@
 </table>
 
 
-<h3>{% trans "Per Office" %}</h3>
+<h3>{% trans "Per Office" %}</h3> <a href="{% url 'reports-offices-export' tally_id 'office' %}">{% trans 'Export' %}</a>
 <table class="table table-striped">
     <tr>
         <th>{% trans 'Not Intaken' %}</th>

@@ -14,9 +14,10 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
 
 
-OUTPUT_PATH = 'results/candidate_votes.csv'
-RESULTS_PATH = 'results/form_results.csv'
-DUPLICATE_RESULTS_PATH = 'results/duplicate_results.csv'
+OUTPUT_PATH = 'results/all_candidate_votes_%s.csv'
+ACTIVE_OUTPUT_PATH = 'results/active_candidate_votes_%s.csv'
+RESULTS_PATH = 'results/form_results_%s.csv'
+DUPLICATE_RESULTS_PATH = 'results/duplicate_results_%s.csv'
 SPECIAL_BALLOTS = None
 
 
@@ -54,11 +55,12 @@ def write_utf8(w, output):
                 for k, v in output.items()})
 
 
-def valid_ballots():
-    return Ballot.objects.exclude(number=54)
+def valid_ballots(tally_id = None):
+    #return Ballot.objects.exclude(number=54)
+    return Ballot.objects.filter(tally__id=tally_id)
 
 
-def distinct_forms(ballot):
+def distinct_forms(ballot, tally_id):
     """Return the distinct forms for a ballot based on its type.
 
     If there are no forms for a ballot assume that it is a component ballot and
@@ -68,10 +70,10 @@ def distinct_forms(ballot):
 
     :returns: The list of result forms.
     """
-    forms = ResultForm.distinct_filter(ballot.resultform_set)
+    forms = ResultForm.distinct_filter(ballot.resultform_set, tally_id)
 
     if not forms:
-        forms = ResultForm.distinct_for_component(ballot)
+        forms = ResultForm.distinct_for_component(ballot, tally_id)
 
     return forms
 
@@ -113,7 +115,7 @@ def build_result_and_recon_output(result_form):
 
 
 def save_barcode_results(complete_barcodes, output_duplicates=False,
-                         output_to_file=True):
+                         output_to_file=True, tally_id=None):
     """Save a list of results for all candidates in all result forms.
 
     :param complete_barcodes: The set of barcodes for result forms.
@@ -126,7 +128,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
     center_to_forms = defaultdict(list)
     ballots_to_candidates = {}
 
-    for ballot in valid_ballots():
+    for ballot in valid_ballots(tally_id):
         ballots_to_candidates[ballot.number] = \
             ballot.candidates.all().order_by('order')
 
@@ -152,14 +154,15 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'number of signatures',
             'received ballots papers',
             'valid votes',
-            'number registrants'
+            'number registrants',
+            'candidate status',
         ]
 
         w = csv.DictWriter(f, header)
         w.writeheader()
 
         result_forms = ResultForm.objects\
-            .select_related().filter(barcode__in=complete_barcodes)
+            .select_related().filter(barcode__in=complete_barcodes, tally__id=tally_id)
 
         for result_form in result_forms:
             # build list of votes for this barcode
@@ -174,6 +177,10 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
                 output['name'] = candidate.full_name
                 output['votes'] = votes
                 output['race number'] = candidate.ballot.number
+                if candidate.active:
+                    output['candidate status'] = 'enabled'
+                else:
+                    output['candidate status'] = 'disabled'
 
                 write_utf8(w, output)
 
@@ -183,16 +190,17 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             center_to_forms[center.code].append(result_form)
 
     if output_to_file:
-        save_csv_file_and_symlink(csv_file, RESULTS_PATH)
+        save_csv_file_and_symlink(csv_file, RESULTS_PATH % tally_id)
 
     if output_duplicates:
         return save_center_duplicates(center_to_votes, center_to_forms,
-                                      output_to_file=output_to_file)
+                                      output_to_file=output_to_file, tally_id=tally_id)
     return csv_file.name
 
 
 def save_center_duplicates(center_to_votes, center_to_forms,
-                           output_to_file=True):
+                           output_to_file=True,
+                           tally_id=None):
     """Output list of forms with duplicates votes in the same center.
 
     :param center_to_votes: A dict mapping centers to a list of votes for that
@@ -239,13 +247,13 @@ def save_center_duplicates(center_to_votes, center_to_forms,
                         write_utf8(w, output)
 
     if output_to_file:
-        return save_csv_file_and_symlink(csv_file, DUPLICATE_RESULTS_PATH)
+        return save_csv_file_and_symlink(csv_file, DUPLICATE_RESULTS_PATH % tally_id)
 
     return csv_file.name
 
 
 def export_candidate_votes(save_barcodes=False, output_duplicates=True,
-                           output_to_file=True):
+                           output_to_file=True, show_disabled_candidates=True, tally_id=None):
     """Export a spreadsheet of the candidates their votes for each race.
 
     :param save_barcodes: Generate barcode result file, default False.
@@ -260,13 +268,20 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
               'stations percent completed']
 
     max_candidates = 0
-    for ballot in Ballot.objects.all():
-        if ballot.candidates.count() > max_candidates:
-            max_candidates = ballot.candidates.count()
+
+    for ballot in Ballot.objects.filter(tally__id=tally_id):
+        if not show_disabled_candidates:
+            ballot_number = ballot.candidates.filter(active=True).count()
+        else:
+            ballot_number = ballot.candidates.count()
+
+        if ballot_number > max_candidates:
+            max_candidates = ballot_number
 
     for i in range(1, max_candidates + 1):
         header.append('candidate %s name' % i)
         header.append('candidate %s votes' % i)
+        header.append('candidate %s votes included quarantine' % i)
 
     complete_barcodes = []
 
@@ -278,7 +293,7 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
 
         for ballot in valid_ballots():
             general_ballot = ballot
-            forms = distinct_forms(ballot)
+            forms = distinct_forms(ballot, tally_id)
             final_forms = ResultForm.forms_in_state(
                 FormState.ARCHIVED, pks=[r.pk for r in forms])
 
@@ -289,7 +304,8 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
             num_stations_completed = final_forms.count()
 
             percent_complete = round(
-                100 * num_stations_completed / num_stations, 3)
+                100 * num_stations_completed / num_stations, 3) if num_stations\
+                else 0
 
             output = OrderedDict({
                 'ballot number': ballot.number,
@@ -300,9 +316,14 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
             candidates_to_votes = {}
             num_results_ary = []
 
-            for candidate in ballot.candidates.all():
+            candidates = ballot.candidates.all()
+            if not show_disabled_candidates:
+                candidates = candidates.filter(active=True)
+
+            for candidate in candidates:
                 num_results, votes = candidate.num_votes()
-                candidates_to_votes[candidate.full_name] = votes
+                all_votes = candidate.num_all_votes
+                candidates_to_votes[candidate.full_name] = [votes, all_votes]
                 num_results_ary.append(num_results)
 
             assert len(set(num_results_ary)) <= 1
@@ -317,28 +338,56 @@ def export_candidate_votes(save_barcodes=False, output_duplicates=True,
                     output['stations completed'] = num_results
 
             candidates_to_votes = OrderedDict((sorted(
-                candidates_to_votes.items(), key=lambda t: t[1],
+                candidates_to_votes.items(), key=lambda t: t[1][0],
                 reverse=True)))
+
+            #Checks changes in candidates positions
+            check_position_changes(candidates_to_votes)
 
             for i, item in enumerate(candidates_to_votes.items()):
                 candidate, votes = item
 
                 output['candidate %s name' % (i + 1)] = candidate
-                output['candidate %s votes' % (i + 1)] = votes
+                output['candidate %s votes' % (i + 1)] = votes[0]
+                output['candidate %s votes included quarantine' % (i + 1)] = votes[1]
 
             write_utf8(w, output)
 
     if output_to_file:
-        save_csv_file_and_symlink(csv_file, OUTPUT_PATH)
+        if show_disabled_candidates:
+            save_csv_file_and_symlink(csv_file, OUTPUT_PATH % tally_id)
+        else:
+            save_csv_file_and_symlink(csv_file, ACTIVE_OUTPUT_PATH % tally_id)
 
     if save_barcodes:
         return save_barcode_results(complete_barcodes,
                                     output_duplicates=output_duplicates,
-                                    output_to_file=output_to_file)
+                                    output_to_file=output_to_file,
+                                    tally_id=tally_id)
     return csv_file.name
 
 
-def get_result_export_response(report):
+def check_position_changes(candidates_votes):
+    #Order candidates by valid votes and all votes included quarantine
+    sort_valid_votes = OrderedDict((sorted(
+                        candidates_votes.items(), key=lambda t: t[1][0],
+                        reverse=True)))
+    sort_all_votes = OrderedDict((sorted(
+                        candidates_votes.items(), key=lambda t: t[1][1],
+                        reverse=True)))
+
+    #Get first five candidates
+    valid_votes = dict(enumerate(sort_valid_votes.keys()[0:5]))
+    all_votes = dict(enumerate(sort_all_votes.keys()[0:5]))
+
+
+    #If they are not de same, warn the super-admin
+    if valid_votes != all_votes:
+        #TODO: how show be warn super admin?
+        pass
+
+
+def get_result_export_response(report, tally_id):
     """Choose the appropriate file to returns as an HTTP Response.
 
     :param report: The type of report to return.
@@ -347,29 +396,37 @@ def get_result_export_response(report):
     """
     filename = 'not_found.csv'
     path = None
+    show_disabled = True
 
     if report == 'formresults':
-        filename = os.path.join('results', 'form_results.csv')
-    elif report == 'candidates':
-        filename = os.path.join('results', 'candidate_votes.csv')
+        filename = os.path.join('results', 'form_results_%d.csv' % tally_id)
+    elif report == 'all-candidates':
+        filename = os.path.join('results', 'all_candidate_votes_%d.csv' % tally_id)
+    elif report == 'active-candidates':
+        filename = os.path.join('results', 'active_candidate_votes_%d.csv' % tally_id)
+        show_disabled = False
     elif report == 'duplicates':
-        filename = os.path.join('results', 'duplicate_results.csv')
+        filename = os.path.join('results', 'duplicate_results_%d.csv' % tally_id)
 
     response = HttpResponse(content_type='text/csv')
 
     try:
+        #FIXME: if file it's been already generated, does not generate new one. correct??
         if not os.path.exists(filename):
-            export_candidate_votes(save_barcodes=True, output_duplicates=True)
+            export_candidate_votes(save_barcodes=True, output_duplicates=True,
+                                  show_disabled_candidates=show_disabled, tally_id=tally_id)
 
         path = os.readlink(filename)
         filename = os.path.basename(path)
-        response['Content-Desposition'] = 'attachment; filename=%s' % filename
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        response['Content-Type'] = 'text/csv; charset=utf-8'
 
         if path:
             with open(path, 'rb') as f:
                 response.write(f.read())
         else:
             raise Exception(_(u"File Not found!"))
+
     except Exception:
         response.write(_(u"Report not found."))
         response.status_code = 404

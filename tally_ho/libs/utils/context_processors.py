@@ -19,6 +19,16 @@ def is_superadmin(request):
     return {'is_superadmin': is_superadmin}
 
 
+def is_tallymanager(request):
+    is_tallymanager = False
+
+    if getattr(request, 'user'):
+        is_tallymanager = groups.TALLY_MANAGER in groups.user_groups(
+            request.user)
+
+    return {'is_tallymanager': is_tallymanager}
+
+
 def locale(request):
     return {'locale': translation.get_language_from_request(request)}
 

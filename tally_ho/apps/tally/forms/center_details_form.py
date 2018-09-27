@@ -1,7 +1,9 @@
 from django import forms
+from django.conf import settings
 from django.utils.translation import ugettext as _
 
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.validators import MinLengthValidator
 
 
@@ -13,8 +15,10 @@ disable_copy_input = {
     'autocomplete': 'off',
     'class': 'form-control'
 }
-min_station_value = 1
-max_station_value = 53
+
+
+min_station_value = settings.MIN_STATION_VALUE
+max_station_value = settings.MAX_STATION_VALUE
 
 
 class CenterDetailsForm(forms.Form):
@@ -43,6 +47,8 @@ class CenterDetailsForm(forms.Form):
                                                  attrs=disable_copy_input),
                                              label=_(u"Station Number Copy"))
 
+    tally_id = forms.IntegerField(widget=forms.HiddenInput)
+
     def __init__(self, *args, **kwargs):
         super(CenterDetailsForm, self).__init__(*args, **kwargs)
         self.fields['center_number'].widget.attrs['autofocus'] = 'on'
@@ -59,6 +65,7 @@ class CenterDetailsForm(forms.Form):
             center_number_copy = cleaned_data.get('center_number_copy')
             station_number = cleaned_data.get('station_number')
             station_number_copy = cleaned_data.get('station_number_copy')
+            tally_id = cleaned_data.get('tally_id')
 
             if center_number != center_number_copy:
                 raise forms.ValidationError(_(u"Center Numbers do not match"))
@@ -67,7 +74,7 @@ class CenterDetailsForm(forms.Form):
                 raise forms.ValidationError(_(u"Station Numbers do not match"))
 
             try:
-                center = Center.objects.get(code=center_number)
+                center = Center.objects.get(code=center_number, tally__id=tally_id)
                 valid_station_numbers = [
                     list(d.values())[0] for d in
                     center.stations.values('station_number')]
@@ -76,7 +83,24 @@ class CenterDetailsForm(forms.Form):
                     raise forms.ValidationError(_(
                         u"Invalid Station Number for this Center"))
 
+                if not center.active:
+                    raise forms.ValidationError(_(
+                        u"Center is disabled"))
+
+                station = Station.objects.get(center = center, station_number = station_number)
+
+                if not station.active:
+                    raise forms.ValidationError(_(
+                        u"Station is disabled"))
+                elif station.sub_constituency:
+                    ballot = station.sub_constituency.get_ballot()
+                    if ballot and not ballot.active:
+                        raise forms.ValidationError(_(u"Race is disabled."))
+
             except Center.DoesNotExist:
                 raise forms.ValidationError(_(u"Center Number does not exist"))
+
+            except Station.DoesNotExist:
+                raise forms.ValidationError(_(u"Station Number does not exist"))
 
             return cleaned_data

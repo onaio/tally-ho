@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from tally_ho.apps.tally.models.center import Center
@@ -15,8 +16,9 @@ disable_copy_input = {
     'autocomplete': 'off',
     'class': 'form-control'
 }
-min_station_value = 1
-max_station_value = 53
+
+min_station_value = settings.MIN_STATION_VALUE
+max_station_value = settings.MAX_STATION_VALUE
 
 
 class RemoveStationForm(forms.Form):
@@ -28,11 +30,14 @@ class RemoveStationForm(forms.Form):
         validators=validators,
         widget=forms.NumberInput(attrs=disable_copy_input),
         label=_(u"Center Number"))
+
     station_number = forms.IntegerField(min_value=min_station_value,
                                         max_value=max_station_value,
                                         widget=forms.TextInput(
                                             attrs=disable_copy_input),
                                         label=_(u"Station Number"))
+
+    tally_id = forms.IntegerField(widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
         super(RemoveStationForm, self).__init__(*args, **kwargs)
@@ -43,9 +48,10 @@ class RemoveStationForm(forms.Form):
             cleaned_data = super(RemoveStationForm, self).clean()
             center_number = cleaned_data.get('center_number')
             station_number = cleaned_data.get('station_number')
+            tally_id = cleaned_data.get('tally_id')
 
             try:
-                center = Center.objects.get(code=center_number)
+                center = Center.objects.get(code=center_number, tally__id=tally_id)
                 stations = center.stations.all()
                 valid_station_numbers = [s.station_number for s in stations]
 
@@ -64,8 +70,9 @@ class RemoveStationForm(forms.Form):
         if self.is_valid():
             center_number = self.cleaned_data.get('center_number')
             station_number = self.cleaned_data.get('station_number')
+            tally_id = self.cleaned_data.get('tally_id')
 
-            station = Station.objects.filter(
-                center__code=center_number, station_number=station_number)[0]
-            station.remove()
-            return station
+            station = Station.objects.filter(center__code=center_number,
+                                             station_number=station_number,
+                                             center__tally__id=tally_id)
+            return station.first()
