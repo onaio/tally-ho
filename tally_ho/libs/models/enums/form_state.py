@@ -3,6 +3,8 @@ from tally_ho.libs.utils.enum import Enum
 
 class FormState(Enum):
     ARCHIVED = 0
+    # Archiving has been removed from the state table, but we keep it here for
+    # compatibility with old databases.
     ARCHIVING = 1
     AUDIT = 2
     CLEARANCE = 3
@@ -14,11 +16,10 @@ class FormState(Enum):
     UNSUBMITTED = 9
 
     _transitions = {
-        ARCHIVED: (ARCHIVING, AUDIT),
-        ARCHIVING: (QUALITY_CONTROL,),
-        AUDIT: (ARCHIVING, CORRECTION, DATA_ENTRY_1, DATA_ENTRY_2,
+        ARCHIVED: (QUALITY_CONTROL, AUDIT),
+        AUDIT: (CORRECTION, DATA_ENTRY_1, DATA_ENTRY_2,
                 ARCHIVED, QUALITY_CONTROL),
-        CLEARANCE: (ARCHIVING, INTAKE, UNSUBMITTED, CORRECTION,
+        CLEARANCE: (INTAKE, UNSUBMITTED, CORRECTION,
                     ARCHIVED, DATA_ENTRY_1, DATA_ENTRY_2, QUALITY_CONTROL),
         CORRECTION: (DATA_ENTRY_2,),
         DATA_ENTRY_1: (AUDIT, CORRECTION, INTAKE, QUALITY_CONTROL),

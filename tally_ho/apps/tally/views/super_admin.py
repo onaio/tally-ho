@@ -5,6 +5,7 @@ from django.db.utils import ProgrammingError
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
+from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
@@ -18,10 +19,9 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import get_result_export_response
-from tally_ho.libs.views.pagination import paging
 
 
-def duplicates():
+def duplicates(qs):
     """Build a list of result forms that are duplicates considering only forms
     that are not unsubmitted.
 
@@ -40,7 +40,7 @@ def duplicates():
             station_number=item['station_number']).values('id'))
             for item in dupes])
 
-        return ResultForm.objects.filter(pk__in=pks)
+        return qs.filter(pk__in=pks)
     except ProgrammingError:
         return []
 
@@ -64,15 +64,6 @@ class FormProgressView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_progress.html"
 
-    def get(self, *args, **kwargs):
-        form_list = ResultForm.objects.exclude(
-            form_state=FormState.UNSUBMITTED)
-
-        forms = paging(form_list, self.request)
-
-        return self.render_to_response(self.get_context_data(
-            forms=forms))
-
 
 class FormDuplicatesView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
@@ -80,49 +71,32 @@ class FormDuplicatesView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_duplicates.html"
 
-    def get(self, *args, **kwargs):
-        form_list = duplicates()
-
-        forms = paging(form_list, self.request)
-
-        return self.render_to_response(self.get_context_data(
-            forms=forms))
-
 
 class FormProgressDataView(LoginRequiredMixin,
                            mixins.GroupRequiredMixin,
-                           TemplateView):
+                           BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
-    queryset = ResultForm.objects.exclude(form_state=FormState.UNSUBMITTED)
-    fields = (
+    columns = (
         'barcode',
-        'center__code',
+        'center.code',
         'station_number',
-        'ballot__number',
-        'center__office__name',
-        'center__office__number',
-        'ballot__race_type',
+        'ballot.number',
+        'center.office.name',
+        'center.office.number',
+        'ballot.race_type',
         'form_state',
         'rejected_count',
         'modified_date',
     )
-    display_fields = (
-        ('barcode', 'barcode'),
-        ('center__code', 'center_code'),
-        ('station_number', 'station_number'),
-        ('ballot__number', 'ballot_number'),
-        ('center__office__name', 'center_office'),
-        ('center__office__number', 'center_office_number'),
-        ('ballot__race_type', 'ballot_race_type_name'),
-        ('form_state', 'form_state_name'),
-        ('rejected_count', 'rejected_count'),
-        ('modified_date', 'modified_date_formatted'),
-    )
+
+    def filter_queryset(self, qs):
+        return qs.exclude(form_state=FormState.UNSUBMITTED)
 
 
 class FormDuplicatesDataView(FormProgressDataView):
-    queryset = duplicates()
+    def filter_queryset(self, qs):
+        return duplicates(qs)
 
 
 class FormActionView(LoginRequiredMixin,

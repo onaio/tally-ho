@@ -1,4 +1,5 @@
 from django.core.exceptions import SuspiciousOperation
+from django.db import transaction
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import TemplateView
@@ -16,6 +17,7 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.verify.quarantine_checks import check_quarantine
 from tally_ho.libs.views.session import session_matches_post_result_form
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.form_state import safe_form_in_state,\
@@ -87,7 +89,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
     form_class = BarcodeForm
     group_required = groups.QUALITY_CONTROL_CLERK
     template_name = "quality_control/dashboard.html"
-    success_url = 'quality-control-success'
+    success_url = 'quality-control-print'
 
     def get(self, *args, **kwargs):
         pk = self.request.session.get('result_form')
@@ -120,8 +122,9 @@ class QualityControlDashboardView(LoginRequiredMixin,
             quality_control.passed_general = True
             quality_control.passed_reconciliation = True
             quality_control.passed_women = True
-            result_form.form_state = FormState.ARCHIVING
             result_form.save()
+            # run quarantine checks
+            check_quarantine(result_form, self.request.user)
         elif 'incorrect' in post_data:
             # send to reject page
             quality_control.passed_general = False
@@ -144,6 +147,44 @@ class QualityControlDashboardView(LoginRequiredMixin,
         quality_control.save()
 
         return redirect(url)
+
+
+class PrintView(LoginRequiredMixin,
+                mixins.GroupRequiredMixin,
+                mixins.ReverseSuccessURLMixin,
+                FormView):
+    form_class = BarcodeForm
+    group_required = groups.QUALITY_CONTROL_CLERK
+    template_name = "quality_control/print_cover.html"
+    success_url = 'quality-control-success'
+
+    def get(self, *args, **kwargs):
+        """Display print view with a cover for audit if an audit exists
+        for the form, otherwise with a cover for archive.
+        """
+        pk = self.request.session.get('result_form')
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, FormState.QUALITY_CONTROL)
+
+        return self.render_to_response(
+            self.get_context_data(result_form=result_form))
+
+    @transaction.atomic
+    def post(self, *args, **kwargs):
+        """We arrive here after the cover has been printed and the user
+        confirms this with a button click. Fetch form and if form had an audit,
+        set it to audit state, otherwise to archived state.
+        """
+        post_data = self.request.POST
+        pk = session_matches_post_result_form(post_data, self.request)
+        result_form = get_object_or_404(ResultForm, pk=pk)
+        form_in_state(result_form, FormState.QUALITY_CONTROL)
+
+        result_form.form_state = FormState.AUDIT if result_form.audit else\
+            FormState.ARCHIVED
+        result_form.save()
+
+        return redirect(self.success_url)
 
 
 class ConfirmationView(LoginRequiredMixin,

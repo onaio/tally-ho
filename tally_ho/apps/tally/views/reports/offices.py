@@ -22,7 +22,7 @@ class OfficesReportView(LoginRequiredMixin,
                 office)
             archived = p.ArchivedProgressReport().for_center_office(office)
             data.append({
-                'office': office,
+                'office': office.name,
                 'number': office.number,
                 'intaken': intaken.number,
                 'not_intaken': not_intaken.number,
@@ -39,7 +39,6 @@ class OfficesReportView(LoginRequiredMixin,
             p.DataEntry2ProgressReport(),
             p.CorrectionProgressReport(),
             p.QualityControlProgressReport(),
-            p.ArchivingProgressReport(),
             p.ArchivedProgressReport(),
             p.ClearanceProgressReport(),
             p.AuditProgressReport(),

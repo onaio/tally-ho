@@ -30,7 +30,6 @@ Store the form data entered into the system.
     * Data Entry 2
     * Corrections
     * Quality Control
-    * Archiving: passed quality control
     * Audit: failed quarantine checks
     * Archived: final state, results official
 * Transitions: the possible transitions from the current state.

@@ -115,12 +115,12 @@ def create_candidate(ballot, candidate_name, race_type=RaceType.GENERAL):
                                     race_type=race_type)
 
 
-def create_center(code='1'):
+def create_center(code='1', office_name='office'):
     return Center.objects.get_or_create(
         code=code,
         mahalla='1',
         name='1',
-        office=create_office(),
+        office=create_office(office_name),
         region='1',
         village='1',
         center_type=CenterType.GENERAL)[0]

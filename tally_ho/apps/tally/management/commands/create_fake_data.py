@@ -38,7 +38,6 @@ class Command(BaseCommand):
                               FormState.DATA_ENTRY_2,
                               FormState.CORRECTION,
                               FormState.QUALITY_CONTROL,
-                              FormState.ARCHIVING,
                               FormState.ARCHIVED]:
                     result_form.form_state = state
                     result_form.save()
