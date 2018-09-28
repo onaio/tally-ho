@@ -119,14 +119,17 @@ def create_tally(name='myTally'):
     return tally
 
 
-def center_data(code1, code2=None, station_number=1):
+def center_data(code1, code2=None, station_number=1, tally_id=None):
     if not code2:
         code2 = code1
 
-    return {'center_number': code1,
-            'center_number_copy': code2,
-            'station_number': station_number,
-            'station_number_copy': station_number}
+    return {
+        'center_number': code1,
+        'center_number_copy': code2,
+        'station_number': station_number,
+        'tally_id': tally_id,
+        'station_number_copy': station_number,
+    }
 
 
 def create_candidate(ballot, candidate_name, race_type=RaceType.GENERAL):
@@ -149,8 +152,11 @@ def create_center(code='1', office_name='office', tally=None):
         center_type=CenterType.GENERAL)[0]
 
 
-def create_office(name='office'):
-    return Office.objects.get_or_create(name=name)[0]
+def create_office(name='office', tally=None):
+    office, _ = Office.objects.get_or_create(name=name,
+                                             tally=tally)
+
+    return office
 
 
 def create_reconciliation_form(

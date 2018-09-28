@@ -12,9 +12,16 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_result_form,\
-    create_candidate, create_center, create_station, TestBase,\
-    create_reconciliation_form, create_recon_forms
+from tally_ho.libs.tests.test_base import (
+    create_result_form,
+    create_candidate,
+    create_center,
+    create_station,
+    TestBase,
+    create_reconciliation_form,
+    create_recon_forms,
+    create_tally,
+)
 
 
 def create_results(result_form, vote1=1, vote2=1, race_type=RaceType.GENERAL,
@@ -46,6 +53,8 @@ class TestCorrections(TestBase):
         self.factory = RequestFactory()
         self._create_permission_groups()
         self._create_and_login_user()
+        self.tally = create_tally()
+        self.tally.users.add(self.user)
 
     def _common_view_tests(self, view, session={}):
         request = self.factory.get('/')
@@ -58,7 +67,7 @@ class TestCorrections(TestBase):
             view(request)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         request.session = session
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         response.render()
         self.assertIn(b'/accounts/logout/', response.content)
         return response
@@ -69,64 +78,73 @@ class TestCorrections(TestBase):
         self.assertIn(b'Correction', response.content)
         self.assertIn(b'<form id="result_form"', response.content)
 
-    def test_corrections_barcode_length(self):
-        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
-        view = views.CorrectionView.as_view()
-        short_length_barcode_data = {'barcode': '1223', 'barcode_copy': '1223'}
-        request = self.factory.post('/', data=short_length_barcode_data)
-        request.user = self.user
-        response = view(request)
-        self.assertContains(response,
-                            u'Ensure this value has at least 9 characters')
-
     def test_corrections_barcode_not_equal(self):
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         view = views.CorrectionView.as_view()
-        barcode_data = {'barcode': '123453789', 'barcode_copy': '123456789'}
+        barcode_data = {
+            'barcode': '123453789',
+            'barcode_copy': '123456789',
+            'tally_id': self.tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertContains(response, 'Barcodes do not match')
 
     def test_corrections_barcode_does_not_exist(self):
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         view = views.CorrectionView.as_view()
-        barcode_data = {'barcode': '123456789', 'barcode_copy': '123456789'}
+        barcode_data = {
+            'barcode': '123456789',
+            'barcode_copy': '123456789',
+            'tally_id': self.tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertContains(response, 'Barcode does not exist')
 
     def test_corrections_redirects_to_corrections_match(self):
         barcode = '123456789'
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_results(result_form, vote1=1, vote2=1)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         view = views.CorrectionView.as_view()
-        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        barcode_data = {
+            'barcode': barcode,
+            'barcode_copy': barcode,
+            'tally_id': self.tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         request.session = {}
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('corrections/match', response['location'])
 
     def test_corrections_redirects_to_corrections_required(self):
         barcode = '123456789'
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_results(result_form, vote1=1, vote2=3)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         view = views.CorrectionView.as_view()
-        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        barcode_data = {
+            'barcode': barcode,
+            'barcode_copy': barcode,
+            'tally_id': self.tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         request.session = {}
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('corrections/required', response['location'])
 
     def test_corrections_match_page(self):
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         session = {'result_form': result_form.pk}
         response = self._common_view_tests(
             views.CorrectionMatchView.as_view(), session=session)
@@ -139,19 +157,23 @@ class TestCorrections(TestBase):
 
     def test_corrections_match_pass_to_quality_control(self):
         view = views.CorrectionMatchView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_recon_forms(result_form, self.user)
         create_results(result_form, vote1=3, vote2=3)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
-        data = {'result_form': result_form.pk,
-                'pass_to_quality_control': 'true'}
+        data = {
+            'result_form': result_form.pk,
+            'pass_to_quality_control': 'true',
+            'tally_id': self.tally.pk,
+        }
         request = self.factory.post('/', data=data)
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
@@ -171,7 +193,8 @@ class TestCorrections(TestBase):
     def test_corrections_num_results_anomaly_reset_to_data_entry_one(self):
         barcode = '123456789'
         view = views.CorrectionMatchView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_recon_forms(result_form, self.user)
         create_results(result_form, vote1=3, vote2=3)
         create_results(result_form, vote1=3, vote2=None)
@@ -180,12 +203,16 @@ class TestCorrections(TestBase):
             Result.objects.filter(result_form=result_form).count(), 3)
 
         view = views.CorrectionView.as_view()
-        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        barcode_data = {
+            'barcode': barcode,
+            'barcode_copy': barcode,
+            'tally_id': self.tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         request.session = {}
         with self.assertRaises(SuspiciousOperation):
-            view(request)
+            view(request, tally_id=self.tally.pk)
 
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
@@ -193,7 +220,8 @@ class TestCorrections(TestBase):
 
     def test_corrections_general_post_corrections(self):
         view = views.CorrectionRequiredView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_results(result_form, vote1=2, vote2=3)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
@@ -208,7 +236,7 @@ class TestCorrections(TestBase):
         request = self.factory.post('/', post_data)
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
 
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
@@ -218,7 +246,8 @@ class TestCorrections(TestBase):
 
     def test_corrections_general_post_few_corrections(self):
         view = views.CorrectionRequiredView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_results(result_form, vote1=2, vote2=3, num=2)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
@@ -228,12 +257,13 @@ class TestCorrections(TestBase):
             'candidate_general_%s' % result_form.results.all()[
                 0].candidate.pk: 2,
             'result_form': result_form.pk,
-            'submit_corrections': 'submit corrections'
+            'submit_corrections': 'submit corrections',
+            'tally_id': self.tally.pk
         }
         request = self.factory.post('/', post_data)
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
 
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
@@ -252,19 +282,23 @@ class TestCorrections(TestBase):
         does not create more than one record of active results.
         """
         view = views.CorrectionMatchView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_recon_forms(result_form, self.user)
         create_results(result_form, vote1=3, vote2=3)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
-        data = {'result_form': result_form.pk,
-                'pass_to_quality_control': 'true'}
+        data = {
+            'result_form': result_form.pk,
+            'pass_to_quality_control': 'true',
+            'tally_id': self.tally.pk,
+        }
         request = self.factory.post('/', data=data)
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
@@ -311,7 +345,7 @@ class TestCorrections(TestBase):
 
         request.session = {'result_form': result_form.pk}
         # pass to quality control
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
 
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
@@ -330,7 +364,8 @@ class TestCorrections(TestBase):
 
     def test_corrections_general_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_recon_forms(result_form, self.user)
         create_results(result_form, vote1=2, vote2=3)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
@@ -345,7 +380,7 @@ class TestCorrections(TestBase):
         request = self.factory.post('/', post_data)
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
@@ -361,7 +396,8 @@ class TestCorrections(TestBase):
 
     def test_corrections_general_post_abort(self):
         view = views.CorrectionRequiredView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_results(result_form, vote1=2, vote2=3)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
@@ -370,12 +406,13 @@ class TestCorrections(TestBase):
         post_data = {
             'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
             'result_form': result_form.pk,
-            'abort_submit': 'reject'
+            'abort_submit': 'reject',
+            'tally_id': self.tally.pk,
         }
         request = self.factory.post('/', post_data)
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
@@ -388,7 +425,8 @@ class TestCorrections(TestBase):
 
     def test_corrections_women_post_corrections(self):
         view = views.CorrectionRequiredView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
@@ -398,12 +436,13 @@ class TestCorrections(TestBase):
             'candidate_women_%s' % result_form.results.all()[
                 0].candidate.pk: 2,
             'result_form': result_form.pk,
-            'submit_corrections': 'submit corrections'
+            'submit_corrections': 'submit corrections',
+            'tally_id': self.tally.pk,
         }
         request = self.factory.post('/', post_data)
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
 
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
@@ -413,7 +452,8 @@ class TestCorrections(TestBase):
 
     def test_corrections_women_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
@@ -423,12 +463,13 @@ class TestCorrections(TestBase):
             'candidate_women_%s' % result_form.results.all()[
                 0].candidate.pk: 2,
             'result_form': result_form.pk,
-            'reject_submit': 'reject'
+            'reject_submit': 'reject',
+            'tally_id': self.tally.pk,
         }
         request = self.factory.post('/', post_data)
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
@@ -439,6 +480,7 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         center = create_center()
         result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally,
                                          center=center)
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         create_recon_forms(result_form, self.user)
@@ -450,7 +492,7 @@ class TestCorrections(TestBase):
         request = self.factory.get('/')
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 200)
         response.render()
         self.assertIn(b'Reconciliation', response.content)
@@ -459,6 +501,7 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         center = create_center()
         result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally,
                                          center=center)
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         create_recon_forms(result_form, self.user)
@@ -471,14 +514,15 @@ class TestCorrections(TestBase):
         request = self.factory.get('/')
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 200)
         response.render()
         self.assertIn(b'Reconciliation', response.content)
 
     def test_recon_post(self):
         view = views.CorrectionRequiredView.as_view()
-        result_form = create_result_form(form_state=FormState.CORRECTION)
+        result_form = create_result_form(form_state=FormState.CORRECTION,
+                                         tally=self.tally)
         create_results(result_form, vote1=2, vote2=2, race_type=RaceType.WOMEN)
 
         ballot_from_val = '2'
@@ -503,15 +547,18 @@ class TestCorrections(TestBase):
             result_form=result_form).count(), 2)
 
         session = {'result_form': result_form.pk}
-        data = {'submit_corrections': 1,
-                'ballot_number_from': ballot_from_val,
-                'number_sorted_and_counted': sorted_counted_val,
-                'is_stamped': is_stamped}
+        data = {
+            'submit_corrections': 1,
+            'ballot_number_from': ballot_from_val,
+            'number_sorted_and_counted': sorted_counted_val,
+            'is_stamped': is_stamped,
+            'tally_id': self.tally.pk,
+        }
         data.update(session)
         request = self.factory.post('/', data=data)
         request.session = session
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         final_form = ReconciliationForm.objects.filter(
             result_form=result_form, entry_version=EntryVersion.FINAL)[0]
 
@@ -531,14 +578,16 @@ class TestCorrections(TestBase):
         self.assertIn('corrections/success', response['location'])
 
     def test_confirmation_get(self):
-        result_form = create_result_form(form_state=FormState.QUALITY_CONTROL)
+        result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,
+                                         tally=self.tally)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         view = views.ConfirmationView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(request.session.get('result_form'))
         self.assertContains(response, 'Quality Control')
-        self.assertContains(response, reverse('corrections'))
+        self.assertContains(response, reverse(
+            'corrections', kwargs={'tally_id': self.tally.pk}))

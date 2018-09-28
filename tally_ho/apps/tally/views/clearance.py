@@ -232,7 +232,6 @@ class CreateClearanceView(LoginRequiredMixin,
 
         return initial
 
-    # POST against itself is senseless. Changed to CheckCenterDetailsView.post
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         form_class = self.get_form_class()
@@ -354,7 +353,6 @@ class NewFormView(LoginRequiredMixin,
         self.initial = {
             'tally_id': tally_id,
         }
-        del self.request.session['result_form']
         pk = self.request.session.get('result_form')
 
         if pk:
@@ -383,7 +381,7 @@ class NewFormView(LoginRequiredMixin,
 
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = ResultForm.objects.get(pk=pk, )
+        result_form = ResultForm.objects.get(pk=pk)
 
         if 'abort-submit' in self.request.POST:
             result_form.delete()

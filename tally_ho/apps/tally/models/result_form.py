@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
 from django.db.models import Q, Sum
@@ -145,7 +144,7 @@ class ResultForm(BaseModel):
     center = models.ForeignKey(Center, blank=True, null=True,
                                on_delete=models.PROTECT)
     user = models.ForeignKey(UserProfile, null=True, on_delete=models.PROTECT)
-    created_user = models.ForeignKey(User, null=True,
+    created_user = models.ForeignKey(UserProfile, null=True,
                                      on_delete=models.PROTECT,
                                      related_name='created_user')
 

@@ -63,7 +63,7 @@ def create_or_get_audit(post_data, user, result_form, form):
     :param result_form: The result form to associate the audit with.
     :param form: The form to create an audit from if one does not exist.
 
-    :returns: A retrived of created audit for the result form.
+    :returns: A retrived or created audit for the result form.
     """
     audit = result_form.audit
 
@@ -193,8 +193,6 @@ class ReviewView(LoginRequiredMixin,
             return self.render_to_response(self.get_context_data(form=form,
                                            result_form=result_form,
                                            tally_id=tally_id))
-
-        return redirect(self.success_url, tally_id=tally_id)
 
 
 class PrintCoverView(LoginRequiredMixin,

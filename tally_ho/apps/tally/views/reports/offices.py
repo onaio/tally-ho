@@ -16,7 +16,6 @@ def getOverviews(tally_id):
             p.DataEntry2ProgressReport(tally_id),
             p.CorrectionProgressReport(tally_id),
             p.QualityControlProgressReport(tally_id),
-            p.ArchivingProgressReport(tally_id),
             p.ArchivedProgressReport(tally_id),
             p.ClearanceProgressReport(tally_id),
             p.AuditProgressReport(tally_id),
