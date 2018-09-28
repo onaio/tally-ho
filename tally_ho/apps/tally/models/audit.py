@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
 from enumfields import EnumIntegerField
@@ -6,6 +5,7 @@ import reversion
 
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
@@ -18,9 +18,11 @@ class Audit(BaseModel):
 
     quarantine_checks = models.ManyToManyField(QuarantineCheck)
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
-    supervisor = models.ForeignKey(User, related_name='audit_user', null=True,
+    supervisor = models.ForeignKey(UserProfile,
+                                   related_name='audit_user',
+                                   null=True,
                                    on_delete=models.PROTECT)
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
     for_superadmin = models.BooleanField(default=False)

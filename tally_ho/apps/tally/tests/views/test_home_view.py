@@ -1,6 +1,6 @@
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.views.home import HomeView, suspicious_error
-from tally_ho.libs.tests.test_base import TestBase
+from tally_ho.libs.tests.test_base import TestBase, create_tally
 
 
 class TestHomeView(TestBase):
@@ -19,8 +19,10 @@ class TestHomeView(TestBase):
 
     def test_intake_clerk_is_redirected(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
-        response = self.view(self.request)
+        response = self.view(self.request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake', response['location'])
 

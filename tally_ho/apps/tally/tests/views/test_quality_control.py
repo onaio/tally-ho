@@ -9,9 +9,17 @@ from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_candidates,\
-    create_reconciliation_form, create_recon_forms, create_result_form,\
-    create_center, create_station, create_audit, TestBase
+from tally_ho.libs.tests.test_base import (
+    create_candidates,
+    create_reconciliation_form,
+    create_recon_forms,
+    create_result_form,
+    create_center,
+    create_station,
+    create_audit,
+    create_tally,
+    TestBase,
+)
 from tally_ho.libs.verify.quarantine_checks import create_quarantine_checks
 
 
@@ -239,8 +247,11 @@ class TestQualityControl(TestBase):
 
     def test_reconciliation_post_incorrect(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
         create_result_form(barcode,
+                           tally=tally,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_recon_forms(result_form, self.user)
@@ -248,11 +259,15 @@ class TestQualityControl(TestBase):
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        data = {'result_form': result_form.pk, 'incorrect': 1}
+        data = {
+            'result_form': result_form.pk,
+            'incorrect': 1,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/reject',
                       response['location'])
@@ -279,18 +294,25 @@ class TestQualityControl(TestBase):
 
     def test_reconciliation_post_abort(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
         create_result_form(barcode,
+                           tally=tally,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        data = {'result_form': result_form.pk, 'abort': 1}
+        data = {
+            'result_form': result_form.pk,
+            'abort': 1,
+            'tally_id': tally.id,
+        }
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/home',
                       response['location'])
@@ -387,18 +409,25 @@ class TestQualityControl(TestBase):
 
     def test_general_post_abort(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
         create_result_form(barcode,
+                           tally=tally,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        data = {'result_form': result_form.pk, 'abort': 1}
+        data = {
+            'result_form': result_form.pk,
+            'abort': 1,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/home',
                       response['location'])
@@ -406,15 +435,18 @@ class TestQualityControl(TestBase):
         self.assertEqual(quality_control.active, False)
 
     def test_women_get(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
         center = create_center()
         station = create_station(center=center)
         create_result_form(barcode,
                            center=center,
                            station_number=station.station_number,
+                           tally=tally,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
-        self._create_and_login_user()
         name = 'general candidate name'
         women_name = 'women candidate name'
         votes = 123
@@ -426,11 +458,9 @@ class TestQualityControl(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         response.render()
         self.assertEqual(response.status_code, 200)
-        # gender has been removed
-        # self.assertContains(response, str(result_form.gender_name))
         self.assertContains(response, 'Women')
         self.assertContains(response, women_name)
         self.assertContains(response, name)
@@ -438,18 +468,25 @@ class TestQualityControl(TestBase):
 
     def test_women_post_correct(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
         create_result_form(barcode,
+                           tally=tally,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        data = {'result_form': result_form.pk, 'correct': 1}
+        data = {
+            'result_form': result_form.pk,
+            'correct': 1,
+            'tally_id': tally.pk
+        }
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         result_form.reload()
 
         self.assertEqual(response.status_code, 302)
@@ -461,19 +498,26 @@ class TestQualityControl(TestBase):
 
     def test_women_post_incorrect(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
         create_result_form(barcode,
+                           tally=tally,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        data = {'result_form': result_form.pk, 'incorrect': 1}
+        data = {
+            'result_form': result_form.pk,
+            'incorrect': 1,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/reject',
                       response['location'])
@@ -494,18 +538,25 @@ class TestQualityControl(TestBase):
 
     def test_women_post_abort(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
         create_result_form(barcode,
+                           tally=tally,
                            form_state=FormState.QUALITY_CONTROL)
         result_form = ResultForm.objects.get(barcode=barcode)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        data = {'result_form': result_form.pk, 'abort': 1}
+        data = {
+            'result_form': result_form.pk,
+            'abort': 1,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/home',
                       response['location'])
@@ -513,23 +564,31 @@ class TestQualityControl(TestBase):
         self.assertEqual(quality_control.active, False)
 
     def test_quality_control_post_quarantine_pass_with_zero_diff(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         center = create_center()
         create_station(center)
         create_quarantine_checks()
-        self._create_and_login_user()
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
-            center=center, station_number=1)
+            center=center,
+            tally=tally,
+            station_number=1)
         recon_form = create_reconciliation_form(
             result_form, self.user, number_unstamped_ballots=0)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        data = {'correct': 1, 'result_form': result_form.pk}
+        data = {
+            'correct': 1,
+            'result_form': result_form.pk,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=data)
         request.session = {'result_form': result_form.pk}
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         result_form.reload()
 
         self.assertEqual(result_form.num_votes,
@@ -576,23 +635,31 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/print', response['location'])
 
     def test_quality_control_post_quarantine(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         center = create_center()
         create_station(center)
         create_quarantine_checks()
-        self._create_and_login_user()
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
-            center=center, station_number=1)
+            tally=tally,
+            center=center,
+            station_number=1)
         create_reconciliation_form(
             result_form, self.user, number_unstamped_ballots=1000)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        data = {'correct': 1, 'result_form': result_form.pk}
+        data = {
+            'correct': 1,
+            'result_form': result_form.pk,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=data)
         request.session = {'result_form': result_form.pk}
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         result_form.reload()
 
         self.assertEqual(response.status_code, 302)
