@@ -6,7 +6,7 @@ from tally_ho.libs.permissions.groups import create_permission_groups, \
 
 
 class TestGroups(TestCase):
-    number_of_groups = 14
+    number_of_groups = 13
 
     def setUp(self):
         pass
