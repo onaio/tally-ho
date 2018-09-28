@@ -25,9 +25,10 @@ from tally_ho.apps.tally.forms.edit_user_profile_form import (
 )
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.center import Center
-from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
+from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
@@ -155,8 +156,11 @@ class TalliesView(LoginRequiredMixin,
     template_name = "super_admin/tallies.html"
 
     def get(self, request, *args, **kwargs):
-        kwargs['userprofile'] = UserProfile.objects.get(
-            id=self.request.user.id)
+        try:
+            userprofile = request.user.userprofile
+            kwargs['tallies'] = userprofile.administrated_tallies.all()
+        except UserProfile.DoesNotExist:
+            kwargs['tallies'] = Tally.objects.all()
         return super(TalliesView, self).get(request, *args, **kwargs)
 
 
