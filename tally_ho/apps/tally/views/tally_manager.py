@@ -1,4 +1,5 @@
 import csv
+from io import StringIO
 import json
 
 from django.contrib.messages.views import SuccessMessageMixin
@@ -51,7 +52,9 @@ def save_file(file_uploaded, file_name):
         for chunk in file_uploaded.chunks():
             destination.write(chunk)
 
-        reader = csv.reader(file_uploaded)
+        file_uploaded.seek(0)
+        fp = StringIO(file_uploaded.read().decode('utf-8'), newline=None)
+        reader = csv.reader(fp, dialect=csv.excel_tab)
         num_lines = sum(1 for line in reader)
 
     return num_lines

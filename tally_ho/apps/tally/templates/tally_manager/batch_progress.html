@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 
-{% load i18n %}
-{% load js %}
-{% load eztables %}
+{% load i18n static %}
 
 {% block content %}
 
@@ -56,8 +54,7 @@
 {% endblock %}
 
 {% block javascript %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
-{% django_js %}
+<script src="{% static "js/jquery-1.11.0.min.js" %}"></script>
 <script src="{{ STATIC_URL }}js/jquery-ui.min.js"></script>
 <script type="text/javascript">
 
