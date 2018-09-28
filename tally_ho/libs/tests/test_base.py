@@ -10,19 +10,24 @@ from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.office import Office
-from tally_ho.apps.tally.models.reconciliation_form import\
-    ReconciliationForm
+from tally_ho.apps.tally.models.reconciliation_form import (
+    ReconciliationForm,
+)
 from tally_ho.apps.tally.models.result import Result
+from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
+from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.center_type import CenterType
-from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.models.enums.gender import Gender
-from tally_ho.libs.permissions.groups import create_permission_groups, \
-    add_user_to_group
+from tally_ho.libs.permissions.groups import (
+    create_permission_groups,
+    add_user_to_group,
+)
+from tally_ho.libs.models.enums.race_type import RaceType
 
 
 def create_audit(result_form, user, reviewed_team=False):
@@ -75,10 +80,17 @@ def create_candidates(result_form, user,
         create_result(result_form, candidate_f, user, votes)
 
 
-def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
-                       ballot=None, station_number=None, center=None,
-                       gender=Gender.MALE, force_ballot=True,
-                       serial_number=0, user=None, is_replacement=False):
+def create_result_form(barcode='123456789',
+                       form_state=FormState.UNSUBMITTED,
+                       ballot=None,
+                       station_number=None,
+                       center=None,
+                       gender=Gender.MALE,
+                       force_ballot=True,
+                       serial_number=0,
+                       user=None,
+                       is_replacement=False,
+                       tally=None):
     if force_ballot and not ballot:
         ballot = create_ballot()
 
@@ -91,10 +103,19 @@ def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
         user=user,
         center=center,
         gender=gender,
-        is_replacement=is_replacement
+        is_replacement=is_replacement,
+        tally=tally,
     )
 
     return result_form
+
+
+def create_tally(name='myTally'):
+    tally, _ = Tally.objects.get_or_create(
+        name=name
+    )
+
+    return tally
 
 
 def center_data(code1, code2=None, station_number=1):
@@ -115,7 +136,7 @@ def create_candidate(ballot, candidate_name, race_type=RaceType.GENERAL):
                                     race_type=race_type)
 
 
-def create_center(code='1', office_name='office'):
+def create_center(code='1', office_name='office', tally=None):
     return Center.objects.get_or_create(
         code=code,
         mahalla='1',
@@ -123,6 +144,7 @@ def create_center(code='1', office_name='office'):
         office=create_office(office_name),
         region='1',
         village='1',
+        tally=tally,
         center_type=CenterType.GENERAL)[0]
 
 
@@ -221,7 +243,7 @@ def result_form_data(result_form):
 class TestBase(TestCase):
     @classmethod
     def _create_user(cls, username='bob', password='bob'):
-        return User.objects.create(username=username, password=password)
+        return UserProfile.objects.create(username=username, password=password)
 
     @classmethod
     def _get_request(cls, user=None):
@@ -231,6 +253,8 @@ class TestBase(TestCase):
         return request
 
     def _create_and_login_user(self, username='bob', password='bob'):
+        """Create a user and user profile.
+        """
         self.user = self._create_user(username, password)
         # to simulate login, assing user to a request object
         request = RequestFactory().get('/')
