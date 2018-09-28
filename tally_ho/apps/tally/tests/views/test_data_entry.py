@@ -5,9 +5,17 @@ from django.test import RequestFactory
 
 from tally_ho.apps.tally.views import data_entry as views
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_result_form,\
-    create_candidate, create_center, create_station, center_data,\
-    result_form_data, result_form_data_blank, TestBase
+from tally_ho.libs.tests.test_base import (
+    create_result_form,
+    create_candidate,
+    create_center,
+    create_station,
+    center_data,
+    create_tally,
+    result_form_data,
+    result_form_data_blank,
+    TestBase
+)
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
@@ -19,17 +27,20 @@ class TestDataEntry(TestBase):
         self._create_permission_groups()
 
     def _common_view_tests(self, view):
+        if not self.user:
+            self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         request = self.factory.get('/')
         request.user = AnonymousUser()
         response = view(request)
         self.assertEqual(response.status_code, 302)
         self.assertEqual('/accounts/login/?next=/', response['location'])
-        self._create_and_login_user()
         request.user = self.user
         with self.assertRaises(PermissionDenied):
-            view(request)
+            view(request, tally_id=tally.pk)
         self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         response.render()
         self.assertIn(b'/accounts/logout/', response.content)
         return response
@@ -40,7 +51,7 @@ class TestDataEntry(TestBase):
         self.request = self.factory.post('/', data=data)
         self.request.user = self.user
         self.request.session = {'result_form': result_form.pk}
-        return view(self.request)
+        return view(self.request, tally_id=result_form.tally.pk)
 
     def test_data_entry_view(self):
         response = self._common_view_tests(views.DataEntryView.as_view())
@@ -279,16 +290,20 @@ class TestDataEntry(TestBase):
             self.assertEqual(result.user, self.user)
 
     def test_enter_results_success_data_entry_two(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         code = '12345'
-        center = create_center(code)
+        center = create_center(code, tally=tally)
         create_station(center)
-        result_form = create_result_form(form_state=FormState.DATA_ENTRY_2,
-                                         center=center)
+        result_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_2,
+            center=center,
+            tally=tally)
         ballot = result_form.ballot
         candidate_name = 'candidate name'
         create_candidate(ballot, candidate_name)
 
-        self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_2_CLERK)
 
         response = self._post_enter_results(result_form)

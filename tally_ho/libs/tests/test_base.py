@@ -38,8 +38,9 @@ def create_audit(result_form, user, reviewed_team=False):
                                 resolution_recommendation=1)
 
 
-def create_ballot():
+def create_ballot(tally=None):
     ballot, _ = Ballot.objects.get_or_create(number=1,
+                                             tally=tally,
                                              race_type=RaceType.GENERAL)
 
     return ballot
@@ -210,31 +211,34 @@ def create_station(center, registrants=1):
 
 
 def result_form_data_blank(result_form):
-    return {'result_form': result_form.pk,
-            'form-TOTAL_FORMS': [u'1'],
-            'form-MAX_NUM_FORMS': [u'1000'],
-            'form-INITIAL_FORMS': [u'0'],
-            'form-0-votes': [u'']}
+    return {
+        'result_form': result_form.pk,
+        'tally_id': result_form.tally.pk,
+        'form-TOTAL_FORMS': ['1'],
+        'form-MAX_NUM_FORMS': ['1000'],
+        'form-INITIAL_FORMS': ['0'],
+        'form-0-votes': [''],
+    }
 
 
 def result_form_data(result_form):
     data = result_form_data_blank(result_form)
     data.update({
-        u'number_unstamped_ballots': [u'1'],
-        u'number_ballots_inside_box': [u'1'],
-        u'number_ballots_inside_and_outside_box': [u'1'],
-        u'number_valid_votes': [u'1'],
-        u'number_unused_ballots': [u'1'],
-        u'number_spoiled_ballots': [u'1'],
-        u'number_ballots_received': [u'1'],
-        u'number_cancelled_ballots': [u'1'],
-        u'ballot_number_from': [u'1'],
-        u'number_ballots_outside_box': [u'1'],
-        u'number_sorted_and_counted': [u'1'],
-        u'number_invalid_votes': [u'1'],
-        u'number_signatures_in_vr': [u'1'],
-        u'ballot_number_to': [u'1'],
-        u'form-0-votes': [u'1']
+        'number_unstamped_ballots': ['1'],
+        'number_ballots_inside_box': ['1'],
+        'number_ballots_inside_and_outside_box': ['1'],
+        'number_valid_votes': ['1'],
+        'number_unused_ballots': ['1'],
+        'number_spoiled_ballots': ['1'],
+        'number_ballots_received': ['1'],
+        'number_cancelled_ballots': ['1'],
+        'ballot_number_from': ['1'],
+        'number_ballots_outside_box': ['1'],
+        'number_sorted_and_counted': ['1'],
+        'number_invalid_votes': ['1'],
+        'number_signatures_in_vr': ['1'],
+        'ballot_number_to': ['1'],
+        'form-0-votes': ['1'],
     })
 
     return data

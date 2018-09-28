@@ -186,9 +186,9 @@ class EnterCenterView(LoginRequiredMixin,
                 self.request.session['intake-error'] = INTAKEN_MESSAGE
                 result_form.send_to_clearance()
 
-                for oneDuplicatedForm in duplicated_forms:
-                    if oneDuplicatedForm.form_state != FormState.CLEARANCE:
-                        oneDuplicatedForm.send_to_clearance()
+                for form in duplicated_forms:
+                    if form.form_state != FormState.CLEARANCE:
+                        form.send_to_clearance()
 
                 return redirect('intake-clearance', tally_id=tally_id)
 
@@ -247,7 +247,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
         url = None
 
         if 'is_match' in post_data:
-            # When result form has not center/station assigned.
+            # When result form is not assigned a center/station
             if not result_form.center:
                 station_number = self.request.session.get('station_number')
                 center_number = self.request.session.get('center_number')

@@ -11,6 +11,7 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
 from tally_ho.libs.models.enums.form_state import FormState
@@ -143,7 +144,7 @@ class ResultForm(BaseModel):
     ballot = models.ForeignKey(Ballot, null=True, on_delete=models.PROTECT)
     center = models.ForeignKey(Center, blank=True, null=True,
                                on_delete=models.PROTECT)
-    user = models.ForeignKey(User, null=True, on_delete=models.PROTECT)
+    user = models.ForeignKey(UserProfile, null=True, on_delete=models.PROTECT)
     created_user = models.ForeignKey(User, null=True,
                                      on_delete=models.PROTECT,
                                      related_name='created_user')
@@ -580,9 +581,7 @@ class ResultForm(BaseModel):
         else:
             return []
 
-        qs = qs.order_by('created_date')
-
-        return qs
+        return qs.order_by('created_date')
 
     def send_to_clearance(self):
         self.form_state = FormState.CLEARANCE

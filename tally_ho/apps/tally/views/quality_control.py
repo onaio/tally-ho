@@ -110,8 +110,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
-        form_in_state(result_form, [FormState.QUALITY_CONTROL,
-                                    FormState.ARCHIVING])
+        form_in_state(result_form, [FormState.QUALITY_CONTROL])
 
         reconciliation_form = ReconForm(data=model_to_dict(
             result_form.reconciliationform
@@ -200,12 +199,13 @@ class PrintView(LoginRequiredMixin,
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
+        tally_id = kwargs.get('tally_id')
 
         result_form.form_state = FormState.AUDIT if result_form.audit else\
             FormState.ARCHIVED
         result_form.save()
 
-        return redirect(self.success_url)
+        return redirect(self.success_url, tally_id=tally_id)
 
 
 class ConfirmationView(LoginRequiredMixin,
@@ -216,6 +216,7 @@ class ConfirmationView(LoginRequiredMixin,
                       groups.QUALITY_CONTROL_SUPERVISOR]
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
         del self.request.session['result_form']
@@ -224,4 +225,5 @@ class ConfirmationView(LoginRequiredMixin,
             self.get_context_data(result_form=result_form,
                                   header_text=_('Quality Control'),
                                   next_step=_('Archiving'),
+                                  tally_id=tally_id,
                                   start_url='quality-control'))

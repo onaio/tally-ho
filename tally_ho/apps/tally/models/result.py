@@ -1,10 +1,10 @@
-from django.contrib.auth.models import User
 from django.db import models
 from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 
@@ -19,7 +19,7 @@ class Result(BaseModel):
     result_form = models.ForeignKey(ResultForm,
                                     related_name='results',
                                     on_delete=models.PROTECT)
-    user = models.ForeignKey(User,
+    user = models.ForeignKey(UserProfile,
                              null=True,
                              on_delete=models.PROTECT)
 
