@@ -5,12 +5,10 @@ from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.libs.permissions import groups
+from tally_ho.apps.tally.models import UserProfile
 
 
 GROUP_URLS = {
-    groups.ADMINISTRATOR: "administrator",
-    groups.ARCHIVE_CLERK: "archive",
-    groups.ARCHIVE_SUPERVISOR: "archive",
     groups.AUDIT_CLERK: "audit",
     groups.AUDIT_SUPERVISOR: "audit",
     groups.CLEARANCE_CLERK: "clearance",
@@ -21,7 +19,9 @@ GROUP_URLS = {
     groups.INTAKE_CLERK: "intake",
     groups.INTAKE_SUPERVISOR: "intake",
     groups.QUALITY_CONTROL_CLERK: "quality-control",
-    groups.SUPER_ADMINISTRATOR: "super-administrator",
+    groups.QUALITY_CONTROL_SUPERVISOR: "quality-control",
+    groups.SUPER_ADMINISTRATOR: "super-administrator-tallies",
+    groups.TALLY_MANAGER: "tally-manager",
 }
 
 
@@ -58,7 +58,16 @@ class HomeView(LoginRequiredMixin, TemplateView):
     def get_user_role_url(self, user):
         if user.groups.count():
             user_group = user.groups.all()[0]
-            return reverse(GROUP_URLS.get(user_group.name))
+
+            kwargs = {}
+            if user_group.name not in [groups.TALLY_MANAGER,
+                                       groups.SUPER_ADMINISTRATOR]:
+                userprofile = UserProfile.objects.get(id=user.id)
+                if not userprofile.tally:
+                    return reverse('home-no-tally')
+                kwargs = {'tally_id': userprofile.tally.id}
+
+            return reverse(GROUP_URLS.get(user_group.name), kwargs=kwargs)
 
         return None
 
@@ -96,3 +105,7 @@ class LocaleView(TemplateView):
             next_url = 'home'
 
         return redirect(next_url)
+
+
+class NoTallyView(LoginRequiredMixin, TemplateView):
+    template_name = "no_tally_assigned.html"

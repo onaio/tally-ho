@@ -1,9 +1,9 @@
-from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
 import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 
 
@@ -12,7 +12,7 @@ class QualityControl(BaseModel):
         app_label = 'tally'
 
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
     passed_general = models.NullBooleanField()

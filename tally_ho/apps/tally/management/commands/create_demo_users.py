@@ -7,4 +7,4 @@ class Command(BaseCommand):
     help = ugettext_lazy("Create demo users with roles/groups.")
 
     def handle(self, *args, **kwargs):
-        create_demo_users_with_groups()
+        create_demo_users_with_groups('pruebas')

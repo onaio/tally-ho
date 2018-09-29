@@ -1,8 +1,6 @@
-from django.contrib.auth.models import User
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
 from django.db.models import Q, Sum
-from django.db.utils import ProgrammingError
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext as _
 from enumfields import EnumIntegerField
@@ -11,7 +9,10 @@ import reversion
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
+from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
@@ -134,21 +135,21 @@ def clean_reconciliation_forms(recon_queryset):
 class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
+        unique_together = (('barcode', 'tally'), ('serial_number', 'tally'))
 
     START_BARCODE = 10000000
-    MAX_BARCODE = 530000576
     OCV_CENTER_MIN = 80001
 
     ballot = models.ForeignKey(Ballot, null=True, on_delete=models.PROTECT)
     center = models.ForeignKey(Center, blank=True, null=True,
                                on_delete=models.PROTECT)
-    user = models.ForeignKey(User, null=True, on_delete=models.PROTECT)
-    created_user = models.ForeignKey(User, null=True,
+    user = models.ForeignKey(UserProfile, null=True, on_delete=models.PROTECT)
+    created_user = models.ForeignKey(UserProfile, null=True,
                                      on_delete=models.PROTECT,
                                      related_name='created_user')
 
     audited_count = models.PositiveIntegerField(default=0)
-    barcode = models.CharField(max_length=9, unique=True)
+    barcode = models.CharField(max_length=255)
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
     form_state = EnumIntegerField(FormState)
@@ -157,10 +158,20 @@ class ResultForm(BaseModel):
     office = models.ForeignKey(Office, blank=True, null=True,
                                on_delete=models.PROTECT)
     rejected_count = models.PositiveIntegerField(default=0)
-    serial_number = models.PositiveIntegerField(unique=True, null=True)
+    serial_number = models.PositiveIntegerField(null=True)
     skip_quarantine_checks = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
     is_replacement = models.BooleanField(default=False)
+    intake_printed = models.BooleanField(default=False)
+    clearance_printed = models.BooleanField(default=False)
+    tally = models.ForeignKey(Tally,
+                              null=True,
+                              blank=True,
+                              related_name='result_forms',
+                              on_delete=models.PROTECT)
+
+    # Field used in result duplicated list view
+    results_duplicated = []
 
     @property
     def results_final(self):
@@ -224,6 +235,13 @@ class ResultForm(BaseModel):
     def audit_supervisor_reviewed(self):
         return self.audit.supervisor.username if self.audit and\
             self.audit.reviewed_supervisor else _('No')
+
+    @property
+    def audit_recommendation(self):
+        recomendation_index = self.audit.resolution_recommendation if\
+            self.audit else ""
+        return ClearanceResolution.CHOICES[
+                  recomendation_index][1].capitalize()
 
     @property
     def form_state_name(self):
@@ -332,6 +350,13 @@ class ResultForm(BaseModel):
         return self.clearance and self.clearance.reviewed_team
 
     @property
+    def clearance_recommendation(self):
+        recomendation_index = self.clearance.resolution_recommendation if\
+            self.clearance else ""
+        return ClearanceResolution.CHOICES[
+            recomendation_index][1].capitalize()
+
+    @property
     def clearance_team_reviewed(self):
         return self.clearance.user.username if self.clearance and\
             self.clearance.reviewed_team else _('No')
@@ -437,7 +462,7 @@ class ResultForm(BaseModel):
         return candidates
 
     @classmethod
-    def distinct_filter(self, qs):
+    def distinct_filter(self, qs, tally_id=None):
         """Add a distinct filter onto a queryset.
 
         Return a queryset that accounts for duplicate replacement forms, orders
@@ -448,18 +473,25 @@ class ResultForm(BaseModel):
 
         :returns: A distinct, ordered, and filtered queryset.
         """
+        if tally_id:
+            return qs.filter(
+                tally__id=tally_id,
+                center__isnull=False,
+                station_number__isnull=False,
+                ballot__isnull=False).order_by(
+                'center__id', 'station_number', 'ballot__id',
+                'form_state').distinct(
+                'center__id', 'station_number', 'ballot__id')
         return qs.filter(
             center__isnull=False,
             station_number__isnull=False,
-            ballot__isnull=False).extra(
-            where=["barcode::integer <= %s"],
-            params=[self.MAX_BARCODE]).order_by(
+            ballot__isnull=False).order_by(
             'center__id', 'station_number', 'ballot__id',
             'form_state').distinct(
             'center__id', 'station_number', 'ballot__id')
 
     @classmethod
-    def distinct_for_component(cls, ballot):
+    def distinct_for_component(cls, ballot, tally_id=None):
         """Return the distinct result forms for this ballot, taking into
         account the possiblity of a component ballot.
 
@@ -468,32 +500,41 @@ class ResultForm(BaseModel):
         :returns: A distinct list of result forms.
         """
         return cls.distinct_filter(cls.objects.filter(
-            ballot__number__in=ballot.form_ballot_numbers))
+            ballot__number__in=ballot.form_ballot_numbers,
+            tally__id=tally_id))
 
     @classmethod
-    def distinct_forms(cls):
+    def distinct_forms(cls, tally_id=None):
+        if tally_id:
+            return cls.distinct_filter(cls.objects, tally_id)
+
         return cls.distinct_filter(cls.objects)
 
     @classmethod
-    def distinct_form_pks(cls):
+    def distinct_form_pks(cls, tally_id=None):
         # Calling '.values(id)' here does not preserve the distinct order by,
         # this leads to not choosing the archived replacement form.
         # TODO use a subquery that preserves the distinct and the order by
         # or cache this.
-        try:
-            return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
-        except ProgrammingError:
-            return []
+        if tally_id:
+            return [r.pk for r in cls.distinct_filter(
+                cls.distinct_forms(tally_id), tally_id)]
+
+        return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
 
     @classmethod
-    def forms_in_state(cls, state, pks=None):
+    def forms_in_state(cls, state, pks=None, tally_id=None):
         if not pks:
-            pks = cls.distinct_form_pks()
+            pks = cls.distinct_form_pks(tally_id)
 
+        if tally_id:
+            return cls.objects.filter(id__in=pks,
+                                      form_state=state,
+                                      tally__id=tally_id)
         return cls.objects.filter(id__in=pks, form_state=state)
 
     @classmethod
-    def generate_barcode(cls):
+    def generate_barcode(cls, tally_id=None):
         """Create a new barcode.
 
         Create a new barcode that is not already in the system by taking the
@@ -503,21 +544,21 @@ class ResultForm(BaseModel):
 
         :returns: A new unique integer barcode.
         """
-        result_forms = cls.objects.all().order_by('-barcode')
+        result_forms = cls.objects.filter(
+            tally__id=tally_id).order_by('-barcode')
         highest_barcode = result_forms[0].barcode if result_forms else\
             cls.START_BARCODE
 
         return int(highest_barcode) + 1
 
-    def intaken(self, center=None, station_number=None):
-        """Check if another result form has been intaken for this center and
-        station_number.
+    def get_duplicated_forms(self, center=None, station_number=None):
+        """Get all the result forms for this center and station_number.
 
         :param center: Check result forms from this center.
         :param station_number: Check result forms with this station number.
 
-        :returns: True if a form has already been intaken for this center,
-            station, ballot, and considering form state, otherwise False.
+        :returns: Array with the forms for this center, station, ballot,
+                  and considering form state.
         """
         if not center:
             center = self.center
@@ -525,23 +566,29 @@ class ResultForm(BaseModel):
         if not station_number:
             station_number = self.station_number
 
-        qs = ResultForm.objects.filter(
+        qs = ResultForm.objects.filter(tally=self.tally)
+        qs = qs.filter(
             Q(center=center), Q(center__isnull=False),
             Q(station_number=station_number), Q(station_number__isnull=False),
             Q(ballot=self.ballot), Q(ballot__isnull=False))
 
-        if self.form_state == FormState.UNSUBMITTED:
+        if self.form_state in [FormState.UNSUBMITTED, FormState.CLEARANCE]:
             qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED))
         elif self.form_state == FormState.INTAKE:
             qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED)
                             | Q(form_state=FormState.INTAKE))
         else:
-            return False
+            return []
 
-        return qs.count() > 0
+        return qs.order_by('created_date')
 
     def send_to_clearance(self):
         self.form_state = FormState.CLEARANCE
+
+        if self.audit and self.audit.active:
+            audit = self.audit
+            audit.active = False
+            audit.save()
         self.save()
 
 

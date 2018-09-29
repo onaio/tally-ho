@@ -6,7 +6,7 @@ from tally_ho.libs.permissions.groups import create_permission_groups, \
 
 
 class TestGroups(TestCase):
-    number_of_groups = 14
+    number_of_groups = 13
 
     def setUp(self):
         pass
@@ -26,5 +26,5 @@ class TestGroups(TestCase):
         self.assertEqual(diff_count, self.number_of_groups)
         user_diff_count = User.objects.count() - user_count
         self.assertEqual(user_diff_count, self.number_of_groups)
-        user = User.objects.get(username='administrator')
+        user = User.objects.get(username='super_administrator')
         self.assertTrue(user.check_password(password))

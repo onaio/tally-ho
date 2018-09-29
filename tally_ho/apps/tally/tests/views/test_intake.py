@@ -7,8 +7,14 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.views import intake as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_center,\
-    create_result_form, create_station, create_ballot, TestBase
+from tally_ho.libs.tests.test_base import (
+    create_center,
+    create_result_form,
+    create_station,
+    create_ballot,
+    create_tally,
+    TestBase,
+)
 
 
 class TestIntake(TestBase):
@@ -23,11 +29,13 @@ class TestIntake(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual('/accounts/login/?next=/', response['location'])
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         request.user = self.user
         with self.assertRaises(PermissionDenied):
-            view(request)
+            view(request, tally_id=tally.pk)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         response.render()
         self.assertIn(b'/accounts/logout/', response.content)
         return response
@@ -39,77 +47,108 @@ class TestIntake(TestBase):
 
     def test_center_detail_barcode_length(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
-        short_length_barcode_data = {'barcode': '1223', 'barcode_copy': '1223'}
+        short_length_barcode_data = {
+            'barcode': '1223',
+            'barcode_copy': '1223',
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=short_length_barcode_data)
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertContains(response,
-                            u'Ensure this value has at least 9 characters')
+                            u'Barcode does not exist.')
 
     def test_center_detail_barcode_alphabetic_characters(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
         data = {
             'barcode': 'abcdefghi',
-            'barcode_copy': 'abcdefghi'
+            'barcode_copy': 'abcdefghi',
+            'tally_id': tally.pk,
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertContains(response,
                             u'Expecting only numbers for barcodes')
 
     def test_center_detail_barcode_alphanumeric_characters(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
         data = {
             'barcode': '123defghi',
-            'barcode_copy': '123defghi'
+            'barcode_copy': '123defghi',
+            'tally_id': tally.pk,
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertContains(response,
                             u'Expecting only numbers for barcodes')
 
     def test_center_detail_barcode_not_equal(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
-        barcode_data = {'barcode': '123453789', 'barcode_copy': '123456789'}
+        barcode_data = {
+            'barcode': '123453789',
+            'barcode_copy': '123456789',
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertContains(response, 'Barcodes do not match')
 
     def test_center_detail_barcode_does_not_exist(self):
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
-        barcode_data = {'barcode': '123456789', 'barcode_copy': '123456789'}
+        barcode_data = {
+            'barcode': '123456789',
+            'barcode_copy': '123456789',
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertContains(response, 'Barcode does not exist')
 
     def test_center_detail_redirects_to_check_center_details(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
-        center = create_center()
+        center = create_center(tally=tally)
         create_result_form(barcode,
                            form_state=FormState.UNSUBMITTED,
+                           tally=tally,
                            center=center)
-        self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
-        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        barcode_data = {
+            'barcode': barcode,
+            'barcode_copy': barcode,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         request.session = {}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('intake/check-center-details',
                       response['location'])
@@ -118,19 +157,26 @@ class TestIntake(TestBase):
         self.assertEqual(result_form.user, self.user)
 
     def test_center_detail_redirects_to_check_center_details_zero_prefix(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '000000001'
-        center = create_center()
+        center = create_center(tally=tally)
         create_result_form(barcode,
                            form_state=FormState.UNSUBMITTED,
+                           tally=tally,
                            center=center)
-        self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
-        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        barcode_data = {
+            'barcode': barcode,
+            'barcode_copy': barcode,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         request.session = {}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('intake/check-center-details',
                       response['location'])
@@ -140,21 +186,28 @@ class TestIntake(TestBase):
 
     def test_intake_supervisor(self):
         self._create_and_login_user(username='alice')
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         form_user = self.user
         barcode = '123456789'
         center = create_center()
         create_result_form(barcode,
                            form_state=FormState.DATA_ENTRY_1,
                            user=form_user,
+                           tally=tally,
                            center=center)
-        self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_SUPERVISOR)
         view = views.CenterDetailsView.as_view()
-        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        barcode_data = {
+            'barcode': barcode,
+            'barcode_copy': barcode,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         request.session = {}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('intake/printcover',
                       response['location'])
@@ -163,20 +216,28 @@ class TestIntake(TestBase):
         self.assertEqual(result_form.user, form_user)
 
     def test_when_more_than_one_replacement_form_redirects_no_center(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
         create_result_form(barcode,
+                           tally=tally,
                            form_state=FormState.UNSUBMITTED)
         create_result_form('123456289',
+                           tally=tally,
                            form_state=FormState.UNSUBMITTED,
                            serial_number=3)
-        self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
-        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        barcode_data = {
+            'barcode': barcode,
+            'barcode_copy': barcode,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         request.session = {}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('intake/enter-center',
                       response['location'])
@@ -185,17 +246,24 @@ class TestIntake(TestBase):
         self.assertEqual(result_form.user, self.user)
 
     def test_center_detail_redirects_no_center(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
         barcode = '123456789'
         create_result_form(barcode,
-                           form_state=FormState.UNSUBMITTED)
-        self._create_and_login_user()
+                           form_state=FormState.UNSUBMITTED,
+                           tally=tally)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CenterDetailsView.as_view()
-        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        barcode_data = {
+            'barcode': barcode,
+            'barcode_copy': barcode,
+            'tally_id': tally.id,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         request.session = {}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('intake/enter-center',
                       response['location'])
@@ -204,64 +272,85 @@ class TestIntake(TestBase):
         self.assertEqual(result_form.user, self.user)
 
     def test_enter_center_get(self):
-        result_form = create_result_form(form_state=FormState.INTAKE)
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(form_state=FormState.INTAKE,
+                                         tally=tally)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.EnterCenterView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Double Enter Center Details')
 
     def test_intaken_get(self):
-        result_form = create_result_form(form_state=FormState.INTAKE)
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(form_state=FormState.INTAKE,
+                                         tally=tally)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.ConfirmationView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, reverse('intake'))
+        self.assertContains(response, reverse(
+            'intake', kwargs={'tally_id': tally.pk}))
 
     def test_enter_center_post_invalid(self):
-        result_form = create_result_form(form_state=FormState.INTAKE)
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(form_state=FormState.INTAKE,
+                                         tally=tally)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.EnterCenterView.as_view()
-        request = self.factory.post('/',
-                                    data={'result_form': result_form.pk})
+        request = self.factory.post('/', data={
+            'result_form': result_form.pk,
+            'tally_id': tally.pk,
+        })
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Double Enter Center Details')
 
     def test_enter_center_post_valid(self):
-        center = create_center(code='11111')
-        create_station(center)
-        result_form = create_result_form(form_state=FormState.INTAKE)
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(code='11111', tally=tally)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.INTAKE,
+                                         tally=tally)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.EnterCenterView.as_view()
-        data = {'result_form': result_form.pk,
-                'center_number': center.code,
-                'center_number_copy': center.code,
-                'station_number': 1,
-                'station_number_copy': 1}
-        request = self.factory.post('/',
-                                    data=data)
+        data = {
+            'result_form': result_form.pk,
+            'center_number': center.code,
+            'center_number_copy': center.code,
+            'station_number': 1,
+            'station_number_copy': 1,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/check-center-details', response['location'])
 
     def test_center_check_no_result_form_assigned_to_center_station(self):
-        center = create_center(code='11111')
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(code='11111', tally=tally)
         station = create_station(center)
         ballot = create_ballot()
         barcode = '123456789'
@@ -271,28 +360,30 @@ class TestIntake(TestBase):
             ballot=ballot,
             form_state=FormState.ARCHIVED,
             center=center,
-            station_number=station.station_number
+            station_number=station.station_number,
+            tally=tally,
         )
         replacement_result_form = create_result_form(
             barcode=replacement_barcode,
             ballot=ballot,
             form_state=FormState.INTAKE,
-            serial_number=1
+            serial_number=1,
+            tally=tally,
         )
 
-        self._create_and_login_user()
-        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.EnterCenterView.as_view()
-        data = {'result_form': replacement_result_form.pk,
-                'center_number': center.code,
-                'center_number_copy': center.code,
-                'station_number': station.station_number,
-                'station_number_copy': station.station_number}
-        request = self.factory.post('/',
-                                    data=data)
+        data = {
+            'result_form': replacement_result_form.pk,
+            'center_number': center.code,
+            'center_number_copy': center.code,
+            'station_number': station.station_number,
+            'station_number_copy': station.station_number,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': replacement_result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         replacement_result_form.reload()
         self.assertEqual(replacement_result_form.form_state,
                          FormState.CLEARANCE)
@@ -301,84 +392,110 @@ class TestIntake(TestBase):
         self.assertIn('/intake/clearance', response['location'])
 
     def test_center_check_replaced_result_form_sent_to_clearance(self):
-        center = create_center(code='11111')
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(code='11111', tally=tally)
         station = create_station(center)
-        ballot = create_ballot()
+        ballot = create_ballot(tally=tally)
         barcode = '123456789'
         replacement_barcode = '012345678'
         create_result_form(
             barcode=barcode,
             ballot=ballot,
-            form_state=FormState.UNSUBMITTED,
+            form_state=FormState.DATA_ENTRY_1,
             center=center,
-            station_number=station.station_number
+            station_number=station.station_number,
+            tally=tally,
         )
         replacement_result_form = create_result_form(
             barcode=replacement_barcode,
             ballot=ballot,
             form_state=FormState.INTAKE,
-            serial_number=1
+            serial_number=1,
+            tally=tally,
         )
 
-        self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.EnterCenterView.as_view()
-        data = {'result_form': replacement_result_form.pk,
-                'center_number': center.code,
-                'center_number_copy': center.code,
-                'station_number': station.station_number,
-                'station_number_copy': station.station_number}
-        request = self.factory.post('/',
-                                    data=data)
+        data = {
+            'result_form': replacement_result_form.pk,
+            'center_number': center.code,
+            'center_number_copy': center.code,
+            'station_number': station.station_number,
+            'station_number_copy': station.station_number,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': replacement_result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         replacement_result_form.reload()
-        self.assertEqual(replacement_result_form.form_state, FormState.INTAKE)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(replacement_result_form.form_state,
+                         FormState.CLEARANCE)
         self.assertEqual(replacement_result_form.station_number,
                          station.station_number)
         self.assertEqual(replacement_result_form.center, center)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/intake/check-center-details', response['location'])
+        self.assertIn(reverse(
+            'intake-clearance', kwargs={'tally_id': tally.pk}),
+            response['location'])
 
         view = views.CenterDetailsView.as_view()
-        barcode_data = {'barcode': barcode, 'barcode_copy': barcode}
+        barcode_data = {
+            'barcode': barcode,
+            'barcode_copy': barcode,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
         request.session = {}
-        response = view(request)
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/intake/clearance', response['location'])
+        response = view(request, tally_id=tally.pk)
+        self.assertEqual(response.status_code, 200)
         result_form = ResultForm.objects.get(barcode=barcode)
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
 
     def test_check_center_details(self):
-        barcode = '123456789'
-        result_form = create_result_form(barcode,
-                                         form_state=FormState.UNSUBMITTED)
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '123456789'
+        center = create_center(tally=tally)
+        result_form = create_result_form(barcode,
+                                         center=center,
+                                         tally=tally,
+                                         form_state=FormState.UNSUBMITTED)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CheckCenterDetailsView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         with self.assertRaises(Exception):
-            response = view(request)
+            response = view(request, tally_id=tally.pk)
         result_form.form_state = FormState.INTAKE
         result_form.save()
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertContains(response, 'Check Center Details Against Form')
         self.assertIn('result_form', response.context_data)
         self.assertEqual(barcode,
                          response.context_data['result_form'].barcode)
 
     def test_intake_clerk_selects_matches(self):
-        barcode = '123456789'
-        result_form = create_result_form(barcode)
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '123456789'
+        center = create_center(tally=tally)
+        result_form = create_result_form(barcode,
+                                         center=center,
+                                         tally=tally)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CheckCenterDetailsView.as_view()
-        post_data = {'result_form': result_form.pk, 'is_match': 'true'}
+        post_data = {
+            'result_form': result_form.pk,
+            'is_match': 'true',
+            'tally_id': tally.id,
+        }
         request = self.factory.post('/', data=post_data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
@@ -386,21 +503,28 @@ class TestIntake(TestBase):
             response = view(request)
         result_form.form_state = FormState.INTAKE
         result_form.save()
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/printcover', response['location'])
 
     def test_intake_clerk_selects_try_again(self):
-        barcode = '123456789'
-        result_form = create_result_form(barcode, form_state=FormState.INTAKE)
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '123456789'
+        result_form = create_result_form(barcode,
+                                         tally=tally,
+                                         form_state=FormState.INTAKE)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         view = views.CheckCenterDetailsView.as_view()
-        post_data = {'result_form': result_form.pk}
+        post_data = {
+            'result_form': result_form.pk,
+            'tally_id': tally.pk,
+        }
         request = self.factory.post('/', data=post_data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertIsNone(request.session.get('result_form'))
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake', response['location'])
@@ -410,8 +534,10 @@ class TestIntake(TestBase):
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
 
     def test_selects_is_not_match(self):
-        result_form = create_result_form()
         self._create_or_login_intake_clerk()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(tally=tally)
         view = views.CheckCenterDetailsView.as_view()
         post_data = {'result_form': result_form.pk, 'is_not_match': 'true'}
         request = self.factory.post('/', data=post_data)
@@ -421,7 +547,7 @@ class TestIntake(TestBase):
             response = view(request)
         result_form.form_state = FormState.INTAKE
         result_form.save()
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake/clearance', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
@@ -429,23 +555,27 @@ class TestIntake(TestBase):
                          FormState.CLEARANCE)
 
     def test_print_cover_invalid_state(self):
-        result_form = create_result_form()
         self._create_or_login_intake_clerk()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(tally=tally)
         view = views.PrintCoverView.as_view()
         self.request.user = self.user
         self.request.session = {'result_form': result_form.pk}
         with self.assertRaises(SuspiciousOperation):
-            view(self.request)
+            view(self.request, tally_id=tally.pk)
 
     def test_print_cover_get(self):
-        result_form = create_result_form()
         self._create_or_login_intake_clerk()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(tally=tally)
         view = views.PrintCoverView.as_view()
         self.request.user = self.user
         self.request.session = {'result_form': result_form.pk}
         result_form.form_state = FormState.INTAKE
         result_form.save()
-        response = view(self.request)
+        response = view(self.request, tally_id=tally.pk)
         expected_strings = [
             'Intake:', 'Successful', '>Print</button>',
             'Data Entry One:', 'Data Entry Two:', 'To Quality Control [ ]'
@@ -454,13 +584,16 @@ class TestIntake(TestBase):
             self.assertContains(response, test_string)
 
     def test_print_cover_get_supervisor(self):
-        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1)
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(tally=tally,
+                                         form_state=FormState.DATA_ENTRY_1)
         self._add_user_to_group(self.user, groups.INTAKE_SUPERVISOR)
         view = views.PrintCoverView.as_view()
         self.request.user = self.user
         self.request.session = {'result_form': result_form.pk}
-        response = view(self.request)
+        response = view(self.request, tally_id=tally.pk)
         expected_strings = [
             'Intake:', 'Successful', '>Print</button>',
             'Data Entry One:', 'Data Entry Two:', 'To Quality Control [ ]'
@@ -469,16 +602,21 @@ class TestIntake(TestBase):
             self.assertContains(response, test_string)
 
     def test_print_cover_post(self):
-        result_form = create_result_form()
+        self._create_or_login_intake_clerk()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(tally=tally)
         result_form.form_state = FormState.INTAKE
         result_form.save()
-        self._create_or_login_intake_clerk()
         view = views.PrintCoverView.as_view()
 
-        request = self.factory.post('/', data={'result_form': result_form.pk})
+        request = self.factory.post('/', data={
+            'result_form': result_form.pk,
+            'tally_id': tally.pk,
+        })
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
@@ -488,15 +626,21 @@ class TestIntake(TestBase):
                          FormState.DATA_ENTRY_1)
 
     def test_print_cover_post_supervisor(self):
-        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1)
         self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(form_state=FormState.DATA_ENTRY_1,
+                                         tally=tally)
         self._add_user_to_group(self.user, groups.INTAKE_SUPERVISOR)
         view = views.PrintCoverView.as_view()
 
-        request = self.factory.post('/', data={'result_form': result_form.pk})
+        request = self.factory.post('/', data={
+            'result_form': result_form.pk,
+            'tally_id': tally.pk,
+        })
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request)
+        response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('', response['location'])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
@@ -506,18 +650,23 @@ class TestIntake(TestBase):
                          FormState.DATA_ENTRY_1)
 
     def test_clearance(self):
-        result_form = create_result_form()
         self._create_or_login_intake_clerk()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(tally=tally)
         view = views.ClearanceView.as_view()
         self.request.user = self.user
-        self.request.session = {'result_form': result_form.pk}
+        self.request.session = {
+            'result_form': result_form.pk,
+            'tally_id': tally.pk,
+        }
         with self.assertRaises(Exception):
             response = view(self.request)
         result_form.form_state = FormState.INTAKE
         result_form.save()
         result_form.form_state = FormState.CLEARANCE
         result_form.save()
-        response = view(self.request)
+        response = view(self.request, tally_id=tally.pk)
         self.assertIsNone(self.request.session.get('result_form'))
         self.assertContains(response,
                             'Form Sent to Clearance. Pass to Supervisor')

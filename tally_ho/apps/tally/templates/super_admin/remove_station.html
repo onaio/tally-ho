@@ -4,17 +4,17 @@
 
 {% block content %}
 
-<h1>{% trans 'Remove Centre' %}</h1>
+<h1>{% trans 'Remove Station' %}</h1>
 
-<div class="form-instructions">{% trans 'Enter the centre number to delete.' %}</div>
+<div class="form-instructions">{% trans 'Enter the center and station number to delete.' %}</div>
 
-<form name="remove-station-form" method="post" action="" onsubmit="return confirm('{% trans "Confirm that you want to delete the station!" %}');">
+<form name="remove-station-form" method="post" action="">
     {% if form.non_field_errors %}
     <div class="text-danger">
         {{ form.non_field_errors }}<br/>
     </div>
     {% endif %}
-    <table>
+    <table class="formtable">
         <tr>
             <td><label>{% trans form.center_number.label %}</label></td>
             <td>{{ form.center_number.errors }}
@@ -28,10 +28,12 @@
             </td>
         </tr>
         <tr>
+            <td></td>
             <td>
-                <button type="submit" name="submit" class="btn btn-primary">{% trans "Delete Center" %}</button>
+                <button type="submit" name="submit" class="btn btn-primary">{% trans "Submit" %}</button>
             </td>
         </tr>
+        {{ form.tally_id }}
         {% csrf_token %}
     </table>
 </form>

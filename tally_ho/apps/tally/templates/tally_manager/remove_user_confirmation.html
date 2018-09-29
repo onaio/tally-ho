@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+{% if is_admin %}
+<h1>{% trans 'Remove Administrator' %}</h1>
+{% else %}
+<h1>{% trans 'Remove User' %}</h1>
+{% endif %}
+
+<form name="remove-user-form" method="post" action="">
+    <table class="table table-bordered infotable">
+        <tr><th>{% trans 'Username:' %}</th><td>{{ object.username }}</td></tr>
+        <tr><th>{% trans 'First Name:' %}</th><td>{{ object.first_name }}</td></tr>
+        <tr><th>{% trans 'Last Name:' %}</th><td>{{ object.last_name }}</td></tr>
+        <tr><th>{% trans 'Email:' %}</th><td>{{ object.email }}</td></tr>
+        {% if is_admin %}
+        <tr><th>{% trans 'Administrated Tallies:' %}</th>
+            {% if all_talliesy %}
+                {% for tally in all_tallies%}
+                <td>{{ object.administrated_tallies }}</td>
+                {% endfor %}
+            {% else %}
+            <td></td>
+            {% endif %}
+        </tr>
+        {% else %}
+            <tr><th>{% trans 'Tally:' %}</th>
+            {% if object.tally %}
+            <td>{{ object.tally }}</td>
+            {% else %}
+            <td></td>
+            {% endif %}
+            </tr>
+        {% endif %}
+    </table>
+    <button type="submit" name="accept_submit" class="btn btn-success">{% trans "Accept" %}</button>
+    <a class="btn btn-danger" href="{% url 'edit-user' object.id %}" role="button">{% trans "Cancel" %}</a>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

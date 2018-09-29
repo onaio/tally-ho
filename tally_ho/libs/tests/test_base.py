@@ -10,19 +10,24 @@ from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.office import Office
-from tally_ho.apps.tally.models.reconciliation_form import\
-    ReconciliationForm
+from tally_ho.apps.tally.models.reconciliation_form import (
+    ReconciliationForm,
+)
 from tally_ho.apps.tally.models.result import Result
+from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
+from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.center_type import CenterType
-from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.models.enums.gender import Gender
-from tally_ho.libs.permissions.groups import create_permission_groups, \
-    add_user_to_group
+from tally_ho.libs.permissions.groups import (
+    create_permission_groups,
+    add_user_to_group,
+)
+from tally_ho.libs.models.enums.race_type import RaceType
 
 
 def create_audit(result_form, user, reviewed_team=False):
@@ -33,8 +38,9 @@ def create_audit(result_form, user, reviewed_team=False):
                                 resolution_recommendation=1)
 
 
-def create_ballot():
+def create_ballot(tally=None):
     ballot, _ = Ballot.objects.get_or_create(number=1,
+                                             tally=tally,
                                              race_type=RaceType.GENERAL)
 
     return ballot
@@ -75,10 +81,17 @@ def create_candidates(result_form, user,
         create_result(result_form, candidate_f, user, votes)
 
 
-def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
-                       ballot=None, station_number=None, center=None,
-                       gender=Gender.MALE, force_ballot=True,
-                       serial_number=0, user=None, is_replacement=False):
+def create_result_form(barcode='123456789',
+                       form_state=FormState.UNSUBMITTED,
+                       ballot=None,
+                       station_number=None,
+                       center=None,
+                       gender=Gender.MALE,
+                       force_ballot=True,
+                       serial_number=0,
+                       user=None,
+                       is_replacement=False,
+                       tally=None):
     if force_ballot and not ballot:
         ballot = create_ballot()
 
@@ -91,20 +104,32 @@ def create_result_form(barcode='123456789', form_state=FormState.UNSUBMITTED,
         user=user,
         center=center,
         gender=gender,
-        is_replacement=is_replacement
+        is_replacement=is_replacement,
+        tally=tally,
     )
 
     return result_form
 
 
-def center_data(code1, code2=None, station_number=1):
+def create_tally(name='myTally'):
+    tally, _ = Tally.objects.get_or_create(
+        name=name
+    )
+
+    return tally
+
+
+def center_data(code1, code2=None, station_number=1, tally_id=None):
     if not code2:
         code2 = code1
 
-    return {'center_number': code1,
-            'center_number_copy': code2,
-            'station_number': station_number,
-            'station_number_copy': station_number}
+    return {
+        'center_number': code1,
+        'center_number_copy': code2,
+        'station_number': station_number,
+        'tally_id': tally_id,
+        'station_number_copy': station_number,
+    }
 
 
 def create_candidate(ballot, candidate_name, race_type=RaceType.GENERAL):
@@ -115,7 +140,7 @@ def create_candidate(ballot, candidate_name, race_type=RaceType.GENERAL):
                                     race_type=race_type)
 
 
-def create_center(code='1', office_name='office'):
+def create_center(code='1', office_name='office', tally=None):
     return Center.objects.get_or_create(
         code=code,
         mahalla='1',
@@ -123,11 +148,15 @@ def create_center(code='1', office_name='office'):
         office=create_office(office_name),
         region='1',
         village='1',
+        tally=tally,
         center_type=CenterType.GENERAL)[0]
 
 
-def create_office(name='office'):
-    return Office.objects.get_or_create(name=name)[0]
+def create_office(name='office', tally=None):
+    office, _ = Office.objects.get_or_create(name=name,
+                                             tally=tally)
+
+    return office
 
 
 def create_reconciliation_form(
@@ -188,31 +217,34 @@ def create_station(center, registrants=1):
 
 
 def result_form_data_blank(result_form):
-    return {'result_form': result_form.pk,
-            'form-TOTAL_FORMS': [u'1'],
-            'form-MAX_NUM_FORMS': [u'1000'],
-            'form-INITIAL_FORMS': [u'0'],
-            'form-0-votes': [u'']}
+    return {
+        'result_form': result_form.pk,
+        'tally_id': result_form.tally.pk,
+        'form-TOTAL_FORMS': ['1'],
+        'form-MAX_NUM_FORMS': ['1000'],
+        'form-INITIAL_FORMS': ['0'],
+        'form-0-votes': [''],
+    }
 
 
 def result_form_data(result_form):
     data = result_form_data_blank(result_form)
     data.update({
-        u'number_unstamped_ballots': [u'1'],
-        u'number_ballots_inside_box': [u'1'],
-        u'number_ballots_inside_and_outside_box': [u'1'],
-        u'number_valid_votes': [u'1'],
-        u'number_unused_ballots': [u'1'],
-        u'number_spoiled_ballots': [u'1'],
-        u'number_ballots_received': [u'1'],
-        u'number_cancelled_ballots': [u'1'],
-        u'ballot_number_from': [u'1'],
-        u'number_ballots_outside_box': [u'1'],
-        u'number_sorted_and_counted': [u'1'],
-        u'number_invalid_votes': [u'1'],
-        u'number_signatures_in_vr': [u'1'],
-        u'ballot_number_to': [u'1'],
-        u'form-0-votes': [u'1']
+        'number_unstamped_ballots': ['1'],
+        'number_ballots_inside_box': ['1'],
+        'number_ballots_inside_and_outside_box': ['1'],
+        'number_valid_votes': ['1'],
+        'number_unused_ballots': ['1'],
+        'number_spoiled_ballots': ['1'],
+        'number_ballots_received': ['1'],
+        'number_cancelled_ballots': ['1'],
+        'ballot_number_from': ['1'],
+        'number_ballots_outside_box': ['1'],
+        'number_sorted_and_counted': ['1'],
+        'number_invalid_votes': ['1'],
+        'number_signatures_in_vr': ['1'],
+        'ballot_number_to': ['1'],
+        'form-0-votes': ['1'],
     })
 
     return data
@@ -221,7 +253,7 @@ def result_form_data(result_form):
 class TestBase(TestCase):
     @classmethod
     def _create_user(cls, username='bob', password='bob'):
-        return User.objects.create(username=username, password=password)
+        return UserProfile.objects.create(username=username, password=password)
 
     @classmethod
     def _get_request(cls, user=None):
@@ -231,6 +263,8 @@ class TestBase(TestCase):
         return request
 
     def _create_and_login_user(self, username='bob', password='bob'):
+        """Create a user and user profile.
+        """
         self.user = self._create_user(username, password)
         # to simulate login, assing user to a request object
         request = RequestFactory().get('/')
@@ -241,7 +275,7 @@ class TestBase(TestCase):
         count = Group.objects.count()
         create_permission_groups()
         diff_count = Group.objects.count() - count
-        self.assertEqual(diff_count, 14)
+        self.assertEqual(diff_count, 13)
 
     def _add_user_to_group(self, user, name):
         if Group.objects.count() == 0:

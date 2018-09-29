@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Quarantine checks List' %}</h1>
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<table class="table table-striped">
+    <tr>
+        <th>{% trans 'Name' %}</th>
+        <th>{% trans 'Modification date' %}</th>
+        <th>{% trans 'Value' %}</th>
+        <th>{% trans 'Percentage' %}</th>
+        <th>{% trans 'Actions' %}</th>
+    </tr>
+{% for oneCheck in checks %}
+    <tr>
+        <td>{{ oneCheck.name }}</td>
+        <td>{{ oneCheck.modified_date | date:"Y-m-d h:m" }}</td>
+        <td>{{ oneCheck.value }}</td>
+        <td>{{ oneCheck.percentage }}</td>
+        <td>
+            <a href="{% url 'quarantine-checks-config' oneCheck.id %}" class="btn btn-default btn-small">{% trans 'Edit' %}</a>
+        </td>
+    </tr>
+{% endfor %}
+</table>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if checks.has_previous %}
+            <a href="?page={{ checks.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ checks.number }} of {{ checks.paginator.num_pages }}.
+        </span>
+
+        {% if checks.has_next %}
+            <a href="?page={{ checks.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+
+{% endblock %}

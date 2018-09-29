@@ -1,10 +1,10 @@
-from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext as _
 from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.clearance_resolution import\
@@ -18,10 +18,10 @@ class Clearance(BaseModel):
 
     result_form = models.ForeignKey(ResultForm, related_name='clearances',
                                     on_delete=models.PROTECT)
-    supervisor = models.ForeignKey(User, null=True,
+    supervisor = models.ForeignKey(UserProfile, null=True,
                                    on_delete=models.PROTECT,
                                    related_name='clearance_user')
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
     reviewed_supervisor = models.BooleanField(default=False)

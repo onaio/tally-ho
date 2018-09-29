@@ -15,9 +15,11 @@ class RacesReportView(LoginRequiredMixin,
 
     def get_per_ballot_progress(self):
         data = []
+        tally_id = self.kwargs.get('tally_id')
 
-        for ballot in valid_ballots():
-            archived = p.ArchivedProgressReport().for_ballot(ballot)
+        archived = p.ArchivedProgressReport(tally_id)
+        for ballot in valid_ballots(tally_id):
+            archived_result = archived.for_ballot(ballot)
             sc = ballot.sub_constituency
 
             if sc:
@@ -25,14 +27,18 @@ class RacesReportView(LoginRequiredMixin,
                     'ballot': ballot.number,
                     'district': sc.code,
                     'race_type': ballot.race_type_name,
-                    'expected': archived.denominator,
-                    'complete': archived.number,
-                    'percentage': archived.percentage,
+                    'expected': archived_result['denominator'],
+                    'complete': archived_result['number'],
+                    'percentage': archived_result['percentage'],
+                    'id': ballot.id,
+                    'active': ballot.active
                 })
 
         return data
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
+
         per_ballot = self.get_per_ballot_progress()
         races = len(per_ballot)
         completed = sum([1 for x in per_ballot if isinstance(
@@ -47,4 +53,5 @@ class RacesReportView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(
                 overview=overview,
-                per_ballot=per_ballot))
+                per_ballot=per_ballot,
+                tally_id=tally_id))

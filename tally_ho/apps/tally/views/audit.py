@@ -45,9 +45,9 @@ def audit_action(audit, post_data, result_form, url):
                 AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE:
             audit.for_superadmin = True
         else:
-            # move to data entry 1
+            new_state = FormState.DATA_ENTRY_1
             audit.active = False
-            result_form.reject()
+            result_form.reject(new_state=new_state)
 
     audit.save()
 
@@ -63,7 +63,7 @@ def create_or_get_audit(post_data, user, result_form, form):
     :param result_form: The result form to associate the audit with.
     :param form: The form to create an audit from if one does not exist.
 
-    :returns: A retrived of created audit for the result form.
+    :returns: A retrived or created audit for the result form.
     """
     audit = result_form.audit
 
@@ -91,7 +91,7 @@ def is_clerk(user):
     return groups.AUDIT_CLERK in user.groups.values_list('name', flat=True)
 
 
-def forms_for_user(user_is_clerk):
+def forms_for_user(user_is_clerk, tally_id=None):
     """Return the forms to display based on whether the user is a clerk or not.
 
     Supervisors and admins can view all unreviewed forms in the Audit state,
@@ -102,17 +102,20 @@ def forms_for_user(user_is_clerk):
     :returns: A list of forms in the audit state for this user's group.
     """
     form_list = ResultForm.objects.filter(
-        form_state=FormState.AUDIT, audit__reviewed_supervisor=False)
+        form_state=FormState.AUDIT, audit__reviewed_supervisor=False,
+        audit__active=True, tally__id=tally_id)
 
     if user_is_clerk:
         form_list = form_list.filter(
-            form_state=FormState.AUDIT, audit__reviewed_team=False)
+            form_state=FormState.AUDIT, audit__reviewed_team=False,
+            audit__active=True)
 
     return form_list
 
 
 class DashboardView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
+                    mixins.TallyAccessMixin,
                     mixins.ReverseSuccessURLMixin,
                     FormView):
     form_class = AuditForm
@@ -121,26 +124,31 @@ class DashboardView(LoginRequiredMixin,
     success_url = 'audit-review'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         user_is_clerk = is_clerk(self.request.user)
-        form_list = forms_for_user(user_is_clerk)
+        form_list = forms_for_user(user_is_clerk, tally_id)
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
-            forms=forms, is_clerk=user_is_clerk))
+            forms=forms, is_clerk=user_is_clerk,
+            tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = post_data['result_form']
-        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.AUDIT)
 
         self.request.session['result_form'] = result_form.pk
 
-        return redirect(self.success_url)
+        return redirect(self.success_url, tally_id=tally_id)
 
 
 class ReviewView(LoginRequiredMixin,
                  mixins.GroupRequiredMixin,
+                 mixins.TallyAccessMixin,
                  mixins.ReverseSuccessURLMixin,
                  FormView):
     form_class = AuditForm
@@ -149,8 +157,9 @@ class ReviewView(LoginRequiredMixin,
     success_url = 'audit'
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session['result_form']
-        result_form = get_object_or_404(ResultForm, pk=pk)
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
 
         form_class = self.get_form_class()
         audit = result_form.audit
@@ -159,14 +168,19 @@ class ReviewView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             form=form, result_form=result_form,
-            is_clerk=is_clerk(self.request.user)))
+            is_clerk=is_clerk(self.request.user),
+            tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.AUDIT)
 
         if form.is_valid():
@@ -174,48 +188,57 @@ class ReviewView(LoginRequiredMixin,
             audit = create_or_get_audit(post_data, user, result_form, form)
             url = audit_action(audit, post_data, result_form, self.success_url)
 
-            return redirect(url)
+            return redirect(url, tally_id=tally_id)
         else:
             return self.render_to_response(self.get_context_data(form=form,
-                                           result_form=result_form))
-
-        return redirect(self.success_url)
+                                           result_form=result_form,
+                                           tally_id=tally_id))
 
 
 class PrintCoverView(LoginRequiredMixin,
+                     mixins.TallyAccessMixin,
                      mixins.GroupRequiredMixin,
                      TemplateView):
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
     template_name = "audit/print_cover.html"
 
     def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        result_form = get_object_or_404(ResultForm, pk=pk)
+
+        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.AUDIT)
+
         problems = result_form.audit.get_problems()
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
-                                  problems=problems))
+                                  problems=problems,
+                                  tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
 
         if 'result_form' in post_data:
             pk = session_matches_post_result_form(post_data, self.request)
 
-            result_form = get_object_or_404(ResultForm, pk=pk)
+            result_form = get_object_or_404(ResultForm,
+                                            pk=pk,
+                                            tally__id=tally_id)
             form_in_state(result_form, FormState.AUDIT)
             del self.request.session['result_form']
 
-            return redirect('audit')
+            return redirect('audit', tally_id=tally_id)
 
         return self.render_to_response(
-            self.get_context_data(result_form=result_form))
+            self.get_context_data(result_form=result_form,
+                                  tally_id=tally_id))
 
 
 class CreateAuditView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
+                      mixins.TallyAccessMixin,
                       mixins.ReverseSuccessURLMixin,
                       FormView):
     form_class = BarcodeForm
@@ -223,20 +246,30 @@ class CreateAuditView(LoginRequiredMixin,
     template_name = "barcode_verify.html"
     success_url = 'audit'
 
-    def get(self, *args, **kwargs):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+    def get_context_data(self, **kwargs):
+        context = super(CreateAuditView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
+        context['header_text'] = _('Create Audit')
+        context['form_action'] = ''
 
-        return self.render_to_response(
-            self.get_context_data(form=form, header_text=_('Create Audit')))
+        return context
+
+    def get_initial(self):
+        initial = super(CreateAuditView, self).get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+
+        return initial
 
     def post(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode']
-            result_form = get_object_or_404(ResultForm, barcode=barcode)
+            result_form = get_object_or_404(ResultForm,
+                                            barcode=barcode,
+                                            tally__id=tally_id)
 
             possible_states = [FormState.CORRECTION,
                                FormState.DATA_ENTRY_1,
@@ -259,6 +292,6 @@ class CreateAuditView(LoginRequiredMixin,
             Audit.objects.create(result_form=result_form,
                                  user=self.request.user)
 
-            return redirect(self.success_url)
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.form_invalid(form)

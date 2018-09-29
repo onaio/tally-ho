@@ -9,28 +9,32 @@
 
 <h2 class="center do-not-print">{% trans 'Cover Form' %}</h2>
 
-<table id="coverform" class="print-table">
+<table id="coverform" class="print-table" cellpadding="5">
     {% include 'print_cover_common.html' %}
     <tr class="underline">
         <td>{% trans 'Intake: ' %}</td><td>{% trans 'Successful' %}</td>
+        <td></td>
     </tr>
     <tr>
         <td>{% trans 'Data Entry One:' %}</td>
         <td>{% trans 'Name:' %}
             <span class='underline'>________________________________________</span>
         </td>
+        <td></td>
     </tr>
     <tr class="underline">
         <td>{% trans 'Data Entry Two:' %}</td>
         <td>{% trans 'Name:' %}
             <span class='underline'>________________________________________</span>
         </td>
+        <td></td>
     </tr>
     <tr>
         <td rowspan="2">{% trans 'Corrections:' %}</td>
         <td>{% trans 'To Quality Control' %} [ ]</td><td>{% trans 'Name' %}
             <span class='underline'>________________________________________</span>
         </td>
+    </tr>
     <tr class="underline">
         <td>{% trans 'To Data Entry One' %} [ ]</td><td>{% trans 'Name' %}
             <span class='underline'>________________________________________</span>
@@ -41,6 +45,7 @@
         <td>{% trans 'To Archive' %} [ ]</td><td>{% trans 'Name' %}
             <span class='underline'>________________________________________</span>
         </td>
+    </tr>
     <tr>
         <td>{% trans 'To Data Entry One' %} [ ]</td><td>{% trans 'Name' %}
             <span class='underline'>________________________________________</span>
@@ -50,15 +55,22 @@
 
 </div>
 <div class="do-not-print">
+<span id='printed-url' data-url="{{ printed_url }}"></span>
 <form name="print_cover_form" method='post' action="">
     {% csrf_token %}
     <input type="hidden" name="result_form" value="{{result_form.pk}}" />
-    <button type="button" name="print_cover_form" onclick="print_cover()" class="btn btn-primary">{% trans 'Print' %}</button>
-    <button type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none" class="btn btn-success">{% trans 'Print Successful' %}</button>
+        <button type="button" name="print_cover_form" onclick="print_cover()" class="btn btn-primary">{% trans 'Print' %}</button>
+    {% if result_form.intake_printed %}
+        <button type="submit" id="submit_cover_form" name="submit_cover_form" class="btn btn-success">{% trans 'Print Successful' %}</button>
+    {% else %}
+        <button type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none" class="btn btn-success">{% trans 'Print Successful' %}</button>
+    {% endif %}
 </form>
 </div>
 {% endblock %}
 
+
 {% block javascript %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/print_button_check.js"></script>
 {% endblock %}

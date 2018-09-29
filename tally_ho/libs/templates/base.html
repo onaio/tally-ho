@@ -45,8 +45,17 @@
 
                         {% if user.is_authenticated %}<span>
                             {% if is_superadmin %}
-                            <a id="home" href="{% url 'home' %}">
-                                {% trans 'Home' %}</a>
+                                <a id="home" href="{% url 'home' %}">
+                                    {% trans 'Home' %}</a>
+                            {% elif is_tallymanager %}
+                                <a id="home" href="{% url 'tally-manager' %}">
+                                    {% trans 'Home' %}</a>
+                            {% endif %}
+                            {% if is_superadmin or is_tallymanager %}
+                                {% if tally_id %}
+                                | <a id="home-tally" href="{% url 'super-administrator' tally_id %}">
+                                    {% trans 'Tally dashboard' %}</a>
+                                {% endif %}
                             {% endif %}
                             {% trans 'Signed in as'%} {{user.username}} -
                             <a id="logout_link" href="/accounts/logout/">

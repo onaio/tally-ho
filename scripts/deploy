@@ -13,9 +13,9 @@ find . -name '.coverage' -exec rm {} \;
 find . -name '.DS_Store' -exec rm {} \;
 cp -R . ../tally-system-clean
 cd ..
-rm -rf tally-system-clean/.git
-rm -rf tally-system-clean/data/.git
-rm -rf tally-system-clean/results
+rm -fr tally-system-clean/.git
+rm -fr tally-system-clean/data/.git
+rm -fr tally-system-clean/results
 tar czvf tally-system.tgz tally-system-clean
-rm -rf tally-system-clean
+rm -fr tally-system-clean
 scp tally-system.tgz $TARGET_HOST:

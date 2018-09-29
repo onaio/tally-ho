@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Edit Station' %}</h1>
+
+<br/>
+
+<form name="form" method="post" action="">
+    <table class="table table-bordered">
+        <tr>
+            <td>{% trans 'Center:' %}</td>
+            <td>{{ center_code }}</td>
+        </tr>
+        <tr>
+            <td>{% trans 'Station Number:' %}</td>
+            <td>{{ station_number }}</td>
+        </tr>
+        {{ form.as_table }}
+        <tr>
+            <td>{% trans 'Status:' %}</td>
+            {% if is_active %}
+            <td>{% trans 'Enabled' %}</td>
+            {% else %}
+            <td>{% trans 'Disabled' %}</td>
+            {% endif %}
+        </tr>
+    </table>
+    <button class="btn btn-small btn-success" type="submit" name="save_submit">
+        {% trans "Save" %}
+    </button>
+    <a class="btn btn-small btn-danger" href="{% url 'center-list' tally_id %}" role="button">
+        {% trans "Cancel" %}
+    </a>
+    {% if is_active and center_is_active %}
+    <a class="btn btn-small btn-default" href="{% url 'disable' tally_id center_code station_number %}" role="button">
+        {% trans "Disable" %}
+    </a>
+    {% elif not is_active and center_is_active %}
+    <a class="btn btn-small btn-default" href="{% url 'enable' tally_id center_code station_number %}" role="button">
+        {% trans "Enable" %}
+    </a>
+    {% else %}
+    <a class="btn btn-small btn-link" href="{% url 'edit-center' tally_id center_code %}" role="button">
+        <!-- {% trans "Enable action is not allowed because the center is disable. Click here to edit center" %} -->
+        {% trans "Click here to edit center" %}
+    </a>
+    <span>{% trans "Enable action is not allowed because the center is disable." %}</span>
+    {% endif %}
+    <a class="btn btn-small btn-warning pull-right" href="{% url 'remove-station-confirmation' tally_id center_code station_number %}" role="button">
+        {% trans "Delete" %}
+    </a>
+    {% csrf_token %}
+</form>
+
+{% endblock %}
