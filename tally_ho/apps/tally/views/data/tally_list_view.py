@@ -17,9 +17,17 @@ class TallyListDataView(LoginRequiredMixin,
         'name',
         'created_date',
         'modified_date',
-        'active',
-        'active',
+        'administer',
+        'edit',
     )
+
+    def render_column(self, row, column):
+        if column == 'administer':
+            return row.administer_button
+        elif column == 'edit':
+            return row.edit_button
+        else:
+            return super(TallyListDataView, self).render_column(row, column)
 
 
 class TallyListView(LoginRequiredMixin,
