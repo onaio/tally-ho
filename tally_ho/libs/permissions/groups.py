@@ -33,24 +33,5 @@ def add_user_to_group(user, name):
     user.groups.add(group)
 
 
-def create_demo_users_with_groups(password='data'):
-    """Create a demo user for each group.
-
-    :param password: The password for the demo users.
-    """
-    from tally_ho.apps.tally.models.user_profile import UserProfile
-
-    for group in GROUPS:
-        obj, created = Group.objects.get_or_create(name=group)
-        username = group.replace(' ', '_').lower()
-        user, created = UserProfile.objects.get_or_create(
-            username=username[0:30],
-            first_name=group[0:30],
-            reset_password=False)
-        user.set_password(password)
-        user.save()
-        user.groups.add(obj)
-
-
 def user_groups(user):
     return user.groups.values_list("name", flat=True)
