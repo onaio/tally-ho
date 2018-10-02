@@ -39,7 +39,7 @@ def empty_strings_to_none(row):
     return [empty_string_to(f, None) for f in row]
 
 
-def get_component_race_type(ballot_number_component):
+def get_component_race_type(ballot_number_component, tally=None):
     return {
         '54': RaceType.COMPONENT_AMAZIGH,
         '55': RaceType.COMPONENT_TWARAG,
@@ -75,7 +75,7 @@ def strip_non_numeric(string):
         return None
 
 
-def process_sub_constituency_row(tally, row):
+def process_sub_constituency_row(tally, row, command=None, logger=None):
     if invalid_line(row):
         next
 
@@ -133,7 +133,11 @@ def process_sub_constituency_row(tally, row):
             tally=tally)
 
     except ValueError:
-        pass
+        msg = 'ValueError when parsing row: %s' % row
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
 
 
 def import_sub_constituencies_and_ballots(tally=None, subconst_file=None):
@@ -152,7 +156,7 @@ def import_sub_constituencies_and_ballots(tally=None, subconst_file=None):
     return elements_processed
 
 
-def process_center_row(tally, row):
+def process_center_row(tally, row, command=None, logger=None):
     if not invalid_line(row):
         sc_code = row[6]
         sub_constituency = None
@@ -201,7 +205,7 @@ def import_centers(tally=None, centers_file=None):
             process_center_row(tally, row)
 
 
-def process_station_row(command, tally, row):
+def process_station_row(tally, row, command=None, logger=None):
     center_code, center_name, sc_code, station_number, gender,\
         registrants = row[0:6]
 
@@ -221,8 +225,11 @@ def process_station_row(command, tally, row):
     except (SubConstituency.DoesNotExist, ValueError):
         # FIXME What to do if SubConstituency does not exist
         sub_constituency = None
-        command.stdout.write(command.style.WARNING(
-            'SubConstituency "%s" does not exist' % sc_code))
+        msg = 'SubConstituency "%s" does not exist' % sc_code
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
 
     gender = getattr(Gender, gender.upper())
 
@@ -243,7 +250,7 @@ def import_stations(command, tally=None, stations_file=None):
         reader.next()  # ignore header
 
         for row in reader:
-            process_station_row(command, tally, row)
+            process_station_row(tally, row, command=command)
 
 
 def process_candidate_row(tally, row, id_to_ballot_order):
@@ -302,7 +309,7 @@ def import_candidates(tally=None,
             process_candidate_row(tally, row, id_to_ballot_order)
 
 
-def process_results_form_row(command, tally, row):
+def process_results_form_row(tally, row, command=None, logger=None):
     replacement_count = 0
 
     row = empty_strings_to_none(row)
@@ -324,8 +331,11 @@ def process_results_form_row(command, tally, row):
         try:
             office = Office.objects.get(name=office_name.strip(), tally=tally)
         except Office.DoesNotExist:
-            command.stdout.write(command.style.WARNING(
-                'Office "%s" does not exist' % office_name))
+            msg = 'Office "%s" does not exist' % office_name
+            if command:
+                command.stdout.write(command.style.WARNING(msg))
+            if logger:
+                logger.warning(msg)
 
     is_replacement = True if center is None else False
 
@@ -368,7 +378,8 @@ def import_result_forms(command, tally=None, result_forms_file=None):
         reader.next()  # ignore header
 
         for row in reader:
-            replacement_count += process_results_form_row(command, tally, row)
+            replacement_count += process_results_form_row(
+                tally, row, command=command)
 
     command.stdout.write(command.style.NOTICE(
         'Number of replacement forms: %s' % replacement_count))

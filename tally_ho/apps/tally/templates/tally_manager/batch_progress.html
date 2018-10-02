@@ -55,57 +55,6 @@
 
 {% block javascript %}
 <script src="{% static "js/jquery-1.11.0.min.js" %}"></script>
-<script src="{{ STATIC_URL }}js/jquery-ui.min.js"></script>
-<script type="text/javascript">
-
-var currentStep = 0;
-var totalSteps = 5;
-
-for (i = 1; i <= totalSteps; i++) {
-    var total = parseInt($('#total' + i).html());
-
-    $('#progressbar' + i).progressbar({
-        value: false,
-        max: total
-    });
-}
-
-$(document).ready(function() {
-    currentStep = 1;
-    doRequest();
-});
-
-function doRequest() {
-    elementsProcessed = parseInt($('#offset' + currentStep ).html());
-    total = parseInt($('#total' + currentStep).html());
-    if (elementsProcessed < total) {
-        $.ajax({
-            url: $('#route').html(),
-            //    timeout: 30000,
-            type: 'POST',
-            data: {
-                offset: $('#offset' + currentStep).html(),
-                step: currentStep
-            },
-            success: function (data) {
-                if (data.status == 'OK') {
-                    elementsProcessed += data.elements_processed;
-                    $('#offset' + currentStep).html(elementsProcessed);
-                    $('#progressbar' + currentStep).progressbar('option', 'value', elementsProcessed);
-                    doRequest();
-                }
-            }
-        });
-    }
-    else {
-        if (currentStep < totalSteps) {
-            currentStep += 1;
-            doRequest();
-        }
-        else {
-            location.href = $("#route_destination").html();
-        }
-    }
-}
-</script>
+<script src="{% static "js/jquery-ui.min.js" %}"></script>
+<script src="{% static "js/batch_progress.js" %}"></script>
 {% endblock %}
