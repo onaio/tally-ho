@@ -112,6 +112,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'tally_ho.libs.utils.context_processors.debug',
                 'tally_ho.libs.utils.context_processors.is_superadmin',
+                'tally_ho.libs.utils.context_processors.is_tallymanager',
                 'tally_ho.libs.utils.context_processors.locale',
                 'tally_ho.libs.utils.context_processors.site_name',
             ],

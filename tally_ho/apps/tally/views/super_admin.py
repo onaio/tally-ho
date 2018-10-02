@@ -185,6 +185,14 @@ class FormProgressView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_progress.html"
 
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('form-progress-data',
+                               kwargs={'tally_id': tally_id}),
+            tally_id=tally_id))
+
 
 class FormDuplicatesView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
@@ -192,6 +200,14 @@ class FormDuplicatesView(LoginRequiredMixin,
                          TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_duplicates.html"
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('form-progress-data',
+                               kwargs={'tally_id': tally_id}),
+            tally_id=tally_id))
 
 
 class FormClearanceView(LoginRequiredMixin,
@@ -201,6 +217,14 @@ class FormClearanceView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_clearance.html"
 
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('form-clearance-data',
+                               kwargs={'tally_id': tally_id}),
+            tally_id=tally_id))
+
 
 class FormAuditView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
@@ -209,6 +233,14 @@ class FormAuditView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_audit.html"
 
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('form-audit-data',
+                               kwargs={'tally_id': tally_id}),
+            tally_id=tally_id))
+
 
 class FormResultsDuplicatesView(LoginRequiredMixin,
                                 mixins.GroupRequiredMixin,
@@ -216,6 +248,14 @@ class FormResultsDuplicatesView(LoginRequiredMixin,
                                 TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_results_duplicates.html"
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('form-duplicates-data',
+                               kwargs={'tally_id': tally_id}),
+            tally_id=tally_id))
 
 
 class FormProgressDataView(LoginRequiredMixin,

@@ -13,6 +13,26 @@ from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.models.tally import Tally
 
 
+admin_groups = set((groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR))
+
+
+def check_membership(allowed_groups, user):
+    """Check required group(s).
+
+    Verify that the user is in a permitted group, always returns True if
+    the user is a Super Administrator.
+
+    :param allowed_groups: The groups permitted.
+
+    :returns: True if user is in an allowed group, otherwise False.
+    """
+    user_groups = set(groups.user_groups(user))
+
+    # super admin skips group check
+    return admin_groups & user_groups or\
+        set(listify(allowed_groups)) & user_groups
+
+
 # from django-braces
 class GroupRequiredMixin(object):
     group_required = None
@@ -29,27 +49,11 @@ class GroupRequiredMixin(object):
 
         return self.group_required
 
-    def check_membership(self, allowed_groups):
-        """Check required group(s).
-
-        Verify that the user is in a permitted group, always returns True if
-        the user is a Super Administrator.
-
-        :param allowed_groups: The groups permitted.
-
-        :returns: True if user is in an allowed group, otherwise False.
-        """
-        user_groups = groups.user_groups(self.request.user)
-
-        # super admin skips group check
-        return groups.SUPER_ADMINISTRATOR in user_groups or\
-            set(listify(allowed_groups)) & set(user_groups)
-
     def dispatch(self, request, *args, **kwargs):
         self.request = request
 
-        if not (self.request.user.is_authenticated and
-                self.check_membership(self.get_group_required())):
+        if not (self.request.user.is_authenticated and check_membership(
+                self.get_group_required(), self.request.user)):
             raise PermissionDenied
 
         return super(GroupRequiredMixin, self).dispatch(

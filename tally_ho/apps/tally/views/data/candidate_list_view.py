@@ -21,8 +21,15 @@ class CandidateListDataView(LoginRequiredMixin,
         'ballot.number',
         'race_type',
         'modified_date',
-        'active',
+        'action',
     )
+
+    def render_column(self, row, column):
+        if column == 'action':
+            return row.get_action_button
+        else:
+            return super(CandidateListDataView, self).render_column(
+                row, column)
 
     def filter_queryset(self, qs):
         tally_id = self.request.GET.get('tally_id', None)
