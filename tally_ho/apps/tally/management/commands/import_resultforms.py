@@ -21,5 +21,5 @@ class Command(imp.Command):
         result_path = result_path \
             if result_path is not None else RESULT_FORMS_PATH
 
-        print('[INFO] import result forms')
+        self.stdout.write(self.style.NOTICE('[INFO] import result forms'))
         self.import_result_forms(result_path)

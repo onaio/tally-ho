@@ -201,7 +201,7 @@ def import_centers(tally=None, centers_file=None):
             process_center_row(tally, row)
 
 
-def process_station_row(tally, row):
+def process_station_row(command, tally, row):
     center_code, center_name, sc_code, station_number, gender,\
         registrants = row[0:6]
 
@@ -221,8 +221,8 @@ def process_station_row(tally, row):
     except (SubConstituency.DoesNotExist, ValueError):
         # FIXME What to do if SubConstituency does not exist
         sub_constituency = None
-        print('[WARNING] SubConstituency "%s" does not exist' %
-              sc_code)
+        command.stdout.write(command.style.WARNING(
+            'SubConstituency "%s" does not exist' % sc_code))
 
     gender = getattr(Gender, gender.upper())
 
@@ -234,7 +234,7 @@ def process_station_row(tally, row):
         station_number=station_number)
 
 
-def import_stations(tally=None, stations_file=None):
+def import_stations(command, tally=None, stations_file=None):
     file_to_parse = stations_file if stations_file else open(
         STATIONS_PATH, 'rU')
 
@@ -243,7 +243,7 @@ def import_stations(tally=None, stations_file=None):
         reader.next()  # ignore header
 
         for row in reader:
-            process_station_row(tally, row)
+            process_station_row(command, tally, row)
 
 
 def process_candidate_row(tally, row, id_to_ballot_order):
@@ -302,7 +302,7 @@ def import_candidates(tally=None,
             process_candidate_row(tally, row, id_to_ballot_order)
 
 
-def process_results_form_row(tally, row):
+def process_results_form_row(command, tally, row):
     replacement_count = 0
 
     row = empty_strings_to_none(row)
@@ -324,8 +324,8 @@ def process_results_form_row(tally, row):
         try:
             office = Office.objects.get(name=office_name.strip(), tally=tally)
         except Office.DoesNotExist:
-            print('[WARNING] Office "%s" does not exist' %
-                  office_name)
+            command.stdout.write(command.style.WARNING(
+                'Office "%s" does not exist' % office_name))
 
     is_replacement = True if center is None else False
 
@@ -358,7 +358,7 @@ def process_results_form_row(tally, row):
     return replacement_count
 
 
-def import_result_forms(tally=None, result_forms_file=None):
+def import_result_forms(command, tally=None, result_forms_file=None):
     file_to_parse = result_forms_file if result_forms_file else open(
         RESULT_FORMS_PATH, 'rU')
     replacement_count = 0
@@ -368,29 +368,30 @@ def import_result_forms(tally=None, result_forms_file=None):
         reader.next()  # ignore header
 
         for row in reader:
-            replacement_count += process_results_form_row(tally, row)
+            replacement_count += process_results_form_row(command, tally, row)
 
-    print('[INFO] Number of replacement forms: %s' % replacement_count)
+    command.stdout.write(command.style.NOTICE(
+        'Number of replacement forms: %s' % replacement_count))
 
 
 class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
 
     def handle(self, *args, **kwargs):
-        print('[INFO] creating groups')
+        self.stdout.write(self.style.NOTICE('creating groups'))
         create_permission_groups()
 
-        print('[INFO] import sub constituencies')
+        self.stdout.write(self.style.NOTICE('import sub constituencies'))
         import_sub_constituencies_and_ballots()
 
-        print('[INFO] import centers')
+        self.stdout.write(self.style.NOTICE('import centers'))
         import_centers()
 
-        print('[INFO] import stations')
-        import_stations()
+        self.stdout.write(self.style.NOTICE('import stations'))
+        import_stations(self)
 
-        print('[INFO] import candidates')
+        self.stdout.write(self.style.NOTICE('import candidates'))
         import_candidates()
 
-        print('[INFO] import result forms')
-        import_result_forms()
+        self.stdout.write(self.style.NOTICE('import result forms'))
+        import_result_forms(self)
