@@ -7,7 +7,8 @@ from tally_ho.libs.models.enums.form_state import FormState
 
 
 def rounded_percent(numerator, denominator):
-    return round(100 * numerator / float(denominator), 2)
+    return round(100 * numerator / float(denominator), 2) if\
+        denominator > 0 else 0
 
 
 class ProgressReport(object):

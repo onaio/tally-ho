@@ -120,7 +120,7 @@ class Candidate(BaseModel):
         return self.ballot.number
 
     @property
-    def candidate_active(self):
+    def get_action_button(self):
         return get_active_candidate_link(self) if self else None
 
 

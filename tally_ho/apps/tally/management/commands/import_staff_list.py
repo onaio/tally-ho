@@ -56,7 +56,7 @@ def utf_8_encoder(unicode_csv_data):
         yield line.encode('utf-8')
 
 
-def add_row(name, username, role, admin=None):
+def add_row(command, name, username, role, admin=None):
     try:
         first_name, last_name = assign_names(name)
         user = create_user(first_name, last_name, username)
@@ -66,7 +66,8 @@ def add_row(name, username, role, admin=None):
         user.save()
 
     except Exception as e:
-        print("User '%s' not created! '%s'" % (username, e))
+        command.stdout.write(command.style.ERROR(
+            "User '%s' not created! '%s'" % (username, e)))
     else:
         system_role = STAFF_ROLE_DICT.get(role.upper().strip())
 
@@ -75,9 +76,9 @@ def add_row(name, username, role, admin=None):
                 name=system_role)
             user.groups.add(group)
         else:
-            print(
+            command.stdout.write(command.style.ERROR(
                "Unable to add user %s to unknown group '%s'."
-               % (username, role))
+               % (username, role)))
 
 
 def assign_names(name):
@@ -118,10 +119,11 @@ class Command(BaseCommand):
                 try:
                     name, username, role, admin = row[0:4]
                 except Exception as e:
-                    print("Unable to add user in row: %s. Exception %s." %
-                          (row, e))
+                    self.stdout.write(self.style.ERROR(
+                        'Unable to add user in row: %s. Exception %s.' %
+                        (row, e)))
                 else:
-                    add_row(name, username, role, admin)
+                    add_row(self, name, username, role, admin)
 
     def import_user_list(self):
         with codecs.open(USER_LIST_PATH, encoding='utf-8') as f:
@@ -132,7 +134,8 @@ class Command(BaseCommand):
                 try:
                     username, name, role = row[0:3]
                 except Exception as e:
-                    print("Unable to add user in row: '%s'. Exception '%s'." %
-                          (row, e))
+                    self.stdout.write(self.style.ERROR(
+                        "Unable to add user in row: '%s'. Exception '%s'." %
+                        (row, e)))
                 else:
-                    add_row(name, username, role)
+                    add_row(self, name, username, role)

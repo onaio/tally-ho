@@ -28,7 +28,14 @@ class CenterListDataView(LoginRequiredMixin,
         'percent_archived',
         'center.active',
         'active',
+        'edit',
     )
+
+    def render_column(self, row, column):
+        if column == 'edit':
+            return row.get_edit_links
+        else:
+            return super(CenterListDataView, self).render_column(row, column)
 
 
 class CenterListView(LoginRequiredMixin,

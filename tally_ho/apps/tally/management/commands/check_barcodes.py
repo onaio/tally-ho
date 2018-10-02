@@ -46,8 +46,8 @@ class Command(BaseCommand):
                 if result_form.center.code != code or\
                         result_form.station_number != station_number or\
                         result_form.ballot.number != ballot:
-                    print('[ERROR]: %s system center %s~=%s station %s~=%s'
-                          ' ballot %s~=%s' % (
-                              barcode, result_form.center.code, code,
-                              result_form.station_number, station_number,
-                              result_form.ballot.number, ballot))
+                    self.stdout.write(self.style.NOTICE(
+                        '%s system center %s~=%s station %s~=%s ballot %s~=%s'
+                        % (barcode, result_form.center.code, code,
+                           result_form.station_number, station_number,
+                           result_form.ballot.number, ballot)))

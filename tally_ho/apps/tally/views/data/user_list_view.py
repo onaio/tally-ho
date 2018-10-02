@@ -19,7 +19,7 @@ class UserListDataView(LoginRequiredMixin,
         'email',
         'first_name',
         'last_name',
-        'is_active',
+        'edit',
     )
 
     def get(self, request, *args, **kwargs):
@@ -67,7 +67,6 @@ class UserTallyListView(LoginRequiredMixin,
     template_name = "data/users.html"
 
     def get(self, *args, **kwargs):
-        # check cache
         tally_id = kwargs.get('tally_id')
         is_admin = False
         role = 'user'
@@ -86,5 +85,12 @@ class UserTallyListDataView(UserListDataView):
         'email',
         'first_name',
         'last_name',
-        'get_edit_tally_link',
+        'edit',
     )
+
+    def render_column(self, row, column):
+        if column == 'edit':
+            return row.get_edit_tally_link
+        else:
+            return super(UserTallyListDataView, self).render_column(
+                row, column)
