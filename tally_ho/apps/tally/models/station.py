@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.dependencies import check_results_for_forms
 from tally_ho.libs.models.enums.form_state import FormState
@@ -31,7 +32,11 @@ class Station(BaseModel):
                                          null=True,
                                          on_delete=models.PROTECT,
                                          related_name='stations')
-
+    tally = models.ForeignKey(Tally,
+                              null=True,
+                              blank=True,
+                              related_name='stations',
+                              on_delete=models.PROTECT)
     gender = EnumIntegerField(Gender)
     percent_archived = models.DecimalField(default=0, max_digits=5,
                                            decimal_places=2)

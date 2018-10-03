@@ -4,6 +4,7 @@ import json
 import logging
 
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -36,6 +37,7 @@ from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.permissions import groups
@@ -57,7 +59,7 @@ STEP_TO_ARGS = {
     4: ['candidates_file',
         'candidates_file_lines',
         process_candidate_row],
-    5: ['result_forms_file'
+    5: ['result_forms_file',
         'result_forms_file_lines',
         process_results_form_row]
 }
@@ -94,7 +96,7 @@ def import_rows_batch(tally,
     if ballot_file_to_parse:
         with ballot_file_to_parse as f:
             reader = csv.reader(f)
-            reader.next()  # ignore header
+            next(reader)  # ignore header
 
             for row in reader:
                 id_, ballot_number = row
@@ -302,13 +304,16 @@ class TallyFilesFormView(LoginRequiredMixin,
         tally_id = data['tally_id']
 
         tally = Tally.objects.get(id=tally_id)
-        SubConstituency.objects.filter(tally=tally).delete()
-        Ballot.objects.filter(tally=tally).delete()
-        Center.objects.filter(tally=tally).delete()
-        Office.objects.filter(tally=tally).delete()
-        Ballot.objects.filter(tally=tally).delete()
-        Candidate.objects.filter(tally=tally).delete()
-        ResultForm.objects.filter(tally=tally).delete()
+
+        with transaction.atomic():
+            Station.objects.filter(tally=tally).delete()
+            Center.objects.filter(tally=tally).delete()
+            SubConstituency.objects.filter(tally=tally).delete()
+            Ballot.objects.filter(tally=tally).delete()
+            Office.objects.filter(tally=tally).delete()
+            Ballot.objects.filter(tally=tally).delete()
+            Candidate.objects.filter(tally=tally).delete()
+            ResultForm.objects.filter(tally=tally).delete()
 
         subconst_file = 'subcontituencies_%d.csv' % (tally_id)
         subconst_file_lines = save_file(data['subconst_file'], subconst_file)
@@ -340,7 +345,8 @@ class TallyFilesFormView(LoginRequiredMixin,
                       'stations_file_lines': stations_file_lines,
                       'candidates_file': candidates_file,
                       'candidates_file_lines': candidates_file_lines,
-                      'ballots_order_file': ballots_order_file_lines,
+                      'ballots_order_file': ballots_order_file,
+                      'ballots_order_file_lines': ballots_order_file_lines,
                       'result_forms_file': result_forms_file,
                       'result_forms_file_lines': result_forms_file_lines}
 
