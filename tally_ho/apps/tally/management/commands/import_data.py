@@ -147,7 +147,7 @@ def import_sub_constituencies_and_ballots(tally=None, subconst_file=None):
 
     with file_to_parse as f:
         reader = csv.reader(f)
-        reader.next()  # ignore header
+        next(reader)  # ignore header
 
         for row in reader:
             process_sub_constituency_row(tally, row)
@@ -199,7 +199,7 @@ def import_centers(tally=None, centers_file=None):
 
     with file_to_parse as f:
         reader = csv.reader(f)
-        reader.next()  # ignore header
+        next(reader)  # ignore header
 
         for row in reader:
             process_center_row(tally, row)
@@ -234,6 +234,7 @@ def process_station_row(tally, row, command=None, logger=None):
     gender = getattr(Gender, gender.upper())
 
     _, created = Station.objects.get_or_create(
+        tally=tally,
         center=center,
         sub_constituency=sub_constituency,
         gender=gender,
@@ -247,7 +248,7 @@ def import_stations(command, tally=None, stations_file=None):
 
     with file_to_parse as f:
         reader = csv.reader(f)
-        reader.next()  # ignore header
+        next(reader)  # ignore header
 
         for row in reader:
             process_station_row(tally, row, command=command)
@@ -295,7 +296,7 @@ def import_candidates(tally=None,
 
     with ballot_file_to_parse as f:
         reader = csv.reader(f)
-        reader.next()  # ignore header
+        next(reader)  # ignore header
 
         for row in reader:
             id_, ballot_number = row
@@ -303,7 +304,7 @@ def import_candidates(tally=None,
 
     with candidates_file_to_parse as f:
         reader = csv.reader(f)
-        reader.next()  # ignore header
+        next(reader)  # ignore header
 
         for row in reader:
             process_candidate_row(tally, row, id_to_ballot_order)
@@ -313,8 +314,9 @@ def process_results_form_row(tally, row, command=None, logger=None):
     replacement_count = 0
 
     row = empty_strings_to_none(row)
+    # take first 9 values
     ballot_number, code, station_number, gender, name,\
-        office_name, _, barcode, serial_number = row
+        office_name, _, barcode, serial_number = row[0:9]
 
     ballot = Ballot.objects.get(number=ballot_number, tally=tally)
     gender = gender and getattr(Gender, gender.upper())
@@ -323,7 +325,11 @@ def process_results_form_row(tally, row, command=None, logger=None):
     try:
         center = Center.objects.get(code=code, tally=tally)
     except Center.DoesNotExist:
-        pass
+        msg = 'Center "%s" does not exist' % code
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
 
     office = None
 
@@ -375,7 +381,7 @@ def import_result_forms(command, tally=None, result_forms_file=None):
 
     with file_to_parse as f:
         reader = csv.reader(f)
-        reader.next()  # ignore header
+        next(reader)  # ignore header
 
         for row in reader:
             replacement_count += process_results_form_row(
