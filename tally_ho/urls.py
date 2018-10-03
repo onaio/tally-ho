@@ -345,7 +345,7 @@ urlpatterns = [
             '(?P<centers_file>.*)/(?P<centers_file_lines>(\d+))/'
             '(?P<stations_file>.*)/(?P<stations_file_lines>(\d+))/'
             '(?P<candidates_file>.*)/(?P<candidates_file_lines>(\d+))/'
-            '(?P<ballots_order_file>.*)/'
+            '(?P<ballots_order_file>.*)/(?P<ballots_order_file_lines>(\d+))/'
             '(?P<result_forms_file>.*)/(?P<result_forms_file_lines>(\d+))/$',
             tally_manager.BatchView.as_view(), name='batch-view'),
     re_path(r'^tally-manager/data/tally-list$',
