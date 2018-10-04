@@ -4,7 +4,6 @@ if [ -d data ]; then
     python manage.py import_data --settings=$SETTINGS
     python manage.py import_staff_list --settings=$SETTINGS
 else
-    python manage.py create_fake_data
     python manage.py create_groups
 fi
 python manage.py create_demo_users
