@@ -395,7 +395,7 @@ class NewFormView(LoginRequiredMixin,
                 del self.request.session['result_form']
                 return redirect(self.success_url, tally_id=tally_id)
 
-            result_form.created_user = self.request.user
+            result_form.created_user = self.request.userprofile
             form = NewResultForm(post_data,
                                  instance=result_form,
                                  initial=self.initial)
@@ -427,7 +427,7 @@ class AddClearanceFormView(LoginRequiredMixin,
         if 'accept_submit' in post_data:
             result_form.reject(FormState.CLEARANCE)
             Clearance.objects.create(result_form=result_form,
-                                     user=self.request.user)
+                                     user=self.request.user.userprofile)
 
         result_form.date_seen = now()
         result_form.save()

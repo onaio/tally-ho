@@ -94,7 +94,7 @@ class CenterDetailsView(LoginRequiredMixin,
 
             if result_form.form_state != FormState.DATA_ENTRY_1:
                 result_form.form_state = FormState.INTAKE
-                result_form.user = user
+                result_form.user = user.userprofile
                 result_form.save()
 
             if result_form.center:
