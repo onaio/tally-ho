@@ -129,7 +129,7 @@ urlpatterns = [
             super_admin.FormAuditDataView.as_view(),
             name='form-audit-data'),
     re_path(r'^super-administrator/results-(?P<report>.*).csv/'
-            '(?P<tally_id>(\d+))/$',
+            r'(?P<tally_id>(\d+))/$',
             super_admin.ResultExportView.as_view(),
             name='result-export'),
     re_path(r'^super-administrator/results/(?P<tally_id>(\d+))/$',
@@ -139,35 +139,35 @@ urlpatterns = [
             super_admin.RemoveCenterView.as_view(),
             name='remove-center'),
     re_path(r'^super-administrator/remove-center/(?P<tally_id>(\d+))/'
-            '(?P<center_code>(\d+))$',
+            r'(?P<center_code>(\d+))$',
             super_admin.RemoveCenterConfirmationView.as_view(),
             name='remove-center-confirmation'),
     re_path(r'^super-administrator/edit-center/(?P<tally_id>(\d+))/'
-            '(?P<center_code>(\d+))$',
+            r'(?P<center_code>(\d+))$',
             super_admin.EditCenterView.as_view(),
             name='edit-center'),
     re_path(r'^super-administrator/disable/(?P<tally_id>(\d+))/'
-            '(?P<center_code>(\d+))/(?P<station_number>(\d+))?$',
+            r'(?P<center_code>(\d+))/(?P<station_number>(\d+))?$',
             super_admin.DisableEntityView.as_view(),
             name='disable'),
     re_path(r'^super-administrator/enable/(?P<tally_id>(\d+))/'
-            '(?P<center_code>(\d+))/(?P<station_number>(\d+))?$',
+            r'(?P<center_code>(\d+))/(?P<station_number>(\d+))?$',
             super_admin.EnableEntityView.as_view(),
             name='enable'),
     re_path(r'^super-administrator/disablerace/(?P<tally_id>(\d+))/'
-            '(?P<raceId>(\d+))$',
+            r'(?P<raceId>(\d+))$',
             super_admin.DisableRaceView.as_view(),
             name='disable-race'),
     re_path(r'^super-administrator/enablerace/(?P<tally_id>(\d+))/'
-            '(?P<raceId>(\d+))$',
+            r'(?P<raceId>(\d+))$',
             super_admin.EnableRaceView.as_view(),
             name='enable-race'),
     re_path(r'^super-administrator/candidate-disable/(?P<tally_id>(\d+))/'
-            '(?P<candidateId>(\d+))$',
+            r'(?P<candidateId>(\d+))$',
             super_admin.DisableCandidateView.as_view(),
             name='candidate-disable'),
     re_path(r'^super-administrator/candidate-enable/(?P<tally_id>(\d+))/'
-            '(?P<candidateId>(\d+))$',
+            r'(?P<candidateId>(\d+))$',
             super_admin.EnableCandidateView.as_view(),
             name='candidate-enable'),
     re_path(r'^super-administrator/remove-station/(?P<tally_id>(\d+))/$',
@@ -177,15 +177,15 @@ urlpatterns = [
             super_admin.QuarantineChecksListView.as_view(),
             name='quarantine-checks'),
     re_path(r'^super-administrator/quarantine-checks/config/'
-            '(?P<checkId>(\d+))$',
+            r'(?P<checkId>(\d+))$',
             super_admin.QuarantineChecksConfigView.as_view(),
             name='quarantine-checks-config'),
     re_path(r'^super-administrator/remove-station/(?P<tally_id>(\d+))/'
-            '(?P<center_code>(\d+))/(?P<station_number>(\d+))$',
+            r'(?P<center_code>(\d+))/(?P<station_number>(\d+))$',
             super_admin.RemoveStationConfirmationView.as_view(),
             name='remove-station-confirmation'),
     re_path(r'^super-administrator/edit-station/(?P<tally_id>(\d+))/'
-            '(?P<center_code>(\d+))/(?P<station_number>(\d+))$',
+            r'(?P<center_code>(\d+))/(?P<station_number>(\d+))$',
             super_admin.EditStationView.as_view(),
             name='edit-station'),
     re_path(r'^super-admin/user-list/(?P<tally_id>(\d+))/$',
@@ -341,12 +341,12 @@ urlpatterns = [
     re_path(r'^tally-manager/remove-tally/(?P<tally_id>(\d+))/$',
             tally_manager.TallyRemoveView.as_view(), name='remove-tally'),
     re_path(r'^tally-manager/create-tally/batch-view/(?P<tally_id>.*)/'
-            '(?P<subconst_file>.*)/(?P<subconst_file_lines>(\d+))/'
-            '(?P<centers_file>.*)/(?P<centers_file_lines>(\d+))/'
-            '(?P<stations_file>.*)/(?P<stations_file_lines>(\d+))/'
-            '(?P<candidates_file>.*)/(?P<candidates_file_lines>(\d+))/'
-            '(?P<ballots_order_file>.*)/(?P<ballots_order_file_lines>(\d+))/'
-            '(?P<result_forms_file>.*)/(?P<result_forms_file_lines>(\d+))/$',
+            r'(?P<subconst_file>.*)/(?P<subconst_file_lines>(\d+))/'
+            r'(?P<centers_file>.*)/(?P<centers_file_lines>(\d+))/'
+            r'(?P<stations_file>.*)/(?P<stations_file_lines>(\d+))/'
+            r'(?P<candidates_file>.*)/(?P<candidates_file_lines>(\d+))/'
+            r'(?P<ballots_order_file>.*)/(?P<ballots_order_file_lines>(\d+))/'
+            r'(?P<result_forms_file>.*)/(?P<result_forms_file_lines>(\d+))/$',
             tally_manager.BatchView.as_view(), name='batch-view'),
     re_path(r'^tally-manager/data/tally-list$',
             tally_list_view.TallyListView.as_view(),

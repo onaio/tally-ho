@@ -1,4 +1,6 @@
-from tally_ho.settings.common import *  # flake8: noqa
+import os
+from tally_ho.settings.common import *  # noqa
+from tally_ho.settings.common import INSTALLED_APPS, MIDDLEWARE
 
 
 DEBUG = True
