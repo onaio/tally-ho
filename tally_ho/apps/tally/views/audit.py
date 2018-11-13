@@ -185,7 +185,10 @@ class ReviewView(LoginRequiredMixin,
 
         if form.is_valid():
             user = self.request.user
-            audit = create_or_get_audit(post_data, user.userprofile, result_form, form)
+            audit = create_or_get_audit(post_data,
+                                        user.userprofile,
+                                        result_form,
+                                        form)
             url = audit_action(audit, post_data, result_form, self.success_url)
 
             return redirect(url, tally_id=tally_id)

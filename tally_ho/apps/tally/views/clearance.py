@@ -395,7 +395,7 @@ class NewFormView(LoginRequiredMixin,
                 del self.request.session['result_form']
                 return redirect(self.success_url, tally_id=tally_id)
 
-            result_form.created_user = self.request.userprofile
+            result_form.created_user = self.request.user.userprofile
             form = NewResultForm(post_data,
                                  instance=result_form,
                                  initial=self.initial)

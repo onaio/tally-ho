@@ -59,7 +59,8 @@ def get_candidates(results, num_results=None):
         else:
             candidates.update({candidate: [result]})
 
-    return [[c] + r[0:num_results] if num_results else r for c, r in candidates.items()]
+    return [[c] + r[0:num_results] if num_results else r
+            for c, r in candidates.items()]
 
 
 def get_results_for_race_type(result_form, race_type):
