@@ -1,4 +1,5 @@
-from tally_ho.apps.tally.models.archive import Archive  # flake8:noqa
+# flake8:noqa
+from tally_ho.apps.tally.models.archive import Archive
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate

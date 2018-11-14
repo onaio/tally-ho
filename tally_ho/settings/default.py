@@ -1,1 +1,1 @@
-from tally_ho.settings.common import *  # flake8: noqa
+from tally_ho.settings.common import *  # noqa

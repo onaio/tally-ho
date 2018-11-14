@@ -88,7 +88,7 @@ class QualityControlView(LoginRequiredMixin,
 
             self.request.session['result_form'] = result_form.pk
             QualityControl.objects.create(result_form=result_form,
-                                          user=self.request.user)
+                                          user=self.request.user.userprofile)
 
             return redirect(self.success_url, tally_id=tally_id)
         else:

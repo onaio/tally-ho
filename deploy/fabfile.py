@@ -67,8 +67,8 @@ def local_deploy():
     run('mv %s-clean %s' % (env.project, env.project))
 
     # remove existing deploy and clean new deploy
-    run('find %s -name "*.pyc" -exec rm -rf {} \;' % env.project)
-    run('find %s -name "._*" -exec rm -rf {} \;' % env.project)
+    run(r'find %s -name "*.pyc" -exec rm -rf {} \;' % env.project)
+    run(r'find %s -name "._*" -exec rm -rf {} \;' % env.project)
     run('./%s/scripts/install_app %s' % (env.project, env.db_host))
 
 
@@ -99,8 +99,8 @@ def deploy(deployment_name, branch='master'):
             run("git fetch origin")
             run("git checkout origin/%s" % branch)
 
-            run('find . -name "*.pyc" -exec rm -rf {} \;')
-            run('find . -name "._" -exec rm -rf {} \;')
+            run(r'find . -name "*.pyc" -exec rm -rf {} \;')
+            run(r'find . -name "._" -exec rm -rf {} \;')
 
         with source(env.virtualenv):
             run("pip install -r %s" % env.pip_requirements_file)

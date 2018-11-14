@@ -89,7 +89,8 @@ def check_group_for_state(result_form, user, form):
 
     :returns: A form with an error if access denied, else None.
     """
-    if groups.SUPER_ADMINISTRATOR in groups.user_groups(user):
+    if set([groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER]).intersection(
+            set(groups.user_groups(user))):
         return None
 
     if ((result_form.form_state == FormState.DATA_ENTRY_1 and
@@ -334,14 +335,14 @@ class EnterResultsView(LoginRequiredMixin,
                     result_form=result_form,
                     entry_version=entry_version,
                     votes=votes,
-                    user=self.request.user
+                    user=self.request.user.userprofile
                 )
 
             if result_form.has_recon:
                 re_form = recon_form.save(commit=False)
                 re_form.entry_version = entry_version
                 re_form.result_form = result_form
-                re_form.user = self.request.user
+                re_form.user = self.request.user.userprofile
                 re_form.save()
 
             result_form.form_state = new_state
