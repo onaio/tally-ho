@@ -10,8 +10,8 @@ LOCAL_CONFIG_PATH=/var/www/tally-system/tally_ho/settings/local_settings.py
 SUPERVISOR_CONF=/opt/supervisor.conf
 DATADIR="/var/lib/postgres/data"
 CONF="/var/lib/postgres/data/postgresql.conf"
-POSTGRES="/usr/lib/postgresql/9.3/bin/postgres"
-INITDB="/usr/lib/postgresql/9.3/bin/initdb"
+POSTGRES="/usr/lib/postgresql/10/bin/postgres"
+INITDB="/usr/lib/postgresql/10/bin/initdb"
 
 # test if DATADIR is existent
 if [ ! -d $DATADIR ]; then
