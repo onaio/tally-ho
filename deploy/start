@@ -10,8 +10,8 @@ LOCAL_CONFIG_PATH=/var/www/tally-system/tally_ho/settings/local_settings.py
 SUPERVISOR_CONF=/opt/supervisor.conf
 DATADIR="/var/lib/postgres/data"
 CONF="/var/lib/postgres/data/postgresql.conf"
-POSTGRES="/usr/lib/postgresql/9.3/bin/postgres"
-INITDB="/usr/lib/postgresql/9.3/bin/initdb"
+POSTGRES="/usr/lib/postgresql/10/bin/postgres"
+INITDB="/usr/lib/postgresql/10/bin/initdb"
 
 # test if DATADIR is existent
 if [ ! -d $DATADIR ]; then
@@ -75,15 +75,14 @@ stderr_logfile=/var/log/tally-system/app.err
 EOF
 
 sed -i.bak -e "s/REPLACE_DB_NAME/$DB_NAME/g" $LOCAL_CONFIG_PATH
-sed -i.bak -e "s/REPLACE_DB_USER/$DB_USER/g" $LOCAL_CONFIG_PATH
+sed -i.bak -e "s/REPLACE_DB_USER/$DB_USERNAME/g" $LOCAL_CONFIG_PATH
 sed -i.bak -e "s/REPLACE_DB_PASSWORD/$DB_PASS/g" $LOCAL_CONFIG_PATH
 sed -i.bak -e "s/REPLACE_DB_HOST/$DB_HOST/g" $LOCAL_CONFIG_PATH
 
-(cd $APP_DIR && pip install --upgrade -r requirements/common.pip)
-(cd $APP_DIR && python manage.py syncdb --noinput)
-(cd $APP_DIR && python manage.py migrate)
-(cd $APP_DIR && python manage.py collectstatic --noinput)
+(cd $APP_DIR && pip3 install --upgrade -r requirements/common.pip)
+(cd $APP_DIR && python3 manage.py migrate)
+(cd $APP_DIR && python3 manage.py collectstatic --noinput)
 (cd $APP_DIR && ./scripts/reload_all)
-(cd $APP_DIR && python manage.py create_demo_users)
+(cd $APP_DIR && python3 manage.py create_demo_users)
 
 supervisord -c $SUPERVISOR_CONF -n
