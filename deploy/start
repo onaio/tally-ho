@@ -80,7 +80,6 @@ sed -i.bak -e "s/REPLACE_DB_PASSWORD/$DB_PASS/g" $LOCAL_CONFIG_PATH
 sed -i.bak -e "s/REPLACE_DB_HOST/$DB_HOST/g" $LOCAL_CONFIG_PATH
 
 (cd $APP_DIR && pip3 install --upgrade -r requirements/common.pip)
-(cd $APP_DIR && python3 manage.py syncdb --noinput)
 (cd $APP_DIR && python3 manage.py migrate)
 (cd $APP_DIR && python3 manage.py collectstatic --noinput)
 (cd $APP_DIR && ./scripts/reload_all)
