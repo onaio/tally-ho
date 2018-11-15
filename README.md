@@ -52,6 +52,22 @@ address, and the third is the settings file.  Modify these arguments as needed.
 ./scripts/reload_all postgres 127.0.0.1 tally_ho.settings.common
 ```
 
+## Documentation
+
+### Generating Model Graphs
+
+The below assumes you have `pip` installed `requirements/dev.pip`.
+
+Generate model graph for all models:
+```
+python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -g -o tally-ho-all-models.png
+```
+
+Generate model graph for app models:
+```
+python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -X GroupObjectPermission,UserObjectPermission,GroupObjectPermissionBase,BaseGenericObjectPermission,UserObjectPermissionBase,BaseObjectPermission,Version,Revision,Pageview,Visitor,Session,AbstractBaseSession,Site,LogEntry,User,Group,AbstractUser,Permission,ContentType,AbstractBaseUser,PermissionsMixin,BaseModel -g -o tally-ho-app-models.png
+```
+
 ## News
 
 * This is an [article about tally-ho](http://blog.ona.io/general/2014/06/12/Tally-Ho-Robust-Open-Source-Election-Software.html) and its use in Libya.
