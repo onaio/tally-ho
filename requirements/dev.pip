@@ -1,6 +1,7 @@
 -r common.pip
 coverage
 django-debug-toolbar
+django_extensions
 flake8
 ipython
 ipdb
