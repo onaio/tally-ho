@@ -75,7 +75,7 @@ stderr_logfile=/var/log/tally-system/app.err
 EOF
 
 sed -i.bak -e "s/REPLACE_DB_NAME/$DB_NAME/g" $LOCAL_CONFIG_PATH
-sed -i.bak -e "s/REPLACE_DB_USER/$DB_USER/g" $LOCAL_CONFIG_PATH
+sed -i.bak -e "s/REPLACE_DB_USER/$DB_USERNAME/g" $LOCAL_CONFIG_PATH
 sed -i.bak -e "s/REPLACE_DB_PASSWORD/$DB_PASS/g" $LOCAL_CONFIG_PATH
 sed -i.bak -e "s/REPLACE_DB_HOST/$DB_HOST/g" $LOCAL_CONFIG_PATH
 
