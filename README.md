@@ -36,7 +36,7 @@ To load demo data and start the server all in one, run
 If you've aleady loaded the data, you can start the server with
 
 ```bash
-python manage.py runserver
+python manage.py runserver --settings=tally_ho.settings.dev
 ```
 
 ### Advanced: recreate the database, then load the data and demo users
