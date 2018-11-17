@@ -8,7 +8,7 @@ Election results data entry and verification software built by [Ona Systems](htt
 ### Checkout the repos
 
 ```bash
-git clone git@github.com:onaio/tally-system.git
+git clone git@github.com:onaio/tally-ho.git
 git clone git@github.com:onaio/libya-data.git data
 ```
 
