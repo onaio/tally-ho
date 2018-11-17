@@ -111,7 +111,7 @@ class Command(BaseCommand):
     def import_staff_list(self):
         with codecs.open(STAFF_LIST_PATH, encoding='utf-8') as f:
             reader = unicode_csv_reader(f)
-            reader.next()  # ignore header
+            next(reader)  # ignore header
 
             for row in reader:
                 try:
@@ -126,7 +126,7 @@ class Command(BaseCommand):
     def import_user_list(self):
         with codecs.open(USER_LIST_PATH, encoding='utf-8') as f:
             reader = unicode_csv_reader(f)
-            reader.next()  # ignore header
+            next(reader)  # ignore header
 
             for row in reader:
                 try:
