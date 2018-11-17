@@ -24,7 +24,7 @@ class Command(BaseCommand):
     def check_result_forms(self):
         with open(RESULT_FORMS_PATH, 'rU') as f:
             reader = csv.reader(f)
-            reader.next()  # ignore header
+            next(reader)  # ignore header
 
             for row in reader:
                 row = import_data.empty_strings_to_none(row)

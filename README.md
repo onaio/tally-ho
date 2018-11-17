@@ -9,7 +9,6 @@ Election results data entry and verification software built by [Ona Systems](htt
 
 ```bash
 git clone git@github.com:onaio/tally-ho.git
-git clone git@github.com:onaio/libya-data.git data
 ```
 
 ### Make a virtual environment and install requirements
@@ -21,23 +20,25 @@ mkvirtualenv tally --python=python3.6.5
 pip install -r requirements/dev.pip 
 ```
 
-### Quick start with demo data
+### Quick start with user demo data
 
 > This will remove all data in the database.
 
-> TODO: add some demo result forms and candidate lists
-
-To load demo data and start the server all in one, run
+To create the database, load demo users, and start the server all in one, run
 
 ```bash
 ./scripts/quickstart
 ```
 
-If you've aleady loaded the data, you can start the server with
+If you've aleady setup the server, you can start the server with
 
 ```bash
-python manage.py runserver
+python manage.py runserver --settings=tally_ho.settings.dev
 ```
+
+### Loading tally demo data
+
+> TODO: add some demo result forms and candidate lists
 
 ### Advanced: recreate the database, then load the data and demo users
 
