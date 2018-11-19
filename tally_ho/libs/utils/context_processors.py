@@ -34,13 +34,15 @@ def locale(request):
 
 
 def site_name(request):
+    site_name = getattr(settings, 'SITE_NAME', None)
     site_id = getattr(settings, 'SITE_ID', None)
 
-    try:
-        site = Site.objects.get(pk=site_id)
-    except Site.DoesNotExist:
-        site_name = 'example.org'
-    else:
-        site_name = site.name
+    if not site_name:
+        try:
+            site = Site.objects.get(pk=site_id)
+        except Site.DoesNotExist:
+            site_name = 'HENC RMS'
+        else:
+            site_name = site.name
 
     return {'SITE_NAME': site_name}

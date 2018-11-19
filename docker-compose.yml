@@ -13,9 +13,14 @@ services:
     build: .
     command: >
       bash -c "python3 manage.py migrate --settings=tally_ho.settings.docker
+      && python manage.py create_groups --settings=tally_ho.settings.docker
+      && python manage.py create_demo_users --settings=tally_ho.settings.docker
+      && python manage.py create_quarantine_checks --settings=tally_ho.settings.docker
       && DJANGO_SETTINGS_MODULE=tally_ho.settings.docker gunicorn --chdir /code --bind :8000 tally_ho.wsgi:application"
     volumes:
       - .:/code
+      - static_volume:/code/tally_ho/static
+      - media_volume:/code/tally_ho/media
     depends_on:
       - db1
     networks:
@@ -23,13 +28,15 @@ services:
       - db1_net
   nginx:
     command: >
-      bash -c "sleep 5 && nginx -g 'daemon off;'"
+      bash -c "sleep 2 && nginx -g 'daemon off;'"
     image: nginx:1.15.6
     ports:
       - 8000:80
       # change to 80:80 for production
     volumes:
       - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - static_volume:/code/tally_ho/static
+      - media_volume:/code/tally_ho/media
     depends_on:
       - web
     networks:
@@ -43,3 +50,5 @@ networks:
 
 volumes:
   db1_volume:
+  static_volume:
+  media_volume:

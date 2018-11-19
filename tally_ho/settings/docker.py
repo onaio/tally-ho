@@ -10,3 +10,5 @@ DATABASES = {
         'PORT': 5432,
     }
 }
+
+SITE_NAME = '[DEMO] Tally Ho - HNEC RMS'
