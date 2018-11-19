@@ -53,6 +53,22 @@ address, and the third is the settings file.  Modify these arguments as needed.
 ./scripts/reload_all postgres 127.0.0.1 tally_ho.settings.common
 ```
 
+## Docker Install
+
+If you already have Docker and `docker-compose` installed on your machine you can quickly have a demo up by changing into the checked out code directory and running:
+
+```bash
+docker-compose build
+docker-compose up
+```
+
+You can now visit the site at `127.0.0.1:8000`.
+
+If you want to use Docker to run the site in production you will need to:
+
+1. modify the `docker-compose.yml` file to change the NGINX listening port from 8000 to 80,
+2. add the host you are running the site on to a new `ALLOWED_HOSTS` list in the `tally_ho/settings/docker.py` file.
+
 ## Documentation
 
 ### Generating Model Graphs
@@ -69,11 +85,11 @@ Generate model graph for app models:
 python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -X GroupObjectPermission,UserObjectPermission,GroupObjectPermissionBase,BaseGenericObjectPermission,UserObjectPermissionBase,BaseObjectPermission,Version,Revision,Pageview,Visitor,Session,AbstractBaseSession,Site,LogEntry,User,Group,AbstractUser,Permission,ContentType,AbstractBaseUser,PermissionsMixin,BaseModel -g -o tally-ho-app-models.png
 ```
 
+### Demo Users
+
+The `create_demo_users` command will create demo users for each role with usernames like `super_administrator`, and password `data`.
+
 ## News
 
 * This is an [article about tally-ho](http://blog.ona.io/general/2014/06/12/Tally-Ho-Robust-Open-Source-Election-Software.html) and its use in Libya.
 * This presentation at PyConZA 2014 about the project, [Writing Python Code to Decide an Election](https://blog.ona.io/general/2016/02/12/writing-python-code-to-decide-an-election.html).
-
-### Demo Users
-
-The `create_demo_users` command will create demo users for each role with usernames like `super_administrator`, and password `data`.
