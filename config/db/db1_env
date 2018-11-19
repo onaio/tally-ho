@@ -1,0 +1,4 @@
+POSTGRES_USER=db1_role
+POSTGRES_PASSWORD=db1_password
+POSTGRES_DB=db1
+
