@@ -1,6 +1,7 @@
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
+from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.audit_form import AuditForm
@@ -91,13 +92,14 @@ def is_clerk(user):
     return groups.AUDIT_CLERK in user.groups.values_list('name', flat=True)
 
 
-def forms_for_user(user_is_clerk, tally_id=None):
+def forms_for_user(user_is_clerk, tally_id):
     """Return the forms to display based on whether the user is a clerk or not.
 
     Supervisors and admins can view all unreviewed forms in the Audit state,
     Clerks can only view forms that have not been reviewed by the audit team.
 
     :param user_is_clerk: True if the user is a Clerk, otherwise False.
+    :param tally_id: ID of tally.
 
     :returns: A list of forms in the audit state for this user's group.
     """
@@ -124,9 +126,14 @@ class DashboardView(LoginRequiredMixin,
     success_url = 'audit-review'
 
     def get(self, *args, **kwargs):
+        format_ = kwargs.get('format')
         tally_id = kwargs.get('tally_id')
         user_is_clerk = is_clerk(self.request.user)
         form_list = forms_for_user(user_is_clerk, tally_id)
+
+        if format_ == 'csv':
+            return render_to_csv_response(form_list)
+
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(

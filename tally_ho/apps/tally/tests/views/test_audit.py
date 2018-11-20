@@ -68,6 +68,21 @@ class TestAudit(TestBase):
         self.assertContains(response, username)
         self.assertContains(response, '42')
 
+    def test_dashboard_get_csv(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        create_result_form(form_state=FormState.AUDIT,
+                           tally=tally)
+        view = views.DashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=tally.pk, format='csv')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get('Content-Type'), 'text/csv')
+
     def test_dashboard_post(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
