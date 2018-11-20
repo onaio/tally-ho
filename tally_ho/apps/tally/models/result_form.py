@@ -238,10 +238,9 @@ class ResultForm(BaseModel):
 
     @property
     def audit_recommendation(self):
-        recomendation_index = self.audit.resolution_recommendation if\
-            self.audit else ""
-        return ClearanceResolution.CHOICES[
-                  recomendation_index][1].capitalize()
+        if self.audit:
+            recomendation_index = self.audit.resolution_recommendation
+            return ClearanceResolution.choices()[recomendation_index.value][1]
 
     @property
     def form_state_name(self):
@@ -351,10 +350,9 @@ class ResultForm(BaseModel):
 
     @property
     def clearance_recommendation(self):
-        recomendation_index = self.clearance.resolution_recommendation if\
-            self.clearance else ""
-        return ClearanceResolution.CHOICES[
-            recomendation_index][1].capitalize()
+        if self.clearance:
+            recomendation_index = self.clearance.resolution_recommendation
+            return ClearanceResolution.choices()[recomendation_index.value][1]
 
     @property
     def clearance_team_reviewed(self):

@@ -205,7 +205,7 @@ class FormDuplicatesView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
 
         return self.render_to_response(self.get_context_data(
-            remote_url=reverse('form-progress-data',
+            remote_url=reverse('form-duplicates-data',
                                kwargs={'tally_id': tally_id}),
             tally_id=tally_id))
 
@@ -285,7 +285,6 @@ class FormProgressDataView(LoginRequiredMixin,
 
 
 class FormAuditDataView(FormProgressDataView):
-    queryset = ResultForm.objects.filter(form_state=FormState.AUDIT)
     columns = (
         'barcode',
         'center.code',
@@ -300,14 +299,18 @@ class FormAuditDataView(FormProgressDataView):
         'audit_recommendation',
     )
 
+    def filter_queryset(self, qs):
+        return super().filter_queryset(qs).filter(form_state=FormState.AUDIT)
+
 
 class FormDuplicatesDataView(FormProgressDataView):
     def filter_queryset(self, qs):
-        return super().filter_query(qs).duplicates(qs)
+        tally_id = self.kwargs['tally_id']
+
+        return duplicates(super().filter_queryset(qs), tally_id)
 
 
 class FormClearanceDataView(FormProgressDataView):
-    queryset = ResultForm.objects.filter(clearances__active=True)
     columns = (
         'barcode',
         'center.code',
@@ -321,6 +324,9 @@ class FormClearanceDataView(FormProgressDataView):
         'modified_date',
         'clearance_recommendation'
     )
+
+    def filter_queryset(self, qs):
+        return super().filter_queryset(qs).filter(clearances__active=True)
 
 
 class FormActionView(LoginRequiredMixin,

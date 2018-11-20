@@ -6,6 +6,12 @@
 
 <h1>{% trans 'Audit List' %}</h1>
 
+<form method="get" action="{% url 'audit-csv' tally_id 'csv' %}">
+    <button type="submit" class="btn btn-primary btn-small pull-right">
+        {% trans 'Download' %}
+    </button>
+</form>
+<br/>
 <form method="get" action="{% url 'audit-new' tally_id %}">
     <button type="submit" class="btn btn-primary btn-small pull-right">
         {% trans 'New Form Record' %}
