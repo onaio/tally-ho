@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load i18n %}
+{% load i18n staticfiles %}
 
 {% block content %}
 
@@ -19,6 +19,7 @@
         <th>{% trans 'Modified' %}</th>
         <th>{% trans 'Votes' %}</th>
     </tr>
+{% if forms %}
 {% for form in forms %}
     <tr>
         <td>{{ form.barcode }}</td>
@@ -30,6 +31,11 @@
         <td>{{ form.results_duplicated }}</td>
     </tr>
 {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="7">{% trans 'None' %}</td>
+    </tr>
+{% endif %}
 </table>
 
 <div class="pagination">
@@ -38,9 +44,11 @@
             <a href="?page={{ forms.previous_page_number }}">previous</a>
         {% endif %}
 
+        {% if forms %}
         <span class="current">
             Page {{ forms.number }} of {{ forms.paginator.num_pages }}.
         </span>
+        {% endif %}
 
         {% if forms.has_next %}
             <a href="?page={{ forms.next_page_number }}">next</a>
