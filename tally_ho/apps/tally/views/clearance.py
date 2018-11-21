@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.urls import reverse
 from django.utils.translation import ugettext as _
+from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -98,9 +99,14 @@ class DashboardView(LoginRequiredMixin,
     success_url = 'clearance-review'
 
     def get(self, *args, **kwargs):
+        format_ = kwargs.get('format')
         tally_id = kwargs.get('tally_id')
         form_list = ResultForm.objects.filter(
             form_state=FormState.CLEARANCE, tally__id=tally_id)
+
+        if format_ == 'csv':
+            return render_to_csv_response(form_list)
+
         forms = paging(form_list, self.request)
 
         return self.render_to_response(self.get_context_data(
