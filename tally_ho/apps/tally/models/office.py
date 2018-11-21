@@ -19,5 +19,8 @@ class Office(BaseModel):
                               related_name='offices',
                               on_delete=models.PROTECT)
 
+    def __str__(self):
+        return u'%s - %s' % (self.number, self.name)
+
 
 reversion.register(Office)

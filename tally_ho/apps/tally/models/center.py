@@ -23,7 +23,7 @@ class Center(BaseModel):
                                          related_name='centers', null=True)
 
     center_type = EnumIntegerField(CenterType, null=True)
-    code = models.PositiveIntegerField(unique=True)  # a.k.a. Center Number
+    code = models.PositiveIntegerField()  # a.k.a. Center Number
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
     mahalla = models.TextField()
@@ -60,7 +60,7 @@ class Center(BaseModel):
         return self.sub_constituency.code if self.sub_constituency else _(
             'Special')
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s - %s' % (self.code, self.name)
 
     @property

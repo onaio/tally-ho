@@ -13,6 +13,7 @@ class Ballot(BaseModel):
     class Meta:
         app_label = 'tally'
         ordering = ['number']
+        unique_together = ('number', 'tally')
 
     COMPONENT_TO_BALLOTS = {
         55: [26, 27, 28],
@@ -65,8 +66,8 @@ class Ballot(BaseModel):
     def is_component(self):
         return self.number in self.COMPONENT_TO_BALLOTS.keys()
 
-    def __unicode__(self):
-        return self.number
+    def __str__(self):
+        return u'%s - %s' % (self.number, self.race_type_name)
 
 
 reversion.register(Ballot)
