@@ -5,52 +5,56 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.models.enums.disable_reason import DisableReason
-from tally_ho.libs.utils.functions import (
-    disableEnableEntity,
-    disableEnableRace,
+from tally_ho.libs.utils.active_status import (
+    disable_enable_entity,
+    disable_enable_race,
 )
 
 
 class DisableEntityForm(forms.Form):
-    disableReason = forms.TypedChoiceField(
+    disable_reason = forms.TypedChoiceField(
         choices=DisableReason.choices(),
         error_messages={'invalid': _(u"Expecting one option selected")},
-        widget=forms.RadioSelect,
+        widget=forms.RadioSelect(
+            attrs={'class': '', 'autofocus': 'on'}),
         label=_(u"Select a reason"),
         coerce=int,
+        empty_value=None,
+    )
+
+    comment_input = forms.CharField(
+        required=False,
+        label=_("Comments"),
+        widget=forms.Textarea(attrs={'cols': 80, 'rows': 5}),
     )
 
     tally_id = forms.CharField(
-      required=False,
-      widget=forms.HiddenInput(),
+        required=False,
+        widget=forms.HiddenInput(),
     )
 
-    centerCodeInput = forms.CharField(
-      required=False,
-      widget=forms.HiddenInput(),
+    center_code_input = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
     )
 
-    stationNumberInput = forms.CharField(
-      required=False,
-      widget=forms.HiddenInput(),
+    station_number_input = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
     )
 
-    raceIdInput = forms.CharField(
-      required=False,
-      widget=forms.HiddenInput(),
+    race_id_input = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
     )
-
-    def __init__(self, *args, **kwargs):
-        super(DisableEntityForm, self).__init__(*args, **kwargs)
-        self.fields['disableReason'].widget.attrs['autofocus'] = 'on'
 
     def clean(self):
         if self.is_valid():
             cleaned_data = super(DisableEntityForm, self).clean()
             tally_id = cleaned_data.get('tally_id')
-            center_code = cleaned_data.get('centerCodeInput')
-            station_number = cleaned_data.get('stationNumberInput')
-            race_id = cleaned_data.get('raceIdInput')
+            center_code = cleaned_data.get('center_code_input')
+            station_number = cleaned_data.get('station_number_input')
+            race_id = cleaned_data.get('race_id_input')
 
             if center_code:
                 try:
@@ -81,19 +85,21 @@ class DisableEntityForm(forms.Form):
     def save(self):
         if self.is_valid():
             tally_id = self.cleaned_data.get('tally_id')
-            center_code = self.cleaned_data.get('centerCodeInput')
-            station_number = self.cleaned_data.get('stationNumberInput')
-            race_id = self.cleaned_data.get('raceIdInput')
-            disable_reason = self.cleaned_data.get('disableReason')
+            center_code = self.cleaned_data.get('center_code_input')
+            station_number = self.cleaned_data.get('station_number_input')
+            race_id = self.cleaned_data.get('race_id_input')
+            disable_reason = self.cleaned_data.get('disable_reason')
+            comment = self.cleaned_data.get('comment_input')
 
             result = None
 
             if not race_id:
-                result = disableEnableEntity(center_code,
-                                             station_number,
-                                             disable_reason,
-                                             tally_id)
+                result = disable_enable_entity(center_code,
+                                               station_number,
+                                               disable_reason,
+                                               comment,
+                                               tally_id)
             else:
-                result = disableEnableRace(race_id, disable_reason)
+                result = disable_enable_race(race_id, disable_reason, comment)
 
             return result

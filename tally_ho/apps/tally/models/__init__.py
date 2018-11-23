@@ -5,6 +5,7 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.clearance import Clearance
+from tally_ho.apps.tally.models.comment import Comment
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.reconciliation_form import\
     ReconciliationForm

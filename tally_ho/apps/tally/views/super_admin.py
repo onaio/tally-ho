@@ -35,10 +35,10 @@ from tally_ho.libs.models.enums.audit_resolution import\
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
-from tally_ho.libs.utils.functions import (
-    disableEnableEntity,
-    disableEnableRace,
-    disableEnableCandidate,
+from tally_ho.libs.utils.active_status import (
+    disable_enable_entity,
+    disable_enable_race,
+    disable_enable_candidate,
 )
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import (
@@ -572,7 +572,7 @@ class EnableEntityView(LoginRequiredMixin,
 
         self.success_message = _(u"%s Successfully enabled.") % entityName
 
-        disableEnableEntity(center_code, station_number, tally_id=tally_id)
+        disable_enable_entity(center_code, station_number, tally_id=tally_id)
 
         messages.add_message(self.request, messages.INFO, self.success_message)
 
@@ -636,7 +636,7 @@ class EnableRaceView(LoginRequiredMixin,
         raceId = kwargs.get('raceId')
         tally_id = self.kwargs['tally_id']
 
-        disableEnableRace(raceId)
+        disable_enable_race(raceId)
 
         messages.add_message(self.request,
                              messages.INFO,
@@ -828,7 +828,7 @@ class EnableCandidateView(LoginRequiredMixin,
 
         self.success_message = _(u"Candidate successfully enabled.")
 
-        disableEnableCandidate(candidate_id)
+        disable_enable_candidate(candidate_id)
 
         return redirect(self.success_url, tally_id=tally_id)
 
@@ -848,7 +848,7 @@ class DisableCandidateView(LoginRequiredMixin,
 
         self.success_message = _(u"Candidate successfully disabled.")
 
-        disableEnableCandidate(candidate_id)
+        disable_enable_candidate(candidate_id)
 
         return redirect(self.success_url, tally_id=tally_id)
 

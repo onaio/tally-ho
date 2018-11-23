@@ -7,29 +7,30 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 
 
-def disableEnableEntity(centerCode,
-                        stationNumber,
-                        disableReason=None,
-                        tally_id=None):
+def disable_enable_entity(center_code,
+                          station_number,
+                          disable_reason=None,
+                          comment=None,
+                          tally_id=None):
     entities = []
     entity_to_return = None
     status_target = False
     try:
-        if stationNumber:
+        if station_number:
             entity_to_return = Station.objects.get(
-                station_number=stationNumber,
-                center__code=centerCode,
+                station_number=station_number,
+                center__code=center_code,
                 center__tally__id=tally_id)
             status_target = not entity_to_return.active
 
             entities.append(entity_to_return)
         else:
-            entity_to_return = Center.objects.get(code=centerCode,
+            entity_to_return = Center.objects.get(code=center_code,
                                                   tally__id=tally_id)
             status_target = not entity_to_return.active
 
             entities.append(entity_to_return)
-            entities += Station.objects.filter(center__code=centerCode,
+            entities += Station.objects.filter(center__code=center_code,
                                                center__tally__id=tally_id)
     except Center.DoesNotExist:
         raise forms.ValidationError(_(u"Center Number does not exist"))
@@ -40,14 +41,14 @@ def disableEnableEntity(centerCode,
             oneEntity.active = status_target
 
             oneEntity.disable_reason = 0
-            if disableReason is not None:
-                oneEntity.disable_reason = disableReason
+            if disable_reason is not None:
+                oneEntity.disable_reason = disable_reason
 
             oneEntity.save()
         return entity_to_return
 
 
-def disableEnableRace(race_id, disableReason=None):
+def disable_enable_race(race_id, disable_reason=None, comment=None):
     race = None
 
     try:
@@ -59,19 +60,19 @@ def disableEnableRace(race_id, disableReason=None):
         race.active = not race.active
 
         race.disable_reason = 0
-        if disableReason is not None:
-            race.disable_reason = disableReason
+        if disable_reason is not None:
+            race.disable_reason = disable_reason
 
         race.save()
         return race
 
 
-def disableEnableCandidate(candidateId):
+def disable_enable_candidate(candidate_id):
     entity_to_return = None
     status_target = False
 
     try:
-        entity_to_return = Candidate.objects.get(id=candidateId)
+        entity_to_return = Candidate.objects.get(id=candidate_id)
         status_target = not entity_to_return.active
 
     except Candidate.DoesNotExist:
