@@ -1,16 +1,17 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
+from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.comment import Comment
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.ballot import Ballot
-from tally_ho.apps.tally.models.candidate import Candidate
 
 
 def disable_enable_entity(center_code,
                           station_number,
                           disable_reason=None,
-                          comment=None,
+                          comment_text=None,
                           tally_id=None):
     entities = []
     entity_to_return = None
@@ -37,14 +38,24 @@ def disable_enable_entity(center_code,
     except Station.DoesNotExist:
         raise forms.ValidationError(_(u"Station Number does not exist"))
     else:
-        for oneEntity in entities:
-            oneEntity.active = status_target
+        if comment_text:
+            comment = Comment(text=comment_text)
 
-            oneEntity.disable_reason = 0
+            if station_number:
+                comment.station = entity_to_return
+            else:
+                comment.center = entity_to_return
+
+            comment.save()
+
+        for entity in entities:
+            entity.active = status_target
+
+            entity.disable_reason = 0
             if disable_reason is not None:
-                oneEntity.disable_reason = disable_reason
+                entity.disable_reason = disable_reason
 
-            oneEntity.save()
+            entity.save()
         return entity_to_return
 
 

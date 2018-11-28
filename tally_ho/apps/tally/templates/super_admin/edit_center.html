@@ -23,6 +23,15 @@
             <td>{% trans 'Disabled' %}</td>
             {% endif %}
         </tr>
+        <tr>
+            <td>{% trans 'Comments:' %}</td>
+            <td>
+            {% for comment in comments%}
+                {{ comment.text }}
+                <br/>
+            {% endfor %}
+            </td>
+        </tr>
     </table>
     <button class="btn btn-small btn-success" type="submit" name="save_submit">
         {% trans "Save" %}

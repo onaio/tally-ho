@@ -485,6 +485,7 @@ class EditCenterView(LoginRequiredMixin,
         context['center_code'] = self.kwargs.get('center_code', None)
         context['tally_id'] = self.kwargs.get('tally_id', None)
         context['is_active'] = self.object.active
+        context['comments'] = self.object.comments.all()
 
         return context
 
@@ -520,8 +521,8 @@ class DisableEntityView(LoginRequiredMixin,
 
         self.initial = {
             'tally_id': tally_id,
-            'centerCodeInput': center_code,
-            'stationNumberInput': station_number
+            'center_code_input': center_code,
+            'station_number_input': station_number
         }
         self.success_message = _(u"%s Successfully Disabled.") % entity_name
         form_class = self.get_form_class()
@@ -551,7 +552,8 @@ class DisableEntityView(LoginRequiredMixin,
 
             return redirect(self.success_url, tally_id=tally_id)
 
-        return self.form_invalid(form)
+        return self.render_to_response(self.get_context_data(
+            form=form, tally_id=tally_id))
 
 
 class EnableEntityView(LoginRequiredMixin,
@@ -794,6 +796,7 @@ class EditStationView(LoginRequiredMixin,
         context['tally_id'] = self.kwargs.get('tally_id', None)
         context['is_active'] = self.object.active
         context['center_is_active'] = self.object.center.active
+        context['comments'] = self.object.comments.all()
 
         return context
 

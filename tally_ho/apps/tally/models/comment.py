@@ -12,9 +12,18 @@ class Comment(BaseModel):
         app_label = 'tally'
 
     text = models.TextField()
-    ballot = models.ForeignKey(Ballot, on_delete=models.PROTECT, null=True)
-    center = models.ForeignKey(Center, on_delete=models.PROTECT, null=True)
-    station = models.ForeignKey(Station, on_delete=models.PROTECT, null=True)
+    ballot = models.ForeignKey(Ballot,
+                               on_delete=models.PROTECT,
+                               related_name='comments',
+                               null=True)
+    center = models.ForeignKey(Center,
+                               on_delete=models.PROTECT,
+                               related_name='comments',
+                               null=True)
+    station = models.ForeignKey(Station,
+                                on_delete=models.PROTECT,
+                                related_name='comments',
+                                null=True)
 
 
 reversion.register(Comment)
