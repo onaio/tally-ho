@@ -16,15 +16,17 @@ class EditCenterForm(ModelForm):
 
     class Meta:
         model = Center
-        fields = localized_fields = ['center_type',
-                                     'latitude',
-                                     'longitude',
-                                     'mahalla',
-                                     'name',
-                                     'office',
-                                     'region',
-                                     'village',
-                                     ]
+        fields = localized_fields = [
+            'center_type',
+            'latitude',
+            'longitude',
+            'mahalla',
+            'name',
+            'office',
+            'region',
+            'village',
+            'disable_reason',
+        ]
 
         widgets = {
             'mahalla': Textarea(attrs={'cols': 60, 'rows': 2}),
@@ -35,6 +37,9 @@ class EditCenterForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(EditCenterForm, self).__init__(*args, **kwargs)
+
+        if self.instance.active:
+            self.fields.pop('disable_reason')
 
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:

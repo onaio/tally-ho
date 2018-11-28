@@ -203,7 +203,7 @@ def create_recon_forms(result_form, user):
     recon2.save()
 
 
-def create_station(center, registrants=1):
+def create_station(center, registrants=1, tally=None):
     sc, _ = SubConstituency.objects.get_or_create(code=1,
                                                   field_office='1')
 
@@ -212,7 +212,8 @@ def create_station(center, registrants=1):
         sub_constituency=sc,
         gender=Gender.MALE,
         station_number=1,
-        registrants=registrants)
+        registrants=registrants,
+        tally=tally)
     return station
 
 

@@ -269,3 +269,40 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Remove a Station</a>")
+
+    def test_edit_station_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        view = views.EditStationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            center_code=center.code,
+            station_number=station.station_number,
+            tally_id=tally.pk)
+        self.assertContains(response, 'Edit Station')
+        self.assertContains(response, '<td>%s</td>' % station.station_number)
+
+    def test_edit_station_post_invalid(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center)
+        view = views.EditStationView.as_view()
+        data = {
+            'center_code': center.code,
+            'station_number': station.station_number,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        response = view(
+            request,
+            center_code=center.code,
+            station_number=station.station_number,
+            tally_id=tally.pk)
+        self.assertContains(response,
+                            'Ensure this value has at least 5 character')

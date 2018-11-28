@@ -18,12 +18,14 @@ from tally_ho.apps.tally.forms.disable_entity_form import DisableEntityForm
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
-from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
+from tally_ho.apps.tally.forms.edit_race_form import EditRaceForm
+from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
     EditUserProfileForm,
 )
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -581,6 +583,39 @@ class EnableEntityView(LoginRequiredMixin,
         return redirect(self.success_url, tally_id=tally_id)
 
 
+class EditRaceView(LoginRequiredMixin,
+                   mixins.GroupRequiredMixin,
+                   mixins.TallyAccessMixin,
+                   mixins.ReverseSuccessURLMixin,
+                   SuccessMessageMixin,
+                   UpdateView):
+    model = Ballot
+    form_class = EditRaceForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/edit_race.html'
+    success_message = _(u'Race Successfully Updated')
+
+    def get_context_data(self, **kwargs):
+        context = super(EditRaceView, self).get_context_data(**kwargs)
+        context['id'] = self.kwargs.get('id', None)
+        context['tally_id'] = self.kwargs.get('tally_id', None)
+        context['is_active'] = self.object.active
+        context['comments'] = self.object.comments.all()
+
+        return context
+
+    def get_object(self):
+        tally_id = self.kwargs.get('tally_id', None)
+        id = self.kwargs.get('id', None)
+
+        return get_object_or_404(Ballot, tally__id=tally_id, id=id)
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id', None)
+
+        return reverse('race-list', kwargs={'tally_id': tally_id})
+
+
 class DisableRaceView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
                       mixins.TallyAccessMixin,
@@ -589,19 +624,19 @@ class DisableRaceView(LoginRequiredMixin,
                       FormView):
     form_class = DisableEntityForm
     group_required = groups.SUPER_ADMINISTRATOR
+    tally_id = None
     template_name = "super_admin/disable_entity.html"
 
     success_url = 'races-list'
-    tally_id = None
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         race_id = kwargs.get('raceId')
 
         self.initial = {
-            'centerCodeInput': None,
-            'stationNumberInput': None,
-            'raceIdInput': race_id,
+            'center_code_input': None,
+            'station_number_input': None,
+            'race_id_input': race_id,
         }
 
         self.success_message = _(u"Race Successfully Disabled.")
@@ -623,7 +658,9 @@ class DisableRaceView(LoginRequiredMixin,
             self.success_message = _(u"Race Successfully disabled")
 
             return self.form_valid(form)
-        return self.form_invalid(form)
+
+        return self.render_to_response(self.get_context_data(
+            form=form, tally_id=self.tally_id))
 
 
 class EnableRaceView(LoginRequiredMixin,
