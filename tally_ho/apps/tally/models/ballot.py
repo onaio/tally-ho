@@ -22,10 +22,11 @@ class Ballot(BaseModel):
         58: [47],
     }
 
+    active = models.BooleanField(default=True)
+    available_for_release = models.BooleanField(default=False)
+    disable_reason = EnumIntegerField(DisableReason, null=True, default=None)
     number = models.PositiveSmallIntegerField()
     race_type = EnumIntegerField(RaceType)
-    active = models.BooleanField(default=True)
-    disable_reason = EnumIntegerField(DisableReason, null=True, default=None)
     tally = models.ForeignKey(Tally,
                               null=True,
                               blank=True,
