@@ -135,6 +135,12 @@ def clean_reconciliation_forms(recon_queryset):
 class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
+        indexes = [
+            models.Index(fields=['station_number',
+                                 'center',
+                                 'ballot',
+                                 'tally']),
+        ]
         unique_together = (('barcode', 'tally'), ('serial_number', 'tally'))
 
     START_BARCODE = 10000000
@@ -471,22 +477,15 @@ class ResultForm(BaseModel):
 
         :returns: A distinct, ordered, and filtered queryset.
         """
-        if tally_id:
-            return qs.filter(
-                tally__id=tally_id,
-                center__isnull=False,
-                station_number__isnull=False,
-                ballot__isnull=False).order_by(
-                'center__id', 'station_number', 'ballot__id',
-                'form_state').distinct(
-                'center__id', 'station_number', 'ballot__id')
-        return qs.filter(
+        new_qs = qs.filter(
             center__isnull=False,
             station_number__isnull=False,
             ballot__isnull=False).order_by(
             'center__id', 'station_number', 'ballot__id',
             'form_state').distinct(
             'center__id', 'station_number', 'ballot__id')
+
+        return new_qs.filter(tally__id=tally_id) if tally_id else new_qs
 
     @classmethod
     def distinct_for_component(cls, ballot, tally_id=None):
