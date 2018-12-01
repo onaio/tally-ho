@@ -10,10 +10,6 @@
 
 <form name="form" method="post" action="">
     <table class="table table-bordered">
-        <tr>
-            <td>{% trans 'Center:' %}</td>
-            <td>{{ center_code }}</td>
-        </tr>
         {{ form.as_table }}
         <tr>
             <td>{% trans 'Status:' %}</td>
@@ -36,21 +32,18 @@
     <button class="btn btn-small btn-success" type="submit" name="save_submit">
         {% trans "Save" %}
     </button>
-    <a class="btn btn-small btn-danger" href="{% url 'center-list' tally_id %}" role"button">
+    <a class="btn btn-small btn-danger" href="{% url 'races-list' tally_id %}" role"button">
         {% trans "Cancel" %}
     </a>
     {% if is_active %}
-    <a class="btn btn-small btn-default" href="{% url 'disable' tally_id center_code %}" role="button">
+    <a class="btn btn-small btn-default" href="{% url 'disable-race' tally_id id %}" role="button">
         {% trans "Disable" %}
     </a>
     {% else %}
-    <a class="btn btn-small btn-default" href="{% url 'enable' tally_id center_code %}" role="button">
+    <a class="btn btn-small btn-default" href="{% url 'enable-race' tally_id id %}" role="button">
         {% trans "Enable" %}
     </a>
     {% endif %}
-    <a class="btn btn-small btn-warning pull-right" href="{% url 'remove-center-confirmation' tally_id center_code %}" role="button">
-        {% trans "Delete" %}
-    </a>
     {% csrf_token %}
 </form>
 
