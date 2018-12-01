@@ -509,26 +509,17 @@ class ResultForm(BaseModel):
 
     @classmethod
     def distinct_form_pks(cls, tally_id=None):
-        # Calling '.values(id)' here does not preserve the distinct order by,
-        # this leads to not choosing the archived replacement form.
-        # TODO use a subquery that preserves the distinct and the order by
-        # or cache this.
-        if tally_id:
-            return [r.pk for r in cls.distinct_filter(
-                cls.distinct_forms(tally_id), tally_id)]
-
-        return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
+        return cls.distinct_filter(cls.distinct_forms(tally_id),
+                                   tally_id).values_list('id', flat=True)
 
     @classmethod
     def forms_in_state(cls, state, pks=None, tally_id=None):
         if not pks:
             pks = cls.distinct_form_pks(tally_id)
 
-        if tally_id:
-            return cls.objects.filter(id__in=pks,
-                                      form_state=state,
-                                      tally__id=tally_id)
-        return cls.objects.filter(id__in=pks, form_state=state)
+        qs = cls.objects.filter(id__in=pks, form_state=state)
+
+        return qs.filter(tally__id=tally_id) if tally_id else qs
 
     @classmethod
     def generate_barcode(cls, tally_id=None):
