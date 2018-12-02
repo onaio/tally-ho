@@ -631,7 +631,7 @@ class DisableRaceView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        race_id = kwargs.get('raceId')
+        race_id = kwargs.get('race_id')
 
         self.initial = {
             'center_code_input': None,
@@ -672,10 +672,10 @@ class EnableRaceView(LoginRequiredMixin,
     success_url = 'races-list'
 
     def get(self, *args, **kwargs):
-        raceId = kwargs.get('raceId')
+        race_id = kwargs.get('race_id')
         tally_id = self.kwargs['tally_id']
 
-        disable_enable_race(raceId)
+        disable_enable_race(race_id)
 
         messages.add_message(self.request,
                              messages.INFO,

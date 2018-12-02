@@ -68,8 +68,10 @@ def disable_enable_race(race_id, disable_reason=None, comment=None):
     except Ballot.DoesNotExist:
         raise forms.ValidationError(_(u"Race does not exist"))
     else:
-        race.active = not race.active
+        if comment:
+            Comment(text=comment, ballot=race).save()
 
+        race.active = not race.active
         race.disable_reason = 0
         if disable_reason is not None:
             race.disable_reason = disable_reason

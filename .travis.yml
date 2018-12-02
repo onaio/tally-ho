@@ -5,6 +5,7 @@ python:
   - '3.6.5'
 install:
   - pip install -r requirements/common.pip
+  - pip install coverage
   - pip install flake8
   - pip freeze # list our pip library versions
 before_script:

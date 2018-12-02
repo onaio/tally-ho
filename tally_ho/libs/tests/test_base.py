@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User, Group, AnonymousUser
-from django.utils import timezone
-
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import TestCase
 from django.test import RequestFactory
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.ballot import Ballot
@@ -28,6 +28,12 @@ from tally_ho.libs.permissions.groups import (
     add_user_to_group,
 )
 from tally_ho.libs.models.enums.race_type import RaceType
+
+
+def configure_messages(request):
+    setattr(request, 'session', 'session')
+    messages = FallbackStorage(request)
+    setattr(request, '_messages', messages)
 
 
 def create_audit(result_form, user, reviewed_team=False):
