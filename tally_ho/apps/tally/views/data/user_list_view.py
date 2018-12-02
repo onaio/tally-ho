@@ -1,4 +1,5 @@
 from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.views.generic import TemplateView
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -29,6 +30,7 @@ class UserListDataView(LoginRequiredMixin,
 
     def filter_queryset(self, qs):
         tally_id = self.request.GET.get('tally_id', None)
+        keyword = self.request.GET.get('search[value]', None)
 
         if self.role == 'admin':
             qs = qs.filter(groups__name__exact=groups.SUPER_ADMINISTRATOR)
@@ -38,6 +40,12 @@ class UserListDataView(LoginRequiredMixin,
 
         if tally_id:
             qs = qs.filter(tally__id=tally_id)
+
+        if keyword:
+            qs = qs.filter(Q(username__contains=keyword) |
+                           Q(email__contains=keyword) |
+                           Q(first_name__contains=keyword) |
+                           Q(last_name__contains=keyword))
 
         return qs
 
