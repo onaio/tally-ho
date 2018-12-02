@@ -22,7 +22,7 @@
         <th>{% trans 'Race Type' %}</th>
         <th>{% trans 'Forms Expected' %}</th>
         <th>{% trans 'Forms Complete' %}</th>
-        <th>{% trans 'Percentage Complete' %}</th>
+        <th>{% trans 'Percent Complete' %}</th>
         <th>{% trans 'Actions' %}</th>
     </tr>
 {% for rec in ballots %}
@@ -34,6 +34,7 @@
         <td>{{ rec.complete }}</td>
         <td>{{ rec.percentage }}</td>
         <td>
+            <a href="{% url 'edit-race' tally_id rec.id %}" class="btn btn-default btn-small">{% trans 'Edit' %}</a>
             {% if rec.active %}
                 <a href="{% url 'disable-race' tally_id rec.id %}" class="btn btn-default btn-small">{% trans 'Disable' %}</a>
             {% else %}

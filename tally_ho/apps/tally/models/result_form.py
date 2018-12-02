@@ -135,6 +135,12 @@ def clean_reconciliation_forms(recon_queryset):
 class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
+        indexes = [
+            models.Index(fields=['station_number',
+                                 'center',
+                                 'ballot',
+                                 'tally']),
+        ]
         unique_together = (('barcode', 'tally'), ('serial_number', 'tally'))
 
     START_BARCODE = 10000000
@@ -471,22 +477,15 @@ class ResultForm(BaseModel):
 
         :returns: A distinct, ordered, and filtered queryset.
         """
-        if tally_id:
-            return qs.filter(
-                tally__id=tally_id,
-                center__isnull=False,
-                station_number__isnull=False,
-                ballot__isnull=False).order_by(
-                'center__id', 'station_number', 'ballot__id',
-                'form_state').distinct(
-                'center__id', 'station_number', 'ballot__id')
-        return qs.filter(
+        new_qs = qs.filter(
             center__isnull=False,
             station_number__isnull=False,
             ballot__isnull=False).order_by(
             'center__id', 'station_number', 'ballot__id',
             'form_state').distinct(
             'center__id', 'station_number', 'ballot__id')
+
+        return new_qs.filter(tally__id=tally_id) if tally_id else new_qs
 
     @classmethod
     def distinct_for_component(cls, ballot, tally_id=None):
@@ -510,26 +509,17 @@ class ResultForm(BaseModel):
 
     @classmethod
     def distinct_form_pks(cls, tally_id=None):
-        # Calling '.values(id)' here does not preserve the distinct order by,
-        # this leads to not choosing the archived replacement form.
-        # TODO use a subquery that preserves the distinct and the order by
-        # or cache this.
-        if tally_id:
-            return [r.pk for r in cls.distinct_filter(
-                cls.distinct_forms(tally_id), tally_id)]
-
-        return [r.pk for r in cls.distinct_filter(cls.distinct_forms())]
+        return cls.distinct_filter(cls.distinct_forms(tally_id),
+                                   tally_id).values_list('id', flat=True)
 
     @classmethod
     def forms_in_state(cls, state, pks=None, tally_id=None):
         if not pks:
             pks = cls.distinct_form_pks(tally_id)
 
-        if tally_id:
-            return cls.objects.filter(id__in=pks,
-                                      form_state=state,
-                                      tally__id=tally_id)
-        return cls.objects.filter(id__in=pks, form_state=state)
+        qs = cls.objects.filter(id__in=pks, form_state=state)
+
+        return qs.filter(tally__id=tally_id) if tally_id else qs
 
     @classmethod
     def generate_barcode(cls, tally_id=None):

@@ -8,7 +8,9 @@ from tally_ho.apps.tally.views import super_admin as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
+    configure_messages,
     create_audit,
+    create_ballot,
     create_candidates,
     create_reconciliation_form,
     create_result_form,
@@ -269,3 +271,137 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Remove a Station</a>")
+
+    def test_edit_station_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        view = views.EditStationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            center_code=center.code,
+            station_number=station.station_number,
+            tally_id=tally.pk)
+        self.assertContains(response, 'Edit Station')
+        self.assertContains(response, '<td>%s</td>' % station.station_number)
+
+    def test_edit_station_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center)
+        view = views.EditStationView.as_view()
+        data = {
+            'center_code': center.code,
+            'station_number': station.station_number,
+            'tally_id': tally.pk,
+            'gender': station.gender.value,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        configure_messages(request)
+        response = view(
+            request,
+            center_code=center.code,
+            station_number=station.station_number,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+
+    def test_disable_entity_view_post_station_invalid(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center)
+        view = views.DisableEntityView.as_view()
+        data = {
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        response = view(
+            request,
+            center_code=center.code,
+            station_number=station.station_number,
+            tally_id=tally.pk)
+        self.assertContains(response,
+                            'This field is required')
+
+    def test_disable_entity_view_post_station(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center)
+        comment_text = 'example comment text'
+        view = views.DisableEntityView.as_view()
+        data = {
+            'center_code_input': center.code,
+            'station_number_input': station.station_number,
+            'tally_id': tally.pk,
+            'comment_input': comment_text,
+            'disable_reason': '2',
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        response = view(
+            request,
+            center_code=center.code,
+            station_number=station.station_number,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/data/center-list/%s/' % tally.pk, response['Location'])
+        station.reload()
+        self.assertEqual(station.disable_reason.value, 2)
+        self.assertEqual(station.comments.all()[0].text, comment_text)
+
+    def test_disable_entity_view_post_center(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center)
+        comment_text = 'example comment text'
+        view = views.DisableEntityView.as_view()
+        data = {
+            'center_code_input': center.code,
+            'comment_input': comment_text,
+            'tally_id': tally.pk,
+            'disable_reason': '2',
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        response = view(
+            request,
+            center_code=center.code,
+            station_number=station.station_number,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/data/center-list/%s/' % tally.pk, response['Location'])
+        center.reload()
+        self.assertEqual(center.disable_reason.value, 2)
+        self.assertEqual(center.comments.all()[0].text, comment_text)
+
+    def test_disable_race_view_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot = create_ballot(tally=tally)
+        comment_text = 'example comment text'
+        view = views.DisableRaceView.as_view()
+        data = {
+            'race_id_input': ballot.pk,
+            'comment_input': comment_text,
+            'tally_id': tally.pk,
+            'disable_reason': '2',
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        configure_messages(request)
+        response = view(
+            request,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/data/race-list/%s/' % tally.pk, response['Location'])
+        ballot.reload()
+        self.assertEqual(ballot.disable_reason.value, 2)
+        self.assertEqual(ballot.comments.all()[0].text, comment_text)

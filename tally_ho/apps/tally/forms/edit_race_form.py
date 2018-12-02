@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.ballot import Ballot
 
 disable_copy_input = {
     'onCopy': 'return false;',
@@ -11,19 +11,21 @@ disable_copy_input = {
 }
 
 
-class EditStationForm(ModelForm):
+class EditRaceForm(ModelForm):
     MANDATORY_FIELDS = []
 
     class Meta:
-        model = Station
-        fields = [
-            'gender',
-            'registrants',
+        model = Ballot
+        fields = localized_fields = [
+            'number',
+            'race_type',
+            'active',
             'disable_reason',
+            'available_for_release',
         ]
 
     def __init__(self, *args, **kwargs):
-        super(EditStationForm, self).__init__(*args, **kwargs)
+        super(EditRaceForm, self).__init__(*args, **kwargs)
 
         if self.instance.active:
             self.fields.pop('disable_reason')

@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 from django.urls import reverse
@@ -37,6 +38,7 @@ class FormListDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         ballot_number = self.request.GET.get('ballot[value]', None)
         tally_id = self.request.GET.get('tally_id[value]', None)
+        keyword = self.request.GET.get('search[value]', None)
 
         if tally_id:
             qs = qs.filter(tally__id=tally_id)
@@ -46,6 +48,14 @@ class FormListDataView(LoginRequiredMixin,
                                         tally__id=tally_id)
             qs = qs.filter(
                 ballot__number__in=ballot.form_ballot_numbers)
+
+        if keyword:
+            qs = qs.filter(Q(barcode__contains=keyword) |
+                           Q(center__code__contains=keyword) |
+                           Q(center__office__name__contains=keyword) |
+                           Q(center__office__number__contains=keyword) |
+                           Q(station_number__contains=keyword) |
+                           Q(ballot__number__contains=keyword))
 
         return qs
 

@@ -154,12 +154,16 @@ urlpatterns = [
             r'(?P<center_code>(\d+))/(?P<station_number>(\d+))?$',
             super_admin.EnableEntityView.as_view(),
             name='enable'),
+    re_path(r'^super-administrator/edit-race/(?P<tally_id>(\d+))/'
+            r'(?P<id>(\d+))$',
+            super_admin.EditRaceView.as_view(),
+            name='edit-race'),
     re_path(r'^super-administrator/disablerace/(?P<tally_id>(\d+))/'
-            r'(?P<raceId>(\d+))$',
+            r'(?P<race_id>(\d+))$',
             super_admin.DisableRaceView.as_view(),
             name='disable-race'),
     re_path(r'^super-administrator/enablerace/(?P<tally_id>(\d+))/'
-            r'(?P<raceId>(\d+))$',
+            r'(?P<race_id>(\d+))$',
             super_admin.EnableRaceView.as_view(),
             name='enable-race'),
     re_path(r'^super-administrator/candidate-disable/(?P<tally_id>(\d+))/'

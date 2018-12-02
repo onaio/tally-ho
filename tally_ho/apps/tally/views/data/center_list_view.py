@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.urls import reverse
 from django.views.generic import TemplateView
 
@@ -30,6 +31,17 @@ class CenterListDataView(LoginRequiredMixin,
         'active',
         'edit',
     )
+
+    def filter_queryset(self, qs):
+        keyword = self.request.GET.get('search[value]', None)
+
+        if keyword:
+            qs = qs.filter(Q(station_number__contains=keyword) |
+                           Q(center__office__name__contains=keyword) |
+                           Q(center__code__contains=keyword) |
+                           Q(sub_constituency__code__contains=keyword) |
+                           Q(center__name__contains=keyword))
+        return qs
 
     def render_column(self, row, column):
         if column == 'edit':
