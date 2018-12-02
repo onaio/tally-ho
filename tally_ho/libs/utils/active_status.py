@@ -39,7 +39,7 @@ def disable_enable_entity(center_code,
         raise forms.ValidationError(_(u"Station Number does not exist"))
     else:
         if comment_text:
-            comment = Comment(text=comment_text)
+            comment = Comment(text=comment_text, tally_id=tally_id)
 
             if station_number:
                 comment.station = entity_to_return
@@ -59,7 +59,10 @@ def disable_enable_entity(center_code,
         return entity_to_return
 
 
-def disable_enable_race(race_id, disable_reason=None, comment=None):
+def disable_enable_race(race_id,
+                        disable_reason=None,
+                        comment=None,
+                        tally_id=None):
     race = None
 
     try:
@@ -69,7 +72,7 @@ def disable_enable_race(race_id, disable_reason=None, comment=None):
         raise forms.ValidationError(_(u"Race does not exist"))
     else:
         if comment:
-            Comment(text=comment, ballot=race).save()
+            Comment(text=comment, ballot=race, tally_id=tally_id).save()
 
         race.active = not race.active
         race.disable_reason = 0

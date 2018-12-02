@@ -483,11 +483,12 @@ class EditCenterView(LoginRequiredMixin,
     success_message = _(u'Center Successfully Updated')
 
     def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id', None)
         context = super(EditCenterView, self).get_context_data(**kwargs)
         context['center_code'] = self.kwargs.get('center_code', None)
-        context['tally_id'] = self.kwargs.get('tally_id', None)
+        context['tally_id'] = tally_id
         context['is_active'] = self.object.active
-        context['comments'] = self.object.comments.all()
+        context['comments'] = self.object.comments.filter(tally__id=tally_id)
 
         return context
 
@@ -596,11 +597,12 @@ class EditRaceView(LoginRequiredMixin,
     success_message = _(u'Race Successfully Updated')
 
     def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id', None)
         context = super(EditRaceView, self).get_context_data(**kwargs)
         context['id'] = self.kwargs.get('id', None)
-        context['tally_id'] = self.kwargs.get('tally_id', None)
+        context['tally_id'] = tally_id
         context['is_active'] = self.object.active
-        context['comments'] = self.object.comments.all()
+        context['comments'] = self.object.comments.filter(tally__id=tally_id)
 
         return context
 

@@ -100,6 +100,9 @@ class DisableEntityForm(forms.Form):
                                                comment,
                                                tally_id)
             else:
-                result = disable_enable_race(race_id, disable_reason, comment)
+                result = disable_enable_race(race_id,
+                                             disable_reason,
+                                             comment,
+                                             tally_id)
 
             return result
