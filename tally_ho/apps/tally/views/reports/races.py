@@ -1,6 +1,12 @@
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
+from tally_ho.apps.tally.models.ballot import (
+    form_ballot_numbers,
+    race_type_name,
+    sub_constituency,
+)
+from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.views.exports import valid_ballots
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports import progress as p
@@ -18,20 +24,32 @@ class RacesReportView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
 
         archived = p.ArchivedProgressReport(tally_id)
-        for ballot in valid_ballots(tally_id):
-            archived_result = archived.for_ballot(ballot)
-            sc = ballot.sub_constituency
+        sc_cache = SubConstituency.objects.all()
+        sc_cache = dict(zip(map(lambda x: x.id, sc_cache), sc_cache))
+        for d in valid_ballots(tally_id).values('id',
+                                                'active',
+                                                'race_type',
+                                                'sc_component',
+                                                'sc_general',
+                                                'sc_women',
+                                                'number'):
+            archived_result = archived.for_ballot(
+                form_ballot_numbers=form_ballot_numbers(d['number']))
+            sc = sub_constituency(sc_cache.get(d['sc_component']),
+                                  sc_cache.get(d['sc_women']),
+                                  sc_cache.get(d['sc_general']))
 
             if sc:
                 data.append({
-                    'ballot': ballot.number,
+                    'ballot': d['number'],
                     'district': sc.code,
-                    'race_type': ballot.race_type_name,
+                    'race_type': race_type_name(d['race_type'],
+                                                sc_cache.get(d['sc_general'])),
                     'expected': archived_result['denominator'],
                     'complete': archived_result['number'],
                     'percentage': archived_result['percentage'],
-                    'id': ballot.id,
-                    'active': ballot.active
+                    'id': d['id'],
+                    'active': d['active']
                 })
 
         return data

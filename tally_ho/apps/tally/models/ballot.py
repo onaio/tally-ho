@@ -9,18 +9,41 @@ from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.models.enums.disable_reason import DisableReason
 
 
+COMPONENT_TO_BALLOTS = {
+    55: [26, 27, 28],
+    56: [29, 30, 31],
+    57: [34],
+    58: [47],
+}
+
+
+def is_component(number):
+    return number in COMPONENT_TO_BALLOTS.keys()
+
+
+def form_ballot_numbers(number):
+    return COMPONENT_TO_BALLOTS[number] if is_component(number) else [number]
+
+
+def sub_constituency(sc_general, sc_women, sc_component):
+    return sc_general or sc_women or sc_component
+
+
+def race_type_name(race_type, sc_general):
+        if sc_general and sc_general.ballot_component:
+            return _('General and Component')
+
+        return race_type.name
+
+
 class Ballot(BaseModel):
     class Meta:
         app_label = 'tally'
+        indexes = [
+            models.Index(fields=['number']),
+        ]
         ordering = ['number']
         unique_together = ('number', 'tally')
-
-    COMPONENT_TO_BALLOTS = {
-        55: [26, 27, 28],
-        56: [29, 30, 31],
-        57: [34],
-        58: [47],
-    }
 
     active = models.BooleanField(default=True)
     available_for_release = models.BooleanField(default=False)
@@ -35,18 +58,13 @@ class Ballot(BaseModel):
 
     @property
     def race_type_name(self):
-        if self.sc_general.all() and self.sc_general.all()[0].ballot_component:
-            return _('General and Component')
-
-        return _(self.race_type.name)
+        return race_type_name(self.race_type, self.sc_general.first())
 
     @property
     def sub_constituency(self):
-        sc = self.sc_general.all() or self.sc_women.all() or\
-            self.sc_component.all()
-
-        if sc:
-            return sc[0]
+        return sub_constituency(self.sc_general.first(),
+                                self.sc_women.first(),
+                                self.sc_component.first())
 
     @property
     def component_ballot(self):
@@ -60,12 +78,11 @@ class Ballot(BaseModel):
 
     @property
     def form_ballot_numbers(self):
-        return Ballot.COMPONENT_TO_BALLOTS[self.number] if self.is_component\
-            else [self.number]
+        return form_ballot_numbers(self.number)
 
     @property
     def is_component(self):
-        return self.number in self.COMPONENT_TO_BALLOTS.keys()
+        return is_component(self.number)
 
     def __str__(self):
         return u'%s - %s' % (self.number, self.race_type_name)

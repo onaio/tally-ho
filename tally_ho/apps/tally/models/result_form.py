@@ -136,8 +136,8 @@ class ResultForm(BaseModel):
     class Meta:
         app_label = 'tally'
         indexes = [
-            models.Index(fields=['station_number',
-                                 'center',
+            models.Index(fields=['center',
+                                 'station_number',
                                  'ballot',
                                  'tally']),
         ]

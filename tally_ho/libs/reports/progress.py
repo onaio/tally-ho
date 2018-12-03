@@ -57,13 +57,15 @@ class ProgressReport(object):
 
     percentage = property(percentage_value)
 
-    def for_ballot(self, ballot):
+    def for_ballot(self, ballot=None, form_ballot_numbers=None):
+        if not form_ballot_numbers:
+            form_ballot_numbers = ballot.form_ballot_numbers
 
         filtered_queryset = self.get_filtered_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers,
+            ballot__number__in=form_ballot_numbers,
             tally__id=self.tally_id)
         queryset = self.get_queryset().filter(
-            ballot__number__in=ballot.form_ballot_numbers,
+            ballot__number__in=form_ballot_numbers,
             tally__id=self.tally_id)
 
         denominator = queryset.count()
