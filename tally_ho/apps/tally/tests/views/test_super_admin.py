@@ -445,3 +445,14 @@ class TestSuperAdmin(TestBase):
         ballot.reload()
         self.assertEqual(ballot.available_for_release, True)
         self.assertEqual(ballot.comments.first().text, comment_text)
+
+    def test_form_duplicates_view_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.FormDuplicatesView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.pk)
+        self.assertContains(response, 'Form Duplicates List')

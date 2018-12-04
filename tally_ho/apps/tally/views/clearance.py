@@ -61,6 +61,7 @@ def get_clearance(result_form, post_data, user, form):
     :param form: The form to create a new clearance from.
     """
     clearance = result_form.clearance
+    userprofile = user.userprofile
 
     if clearance:
         clearance = ClearanceForm(
@@ -68,13 +69,13 @@ def get_clearance(result_form, post_data, user, form):
 
         if groups.CLEARANCE_CLERK in user.groups.values_list(
                 'name', flat=True):
-            clearance.user = user
+            clearance.user = userprofile
         else:
-            clearance.supervisor = user
+            clearance.supervisor = userprofile
     else:
         clearance = form.save(commit=False)
         clearance.result_form = result_form
-        clearance.user = user
+        clearance.user = userprofile
 
     if groups.CLEARANCE_CLERK in user.groups.values_list('name', flat=True):
         clearance.date_team_modified = now()

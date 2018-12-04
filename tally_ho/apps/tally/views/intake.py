@@ -18,7 +18,8 @@ from tally_ho.libs.views.form_state import form_in_intake_state,\
     safe_form_in_state, form_in_state
 from tally_ho.libs.views.errors import add_generic_error
 
-INTAKEN_MESSAGE = _('Duplicate of a form already entered into system.')
+INTAKE_DUPLICATE_ERROR_MESSAGE = _(
+    'Duplicate of a form already entered into system.')
 
 
 def states_for_form(user, states, result_form):
@@ -83,14 +84,15 @@ class CenterDetailsView(LoginRequiredMixin,
             duplicated_forms = result_form.get_duplicated_forms()
             if duplicated_forms:
                 # a form already exists, send to clearance
-                self.request.session['intake-error'] = INTAKEN_MESSAGE
+                self.request.session[
+                    'intake-error'] = INTAKE_DUPLICATE_ERROR_MESSAGE
                 result_form.send_to_clearance()
 
                 for oneDuplicatedForm in duplicated_forms:
                     if oneDuplicatedForm.form_state != FormState.CLEARANCE:
                         oneDuplicatedForm.send_to_clearance()
 
-                return redirect('intake-clearance')
+                return redirect('intake-clearance', tally_id=self.tally_id)
 
             if result_form.form_state != FormState.DATA_ENTRY_1:
                 result_form.form_state = FormState.INTAKE
@@ -183,7 +185,8 @@ class EnterCenterView(LoginRequiredMixin,
                 result_form.station_number = station_number
                 result_form.center = center
                 # a form already exists, send to clearance
-                self.request.session['intake-error'] = INTAKEN_MESSAGE
+                self.request.session[
+                    'intake-error'] = INTAKE_DUPLICATE_ERROR_MESSAGE
                 result_form.send_to_clearance()
 
                 for form in duplicated_forms:
