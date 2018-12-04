@@ -405,3 +405,43 @@ class TestSuperAdmin(TestBase):
         ballot.reload()
         self.assertEqual(ballot.disable_reason.value, 2)
         self.assertEqual(ballot.comments.all()[0].text, comment_text)
+
+    def test_edit_race_view_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot = create_ballot(tally)
+        view = views.EditRaceView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            id=ballot.pk,
+            tally_id=tally.pk)
+        self.assertContains(response, 'Edit Race')
+        self.assertContains(response, 'value="%s"' % ballot.number)
+
+    def test_edit_race_view_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot = create_ballot(tally)
+        comment_text = 'jndfjs fsgfd'
+        view = views.EditRaceView.as_view()
+        data = {
+            'comment_input': comment_text,
+            'number': ballot.number,
+            'race_type': ballot.race_type.value,
+            'available_for_release': True,
+            'race_id': ballot.pk,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        configure_messages(request)
+        response = view(
+            request,
+            id=ballot.pk,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        ballot.reload()
+        self.assertEqual(ballot.available_for_release, True)
+        self.assertEqual(ballot.comments.first().text, comment_text)
