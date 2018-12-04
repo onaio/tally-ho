@@ -5,6 +5,9 @@ from django.test import RequestFactory
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.views import intake as views
+from tally_ho.apps.tally.views.intake import (
+    INTAKE_DUPLICATE_ERROR_MESSAGE,
+)
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
@@ -648,6 +651,37 @@ class TestIntake(TestBase):
                          result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.DATA_ENTRY_1)
+
+    def test_duplicate_forms_post(self):
+        self._create_or_login_intake_clerk()
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center, tally=tally)
+        result_form = create_result_form(tally=tally,
+                                         center=center,
+                                         station_number=station.station_number,
+                                         form_state=FormState.DATA_ENTRY_1)
+        result_form2 = create_result_form(
+            '123456289',
+            tally=tally,
+            ballot=result_form.ballot,
+            center=result_form.center,
+            station_number=result_form.station_number,
+            serial_number=3)
+        view = views.CenterDetailsView.as_view()
+        data = {
+            'barcode': result_form2.barcode,
+            'barcode_copy': result_form2.barcode,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.session = {}
+        request.user = self.user
+        response = view(request, tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(request.session['intake-error'],
+                         INTAKE_DUPLICATE_ERROR_MESSAGE)
 
     def test_clearance(self):
         self._create_or_login_intake_clerk()
