@@ -76,6 +76,7 @@ def disable_enable_race(race_id,
 
         race.active = not race.active
         race.disable_reason = 0
+
         if disable_reason is not None:
             race.disable_reason = disable_reason
 

@@ -22,10 +22,11 @@
         <tr>
             <td>{% trans 'Comments:' %}</td>
             <td>
-            {% for comment in comments%}
-                {{ comment.text }}
-                <br/>
-            {% endfor %}
+                <ul>
+                {% for comment in comments%}
+                    <li>{{ comment.text }}</li>
+                {% endfor %}
+                </ul>
             </td>
         </tr>
     </table>
