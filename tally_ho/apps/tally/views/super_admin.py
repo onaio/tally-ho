@@ -597,9 +597,9 @@ class EditRaceView(LoginRequiredMixin,
     success_message = _(u'Race Successfully Updated')
 
     def get_context_data(self, **kwargs):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         context = super(EditRaceView, self).get_context_data(**kwargs)
-        context['id'] = self.kwargs.get('id', None)
+        context['id'] = self.kwargs.get('id')
         context['tally_id'] = tally_id
         context['is_active'] = self.object.active
         context['comments'] = self.object.comments.filter(tally__id=tally_id)
@@ -607,15 +607,27 @@ class EditRaceView(LoginRequiredMixin,
         return context
 
     def get_object(self):
-        tally_id = self.kwargs.get('tally_id', None)
-        id = self.kwargs.get('id', None)
+        tally_id = self.kwargs.get('tally_id')
+        id = self.kwargs.get('id')
 
         return get_object_or_404(Ballot, tally__id=tally_id, id=id)
 
     def get_success_url(self):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
+        id = self.kwargs.get('id')
 
-        return reverse('race-list', kwargs={'tally_id': tally_id})
+        return reverse('edit-race', kwargs={'tally_id': tally_id, 'id': id})
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        race_id = kwargs.get('id', None)
+
+        self.initial = {
+            'tally_id': tally_id,
+            'race_id': race_id,
+        }
+
+        return super(EditRaceView, self).get(*args, **kwargs)
 
 
 class DisableRaceView(LoginRequiredMixin,
@@ -628,7 +640,6 @@ class DisableRaceView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     tally_id = None
     template_name = "super_admin/disable_entity.html"
-
     success_url = 'races-list'
 
     def get(self, *args, **kwargs):
@@ -636,6 +647,7 @@ class DisableRaceView(LoginRequiredMixin,
         race_id = kwargs.get('race_id')
 
         self.initial = {
+            'tally_id': tally_id,
             'center_code_input': None,
             'station_number_input': None,
             'race_id_input': race_id,
