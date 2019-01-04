@@ -49,7 +49,7 @@ class Station(BaseModel):
     active = models.BooleanField(default=True)
     disable_reason = EnumIntegerField(DisableReason, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s - %s' % (self.center.code, self.station_number)
 
     @property

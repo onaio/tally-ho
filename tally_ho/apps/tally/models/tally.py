@@ -17,7 +17,7 @@ class Tally(BaseModel):
     active = models.BooleanField(default=True)
     disable_reason = EnumIntegerField(DisableReason, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%d - %s' % (self.id, self.name)
 
     @property

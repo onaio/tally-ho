@@ -30,6 +30,9 @@ class SubConstituency(BaseModel):
                               related_name='sub_constituencies',
                               on_delete=models.PROTECT)
 
+    def __str__(self):
+        return u'%s - %s' % (self.code, self.field_office)
+
     @property
     def form_type(self):
         """Return the form type of ballots used in this subconstituency.
