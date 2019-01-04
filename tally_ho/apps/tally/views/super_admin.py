@@ -861,11 +861,10 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
     tally_id = None
 
     def delete(self, request, *args, **kwargs):
-        center_code = kwargs.get('center_code', None)
-        station_number = kwargs.get('station_number', None)
         tally_id = kwargs.get('tally_id', None)
+        station_id = kwargs.get('station_id', None)
 
-        self.object = self.get_object(center_code, station_number, tally_id)
+        self.object = self.get_object(station_id)
         success_url = self.get_success_url()
 
         self.object.delete()
@@ -873,20 +872,17 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
         return redirect(success_url, tally_id=tally_id)
 
     def get(self, request, *args, **kwargs):
-        center_code = kwargs.get('center_code', None)
-        station_number = kwargs.get('station_number', None)
         tally_id = kwargs.get('tally_id', None)
+        station_id = kwargs.get('station_id', None)
 
-        self.object = self.get_object(center_code, station_number, tally_id)
+        self.object = self.get_object(station_id)
         context = self.get_context_data(object=self.object, tally_id=tally_id)
         context['next'] = request.META.get('HTTP_REFERER', None)
 
         return self.render_to_response(context)
 
-    def get_object(self, center_code, station_number, tally_id):
-        return get_object_or_404(Station, center__code=center_code,
-                                 station_number=station_number,
-                                 center__tally__id=tally_id)
+    def get_object(self, station_id):
+        return get_object_or_404(Station, pk=station_id)
 
     def post(self, request, *args, **kwargs):
         self.tally_id = self.kwargs['tally_id']
@@ -915,8 +911,9 @@ class EditStationView(LoginRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super(EditStationView, self).get_context_data(**kwargs)
-        context['center_code'] = self.kwargs.get('center_code', None)
-        context['station_number'] = self.kwargs.get('station_number', None)
+        context['center_code'] = self.object.center.code
+        context['station_number'] = self.object.station_number
+        context['station_id'] = self.object.pk
         context['tally_id'] = self.kwargs.get('tally_id', None)
         context['is_active'] = self.object.active
         context['center_is_active'] = self.object.center.active
@@ -925,14 +922,9 @@ class EditStationView(LoginRequiredMixin,
         return context
 
     def get_object(self):
-        tally_id = self.kwargs.get('tally_id', None)
-        center_code = self.kwargs.get('center_code', None)
-        station_number = self.kwargs.get('station_number', None)
+        station_id = self.kwargs.get('station_id', None)
 
-        return get_object_or_404(Station,
-                                 station_number=station_number,
-                                 center__tally__id=tally_id,
-                                 center__code=center_code)
+        return get_object_or_404(Station, pk=station_id)
 
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id', None)

@@ -191,11 +191,11 @@ urlpatterns = [
             super_admin.QuarantineChecksConfigView.as_view(),
             name='quarantine-checks-config'),
     re_path(r'^super-administrator/remove-station/(?P<tally_id>(\d+))/'
-            r'(?P<center_code>(\d+))/(?P<station_number>(\d+))$',
+            r'(?P<station_id>(\d+))$',
             super_admin.RemoveStationConfirmationView.as_view(),
             name='remove-station-confirmation'),
     re_path(r'^super-administrator/edit-station/(?P<tally_id>(\d+))/'
-            r'(?P<center_code>(\d+))/(?P<station_number>(\d+))$',
+            r'(?P<station_id>(\d+))$',
             super_admin.EditStationView.as_view(),
             name='edit-station'),
     re_path(r'^super-admin/user-list/(?P<tally_id>(\d+))/$',

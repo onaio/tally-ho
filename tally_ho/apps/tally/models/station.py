@@ -24,6 +24,7 @@ def status_to_str(status):
 class Station(BaseModel):
     class Meta:
         app_label = 'tally'
+        unique_together = (('station_number', 'center', 'tally'),)
 
     center = models.ForeignKey(Center,
                                on_delete=models.PROTECT,
@@ -79,7 +80,7 @@ class Station(BaseModel):
 
     @property
     def gender_name(self):
-        return Gender.label(self.gender)
+        return self.gender.label
 
     @property
     def result_forms(self):
