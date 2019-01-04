@@ -16,8 +16,6 @@ disable_copy_input = {
 
 
 class EditRaceForm(ModelForm):
-    MANDATORY_FIELDS = []
-
     class Meta:
         model = Ballot
         fields = localized_fields = [
@@ -49,10 +47,6 @@ class EditRaceForm(ModelForm):
 
         if self.instance.active:
             self.fields.pop('disable_reason')
-
-        for key in self.fields:
-            if key not in self.MANDATORY_FIELDS:
-                self.fields[key].required = False
 
     def save(self):
         if self.is_valid():
