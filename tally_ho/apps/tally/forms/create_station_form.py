@@ -13,8 +13,6 @@ disable_copy_input = {
 
 
 class CreateStationForm(ModelForm):
-    MANDATORY_FIELDS = ['center', 'gender', 'station_number']
-
     class Meta:
         model = Station
         fields = localized_fields = [
@@ -29,6 +27,3 @@ class CreateStationForm(ModelForm):
         widgets = {
             "tally": forms.HiddenInput()
         }
-
-    def __init__(self, *args, **kwargs):
-        super(CreateStationForm, self).__init__(*args, **kwargs)

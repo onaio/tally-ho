@@ -22,15 +22,15 @@ class Center(BaseModel):
                                          on_delete=models.PROTECT,
                                          related_name='centers', null=True)
 
-    center_type = EnumIntegerField(CenterType, null=True)
+    center_type = EnumIntegerField(CenterType, blank=True, null=True)
     code = models.PositiveIntegerField()  # a.k.a. Center Number
-    latitude = models.FloatField(null=True)
-    longitude = models.FloatField(null=True)
-    mahalla = models.TextField()
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    mahalla = models.TextField(blank=True, null=True)
     name = models.TextField()
     office = models.ForeignKey(Office, on_delete=models.PROTECT, null=True)
-    region = models.TextField()
-    village = models.TextField()
+    region = models.TextField(blank=True, null=True)
+    village = models.TextField(blank=True, null=True)
     active = models.BooleanField(default=True)
     disable_reason = EnumIntegerField(DisableReason, null=True)
     tally = models.ForeignKey(Tally,

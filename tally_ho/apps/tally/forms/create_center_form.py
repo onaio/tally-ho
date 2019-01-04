@@ -13,8 +13,6 @@ disable_copy_input = {
 
 
 class CreateCenterForm(ModelForm):
-    MANDATORY_FIELDS = ['name', 'office', 'code', 'tally']
-
     class Meta:
         model = Center
         fields = localized_fields = [
@@ -37,6 +35,3 @@ class CreateCenterForm(ModelForm):
             'region': Textarea(attrs={'cols': 60, 'rows': 2}),
             'village': Textarea(attrs={'cols': 60, 'rows': 2}),
         }
-
-    def __init__(self, *args, **kwargs):
-        super(CreateCenterForm, self).__init__(*args, **kwargs)
