@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans title %}</h1>
+
+<br />
+
+<form name="form" method="post" action="">
+    <table class="table table-bordered">
+        {{ form.as_table }}
+    </table>
+    <button class="btn btn-small btn-success" type="submit" name="save_submit">
+        {% trans "Save" %}
+    </button>
+    <a class="btn btn-small btn-danger" href="{% url 'center-list' tally_id %}" role"button">
+        {% trans "Cancel" %}
+    </a>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

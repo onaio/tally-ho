@@ -14,8 +14,24 @@
 {% block content %}
 <h1>{% trans 'Center and Station List' %}</h1>
 
-Export:
-<a href="{% url 'center-list-csv' tally_id 'csv' %}">{% trans 'Download' %}</a>
+<div class="pull-left">
+    Export:
+    <a href="{% url 'center-list-csv' tally_id 'csv' %}">{% trans 'Download' %}</a>
+</div>
+<div class="pull-right">
+    <form method="get" action="{% url 'create-station' tally_id%}">
+        <button type="submit" class="btn btn-primary btn-small">
+            {% trans 'New Station' %}
+        </button>
+    </form>
+</div>
+<div class="pull-right">
+    <form method="get" action="{% url 'create-center' tally_id%}">
+        <button type="submit" class="btn btn-primary btn-small">
+            {% trans 'New Center' %}
+        </button>
+    </form>
+</div>
 <br/>
 <br/>
 

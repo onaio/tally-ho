@@ -6,8 +6,7 @@ def get_edits_link(station):
     url_center = reverse('edit-center', args=[station.center.tally.id,
                                               station.center.code])
     url_station = reverse('edit-station', args=[station.center.tally.id,
-                                                station.center.code,
-                                                station.station_number])
+                                                station.pk])
 
     template = (
         '<a href="%s" class="btn btn-default btn-small vertical-margin">%s'

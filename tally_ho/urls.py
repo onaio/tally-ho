@@ -146,6 +146,9 @@ urlpatterns = [
             r'(?P<center_code>(\d+))$',
             super_admin.EditCenterView.as_view(),
             name='edit-center'),
+    re_path(r'^super-administrator/create-center/(?P<tally_id>(\d+))/$',
+            super_admin.CreateCenterView.as_view(),
+            name='create-center'),
     re_path(r'^super-administrator/disable/(?P<tally_id>(\d+))/'
             r'(?P<center_code>(\d+))/(?P<station_number>(\d+))?$',
             super_admin.DisableEntityView.as_view(),
@@ -174,6 +177,9 @@ urlpatterns = [
             r'(?P<candidateId>(\d+))$',
             super_admin.EnableCandidateView.as_view(),
             name='candidate-enable'),
+    re_path(r'^super-administrator/create-station/(?P<tally_id>(\d+))/$',
+            super_admin.CreateStationView.as_view(),
+            name='create-station'),
     re_path(r'^super-administrator/remove-station/(?P<tally_id>(\d+))/$',
             super_admin.RemoveStationView.as_view(),
             name='remove-station'),
@@ -185,11 +191,11 @@ urlpatterns = [
             super_admin.QuarantineChecksConfigView.as_view(),
             name='quarantine-checks-config'),
     re_path(r'^super-administrator/remove-station/(?P<tally_id>(\d+))/'
-            r'(?P<center_code>(\d+))/(?P<station_number>(\d+))$',
+            r'(?P<station_id>(\d+))$',
             super_admin.RemoveStationConfirmationView.as_view(),
             name='remove-station-confirmation'),
     re_path(r'^super-administrator/edit-station/(?P<tally_id>(\d+))/'
-            r'(?P<center_code>(\d+))/(?P<station_number>(\d+))$',
+            r'(?P<station_id>(\d+))$',
             super_admin.EditStationView.as_view(),
             name='edit-station'),
     re_path(r'^super-admin/user-list/(?P<tally_id>(\d+))/$',

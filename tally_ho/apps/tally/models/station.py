@@ -24,6 +24,7 @@ def status_to_str(status):
 class Station(BaseModel):
     class Meta:
         app_label = 'tally'
+        unique_together = (('station_number', 'center', 'tally'),)
 
     center = models.ForeignKey(Center,
                                on_delete=models.PROTECT,
@@ -42,14 +43,14 @@ class Station(BaseModel):
                                            decimal_places=2)
     percent_received = models.DecimalField(default=0, max_digits=5,
                                            decimal_places=2)
-    registrants = models.PositiveIntegerField(null=True)
+    registrants = models.PositiveIntegerField(blank=True, null=True)
     station_number = models.PositiveSmallIntegerField()
 
     state_cache_hours = 1
     active = models.BooleanField(default=True)
     disable_reason = EnumIntegerField(DisableReason, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s - %s' % (self.center.code, self.station_number)
 
     @property
@@ -79,7 +80,7 @@ class Station(BaseModel):
 
     @property
     def gender_name(self):
-        return Gender.label(self.gender)
+        return self.gender.label
 
     @property
     def result_forms(self):

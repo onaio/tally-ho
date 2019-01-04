@@ -58,7 +58,7 @@
     </a>
     <span>{% trans "Enable action is not allowed because the center is disable." %}</span>
     {% endif %}
-    <a class="btn btn-small btn-warning pull-right" href="{% url 'remove-station-confirmation' tally_id center_code station_number %}" role="button">
+    <a class="btn btn-small btn-warning pull-right" href="{% url 'remove-station-confirmation' tally_id station_id %}" role="button">
         {% trans "Delete" %}
     </a>
     {% csrf_token %}
