@@ -225,6 +225,7 @@ class TestSuperAdmin(TestBase):
         data = {
             'center_number': center.code,
             'station_number': station.station_number,
+            'station_id': station.pk,
             'tally_id': tally.pk,
         }
         request = self.factory.post('/', data)
@@ -282,8 +283,7 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         response = view(
             request,
-            center_code=center.code,
-            station_number=station.station_number,
+            station_id=station.pk,
             tally_id=tally.pk)
         self.assertContains(response, 'Edit Station')
         self.assertContains(response, '<td>%s</td>' % station.station_number)
@@ -305,8 +305,7 @@ class TestSuperAdmin(TestBase):
         configure_messages(request)
         response = view(
             request,
-            center_code=center.code,
-            station_number=station.station_number,
+            station_id=station.pk,
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
 

@@ -809,8 +809,7 @@ class RemoveStationView(LoginRequiredMixin,
             self.success_url = reverse(
                 'remove-station-confirmation',
                 kwargs={
-                    'center_code': station.center_code,
-                    'station_number': station.station_number,
+                    'station_id': station.pk,
                     'tally_id': station.center.tally.id})
             return redirect(self.success_url)
         return self.form_invalid(form)
