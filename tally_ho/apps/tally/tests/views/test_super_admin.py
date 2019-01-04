@@ -310,6 +310,36 @@ class TestSuperAdmin(TestBase):
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
 
+    def test_create_center(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.CreateCenterView.as_view()
+        data = {
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        configure_messages(request)
+        response = view(
+            request,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 200)
+
+    def test_create_station(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.CreateStationView.as_view()
+        data = {
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        configure_messages(request)
+        response = view(
+            request,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 200)
+
     def test_disable_entity_view_post_station_invalid(self):
         tally = create_tally()
         tally.users.add(self.user)
