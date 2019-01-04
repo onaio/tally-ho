@@ -19,6 +19,8 @@ from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
+from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
+from tally_ho.apps.tally.forms.create_station_form import CreateStationForm
 from tally_ho.apps.tally.forms.edit_race_form import EditRaceForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
@@ -376,6 +378,45 @@ class FormActionView(LoginRequiredMixin,
             raise SuspiciousOperation('Unknown POST response type')
 
 
+class CreateCenterView(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       mixins.TallyAccessMixin,
+                       mixins.ReverseSuccessURLMixin,
+                       SuccessMessageMixin,
+                       CreateView):
+    model = Center
+    form_class = CreateCenterForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/form.html'
+
+    def get_initial(self):
+        initial = super(CreateCenterView, self).get_initial()
+        initial['tally'] = int(self.kwargs.get('tally_id'))
+
+        return initial
+
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id', None)
+        context = super(CreateCenterView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['title'] = 'New Center'
+
+        return context
+
+    def form_valid(self, form):
+        center = form.save()
+        self.success_message = _(
+            u"Successfully Created Center %(center)s"
+            % {'center': center.code})
+
+        return super(CreateCenterView, self).form_valid(form)
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id', None)
+
+        return reverse('center-list', kwargs={'tally_id': tally_id})
+
+
 class ResultExportView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.TallyAccessMixin,
@@ -696,6 +737,38 @@ class EnableRaceView(LoginRequiredMixin,
                              _(u"Race Successfully enabled."))
 
         return redirect(self.success_url, tally_id=tally_id)
+
+
+class CreateStationView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
+                        mixins.ReverseSuccessURLMixin,
+                        SuccessMessageMixin,
+                        CreateView):
+    model = Station
+    form_class = CreateStationForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    success_message = _(u"Station Successfully Created")
+    template_name = 'super_admin/form.html'
+
+    def get_initial(self):
+        initial = super(CreateStationView, self).get_initial()
+        initial['tally'] = int(self.kwargs.get('tally_id'))
+
+        return initial
+
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id', None)
+        context = super(CreateStationView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['title'] = 'New Station'
+
+        return context
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id', None)
+
+        return reverse('center-list', kwargs={'tally_id': tally_id})
 
 
 class RemoveStationView(LoginRequiredMixin,
