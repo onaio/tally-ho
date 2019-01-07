@@ -430,10 +430,25 @@ class TestSuperAdmin(TestBase):
             request,
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/data/race-list/%s/' % tally.pk, response['Location'])
+        self.assertIn('/data/races-list/%s/' % tally.pk, response['Location'])
         ballot.reload()
         self.assertEqual(ballot.disable_reason.value, 2)
         self.assertEqual(ballot.comments.all()[0].text, comment_text)
+
+    def test_create_race_view(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.CreateRaceView.as_view()
+        data = {
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        configure_messages(request)
+        response = view(
+            request,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 200)
 
     def test_edit_race_view_get(self):
         tally = create_tally()

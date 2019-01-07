@@ -58,7 +58,7 @@ urlpatterns = [
     re_path(r'^data/center-list-data/(?P<tally_id>(\d+))/$',
             center_list_view.CenterListDataView.as_view(),
             name='center-list-data'),
-    re_path(r'^data/race-list/(?P<tally_id>(\d+))/$',
+    re_path(r'^data/races-list/(?P<tally_id>(\d+))/$',
             race_list_view.RaceListView.as_view(),
             name='races-list'),
     re_path(r'^data/candidate-list/(?P<tally_id>(\d+))/$',
@@ -157,15 +157,18 @@ urlpatterns = [
             r'(?P<center_code>(\d+))/(?P<station_number>(\d+))?$',
             super_admin.EnableEntityView.as_view(),
             name='enable'),
+    re_path(r'^super-administrator/create-race/(?P<tally_id>(\d+))/$',
+            super_admin.CreateRaceView.as_view(),
+            name='create-race'),
     re_path(r'^super-administrator/edit-race/(?P<tally_id>(\d+))/'
             r'(?P<id>(\d+))$',
             super_admin.EditRaceView.as_view(),
             name='edit-race'),
-    re_path(r'^super-administrator/disablerace/(?P<tally_id>(\d+))/'
+    re_path(r'^super-administrator/disable-race/(?P<tally_id>(\d+))/'
             r'(?P<race_id>(\d+))$',
             super_admin.DisableRaceView.as_view(),
             name='disable-race'),
-    re_path(r'^super-administrator/enablerace/(?P<tally_id>(\d+))/'
+    re_path(r'^super-administrator/enable-race/(?P<tally_id>(\d+))/'
             r'(?P<race_id>(\d+))$',
             super_admin.EnableRaceView.as_view(),
             name='enable-race'),
