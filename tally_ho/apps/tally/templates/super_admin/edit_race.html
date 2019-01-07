@@ -8,6 +8,14 @@
 
 <br/>
 
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
 <form name="form" method="post" action="">
     <table class="table table-bordered">
         {{ form.as_table }}
