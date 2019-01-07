@@ -399,7 +399,7 @@ class CreateCenterView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id', None)
         context = super(CreateCenterView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
-        context['title'] = 'New Center'
+        context['title'] = _(u'New Center')
 
         return context
 
@@ -761,7 +761,7 @@ class CreateStationView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id', None)
         context = super(CreateStationView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
-        context['title'] = 'New Station'
+        context['title'] = _(u'New Station')
 
         return context
 
