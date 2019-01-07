@@ -21,6 +21,7 @@ from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
 from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
 from tally_ho.apps.tally.forms.create_station_form import CreateStationForm
+from tally_ho.apps.tally.forms.create_race_form import CreateRaceForm
 from tally_ho.apps.tally.forms.edit_race_form import EditRaceForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
@@ -400,6 +401,7 @@ class CreateCenterView(LoginRequiredMixin,
         context = super(CreateCenterView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
         context['title'] = _(u'New Center')
+        context['route_name'] = 'center-list'
 
         return context
 
@@ -625,6 +627,39 @@ class EnableEntityView(LoginRequiredMixin,
         return redirect(self.success_url, tally_id=tally_id)
 
 
+class CreateRaceView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
+                     mixins.ReverseSuccessURLMixin,
+                     SuccessMessageMixin,
+                     CreateView):
+    model = Ballot
+    form_class = CreateRaceForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/form.html'
+    success_message = _(u'Race Successfully Created')
+
+    def get_initial(self):
+        initial = super(CreateRaceView, self).get_initial()
+        initial['tally'] = int(self.kwargs.get('tally_id'))
+
+        return initial
+
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id', None)
+        context = super(CreateRaceView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['title'] = _(u'New Race')
+        context['route_name'] = 'races-list'
+
+        return context
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id', None)
+
+        return reverse('races-list', kwargs={'tally_id': tally_id})
+
+
 class EditRaceView(LoginRequiredMixin,
                    mixins.GroupRequiredMixin,
                    mixins.TallyAccessMixin,
@@ -762,6 +797,7 @@ class CreateStationView(LoginRequiredMixin,
         context = super(CreateStationView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
         context['title'] = _(u'New Station')
+        context['route_name'] = 'center-list'
 
         return context
 
