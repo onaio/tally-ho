@@ -58,7 +58,7 @@ urlpatterns = [
     re_path(r'^data/center-list-data/(?P<tally_id>(\d+))/$',
             center_list_view.CenterListDataView.as_view(),
             name='center-list-data'),
-    re_path(r'^data/race-list/(?P<tally_id>(\d+))/$',
+    re_path(r'^data/races-list/(?P<tally_id>(\d+))/$',
             race_list_view.RaceListView.as_view(),
             name='races-list'),
     re_path(r'^data/candidate-list/(?P<tally_id>(\d+))/$',
