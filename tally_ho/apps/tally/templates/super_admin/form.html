@@ -15,7 +15,7 @@
     <button class="btn btn-small btn-success" type="submit" name="save_submit">
         {% trans "Save" %}
     </button>
-    <a class="btn btn-small btn-danger" href="{% url 'center-list' tally_id %}" role"button">
+    <a class="btn btn-small btn-danger" href="{% url route_name tally_id %}" role"button">
         {% trans "Cancel" %}
     </a>
     {% csrf_token %}
