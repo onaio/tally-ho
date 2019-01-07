@@ -25,6 +25,3 @@ class CreateRaceForm(ModelForm):
         ]
 
         widgets = {"tally": forms.HiddenInput()}
-
-    def __init__(self, *args, **kwargs):
-        super(CreateRaceForm, self).__init__(*args, **kwargs)
