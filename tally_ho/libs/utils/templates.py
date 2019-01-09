@@ -90,3 +90,20 @@ def get_tally_edit_link(tally):
         (url, _('Edit'))
 
     return button_html
+
+
+def get_result_form_edit_delete_links(result_form):
+    url_update_form = reverse('update-form', args=[result_form.tally.id,
+                                                   result_form.id])
+    url_delete_form = reverse('remove-form-confirmation',
+                              args=[result_form.tally.id, result_form.pk])
+
+    template = (
+        '<a href="%s" class="btn btn-default btn-small vertical-margin">%s'
+        '</a><a href="%s" class="btn btn-warning btn-small vertical-margin">%s'
+        '</a>'
+    )
+    button_html = template % (url_update_form, _('Edit'),
+                              url_delete_form, _('Delete'))
+
+    return button_html
