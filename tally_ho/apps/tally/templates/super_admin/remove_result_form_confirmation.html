@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Remove Form' %}</h1>
+
+<form name="remove-form-form" method="post" action="">
+    <table class="table table-bordered infotable">
+        <tr>
+            <th>{% trans 'Barcode:' %}</th>
+            <td>{{ object.barcode }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Center Code:' %}</th>
+            <td>{{ object.center.code }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Station Number:' %}</th>
+            <td>{{ object.station_number }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Office:' %}</th>
+            <td>{{ object.center.office.name }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Office Number:' %}</th>
+            <td>{{ object.center.office.number }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Voting District:' %}</th>
+            <td>{{ object.ballot.number }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Race Type:' %}</th>
+            <td>{{ object.ballot.race_type.name }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Form State:' %}</th>
+            <td>{{ object.form_state.name }}</td>
+        </tr>
+    </table>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" name="accept_submit" class="btn btn-small btn-success">{% trans "Accept" %}</button>
+    <button type="submit" name="abort_submit" class="btn btn-small btn-danger">{% trans "Cancel" %}</button>
+    {% csrf_token %}
+</form>
+
+{% endblock %}
