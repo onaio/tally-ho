@@ -500,3 +500,87 @@ class TestSuperAdmin(TestBase):
             request,
             tally_id=tally.pk)
         self.assertContains(response, 'Form Duplicates List')
+
+    def test_edit_result_form_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = '12345'
+        station_number = 1
+        center = create_center(code, tally=tally)
+        result_form = create_result_form(form_state=FormState.UNSUBMITTED,
+                                         center=center,
+                                         tally=tally,
+                                         station_number=station_number)
+        view = views.EditResultFormView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            form_id=result_form.pk,
+            tally_id=tally.pk)
+        self.assertContains(response, 'Edit Form')
+
+    def test_create_result_form_view(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = '12345'
+        station_number = 1
+        center = create_center(code, tally=tally)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.UNSUBMITTED,
+                                         center=center,
+                                         tally=tally,
+                                         station_number=station_number)
+        request = self._get_request()
+        view = views.CreateResultFormView.as_view()
+        data = {'result_form': result_form.pk}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(
+            request,
+            form_id=result_form.pk,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 200)
+
+    def test_remove_result_form_confirmation_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = '12345'
+        station_number = 1
+        center = create_center(code, tally=tally)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.UNSUBMITTED,
+                                         center=center,
+                                         tally=tally,
+                                         station_number=station_number)
+        view = views.RemoveResultFormConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            form_id=result_form.pk,
+            tally_id=tally.pk)
+        self.assertContains(response, '<form name="remove-form-form"')
+
+    def test_remove_result_form_confirmation_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = '12345'
+        station_number = 1
+        center = create_center(code, tally=tally)
+        create_station(center)
+        result_form = create_result_form(form_state=FormState.UNSUBMITTED,
+                                         center=center,
+                                         tally=tally,
+                                         station_number=station_number)
+        view = views.RemoveResultFormConfirmationView.as_view()
+        data = {'result_form': result_form.pk}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(
+            request,
+            form_id=result_form.pk,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
