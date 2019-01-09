@@ -15,6 +15,7 @@
 
 <h1>{{ header_text }}</h1>
 
+<div class="pull-left">
 {% if not none %}
 Export:
 {% endif %}
@@ -34,8 +35,26 @@ Export:
 <a href="{% url 'form-list' tally_id 'clearance' %}">{% trans 'Clearance' %}</a>
 <a href="{% url 'form-list' tally_id 'audit' %}">{% trans 'Audit' %}</a>
 {% endif %}
+</div>
+{% if show_create_form_button %}
+<div class="pull-right">
+    <form method="get" action="{% url 'create-form' tally_id%}">
+        <button type="submit" class="btn btn-primary btn-small">
+            {% trans 'New Form' %}
+        </button>
+    </form>
+</div>
+{% endif %}
 <br/>
 <br/>
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 
 <table class="datatable">
     <thead>
@@ -49,6 +68,7 @@ Export:
             <th>{% trans 'Race Type' %}</th>
             <th>{% trans 'Form State' %}</th>
             <th>{% trans 'Last Modified' %}</th>
+            <th>{% trans 'Actions' %}</th>
         </tr>
     </thead>
     <tbody>
