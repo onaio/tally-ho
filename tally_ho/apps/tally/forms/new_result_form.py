@@ -58,9 +58,8 @@ class NewResultForm(ModelForm):
         if not center or not station_number or not ballot:
             raise ValidationError(_('All fields are mandatory'))
 
-        # TODO: enable this once enabling/disabling races is implemented
-        # if ballot and not ballot.active:
-        #     raise ValidationError(_('Race for ballot is disabled'))
+        if ballot and not ballot.active:
+            raise ValidationError(_('Race for ballot is disabled'))
 
         if center and not center.active:
             raise ValidationError(_('Selected center is disabled'))
