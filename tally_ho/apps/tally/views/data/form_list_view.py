@@ -32,8 +32,15 @@ class FormListDataView(LoginRequiredMixin,
         'ballot.number',
         'ballot.race_type',
         'form_state',
-        'modified_date',
+        'modified_date_formatted',
+        'action'
     )
+
+    def render_column(self, row, column):
+        if column == 'action':
+            return row.get_action_button
+        else:
+            return super(FormListDataView, self).render_column(row, column)
 
     def filter_queryset(self, qs):
         ballot_number = self.request.GET.get('ballot[value]', None)
@@ -92,7 +99,8 @@ class FormListView(LoginRequiredMixin,
                                   remote_url=reverse(
                                       'form-list-data',
                                       kwargs={'tally_id': tally_id}),
-                                  tally_id=tally_id))
+                                  tally_id=tally_id,
+                                  show_create_form_button=True))
 
 
 class FormNotReceivedListView(FormListView):
