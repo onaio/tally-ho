@@ -20,7 +20,7 @@ class CandidateListDataView(LoginRequiredMixin,
         'order',
         'ballot.number',
         'race_type',
-        'modified_date',
+        'modified_date_formatted',
         'action',
     )
 
