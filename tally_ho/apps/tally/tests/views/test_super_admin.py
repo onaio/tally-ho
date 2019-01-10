@@ -699,6 +699,91 @@ class TestSuperAdmin(TestBase):
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
 
+    def test_edit_result_form_ballot_not_active_error(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = '12345'
+        ballot = create_ballot(tally=tally, active=False)
+        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
+        center = create_center(code,
+                               tally=tally,
+                               sub_constituency=sc)
+        station = create_station(center)
+        form_data = {'center': center.pk,
+                     'station_number': station.station_number,
+                     'tally': tally.pk,
+                     'form_state': 9,
+                     'ballot': ballot.pk,
+                     'barcode': 12345,
+                     'gender': 1}
+        form = EditResultForm(form_data)
+        self.assertIn("Race for ballot is disabled", form.errors['__all__'])
+        self.assertFalse(form.is_valid())
+
+    def test_edit_result_form_center_not_active_error(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = '12345'
+        ballot = create_ballot(tally=tally)
+        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
+        center = create_center(code,
+                               tally=tally,
+                               active=False,
+                               sub_constituency=sc)
+        station = create_station(center)
+        form_data = {'center': center.pk,
+                     'station_number': station.station_number,
+                     'tally': tally.pk,
+                     'form_state': 9,
+                     'ballot': ballot.pk,
+                     'barcode': 12345,
+                     'gender': 1}
+        form = EditResultForm(form_data)
+        self.assertIn("Selected center is disabled", form.errors['__all__'])
+        self.assertFalse(form.is_valid())
+
+    def test_edit_result_form_barcode_exist_error(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = '12345'
+        ballot = create_ballot(tally=tally, number=2)
+        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
+        center = create_center(code,
+                               tally=tally,
+                               sub_constituency=sc)
+        station = create_station(center)
+        form_data = {'center': center.pk,
+                     'station_number': station.station_number,
+                     'tally': tally.pk,
+                     'form_state': 9,
+                     'ballot': ballot.pk,
+                     'barcode': 12345,
+                     'gender': 1}
+        form = EditResultForm(form_data)
+        self.assertIn("Ballot number do not match for center and station",
+                      form.errors['__all__'])
+        self.assertFalse(form.is_valid())
+
+    def test_edit_result_form_valid(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = '12345'
+        ballot = create_ballot(tally=tally)
+        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
+        center = create_center(code,
+                               tally=tally,
+                               sub_constituency=sc)
+        station = create_station(center)
+        form_data = {'center': center.pk,
+                     'station_number': station.station_number,
+                     'tally': tally.pk,
+                     'form_state': 9,
+                     'ballot': ballot.pk,
+                     'barcode': 12345,
+                     'gender': 1}
+        form = EditResultForm(form_data)
+        self.assertTrue(form.is_valid())
+
     def test_remove_result_form_confirmation_get(self):
         tally = create_tally()
         tally.users.add(self.user)
