@@ -10,7 +10,7 @@ class BaseModel(models.Model):
 
     @property
     def modified_date_formatted(self):
-        return self.modified_date.strftime('%Y-%m-%d&nbsp;%H:%M')
+        return self.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z')
 
     def reload(self):
         new_self = self.__class__.objects.get(pk=self.pk)

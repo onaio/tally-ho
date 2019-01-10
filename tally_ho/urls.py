@@ -97,6 +97,17 @@ urlpatterns = [
             name='super-administrator-tallies'),
     re_path(r'^super-administrator/(?P<tally_id>(\d+))/$',
             super_admin.DashboardView.as_view(), name='super-administrator'),
+    re_path(r'^super-administrator/create-form/(?P<tally_id>(\d+))/$',
+            super_admin.CreateResultFormView.as_view(),
+            name='create-form'),
+    re_path(r'^super-administrator/update-form/(?P<tally_id>(\d+))/'
+            r'(?P<form_id>(\d+))$',
+            super_admin.EditResultFormView.as_view(),
+            name='update-form'),
+    re_path(r'^super-administrator/delete-form/(?P<tally_id>(\d+))/'
+            r'(?P<form_id>(\d+))$',
+            super_admin.RemoveResultFormConfirmationView.as_view(),
+            name='remove-form-confirmation'),
     re_path(r'^super-administrator/form-progress/(?P<tally_id>(\d+))/$',
             super_admin.FormProgressView.as_view(),
             name='form-progress'),

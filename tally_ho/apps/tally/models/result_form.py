@@ -17,6 +17,7 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.models.enums.race_type import RaceType
+from tally_ho.libs.utils.templates import get_result_form_edit_delete_links
 
 male_local = _('Male')
 female_local = _('Female')
@@ -464,6 +465,10 @@ class ResultForm(BaseModel):
             candidates += list(component_ballot.candidates.order_by('order'))
 
         return candidates
+
+    @property
+    def get_action_button(self):
+        return get_result_form_edit_delete_links(self) if self else None
 
     @classmethod
     def distinct_filter(self, qs, tally_id=None):

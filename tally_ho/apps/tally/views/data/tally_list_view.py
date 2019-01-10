@@ -16,7 +16,7 @@ class TallyListDataView(LoginRequiredMixin,
         'id',
         'name',
         'created_date',
-        'modified_date',
+        'modified_date_formatted',
         'administer',
         'edit',
     )

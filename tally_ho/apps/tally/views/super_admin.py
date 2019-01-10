@@ -27,6 +27,8 @@ from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
     EditUserProfileForm,
 )
+from tally_ho.apps.tally.forms.create_result_form import CreateResultForm
+from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
@@ -183,6 +185,124 @@ class DashboardView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(**kwargs))
 
 
+class CreateResultFormView(LoginRequiredMixin,
+                           mixins.GroupRequiredMixin,
+                           mixins.TallyAccessMixin,
+                           mixins.ReverseSuccessURLMixin,
+                           SuccessMessageMixin,
+                           CreateView):
+    model = ResultForm
+    form_class = CreateResultForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/form.html'
+
+    def get_initial(self):
+        initial = super(CreateResultFormView, self).get_initial()
+        initial['tally'] = int(self.kwargs.get('tally_id'))
+        initial['form_state'] = FormState.UNSUBMITTED
+
+        return initial
+
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id', None)
+        context = super(CreateResultFormView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['title'] = _(u'New Form')
+        context['route_name'] = 'form-list'
+
+        return context
+
+    def form_valid(self, form):
+        result_form = form.save()
+        self.success_message = _(
+            u"Successfully Created form %(result_form)s"
+            % {'result_form': result_form.barcode})
+
+        return super(CreateResultFormView, self).form_valid(form)
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id', None)
+
+        return reverse('form-list', kwargs={'tally_id': tally_id})
+
+
+class EditResultFormView(LoginRequiredMixin,
+                         mixins.GroupRequiredMixin,
+                         mixins.TallyAccessMixin,
+                         mixins.ReverseSuccessURLMixin,
+                         SuccessMessageMixin,
+                         UpdateView):
+    model = ResultForm
+    form_class = EditResultForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/edit_result_form.html'
+    success_message = _(u'Form Successfully Updated')
+
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id', None)
+        context = super(EditResultFormView, self).get_context_data(**kwargs)
+        context['barcode'] = self.object.barcode
+        context['station_number'] = self.object.station_number
+        context['form_state'] = self.object.form_state.name
+        context['tally_id'] = tally_id
+
+        return context
+
+    def get_object(self):
+        tally_id = self.kwargs.get('tally_id', None)
+        form_id = self.kwargs.get('form_id', None)
+
+        return get_object_or_404(ResultForm, tally__id=tally_id, id=form_id)
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id', None)
+        form_id = self.kwargs.get('form_id', None)
+
+        return reverse('update-form',
+                       kwargs={'tally_id': tally_id, 'form_id': form_id})
+
+
+class RemoveResultFormConfirmationView(LoginRequiredMixin,
+                                       mixins.GroupRequiredMixin,
+                                       mixins.TallyAccessMixin,
+                                       mixins.ReverseSuccessURLMixin,
+                                       SuccessMessageMixin,
+                                       DeleteView):
+    model = ResultForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/remove_result_form_confirmation.html"
+    success_message = _(u'Form Successfully Deleted')
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        context['next'] = request.META.get('HTTP_REFERER', None)
+        context['tally_id'] = kwargs.get('tally_id')
+
+        return self.render_to_response(context)
+
+    def get_object(self, queryset=None):
+        return ResultForm.objects.get(id=self.kwargs['form_id'],
+                                      tally__id=self.kwargs['tally_id'])
+
+    def post(self, request, *args, **kwargs):
+        self.tally_id = self.kwargs['tally_id']
+
+        if 'abort_submit' in request.POST:
+            next_url = request.POST.get('next', None)
+
+            return redirect(next_url, tally_id=self.kwargs['tally_id'])
+        else:
+            return super(RemoveResultFormConfirmationView, self).post(request,
+                                                                      *args,
+                                                                      **kwargs)
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id', None)
+
+        return reverse('form-list', kwargs={'tally_id': tally_id})
+
+
 class FormProgressView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.TallyAccessMixin,
@@ -279,7 +399,7 @@ class FormProgressDataView(LoginRequiredMixin,
         'ballot.race_type',
         'form_state',
         'rejected_count',
-        'modified_date',
+        'modified_date_formatted',
     )
 
     def filter_queryset(self, qs):
@@ -300,7 +420,7 @@ class FormAuditDataView(FormProgressDataView):
         'ballot.race_type',
         'form_state',
         'rejected_count',
-        'modified_date',
+        'modified_date_formatted',
         'audit_recommendation',
     )
 
@@ -326,7 +446,7 @@ class FormClearanceDataView(FormProgressDataView):
         'ballot.race_type',
         'form_state',
         'rejected_count',
-        'modified_date',
+        'modified_date_formatted',
         'clearance_recommendation'
     )
 

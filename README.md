@@ -69,6 +69,10 @@ If you want to use Docker to run the site in production you will need to:
 1. modify the `docker-compose.yml` file to change the NGINX listening port from 8000 to 80,
 2. add the host you are running the site on to a new `ALLOWED_HOSTS` list in the `tally_ho/settings/docker.py` file.
 
+## Running Tests
+
+Pass the `-s` option if you want to use `ipdb.set_trace()` to debug during a test.
+
 ## Documentation
 
 ### Generating Model Graphs

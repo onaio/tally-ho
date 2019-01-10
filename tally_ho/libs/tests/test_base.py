@@ -44,8 +44,9 @@ def create_audit(result_form, user, reviewed_team=False):
                                 resolution_recommendation=1)
 
 
-def create_ballot(tally=None):
-    ballot, _ = Ballot.objects.get_or_create(number=1,
+def create_ballot(tally=None, active=True, number=1):
+    ballot, _ = Ballot.objects.get_or_create(active=active,
+                                             number=number,
                                              tally=tally,
                                              race_type=RaceType.GENERAL)
 
@@ -146,7 +147,11 @@ def create_candidate(ballot, candidate_name, race_type=RaceType.GENERAL):
                                     race_type=race_type)
 
 
-def create_center(code='1', office_name='office', tally=None):
+def create_center(code='1',
+                  office_name='office',
+                  tally=None,
+                  active=True,
+                  sub_constituency=None):
     return Center.objects.get_or_create(
         code=code,
         mahalla='1',
@@ -154,7 +159,9 @@ def create_center(code='1', office_name='office', tally=None):
         office=create_office(office_name),
         region='1',
         village='1',
+        active=active,
         tally=tally,
+        sub_constituency=sub_constituency,
         center_type=CenterType.GENERAL)[0]
 
 
@@ -209,11 +216,12 @@ def create_recon_forms(result_form, user):
     recon2.save()
 
 
-def create_station(center, registrants=1, tally=None):
+def create_station(center, registrants=1, tally=None, active=True):
     sc, _ = SubConstituency.objects.get_or_create(code=1,
                                                   field_office='1')
 
     station, _ = Station.objects.get_or_create(
+        active=active,
         center=center,
         sub_constituency=sc,
         gender=Gender.MALE,

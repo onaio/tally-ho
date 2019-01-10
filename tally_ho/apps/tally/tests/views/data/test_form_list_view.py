@@ -16,6 +16,16 @@ class TestFormListView(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
 
+    def test_form_list_view(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.FormListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request, tally_id=tally.pk)
+        self.assertContains(response, "Form List")
+        self.assertContains(response, "New Form")
+
     def test_form_not_received_list_view(self):
         tally = create_tally()
         tally.users.add(self.user)
@@ -24,6 +34,7 @@ class TestFormListView(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Forms Not Received")
+        self.assertNotContains(response, "New Form")
 
     def test_form_not_received_list_csv_view(self):
         tally = create_tally()
@@ -43,3 +54,4 @@ class TestFormListView(TestBase):
         request.user = self.user
         response = view(request, ballot=ballot.number, tally_id=tally.pk)
         self.assertContains(response, "Forms for Race %s" % ballot.number)
+        self.assertNotContains(response, "New Form")
