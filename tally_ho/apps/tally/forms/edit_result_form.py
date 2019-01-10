@@ -12,15 +12,6 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.ballot import Ballot
 
-disable_copy_input = {
-    'onCopy': 'return false;',
-    'onDrag': 'return false;',
-    'onDrop': 'return false;',
-    'onPaste': 'return false;',
-    'autocomplete': 'off',
-    'class': 'form-control'
-}
-
 
 class EditResultForm(ModelForm):
     class Meta:
