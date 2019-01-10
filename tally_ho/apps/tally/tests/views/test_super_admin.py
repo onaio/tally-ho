@@ -1,9 +1,10 @@
-from django.core.exceptions import SuspiciousOperation
+from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.contrib.messages.storage import default_storage
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.forms.create_result_form import CreateResultForm
 from tally_ho.apps.tally.views import super_admin as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
@@ -519,6 +520,12 @@ class TestSuperAdmin(TestBase):
             form_id=result_form.pk,
             tally_id=tally.pk)
         self.assertContains(response, 'Edit Form')
+
+    def test_create_result_form_clean_mandatory_fields(self):
+        form_data = {}
+        form = CreateResultForm(form_data)
+        self.assertIn("All fields are mandatory", form.errors['__all__'])
+        self.assertFalse(form.is_valid())
 
     def test_create_result_form_view(self):
         tally = create_tally()
