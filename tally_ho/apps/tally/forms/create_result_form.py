@@ -13,15 +13,6 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.ballot import Ballot
 
-disable_copy_input = {
-    'onCopy': 'return false;',
-    'onDrag': 'return false;',
-    'onDrop': 'return false;',
-    'onPaste': 'return false;',
-    'autocomplete': 'off',
-    'class': 'form-control'
-}
-
 
 class CreateResultForm(ModelForm):
     class Meta:
@@ -72,12 +63,10 @@ class CreateResultForm(ModelForm):
             raise ValidationError(_('Selected center is disabled'))
 
         try:
-            if station_number:
-                station = Station.objects.get(station_number=station_number,
-                                              center=center)
-
-                if not station.active:
-                    raise ValidationError(_('Selected station is disabled'))
+            station = Station.objects.get(station_number=station_number,
+                                          center=center)
+            if not station.active:
+                raise ValidationError(_('Selected station is disabled'))
 
         except Station.DoesNotExist:
             raise ValidationError(
