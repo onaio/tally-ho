@@ -3,9 +3,9 @@ from django.utils.translation import ugettext as _
 
 
 def session_matches_post_result_form(post_data, request):
-    """Verify that result for in post data matches session data.
+    """Verify that result form in post data matches session data.
 
-    :param post_date: The post data to retrieve the result form key from.
+    :param post_data: The post data to retrieve the result form key from.
     :param request: The request to retrieve the session result form key from.
 
     :raises: `SuspiciousOperation` if the session and form keys do not match.
