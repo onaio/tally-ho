@@ -625,30 +625,6 @@ class TestSuperAdmin(TestBase):
                       form.errors['__all__'])
         self.assertFalse(form.is_valid())
 
-    def test_create_result_form_barcode_exist_error(self):
-        tally = create_tally()
-        tally.users.add(self.user)
-        code = '12345'
-        ballot = create_ballot(tally=tally)
-        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
-        center = create_center(code,
-                               tally=tally,
-                               sub_constituency=sc)
-        station = create_station(center)
-        form_data = {'center': center.pk,
-                     'station_number': station.station_number,
-                     'tally': tally.pk,
-                     'form_state': 9,
-                     'ballot': ballot.pk,
-                     'barcode': 12345,
-                     'gender': 1}
-        form = CreateResultForm(form_data)
-        form.save()
-        new_form = CreateResultForm(form_data)
-        self.assertIn("A form with this barcode already exist",
-                      new_form.errors['__all__'])
-        self.assertFalse(new_form.is_valid())
-
     def test_create_result_form_valid(self):
         tally = create_tally()
         tally.users.add(self.user)
