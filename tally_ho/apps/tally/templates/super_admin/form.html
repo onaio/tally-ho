@@ -10,6 +10,12 @@
 
 <form name="form" method="post" action="">
     <table class="table table-bordered">
+        {% if barcode %}
+        <tr>
+            <td>{% trans 'Barcode:' %}</td>
+            <td>{{ barcode }}</td>
+        </tr>
+        {% endif %}
         {{ form.as_table }}
     </table>
     <button class="btn btn-small btn-success" type="submit" name="save_submit">
