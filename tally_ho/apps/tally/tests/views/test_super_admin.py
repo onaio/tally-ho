@@ -543,6 +543,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Race for ballot is disabled", form.errors['__all__'])
@@ -561,6 +562,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Selected center is disabled", form.errors['__all__'])
@@ -579,6 +581,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Selected station is disabled", form.errors['__all__'])
@@ -597,6 +600,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Station does no exist for the selected center",
@@ -619,6 +623,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Ballot number do not match for center and station",
@@ -642,6 +647,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': barcode,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertTrue(form.is_valid())
