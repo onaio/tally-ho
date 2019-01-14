@@ -207,6 +207,7 @@ class CreateResultFormView(LoginRequiredMixin,
         self.barcode = self.model.generate_barcode(tally_id)
         initial['tally'] = tally_id
         initial['barcode'] = self.barcode
+        initial['created_user'] = self.request.user.userprofile
         if self.clearance_result_form:
             self.success_url = 'clearance'
             initial['form_state'] = FormState.CLEARANCE
@@ -251,7 +252,6 @@ class CreateResultFormView(LoginRequiredMixin,
             del self.request.session['result_form']
             return redirect(self.success_url, tally_id=tally_id)
 
-        result_form.created_user = self.request.user.userprofile
         form = CreateResultForm(post_data,
                                 instance=result_form,
                                 initial=self.initial)
