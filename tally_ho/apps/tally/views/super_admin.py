@@ -55,6 +55,7 @@ from tally_ho.libs.views.exports import (
     SPECIAL_BALLOTS,
 )
 from tally_ho.libs.views.pagination import paging
+from tally_ho.libs.views.session import session_matches_post_result_form
 
 
 def duplicates(qs, tally_id=None):
@@ -193,37 +194,78 @@ class CreateResultFormView(LoginRequiredMixin,
                            CreateView):
     model = ResultForm
     form_class = CreateResultForm
-    group_required = groups.SUPER_ADMINISTRATOR
+    group_required = [groups.SUPER_ADMINISTRATOR,
+                      groups.CLEARANCE_CLERK,
+                      groups.CLEARANCE_SUPERVISOR]
     template_name = 'super_admin/form.html'
+    clearance_result_form = False
+    barcode = None
 
     def get_initial(self):
         initial = super(CreateResultFormView, self).get_initial()
-        initial['tally'] = int(self.kwargs.get('tally_id'))
-        initial['form_state'] = FormState.UNSUBMITTED
-
+        tally_id = int(self.kwargs.get('tally_id'))
+        self.barcode = self.model.generate_barcode(tally_id)
+        initial['tally'] = tally_id
+        initial['barcode'] = self.barcode
+        if self.clearance_result_form:
+            self.success_url = 'clearance'
+            initial['form_state'] = FormState.CLEARANCE
+        else:
+            self.success_url = 'form-list'
+            initial['form_state'] = FormState.UNSUBMITTED
         return initial
 
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id', None)
         context = super(CreateResultFormView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
-        context['title'] = _(u'New Form')
-        context['route_name'] = 'form-list'
+        context['barcode'] = self.barcode
+        if self.clearance_result_form:
+            context['title'] = _(u'Clearance: New Result Form')
+            context['route_name'] = 'clearance'
+        else:
+            context['title'] = _(u'New Form')
+            context['route_name'] = 'form-list'
 
         return context
 
     def form_valid(self, form):
-        result_form = form.save()
+        tally_id = self.kwargs.get('tally_id', None)
+        self.initial = {
+            'tally_id': tally_id,
+        }
+        tally = Tally.objects.get(id=tally_id)
+        result_form = ResultForm.objects.create(
+            barcode=form.data['barcode'],
+            form_state=form.data['form_state'],
+            tally=tally)
+        self.request.session['result_form'] = result_form.pk
+        post_data = self.request.POST.copy()
+        post_data['result_form'] = self.request.session['result_form']
+        pk = session_matches_post_result_form(post_data, self.request)
+        result_form = ResultForm.objects.get(pk=pk)
+
+        if result_form.center or result_form.station_number\
+                or result_form.ballot or result_form.office:
+            # We are writing a form we should not be, bail out.
+            del self.request.session['result_form']
+            return redirect(self.success_url, tally_id=tally_id)
+
+        result_form.created_user = self.request.user.userprofile
+        form = CreateResultForm(post_data,
+                                instance=result_form,
+                                initial=self.initial)
+        form.save()
         self.success_message = _(
-            u"Successfully Created form %(result_form)s"
-            % {'result_form': result_form.barcode})
+            u"Successfully Created form %(form)s"
+            % {'form': form.data['barcode']})
 
         return super(CreateResultFormView, self).form_valid(form)
 
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id', None)
 
-        return reverse('form-list', kwargs={'tally_id': tally_id})
+        return reverse(self.success_url, kwargs={'tally_id': tally_id})
 
 
 class EditResultFormView(LoginRequiredMixin,
