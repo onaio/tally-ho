@@ -24,9 +24,11 @@ class CreateResultForm(ModelForm):
                                      'gender',
                                      'station_number',
                                      'form_state',
-                                     'tally']
+                                     'tally',
+                                     'created_user']
 
-        widgets = {"barcode": forms.HiddenInput(),
+        widgets = {"created_user": forms.HiddenInput(),
+                   "barcode": forms.HiddenInput(),
                    "tally": forms.HiddenInput(),
                    "form_state": forms.HiddenInput()}
 
