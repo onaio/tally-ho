@@ -434,7 +434,7 @@ class TestAudit(TestBase):
         self.assertTrue(audit.reviewed_team)
         self.assertFalse(audit.active)
         self.assertEqual(audit.result_form.form_state,
-                         FormState.DATA_ENTRY_1)
+                         FormState.AUDIT)
         self.assertEqual(len(audit.result_form.results.all()), 20)
         self.assertEqual(len(audit.result_form.reconciliationform_set.all()),
                          2)
