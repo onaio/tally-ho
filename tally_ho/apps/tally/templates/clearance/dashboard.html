@@ -33,6 +33,14 @@
 <br/>
 <br/>
 
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
 <table class="table table-bordered table-striped">
     <tr>
         <th>{% trans 'Barcode' %}</th>

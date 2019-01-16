@@ -5,6 +5,7 @@ from django.test import RequestFactory
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.views import clearance as views
+from tally_ho.apps.tally.views.super_admin import CreateResultFormView
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
@@ -463,16 +464,15 @@ class TestClearance(TestBase):
         tally.users.add(self.user)
         result_form = create_result_form(form_state=FormState.UNSUBMITTED,
                                          tally=tally)
-
-        view = views.NewFormView.as_view()
+        view = CreateResultFormView.as_view(clearance_result_form=True)
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request, tally_id=tally.pk)
-
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(str(response.context_data['result_form'].barcode),
-                         result_form.barcode)
+        self.assertIsNotNone(result_form.barcode)
+        self.assertEqual(str(response.context_data['title']),
+                         'Clearance: New Result Form')
 
     def test_new_form_get(self):
         # save clearance as clerk
@@ -480,20 +480,16 @@ class TestClearance(TestBase):
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
         tally = create_tally()
         tally.users.add(self.user)
-        create_result_form(form_state=FormState.UNSUBMITTED,
-                           tally=tally)
-
-        view = views.NewFormView.as_view()
+        result_form = create_result_form(form_state=FormState.CLEARANCE,
+                                         tally=tally)
+        view = CreateResultFormView.as_view(clearance_result_form=True)
         request = self.factory.get('/')
         request.user = self.user
         request.session = {}
         response = view(request, tally_id=tally.pk)
-        pk = request.session['result_form']
 
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(pk)
 
-        result_form = ResultForm.objects.get(pk=pk)
         self.assertIsNotNone(result_form.barcode)
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
 
@@ -510,10 +506,9 @@ class TestClearance(TestBase):
             form_state=FormState.CLEARANCE,
             force_ballot=False,
             tally=tally,
-            gender=None)
+            gender=Gender.MALE)
         ballot = create_ballot(tally=tally)
-
-        view = views.NewFormView.as_view()
+        view = CreateResultFormView.as_view(clearance_result_form=True)
         data = {
             'result_form': result_form.pk,
             'gender': [u'0'],
@@ -529,10 +524,8 @@ class TestClearance(TestBase):
         response = view(request, tally_id=tally.pk)
         result_form.reload()
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(result_form.created_user, self.request.user)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(result_form.gender, Gender.MALE)
-        self.assertIn('clearance', response['location'])
 
     def test_new_form_post_invalid(self):
         # save clearance as clerk
@@ -545,8 +538,7 @@ class TestClearance(TestBase):
             force_ballot=False,
             tally=tally,
             gender=None)
-
-        view = views.NewFormView.as_view()
+        view = CreateResultFormView.as_view(clearance_result_form=True)
         data = {
             'result_form': result_form.pk,
             'gender': [u'0'],

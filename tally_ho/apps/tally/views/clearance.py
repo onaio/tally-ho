@@ -7,10 +7,8 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.forms.clearance_form import ClearanceForm
-from tally_ho.apps.tally.forms.new_result_form import NewResultForm
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.enums.clearance_resolution import\
     ClearanceResolution
 from tally_ho.libs.models.enums.form_state import FormState
@@ -344,78 +342,6 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                                       tally_id=tally_id))
         else:
             return self.form_invalid(form)
-
-
-class NewFormView(LoginRequiredMixin,
-                  mixins.GroupRequiredMixin,
-                  mixins.TallyAccessMixin,
-                  FormView):
-    form_class = NewResultForm
-    group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
-    success_url = 'clearance'
-    template_name = "clearance/new_form.html"
-
-    def get(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id')
-        self.initial = {
-            'tally_id': tally_id,
-        }
-        pk = self.request.session.get('result_form')
-
-        if pk:
-            result_form = ResultForm.objects.get(pk=pk, tally__id=tally_id)
-        else:
-            tally = Tally.objects.get(id=tally_id)
-            barcode = ResultForm.generate_barcode(tally_id)
-            result_form = ResultForm.objects.create(
-                barcode=barcode,
-                form_state=FormState.CLEARANCE,
-                tally=tally)
-            self.request.session['result_form'] = result_form.pk
-
-        form = NewResultForm(instance=result_form)
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-
-        return self.render_to_response(self.get_context_data(
-            form=form, result_form=result_form, tally_id=tally_id))
-
-    def post(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id')
-        self.initial = {
-            'tally_id': tally_id,
-        }
-
-        post_data = self.request.POST
-        pk = session_matches_post_result_form(post_data, self.request)
-        result_form = ResultForm.objects.get(pk=pk)
-
-        if 'abort-submit' in self.request.POST:
-            result_form.delete()
-
-            return redirect(self.success_url, tally_id=tally_id)
-        else:
-
-            if result_form.center or result_form.station_number\
-                    or result_form.ballot or result_form.office:
-                # We are writing a form we should not be, bail out.
-                del self.request.session['result_form']
-                return redirect(self.success_url, tally_id=tally_id)
-
-            result_form.created_user = self.request.user.userprofile
-            form = NewResultForm(post_data,
-                                 instance=result_form,
-                                 initial=self.initial)
-
-            if form.is_valid():
-                form.save()
-                del self.request.session['result_form']
-
-                return redirect(self.success_url, tally_id=tally_id)
-            else:
-                return self.render_to_response(self.get_context_data(
-                    form=form, result_form=result_form,
-                    tally_id=tally_id))
 
 
 class AddClearanceFormView(LoginRequiredMixin,

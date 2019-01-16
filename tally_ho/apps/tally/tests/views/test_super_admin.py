@@ -543,6 +543,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Race for ballot is disabled", form.errors['__all__'])
@@ -561,6 +562,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Selected center is disabled", form.errors['__all__'])
@@ -579,6 +581,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Selected station is disabled", form.errors['__all__'])
@@ -597,6 +600,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Station does no exist for the selected center",
@@ -619,35 +623,12 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': 12345,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertIn("Ballot number do not match for center and station",
                       form.errors['__all__'])
         self.assertFalse(form.is_valid())
-
-    def test_create_result_form_barcode_exist_error(self):
-        tally = create_tally()
-        tally.users.add(self.user)
-        code = '12345'
-        ballot = create_ballot(tally=tally)
-        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
-        center = create_center(code,
-                               tally=tally,
-                               sub_constituency=sc)
-        station = create_station(center)
-        form_data = {'center': center.pk,
-                     'station_number': station.station_number,
-                     'tally': tally.pk,
-                     'form_state': 9,
-                     'ballot': ballot.pk,
-                     'barcode': 12345,
-                     'gender': 1}
-        form = CreateResultForm(form_data)
-        form.save()
-        new_form = CreateResultForm(form_data)
-        self.assertIn("A form with this barcode already exist",
-                      new_form.errors['__all__'])
-        self.assertFalse(new_form.is_valid())
 
     def test_create_result_form_valid(self):
         tally = create_tally()
@@ -666,6 +647,7 @@ class TestSuperAdmin(TestBase):
                      'form_state': 9,
                      'ballot': ballot.pk,
                      'barcode': barcode,
+                     'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
         self.assertTrue(form.is_valid())

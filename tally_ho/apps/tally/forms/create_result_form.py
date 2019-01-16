@@ -24,9 +24,12 @@ class CreateResultForm(ModelForm):
                                      'gender',
                                      'station_number',
                                      'form_state',
-                                     'tally']
+                                     'tally',
+                                     'created_user']
 
-        widgets = {"tally": forms.HiddenInput(),
+        widgets = {"created_user": forms.HiddenInput(),
+                   "barcode": forms.HiddenInput(),
+                   "tally": forms.HiddenInput(),
                    "form_state": forms.HiddenInput()}
 
     def __init__(self, *args, **kwargs):
@@ -49,11 +52,8 @@ class CreateResultForm(ModelForm):
         center = cleaned_data.get('center', None)
         station_number = cleaned_data.get('station_number', None)
         ballot = cleaned_data.get('ballot', None)
-        barcode = cleaned_data.get('barcode', None)
-        form_state = cleaned_data.get('form_state', None)
 
-        if not center or not station_number or not ballot or not barcode \
-           or not form_state:
+        if not center or not station_number or not ballot:
             raise ValidationError(_('All fields are mandatory'))
 
         if ballot and not ballot.active:
@@ -76,16 +76,5 @@ class CreateResultForm(ModelForm):
                 ballot.number != center.sub_constituency.code:
             raise ValidationError(
                 _('Ballot number do not match for center and station'))
-
-        try:
-            if barcode:
-                result_form = ResultForm.objects.get(barcode=barcode)
-
-                if result_form:
-                    raise ValidationError(
-                        _('A form with this barcode already exist'))
-
-        except ResultForm.DoesNotExist:
-            pass
 
         return cleaned_data

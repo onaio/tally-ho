@@ -313,7 +313,8 @@ urlpatterns = [
             clearance.DashboardView.as_view(),
             name='clearance-csv'),
     re_path(r'^clearance/new/(?P<tally_id>(\d+))/$',
-            clearance.NewFormView.as_view(),
+            super_admin.CreateResultFormView.as_view(
+                clearance_result_form=True),
             name='clearance-new'),
     re_path(r'^clearance/print/(?P<tally_id>(\d+))/$',
             clearance.PrintCoverView.as_view(),
