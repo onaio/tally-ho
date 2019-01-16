@@ -160,6 +160,7 @@ class ResultForm(BaseModel):
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
     form_state = EnumIntegerField(FormState)
+    previous_form_state = EnumIntegerField(FormState, blank=True, null=True)
     gender = EnumIntegerField(Gender, null=True)
     name = models.CharField(max_length=256, null=True)
     office = models.ForeignKey(Office, blank=True, null=True,
