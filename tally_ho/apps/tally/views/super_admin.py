@@ -208,12 +208,11 @@ class CreateResultFormView(LoginRequiredMixin,
         initial['tally'] = tally_id
         initial['barcode'] = self.barcode
         initial['created_user'] = self.request.user.userprofile
+        initial['form_state'] = FormState.CLEARANCE
         if self.clearance_result_form:
             self.success_url = 'clearance'
-            initial['form_state'] = FormState.CLEARANCE
         else:
             self.success_url = 'form-list'
-            initial['form_state'] = FormState.UNSUBMITTED
         return initial
 
     def get_context_data(self, **kwargs):
