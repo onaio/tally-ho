@@ -6,11 +6,13 @@
 
 <h1>{% trans 'Audit List' %}</h1>
 
+{% if forms %}
 <form method="get" action="{% url 'audit-csv' tally_id 'csv' %}">
     <button type="submit" class="btn btn-primary btn-small pull-right">
         {% trans 'Download' %}
     </button>
 </form>
+{% endif %}
 
 <br/>
 
