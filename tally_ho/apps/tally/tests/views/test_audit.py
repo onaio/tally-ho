@@ -423,6 +423,7 @@ class TestAudit(TestBase):
         result_form = create_result_form(form_state=FormState.AUDIT,
                                          tally=tally)
         create_reconciliation_form(result_form, self.user)
+        create_reconciliation_form(result_form, self.user)
         create_candidates(result_form, self.user)
 
         view = views.ReviewView.as_view()
