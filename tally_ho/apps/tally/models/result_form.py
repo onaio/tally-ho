@@ -577,6 +577,7 @@ class ResultForm(BaseModel):
         return qs.order_by('created_date')
 
     def send_to_clearance(self):
+        self.previous_form_state = self.form_state
         self.form_state = FormState.CLEARANCE
 
         if self.audit and self.audit.active:
