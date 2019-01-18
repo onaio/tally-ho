@@ -160,6 +160,7 @@ class ResultForm(BaseModel):
     date_seen = models.DateTimeField(null=True)
     form_stamped = models.NullBooleanField()
     form_state = EnumIntegerField(FormState)
+    previous_form_state = EnumIntegerField(FormState, blank=True, null=True)
     gender = EnumIntegerField(Gender, null=True)
     name = models.CharField(max_length=256, null=True)
     office = models.ForeignKey(Office, blank=True, null=True,
@@ -576,6 +577,7 @@ class ResultForm(BaseModel):
         return qs.order_by('created_date')
 
     def send_to_clearance(self):
+        self.previous_form_state = self.form_state
         self.form_state = FormState.CLEARANCE
 
         if self.audit and self.audit.active:

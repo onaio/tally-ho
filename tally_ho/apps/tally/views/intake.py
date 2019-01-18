@@ -86,7 +86,8 @@ class CenterDetailsView(LoginRequiredMixin,
                 # a form already exists, send to clearance
                 self.request.session[
                     'intake-error'] = INTAKE_DUPLICATE_ERROR_MESSAGE
-                result_form.send_to_clearance()
+                if result_form.form_state != FormState.CLEARANCE:
+                    result_form.send_to_clearance()
 
                 for oneDuplicatedForm in duplicated_forms:
                     if oneDuplicatedForm.form_state != FormState.CLEARANCE:
@@ -187,7 +188,8 @@ class EnterCenterView(LoginRequiredMixin,
                 # a form already exists, send to clearance
                 self.request.session[
                     'intake-error'] = INTAKE_DUPLICATE_ERROR_MESSAGE
-                result_form.send_to_clearance()
+                if result_form.form_state != FormState.CLEARANCE:
+                    result_form.send_to_clearance()
 
                 for form in duplicated_forms:
                     if form.form_state != FormState.CLEARANCE:

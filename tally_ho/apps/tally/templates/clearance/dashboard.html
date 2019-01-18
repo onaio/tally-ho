@@ -50,6 +50,7 @@
         <th>{% trans 'Reviewed?' %}</th>
         <th>{% trans 'Supervisor Reviewed?' %}</th>
         <th>{% trans 'Modified' %}</th>
+        <th>{% trans 'Previous Form State' %}</th>
         <th>{% trans 'Review' %}</th>
     </tr>
 {% for form in forms %}
@@ -61,6 +62,7 @@
         <td>{{ form.clearance_team_reviewed }}</td>
         <td>{{ form.clearance_supervisor_reviewed }}</td>
         <td>{{ form.modified_date }}</td>
+        <td>{{ form.previous_form_state.label }}</td>
         <td>
         {% if not form.clearance_team_reviewed_bool or not is_clerk %}
             <form name="form_{{ forloop.counter }}" method="post" action="">

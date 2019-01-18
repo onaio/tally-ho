@@ -434,7 +434,18 @@ class TestIntake(TestBase):
         request.session = {'result_form': replacement_result_form.pk}
         response = view(request, tally_id=tally.pk)
         replacement_result_form.reload()
+        duplicated_forms = replacement_result_form.get_duplicated_forms()
+        for oneDuplicateForm in duplicated_forms:
+            if oneDuplicateForm.pk == 1:
+                self.assertEqual(
+                    oneDuplicateForm.previous_form_state,
+                    FormState.DATA_ENTRY_1)
+                self.assertEqual(
+                    oneDuplicateForm.form_state,
+                    FormState.CLEARANCE)
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(replacement_result_form.previous_form_state,
+                         FormState.INTAKE)
         self.assertEqual(replacement_result_form.form_state,
                          FormState.CLEARANCE)
         self.assertEqual(replacement_result_form.station_number,
@@ -456,6 +467,17 @@ class TestIntake(TestBase):
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
         result_form = ResultForm.objects.get(barcode=barcode)
+        duplicated_forms = result_form.get_duplicated_forms()
+        for oneDuplicateForm in duplicated_forms:
+            if oneDuplicateForm.pk == 1:
+                self.assertEqual(
+                    oneDuplicateForm.previous_form_state,
+                    FormState.DATA_ENTRY_1)
+                self.assertEqual(
+                    oneDuplicateForm.form_state,
+                    FormState.CLEARANCE)
+        self.assertEqual(result_form.previous_form_state,
+                         FormState.DATA_ENTRY_1)
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
 
     def test_check_center_details(self):
