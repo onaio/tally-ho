@@ -50,13 +50,11 @@ def audit_action(audit, post_data, result_form, url):
         elif audit.action_prior_to_recommendation in\
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
                  ActionsPrior.REQUEST_COPY_FROM_FIELD]:
-            new_state = FormState.AUDIT
             audit.active = False
-            result_form.reject(new_state=new_state)
+            result_form.reject(new_state=FormState.AUDIT)
         else:
-            new_state = FormState.DATA_ENTRY_1
             audit.active = False
-            result_form.reject(new_state=new_state)
+            result_form.reject(new_state=FormState.DATA_ENTRY_1)
 
     audit.save()
 
