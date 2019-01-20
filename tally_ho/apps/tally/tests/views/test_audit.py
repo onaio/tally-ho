@@ -383,6 +383,37 @@ class TestAudit(TestBase):
         self.assertEqual(audit.action_prior_to_recommendation,
                          ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
 
+    def test_review_post_check_audit_state_when_no_action_prior(self):
+        self._create_and_login_user(username='alice')
+        self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(form_state=FormState.AUDIT,
+                                         tally=tally)
+        create_reconciliation_form(result_form, self.user)
+        create_candidates(result_form, self.user)
+
+        view = views.ReviewView.as_view()
+        data = {
+            'result_form': result_form.pk,
+            'resolution_recommendation': 1,
+            'implement': 1,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 302)
+
+        audit = Audit.objects.get(result_form=result_form)
+        self.assertEqual(audit.reviewed_supervisor, True)
+        self.assertNotEqual(audit.result_form.form_state,
+                            FormState.AUDIT)
+        self.assertEqual(audit.result_form.form_state,
+                         FormState.DATA_ENTRY_1)
+
     def test_review_post_supervisor_implement_de1(self):
         # save audit as clerk
         self._create_and_login_user()
@@ -434,7 +465,7 @@ class TestAudit(TestBase):
         self.assertTrue(audit.reviewed_team)
         self.assertFalse(audit.active)
         self.assertEqual(audit.result_form.form_state,
-                         FormState.DATA_ENTRY_1)
+                         FormState.AUDIT)
         self.assertEqual(len(audit.result_form.results.all()), 20)
         self.assertEqual(len(audit.result_form.reconciliationform_set.all()),
                          2)

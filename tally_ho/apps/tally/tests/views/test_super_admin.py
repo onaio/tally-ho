@@ -603,7 +603,7 @@ class TestSuperAdmin(TestBase):
                      'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
-        self.assertIn("Station does no exist for the selected center",
+        self.assertIn("Station does not exist for the selected center",
                       form.errors['__all__'])
         self.assertFalse(form.is_valid())
 

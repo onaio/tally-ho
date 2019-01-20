@@ -10,6 +10,8 @@ from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
+from tally_ho.libs.models.enums.actions_prior import\
+    ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
@@ -45,10 +47,14 @@ def audit_action(audit, post_data, result_form, url):
         if audit.resolution_recommendation ==\
                 AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE:
             audit.for_superadmin = True
-        else:
-            new_state = FormState.DATA_ENTRY_1
+        elif audit.action_prior_to_recommendation in\
+                [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
+                 ActionsPrior.REQUEST_COPY_FROM_FIELD]:
             audit.active = False
-            result_form.reject(new_state=new_state)
+            result_form.reject(new_state=FormState.AUDIT)
+        else:
+            audit.active = False
+            result_form.reject(new_state=FormState.DATA_ENTRY_1)
 
     audit.save()
 
