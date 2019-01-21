@@ -27,6 +27,7 @@
         <th>{% trans 'Race Number' %}</th>
         <th>{% trans 'Voting District' %}</th>
         <th>{% trans 'Race Type' %}</th>
+        <th>{% trans 'Race Attachments' %}</th>
         <th>{% trans 'Forms Expected' %}</th>
         <th>{% trans 'Forms Complete' %}</th>
         <th>{% trans 'Percent Complete' %}</th>
@@ -37,6 +38,13 @@
         <td>{{ rec.ballot }}</td>
         <td>{{ rec.district }}</td>
         <td>{{ rec.race_type }}</td>
+        <td>
+            {% if rec.document %}
+                <a href="{{ MEDIA_URL }}{{ rec.document }}" class="btn btn-default btn-small" target="blank">{% trans rec.document %}</a>
+            {% else %}
+                {% trans 'None' %}
+            {% endif %}
+        </td>
         <td>{{ rec.expected }}</td>
         <td>{{ rec.complete }}</td>
         <td>{{ rec.percentage }}</td>
