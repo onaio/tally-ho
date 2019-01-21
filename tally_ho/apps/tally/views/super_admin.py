@@ -815,6 +815,12 @@ class CreateRaceView(LoginRequiredMixin,
 
         return context
 
+    def form_valid(self, form):
+        form = CreateRaceForm(self.request.POST, self.request.FILES)
+        form.save()
+
+        return super(CreateRaceView, self).form_valid(form)
+
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id', None)
 
