@@ -48,6 +48,7 @@ class Ballot(BaseModel):
     active = models.BooleanField(default=True)
     available_for_release = models.BooleanField(default=False)
     disable_reason = EnumIntegerField(DisableReason, null=True, default=None)
+    document = models.FileField(null=True, blank=True)
     number = models.PositiveSmallIntegerField()
     race_type = EnumIntegerField(RaceType)
     tally = models.ForeignKey(Tally,
