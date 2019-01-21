@@ -1,18 +1,10 @@
 from django import forms
 from django.forms import ModelForm
+from .fields import RestrictedFileField
 from django.utils.translation import ugettext_lazy as _
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.comment import Comment
-
-disable_copy_input = {
-    'onCopy': 'return false;',
-    'onDrag': 'return false;',
-    'onDrop': 'return false;',
-    'onPaste': 'return false;',
-    'autocomplete': 'off',
-    'class': 'form-control'
-}
 
 
 class EditRaceForm(ModelForm):
@@ -24,7 +16,12 @@ class EditRaceForm(ModelForm):
             'active',
             'disable_reason',
             'available_for_release',
+            'document',
         ]
+
+    document = RestrictedFileField(
+        allowed_extensions=['png', 'jpg', 'doc', 'pdf']
+    )
 
     comment_input = forms.CharField(
         required=False,
