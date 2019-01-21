@@ -1,7 +1,9 @@
 from django.db import models
+from django.dispatch import receiver
 from django.utils.translation import ugettext as _
 from enumfields import EnumIntegerField
 import reversion
+import os
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
@@ -87,6 +89,27 @@ class Ballot(BaseModel):
 
     def __str__(self):
         return u'%s - %s' % (self.number, self.race_type_name)
+
+
+@receiver(models.signals.pre_save, sender=Ballot)
+def auto_delete_document(sender, instance, **kwargs):
+    """
+    Deletes old document from filesystem
+    when corresponding `Ballot` object is updated
+    with new document.
+    """
+    if not instance.pk:
+        return False
+
+    try:
+        old_document = sender.objects.get(pk=instance.pk).document
+    except sender.DoesNotExist:
+        return False
+
+    new_document = instance.document
+    if not old_document == new_document:
+        if os.path.isfile(old_document.path):
+            os.remove(old_document.path)
 
 
 reversion.register(Ballot)
