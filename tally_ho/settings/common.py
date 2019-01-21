@@ -88,6 +88,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # media base
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
@@ -145,6 +146,9 @@ LOGIN_REDIRECT_URL = '/'
 # CONSTANTS
 MIN_STATION_VALUE = 1
 MAX_STATION_VALUE = 102
+
+# Limit uploads to 10MB
+MAX_FILE_UPLOAD_SIZE = 10485760
 
 # Switch to True on production
 SESSION_COOKIE_SECURE = False
