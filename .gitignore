@@ -7,6 +7,7 @@
 build
 data.tgz
 /data
+media
 results
 db.sqlite3
 tally_ho/static
