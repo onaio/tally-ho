@@ -32,7 +32,8 @@ class RacesReportView(LoginRequiredMixin,
                                                 'sc_component',
                                                 'sc_general',
                                                 'sc_women',
-                                                'number'):
+                                                'number',
+                                                'document'):
             archived_result = archived.for_ballot(
                 form_ballot_numbers=form_ballot_numbers(d['number']))
             sc = sub_constituency(sc_cache.get(d['sc_component']),
@@ -45,6 +46,7 @@ class RacesReportView(LoginRequiredMixin,
                     'district': sc.code,
                     'race_type': race_type_name(d['race_type'],
                                                 sc_cache.get(d['sc_general'])),
+                    'document': d['document'],
                     'expected': archived_result['denominator'],
                     'complete': archived_result['number'],
                     'percentage': archived_result['percentage'],
