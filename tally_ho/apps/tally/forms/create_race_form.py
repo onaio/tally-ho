@@ -19,5 +19,6 @@ class CreateRaceForm(ModelForm):
 
         widgets = {"tally": forms.HiddenInput()}
     document = RestrictedFileField(
+            required=False,
             allowed_extensions=['png', 'jpg', 'doc', 'pdf']
         )

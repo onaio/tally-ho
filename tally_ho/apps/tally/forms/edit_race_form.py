@@ -20,6 +20,7 @@ class EditRaceForm(ModelForm):
         ]
 
     document = RestrictedFileField(
+        required=False,
         allowed_extensions=['png', 'jpg', 'doc', 'pdf']
     )
 
