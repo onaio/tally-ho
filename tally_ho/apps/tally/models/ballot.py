@@ -38,6 +38,11 @@ def race_type_name(race_type, sc_general):
         return race_type.name
 
 
+def ballot_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/ballot_<id>/<filename>
+    return 'ballot_{0}/{1}'.format(instance.id, filename)
+
+
 class Ballot(BaseModel):
     class Meta:
         app_label = 'tally'
@@ -50,7 +55,9 @@ class Ballot(BaseModel):
     active = models.BooleanField(default=True)
     available_for_release = models.BooleanField(default=False)
     disable_reason = EnumIntegerField(DisableReason, null=True, default=None)
-    document = models.FileField(null=True, blank=True)
+    document = models.FileField(upload_to=ballot_directory_path,
+                                null=True,
+                                blank=True)
     number = models.PositiveSmallIntegerField()
     race_type = EnumIntegerField(RaceType)
     tally = models.ForeignKey(Tally,
@@ -95,7 +102,7 @@ class Ballot(BaseModel):
 def auto_delete_document(sender, instance, **kwargs):
     """
     Deletes old document from filesystem
-    when corresponding `Ballot` object is updated
+    when corresponding `document` property value is updated
     with new document.
     """
     if not instance.pk:
@@ -107,9 +114,11 @@ def auto_delete_document(sender, instance, **kwargs):
         return False
 
     new_document = instance.document
-    if not old_document == new_document:
-        if os.path.isfile(old_document.path):
-            os.remove(old_document.path)
+    if old_document:
+        if not old_document == new_document:
+            if os.path.isfile(old_document.path):
+                os.remove(old_document.path)
+    return False
 
 
 reversion.register(Ballot)
