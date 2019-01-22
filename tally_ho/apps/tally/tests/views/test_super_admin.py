@@ -1,5 +1,7 @@
 from django.core.exceptions import SuspiciousOperation
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages.storage import default_storage
+from django.conf import settings
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.models.result import Result
@@ -439,20 +441,82 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(ballot.disable_reason.value, 2)
         self.assertEqual(ballot.comments.all()[0].text, comment_text)
 
-    def test_create_race_view(self):
+    def test_create_race_invalid_document_extension_error(self):
         tally = create_tally()
         tally.users.add(self.user)
         view = views.CreateRaceView.as_view()
+        file_size = settings.MAX_FILE_UPLOAD_SIZE
+        video = SimpleUploadedFile(
+            "file.mp4", bytes(file_size), content_type="video/mp4")
         data = {
+            'number': 1,
+            'race_type': 0,
             'tally_id': tally.pk,
+            'available_for_release': True,
+            'document': video,
         }
         request = self.factory.post('/', data)
         request.user = self.user
+        request.session = data
         configure_messages(request)
         response = view(
             request,
             tally_id=tally.pk)
-        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context_data['form'].is_valid())
+        self.assertEqual(
+            response.context_data['form'].errors['document'][0],
+            str('File extention (mp4) is not supported.'
+                ' Allowed extensions are: png, jpg, doc, pdf.'))
+
+    def test_create_race_invalid_document_size_error(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.CreateRaceView.as_view()
+        file_size = settings.MAX_FILE_UPLOAD_SIZE * 2
+        image = SimpleUploadedFile(
+            "image.jpg", bytes(file_size), content_type="image/jpeg")
+        data = {
+            'number': 1,
+            'race_type': 0,
+            'tally_id': tally.pk,
+            'available_for_release': True,
+            'document': image,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        request.session = data
+        configure_messages(request)
+        response = view(
+            request,
+            tally_id=tally.pk)
+        self.assertFalse(response.context_data['form'].is_valid())
+        self.assertEqual(
+            response.context_data['form'].errors['document'][0],
+            str('File size must be under 10.0\xa0MB.'
+                ' Current file size is 20.0\xa0MB.'))
+
+    def test_create_race_view(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.CreateRaceView.as_view()
+        file_size = settings.MAX_FILE_UPLOAD_SIZE
+        image = SimpleUploadedFile(
+            "image.jpg", bytes(file_size), content_type="image/jpeg")
+        data = {
+            'number': 1,
+            'race_type': 0,
+            'tally_id': tally.pk,
+            'available_for_release': True,
+            'document': image,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        request.session = data
+        configure_messages(request)
+        response = view(
+            request,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
 
     def test_edit_race_view_get(self):
         tally = create_tally()
