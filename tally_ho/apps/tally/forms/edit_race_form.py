@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .fields import RestrictedFileField
+from tally_ho.apps.tally.forms.fields import RestrictedFileField
 from django.utils.translation import ugettext_lazy as _
 
 from tally_ho.apps.tally.models.ballot import Ballot
