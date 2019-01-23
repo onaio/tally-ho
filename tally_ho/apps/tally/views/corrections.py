@@ -45,7 +45,7 @@ def save_final_recon_form(updated, user, result_form):
         form.
     """
     recon_form_final = ReconciliationForm(**updated)
-    recon_form_final.user = user
+    recon_form_final.user = user.userprofile
     recon_form_final.result_form = result_form
     recon_form_final.entry_version = EntryVersion.FINAL
     recon_form_final.save()
