@@ -1,4 +1,5 @@
 from django.core.exceptions import SuspiciousOperation
+from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
@@ -7,15 +8,15 @@ from django.views.generic.edit import FormView
 from django.utils.translation import ugettext as _
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.forms.barcode_form import\
-    BarcodeForm
-from tally_ho.apps.tally.forms.recon_form import\
-    ReconForm
+from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
+from tally_ho.apps.tally.forms.recon_form import ReconForm
+from tally_ho.apps.tally.forms.confirm_reset_form import ConfirmResetForm
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.race_type import RaceType
+from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.verify.quarantine_checks import check_quarantine
 from tally_ho.libs.views.session import session_matches_post_result_form
@@ -134,6 +135,8 @@ class QualityControlDashboardView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         quality_control = result_form.qualitycontrol
         url = self.success_url
+        ballot = Ballot.objects.get(id=result_form.ballot_id)
+        form_ballot_marked_as_released = ballot.available_for_release
 
         if 'correct' in post_data:
             # send to dashboard
@@ -145,15 +148,21 @@ class QualityControlDashboardView(LoginRequiredMixin,
             # run quarantine checks
             check_quarantine(result_form, self.request.user)
         elif 'incorrect' in post_data:
-            # send to reject page
-            quality_control.passed_general = False
-            quality_control.passed_reconciliation = False
-            quality_control.passed_women = False
-            quality_control.active = False
-            result_form.reject()
+            # send to confirm reject page
+            if form_ballot_marked_as_released:
+                self.request.session['quality_control'] = quality_control.pk
 
-            url = 'quality-control-reject'
-            del self.request.session['result_form']
+                url = 'quality-control-confirm-reject'
+            # send to reject page
+            else:
+                quality_control.passed_general = False
+                quality_control.passed_reconciliation = False
+                quality_control.passed_women = False
+                quality_control.active = False
+                result_form.reject()
+
+                url = 'quality-control-reject'
+                del self.request.session['result_form']
         elif 'abort' in post_data:
             # send to entry
             quality_control.active = False
@@ -163,7 +172,8 @@ class QualityControlDashboardView(LoginRequiredMixin,
         else:
             raise SuspiciousOperation('Missing expected POST data')
 
-        quality_control.save()
+        if not form_ballot_marked_as_released:
+            quality_control.save()
 
         return redirect(url, tally_id=tally_id)
 
@@ -227,3 +237,39 @@ class ConfirmationView(LoginRequiredMixin,
                                   next_step=_('Archiving'),
                                   tally_id=tally_id,
                                   start_url='quality-control'))
+
+
+class ConfirmFormResetView(LoginRequiredMixin,
+                           mixins.GroupRequiredMixin,
+                           mixins.TallyAccessMixin,
+                           mixins.ReverseSuccessURLMixin,
+                           SuccessMessageMixin,
+                           FormView):
+    form_class = ConfirmResetForm
+    group_required = [groups.QUALITY_CONTROL_CLERK,
+                      groups.QUALITY_CONTROL_SUPERVISOR]
+    template_name = "quality_control/confirm_form_reset.html"
+    success_url = 'quality-control-reject'
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        tally_id = kwargs.get('tally_id', None)
+
+        if form.is_valid():
+            reject_reason = form.data.get('reject_reason')
+            result_form_pk = self.request.session.get('result_form')
+            quality_control_pk = self.request.session.get('quality_control')
+            result_form = ResultForm.objects.get(id=result_form_pk)
+            quality_control = QualityControl.objects.get(id=quality_control_pk)
+            quality_control.passed_general = False
+            quality_control.passed_reconciliation = False
+            quality_control.passed_women = False
+            quality_control.active = False
+            result_form.reject(reject_reason=reject_reason)
+            quality_control.save()
+
+            del self.request.session['result_form']
+            del self.request.session['quality_control']
+
+            return redirect(self.success_url, tally_id=tally_id)
