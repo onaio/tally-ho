@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% blocktrans %} Reset Archived Form {% endblocktrans %}</h1>
+
+<div class="form-instructions">{% blocktrans %} This form constituency has been marked as available for release. {% endblocktrans %}</div>
+
+<form name="confirm-reset-form" method="post" action="">
+    <table>
+        <tr>
+            <th><label>{% trans form.reject_reason.label %}</label></th>
+        </tr>
+        <tr>
+            <td>{{ form.reject_reason }}</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td>
+                <button type="submit" name="submit" class="btn btn-primary">{% blocktrans %} Reject {% endblocktrans %}</button>
+            </td>
+        </tr>
+        {% csrf_token %}
+    </table>
+</form>
+
+{% endblock %}
