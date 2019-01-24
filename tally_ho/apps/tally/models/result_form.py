@@ -166,6 +166,7 @@ class ResultForm(BaseModel):
     office = models.ForeignKey(Office, blank=True, null=True,
                                on_delete=models.PROTECT)
     rejected_count = models.PositiveIntegerField(default=0)
+    reject_reason = models.TextField(null=True, blank=True)
     serial_number = models.PositiveIntegerField(null=True)
     skip_quarantine_checks = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
@@ -387,7 +388,7 @@ class ResultForm(BaseModel):
              self.reconciliation_match) and
             (not self.has_women_results or self.women_match))
 
-    def reject(self, new_state=FormState.DATA_ENTRY_1):
+    def reject(self, new_state=FormState.DATA_ENTRY_1, reject_reason=None):
         """Deactivate existing results and reconciliation forms for this result
         form, change the state, and increment the rejected count.
 
@@ -403,6 +404,7 @@ class ResultForm(BaseModel):
 
         self.rejected_count += 1
         self.form_state = new_state
+        self.reject_reason = reject_reason
         self.save()
 
     @property
