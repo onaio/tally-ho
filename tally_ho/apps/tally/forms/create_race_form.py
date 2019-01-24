@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .fields import RestrictedFileField
+from tally_ho.apps.tally.forms.fields import RestrictedFileField
 
 from tally_ho.apps.tally.models.ballot import Ballot
 
@@ -18,7 +18,4 @@ class CreateRaceForm(ModelForm):
         ]
 
         widgets = {"tally": forms.HiddenInput()}
-    document = RestrictedFileField(
-            required=False,
-            allowed_extensions=['png', 'jpg', 'doc', 'pdf']
-        )
+    document = RestrictedFileField(required=False)
