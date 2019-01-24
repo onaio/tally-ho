@@ -266,9 +266,11 @@ urlpatterns = [
     re_path(r'^quality-control/dashboard/(?P<tally_id>(\d+))/$',
             quality_control.QualityControlDashboardView.as_view(),
             name='quality-control-dashboard'),
+    re_path(r'^quality-control/confirm-reject/(?P<tally_id>(\d+))/$',
+            quality_control.ConfirmFormResetView.as_view(),
+            name='quality-control-confirm-reject'),
     re_path(r'^quality-control/reject/(?P<tally_id>(\d+))/$',
-            TemplateView.as_view(
-                template_name='tally/quality_control/reject.html'),
+            TemplateView.as_view(template_name='quality_control/reject.html'),
             name='quality-control-reject'),
     re_path(r'^quality-control/print/(?P<tally_id>(\d+))/$',
             quality_control.PrintView.as_view(),
