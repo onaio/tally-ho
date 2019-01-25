@@ -18,6 +18,7 @@ from tally_ho.libs.tests.test_base import (
     create_station,
     create_audit,
     create_tally,
+    create_ballot,
     TestBase,
 )
 from tally_ho.libs.verify.quarantine_checks import create_quarantine_checks
@@ -109,6 +110,66 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/home',
                       response['location'])
+        self.assertEqual(request.session, {})
+
+    def test_dashboard_incorrect_post_when_form_marked_for_release(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '123456789'
+        ballot = create_ballot(available_for_release=True)
+        create_result_form(barcode,
+                           ballot=ballot,
+                           tally=tally,
+                           form_state=FormState.QUALITY_CONTROL)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        view = views.QualityControlDashboardView.as_view()
+        data = {
+            'result_form': result_form.pk,
+            'incorrect': 1,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        quality_control = result_form.qualitycontrol_set.all()[0]
+        request.session = {'result_form': result_form.pk,
+                           'quality_control': quality_control.pk}
+        response = view(request, tally_id=tally.pk)
+
+        self.assertTrue(quality_control.active)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/confirm-reject',
+                      response['location'])
+
+    def test_dashboard_incorrect_post_when_form_not_marked_for_release(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '123456789'
+        create_result_form(barcode,
+                           tally=tally,
+                           form_state=FormState.QUALITY_CONTROL)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        view = views.QualityControlDashboardView.as_view()
+        data = {
+            'result_form': result_form.pk,
+            'incorrect': 1,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/reject',
+                      response['location'])
+        quality_control = result_form.qualitycontrol_set.all()[0]
+        self.assertFalse(quality_control.active)
         self.assertEqual(request.session, {})
 
     def test_dashboard_submit_post(self):
@@ -285,7 +346,41 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertTrue(quality_control.passed_reconciliation)
 
-    def test_reconciliation_post_incorrect(self):
+    def test_reconciliation_post_incorrect_ballot_released(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '123456789'
+        ballot = create_ballot(available_for_release=True)
+        create_result_form(barcode,
+                           tally=tally,
+                           ballot=ballot,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_recon_forms(result_form, self.user)
+        create_candidates(result_form, self.user)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {
+            'result_form': result_form.pk,
+            'incorrect': 1,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request, tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/confirm-reject',
+                      response['location'])
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+        quality_control = result_form.qualitycontrol_set.all()[0]
+        self.assertTrue(quality_control.active)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
+        self.assertEqual(result_form.rejected_count, 0)
+
+    def test_reconciliation_post_incorrect_ballot_not_released(self):
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -423,7 +518,40 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertTrue(quality_control.passed_general)
 
-    def test_general_post_incorrect(self):
+    def test_general_post_incorrect_ballot_released(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '123456789'
+        ballot = create_ballot(available_for_release=True)
+        create_result_form(barcode,
+                           tally=tally,
+                           ballot=ballot,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {
+            'result_form': result_form.pk,
+            'incorrect': 1,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request, tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/confirm-reject',
+                      response['location'])
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+        quality_control = result_form.qualitycontrol_set.all()[0]
+        self.assertTrue(quality_control.active)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
+        self.assertEqual(result_form.rejected_count, 0)
+
+    def test_general_post_incorrect_ballot_not_released(self):
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -552,7 +680,40 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertTrue(quality_control.passed_women)
 
-    def test_women_post_incorrect(self):
+    def test_women_post_incorrect_ballot_released(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '123456789'
+        ballot = create_ballot(available_for_release=True)
+        create_result_form(barcode,
+                           tally=tally,
+                           ballot=ballot,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {
+            'result_form': result_form.pk,
+            'incorrect': 1,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request, tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/confirm-reject',
+                      response['location'])
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+        quality_control = result_form.qualitycontrol_set.all()[0]
+        self.assertTrue(quality_control.active)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
+        self.assertEqual(result_form.rejected_count, 0)
+
+    def test_women_post_incorrect_ballot_not_released(self):
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
