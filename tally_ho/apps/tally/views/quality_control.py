@@ -150,8 +150,6 @@ class QualityControlDashboardView(LoginRequiredMixin,
         elif 'incorrect' in post_data:
             # send to confirm reject page
             if form_ballot_marked_as_released:
-                self.request.session['quality_control'] = quality_control.pk
-
                 url = 'quality-control-confirm-reject'
             # send to reject page
             else:
@@ -259,9 +257,8 @@ class ConfirmFormResetView(LoginRequiredMixin,
         if form.is_valid():
             reject_reason = form.data.get('reject_reason')
             result_form_pk = self.request.session.get('result_form')
-            quality_control_pk = self.request.session.get('quality_control')
             result_form = ResultForm.objects.get(id=result_form_pk)
-            quality_control = QualityControl.objects.get(id=quality_control_pk)
+            quality_control = result_form.qualitycontrol
             quality_control.passed_general = False
             quality_control.passed_reconciliation = False
             quality_control.passed_women = False
@@ -270,6 +267,5 @@ class ConfirmFormResetView(LoginRequiredMixin,
             quality_control.save()
 
             del self.request.session['result_form']
-            del self.request.session['quality_control']
 
             return redirect(self.success_url, tally_id=tally_id)
