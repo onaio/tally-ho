@@ -115,7 +115,7 @@ def auto_delete_document(sender, instance, **kwargs):
 
     new_document = instance.document
     if old_document:
-        if not old_document == new_document:
+        if old_document != new_document:
             if os.path.isfile(old_document.path):
                 os.remove(old_document.path)
     return False
