@@ -134,8 +134,7 @@ class TestQualityControl(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         quality_control = result_form.qualitycontrol_set.all()[0]
-        request.session = {'result_form': result_form.pk,
-                           'quality_control': quality_control.pk}
+        request.session = {'result_form': result_form.pk}
         response = view(request, tally_id=tally.pk)
 
         self.assertTrue(quality_control.active)
@@ -292,6 +291,41 @@ class TestQualityControl(TestBase):
         self.assertContains(response, 'General Results Section')
         self.assertNotContains(response, 'Reconciliation')
         self.assertContains(response, 'Cancel')
+
+    def test_confirm_form_reset_view_post(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '123456789'
+        ballot = create_ballot(available_for_release=True)
+        create_result_form(barcode,
+                           tally=tally,
+                           ballot=ballot,
+                           form_state=FormState.QUALITY_CONTROL)
+        result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.ConfirmFormResetView.as_view()
+        reject_reason = 'Form Incorrect'
+        data = {
+            'reject_reason': reject_reason
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request, tally_id=tally.pk)
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+        quality_control = result_form.qualitycontrol_set.all()[0]
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('quality-control/reject',
+                      response['location'])
+        self.assertEqual(request.session, {})
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertEqual(result_form.rejected_count, 1)
+        self.assertEqual(result_form.reject_reason, reject_reason)
+        self.assertFalse(quality_control.active)
+        self.assertFalse(quality_control.passed_reconciliation)
 
     def test_reconciliation_get(self):
         barcode = '123456789'
