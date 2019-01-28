@@ -4,6 +4,7 @@ from django.utils.translation import ugettext as _
 from enumfields import EnumIntegerField
 import reversion
 import os
+import uuid
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
@@ -38,9 +39,9 @@ def race_type_name(race_type, sc_general):
         return race_type.name
 
 
-def ballot_directory_path(instance, filename):
-    # file will be uploaded to MEDIA_ROOT/ballot_<id>/<filename>
-    return 'ballot_{0}/{1}'.format(instance.id, filename)
+def ballot_document_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/ballot_<unique_id>/<filename>
+    return 'ballot_{0}/{1}'.format(instance.unique_uuid, filename)
 
 
 class Ballot(BaseModel):
@@ -52,10 +53,14 @@ class Ballot(BaseModel):
         ordering = ['number']
         unique_together = ('number', 'tally')
 
+    unique_uuid = models.UUIDField(default=uuid.uuid4,
+                                   unique=True,
+                                   db_index=True,
+                                   editable=False)
     active = models.BooleanField(default=True)
     available_for_release = models.BooleanField(default=False)
     disable_reason = EnumIntegerField(DisableReason, null=True, default=None)
-    document = models.FileField(upload_to=ballot_directory_path,
+    document = models.FileField(upload_to=ballot_document_directory_path,
                                 null=True,
                                 blank=True)
     number = models.PositiveSmallIntegerField()
@@ -98,7 +103,7 @@ class Ballot(BaseModel):
         return u'%s - %s' % (self.number, self.race_type_name)
 
 
-@receiver(models.signals.pre_save, sender=Ballot)
+@receiver(models.signals.pre_save, sender=Ballot, dispatch_uid="ballot_update")
 def auto_delete_document(sender, instance, **kwargs):
     """
     Deletes old document from filesystem
