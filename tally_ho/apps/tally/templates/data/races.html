@@ -40,7 +40,7 @@
         <td>{{ rec.race_type }}</td>
         <td>
             {% if rec.document %}
-                <a href="{{ MEDIA_URL }}{{ rec.document }}" class="btn btn-default btn-small" target="blank">{% trans rec.document %}</a>
+                <a href="{{ MEDIA_URL }}{{ rec.document }}" class="btn btn-default btn-small" target="blank">{% trans rec.document_name %}</a>
             {% else %}
                 {% trans 'None' %}
             {% endif %}
