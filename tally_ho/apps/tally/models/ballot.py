@@ -62,7 +62,8 @@ class Ballot(BaseModel):
     disable_reason = EnumIntegerField(DisableReason, null=True, default=None)
     document = models.FileField(upload_to=ballot_document_directory_path,
                                 null=True,
-                                blank=True)
+                                blank=True,
+                                default=None)
     number = models.PositiveSmallIntegerField()
     race_type = EnumIntegerField(RaceType)
     tally = models.ForeignKey(Tally,
