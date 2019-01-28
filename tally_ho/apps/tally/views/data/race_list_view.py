@@ -13,6 +13,9 @@ class RaceListView(RacesReportView):
 
         ballots = paging(ballots, self.request)
 
+        for record in ballots:
+            record['document_name'] = record['document'].rsplit('/', 1)[-1]
+
         return self.render_to_response(
             self.get_context_data(
                 ballots=ballots, tally_id=tally_id))
