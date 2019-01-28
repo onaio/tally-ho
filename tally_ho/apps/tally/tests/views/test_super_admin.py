@@ -1,9 +1,12 @@
+import os
+import shutil
 from django.core.exceptions import SuspiciousOperation
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages.storage import default_storage
 from django.conf import settings
 from django.test import RequestFactory
 
+from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
@@ -500,14 +503,15 @@ class TestSuperAdmin(TestBase):
         tally.users.add(self.user)
         view = views.CreateRaceView.as_view()
         file_size = settings.MAX_FILE_UPLOAD_SIZE
-        image = SimpleUploadedFile(
-            "image.jpg", bytes(file_size), content_type="image/jpeg")
+        image_file_name = "image.jpg"
+        image_file = SimpleUploadedFile(
+            image_file_name, bytes(file_size), content_type="image/jpeg")
         data = {
-            'number': 1,
+            'number': 2,
             'race_type': 0,
             'tally_id': tally.pk,
             'available_for_release': True,
-            'document': image,
+            'document': image_file,
         }
         request = self.factory.post('/', data)
         request.user = self.user
@@ -517,6 +521,9 @@ class TestSuperAdmin(TestBase):
             request,
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
+        ballot = Ballot.objects.get(document__isnull=False)
+        self.assertIn(image_file_name, ballot.document.path)
+        shutil.rmtree(os.path.dirname(ballot.document.path))
 
     def test_edit_race_view_get(self):
         tally = create_tally()
@@ -535,7 +542,14 @@ class TestSuperAdmin(TestBase):
     def test_edit_race_view_post(self):
         tally = create_tally()
         tally.users.add(self.user)
-        ballot = create_ballot(tally)
+        file_size = settings.MAX_FILE_UPLOAD_SIZE
+        pdf_file_name = "file.pdf"
+        image_file_name = "image.jpg"
+        pdf_file = SimpleUploadedFile(
+            pdf_file_name, bytes(file_size), content_type="application/pdf")
+        image_file = SimpleUploadedFile(
+            image_file_name, bytes(file_size), content_type="image/jpeg")
+        ballot = create_ballot(tally, document=pdf_file)
         comment_text = 'jndfjs fsgfd'
         view = views.EditRaceView.as_view()
         data = {
@@ -545,6 +559,7 @@ class TestSuperAdmin(TestBase):
             'available_for_release': True,
             'race_id': ballot.pk,
             'tally_id': tally.pk,
+            'document': image_file,
         }
         request = self.factory.post('/', data)
         request.user = self.user
@@ -555,8 +570,14 @@ class TestSuperAdmin(TestBase):
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         ballot.reload()
+        ballot.refresh_from_db()
+
+        # testing auto_delete_document signal was called
+        self.assertNotIn(pdf_file_name, ballot.document.path)
+        self.assertIn(image_file_name, ballot.document.path)
         self.assertEqual(ballot.available_for_release, True)
         self.assertEqual(ballot.comments.first().text, comment_text)
+        shutil.rmtree(os.path.dirname(ballot.document.path))
 
     def test_form_duplicates_view_get(self):
         tally = create_tally()
