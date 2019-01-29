@@ -1,7 +1,11 @@
 from django.db import models
+from django.dispatch import receiver
 from django.utils.translation import ugettext as _
 from enumfields import EnumIntegerField
 import reversion
+import os
+import uuid
+import pathlib
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
@@ -36,6 +40,15 @@ def race_type_name(race_type, sc_general):
         return race_type.name
 
 
+def document_name(document_path):
+    return pathlib.Path(document_path).name
+
+
+def ballot_document_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/ballot_<unique_id>/<filename>
+    return 'ballot_{0}/{1}'.format(instance.unique_uuid, filename)
+
+
 class Ballot(BaseModel):
     class Meta:
         app_label = 'tally'
@@ -45,9 +58,17 @@ class Ballot(BaseModel):
         ordering = ['number']
         unique_together = ('number', 'tally')
 
+    unique_uuid = models.UUIDField(default=uuid.uuid4,
+                                   unique=True,
+                                   db_index=True,
+                                   editable=False)
     active = models.BooleanField(default=True)
     available_for_release = models.BooleanField(default=False)
     disable_reason = EnumIntegerField(DisableReason, null=True, default=None)
+    document = models.FileField(upload_to=ballot_document_directory_path,
+                                null=True,
+                                blank=True,
+                                default=None)
     number = models.PositiveSmallIntegerField()
     race_type = EnumIntegerField(RaceType)
     tally = models.ForeignKey(Tally,
@@ -59,6 +80,10 @@ class Ballot(BaseModel):
     @property
     def race_type_name(self):
         return race_type_name(self.race_type, self.sc_general.first())
+
+    @property
+    def document_name(self):
+        return document_name(self.document)
 
     @property
     def sub_constituency(self):
@@ -86,6 +111,27 @@ class Ballot(BaseModel):
 
     def __str__(self):
         return u'%s - %s' % (self.number, self.race_type_name)
+
+
+@receiver(models.signals.pre_save, sender=Ballot, dispatch_uid="ballot_update")
+def auto_delete_document(sender, instance, **kwargs):
+    """
+    Deletes old document from filesystem
+    when corresponding `document` property value is updated
+    with new document.
+    """
+    if not instance.pk:
+        return False
+
+    try:
+        old_document = sender.objects.get(pk=instance.pk).document
+    except sender.DoesNotExist:
+        return False
+
+    new_document = instance.document
+    if old_document and old_document != new_document:
+        os.remove(old_document.path)
+    return False
 
 
 reversion.register(Ballot)

@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
+from django.views.static import serve
 
 from tally_ho.apps.tally.forms.login_form import LoginForm
 from tally_ho.apps.tally.forms.password_change import PasswordChangeForm
@@ -49,6 +50,8 @@ urlpatterns = [
     path('locale', home.LocaleView.as_view(), name='home-locale'),
     path('not-tally', home.NoTallyView.as_view(), name='home-no-tally'),
 
+    re_path(r'^media/(?P<path>.*)$', serve,
+            {'document_root': settings.MEDIA_ROOT}),
     re_path(r'^data/center-list/(?P<tally_id>(\d+))/$',
             center_list_view.CenterListView.as_view(),
             name='center-list'),

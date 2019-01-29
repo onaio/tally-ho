@@ -47,14 +47,15 @@ def create_audit(result_form, user, reviewed_team=False):
 def create_ballot(tally=None,
                   active=True,
                   number=1,
-                  available_for_release=False):
+                  available_for_release=False,
+                  document=""):
     ballot, _ = Ballot.objects.get_or_create(
-        active=active,
-        number=number,
-        tally=tally,
-        available_for_release=available_for_release,
-        race_type=RaceType.GENERAL)
-
+            active=active,
+            number=number,
+            tally=tally,
+            available_for_release=available_for_release,
+            race_type=RaceType.GENERAL,
+            document=document)
     return ballot
 
 

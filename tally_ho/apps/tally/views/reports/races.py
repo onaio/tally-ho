@@ -5,6 +5,7 @@ from tally_ho.apps.tally.models.ballot import (
     form_ballot_numbers,
     race_type_name,
     sub_constituency,
+    document_name,
 )
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.views.exports import valid_ballots
@@ -32,7 +33,8 @@ class RacesReportView(LoginRequiredMixin,
                                                 'sc_component',
                                                 'sc_general',
                                                 'sc_women',
-                                                'number'):
+                                                'number',
+                                                'document'):
             archived_result = archived.for_ballot(
                 form_ballot_numbers=form_ballot_numbers(d['number']))
             sc = sub_constituency(sc_cache.get(d['sc_component']),
@@ -45,6 +47,8 @@ class RacesReportView(LoginRequiredMixin,
                     'district': sc.code,
                     'race_type': race_type_name(d['race_type'],
                                                 sc_cache.get(d['sc_general'])),
+                    'document': d['document'],
+                    'document_name': document_name(d['document']),
                     'expected': archived_result['denominator'],
                     'complete': archived_result['number'],
                     'percentage': archived_result['percentage'],
