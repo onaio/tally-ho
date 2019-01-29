@@ -44,18 +44,26 @@ def create_audit(result_form, user, reviewed_team=False):
                                 resolution_recommendation=1)
 
 
-def create_ballot(tally=None, active=True, number=1, document=None):
+def create_ballot(tally=None,
+                  active=True,
+                  number=1,
+                  available_for_release=False,
+                  document=None,):
     if document:
-        ballot, _ = Ballot.objects.get_or_create(active=active,
-                                                 number=number,
-                                                 tally=tally,
-                                                 race_type=RaceType.GENERAL,
-                                                 document=document)
+        ballot, _ = Ballot.objects.get_or_create(
+            active=active,
+            number=number,
+            tally=tally,
+            available_for_release=available_for_release,
+            race_type=RaceType.GENERAL,
+            document=document)
     else:
-        ballot, _ = Ballot.objects.get_or_create(active=active,
-                                                 number=number,
-                                                 tally=tally,
-                                                 race_type=RaceType.GENERAL)
+        ballot, _ = Ballot.objects.get_or_create(
+            active=active,
+            number=number,
+            tally=tally,
+            available_for_release=available_for_release,
+            race_type=RaceType.GENERAL)
     return ballot
 
 
