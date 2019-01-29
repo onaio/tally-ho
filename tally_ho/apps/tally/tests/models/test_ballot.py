@@ -4,13 +4,18 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
 from django.db.models.signals import pre_save
 
-from tally_ho.apps.tally.models.ballot import Ballot, auto_delete_document
+from tally_ho.apps.tally.models.ballot import (
+    Ballot, auto_delete_document, document_name)
 from tally_ho.libs.tests.test_base import create_ballot, create_tally, TestBase
 
 
 class TestBallot(TestBase):
     def setUp(self):
         self._create_and_login_user()
+
+    def test_document_name_function(self):
+        document_path = "ballot_1/image.png"
+        self.assertEqual("image.png", document_name(document_path))
 
     def test_auto_delete_document_function(self):
         pre_save.disconnect(sender=Ballot, dispatch_uid="ballot_update")
