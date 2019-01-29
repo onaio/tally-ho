@@ -58,7 +58,7 @@
                                 {% endif %}
                             {% endif %}
                             {% trans 'Signed in as'%} {{user.username}} -
-                            <a id="logout_link" href="/accounts/logout/">
+                            <a id="logout_link" href="{% url 'logout' %}">
                                 {% trans 'logout' %}</a>
                             <br/></span>
                         {% endif %}
