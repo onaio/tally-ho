@@ -1,4 +1,4 @@
-from os.path import splitext
+import pathlib
 
 from django import forms
 from django.template.defaultfilters import filesizeformat
@@ -22,7 +22,7 @@ class RestrictedFileField(forms.FileField):
     def clean(self, *args, **kwargs):
         data = super(RestrictedFileField, self).clean(*args, **kwargs)
         if data:
-            file_extension = splitext(data.name)[1][1:].lower()
+            file_extension = pathlib.Path(data.name).suffix
             file_extension_error =\
                 str('File extention (%s) is not supported.'
                     ' Allowed extensions are: %s.')
