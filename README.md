@@ -93,6 +93,10 @@ python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -X Gro
 
 The `create_demo_users` command will create demo users for each role with usernames like `super_administrator`, and password `data`.
 
+### File Uploads
+
+The `MAX_FILE_UPLOAD_SIZE` variable in `tally_ho/settings/common.py` file defines the file upload limit which is currently set to 10MB.
+
 ## News
 
 * This is an [article about tally-ho](http://blog.ona.io/general/2014/06/12/Tally-Ho-Robust-Open-Source-Election-Software.html) and its use in Libya.
