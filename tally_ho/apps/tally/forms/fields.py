@@ -15,7 +15,7 @@ class RestrictedFileField(forms.FileField):
             self.max_upload_size = settings.MAX_FILE_UPLOAD_SIZE
 
         if not self.allowed_extensions:
-            self.allowed_extensions = ['png', 'jpg', 'doc', 'pdf']
+            self.allowed_extensions = ['.png', '.jpg', '.doc', '.pdf']
 
         super(RestrictedFileField, self).__init__(*args, **kwargs)
 
