@@ -5,6 +5,7 @@ from enumfields import EnumIntegerField
 import reversion
 import os
 import uuid
+import pathlib
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
@@ -37,6 +38,10 @@ def race_type_name(race_type, sc_general):
             return _('General and Component')
 
         return race_type.name
+
+
+def document_name(document_path):
+    return pathlib.Path(document_path).name
 
 
 def ballot_document_directory_path(instance, filename):
@@ -75,6 +80,10 @@ class Ballot(BaseModel):
     @property
     def race_type_name(self):
         return race_type_name(self.race_type, self.sc_general.first())
+
+    @property
+    def document_name(self):
+        return document_name(self.document)
 
     @property
     def sub_constituency(self):
