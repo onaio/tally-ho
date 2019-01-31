@@ -32,12 +32,12 @@ class BarcodeForm(forms.Form):
         error_messages=error_messages,
         validators=validators,
         widget=forms.NumberInput(
-            attrs=disable_copy_input), label=_(u"Barcode"))
+            attrs=disable_copy_input))
     barcode_copy = forms.CharField(
         error_messages=error_messages,
         validators=validators,
         widget=forms.NumberInput(
-            attrs=disable_copy_input), label=_(u"Barcode Copy"))
+            attrs=disable_copy_input))
 
     tally_id = forms.IntegerField(widget=forms.HiddenInput())
 
