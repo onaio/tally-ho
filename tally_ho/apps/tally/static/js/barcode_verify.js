@@ -34,7 +34,7 @@ const barcode_scanner = (barcode_input_field) => {
             e.preventDefault();
             const textInput = e.key
             if (textInput.length === 1 || (e.keyCode === 13)) {
-                if (e.code == 'KeyA') {
+                if ((typeof textInput == 'number') && e.code == 'KeyA') {
                     barcode_number = barcode_number + textInput;
                 }
                 if (barcode_number && (e.keyCode === 13)) {
