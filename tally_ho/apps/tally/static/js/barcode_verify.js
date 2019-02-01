@@ -1,8 +1,8 @@
 function barcodes_match(empty_message, length_message, mismatch_message) {
-    var barcode = document.getElementById('id_barcode');
-    var barcode_copy = document.getElementById('id_barcode_copy');
+    const barcode = document.getElementById('id_barcode');
+    const barcode_copy = document.getElementById('id_barcode_copy');
     const barcode_manual_entry = () => document.getElementById('barcode_manual_entry');
-    if (barcode_manual_entry() != null){
+    if (barcode_manual_entry()){
         if (barcode.value == barcode_copy.value) {
             barcode_copy.parentNode.setAttribute('class', 'has-success');
             return true;
@@ -19,16 +19,14 @@ function barcodes_match(empty_message, length_message, mismatch_message) {
         else {
             alert(mismatch_message);
         }
-    }else{
-        return;
     }
 
-    return false;
+    return;
 }
 
-var barcode_number = '';
 
 const barcode_scanner = (barcode_input_field) => {
+    let barcode_number = '';
     if (barcode_input_field()) {
         barcode_input_field().addEventListener('keydown', function (e) {
             e.preventDefault();
@@ -127,14 +125,15 @@ function change_barcode_entry_mode(barcode_entry_mode) {
     const barcode_copy_manual_entry = document.getElementById('barcode_copy_manual_entry');
     const table = document.getElementById("formtablebody");
     const barcode_errors_section = () => document.getElementById('barcode_errors');
+    const barcode_input_label_html = '<td><label>Barcode</label></td>'
 
     if (barcode_entry_mode == 'manual') {
         table.removeChild(barcode_scanned_entry)
-        barcode_input_html = '<td><label>Barcode</label></td>' +
-            '<td><input type="number" name="barcode" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" autocomplete="off" class="form-control" autofocus="on" required="" id="id_barcode">' +
-            '<input type="password" class="form-control" value="XXXXXXXX" name="barcode_placeholder" id="barcode_placeholder" style="display:none;"></td>'
+        barcode_input_html = barcode_input_label_html +
+                             '<td><input type="number" name="barcode" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" autocomplete="off" class="form-control" autofocus="on" required="" id="id_barcode">' +
+                             '<input type="password" class="form-control" value="XXXXXXXX" name="barcode_placeholder" id="barcode_placeholder" style="display:none;"></td>'
         barcode_copy_input_html = '<td><label>Barcode Copy</label></td>' +
-            '<td><input type="number" name="barcode_copy" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" autocomplete="off" class="form-control" required="" id="id_barcode_copy"></td>'
+                                  '<td><input type="number" name="barcode_copy" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" autocomplete="off" class="form-control" required="" id="id_barcode_copy"></td>'
         id_form_instructions.innerText = 'Enter Barcode'
         add_element('tr', 'barcode_copy_manual_entry', barcode_copy_input_html)
         add_element('tr', 'barcode_manual_entry', barcode_input_html)
@@ -146,7 +145,7 @@ function change_barcode_entry_mode(barcode_entry_mode) {
     else if (barcode_entry_mode == 'scan') {
         table.removeChild(barcode_manual_entry)
         table.removeChild(barcode_copy_manual_entry)
-        barcode_scan_input_html = '<td><label>Barcode</label></td>' +
+        barcode_scan_input_html = barcode_input_label_html +
                                   '<input type="text" name="barcode" autocomplete="off" class="form-control" id="id_scanned_barcode" autofocus>'
         id_form_instructions.innerText = 'Scan Barcode to proceed'
         add_element('tr', 'barcode_scanned_entry', barcode_scan_input_html)
@@ -159,7 +158,7 @@ function change_barcode_entry_mode(barcode_entry_mode) {
         barcode_scanner(barcode_scan_input_field)
     }
 
-    if (barcode_errors_section() != null) {
+    if (barcode_errors_section()) {
         result_form.removeChild(barcode_errors_section())
     }
 }
