@@ -10,7 +10,7 @@
 
 <form id="result_form" method="post" action="{{ form_action }}" onsubmit="return barcodes_match('{% trans 'Please enter barcodes.' %}','{% trans 'Wrong barcode length' %}','{% trans "Barcodes do not match!" %}');">
     {% if form.non_field_errors %}
-    <div class="text-danger">
+    <div class="text-danger" id="barcode_errors">
         {{ form.non_field_errors }}<br/>
     </div>
     {% endif %}
