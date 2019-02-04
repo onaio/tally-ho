@@ -40,7 +40,6 @@ const barcode_scanner = (barcode_input_field) => {
                     barcode_input_field.readOnly = true;
                 }
             }
-
         });
     }
 }
