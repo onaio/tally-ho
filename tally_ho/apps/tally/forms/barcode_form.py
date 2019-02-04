@@ -16,6 +16,9 @@ disable_copy_input = {
     'class': 'form-control'
 }
 
+barcode_scan_input_attributes = disable_copy_input.copy()
+barcode_scan_input_attributes.update({'id': 'id_scanned_barcode'})
+
 
 class BarcodeForm(forms.Form):
     error_messages = {'invalid': _(u"Expecting only numbers for barcodes")}
@@ -31,19 +34,28 @@ class BarcodeForm(forms.Form):
     barcode = forms.CharField(
         error_messages=error_messages,
         validators=validators,
+        required=False,
         widget=forms.NumberInput(
             attrs=disable_copy_input))
     barcode_copy = forms.CharField(
         error_messages=error_messages,
         validators=validators,
+        required=False,
         widget=forms.NumberInput(
             attrs=disable_copy_input))
+    barcode_scan = forms.CharField(
+        error_messages=error_messages,
+        validators=validators,
+        required=False,
+        widget=forms.NumberInput(
+            attrs=barcode_scan_input_attributes))
 
     tally_id = forms.IntegerField(widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
         super(BarcodeForm, self).__init__(*args, **kwargs)
         self.fields['barcode'].widget.attrs['autofocus'] = 'on'
+        self.fields['barcode_scan'].widget.attrs['autofocus'] = 'on'
 
     def clean(self):
         """Verify that barcode and barcode copy match and that the barcode is
@@ -53,16 +65,18 @@ class BarcodeForm(forms.Form):
         """
         if self.is_valid():
             cleaned_data = super(BarcodeForm, self).clean()
+            barcode_scan = cleaned_data.get('barcode_scan')
             barcode = cleaned_data.get('barcode')
             barcode_copy = cleaned_data.get('barcode_copy')
             tally_id = cleaned_data.get('tally_id')
 
-            if barcode != barcode_copy:
+            if not barcode_scan and barcode != barcode_copy:
                 raise forms.ValidationError(_(u"Barcodes do not match!"))
 
             try:
-                result_form = ResultForm.objects.get(barcode=barcode,
-                                                     tally__id=tally_id)
+                result_form = ResultForm.objects.get(
+                    barcode=barcode or barcode_scan,
+                    tally__id=tally_id)
             except ResultForm.DoesNotExist:
                 raise forms.ValidationError(_(u"Barcode does not exist."))
             else:
