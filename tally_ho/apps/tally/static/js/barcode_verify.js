@@ -1,8 +1,8 @@
 function barcodes_match(empty_message, length_message, mismatch_message) {
     const barcode = document.getElementById('id_barcode');
     const barcode_copy = document.getElementById('id_barcode_copy');
-    const barcode_manual_entry = () => document.getElementById('barcode_manual_entry');
-    if (barcode_manual_entry()){
+    const barcode_scan_entry = document.getElementById('barcode_scan_entry').hidden;
+    if (barcode_scan_entry){
         if (barcode.value == barcode_copy.value) {
             barcode_copy.parentNode.setAttribute('class', 'has-success');
             return true;
@@ -24,20 +24,20 @@ function barcodes_match(empty_message, length_message, mismatch_message) {
     return;
 }
 
+let barcode_number = '';
 
 const barcode_scanner = (barcode_input_field) => {
-    let barcode_number = '';
-    if (barcode_input_field()) {
-        barcode_input_field().addEventListener('keydown', function (e) {
+    if (barcode_input_field) {
+        barcode_input_field.addEventListener('keydown', function (e) {
             e.preventDefault();
-            const textInput = e.key
+            let textInput = e.key
             if (textInput.length === 1 || (e.keyCode === 13)) {
-                if ((typeof textInput == 'number') && e.code == 'KeyA') {
+                if (!(isNaN(parseInt(textInput))) && e.code == 'KeyA') {
                     barcode_number = barcode_number + textInput;
                 }
                 if (barcode_number && (e.keyCode === 13)) {
-                    barcode_input_field().value = barcode_number;
-                    barcode_input_field().readOnly = true;
+                    barcode_input_field.value = barcode_number;
+                    barcode_input_field.readOnly = true;
                 }
             }
 
@@ -46,8 +46,18 @@ const barcode_scanner = (barcode_input_field) => {
 }
 
 document.onreadystatechange = function () {
-    if (document.readyState == "complete") {
-        const barcode_scan_input_field = () => document.getElementById('id_scanned_barcode');
+    if (document.readyState == "interactive") {
+        const barcode_scan_input_field = document.getElementById('id_scanned_barcode');
+        barcode_scan_input_field.value = '';
+    }
+    else if (document.readyState == "complete") {
+        const barcode_scan_input_field = document.getElementById('id_scanned_barcode');
+        const barcode_manual_entry_input_field = document.getElementById('id_barcode');
+        const barcode_copy_manual_entry_input_field = document.getElementById('id_barcode_copy');
+        barcode_number = '';
+        barcode_scan_input_field.setAttribute('required', 'true');
+        barcode_manual_entry_input_field.removeAttribute('required');
+        barcode_copy_manual_entry_input_field.removeAttribute('required');
         barcode_scanner(barcode_scan_input_field)
     }
 }
@@ -104,61 +114,42 @@ const input_validation = () => $(document).ready(function () {
     });
 });
 
-function add_element(elementTag, elementId, html) {
-    const table = document.getElementById("formtablebody");
-    const newElement = document.createElement(elementTag);
-    newElement.setAttribute('id', elementId)
-    newElement.innerHTML = html;
-    table.insertBefore(newElement, table.firstChild);
-}
-
-
 function change_barcode_entry_mode(barcode_entry_mode) {
-    const result_form = document.getElementById('result_form');
     const id_form_instructions = document.getElementById('id_form_instructions');
     const barcode_manual_entry = document.getElementById('barcode_manual_entry');
-    const barcode_scanned_entry = document.getElementById('barcode_scanned_entry');
-    const barcode_scan_input_field = () => document.getElementById('id_scanned_barcode');
-    const barcode_manual_input_field = () => document.getElementById('id_barcode');
-    const manual_entry_button = () => document.getElementById('manual_entry_button');
-    const scanned_entry_button = () => document.getElementById('scanned_entry_button');
+    const barcode_scan_entry = document.getElementById('barcode_scan_entry');
+    const barcode_scan_input_field = document.getElementById('id_scanned_barcode');
+    const barcode_manual_entry_input_field = document.getElementById('id_barcode');
+    const barcode_copy_manual_entry_input_field = document.getElementById('id_barcode_copy');
+    const manual_entry_button = document.getElementById('manual_entry_button');
+    const scanned_entry_button = document.getElementById('scanned_entry_button');
     const barcode_copy_manual_entry = document.getElementById('barcode_copy_manual_entry');
-    const table = document.getElementById("formtablebody");
-    const barcode_errors_section = () => document.getElementById('barcode_errors');
-    const barcode_input_label_html = '<td><label>Barcode</label></td>'
 
     if (barcode_entry_mode == 'manual') {
-        table.removeChild(barcode_scanned_entry)
-        barcode_input_html = barcode_input_label_html +
-                             '<td><input type="number" name="barcode" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" autocomplete="off" class="form-control" autofocus="on" required="" id="id_barcode">' +
-                             '<input type="password" class="form-control" value="XXXXXXXX" name="barcode_placeholder" id="barcode_placeholder" style="display:none;"></td>'
-        barcode_copy_input_html = '<td><label>Barcode Copy</label></td>' +
-                                  '<td><input type="number" name="barcode_copy" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" autocomplete="off" class="form-control" required="" id="id_barcode_copy"></td>'
         id_form_instructions.innerText = 'Enter Barcode'
-        add_element('tr', 'barcode_copy_manual_entry', barcode_copy_input_html)
-        add_element('tr', 'barcode_manual_entry', barcode_input_html)
-        barcode_manual_input_field().focus();
-        manual_entry_button().setAttribute('hidden', 'true')
-        scanned_entry_button().removeAttribute('hidden');
+        barcode_scan_entry.setAttribute('hidden', 'true')
+        barcode_manual_entry.removeAttribute('hidden');
+        barcode_manual_entry_input_field.focus();
+        barcode_manual_entry_input_field.setAttribute('required', 'true');
+        barcode_copy_manual_entry_input_field.setAttribute('required', 'true');
+        barcode_scan_input_field.removeAttribute('required');
+        barcode_copy_manual_entry.removeAttribute('hidden');
+        manual_entry_button.setAttribute('hidden', 'true')
+        scanned_entry_button.removeAttribute('hidden');
         input_validation()
     }
     else if (barcode_entry_mode == 'scan') {
-        table.removeChild(barcode_manual_entry)
-        table.removeChild(barcode_copy_manual_entry)
-        barcode_scan_input_html = barcode_input_label_html +
-                                  '<input type="text" name="barcode" autocomplete="off" class="form-control" id="id_scanned_barcode" autofocus>'
         id_form_instructions.innerText = 'Scan Barcode to proceed'
-        add_element('tr', 'barcode_scanned_entry', barcode_scan_input_html)
-        barcode_scan_input_field().value = ''
-        barcode_scan_input_field().readOnly = false
-        barcode_number = ''
-        scanned_entry_button().setAttribute('hidden', 'true')
-        manual_entry_button().removeAttribute('hidden');
-        barcode_scan_input_field().focus();
-        barcode_scanner(barcode_scan_input_field)
+        barcode_manual_entry.setAttribute('hidden', 'true');
+        barcode_copy_manual_entry.setAttribute('hidden', 'true');
+        barcode_scan_entry.removeAttribute('hidden');
+        barcode_scan_input_field.focus();
+        barcode_scan_input_field.setAttribute('required', 'true');
+        barcode_manual_entry_input_field.removeAttribute('required');
+        barcode_copy_manual_entry_input_field.removeAttribute('required');
+        scanned_entry_button.setAttribute('hidden', 'true');
+        manual_entry_button.removeAttribute('hidden');
+        barcode_scanner(barcode_scan_input_field);
     }
 
-    if (barcode_errors_section()) {
-        result_form.removeChild(barcode_errors_section())
-    }
 }
