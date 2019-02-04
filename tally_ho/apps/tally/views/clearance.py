@@ -243,7 +243,8 @@ class CreateClearanceView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
-            barcode = form.cleaned_data['barcode']
+            barcode = form.cleaned_data['barcode'] or\
+                        form.cleaned_data['barcode_scan']
             result_form = get_object_or_404(ResultForm,
                                             barcode=barcode,
                                             tally__id=tally_id)
@@ -310,7 +311,8 @@ class CheckCenterDetailsView(LoginRequiredMixin,
         form = self.get_form(form_class)
 
         if form.is_valid():
-            barcode = form.cleaned_data['barcode']
+            barcode = form.cleaned_data['barcode'] or\
+                        form.cleaned_data['barcode_scan']
             result_form = get_object_or_404(ResultForm,
                                             barcode=barcode,
                                             tally__id=tally_id)
