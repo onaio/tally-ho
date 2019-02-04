@@ -6,36 +6,51 @@
 
 <h1>{{ header_text }}</h1>
 
-<div class="form-instructions">{% trans 'Enter Barcode' %}</div>
+<div class="form-instructions" id="id_form_instructions">{% trans 'Scan Barcode to proceed' %}</div>
 
-<form id="result_form" method="post" action="{{ form_action }}" onsubmit="return barcodes_match('{% trans 'Please enter barcodes.' %}','{% trans 'Wrong barcode length' %}','{% trans "Barcodes do not match!" %}');">
+<form id="result_form" method="post" action="{{ form_action }}">
     {% if form.non_field_errors %}
     <div class="text-danger">
         {{ form.non_field_errors }}<br/>
     </div>
     {% endif %}
     <table class="formtable">
-        <tr>
-            <td><label>{% trans 'Barcode' %}</label></td>
-            <td>{{ form.barcode.errors }}
-                {{ form.barcode }}
-                <input type="password" class="form-control" value="XXXXXXXX" name="barcode_placeholder" id="barcode_placeholder" style="display:none;">
-            </td>
-        </tr>
-        <tr>
-            <td><label>{% trans 'Barcode Copy' %}</label></td>
-            <td>{{ form.barcode_copy.errors }}
-                {{ form.barcode_copy }}
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>
-                <button type="submit" name="submit" class="btn btn-primary">{% trans "Submit" %}</button>
-            </td>
-        </tr>
-        {{ form.tally_id }}
-        {% csrf_token %}
+        <table class="formtable">
+            <tr id="barcode_scan_entry">
+                <td><label>{% trans 'Barcode' %}</label></td>
+                <td>{{ form.barcode_scan.errors }}
+                    {{ form.barcode_scan }}</td>
+            </tr>
+            <tr>
+            <tr id="barcode_manual_entry" hidden="true">
+                <td><label>{% trans 'Barcode' %}</label></td>
+                <td>{{ form.barcode.errors }}
+                    {{ form.barcode }}
+                    <input type="password" class="form-control" value="XXXXXXXX" name="barcode_placeholder" id="barcode_placeholder"
+                        style="display:none;">
+                </td>
+            </tr>
+            <tr id="barcode_copy_manual_entry" hidden="true">
+                <td><label>{% trans 'Barcode Copy' %}</label></td>
+                <td>{{ form.barcode_copy.errors }}
+                    {{ form.barcode_copy }}
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><button type="submit" name="submit" class="btn btn-success">{% trans "Submit" %}</button></td>
+            </tr>
+            <tr id="manual_entry_button">
+                <td></td>
+                <td><a onclick="return change_barcode_entry_mode('manual')" class="btn btn-primary">{% trans "Enter barcode manually" %}</a></td>
+            </tr>
+            <tr id="scanned_entry_button" hidden="true">
+                <td></td>
+                <td><a onclick="return change_barcode_entry_mode('scan')" class="btn btn-primary">{% trans "Use barcode reader" %}</a></td>
+            </tr>
+            </tr>
+            {{ form.tally_id }}
+            {% csrf_token %}
     </table>
 </form>
 

@@ -34,10 +34,10 @@ def sub_constituency(sc_general, sc_women, sc_component):
 
 
 def race_type_name(race_type, sc_general):
-        if sc_general and sc_general.ballot_component:
-            return _('General and Component')
+    if sc_general and sc_general.ballot_component:
+        return _('General and Component')
 
-        return race_type.name
+    return race_type.name
 
 
 def document_name(document_path):

@@ -159,6 +159,33 @@ class TestIntake(TestBase):
         self.assertEqual(result_form.form_state, FormState.INTAKE)
         self.assertEqual(result_form.user, self.user)
 
+    def test_redirect_to_check_center_details_after_barcode_scan(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode_scan = '123456789'
+        center = create_center(tally=tally)
+        create_result_form(barcode_scan,
+                           form_state=FormState.UNSUBMITTED,
+                           tally=tally,
+                           center=center)
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.CenterDetailsView.as_view()
+        barcode_data = {
+            'barcode_scan': barcode_scan,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=barcode_data)
+        request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('intake/check-center-details',
+                      response['location'])
+        result_form = ResultForm.objects.get(barcode=barcode_scan)
+        self.assertEqual(result_form.form_state, FormState.INTAKE)
+        self.assertEqual(result_form.user, self.user)
+
     def test_center_detail_redirects_to_check_center_details_zero_prefix(self):
         self._create_and_login_user()
         tally = create_tally()
