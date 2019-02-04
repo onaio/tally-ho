@@ -31,14 +31,11 @@ const barcode_scanner = (barcode_input_field) => {
         barcode_input_field.addEventListener('keydown', function (e) {
             e.preventDefault();
             let textInput = e.key
-            if (textInput.length === 1 || (e.keyCode === 13)) {
-                if (!(isNaN(parseInt(textInput))) && e.code === 'KeyA') {
-                    barcode_number = barcode_number + textInput;
-                }
-                if (barcode_number && (e.keyCode === 13)) {
-                    barcode_input_field.value = barcode_number;
-                    barcode_input_field.readOnly = true;
-                }
+            if (!(isNaN(parseInt(textInput))) && e.code === 'KeyA') {
+                barcode_number = barcode_number + textInput;
+            } else if (barcode_number && (e.keyCode === 13)) {
+                barcode_input_field.value = barcode_number;
+                barcode_input_field.readOnly = true;
             }
         });
     }
