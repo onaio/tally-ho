@@ -158,6 +158,7 @@ class ResultForm(BaseModel):
     audited_count = models.PositiveIntegerField(default=0)
     barcode = models.CharField(max_length=255)
     date_seen = models.DateTimeField(null=True)
+    duplicate_reviewed = models.BooleanField(default=False)
     form_stamped = models.NullBooleanField()
     form_state = EnumIntegerField(FormState)
     previous_form_state = EnumIntegerField(FormState, blank=True, null=True)
