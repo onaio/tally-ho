@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.views.generic import FormView, TemplateView
@@ -40,6 +40,7 @@ from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.active_status import (
@@ -357,6 +358,32 @@ class FormProgressView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-progress-data',
                                kwargs={'tally_id': tally_id}),
+            tally_id=tally_id))
+
+
+class DuplicateResultTrackingView(LoginRequiredMixin,
+                                  mixins.GroupRequiredMixin,
+                                  mixins.TallyAccessMixin,
+                                  TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/duplicate_result_tracking.html"
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
+        duplicate_results = ResultForm.objects.exclude(results=None).values(
+            'ballot',
+            'results__votes',
+            'results__candidate').annotate(
+                duplicate_count=Count('id')).filter(duplicate_count__gt=1)
+        results = []
+        for result in duplicate_results:
+            result.pop('duplicate_count')
+            results = results + list(
+                ResultForm.objects.filter(
+                    **result).order_by('ballot'))
+
+        return self.render_to_response(self.get_context_data(
+            duplicate_results=list(set(results)),
             tally_id=tally_id))
 
 
