@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Duplicate Result Tracking' %}</h1>
+
+<table class="datatable table table-striped">
+    <thead>
+        <tr>
+            <th>{% trans 'Barcode' %}</th>
+            <th>{% trans 'Center Number' %}</th>
+            <th>{% trans 'Station Number' %}</th>
+            <th>{% trans 'Ballot Number' %}</th>
+            <th>{% trans 'Race Type' %}</th>
+            <th>{% trans 'Form State' %}</th>
+            <th>{% trans 'Modified' %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for duplicate_result in duplicate_results %}
+        <tr>
+                <td>{{ duplicate_result.barcode }}</td>
+                <td>{{ duplicate_result.center.code }}</td>
+                <td>{{ duplicate_result.station_number }}</td>
+                <td>{{ duplicate_result.ballot.number }}</td>
+                <td>{{ duplicate_result.ballot_race_type_name }}</td>
+                <td>{{ duplicate_result.form_state_name }}</td>
+                <td>{{ duplicate_result.modified_date }}</td>
+                <td>
+                    <a class="btn btn-small btn-default" href="#" role="button">
+                        {% trans "View" %}
+                    </a>
+                </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
