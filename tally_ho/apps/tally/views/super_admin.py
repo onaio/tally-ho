@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.views.generic import FormView, TemplateView
@@ -34,13 +34,13 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.active_status import (
@@ -379,6 +379,7 @@ class DuplicateResultTrackingView(LoginRequiredMixin,
                     tally_id=tally_id,
                     duplicate_reviewed=False)
         results = []
+
         if duplicate_results:
             for result in duplicate_results:
                 result.pop('duplicate_count')
@@ -389,6 +390,44 @@ class DuplicateResultTrackingView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             duplicate_results=list(set(results)),
             tally_id=tally_id))
+
+
+class DuplicateResultFormView(LoginRequiredMixin,
+                              mixins.GroupRequiredMixin,
+                              mixins.TallyAccessMixin,
+                              TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/duplicate_result_form.html"
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
+        barcode = kwargs['barcode']
+        ballot_id = kwargs['ballot_id']
+        result_form = ResultForm.objects.get(barcode=barcode)
+        results = Result.objects.filter(result_form=result_form.id)
+        duplicate_results = ResultForm.objects.exclude(results=None).values(
+            'ballot',
+            'results__votes',
+            'results__candidate').annotate(
+                duplicate_count=Count('id')).filter(
+                    duplicate_count__gt=1,
+                    tally_id=tally_id,
+                    duplicate_reviewed=False,
+                    ballot=ballot_id)
+        results_form_duplicates = []
+
+        for result in duplicate_results:
+            result.pop('duplicate_count')
+            results_form_duplicates = results_form_duplicates + list(
+                ResultForm.objects.filter(
+                    **result).order_by('ballot'))
+
+        return self.render_to_response(self.get_context_data(
+            results_form_duplicates=list(set(results_form_duplicates)),
+            results=results,
+            tally_id=tally_id,
+            ballot_id=ballot_id,
+            header_text="Form " + str(barcode)))
 
 
 class FormDuplicatesView(LoginRequiredMixin,
