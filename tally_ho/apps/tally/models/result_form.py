@@ -78,7 +78,7 @@ def match_results(result_form, results=None):
 
 
 def sanity_check_final_results(result_form):
-    """Deactivate duplicate fnal results.
+    """Deactivate duplicate final results.
 
     Each result form should have one final result for each candidate.  If there
     are multiple final results for a candidate deactivate them.
