@@ -30,7 +30,7 @@
                 <td>{{ duplicate_result.form_state_name }}</td>
                 <td>{{ duplicate_result.modified_date }}</td>
                 <td>
-                    <a class="btn btn-small btn-default" href="#" role="button">
+                    <a class="btn btn-small btn-default" href="{% url 'duplicate_result_form' tally_id duplicate_result.barcode duplicate_result.ballot.number %}" role="button">
                         {% trans "View" %}
                     </a>
                 </td>
