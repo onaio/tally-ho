@@ -374,13 +374,17 @@ class DuplicateResultTrackingView(LoginRequiredMixin,
             'ballot',
             'results__votes',
             'results__candidate').annotate(
-                duplicate_count=Count('id')).filter(duplicate_count__gt=1)
+                duplicate_count=Count('id')).filter(
+                    duplicate_count__gt=1,
+                    tally_id=tally_id,
+                    duplicate_reviewed=False)
         results = []
-        for result in duplicate_results:
-            result.pop('duplicate_count')
-            results = results + list(
-                ResultForm.objects.filter(
-                    **result).order_by('ballot'))
+        if duplicate_results:
+            for result in duplicate_results:
+                result.pop('duplicate_count')
+                results = results + list(
+                    ResultForm.objects.filter(
+                        **result).order_by('ballot'))
 
         return self.render_to_response(self.get_context_data(
             duplicate_results=list(set(results)),
