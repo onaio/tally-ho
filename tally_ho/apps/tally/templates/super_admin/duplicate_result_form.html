@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h2>{% trans "Duplicate result forms list for ballot: " %} {{ ballot_id }}</h2>
+
+<ul>
+    {% for form in results_form_duplicates %}
+        <li><a href="{% url 'duplicate_result_form' tally_id form.barcode form.ballot.number %}">
+                {% trans 'Result form barcode: ' %} {{ form.barcode }}
+            </a>
+            {% if form.form_state.name != "ARCHIVED"  %}
+                <a class="btn btn-small btn-danger" href="#" role"button">
+                    {% trans "Reset" %}
+                </a></li>
+            {% endif %}
+        <br />
+    {% endfor %}
+</ul>
+
+<a class="btn btn-small btn-danger" href="#" role"button">
+    {% trans "Reset all results forms" %}
+</a>
+<a class="btn btn-small btn-success" href="#" role"button">
+    {% trans "Mark as reviewed and accepted" %}
+</a>
+<br />
+
+{% include 'quality_control/results.html' with results=results header_text=header_text %}
+
+<a class="btn btn-small btn-danger" href="{% url 'duplicate-result-tracking' tally_id %}" role"button">
+    {% trans "Close" %}
+</a>
+{% csrf_token %}
+
+{% endblock %}
