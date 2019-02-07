@@ -158,6 +158,38 @@ def get_results_duplicates(tally_id):
     return result_forms_founds
 
 
+def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
+    """Build a list of result forms sorted by ballot of results forms for
+    which there are more than 1 result form in the same ballot with the same
+    number of votes per candidate, and the `duplicate_reviewed`
+    column is false.
+
+    :returns A list of result forms in the system with duplicate results.
+    """
+    duplicate_results = ResultForm.objects.exclude(results=None).values(
+        'ballot',
+        'results__votes',
+        'results__candidate').annotate(
+        duplicate_count=Count('id')).filter(
+        duplicate_count__gt=1,
+        tally_id=tally_id,
+        duplicate_reviewed=False)
+
+    if ballot:
+        duplicate_results = duplicate_results.filter(ballot=ballot)
+
+    results_form_duplicates = []
+
+    if duplicate_results:
+        for result in duplicate_results:
+            result.pop('duplicate_count')
+            results_form_duplicates = results_form_duplicates + list(
+                ResultForm.objects.filter(
+                    **result).order_by('ballot'))
+
+    return list(set(results_form_duplicates))
+
+
 class TalliesView(LoginRequiredMixin,
                   mixins.GroupRequiredMixin,
                   TemplateView):
@@ -370,25 +402,10 @@ class DuplicateResultTrackingView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
-        duplicate_results = ResultForm.objects.exclude(results=None).values(
-            'ballot',
-            'results__votes',
-            'results__candidate').annotate(
-                duplicate_count=Count('id')).filter(
-                    duplicate_count__gt=1,
-                    tally_id=tally_id,
-                    duplicate_reviewed=False)
-        results = []
-
-        if duplicate_results:
-            for result in duplicate_results:
-                result.pop('duplicate_count')
-                results = results + list(
-                    ResultForm.objects.filter(
-                        **result).order_by('ballot'))
 
         return self.render_to_response(self.get_context_data(
-            duplicate_results=list(set(results)),
+            duplicate_results=get_result_form_with_duplicate_results(
+                tally_id=tally_id),
             tally_id=tally_id))
 
 
@@ -405,25 +422,11 @@ class DuplicateResultFormView(LoginRequiredMixin,
         ballot_id = kwargs['ballot_id']
         result_form = ResultForm.objects.get(barcode=barcode)
         results = Result.objects.filter(result_form=result_form.id)
-        duplicate_results = ResultForm.objects.exclude(results=None).values(
-            'ballot',
-            'results__votes',
-            'results__candidate').annotate(
-                duplicate_count=Count('id')).filter(
-                    duplicate_count__gt=1,
-                    tally_id=tally_id,
-                    duplicate_reviewed=False,
-                    ballot=ballot_id)
-        results_form_duplicates = []
-
-        for result in duplicate_results:
-            result.pop('duplicate_count')
-            results_form_duplicates = results_form_duplicates + list(
-                ResultForm.objects.filter(
-                    **result).order_by('ballot'))
 
         return self.render_to_response(self.get_context_data(
-            results_form_duplicates=list(set(results_form_duplicates)),
+            results_form_duplicates=get_result_form_with_duplicate_results(
+                ballot=ballot_id,
+                tally_id=tally_id),
             results=results,
             tally_id=tally_id,
             ballot_id=ballot_id,
