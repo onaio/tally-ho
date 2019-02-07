@@ -19,8 +19,9 @@
         </tr>
     </thead>
     <tbody>
-        {% for duplicate_result in duplicate_results %}
-        <tr>
+        {% if duplicate_results %}
+            {% for duplicate_result in duplicate_results %}
+            <tr>
                 <td>{{ duplicate_result.barcode }}</td>
                 <td>{{ duplicate_result.center.code }}</td>
                 <td>{{ duplicate_result.station_number }}</td>
@@ -33,8 +34,13 @@
                         {% trans "View" %}
                     </a>
                 </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="10" style="text-align:center">{% trans "No matching records found" %}</td>
         </tr>
-        {% endfor %}
+        {% endif %}
     </tbody>
 </table>
 {% endblock %}
