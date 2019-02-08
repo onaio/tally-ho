@@ -13,7 +13,7 @@
             </a>
             {% if form.form_state.name != "ARCHIVED"  %}
                 <a class="btn btn-small btn-danger" href="#" role"button">
-                    {% trans "Reset" %}
+                    {% trans "Send to clearance" %}
                 </a></li>
             {% endif %}
         <br />
@@ -22,7 +22,7 @@
 
 <form method="post" action="">
     <button type="submit" name="reset_all" class="btn btn-small btn-danger" role"button">
-        {% trans "Reset all results forms" %}
+        {% trans "Send all to clearance" %}
     </button>
     <button type="submit" name="duplicate_reviewed" class="btn btn-small btn-success" role"button">
         {% trans "Mark as reviewed and accepted" %}
