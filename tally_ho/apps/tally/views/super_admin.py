@@ -468,6 +468,20 @@ class DuplicateResultFormView(LoginRequiredMixin,
                 self.request, messages.INFO, self.success_message)
 
             return redirect(self.success_url, tally_id=tally_id)
+        elif 'send_all_clearance' in post_data:
+            for results_form_duplicate in results_form_duplicates:
+                if results_form_duplicate.form_state != FormState.ARCHIVED:
+                    results_form_duplicate.duplicate_reviewed = True
+                    results_form_duplicate.form_state = FormState.CLEARANCE
+                    results_form_duplicate.save()
+
+            self.success_message = _(
+                u"All Forms ssuccessfully sent to clearance")
+
+            messages.add_message(
+                self.request, messages.INFO, self.success_message)
+
+            return redirect(self.success_url, tally_id=tally_id)
         else:
             raise SuspiciousOperation('Unknown POST response type')
 
