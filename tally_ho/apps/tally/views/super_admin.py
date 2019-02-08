@@ -444,11 +444,25 @@ class DuplicateResultFormView(LoginRequiredMixin,
 
         if 'duplicate_reviewed' in post_data:
             for results_form_duplicate in results_form_duplicates:
-                results_form_duplicate.duplicate_reviewed = False
+                results_form_duplicate.duplicate_reviewed = True
                 results_form_duplicate.save()
 
             self.success_message = _(
                 u"Successfully marked forms as duplicate reviewed")
+
+            messages.add_message(
+                self.request, messages.INFO, self.success_message)
+
+            return redirect(self.success_url, tally_id=tally_id)
+        elif 'send_clearance' in post_data:
+            pk = post_data.get('result_form')
+            result_form = get_object_or_404(
+                ResultForm, pk=pk, tally__id=tally_id)
+            result_form.duplicate_reviewed = True
+            result_form.form_state = FormState.CLEARANCE
+            result_form.save()
+
+            self.success_message = _(u"Form successfully sent to clearance")
 
             messages.add_message(
                 self.request, messages.INFO, self.success_message)
