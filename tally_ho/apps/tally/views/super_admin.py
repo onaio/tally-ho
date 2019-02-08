@@ -412,9 +412,11 @@ class DuplicateResultTrackingView(LoginRequiredMixin,
 class DuplicateResultFormView(LoginRequiredMixin,
                               mixins.GroupRequiredMixin,
                               mixins.TallyAccessMixin,
+                              SuccessMessageMixin,
                               TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/duplicate_result_form.html"
+    success_url = "duplicate-result-tracking"
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
@@ -431,6 +433,29 @@ class DuplicateResultFormView(LoginRequiredMixin,
             tally_id=tally_id,
             ballot_id=ballot_id,
             header_text="Form " + str(barcode)))
+
+    def post(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
+        ballot_id = kwargs['ballot_id']
+        post_data = self.request.POST
+        results_form_duplicates = get_result_form_with_duplicate_results(
+            ballot=ballot_id,
+            tally_id=tally_id)
+
+        if 'duplicate_reviewed' in post_data:
+            for results_form_duplicate in results_form_duplicates:
+                results_form_duplicate.duplicate_reviewed = False
+                results_form_duplicate.save()
+
+            self.success_message = _(
+                u"Successfully marked forms as duplicate reviewed")
+
+            messages.add_message(
+                self.request, messages.INFO, self.success_message)
+
+            return redirect(self.success_url, tally_id=tally_id)
+        else:
+            raise SuspiciousOperation('Unknown POST response type')
 
 
 class FormDuplicatesView(LoginRequiredMixin,
