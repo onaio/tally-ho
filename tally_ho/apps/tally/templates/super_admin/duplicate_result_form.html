@@ -20,12 +20,15 @@
     {% endfor %}
 </ul>
 
-<a class="btn btn-small btn-danger" href="#" role"button">
-    {% trans "Reset all results forms" %}
-</a>
-<a class="btn btn-small btn-success" href="#" role"button">
-    {% trans "Mark as reviewed and accepted" %}
-</a>
+<form method="post" action="">
+    <button type="submit" name="reset_all" class="btn btn-small btn-danger" role"button">
+        {% trans "Reset all results forms" %}
+    </button>
+    <button type="submit" name="duplicate_reviewed" class="btn btn-small btn-success" role"button">
+        {% trans "Mark as reviewed and accepted" %}
+    </button>
+    {% csrf_token %}
+</form>
 <br />
 
 {% include 'quality_control/results.html' with results=results header_text=header_text %}
