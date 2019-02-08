@@ -12,16 +12,21 @@
                 {% trans 'Result form barcode: ' %} {{ form.barcode }}
             </a>
             {% if form.form_state.name != "ARCHIVED"  %}
-                <a class="btn btn-small btn-danger" href="#" role"button">
-                    {% trans "Send to clearance" %}
-                </a></li>
+                <form method="post" action="">
+                    <input type="hidden" name="result_form" value="{{ form.pk }}">
+                    <button type="submit" name="send_clearance" class="btn btn-small btn-danger" role"button">
+                        {% trans "Send to clearance" %}
+                    </button>
+                    {% csrf_token %}
+                </form>
             {% endif %}
+        </li>
         <br />
     {% endfor %}
 </ul>
 
 <form method="post" action="">
-    <button type="submit" name="reset_all" class="btn btn-small btn-danger" role"button">
+    <button type="submit" name="send_all_clearance" class="btn btn-small btn-danger" role"button">
         {% trans "Send all to clearance" %}
     </button>
     <button type="submit" name="duplicate_reviewed" class="btn btn-small btn-success" role"button">
