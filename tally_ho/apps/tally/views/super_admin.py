@@ -183,11 +183,11 @@ def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
     if duplicate_results:
         for result in duplicate_results:
             result.pop('duplicate_count')
-            results_form_duplicates = results_form_duplicates + list(
+            results_form_duplicates = list(set(results_form_duplicates + list(
                 ResultForm.objects.filter(
-                    **result).order_by('ballot'))
+                    **result).order_by('ballot'))))
 
-    return list(set(results_form_duplicates))
+    return results_form_duplicates
 
 
 class TalliesView(LoginRequiredMixin,
