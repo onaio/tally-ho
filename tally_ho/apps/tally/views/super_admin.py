@@ -2,13 +2,14 @@ from collections import defaultdict
 
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count
+from django.db.models import Count, Func
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib import messages
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.http import Http404
 from django.urls import reverse
 
@@ -166,26 +167,23 @@ def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
 
     :returns A list of result forms in the system with duplicate results.
     """
-    duplicate_results = ResultForm.objects.exclude(results=None).values(
+    result_form_ids = ResultForm.objects.exclude(results=None).values(
         'ballot',
         'results__votes',
-        'results__candidate').annotate(
-        duplicate_count=Count('id')).filter(
-        duplicate_count__gt=1,
-        tally_id=tally_id,
-        duplicate_reviewed=False)
+        'results__candidate').annotate(ids=ArrayAgg('id')).annotate(
+            duplicate_count=Count('id')).annotate(
+                ids=Func('ids', function='unnest')).filter(
+                    duplicate_count__gt=1,
+                    tally_id=tally_id,
+                    duplicate_reviewed=False
+                    ).order_by('ballot').values_list(
+                        'ids', flat=True).distinct()
+
+    results_form_duplicates = ResultForm.objects.filter(
+        id__in=[id for id in result_form_ids])
 
     if ballot:
-        duplicate_results = duplicate_results.filter(ballot=ballot)
-
-    results_form_duplicates = []
-
-    if duplicate_results:
-        for result in duplicate_results:
-            result.pop('duplicate_count')
-            results_form_duplicates = list(set(results_form_duplicates + list(
-                ResultForm.objects.filter(
-                    **result).order_by('ballot'))))
+        results_form_duplicates = results_form_duplicates.filter(ballot=ballot)
 
     return results_form_duplicates
 
