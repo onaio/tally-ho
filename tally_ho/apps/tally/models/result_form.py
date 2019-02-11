@@ -405,6 +405,7 @@ class ResultForm(BaseModel):
 
         self.rejected_count += 1
         self.form_state = new_state
+        self.duplicate_reviewed = False
         self.reject_reason = reject_reason
         self.save()
 

@@ -40,6 +40,7 @@ def clearance_action(post_data, clearance, result_form, url):
                 ClearanceResolution.RESET_TO_PREINTAKE:
             clearance.active = False
             result_form.form_state = FormState.UNSUBMITTED
+            result_form.duplicate_reviewed = False
             if result_form.is_replacement:
                 result_form.center = None
                 result_form.station_number = None
