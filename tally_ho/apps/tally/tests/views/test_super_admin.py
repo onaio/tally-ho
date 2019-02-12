@@ -1008,3 +1008,35 @@ class TestSuperAdmin(TestBase):
         self.assertIn(result_form_2, all_duplicates)
         self.assertIn(result_form_3, all_duplicates)
         self.assertIn(result_form_4, all_duplicates)
+
+    def test_duplicate_result_form_view_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot = create_ballot(tally=tally)
+        barcode = '1234',
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        result_form = create_result_form(
+            tally=tally,
+            ballot=ballot,
+            barcode=barcode,
+            center=center,
+            station_number=station.station_number)
+        votes = 12
+        create_candidates(result_form, votes=votes, user=self.user,
+                          num_results=1)
+        view = views.DuplicateResultFormView.as_view()
+        data = {'result_form': result_form.pk,
+                'send_clearance': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        configure_messages(request)
+        request.session = {'result_form': result_form.pk}
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+
+        result_form.reload()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, "/super-administrator/duplicate-result-tracking/1/")
+        self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+        self.assertTrue(result_form.duplicate_reviewed)
