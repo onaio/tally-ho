@@ -14,7 +14,10 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.forms.create_result_form import CreateResultForm
 from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
 from tally_ho.apps.tally.views import super_admin as views
+from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.gender import Gender
+from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
     configure_messages,
@@ -23,6 +26,7 @@ from tally_ho.libs.tests.test_base import (
     create_candidates,
     create_reconciliation_form,
     create_result_form,
+    create_result,
     create_center,
     create_station,
     create_tally,
@@ -892,3 +896,115 @@ class TestSuperAdmin(TestBase):
             form_id=result_form.pk,
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
+
+    def test_get_result_form_with_duplicate_results(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot_1 = create_ballot(tally=tally)
+        barcode = '1234',
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        result_form_1, _ = ResultForm.objects.get_or_create(
+            id=2,
+            ballot=ballot_1,
+            barcode=barcode,
+            serial_number=2,
+            form_state=FormState.UNSUBMITTED,
+            station_number=station.station_number,
+            user=None,
+            center=center,
+            gender=Gender.MALE,
+            is_replacement=False,
+            tally=tally,
+        )
+        result_form_2 = create_result_form(
+            tally=tally,
+            ballot=ballot_1,
+            center=center,
+            station_number=station.station_number)
+        votes = 12
+        create_candidates(result_form_1, votes=votes, user=self.user,
+                          num_results=1)
+
+        for result in result_form_1.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # create duplicate final results
+            create_result(result_form_2, result.candidate, self.user, votes)
+        duplicate_results = views.get_result_form_with_duplicate_results(
+            tally_id=tally.pk)
+        self.assertIn(result_form_1, duplicate_results)
+        self.assertIn(result_form_2, duplicate_results)
+
+        # test filtering duplicate result forms by ballot
+        ballot_2, _ = Ballot.objects.get_or_create(
+            id=2,
+            active=True,
+            number=2,
+            tally=tally,
+            available_for_release=False,
+            race_type=RaceType.GENERAL,
+            document="")
+        result_form_3, _ = ResultForm.objects.get_or_create(
+            id=3,
+            ballot=ballot_2,
+            barcode="12345",
+            serial_number=3,
+            form_state=FormState.UNSUBMITTED,
+            station_number=station.station_number,
+            user=None,
+            center=center,
+            gender=Gender.MALE,
+            is_replacement=False,
+            tally=tally,
+        )
+        result_form_4, _ = ResultForm.objects.get_or_create(
+            id=4,
+            ballot=ballot_2,
+            barcode="123456",
+            serial_number=4,
+            form_state=FormState.UNSUBMITTED,
+            station_number=station.station_number,
+            user=None,
+            center=center,
+            gender=Gender.MALE,
+            is_replacement=False,
+            tally=tally,
+        )
+        create_candidates(result_form_3, votes=votes, user=self.user,
+                          num_results=1)
+
+        for result in result_form_3.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # create duplicate final results
+            create_result(result_form_4, result.candidate, self.user, votes)
+        ballot_1_duplicates = views.get_result_form_with_duplicate_results(
+            ballot=ballot_1.pk,
+            tally_id=tally.pk)
+        ballot_2_duplicates = views.get_result_form_with_duplicate_results(
+            ballot=ballot_2.pk,
+            tally_id=tally.pk)
+        all_duplicates = views.get_result_form_with_duplicate_results(
+            tally_id=tally.pk)
+
+        # check result_form_1 and result_form_2 are in ballot_1_duplicates
+        self.assertIn(result_form_1, ballot_1_duplicates)
+        self.assertIn(result_form_2, ballot_1_duplicates)
+
+        # check result_form_3 and result_form_4 are not in ballot_1_duplicates
+        self.assertNotIn(result_form_3, ballot_1_duplicates)
+        self.assertNotIn(result_form_4, ballot_1_duplicates)
+
+        # check result_form_3 and result_form_4 are in ballot_2_duplicates
+        self.assertIn(result_form_3, ballot_2_duplicates)
+        self.assertIn(result_form_4, ballot_2_duplicates)
+
+        # check result_form_1 and result_form_2 are not in ballot_2_duplicates
+        self.assertNotIn(result_form_1, ballot_2_duplicates)
+        self.assertNotIn(result_form_2, ballot_2_duplicates)
+
+        self.assertIn(result_form_1, all_duplicates)
+        self.assertIn(result_form_2, all_duplicates)
+        self.assertIn(result_form_3, all_duplicates)
+        self.assertIn(result_form_4, all_duplicates)
