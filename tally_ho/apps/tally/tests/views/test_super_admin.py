@@ -904,7 +904,12 @@ class TestSuperAdmin(TestBase):
         barcode = '1234',
         center = create_center('12345', tally=tally)
         station = create_station(center)
-        result_form_1, _ = ResultForm.objects.get_or_create(
+        result_form_1 = create_result_form(
+            tally=tally,
+            ballot=ballot_1,
+            center=center,
+            station_number=station.station_number)
+        result_form_2, _ = ResultForm.objects.get_or_create(
             id=2,
             ballot=ballot_1,
             barcode=barcode,
@@ -917,11 +922,6 @@ class TestSuperAdmin(TestBase):
             is_replacement=False,
             tally=tally,
         )
-        result_form_2 = create_result_form(
-            tally=tally,
-            ballot=ballot_1,
-            center=center,
-            station_number=station.station_number)
         votes = 12
         create_candidates(result_form_1, votes=votes, user=self.user,
                           num_results=1)
@@ -1009,7 +1009,56 @@ class TestSuperAdmin(TestBase):
         self.assertIn(result_form_3, all_duplicates)
         self.assertIn(result_form_4, all_duplicates)
 
-    def test_duplicate_result_form_view_post(self):
+    def test_duplicate_result_form_view_duplicate_reviewed_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot = create_ballot(tally=tally)
+        barcode = '1234',
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        result_form_1 = create_result_form(
+            tally=tally,
+            ballot=ballot,
+            center=center,
+            station_number=station.station_number)
+        result_form_2, _ = ResultForm.objects.get_or_create(
+            id=2,
+            ballot=ballot,
+            barcode=barcode,
+            serial_number=2,
+            form_state=FormState.UNSUBMITTED,
+            station_number=station.station_number,
+            user=None,
+            center=center,
+            gender=Gender.MALE,
+            is_replacement=False,
+            tally=tally,
+        )
+        votes = 12
+        create_candidates(result_form_1, votes=votes, user=self.user,
+                          num_results=1)
+
+        for result in result_form_1.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # create duplicate final results
+            create_result(result_form_2, result.candidate, self.user, votes)
+        view = views.DuplicateResultFormView.as_view()
+        data = {'duplicate_reviewed': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        configure_messages(request)
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+
+        result_form_1.reload()
+        result_form_2.reload()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, "/super-administrator/duplicate-result-tracking/1/")
+        self.assertTrue(result_form_1.duplicate_reviewed)
+        self.assertTrue(result_form_2.duplicate_reviewed)
+
+    def test_duplicate_result_form_view_send_clearance_post(self):
         tally = create_tally()
         tally.users.add(self.user)
         ballot = create_ballot(tally=tally)
@@ -1040,3 +1089,71 @@ class TestSuperAdmin(TestBase):
             response.url, "/super-administrator/duplicate-result-tracking/1/")
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
         self.assertTrue(result_form.duplicate_reviewed)
+
+    def test_duplicate_result_form_view_send_all_clearance_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot = create_ballot(tally=tally)
+        barcode = '1234',
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        result_form_1 = create_result_form(
+            tally=tally,
+            ballot=ballot,
+            center=center,
+            station_number=station.station_number)
+        result_form_2, _ = ResultForm.objects.get_or_create(
+            id=2,
+            ballot=ballot,
+            barcode=barcode,
+            serial_number=2,
+            form_state=FormState.UNSUBMITTED,
+            station_number=station.station_number,
+            user=None,
+            center=center,
+            gender=Gender.MALE,
+            is_replacement=False,
+            tally=tally,
+        )
+        result_form_3, _ = ResultForm.objects.get_or_create(
+            id=3,
+            ballot=ballot,
+            barcode="12345",
+            serial_number=3,
+            form_state=FormState.ARCHIVED,
+            station_number=station.station_number,
+            user=None,
+            center=center,
+            gender=Gender.MALE,
+            is_replacement=False,
+            tally=tally,
+        )
+        votes = 12
+        create_candidates(result_form_1, votes=votes, user=self.user,
+                          num_results=1)
+
+        for result in result_form_1.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # create duplicate final results
+            create_result(result_form_2, result.candidate, self.user, votes)
+            create_result(result_form_3, result.candidate, self.user, votes)
+        view = views.DuplicateResultFormView.as_view()
+        data = {'send_all_clearance': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        configure_messages(request)
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+
+        result_form_1.reload()
+        result_form_2.reload()
+        result_form_3.reload()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, "/super-administrator/duplicate-result-tracking/1/")
+        self.assertEqual(result_form_1.form_state, FormState.CLEARANCE)
+        self.assertTrue(result_form_1.duplicate_reviewed)
+        self.assertEqual(result_form_2.form_state, FormState.CLEARANCE)
+        self.assertTrue(result_form_2.duplicate_reviewed)
+        self.assertNotEqual(result_form_3.form_state, FormState.CLEARANCE)
+        self.assertFalse(result_form_3.duplicate_reviewed)
