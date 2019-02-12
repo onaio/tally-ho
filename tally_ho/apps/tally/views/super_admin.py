@@ -474,7 +474,7 @@ class DuplicateResultFormView(LoginRequiredMixin,
                     results_form_duplicate.save()
 
             self.success_message = _(
-                u"All Forms ssuccessfully sent to clearance")
+                u"All forms successfully sent to clearance")
 
             messages.add_message(
                 self.request, messages.INFO, self.success_message)
