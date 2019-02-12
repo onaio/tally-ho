@@ -1053,8 +1053,8 @@ class TestSuperAdmin(TestBase):
         result_form_1.reload()
         result_form_2.reload()
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url, "/super-administrator/duplicate-result-tracking/1/")
+        self.assertIn(
+            "/super-administrator/duplicate-result-tracking",  response.url)
         self.assertTrue(result_form_1.duplicate_reviewed)
         self.assertTrue(result_form_2.duplicate_reviewed)
 
@@ -1085,8 +1085,8 @@ class TestSuperAdmin(TestBase):
 
         result_form.reload()
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url, "/super-administrator/duplicate-result-tracking/1/")
+        self.assertIn(
+            "/super-administrator/duplicate-result-tracking",  response.url)
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
         self.assertTrue(result_form.duplicate_reviewed)
 
@@ -1149,8 +1149,8 @@ class TestSuperAdmin(TestBase):
         result_form_2.reload()
         result_form_3.reload()
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url, "/super-administrator/duplicate-result-tracking/1/")
+        self.assertIn(
+            "/super-administrator/duplicate-result-tracking",  response.url)
         self.assertEqual(result_form_1.form_state, FormState.CLEARANCE)
         self.assertTrue(result_form_1.duplicate_reviewed)
         self.assertEqual(result_form_2.form_state, FormState.CLEARANCE)
