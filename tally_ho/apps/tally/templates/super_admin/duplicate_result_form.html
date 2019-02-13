@@ -6,6 +6,14 @@
 
 <h2>{% trans "Duplicate result forms list for ballot: " %} {{ ballot_id }}</h2>
 
+{% if messages %}
+<ul class="text-danger">
+    {% for message in messages %}
+    <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
 <ul>
     {% for form in results_form_duplicates %}
         <li><a href="{% url 'duplicate_result_form' tally_id form.barcode form.ballot.number %}">
