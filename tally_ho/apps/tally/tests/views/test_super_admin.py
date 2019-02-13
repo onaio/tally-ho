@@ -1090,6 +1090,36 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
         self.assertTrue(result_form.duplicate_reviewed)
 
+        # check archived form is not sent to clearance
+        result_form_2, _ = ResultForm.objects.get_or_create(
+            id=2,
+            ballot=ballot,
+            barcode="1234",
+            serial_number=2,
+            form_state=FormState.ARCHIVED,
+            station_number=station.station_number,
+            user=None,
+            center=center,
+            gender=Gender.MALE,
+            is_replacement=False,
+            tally=tally,
+        )
+        create_candidates(result_form_2, votes=votes, user=self.user,
+                          num_results=1)
+        data = {'result_form': result_form_2.pk,
+                'send_clearance': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        configure_messages(request)
+        request.session = {'result_form': result_form_2.pk}
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+
+        result_form_2.reload()
+        self.assertNotEqual(result_form_2.form_state, FormState.CLEARANCE)
+        self.assertEqual(result_form_2.form_state, FormState.ARCHIVED)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual("/",  response.url)
+
     def test_duplicate_result_form_view_send_all_clearance_post(self):
         tally = create_tally()
         tally.users.add(self.user)
@@ -1115,11 +1145,49 @@ class TestSuperAdmin(TestBase):
             is_replacement=False,
             tally=tally,
         )
-        result_form_3, _ = ResultForm.objects.get_or_create(
-            id=3,
+        votes = 12
+        create_candidates(result_form_1, votes=votes, user=self.user,
+                          num_results=1)
+
+        for result in result_form_1.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # create duplicate final results
+            create_result(result_form_2, result.candidate, self.user, votes)
+        view = views.DuplicateResultFormView.as_view()
+        data = {'send_all_clearance': 1}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        configure_messages(request)
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+
+        result_form_1.reload()
+        result_form_2.reload()
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            "/super-administrator/duplicate-result-tracking",  response.url)
+        self.assertEqual(result_form_1.form_state, FormState.CLEARANCE)
+        self.assertTrue(result_form_1.duplicate_reviewed)
+        self.assertEqual(result_form_2.form_state, FormState.CLEARANCE)
+        self.assertTrue(result_form_2.duplicate_reviewed)
+
+    def test_duplicate_archived_result_forms_send_all_clearance_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot = create_ballot(tally=tally)
+        barcode = '1234',
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        result_form_1 = create_result_form(
+            tally=tally,
             ballot=ballot,
-            barcode="12345",
-            serial_number=3,
+            center=center,
+            station_number=station.station_number)
+        result_form_2, _ = ResultForm.objects.get_or_create(
+            id=2,
+            ballot=ballot,
+            barcode=barcode,
+            serial_number=2,
             form_state=FormState.ARCHIVED,
             station_number=station.station_number,
             user=None,
@@ -1131,13 +1199,11 @@ class TestSuperAdmin(TestBase):
         votes = 12
         create_candidates(result_form_1, votes=votes, user=self.user,
                           num_results=1)
-
         for result in result_form_1.results.all():
             result.entry_version = EntryVersion.FINAL
             result.save()
             # create duplicate final results
             create_result(result_form_2, result.candidate, self.user, votes)
-            create_result(result_form_3, result.candidate, self.user, votes)
         view = views.DuplicateResultFormView.as_view()
         data = {'send_all_clearance': 1}
         request = self.factory.post('/', data=data)
@@ -1147,13 +1213,9 @@ class TestSuperAdmin(TestBase):
 
         result_form_1.reload()
         result_form_2.reload()
-        result_form_3.reload()
         self.assertEqual(response.status_code, 302)
-        self.assertIn(
-            "/super-administrator/duplicate-result-tracking",  response.url)
+        self.assertEqual("/", response.url)
         self.assertEqual(result_form_1.form_state, FormState.CLEARANCE)
         self.assertTrue(result_form_1.duplicate_reviewed)
-        self.assertEqual(result_form_2.form_state, FormState.CLEARANCE)
-        self.assertTrue(result_form_2.duplicate_reviewed)
-        self.assertNotEqual(result_form_3.form_state, FormState.CLEARANCE)
-        self.assertFalse(result_form_3.duplicate_reviewed)
+        self.assertNotEqual(result_form_2.form_state, FormState.CLEARANCE)
+        self.assertFalse(result_form_2.duplicate_reviewed)
