@@ -10,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib import messages
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse
 
 from guardian.mixins import LoginRequiredMixin
@@ -170,14 +170,15 @@ def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
     result_form_ids = ResultForm.objects.exclude(results=None).values(
         'ballot',
         'results__votes',
-        'results__candidate').annotate(ids=ArrayAgg('id')).annotate(
-            duplicate_count=Count('id')).annotate(
-                ids=Func('ids', function='unnest')).filter(
-                    duplicate_count__gt=1,
-                    tally_id=tally_id,
-                    duplicate_reviewed=False
-                    ).order_by('ballot').values_list(
-                        'ids', flat=True).distinct()
+        'results__candidate')\
+        .annotate(ids=ArrayAgg('id'))\
+        .annotate(duplicate_count=Count('id'))\
+        .annotate(ids=Func('ids', function='unnest'))\
+        .filter(
+            duplicate_count__gt=1,
+            tally_id=tally_id,
+            duplicate_reviewed=False
+        ).order_by('ballot').values_list('ids', flat=True).distinct()
 
     results_form_duplicates = ResultForm.objects.filter(
         id__in=[id for id in result_form_ids])
@@ -456,22 +457,40 @@ class DuplicateResultFormView(LoginRequiredMixin,
             pk = post_data.get('result_form')
             result_form = get_object_or_404(
                 ResultForm, pk=pk, tally__id=tally_id)
-            result_form.duplicate_reviewed = True
-            result_form.form_state = FormState.CLEARANCE
-            result_form.save()
+            if result_form.form_state != FormState.ARCHIVED:
+                result_form.duplicate_reviewed = True
+                result_form.form_state = FormState.CLEARANCE
+                result_form.save()
 
-            self.success_message = _(u"Form successfully sent to clearance")
+                self.success_message =\
+                    _(u"Form successfully sent to clearance")
 
-            messages.add_message(
-                self.request, messages.INFO, self.success_message)
+                messages.add_message(
+                    self.request, messages.INFO, self.success_message)
 
-            return redirect(self.success_url, tally_id=tally_id)
+                return redirect(self.success_url, tally_id=tally_id)
+            else:
+                messages.error(
+                    self.request,
+                    _(u"Archived form can not be sent to clearance."))
+                return HttpResponseRedirect(self.request.path_info)
         elif 'send_all_clearance' in post_data:
+            archived_forms_barcodes = []
             for results_form_duplicate in results_form_duplicates:
                 if results_form_duplicate.form_state != FormState.ARCHIVED:
                     results_form_duplicate.duplicate_reviewed = True
                     results_form_duplicate.form_state = FormState.CLEARANCE
                     results_form_duplicate.save()
+                else:
+                    archived_forms_barcodes.append(
+                        results_form_duplicate.barcode)
+
+            if archived_forms_barcodes:
+                messages.error(
+                    self.request,
+                    _(u"Archived form(s) (%s) can not be sent to clearance.") %
+                    (', '.join(archived_forms_barcodes)))
+                return HttpResponseRedirect(self.request.path_info)
 
             self.success_message = _(
                 u"All forms successfully sent to clearance")
