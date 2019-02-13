@@ -491,14 +491,15 @@ class DuplicateResultFormView(LoginRequiredMixin,
                     _(u"Archived form(s) (%s) can not be sent to clearance.") %
                     (', '.join(archived_forms_barcodes)))
                 return HttpResponseRedirect(self.request.path_info)
+            else:
+                self.success_message = _(
+                        u"All forms successfully sent to clearance")
 
-            self.success_message = _(
-                u"All forms successfully sent to clearance")
+                messages.add_message(
+                    self.request, messages.INFO, self.success_message)
 
-            messages.add_message(
-                self.request, messages.INFO, self.success_message)
+                return redirect(self.success_url, tally_id=tally_id)
 
-            return redirect(self.success_url, tally_id=tally_id)
         else:
             raise SuspiciousOperation('Unknown POST response type')
 
