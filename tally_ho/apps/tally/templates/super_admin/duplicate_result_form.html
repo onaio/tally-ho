@@ -11,15 +11,13 @@
         <li><a href="{% url 'duplicate_result_form' tally_id form.barcode form.ballot.number %}">
                 {% trans 'Result form barcode: ' %} {{ form.barcode }}
             </a>
-            {% if form.form_state.name != "ARCHIVED"  %}
-                <form method="post" action="" class="pull-right">
-                    <input type="hidden" name="result_form" value="{{ form.pk }}">
-                    <button type="submit" name="send_clearance" class="btn btn-small btn-danger" role"button">
-                        {% trans "Send to clearance" %}
-                    </button>
-                    {% csrf_token %}
-                </form>
-            {% endif %}
+            <form method="post" action="" class="pull-right">
+                <input type="hidden" name="result_form" value="{{ form.pk }}">
+                <button type="submit" name="send_clearance" class="btn btn-small btn-danger" {% if form.form_state.name == 'ARCHIVED' %} disabled {% endif %} role"button">
+                    {% trans "Send to clearance" %}
+                </button>
+                {% csrf_token %}
+            </form>
         </li>
         <br />
         <br />
