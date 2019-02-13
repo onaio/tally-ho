@@ -178,10 +178,10 @@ def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
             duplicate_count__gt=1,
             tally_id=tally_id,
             duplicate_reviewed=False
-        ).order_by('ballot').values_list('ids', flat=True).distinct()
+        ).values_list('ids', flat=True).distinct()
 
-    results_form_duplicates = ResultForm.objects.filter(
-        id__in=[id for id in result_form_ids])
+    results_form_duplicates =\
+        ResultForm.objects.filter(id__in=result_form_ids).order_by('ballot')
 
     if ballot:
         results_form_duplicates = results_form_duplicates.filter(ballot=ballot)
