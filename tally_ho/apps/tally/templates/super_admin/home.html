@@ -21,6 +21,7 @@
     <li><a href="{% url 'candidate-list' tally_id=tally_id %}">{% trans 'Candidate List' %}</a></li>
     <li><a href="{% url 'form-not-received-view' tally_id=tally_id %}">{% trans 'Forms Not Received' %}</a></li>
     <li><a href="{% url 'form-action-view' tally_id=tally_id %}">{% trans 'Forms Waiting for Approval' %}</a></li>
+    <li><a href="{% url 'duplicate-result-tracking' tally_id=tally_id %}">{% trans 'Duplicate Result Tracking' %}</a></li>
     <li><a href="{% url 'quarantine-checks' %}">{% trans 'Quarantine Checks' %}</a></li>
 </ul>
 

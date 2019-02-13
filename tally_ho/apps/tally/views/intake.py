@@ -98,6 +98,7 @@ class CenterDetailsView(LoginRequiredMixin,
 
             if result_form.form_state != FormState.DATA_ENTRY_1:
                 result_form.form_state = FormState.INTAKE
+                result_form.duplicate_reviewed = False
                 result_form.user = user.userprofile
                 result_form.save()
 
@@ -278,6 +279,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
         else:
             del self.request.session['result_form']
             result_form.form_state = FormState.UNSUBMITTED
+            result_form.duplicate_reviewed = False
             url = 'intake'
 
         result_form.date_seen = now()
@@ -321,6 +323,7 @@ class PrintCoverView(LoginRequiredMixin,
                                               [FormState.INTAKE], result_form)
             form_in_state(result_form, possible_states)
             result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.duplicate_reviewed = False
             result_form.save()
 
             return redirect('intaken', tally_id=tally_id)

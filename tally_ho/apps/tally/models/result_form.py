@@ -78,7 +78,7 @@ def match_results(result_form, results=None):
 
 
 def sanity_check_final_results(result_form):
-    """Deactivate duplicate fnal results.
+    """Deactivate duplicate final results.
 
     Each result form should have one final result for each candidate.  If there
     are multiple final results for a candidate deactivate them.
@@ -158,6 +158,7 @@ class ResultForm(BaseModel):
     audited_count = models.PositiveIntegerField(default=0)
     barcode = models.CharField(max_length=255)
     date_seen = models.DateTimeField(null=True)
+    duplicate_reviewed = models.BooleanField(default=False)
     form_stamped = models.NullBooleanField()
     form_state = EnumIntegerField(FormState)
     previous_form_state = EnumIntegerField(FormState, blank=True, null=True)
@@ -404,6 +405,7 @@ class ResultForm(BaseModel):
 
         self.rejected_count += 1
         self.form_state = new_state
+        self.duplicate_reviewed = False
         self.reject_reason = reject_reason
         self.save()
 

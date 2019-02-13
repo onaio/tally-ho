@@ -347,6 +347,7 @@ class EnterResultsView(LoginRequiredMixin,
                 re_form.save()
 
             result_form.form_state = new_state
+            result_form.duplicate_reviewed = False
             result_form.save()
 
             return redirect(self.success_url, tally_id=tally_id)

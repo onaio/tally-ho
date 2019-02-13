@@ -130,6 +130,14 @@ urlpatterns = [
     re_path(r'^super-administrator/form-action-list/(?P<tally_id>(\d+))/$',
             super_admin.FormActionView.as_view(),
             name='form-action-view'),
+    re_path(r'^super-administrator/duplicate-result-tracking/'
+            r'(?P<tally_id>(\d+))/$',
+            super_admin.DuplicateResultTrackingView.as_view(),
+            name='duplicate-result-tracking'),
+    re_path(r'^super-administrator/duplicate_result_form/(?P<tally_id>(\d+))/'
+            r'(?P<barcode>(\d+))/(?P<ballot_id>(\d+))/$',
+            super_admin.DuplicateResultFormView.as_view(),
+            name='duplicate_result_form'),
     re_path(r'^super-administrator/form-progress-data/(?P<tally_id>(\d+))/$',
             super_admin.FormProgressDataView.as_view(),
             name='form-progress-data'),

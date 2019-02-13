@@ -2,14 +2,15 @@ from collections import defaultdict
 
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count
+from django.db.models import Count, Func
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.views.generic import FormView, TemplateView
 from django.utils.translation import ugettext_lazy as _
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib import messages
-from django.http import Http404
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse
 
 from guardian.mixins import LoginRequiredMixin
@@ -34,6 +35,7 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
@@ -155,6 +157,36 @@ def get_results_duplicates(tally_id):
                     result_forms_founds.append(form)
 
     return result_forms_founds
+
+
+def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
+    """Build a list of result forms sorted by ballot of results forms for
+    which there are more than 1 result form in the same ballot with the same
+    number of votes per candidate, and the `duplicate_reviewed`
+    column is false.
+
+    :returns A list of result forms in the system with duplicate results.
+    """
+    result_form_ids = ResultForm.objects.exclude(results=None).values(
+        'ballot',
+        'results__votes',
+        'results__candidate')\
+        .annotate(ids=ArrayAgg('id'))\
+        .annotate(duplicate_count=Count('id'))\
+        .annotate(ids=Func('ids', function='unnest'))\
+        .filter(
+            duplicate_count__gt=1,
+            tally_id=tally_id,
+            duplicate_reviewed=False
+        ).values_list('ids', flat=True).distinct()
+
+    results_form_duplicates =\
+        ResultForm.objects.filter(id__in=result_form_ids).order_by('ballot')
+
+    if ballot:
+        results_form_duplicates = results_form_duplicates.filter(ballot=ballot)
+
+    return results_form_duplicates
 
 
 class TalliesView(LoginRequiredMixin,
@@ -358,6 +390,118 @@ class FormProgressView(LoginRequiredMixin,
             remote_url=reverse('form-progress-data',
                                kwargs={'tally_id': tally_id}),
             tally_id=tally_id))
+
+
+class DuplicateResultTrackingView(LoginRequiredMixin,
+                                  mixins.GroupRequiredMixin,
+                                  mixins.TallyAccessMixin,
+                                  TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/duplicate_result_tracking.html"
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
+
+        return self.render_to_response(self.get_context_data(
+            duplicate_results=get_result_form_with_duplicate_results(
+                tally_id=tally_id),
+            tally_id=tally_id))
+
+
+class DuplicateResultFormView(LoginRequiredMixin,
+                              mixins.GroupRequiredMixin,
+                              mixins.TallyAccessMixin,
+                              SuccessMessageMixin,
+                              TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/duplicate_result_form.html"
+    success_url = "duplicate-result-tracking"
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
+        barcode = kwargs['barcode']
+        ballot_id = kwargs['ballot_id']
+        result_form = ResultForm.objects.get(barcode=barcode)
+        results = Result.objects.filter(result_form=result_form.id)
+
+        return self.render_to_response(self.get_context_data(
+            results_form_duplicates=get_result_form_with_duplicate_results(
+                ballot=ballot_id,
+                tally_id=tally_id),
+            results=results,
+            tally_id=tally_id,
+            ballot_id=ballot_id,
+            header_text="Form " + str(barcode)))
+
+    def post(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
+        ballot_id = kwargs['ballot_id']
+        post_data = self.request.POST
+        results_form_duplicates = get_result_form_with_duplicate_results(
+            ballot=ballot_id,
+            tally_id=tally_id)
+
+        if 'duplicate_reviewed' in post_data:
+            for results_form_duplicate in results_form_duplicates:
+                results_form_duplicate.duplicate_reviewed = True
+                results_form_duplicate.save()
+
+            self.success_message = _(
+                u"Successfully marked forms as duplicate reviewed")
+
+            messages.add_message(
+                self.request, messages.INFO, self.success_message)
+
+            return redirect(self.success_url, tally_id=tally_id)
+        elif 'send_clearance' in post_data:
+            pk = post_data.get('result_form')
+            result_form = get_object_or_404(
+                ResultForm, pk=pk, tally__id=tally_id)
+            if result_form.form_state != FormState.ARCHIVED:
+                result_form.duplicate_reviewed = True
+                result_form.form_state = FormState.CLEARANCE
+                result_form.save()
+
+                self.success_message =\
+                    _(u"Form successfully sent to clearance")
+
+                messages.add_message(
+                    self.request, messages.INFO, self.success_message)
+
+                return redirect(self.success_url, tally_id=tally_id)
+            else:
+                messages.error(
+                    self.request,
+                    _(u"Archived form can not be sent to clearance."))
+                return HttpResponseRedirect(self.request.path_info)
+        elif 'send_all_clearance' in post_data:
+            archived_forms_barcodes = []
+            for results_form_duplicate in results_form_duplicates:
+                if results_form_duplicate.form_state != FormState.ARCHIVED:
+                    results_form_duplicate.duplicate_reviewed = True
+                    results_form_duplicate.form_state = FormState.CLEARANCE
+                    results_form_duplicate.save()
+                else:
+                    archived_forms_barcodes.append(
+                        results_form_duplicate.barcode)
+
+            if archived_forms_barcodes:
+                messages.error(
+                    self.request,
+                    _(u"Archived form(s) (%s) can not be sent to clearance.") %
+                    (', '.join(archived_forms_barcodes)))
+                return HttpResponseRedirect(self.request.path_info)
+            else:
+                self.success_message = _(
+                        u"All forms successfully sent to clearance")
+
+                messages.add_message(
+                    self.request, messages.INFO, self.success_message)
+
+                return redirect(self.success_url, tally_id=tally_id)
+
+        else:
+            raise SuspiciousOperation('Unknown POST response type')
 
 
 class FormDuplicatesView(LoginRequiredMixin,
