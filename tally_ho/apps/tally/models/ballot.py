@@ -68,7 +68,7 @@ class Ballot(BaseModel):
     document = models.FileField(upload_to=ballot_document_directory_path,
                                 null=True,
                                 blank=True,
-                                default=None)
+                                default="")
     number = models.PositiveSmallIntegerField()
     race_type = EnumIntegerField(RaceType)
     tally = models.ForeignKey(Tally,
