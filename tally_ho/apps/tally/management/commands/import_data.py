@@ -323,7 +323,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
 
     try:
         ballot = Ballot.objects.get(number=ballot_number, tally=tally)
-        if ballot and not ballot.active:
+        if not ballot.active:
             msg = 'Race for ballot "%s" is disabled' % ballot_number
             if command:
                 command.stdout.write(command.style.WARNING(msg))
@@ -342,7 +342,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
 
     try:
         center = Center.objects.get(code=code, tally=tally)
-        if center and not center.active:
+        if not center.active:
             msg = 'Selected center "%s" is disabled' % code
             if command:
                 command.stdout.write(command.style.WARNING(msg))
@@ -360,7 +360,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
         station = Station.objects.get(
             station_number=station_number,
             center=center)
-        if station and not station.active:
+        if not station.active:
             msg = 'Selected station "%s" is disabled' % station_number
             if command:
                 command.stdout.write(command.style.WARNING(msg))
