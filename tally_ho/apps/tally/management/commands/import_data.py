@@ -318,14 +318,68 @@ def process_results_form_row(tally, row, command=None, logger=None):
     ballot_number, code, station_number, gender, name,\
         office_name, _, barcode, serial_number = row[0:9]
 
-    ballot = Ballot.objects.get(number=ballot_number, tally=tally)
     gender = gender and getattr(Gender, gender.upper())
+    ballot = None
+
+    try:
+        ballot = Ballot.objects.get(number=ballot_number, tally=tally)
+        if not ballot.active:
+            msg = 'Race for ballot "%s" is disabled' % ballot_number
+            if command:
+                command.stdout.write(command.style.WARNING(msg))
+            if logger:
+                logger.warning(msg)
+
+    except ballot.DoesNotExist:
+        msg = str('Ballot "%s" does not exist for tally "%s"') %\
+            (ballot_number, tally.name)
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
     center = None
 
     try:
         center = Center.objects.get(code=code, tally=tally)
+        if not center.active:
+            msg = 'Selected center "%s" is disabled' % code
+            if command:
+                command.stdout.write(command.style.WARNING(msg))
+            if logger:
+                logger.warning(msg)
+
     except Center.DoesNotExist:
         msg = 'Center "%s" does not exist' % code
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
+    try:
+        station = Station.objects.get(
+            station_number=station_number,
+            center=center)
+        if not station.active:
+            msg = 'Selected station "%s" is disabled' % station_number
+            if command:
+                command.stdout.write(command.style.WARNING(msg))
+            if logger:
+                logger.warning(msg)
+
+    except Station.DoesNotExist:
+        msg = str('Station "%s" does not exist for center "%s"') %\
+            (station_number, code)
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
+    if center and center.sub_constituency and \
+            ballot.number != center.sub_constituency.code:
+        msg = str('Ballot number "%s" do not match for center "%s" '
+                  'and station "%s"') %\
+            (ballot.number, code, station_number)
         if command:
             command.stdout.write(command.style.WARNING(msg))
         if logger:
