@@ -1009,6 +1009,58 @@ class TestSuperAdmin(TestBase):
         self.assertIn(result_form_3, all_duplicates)
         self.assertIn(result_form_4, all_duplicates)
 
+    def test_duplicate_result_form_view_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot = create_ballot(tally=tally)
+        barcode = '1234'
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        result_form_1 = create_result_form(
+            tally=tally,
+            ballot=ballot,
+            center=center,
+            station_number=station.station_number)
+        result_form_2, _ = ResultForm.objects.get_or_create(
+            id=2,
+            ballot=ballot,
+            barcode=barcode,
+            serial_number=2,
+            form_state=FormState.UNSUBMITTED,
+            station_number=station.station_number,
+            user=None,
+            center=center,
+            gender=Gender.MALE,
+            is_replacement=False,
+            tally=tally,
+        )
+        votes = 12
+        create_candidates(result_form_1, votes=votes, user=self.user,
+                          num_results=1)
+
+        for result in result_form_1.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # create duplicate final results
+            create_result(result_form_2, result.candidate, self.user, votes)
+        view = views.DuplicateResultFormView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.pk,
+            barcode=barcode,
+            ballot_id=ballot.pk)
+        response.render()
+        self.assertIn(("{}{}").format(
+            "Duplicate result forms list for ballot:  ",
+            ballot.pk), str(response.content))
+        self.assertIn(("{}{}").format("Result form barcode:  ",
+                                      barcode), str(response.content))
+        self.assertIn("Send to clearance", str(response.content))
+        self.assertIn("Send all to clearance", str(response.content))
+        self.assertIn("Mark as reviewed and accepted", str(response.content))
+
     def test_duplicate_result_form_view_duplicate_reviewed_post(self):
         tally = create_tally()
         tally.users.add(self.user)
