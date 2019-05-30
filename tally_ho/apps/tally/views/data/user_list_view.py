@@ -23,6 +23,13 @@ class UserListDataView(LoginRequiredMixin,
         'edit',
     )
 
+    def render_column(self, row, column):
+        if column == 'edit':
+            return row.get_edit_tally_link
+        else:
+            return super(UserListDataView, self).render_column(
+                row, column)
+
     def get(self, request, *args, **kwargs):
         self.role = kwargs.get('role', '')
 
