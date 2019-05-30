@@ -196,7 +196,7 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Remove a Center</a>")
-    
+
     def test_tallies_view_get_with_no_tallies(self):
         tally = create_tally()
         tally.users.add(self.user)
