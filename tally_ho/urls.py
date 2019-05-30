@@ -26,17 +26,15 @@ accounts_urls = [
          },
          name='login'),
     path('password_change/',
-         auth_views.PasswordChangeView.as_view(),
-         {
-             'password_change_form': PasswordChangeForm,
-             'post_change_redirect': '/'},
+         auth_views.PasswordChangeView.as_view(
+             form_class=PasswordChangeForm),
          name='password_change'),
     path('password_change/done/',
          auth_views.PasswordChangeDoneView.as_view(),
          name='password_change_done'),
     path('logout/',
          auth_views.LogoutView.as_view(),
-         {'next_page': '/'},
+         {'next_page': settings.LOGOUT_REDIRECT_URL},
          name='logout'),
 ]
 
