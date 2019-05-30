@@ -421,7 +421,8 @@ class DuplicateResultFormView(LoginRequiredMixin,
         tally_id = kwargs['tally_id']
         barcode = kwargs['barcode']
         ballot_id = kwargs['ballot_id']
-        result_form = ResultForm.objects.get(barcode=barcode)
+        result_form = ResultForm.objects.get(
+            barcode=barcode, tally_id=tally_id)
         results = Result.objects.filter(result_form=result_form.id)
 
         return self.render_to_response(self.get_context_data(

@@ -16,7 +16,7 @@
 
 <ul>
     {% for form in results_form_duplicates %}
-        <li><a href="{% url 'duplicate_result_form' tally_id form.barcode form.ballot.number %}">
+        <li><a href="{% url 'duplicate_result_form' form.tally_id form.barcode form.ballot.number %}">
                 {% trans 'Result form barcode: ' %} {{ form.barcode }}
             </a>
             <form method="post" action="" class="pull-right">
