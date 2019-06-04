@@ -164,3 +164,6 @@ LOCALE_PATHS = (os.path.realpath(os.path.join(BASE_DIR, '..', 'locale')),)
 
 # Logging
 LOG_FILE_PATH = os.path.join(BASE_DIR, '..', 'dev.log')
+
+# Logout Redirect
+LOGOUT_REDIRECT_URL = "/"

@@ -32,7 +32,7 @@ class CandidateListDataView(LoginRequiredMixin,
                 row, column)
 
     def filter_queryset(self, qs):
-        tally_id = self.request.GET.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id', None)
 
         if tally_id:
             qs = qs.filter(tally__id=tally_id)

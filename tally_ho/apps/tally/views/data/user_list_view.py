@@ -23,13 +23,20 @@ class UserListDataView(LoginRequiredMixin,
         'edit',
     )
 
+    def render_column(self, row, column):
+        if column == 'edit':
+            return row.get_edit_tally_link
+        else:
+            return super(UserListDataView, self).render_column(
+                row, column)
+
     def get(self, request, *args, **kwargs):
         self.role = kwargs.get('role', '')
 
         return super(UserListDataView, self).get(request, *args, **kwargs)
 
     def filter_queryset(self, qs):
-        tally_id = self.request.GET.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id', None)
         keyword = self.request.GET.get('search[value]', None)
 
         if self.role == 'admin':

@@ -6,6 +6,7 @@ from django.contrib.messages.storage import default_storage
 from django.conf import settings
 from django.test import RequestFactory
 
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
@@ -195,6 +196,33 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Remove a Center</a>")
+
+    def test_tallies_view_get_with_no_tallies(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.TalliesView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request, tally_id=tally.pk)
+        response.render()
+        self.assertNotIn(tally.name, str(response.content))
+        self.assertIn(
+            "You have no tally assigned to be administrated",
+            str(response.content))
+
+    def test_tallies_view_get_with_tallies(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.TalliesView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.user.administrated_tallies.set(Tally.objects.all())
+        response = view(request, tally_id=tally.pk)
+        response.render()
+        self.assertIn(tally.name, str(response.content))
+        self.assertNotIn(
+            "You have no tally assigned to be administrated",
+            str(response.content))
 
     def test_remove_station_get(self):
         tally = create_tally()

@@ -1,0 +1,11 @@
+{
+    "python.pythonPath": "/Users/zebra/.virtualenvs/tally/bin/python",
+    "python.linting.pylintEnabled": false,
+    "python.linting.pep8Enabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Path": "/Users/zebra/.virtualenvs/tally/bin/flake8",
+    "python.linting.flake8Args": [
+        "--exclude=migrations,src,settings,local_settings.py"
+    ],
+    "python.jediEnabled": false
+}
