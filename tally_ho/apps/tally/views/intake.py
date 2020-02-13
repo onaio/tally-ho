@@ -1,7 +1,10 @@
+import dateutil.parser
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.urls import reverse
 from django.utils.translation import ugettext as _
+from django.utils import timezone
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.center_details_form import\
@@ -9,6 +12,7 @@ from tally_ho.apps.tally.forms.center_details_form import\
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
@@ -59,6 +63,9 @@ class CenterDetailsView(LoginRequiredMixin,
         self.tally_id = kwargs['tally_id']
         form_class = self.get_form_class()
         form = self.get_form(form_class)
+        self.request.session[
+            'encoded_result_form_intake_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode'] or\
@@ -372,6 +379,17 @@ class ConfirmationView(LoginRequiredMixin,
         tally_id = kwargs['tally_id']
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+        user = self.request.user
+        result_form_intake_start_time = dateutil.parser.parse(
+            self.request.session.get('encoded_result_form_intake_start_time'))
+
+        ResultFormStats.objects.get_or_create(
+            form_state=FormState.INTAKE,
+            start_time=result_form_intake_start_time,
+            end_time=timezone.now(),
+            user=user.userprofile,
+            result_form=result_form)
+
         del self.request.session['result_form']
 
         return self.render_to_response(
