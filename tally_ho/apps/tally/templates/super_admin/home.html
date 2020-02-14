@@ -55,6 +55,17 @@
     <li><a href="{% url 'remove-station' tally_id=tally_id %}">{% trans 'Remove a Station' %}</a></li>
 </ul>
 
+<h3>{% trans 'Staff Performance Metrics' %}</h3>
+<ul>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=intake %}">{% trans 'Intake Clerks' %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=clearance %}">{% trans 'Clearance Clerks' %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=data_entry_clerk_1 %}">{% trans 'Data Entry 1 Clerks' %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=data_entry_clerk_2 %}">{% trans 'Data Entry 2 Clerks' %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=corrections %}">{% trans 'Corrections Clerks' %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=quality_control %}">{% trans 'Quality Control & Archiving Clerks' %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=audit %}">{% trans 'Audit Clerks' %}</a></li>
+</ul>
+
 {% if debug %}
 <h3>{% trans 'Users and groups' %}</h3>
 
