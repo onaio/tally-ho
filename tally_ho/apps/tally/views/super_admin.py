@@ -214,6 +214,13 @@ class DashboardView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         group_logins = [g.lower().replace(' ', '_') for g in groups.GROUPS]
         kwargs['groups'] = group_logins
+        kwargs['intake'] = FormState.INTAKE.value
+        kwargs['clearance'] = FormState.CLEARANCE.value
+        kwargs['data_entry_clerk_1'] = FormState.DATA_ENTRY_1.value
+        kwargs['data_entry_clerk_2'] = FormState.DATA_ENTRY_2.value
+        kwargs['corrections'] = FormState.CORRECTION.value
+        kwargs['quality_control'] = FormState.QUALITY_CONTROL.value
+        kwargs['audit'] = FormState.AUDIT.value
 
         return self.render_to_response(self.get_context_data(**kwargs))
 
