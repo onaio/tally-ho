@@ -14,6 +14,7 @@ from tally_ho.apps.tally.views.data import center_list_view, form_list_view,\
     candidate_list_view, race_list_view, user_list_view, tally_list_view
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
+from tally_ho.apps.tally.views.reports import staff_performance_metrics
 
 admin.autodiscover()
 
@@ -355,6 +356,11 @@ urlpatterns = [
     re_path(r'^reports/internal/race/(?P<tally_id>(\d+))/$',
             races.RacesReportView.as_view(),
             name='reports-races'),
+
+    re_path(r'^reports/internal/staff-performance-metrics/(?P<tally_id>(\d+))/'
+            r'(?P<form_state>(\d+))/$',
+            staff_performance_metrics.StaffPerformanceMetricsView.as_view(),
+            name='staff-perfomance-metrics'),
 
     re_path(r'^tally-manager$',
             tally_manager.DashboardView.as_view(), name='tally-manager'),
