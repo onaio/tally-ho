@@ -18,5 +18,22 @@ class ResultFormStats(BaseModel):
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
 
+    @property
+    def get_time_elapsed(self):
+        """Calculate time taken to process a result form in minutes and seconds.
+
+        Find the difference between the end time and start time.
+        :param start_time: Time the result form started to be processed.
+        :param end_time: Time the result form ended to be processed.
+
+        :returns: A dict of rounded time in minutes and seconds.
+        """
+        one_minute_in_seconds = 60
+        time_elapsed =\
+            (divmod((self.end_time - self.start_time).total_seconds(),
+                    one_minute_in_seconds))
+        return {'minutes': round(time_elapsed[0]),
+                'seconds':  round(time_elapsed[1])}
+
 
 reversion.register(ResultFormStats)
