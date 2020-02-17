@@ -243,6 +243,9 @@ class CreateClearanceView(LoginRequiredMixin,
     template_name = 'barcode_verify.html'
 
     def get_context_data(self, **kwargs):
+        self.request.session[
+            'encoded_result_form_clearance_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
         tally_id = self.kwargs.get('tally_id')
         context = super(CreateClearanceView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
@@ -354,6 +357,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             if form:
                 return self.form_invalid(form)
 
+            self.request.session['result_form'] = result_form.pk
             self.template_name = 'check_clearance_center_details.html'
             form_action = reverse(self.success_url,
                                   kwargs={'tally_id': tally_id})
@@ -379,14 +383,31 @@ class AddClearanceFormView(LoginRequiredMixin,
         post_data = self.request.POST
         pk = self.request.POST.get('result_form', None)
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+        accept_submit_text_in_post_data = 'accept_submit' in post_data
 
-        if 'accept_submit' in post_data:
+        if accept_submit_text_in_post_data:
             result_form.reject(FormState.CLEARANCE)
             Clearance.objects.create(result_form=result_form,
                                      user=self.request.user.userprofile)
 
         result_form.date_seen = now()
         result_form.save()
+
+        # Track clearance clerks new clearance case result form processing time
+        if accept_submit_text_in_post_data:
+            user = self.request.user
+            result_form_clearance_start_time =\
+                dateutil.parser.parse(self.request.session.get(
+                    'encoded_result_form_clearance_start_time'))
+
+            ResultFormStats.objects.get_or_create(
+                form_state=FormState.CLEARANCE,
+                start_time=result_form_clearance_start_time,
+                end_time=timezone.now(),
+                user=user.userprofile,
+                result_form=result_form)
+
+        del self.request.session['encoded_result_form_clearance_start_time']
 
         return redirect(self.success_url, tally_id=tally_id)
 
