@@ -362,7 +362,7 @@ class ClearanceView(LoginRequiredMixin,
             self.request.session.get('encoded_result_form_intake_start_time'))
         del self.request.session['encoded_result_form_intake_start_time']
 
-        # Track result form processing time
+        # Track result form intake processing time
         ResultFormStats.objects.get_or_create(
             form_state=FormState.INTAKE,
             start_time=result_form_intake_start_time,
@@ -396,7 +396,7 @@ class ConfirmationView(LoginRequiredMixin,
         result_form_intake_start_time = dateutil.parser.parse(
             self.request.session.get('encoded_result_form_intake_start_time'))
 
-        # Track result form processing time
+        # Track result form intake processing time
         ResultFormStats.objects.get_or_create(
             form_state=FormState.INTAKE,
             start_time=result_form_intake_start_time,
