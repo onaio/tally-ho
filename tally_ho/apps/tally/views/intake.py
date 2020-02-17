@@ -357,6 +357,19 @@ class ClearanceView(LoginRequiredMixin,
         if older_duplicated:
             result_form = older_duplicated
 
+        user = self.request.user
+        result_form_intake_start_time = dateutil.parser.parse(
+            self.request.session.get('encoded_result_form_intake_start_time'))
+        del self.request.session['encoded_result_form_intake_start_time']
+
+        # Track result form processing time
+        ResultFormStats.objects.get_or_create(
+            form_state=FormState.INTAKE,
+            start_time=result_form_intake_start_time,
+            end_time=timezone.now(),
+            user=user.userprofile,
+            result_form=result_form)
+
         error_msg = self.request.session.get('intake-error')
 
         if error_msg:
@@ -383,6 +396,7 @@ class ConfirmationView(LoginRequiredMixin,
         result_form_intake_start_time = dateutil.parser.parse(
             self.request.session.get('encoded_result_form_intake_start_time'))
 
+        # Track result form processing time
         ResultFormStats.objects.get_or_create(
             form_state=FormState.INTAKE,
             start_time=result_form_intake_start_time,
@@ -390,6 +404,7 @@ class ConfirmationView(LoginRequiredMixin,
             user=user.userprofile,
             result_form=result_form)
 
+        del self.request.session['encoded_result_form_intake_start_time']
         del self.request.session['result_form']
 
         return self.render_to_response(
