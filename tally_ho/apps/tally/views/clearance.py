@@ -1,6 +1,9 @@
+import dateutil.parser
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import ugettext as _
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
@@ -9,6 +12,7 @@ from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.forms.clearance_form import ClearanceForm
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.clearance_resolution import\
     ClearanceResolution
 from tally_ho.libs.models.enums.form_state import FormState
@@ -114,6 +118,9 @@ class DashboardView(LoginRequiredMixin,
             tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        self.request.session[
+            'encoded_result_form_clearance_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
         tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = post_data['result_form']
@@ -157,8 +164,21 @@ class ReviewView(LoginRequiredMixin,
         form_in_state(result_form, FormState.CLEARANCE)
         form = self.get_form(form_class)
 
+        user = self.request.user
+        result_form_clearance_start_time =\
+            dateutil.parser.parse(self.request.session.get(
+                'encoded_result_form_clearance_start_time'))
+        del self.request.session['encoded_result_form_clearance_start_time']
+
+        # Track clearance clerks review result form processing time
+        ResultFormStats.objects.get_or_create(
+            form_state=FormState.CLEARANCE,
+            start_time=result_form_clearance_start_time,
+            end_time=timezone.now(),
+            user=user.userprofile,
+            result_form=result_form)
+
         if form.is_valid():
-            user = self.request.user
             clearance = get_clearance(result_form, post_data, user, form)
             url = clearance_action(post_data, clearance, result_form,
                                    self.success_url)
