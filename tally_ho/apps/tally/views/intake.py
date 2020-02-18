@@ -50,6 +50,9 @@ class CenterDetailsView(LoginRequiredMixin,
         context['tally_id'] = self.kwargs.get('tally_id')
         context['form_action'] = ''
         context['header_text'] = _('Intake')
+        self.request.session[
+            'encoded_result_form_intake_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
         return context
 
@@ -63,9 +66,6 @@ class CenterDetailsView(LoginRequiredMixin,
         self.tally_id = kwargs['tally_id']
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        self.request.session[
-            'encoded_result_form_intake_start_time'] =\
-            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode'] or\
