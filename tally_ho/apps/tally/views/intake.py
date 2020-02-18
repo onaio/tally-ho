@@ -26,6 +26,27 @@ INTAKE_DUPLICATE_ERROR_MESSAGE = _(
     'Duplicate of a form already entered into system.')
 
 
+def save_result_form_processing_stats(user, encoded_start_time, result_form):
+    """Save result form processing stats.
+
+    :param user: user processing the result form.
+    :param encoded_start_time: encoded time the result form started
+        to be processed.
+    :param result_form: The result form being processed by the intake
+        clerk.
+    """
+    result_form_intake_start_time = dateutil.parser.parse(
+        encoded_start_time)
+    del encoded_start_time
+
+    ResultFormStats.objects.get_or_create(
+        form_state=FormState.CORRECTION,
+        start_time=result_form_intake_start_time,
+        end_time=timezone.now(),
+        user=user.userprofile,
+        result_form=result_form)
+
+
 def states_for_form(user, states, result_form):
     if groups.INTAKE_SUPERVISOR in groups.user_groups(user)\
             and result_form.form_state == FormState.DATA_ENTRY_1:
@@ -357,18 +378,11 @@ class ClearanceView(LoginRequiredMixin,
         if older_duplicated:
             result_form = older_duplicated
 
-        user = self.request.user
-        result_form_intake_start_time = dateutil.parser.parse(
-            self.request.session.get('encoded_result_form_intake_start_time'))
-        del self.request.session['encoded_result_form_intake_start_time']
-
+        encoded_start_time = self.request.session.get(
+            'encoded_result_form_intake_start_time')
         # Track intake clerks result form processing time
-        ResultFormStats.objects.get_or_create(
-            form_state=FormState.INTAKE,
-            start_time=result_form_intake_start_time,
-            end_time=timezone.now(),
-            user=user.userprofile,
-            result_form=result_form)
+        save_result_form_processing_stats(
+            self.request.user, encoded_start_time, result_form)
 
         error_msg = self.request.session.get('intake-error')
 
@@ -392,17 +406,11 @@ class ConfirmationView(LoginRequiredMixin,
         tally_id = kwargs['tally_id']
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
-        user = self.request.user
-        result_form_intake_start_time = dateutil.parser.parse(
-            self.request.session.get('encoded_result_form_intake_start_time'))
-
+        encoded_start_time = self.request.session.get(
+            'encoded_result_form_intake_start_time')
         # Track intake clerks result form processing time
-        ResultFormStats.objects.get_or_create(
-            form_state=FormState.INTAKE,
-            start_time=result_form_intake_start_time,
-            end_time=timezone.now(),
-            user=user.userprofile,
-            result_form=result_form)
+        save_result_form_processing_stats(
+            self.request.user, encoded_start_time, result_form)
 
         del self.request.session['encoded_result_form_intake_start_time']
         del self.request.session['result_form']

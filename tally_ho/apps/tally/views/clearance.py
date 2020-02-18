@@ -92,6 +92,27 @@ def is_clerk(user):
     return groups.CLEARANCE_CLERK in user.groups.values_list('name', flat=True)
 
 
+def save_result_form_processing_stats(user, encoded_start_time, result_form):
+    """Save result form processing stats.
+
+    :param user: user processing the result form.
+    :param encoded_start_time: encoded time the result form started
+        to be processed.
+    :param result_form: The result form being processed by the clearance
+        clerk.
+    """
+    result_form_clearance_start_time = dateutil.parser.parse(
+        encoded_start_time)
+    del encoded_start_time
+
+    ResultFormStats.objects.get_or_create(
+        form_state=FormState.CORRECTION,
+        start_time=result_form_clearance_start_time,
+        end_time=timezone.now(),
+        user=user.userprofile,
+        result_form=result_form)
+
+
 class DashboardView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     mixins.TallyAccessMixin,
@@ -164,19 +185,11 @@ class ReviewView(LoginRequiredMixin,
         form_in_state(result_form, FormState.CLEARANCE)
         form = self.get_form(form_class)
 
-        user = self.request.user
-        result_form_clearance_start_time =\
-            dateutil.parser.parse(self.request.session.get(
-                'encoded_result_form_clearance_start_time'))
-        del self.request.session['encoded_result_form_clearance_start_time']
-
+        encoded_start_time = self.request.session.get(
+            'encoded_result_form_clearance_start_time')
         # Track clearance clerks review result form processing time
-        ResultFormStats.objects.get_or_create(
-            form_state=FormState.CLEARANCE,
-            start_time=result_form_clearance_start_time,
-            end_time=timezone.now(),
-            user=user.userprofile,
-            result_form=result_form)
+        save_result_form_processing_stats(
+            self.request.user, encoded_start_time, result_form)
 
         if form.is_valid():
             clearance = get_clearance(result_form, post_data, user, form)
@@ -395,17 +408,10 @@ class AddClearanceFormView(LoginRequiredMixin,
 
         # Track clearance clerks new clearance case result form processing time
         if accept_submit_text_in_post_data:
-            user = self.request.user
-            result_form_clearance_start_time =\
-                dateutil.parser.parse(self.request.session.get(
-                    'encoded_result_form_clearance_start_time'))
-
-            ResultFormStats.objects.get_or_create(
-                form_state=FormState.CLEARANCE,
-                start_time=result_form_clearance_start_time,
-                end_time=timezone.now(),
-                user=user.userprofile,
-                result_form=result_form)
+            encoded_start_time = self.request.session.get(
+                'encoded_result_form_clearance_start_time')
+            save_result_form_processing_stats(
+                self.request.user, encoded_start_time, result_form)
 
         del self.request.session['encoded_result_form_clearance_start_time']
 
