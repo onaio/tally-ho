@@ -1,7 +1,10 @@
+import dateutil.parser
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
 from django.forms.formsets import formset_factory
 from django.forms.utils import ErrorList
+from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, TemplateView
@@ -18,6 +21,7 @@ from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
@@ -163,7 +167,10 @@ class DataEntryView(LoginRequiredMixin,
         context['tally_id'] = self.kwargs.get('tally_id')
         context['form_action'] = ''
         context['header_text'] = _('Data Entry %s') % entry_type
-
+        if entry_type != 'Admin':
+            self.request.session[
+                'encoded_result_form_data_entry_start_time'] =\
+                json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
         return context
 
     def get_initial(self):
@@ -373,6 +380,23 @@ class ConfirmationView(LoginRequiredMixin,
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         del self.request.session['result_form']
+
+        user = self.request.user
+        if user_is_data_entry_1(user) or user_is_data_entry_2(user):
+            result_form_data_entry_start_time =\
+                dateutil.parser.parse(self.request.session.get(
+                    'encoded_result_form_data_entry_start_time'))
+            del self.request.session[
+                'encoded_result_form_data_entry_start_time']
+
+            # Track data entry clerks result form processing time
+            ResultFormStats.objects.get_or_create(
+                form_state=FormState.DATA_ENTRY_1 if result_form.form_state ==
+                FormState.DATA_ENTRY_2 else FormState.DATA_ENTRY_2,
+                start_time=result_form_data_entry_start_time,
+                end_time=timezone.now(),
+                user=user.userprofile,
+                result_form=result_form)
 
         next_step = _('Data Entry 2') if result_form.form_state ==\
             FormState.DATA_ENTRY_2 else _('Corrections')
