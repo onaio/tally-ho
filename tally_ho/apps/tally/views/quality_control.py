@@ -189,6 +189,14 @@ class QualityControlDashboardView(LoginRequiredMixin,
                 result_form.reject()
 
                 url = 'quality-control-reject'
+
+                encoded_start_time = self.request.session.get(
+                    'encoded_result_form_qa_control_start_time')
+                # Track quality control clerks result form processing time
+                # when a form is rejected without confirmation
+                save_result_form_processing_stats(
+                    self.request.user, encoded_start_time, result_form)
+
                 del self.request.session['result_form']
         elif 'abort' in post_data:
             # send to entry
