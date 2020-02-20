@@ -302,6 +302,13 @@ class ConfirmFormResetView(LoginRequiredMixin,
             result_form.reject(reject_reason=reject_reason)
             quality_control.save()
 
+            encoded_start_time = self.request.session.get(
+                'encoded_result_form_qa_control_start_time')
+            # Track quality control clerks result form processing time
+            # when rejecting a form
+            save_result_form_processing_stats(
+                self.request.user, encoded_start_time, result_form)
+
             del self.request.session['result_form']
 
             return redirect(self.success_url, tally_id=tally_id)
