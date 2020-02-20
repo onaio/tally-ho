@@ -1,3 +1,5 @@
+import dateutil.parser
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db import transaction
@@ -6,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from django.utils.translation import ugettext as _
+from django.utils import timezone
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -13,6 +16,7 @@ from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.forms.confirm_reset_form import ConfirmResetForm
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.race_type import RaceType
@@ -23,6 +27,27 @@ from tally_ho.libs.views.session import session_matches_post_result_form
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.form_state import safe_form_in_state,\
     form_in_state
+
+
+def save_result_form_processing_stats(user, encoded_start_time, result_form):
+    """Save result form processing stats.
+
+    :param user: user processing the result form.
+    :param encoded_start_time: encoded time the result form started
+        to be processed.
+    :param result_form: The result form being processed by the quality control
+        clerk.
+    """
+    result_form_qa_control_start_time = dateutil.parser.parse(
+        encoded_start_time)
+    del encoded_start_time
+
+    ResultFormStats.objects.get_or_create(
+        form_state=FormState.QUALITY_CONTROL,
+        start_time=result_form_qa_control_start_time,
+        end_time=timezone.now(),
+        user=user.userprofile,
+        result_form=result_form)
 
 
 def results_for_race(result_form, race_type):
@@ -61,6 +86,9 @@ class QualityControlView(LoginRequiredMixin,
         context['tally_id'] = self.kwargs.get('tally_id')
         context['form_action'] = ''
         context['header_text'] = _('Quality Control & Archiving')
+        self.request.session[
+            'encoded_result_form_qa_control_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
         return context
 
@@ -228,6 +256,13 @@ class ConfirmationView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk)
+
+        encoded_start_time = self.request.session.get(
+            'encoded_result_form_qa_control_start_time')
+        # Track quality control clerks result form processing time
+        save_result_form_processing_stats(
+            self.request.user, encoded_start_time, result_form)
+
         del self.request.session['result_form']
 
         return self.render_to_response(
