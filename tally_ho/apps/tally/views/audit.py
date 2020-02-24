@@ -277,6 +277,13 @@ class PrintCoverView(LoginRequiredMixin,
                                             pk=pk,
                                             tally__id=tally_id)
             form_in_state(result_form, FormState.AUDIT)
+
+            # Track audit clerks result form processing time
+            encoded_start_time = self.request.session.get(
+                'encoded_result_form_audit_start_time')
+            save_result_form_processing_stats(
+                self.request.user, encoded_start_time, result_form)
+
             del self.request.session['result_form']
 
             return redirect('audit', tally_id=tally_id)
