@@ -236,7 +236,7 @@ There are two ways in which a form can move to Audit:
        and move any forms in the system from that center into Audit.
 
 Audit Clerks are shown a list of all the forms which are in the Audit
-Stage and have not yet been reviewed by a Audit Clerk.  The Clerk chooses a
+Stage and have not yet been reviewed by an Audit Clerk.  The Clerk chooses a
 form from the list and may "Review" it.  Upon review the Clerk selects
 checkboxes for a number of common problems, such as "Blank results".
 If none of these options fit the form they can enter details in an "Other" text
@@ -257,7 +257,7 @@ the Data Entry 1 Section.
 
 If the resolution is "Make Available For Archive" the Audit team is
 recommending that the form skip Quarantine Checks on its next time through the
-syste.  The form is then hidden from the Audit team and must then be reviewed
+system.  The form is then hidden from the Audit team and must then be reviewed
 by a Super Administration before moving to Data Entry 1.
 
 ![](images/audit-review.png)
