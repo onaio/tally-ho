@@ -1,4 +1,7 @@
+import dateutil.parser
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.utils.translation import ugettext as _
+from django.utils import timezone
 from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
 from djqscsv import render_to_csv_response
@@ -8,6 +11,7 @@ from tally_ho.apps.tally.forms.audit_form import AuditForm
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.actions_prior import\
@@ -19,6 +23,26 @@ from tally_ho.libs.views.form_state import form_in_state,\
     safe_form_in_state
 from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
+
+
+def save_result_form_processing_stats(user, encoded_start_time, result_form):
+    """Save result form processing stats.
+
+    :param user: user processing the result form.
+    :param encoded_start_time: encoded time the result form started
+        to be processed.
+    :param result_form: The result form being processed by the audit clerk.
+    """
+    result_form_audit_start_time = dateutil.parser.parse(
+        encoded_start_time)
+    del encoded_start_time
+
+    ResultFormStats.objects.get_or_create(
+        form_state=FormState.AUDIT,
+        start_time=result_form_audit_start_time,
+        end_time=timezone.now(),
+        user=user.userprofile,
+        result_form=result_form)
 
 
 def audit_action(audit, post_data, result_form, url):
@@ -178,6 +202,9 @@ class ReviewView(LoginRequiredMixin,
         audit = result_form.audit
         form = AuditForm(instance=audit) if audit else self.get_form(
             form_class)
+        self.request.session[
+            'encoded_result_form_audit_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
         return self.render_to_response(self.get_context_data(
             form=form, result_form=result_form,
@@ -203,6 +230,13 @@ class ReviewView(LoginRequiredMixin,
                                         result_form,
                                         form)
             url = audit_action(audit, post_data, result_form, self.success_url)
+
+            # Track audit supervisor clerks result form processing time
+            if groups.user_groups(user)[0] == groups.AUDIT_SUPERVISOR:
+                encoded_start_time = self.request.session.get(
+                    'encoded_result_form_audit_start_time')
+                save_result_form_processing_stats(
+                    user, encoded_start_time, result_form)
 
             return redirect(url, tally_id=tally_id)
         else:
