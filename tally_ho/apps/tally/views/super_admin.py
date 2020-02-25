@@ -214,13 +214,18 @@ class DashboardView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         group_logins = [g.lower().replace(' ', '_') for g in groups.GROUPS]
         kwargs['groups'] = group_logins
-        kwargs['intake'] = FormState.INTAKE.value
-        kwargs['clearance'] = FormState.CLEARANCE.value
-        kwargs['data_entry_clerk_1'] = FormState.DATA_ENTRY_1.value
-        kwargs['data_entry_clerk_2'] = FormState.DATA_ENTRY_2.value
-        kwargs['corrections'] = FormState.CORRECTION.value
-        kwargs['quality_control'] = FormState.QUALITY_CONTROL.value
-        kwargs['audit'] = FormState.AUDIT.value
+        kwargs['intake_clerk'] = groups.INTAKE_CLERK
+        kwargs['intake_supervisor'] = groups.INTAKE_SUPERVISOR
+        kwargs['clearance_clerk'] = groups.CLEARANCE_CLERK
+        kwargs['clearance_supervisor'] = groups.CLEARANCE_SUPERVISOR
+        kwargs['data_entry_1_clerk'] = groups.DATA_ENTRY_1_CLERK
+        kwargs['data_entry_2_clerk'] = groups.DATA_ENTRY_2_CLERK
+        kwargs['corrections_clerk'] = groups.CORRECTIONS_CLERK
+        kwargs['quality_control_clerk'] = groups.QUALITY_CONTROL_CLERK
+        kwargs['quality_control_supervisor'] =\
+            groups.QUALITY_CONTROL_SUPERVISOR
+        kwargs['audit_clerk'] = groups.AUDIT_CLERK
+        kwargs['audit_supervisor'] = groups.AUDIT_SUPERVISOR
 
         return self.render_to_response(self.get_context_data(**kwargs))
 
