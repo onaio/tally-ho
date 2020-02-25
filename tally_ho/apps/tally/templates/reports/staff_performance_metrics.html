@@ -12,7 +12,7 @@
         <th>{% trans 'Total Forms Processed' %}</th>
     </tr>
     <tr>
-        <td>{{ result_form_stats.count }}</td>
+        <td>{{ result_forms_count }}</td>
     </tr>
 </table>
 
@@ -25,7 +25,7 @@
         <th>{% trans 'Result Form Barcode' %}</th>
         <th>{% trans 'Result Form Processing time' %}</th>
     </tr>
-    {% if result_form_stats.count == 0 %}
+    {% if result_forms_count == 0 %}
     <tr>
         <td>No Data</td>
         <td></td>
