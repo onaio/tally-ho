@@ -57,13 +57,17 @@
 
 <h3>{% trans 'Staff Performance Metrics' %}</h3>
 <ul>
-    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=intake %}">{% trans 'Intake Clerks' %}</a></li>
-    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=clearance %}">{% trans 'Clearance Clerks' %}</a></li>
-    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=data_entry_clerk_1 %}">{% trans 'Data Entry 1 Clerks' %}</a></li>
-    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=data_entry_clerk_2 %}">{% trans 'Data Entry 2 Clerks' %}</a></li>
-    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=corrections %}">{% trans 'Corrections Clerks' %}</a></li>
-    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=quality_control %}">{% trans 'Quality Control & Archiving Clerks' %}</a></li>
-    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id form_state=audit %}">{% trans 'Audit Clerks' %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=intake_clerk %}">{% trans intake_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=intake_supervisor %}">{% trans intake_supervisor %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=clearance_clerk %}">{% trans clearance_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=clearance_supervisor %}">{% trans clearance_supervisor %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=data_entry_1_clerk %}">{% trans data_entry_1_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=data_entry_2_clerk %}">{% trans data_entry_2_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=corrections_clerk %}">{% trans corrections_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=quality_control_clerk %}">{% trans quality_control_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=quality_control_supervisor %}">{% trans quality_control_supervisor %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=audit_clerk %}">{% trans audit_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=audit_supervisor %}">{% trans audit_supervisor %}</a></li>
 </ul>
 
 {% if debug %}
