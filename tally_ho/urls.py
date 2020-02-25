@@ -358,7 +358,7 @@ urlpatterns = [
             name='reports-races'),
 
     re_path(r'^reports/internal/staff-performance-metrics/(?P<tally_id>(\d+))/'
-            r'(?P<form_state>(\d+))/$',
+            r'(?P<group_name>.*)/$',
             staff_performance_metrics.StaffPerformanceMetricsView.as_view(),
             name='staff-perfomance-metrics'),
 
