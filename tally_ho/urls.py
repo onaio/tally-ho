@@ -362,6 +362,10 @@ urlpatterns = [
             staff_performance_metrics.StaffPerformanceMetricsView.as_view(),
             name='staff-perfomance-metrics'),
 
+    re_path(r'^reports/internal/supervisors-approvals/(?P<tally_id>(\d+))/$',
+            staff_performance_metrics.SupervisorsApprovalsView.as_view(),
+            name='supervisors-approvals'),
+
     re_path(r'^tally-manager$',
             tally_manager.DashboardView.as_view(), name='tally-manager'),
     re_path(r'^tally-manager/user-list/(?P<role>(user|admin))$',
