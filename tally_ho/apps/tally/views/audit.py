@@ -25,7 +25,12 @@ from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
 
 
-def save_result_form_processing_stats(user, encoded_start_time, result_form):
+def save_result_form_processing_stats(
+        user,
+        encoded_start_time,
+        result_form,
+        for_superadmin=False,
+        reviewed_by_supervisor=False):
     """Save result form processing stats.
 
     :param user: user processing the result form.
@@ -42,7 +47,9 @@ def save_result_form_processing_stats(user, encoded_start_time, result_form):
         start_time=result_form_audit_start_time,
         end_time=timezone.now(),
         user=user.userprofile,
-        result_form=result_form)
+        result_form=result_form,
+        for_superadmin=for_superadmin,
+        reviewed_by_supervisor=reviewed_by_supervisor)
 
 
 def audit_action(audit, post_data, result_form, url):
@@ -231,12 +238,18 @@ class ReviewView(LoginRequiredMixin,
                                         form)
             url = audit_action(audit, post_data, result_form, self.success_url)
 
-            # Track audit supervisor clerks result form processing time
-            if groups.user_groups(user)[0] == groups.AUDIT_SUPERVISOR:
+            # Track supervisor clerks result form processing time
+            if groups.user_groups(user)[0] in [groups.AUDIT_SUPERVISOR,
+                                               groups.SUPER_ADMINISTRATOR,
+                                               groups.TALLY_MANAGER]:
                 encoded_start_time = self.request.session.get(
                     'encoded_result_form_audit_start_time')
                 save_result_form_processing_stats(
-                    user, encoded_start_time, result_form)
+                    user,
+                    encoded_start_time,
+                    result_form,
+                    audit.for_superadmin,
+                    audit.reviewed_supervisor)
 
             return redirect(url, tally_id=tally_id)
         else:
@@ -278,11 +291,13 @@ class PrintCoverView(LoginRequiredMixin,
                                             tally__id=tally_id)
             form_in_state(result_form, FormState.AUDIT)
 
+            user = self.request.user
             # Track audit clerks result form processing time
-            encoded_start_time = self.request.session.get(
-                'encoded_result_form_audit_start_time')
-            save_result_form_processing_stats(
-                self.request.user, encoded_start_time, result_form)
+            if groups.user_groups(user)[0] == groups.AUDIT_CLERK:
+                encoded_start_time = self.request.session.get(
+                    'encoded_result_form_audit_start_time')
+                save_result_form_processing_stats(
+                    user, encoded_start_time, result_form)
 
             del self.request.session['result_form']
 
