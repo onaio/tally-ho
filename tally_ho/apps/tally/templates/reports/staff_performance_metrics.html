@@ -42,13 +42,13 @@
             {% if rec.get_time_elapsed.minutes > 0 %}
             <span>
                 {{ rec.get_time_elapsed.minutes }}
-                {% trans ' minutes ' %}
+                {% trans ' minute(s) ' %}
             </span>
             {% endif %}
             {% if rec.get_time_elapsed.seconds > 0 %}
             <span>
                 {{ rec.get_time_elapsed.seconds }}
-                {% trans ' seconds' %}
+                {% trans ' second(s)' %}
             </span>
             {% endif %}
         </td>
