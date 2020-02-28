@@ -178,6 +178,7 @@ class ReviewView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
+        user = self.request.user
         form_class = self.get_form_class()
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
@@ -189,7 +190,7 @@ class ReviewView(LoginRequiredMixin,
             'encoded_result_form_clearance_start_time')
         # Track clearance clerks review result form processing time
         save_result_form_processing_stats(
-            self.request.user, encoded_start_time, result_form)
+            user, encoded_start_time, result_form)
 
         if form.is_valid():
             clearance = get_clearance(result_form, post_data, user, form)
