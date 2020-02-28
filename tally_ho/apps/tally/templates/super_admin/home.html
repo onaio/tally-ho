@@ -68,6 +68,7 @@
     <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=quality_control_supervisor %}">{% trans quality_control_supervisor %}</a></li>
     <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=audit_clerk %}">{% trans audit_clerk %}</a></li>
     <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=audit_supervisor %}">{% trans audit_supervisor %}</a></li>
+    <li><a href="{% url 'supervisors-approvals' tally_id=tally_id %}">{% trans 'Supervisors Approvals' %}</a></li>
 </ul>
 
 {% if debug %}
