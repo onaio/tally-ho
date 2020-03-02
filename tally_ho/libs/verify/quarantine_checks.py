@@ -101,7 +101,7 @@ def check_quarantine(result_form, user):
             if not passed_check(result_form):
                 if not audit:
                     audit = Audit.objects.create(
-                        user=user,
+                        user=user.userprofile,
                         result_form=result_form)
 
                 audit.quarantine_checks.add(check)

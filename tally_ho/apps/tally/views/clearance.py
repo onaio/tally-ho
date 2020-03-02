@@ -1,6 +1,9 @@
+import dateutil.parser
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import ugettext as _
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
@@ -9,6 +12,7 @@ from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.forms.clearance_form import ClearanceForm
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.clearance_resolution import\
     ClearanceResolution
 from tally_ho.libs.models.enums.form_state import FormState
@@ -88,6 +92,27 @@ def is_clerk(user):
     return groups.CLEARANCE_CLERK in user.groups.values_list('name', flat=True)
 
 
+def save_result_form_processing_stats(user, encoded_start_time, result_form):
+    """Save result form processing stats.
+
+    :param user: The user processing the result form.
+    :param encoded_start_time: The encoded time the result form started
+        to be processed.
+    :param result_form: The result form being processed by the clearance
+        clerk.
+    """
+    result_form_clearance_start_time = dateutil.parser.parse(
+        encoded_start_time)
+    del encoded_start_time
+
+    ResultFormStats.objects.get_or_create(
+        form_state=FormState.CORRECTION,
+        start_time=result_form_clearance_start_time,
+        end_time=timezone.now(),
+        user=user.userprofile,
+        result_form=result_form)
+
+
 class DashboardView(LoginRequiredMixin,
                     mixins.GroupRequiredMixin,
                     mixins.TallyAccessMixin,
@@ -114,6 +139,9 @@ class DashboardView(LoginRequiredMixin,
             tally_id=tally_id))
 
     def post(self, *args, **kwargs):
+        self.request.session[
+            'encoded_result_form_clearance_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
         tally_id = kwargs.get('tally_id')
         post_data = self.request.POST
         pk = post_data['result_form']
@@ -150,6 +178,7 @@ class ReviewView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
+        user = self.request.user
         form_class = self.get_form_class()
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
@@ -157,8 +186,13 @@ class ReviewView(LoginRequiredMixin,
         form_in_state(result_form, FormState.CLEARANCE)
         form = self.get_form(form_class)
 
+        encoded_start_time = self.request.session.get(
+            'encoded_result_form_clearance_start_time')
+        # Track clearance clerks review result form processing time
+        save_result_form_processing_stats(
+            user, encoded_start_time, result_form)
+
         if form.is_valid():
-            user = self.request.user
             clearance = get_clearance(result_form, post_data, user, form)
             url = clearance_action(post_data, clearance, result_form,
                                    self.success_url)
@@ -223,6 +257,9 @@ class CreateClearanceView(LoginRequiredMixin,
     template_name = 'barcode_verify.html'
 
     def get_context_data(self, **kwargs):
+        self.request.session[
+            'encoded_result_form_clearance_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
         tally_id = self.kwargs.get('tally_id')
         context = super(CreateClearanceView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
@@ -334,6 +371,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             if form:
                 return self.form_invalid(form)
 
+            self.request.session['result_form'] = result_form.pk
             self.template_name = 'check_clearance_center_details.html'
             form_action = reverse(self.success_url,
                                   kwargs={'tally_id': tally_id})
@@ -359,14 +397,24 @@ class AddClearanceFormView(LoginRequiredMixin,
         post_data = self.request.POST
         pk = self.request.POST.get('result_form', None)
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+        accept_submit_text_in_post_data = 'accept_submit' in post_data
 
-        if 'accept_submit' in post_data:
+        if accept_submit_text_in_post_data:
             result_form.reject(FormState.CLEARANCE)
             Clearance.objects.create(result_form=result_form,
                                      user=self.request.user.userprofile)
 
         result_form.date_seen = now()
         result_form.save()
+
+        # Track clearance clerks new clearance case result form processing time
+        if accept_submit_text_in_post_data:
+            encoded_start_time = self.request.session.get(
+                'encoded_result_form_clearance_start_time')
+            save_result_form_processing_stats(
+                self.request.user, encoded_start_time, result_form)
+
+        del self.request.session['encoded_result_form_clearance_start_time']
 
         return redirect(self.success_url, tally_id=tally_id)
 

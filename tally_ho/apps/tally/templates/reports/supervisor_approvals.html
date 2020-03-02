@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Supervisors Approvals Rate Report' %}</h1>
+
+<h3>{% trans "Audit Supervisors Approval Rate" %}</h3>
+<table class="table table-striped">
+    <tr>
+        <th>{% trans 'Number of Approved Forms' %}</th>
+        <th>{% trans 'Number of Forms Sent For Review' %}</th>
+        <th>{% trans 'Approval Rate' %}</th>
+    </tr>
+    {% if a_s_approvals.forms_approved == 0 %}
+    <tr>
+        <td>No Data</td>
+        <td></td>
+        <td></td>
+    </tr>
+    {% else %}
+    <tr>
+        <td>{{ a_s_approvals.forms_approved }}</td>
+        <td>{{ a_s_approvals.forms_sent_for_review }}</td>
+        <td>{{ a_s_approvals_percantage }}%</td>
+    </tr>
+    {% endif %}
+</table>
+
+<h3>{% trans "Super Administrators Approval Rate" %}</h3>
+<table class="table table-striped">
+    <tr>
+        <th>{% trans 'Number of Approved Forms' %}</th>
+        <th>{% trans 'Number of Forms Sent For Review' %}</th>
+        <th>{% trans 'Approval Rate' %}</th>
+    </tr>
+    {% if s_a_approvals.forms_approved == 0 %}
+    <tr>
+        <td>No Data</td>
+        <td></td>
+        <td></td>
+    </tr>
+    {% else %}
+    <tr>
+        <td>{{ s_a_approvals.forms_approved }}</td>
+        <td>{{ s_a_approvals.forms_sent_for_review }}</td>
+        <td>{{ s_a_approvals_percantage }}%</td>
+    </tr>
+    {% endif %}
+</table>
+
+<h3>{% trans "Tally Managers Approval Rate" %}</h3>
+<table class="table table-striped">
+    <tr>
+        <th>{% trans 'Number of Approved Forms' %}</th>
+        <th>{% trans 'Number of Forms Sent For Review' %}</th>
+        <th>{% trans 'Approval Rate' %}</th>
+    </tr>
+    {% if t_m_approvals.forms_approved == 0 %}
+    <tr>
+        <td>No Data</td>
+        <td></td>
+        <td></td>
+    </tr>
+    {% else %}
+    <tr>
+        <td>{{ t_m_approvals.forms_approved }}</td>
+        <td>{{ t_m_approvals.forms_sent_for_review }}</td>
+        <td>{{ t_m_approvals_percantage }}%</td>
+    </tr>
+    {% endif %}
+</table>
+{% endblock %}

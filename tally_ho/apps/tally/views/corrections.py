@@ -1,9 +1,12 @@
+import dateutil.parser
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.core.exceptions import SuspiciousOperation
 from django.db import transaction
 from django.forms import ValidationError
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ugettext as _
+from django.utils import timezone
 from django.views.generic import FormView, TemplateView
 from guardian.mixins import LoginRequiredMixin
 
@@ -15,6 +18,7 @@ from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.models.reconciliation_form import\
     ReconciliationForm
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.race_type import RaceType
@@ -26,6 +30,27 @@ from tally_ho.libs.views.corrections import get_matched_forms,\
     save_final_results, save_general_results, save_women_results
 from tally_ho.libs.views.form_state import form_in_state,\
     safe_form_in_state
+
+
+def save_result_form_processing_stats(user, encoded_start_time, result_form):
+    """Save result form processing stats.
+
+    :param user: The user processing the result form.
+    :param encoded_start_time: The encoded time the result form started
+        to be processed.
+    :param result_form: The result form being processed by the corrections
+        clerk.
+    """
+    result_form_corrections_start_time = dateutil.parser.parse(
+        encoded_start_time)
+    del encoded_start_time
+
+    ResultFormStats.objects.get_or_create(
+        form_state=FormState.CORRECTION,
+        start_time=result_form_corrections_start_time,
+        end_time=timezone.now(),
+        user=user.userprofile,
+        result_form=result_form)
 
 
 def get_recon_form_dict(result_form):
@@ -190,6 +215,9 @@ class CorrectionView(LoginRequiredMixin,
         context['tally_id'] = tally_id
         context['form_action'] = ''
         context['header_text'] = _('Corrections')
+        self.request.session[
+            'encoded_result_form_corrections_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
         return context
 
@@ -266,6 +294,12 @@ class CorrectionMatchView(LoginRequiredMixin,
 
             result_form.form_state = FormState.QUALITY_CONTROL
             result_form.save()
+
+            encoded_start_time = self.request.session.get(
+                'encoded_result_form_corrections_start_time')
+            # Track corrections clerks result form processing time
+            save_result_form_processing_stats(
+                self.request.user, encoded_start_time, result_form)
 
             del self.request.session['result_form']
 
@@ -359,6 +393,12 @@ class ConfirmationView(LoginRequiredMixin,
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         del self.request.session['result_form']
+
+        encoded_start_time = self.request.session.get(
+            'encoded_result_form_corrections_start_time')
+        # Track corrections clerks result form processing time
+        save_result_form_processing_stats(
+            self.request.user, encoded_start_time, result_form)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,

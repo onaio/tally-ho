@@ -1,4 +1,7 @@
+import dateutil.parser
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.utils.translation import ugettext as _
+from django.utils import timezone
 from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
 from djqscsv import render_to_csv_response
@@ -8,6 +11,7 @@ from tally_ho.apps.tally.forms.audit_form import AuditForm
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.actions_prior import\
@@ -19,6 +23,41 @@ from tally_ho.libs.views.form_state import form_in_state,\
     safe_form_in_state
 from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
+
+
+def save_result_form_processing_stats(
+        user,
+        encoded_start_time,
+        result_form,
+        approved_by_supervisor=False,
+        reviewed_by_supervisor=False,
+        sent_for_review=False):
+    """Save result form processing stats.
+
+    :param user: The user processing the result form.
+    :param encoded_start_time: The encoded time the result form started
+        to be processed.
+    :param result_form: The result form being processed by the audit clerk.
+    :param approved_by_supervisor: True the result form was
+        approved by supervisor.
+    :param reviewed_by_supervisor: True the result form was
+        reviewed by supervisor.
+    :param sent_for_review: True the result form was reviewed and
+        rejected by supervisor.
+    """
+    result_form_audit_start_time = dateutil.parser.parse(
+        encoded_start_time)
+    del encoded_start_time
+
+    ResultFormStats.objects.get_or_create(
+        form_state=FormState.AUDIT,
+        start_time=result_form_audit_start_time,
+        end_time=timezone.now(),
+        user=user.userprofile,
+        result_form=result_form,
+        approved_by_supervisor=approved_by_supervisor,
+        reviewed_by_supervisor=reviewed_by_supervisor,
+        sent_for_review=sent_for_review)
 
 
 def audit_action(audit, post_data, result_form, url):
@@ -178,6 +217,9 @@ class ReviewView(LoginRequiredMixin,
         audit = result_form.audit
         form = AuditForm(instance=audit) if audit else self.get_form(
             form_class)
+        self.request.session[
+            'encoded_result_form_audit_start_time'] =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
         return self.render_to_response(self.get_context_data(
             form=form, result_form=result_form,
@@ -203,6 +245,24 @@ class ReviewView(LoginRequiredMixin,
                                         result_form,
                                         form)
             url = audit_action(audit, post_data, result_form, self.success_url)
+
+            # Track supervisors result form reviewing processing time
+            if groups.user_groups(user)[0] in [groups.AUDIT_SUPERVISOR,
+                                               groups.SUPER_ADMINISTRATOR,
+                                               groups.TALLY_MANAGER]:
+                encoded_start_time = self.request.session.get(
+                    'encoded_result_form_audit_start_time')
+                sent_for_review =\
+                    result_form.form_state == FormState.DATA_ENTRY_1
+                approved_by_supervisor =\
+                    audit.for_superadmin and audit.active
+                save_result_form_processing_stats(
+                    user,
+                    encoded_start_time,
+                    result_form,
+                    approved_by_supervisor,
+                    audit.reviewed_supervisor,
+                    sent_for_review)
 
             return redirect(url, tally_id=tally_id)
         else:
@@ -243,6 +303,15 @@ class PrintCoverView(LoginRequiredMixin,
                                             pk=pk,
                                             tally__id=tally_id)
             form_in_state(result_form, FormState.AUDIT)
+
+            user = self.request.user
+            # Track audit clerks result form processing time
+            if groups.user_groups(user)[0] == groups.AUDIT_CLERK:
+                encoded_start_time = self.request.session.get(
+                    'encoded_result_form_audit_start_time')
+                save_result_form_processing_stats(
+                    user, encoded_start_time, result_form)
+
             del self.request.session['result_form']
 
             return redirect('audit', tally_id=tally_id)

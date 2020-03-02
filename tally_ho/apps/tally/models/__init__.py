@@ -11,6 +11,7 @@ from tally_ho.apps.tally.models.reconciliation_form import\
     ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.user_profile import UserProfile

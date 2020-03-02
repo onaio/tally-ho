@@ -55,6 +55,22 @@
     <li><a href="{% url 'remove-station' tally_id=tally_id %}">{% trans 'Remove a Station' %}</a></li>
 </ul>
 
+<h3>{% trans 'Staff Performance Metrics' %}</h3>
+<ul>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=intake_clerk %}">{% trans intake_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=intake_supervisor %}">{% trans intake_supervisor %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=clearance_clerk %}">{% trans clearance_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=clearance_supervisor %}">{% trans clearance_supervisor %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=data_entry_1_clerk %}">{% trans data_entry_1_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=data_entry_2_clerk %}">{% trans data_entry_2_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=corrections_clerk %}">{% trans corrections_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=quality_control_clerk %}">{% trans quality_control_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=quality_control_supervisor %}">{% trans quality_control_supervisor %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=audit_clerk %}">{% trans audit_clerk %}</a></li>
+    <li><a href="{% url 'staff-perfomance-metrics' tally_id=tally_id group_name=audit_supervisor %}">{% trans audit_supervisor %}</a></li>
+    <li><a href="{% url 'supervisors-approvals' tally_id=tally_id %}">{% trans 'Supervisors Approvals' %}</a></li>
+</ul>
+
 {% if debug %}
 <h3>{% trans 'Users and groups' %}</h3>
 

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{{ user_group }}{% trans 's Performance Report' %}</h1>
+
+<h3>{% trans 'Overview' %}</h3>
+<table class="table table-striped table-bordered">
+    <tr>
+        <th>{% trans 'Total Forms Processed' %}</th>
+    </tr>
+    <tr>
+        <td>{{ result_forms_count }}</td>
+    </tr>
+</table>
+
+
+<h3>{% trans "Staff Performance" %}</h3>
+<table class="table table-striped">
+    <tr>
+        <th>{% trans 'Staff Name' %}</th>
+        <th>{% trans 'Result Form Name' %}</th>
+        <th>{% trans 'Result Form Barcode' %}</th>
+        <th>{% trans 'Result Form Processing time' %}</th>
+    </tr>
+    {% if result_forms_count == 0 %}
+    <tr>
+        <td>No Data</td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    {% else %}
+    {% for rec in result_form_stats %}
+    <tr>
+        <td>{{ rec.user.username }}</td>
+        <td>{{ rec.result_form.name }}</td>
+        <td>{{ rec.result_form.barcode }}</td>
+        <td>
+            {% if rec.get_time_elapsed.minutes > 0 %}
+            <span>
+                {{ rec.get_time_elapsed.minutes }}
+                {% trans ' minute(s) ' %}
+            </span>
+            {% endif %}
+            {% if rec.get_time_elapsed.seconds > 0 %}
+            <span>
+                {{ rec.get_time_elapsed.seconds }}
+                {% trans ' second(s)' %}
+            </span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+</table>
+
+{% endblock %}
