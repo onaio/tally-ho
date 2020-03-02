@@ -53,17 +53,16 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
         return 0
 
     def update_forms_count(self, result_form_stat, approvals_type):
-        """Update total forms processed and sent for review by supervisor.
+        """Update total forms approved and sent for review by supervisor.
 
         :param result_form_stat: The result form stat record.
         :param approvals_type: The user group approvals type.
         """
+        if result_form_stat.approved_by_supervisor:
+            approvals_type['forms_approved'] += 1
 
-        if result_form_stat.for_superadmin:
-            approvals_type['forms_approved'] += 1
+        if result_form_stat.sent_for_review:
             approvals_type['forms_sent_for_review'] += 1
-        else:
-            approvals_type['forms_approved'] += 1
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']

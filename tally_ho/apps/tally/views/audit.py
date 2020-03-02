@@ -29,14 +29,21 @@ def save_result_form_processing_stats(
         user,
         encoded_start_time,
         result_form,
-        for_superadmin=False,
-        reviewed_by_supervisor=False):
+        approved_by_supervisor=False,
+        reviewed_by_supervisor=False,
+        sent_for_review=False):
     """Save result form processing stats.
 
     :param user: user processing the result form.
     :param encoded_start_time: encoded time the result form started
         to be processed.
     :param result_form: The result form being processed by the audit clerk.
+    :param approved_by_supervisor: True the result form was
+        approved by supervisor.
+    :param reviewed_by_supervisor: True the result form was
+        reviewed by supervisor.
+    :param sent_for_review: True the result form was reviewed and
+        rejected by supervisor.
     """
     result_form_audit_start_time = dateutil.parser.parse(
         encoded_start_time)
@@ -48,8 +55,9 @@ def save_result_form_processing_stats(
         end_time=timezone.now(),
         user=user.userprofile,
         result_form=result_form,
-        for_superadmin=for_superadmin,
-        reviewed_by_supervisor=reviewed_by_supervisor)
+        approved_by_supervisor=approved_by_supervisor,
+        reviewed_by_supervisor=reviewed_by_supervisor,
+        sent_for_review=sent_for_review)
 
 
 def audit_action(audit, post_data, result_form, url):
@@ -238,18 +246,23 @@ class ReviewView(LoginRequiredMixin,
                                         form)
             url = audit_action(audit, post_data, result_form, self.success_url)
 
-            # Track supervisor clerks result form processing time
+            # Track supervisors result form reviewing processing time
             if groups.user_groups(user)[0] in [groups.AUDIT_SUPERVISOR,
                                                groups.SUPER_ADMINISTRATOR,
                                                groups.TALLY_MANAGER]:
                 encoded_start_time = self.request.session.get(
                     'encoded_result_form_audit_start_time')
+                sent_for_review =\
+                    result_form.form_state == FormState.DATA_ENTRY_1
+                approved_by_supervisor =\
+                    audit.for_superadmin and audit.active
                 save_result_form_processing_stats(
                     user,
                     encoded_start_time,
                     result_form,
-                    audit.for_superadmin,
-                    audit.reviewed_supervisor)
+                    approved_by_supervisor,
+                    audit.reviewed_supervisor,
+                    sent_for_review)
 
             return redirect(url, tally_id=tally_id)
         else:
