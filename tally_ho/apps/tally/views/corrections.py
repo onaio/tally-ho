@@ -35,8 +35,8 @@ from tally_ho.libs.views.form_state import form_in_state,\
 def save_result_form_processing_stats(user, encoded_start_time, result_form):
     """Save result form processing stats.
 
-    :param user: user processing the result form.
-    :param encoded_start_time: encoded time the result form started
+    :param user: The user processing the result form.
+    :param encoded_start_time: The encoded time the result form started
         to be processed.
     :param result_form: The result form being processed by the corrections
         clerk.

@@ -34,8 +34,8 @@ def save_result_form_processing_stats(
         sent_for_review=False):
     """Save result form processing stats.
 
-    :param user: user processing the result form.
-    :param encoded_start_time: encoded time the result form started
+    :param user: The user processing the result form.
+    :param encoded_start_time: The encoded time the result form started
         to be processed.
     :param result_form: The result form being processed by the audit clerk.
     :param approved_by_supervisor: True the result form was
