@@ -17,8 +17,9 @@ class ResultFormStats(BaseModel):
     end_time = models.DateTimeField()
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
-    for_superadmin = models.BooleanField(default=False)
+    approved_by_supervisor = models.BooleanField(default=False)
     reviewed_by_supervisor = models.BooleanField(default=False)
+    sent_for_review = models.BooleanField(default=False)
 
     @property
     def get_time_elapsed(self):
