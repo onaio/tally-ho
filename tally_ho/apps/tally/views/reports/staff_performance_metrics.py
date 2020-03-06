@@ -126,7 +126,6 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
              qs['approved_by_audit_supervisor'],
              'forms_sent_for_review':
              qs['sent_for_review_by_audit_supervisor']}
-        import ipdb; ipdb.set_trace()
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
