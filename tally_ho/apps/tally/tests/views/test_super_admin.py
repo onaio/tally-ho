@@ -314,6 +314,75 @@ class TestSuperAdmin(TestBase):
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Remove a Station</a>")
 
+    def test_staff_performance_metrics_section_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.DashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.pk)
+
+        self.assertContains(response, '<h3>Staff Performance Metrics</h3>')
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Intake%20Clerk/">Intake Clerk</a></li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Intake%20Supervisor/">Intake Supervisor</a>'
+                '</li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Clearance%20Clerk/">Clearance Clerk</a>'
+                '</li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Clearance%20Supervisor/">Clearance Supervisor</a>'
+                '</li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Data%20Entry%201%20Clerk/">Data Entry 1 Clerk</a>'
+                '</li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Data%20Entry%202%20Clerk/">Data Entry 2 Clerk</a>'
+                '</li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Corrections%20Clerk/">Corrections Clerk</a>'
+                '</li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Quality%20Control%20Clerk/">Quality Control Clerk</a>'
+                '</li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Quality%20Control%20Supervisor/">'
+                'Quality Control Supervisor</a></li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Audit%20Clerk/">Audit Clerk</a></li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/staff-performance-metrics/'
+                '{}/Audit%20Supervisor/">Audit Supervisor</a>'
+                '</li>').format(tally.pk))
+        self.assertContains(
+            response,
+            str('<li><a href="/reports/internal/supervisors-approvals/{}/">'
+                'Supervisors Approvals</a></li>').format(tally.pk))
+
     def test_edit_station_get(self):
         tally = create_tally()
         tally.users.add(self.user)
