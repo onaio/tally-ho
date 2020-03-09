@@ -15,6 +15,7 @@ from tally_ho.apps.tally.models.reconciliation_form import (
 )
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
@@ -235,6 +236,30 @@ def create_station(center, registrants=1, tally=None, active=True):
         registrants=registrants,
         tally=tally)
     return station
+
+
+def create_result_form_stats(
+        form_state,
+        start_time,
+        end_time,
+        user,
+        result_form,
+        approved_by_supervisor=False,
+        reviewed_by_supervisor=False,
+        sent_for_review=False):
+
+    result_form_stats, _ = ResultFormStats.objects.get_or_create(
+        form_state=form_state,
+        start_time=start_time,
+        end_time=end_time,
+        user=user,
+        result_form=result_form,
+        approved_by_supervisor=approved_by_supervisor,
+        reviewed_by_supervisor=reviewed_by_supervisor,
+        sent_for_review=sent_for_review
+    )
+
+    return result_form_stats
 
 
 def result_form_data_blank(result_form):
