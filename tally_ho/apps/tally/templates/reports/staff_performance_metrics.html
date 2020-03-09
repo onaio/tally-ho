@@ -39,6 +39,12 @@
         <td>{{ rec.result_form.name }}</td>
         <td>{{ rec.result_form.barcode }}</td>
         <td>
+            {% if rec.get_time_elapsed.hours > 0 %}
+            <span>
+                {{ rec.get_time_elapsed.hours }}
+                {% trans ' hour(s) ' %}
+            </span>
+            {% endif %}
             {% if rec.get_time_elapsed.minutes > 0 %}
             <span>
                 {{ rec.get_time_elapsed.minutes }}
