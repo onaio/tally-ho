@@ -101,14 +101,16 @@ def save_result_form_processing_stats(user, encoded_start_time, result_form):
     :param result_form: The result form being processed by the clearance
         clerk.
     """
-    result_form_clearance_start_time = dateutil.parser.parse(
+    clearance_start_time = dateutil.parser.parse(
         encoded_start_time)
     del encoded_start_time
 
+    clearance_end_time = timezone.now()
+    form_processing_time_in_seconds =\
+        (clearance_end_time - clearance_start_time).total_seconds()
+
     ResultFormStats.objects.get_or_create(
-        form_state=FormState.CORRECTION,
-        start_time=result_form_clearance_start_time,
-        end_time=timezone.now(),
+        processing_time=form_processing_time_in_seconds,
         user=user.userprofile,
         result_form=result_form)
 
