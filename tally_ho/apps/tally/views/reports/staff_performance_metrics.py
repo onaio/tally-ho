@@ -76,9 +76,8 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
                              approved_by_supervisor=True)))\
             .annotate(
                 count_sent_for_review_by_tally_manager=Count(
-                    'sent_for_review',
-                    filter=Q(user__groups__name=groups.TALLY_MANAGER,
-                             sent_for_review=True)))\
+                    'id',
+                    filter=Q(user__groups__name=groups.TALLY_MANAGER)))\
             .annotate(
                 count_approved_by_supervisor_admin=Count(
                     'approved_by_supervisor',
@@ -86,9 +85,8 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
                              approved_by_supervisor=True)))\
             .annotate(
                 count_sent_for_review_by_supervisor_admin=Count(
-                    'sent_for_review',
-                    filter=Q(user__groups__name=groups.SUPER_ADMINISTRATOR,
-                             sent_for_review=True)))\
+                    'id',
+                    filter=Q(user__groups__name=groups.SUPER_ADMINISTRATOR)))\
             .annotate(
                 count_approved_by_audit_supervisor=Count(
                     'approved_by_supervisor',
@@ -96,9 +94,8 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
                              approved_by_supervisor=True)))\
             .annotate(
                 count_sent_for_review_by_audit_supervisor=Count(
-                    'sent_for_review',
-                    filter=Q(user__groups__name=groups.AUDIT_SUPERVISOR,
-                             sent_for_review=True)))\
+                    'id',
+                    filter=Q(user__groups__name=groups.AUDIT_SUPERVISOR)))\
             .aggregate(
                 approved_by_tally_manager=Sum(
                     'count_approved_by_tally_manager'),
