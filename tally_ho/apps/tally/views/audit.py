@@ -30,8 +30,7 @@ def save_result_form_processing_stats(
         encoded_start_time,
         result_form,
         approved_by_supervisor=False,
-        reviewed_by_supervisor=False,
-        sent_for_review=False):
+        reviewed_by_supervisor=False):
     """Save result form processing stats.
 
     :param user: The user processing the result form.
@@ -42,22 +41,21 @@ def save_result_form_processing_stats(
         approved by supervisor.
     :param reviewed_by_supervisor: True the result form was
         reviewed by supervisor.
-    :param sent_for_review: True the result form was reviewed and
-        rejected by supervisor.
     """
-    result_form_audit_start_time = dateutil.parser.parse(
+    audit_start_time = dateutil.parser.parse(
         encoded_start_time)
     del encoded_start_time
 
+    audit_end_time = timezone.now()
+    form_processing_time_in_seconds =\
+        (audit_end_time - audit_start_time).total_seconds()
+
     ResultFormStats.objects.get_or_create(
-        form_state=FormState.AUDIT,
-        start_time=result_form_audit_start_time,
-        end_time=timezone.now(),
+        processing_time=form_processing_time_in_seconds,
         user=user.userprofile,
         result_form=result_form,
         approved_by_supervisor=approved_by_supervisor,
-        reviewed_by_supervisor=reviewed_by_supervisor,
-        sent_for_review=sent_for_review)
+        reviewed_by_supervisor=reviewed_by_supervisor)
 
 
 def audit_action(audit, post_data, result_form, url):
@@ -252,8 +250,6 @@ class ReviewView(LoginRequiredMixin,
                                                groups.TALLY_MANAGER]:
                 encoded_start_time = self.request.session.get(
                     'encoded_result_form_audit_start_time')
-                sent_for_review =\
-                    result_form.form_state == FormState.DATA_ENTRY_1
                 approved_by_supervisor =\
                     audit.for_superadmin and audit.active
                 save_result_form_processing_stats(
@@ -261,8 +257,7 @@ class ReviewView(LoginRequiredMixin,
                     encoded_start_time,
                     result_form,
                     approved_by_supervisor,
-                    audit.reviewed_supervisor,
-                    sent_for_review)
+                    audit.reviewed_supervisor)
 
             return redirect(url, tally_id=tally_id)
         else:
