@@ -241,24 +241,18 @@ def create_station(center, registrants=1, tally=None, active=True):
 
 
 def create_result_form_stats(
-        form_state,
-        start_time,
-        end_time,
+        processing_time,
         user,
         result_form,
         approved_by_supervisor=False,
-        reviewed_by_supervisor=False,
-        sent_for_review=False):
+        reviewed_by_supervisor=False):
 
     result_form_stats, _ = ResultFormStats.objects.get_or_create(
-        form_state=form_state,
-        start_time=start_time,
-        end_time=end_time,
+        processing_time=processing_time,
         user=user,
         result_form=result_form,
         approved_by_supervisor=approved_by_supervisor,
-        reviewed_by_supervisor=reviewed_by_supervisor,
-        sent_for_review=sent_for_review
+        reviewed_by_supervisor=reviewed_by_supervisor
     )
 
     return result_form_stats
