@@ -16,17 +16,21 @@ class StaffPerformanceMetricsView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
         group_name = kwargs['group_name']
-        tally_result_forms = ResultFormStats.objects.filter(
-            result_form__tally__id=tally_id)
+
         result_form_stats =\
-            [result_form for result_form in tally_result_forms
-                if groups.user_groups(result_form.user)[0] == group_name]
+            ResultFormStats.objects\
+            .filter(
+                result_form__tally__id=tally_id,
+                user__groups__name=group_name)\
+            .values('user__username')\
+            .annotate(
+                forms_processed=Count('user'),
+                total_processing_time=Sum('processing_time'))
 
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
                 result_form_stats=result_form_stats,
-                result_forms_count=len(result_form_stats),
                 user_group=group_name))
 
 
