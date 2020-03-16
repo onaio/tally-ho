@@ -1,10 +1,13 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.reconciliation_form import\
     ReconciliationForm
 from tally_ho.apps.tally.views import corrections as views
@@ -55,6 +58,8 @@ class TestCorrections(TestBase):
         self._create_and_login_user()
         self.tally = create_tally()
         self.tally.users.add(self.user)
+        self.encoded_result_form_corrections_start_time =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
     def _common_view_tests(self, view, session={}):
         request = self.factory.get('/')
@@ -88,6 +93,9 @@ class TestCorrections(TestBase):
         }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
+        request.session = {}
+        request.session['encoded_result_form_corrections_start_time'] =\
+            self.encoded_result_form_corrections_start_time
         response = view(request, tally_id=self.tally.pk)
         self.assertContains(response, 'Barcodes do not match')
 
@@ -101,6 +109,9 @@ class TestCorrections(TestBase):
         }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
+        request.session = {}
+        request.session['encoded_result_form_corrections_start_time'] =\
+            self.encoded_result_form_corrections_start_time
         response = view(request, tally_id=self.tally.pk)
         self.assertContains(response, 'Barcode does not exist')
 
@@ -172,6 +183,8 @@ class TestCorrections(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.session = session
+        request.session['encoded_result_form_corrections_start_time'] =\
+            self.encoded_result_form_corrections_start_time
         request.user = self.user
         response = view(request, tally_id=self.tally.pk)
 
@@ -189,6 +202,15 @@ class TestCorrections(TestBase):
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state,
                          FormState.QUALITY_CONTROL)
+
+        result_form_stat = ResultFormStats.objects.get(
+            result_form=result_form)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_corrections_num_results_anomaly_reset_to_data_entry_one(self):
         barcode = '123456789'
@@ -297,8 +319,19 @@ class TestCorrections(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.session = session
+        request.session['encoded_result_form_corrections_start_time'] =\
+            self.encoded_result_form_corrections_start_time
         request.user = self.user
         response = view(request, tally_id=self.tally.pk)
+
+        result_form_stat = ResultFormStats.objects.get(
+            result_form=result_form)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
@@ -344,6 +377,8 @@ class TestCorrections(TestBase):
                 result_form=result_form, active=True).count(), 2)
 
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_corrections_start_time'] =\
+            self.encoded_result_form_corrections_start_time
         # pass to quality control
         response = view(request, tally_id=self.tally.pk)
 
@@ -361,6 +396,15 @@ class TestCorrections(TestBase):
                 active=True,
                 result_form=result_form,
                 entry_version=EntryVersion.FINAL).count(), 1)
+        
+        result_form_stat = ResultFormStats.objects.get(
+            result_form=updated_result_form)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_corrections_general_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
@@ -585,6 +629,8 @@ class TestCorrections(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_corrections_start_time'] =\
+            self.encoded_result_form_corrections_start_time
         response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(request.session.get('result_form'))
