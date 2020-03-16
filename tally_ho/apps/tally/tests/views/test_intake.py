@@ -1,9 +1,12 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.views import intake as views
 from tally_ho.apps.tally.views.intake import (
     INTAKE_DUPLICATE_ERROR_MESSAGE,
@@ -24,6 +27,8 @@ class TestIntake(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
+        self.encoded_result_form_intake_start_time =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
     def _common_view_tests(self, view):
         request = self.factory.get('/')
@@ -35,6 +40,9 @@ class TestIntake(TestBase):
         tally = create_tally()
         tally.users.add(self.user)
         request.user = self.user
+        request.session = {}
+        request.session['encoded_result_form_intake_start_time'] =\
+            self.encoded_result_form_intake_start_time
         with self.assertRaises(PermissionDenied):
             view(request, tally_id=tally.pk)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
@@ -61,6 +69,9 @@ class TestIntake(TestBase):
         }
         request = self.factory.post('/', data=short_length_barcode_data)
         request.user = self.user
+        request.session = {}
+        request.session['encoded_result_form_intake_start_time'] =\
+            self.encoded_result_form_intake_start_time
         response = view(request, tally_id=tally.pk)
         self.assertContains(response,
                             u'Barcode does not exist.')
@@ -78,6 +89,9 @@ class TestIntake(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        request.session = {}
+        request.session['encoded_result_form_intake_start_time'] =\
+            self.encoded_result_form_intake_start_time
         response = view(request, tally_id=tally.pk)
         self.assertContains(response,
                             u'Expecting only numbers for barcodes')
@@ -95,6 +109,9 @@ class TestIntake(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        request.session = {}
+        request.session['encoded_result_form_intake_start_time'] =\
+            self.encoded_result_form_intake_start_time
         response = view(request, tally_id=tally.pk)
         self.assertContains(response,
                             u'Expecting only numbers for barcodes')
@@ -112,6 +129,9 @@ class TestIntake(TestBase):
         }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
+        request.session = {}
+        request.session['encoded_result_form_intake_start_time'] =\
+            self.encoded_result_form_intake_start_time
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, 'Barcodes do not match')
 
@@ -128,6 +148,9 @@ class TestIntake(TestBase):
         }
         request = self.factory.post('/', data=barcode_data)
         request.user = self.user
+        request.session = {}
+        request.session['encoded_result_form_intake_start_time'] =\
+            self.encoded_result_form_intake_start_time
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, 'Barcode does not exist')
 
@@ -327,6 +350,8 @@ class TestIntake(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_intake_start_time'] =\
+            self.encoded_result_form_intake_start_time
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse(
@@ -743,6 +768,8 @@ class TestIntake(TestBase):
             'result_form': result_form.pk,
             'tally_id': tally.pk,
         }
+        self.request.session['encoded_result_form_intake_start_time'] =\
+            self.encoded_result_form_intake_start_time
         with self.assertRaises(Exception):
             response = view(self.request)
         result_form.form_state = FormState.INTAKE
@@ -753,3 +780,12 @@ class TestIntake(TestBase):
         self.assertIsNone(self.request.session.get('result_form'))
         self.assertContains(response,
                             'Form Sent to Clearance. Pass to Supervisor')
+        
+        result_form_stat = ResultFormStats.objects.get(
+            result_form=result_form)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
