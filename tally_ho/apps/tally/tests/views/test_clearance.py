@@ -1,9 +1,12 @@
 from django.core.exceptions import PermissionDenied
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.contrib.auth.models import AnonymousUser
 from django.template import Template, Context
 from django.test import RequestFactory
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.views import clearance as views
 from tally_ho.apps.tally.views.super_admin import CreateResultFormView
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
@@ -28,6 +31,8 @@ class TestClearance(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
+        self.encoded_result_form_clearance_start_time =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
     def _common_view_tests(self, view, tally=None):
         request = self.factory.get('/')
@@ -178,9 +183,20 @@ class TestClearance(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
+
+        result_form_stat = ResultFormStats.objects.get(
+            result_form=result_form)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_review_post(self):
         self._create_and_login_user()
@@ -199,6 +215,8 @@ class TestClearance(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
 
@@ -209,6 +227,15 @@ class TestClearance(TestBase):
         self.assertEqual(clearance.action_prior_to_recommendation,
                          ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
         self.assertEqual(response.status_code, 302)
+
+        result_form_stat = ResultFormStats.objects.get(
+            result_form=result_form)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_review_post_forward(self):
         self._create_and_login_user()
@@ -229,6 +256,8 @@ class TestClearance(TestBase):
 
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
 
@@ -238,6 +267,15 @@ class TestClearance(TestBase):
         self.assertEqual(clearance.action_prior_to_recommendation,
                          ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
         self.assertEqual(response.status_code, 302)
+
+        result_form_stat = ResultFormStats.objects.get(
+            result_form=result_form)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_review_post_supervisor(self):
         # save clearance as clerk
@@ -258,6 +296,8 @@ class TestClearance(TestBase):
 
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
 
@@ -275,6 +315,8 @@ class TestClearance(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
 
@@ -285,6 +327,15 @@ class TestClearance(TestBase):
         self.assertEqual(clearance.action_prior_to_recommendation,
                          ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
         self.assertEqual(response.status_code, 302)
+
+        result_form_stat = ResultFormStats.objects.get(
+            user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_review_post_supervisor_return(self):
         # save clearance as clerk
@@ -303,6 +354,8 @@ class TestClearance(TestBase):
             'tally_id': tally.pk,
         }
         request = self.factory.post('/', data=data)
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.user = self.user
         request.session = data
         response = view(request, tally_id=tally.pk)
@@ -321,6 +374,8 @@ class TestClearance(TestBase):
             'tally_id': tally.pk,
         }
         request = self.factory.post('/', data=data)
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.user = self.user
         request.session = data
         response = view(request, tally_id=tally.pk)
@@ -331,6 +386,15 @@ class TestClearance(TestBase):
                          ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
         self.assertEqual(clearance.reviewed_team, False)
         self.assertEqual(response.status_code, 302)
+
+        result_form_stat = ResultFormStats.objects.get(
+            user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_review_post_supervisor_implement(self):
         # save clearance as clerk
@@ -356,6 +420,8 @@ class TestClearance(TestBase):
             'tally_id': tally.pk,
         }
         request = self.factory.post('/', data=data)
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.user = self.user
         request.session = data
         response = view(request, tally_id=tally.pk)
@@ -374,6 +440,8 @@ class TestClearance(TestBase):
             'tally_id': tally.pk,
         }
         request = self.factory.post('/', data=data)
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.user = self.user
         request.session = data
         response = view(request, tally_id=tally.pk)
@@ -392,6 +460,15 @@ class TestClearance(TestBase):
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
         self.assertEqual(result_form.center, center)
         self.assertEqual(result_form.station_number, station_number)
+
+        result_form_stat = ResultFormStats.objects.get(
+            user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_review_post_supervisor_implement_replacement_form(self):
         # save clearance as clerk
@@ -418,6 +495,8 @@ class TestClearance(TestBase):
             'tally_id': tally.pk,
         }
         request = self.factory.post('/', data=data)
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.user = self.user
         request.session = data
         response = view(request, tally_id=tally.pk)
@@ -436,6 +515,8 @@ class TestClearance(TestBase):
             'tally_id': tally.pk,
         }
         request = self.factory.post('/', data=data)
+        data['encoded_result_form_clearance_start_time'] =\
+            self.encoded_result_form_clearance_start_time
         request.user = self.user
         request.session = data
         response = view(request, tally_id=tally.pk)
@@ -455,6 +536,15 @@ class TestClearance(TestBase):
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
         self.assertIsNone(result_form.center)
         self.assertIsNone(result_form.station_number)
+
+        result_form_stat = ResultFormStats.objects.get(
+            user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_new_form_get_with_form(self):
         # save clearance as clerk
@@ -645,6 +735,8 @@ class TestClearance(TestBase):
             }
             request = self.factory.post('/', data=data)
             request.user = self.user
+            data['encoded_result_form_clearance_start_time'] =\
+                self.encoded_result_form_clearance_start_time
             request.session = data
             response = view(request, tally_id=tally.pk)
             result_form.reload()
@@ -653,6 +745,15 @@ class TestClearance(TestBase):
             self.assertEqual(result_form.form_state, FormState.CLEARANCE)
             self.assertIsNotNone(result_form.clearance)
             self.assertEqual(result_form.clearance.user, self.user)
+
+            result_form_stat = ResultFormStats.objects.get(
+                result_form=result_form)
+            self.assertEqual(result_form_stat.approved_by_supervisor,
+                             False)
+            self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                             False)
+            self.assertEqual(result_form_stat.user, self.user)
+            self.assertEqual(result_form_stat.result_form, result_form)
 
             for result in result_form.reconciliationform_set.all():
                 self.assertFalse(result.active)
@@ -713,6 +814,8 @@ class TestClearance(TestBase):
             }
             request = self.factory.post('/', data=data)
             request.user = self.user
+            data['encoded_result_form_clearance_start_time'] =\
+                self.encoded_result_form_clearance_start_time
             request.session = data
             response = view(request, tally_id=tally.pk)
             result_form.reload()
@@ -721,6 +824,15 @@ class TestClearance(TestBase):
             self.assertEqual(result_form.form_state, FormState.CLEARANCE)
             self.assertIsNotNone(result_form.clearance)
             self.assertEqual(result_form.clearance.user, self.user)
+
+            result_form_stat = ResultFormStats.objects.get(
+                result_form=result_form)
+            self.assertEqual(result_form_stat.approved_by_supervisor,
+                             False)
+            self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                             False)
+            self.assertEqual(result_form_stat.user, self.user)
+            self.assertEqual(result_form_stat.result_form, result_form)
 
             for result in result_form.reconciliationform_set.all():
                 self.assertFalse(result.active)
