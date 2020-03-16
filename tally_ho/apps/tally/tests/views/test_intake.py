@@ -780,7 +780,7 @@ class TestIntake(TestBase):
         self.assertIsNone(self.request.session.get('result_form'))
         self.assertContains(response,
                             'Form Sent to Clearance. Pass to Supervisor')
-        
+
         result_form_stat = ResultFormStats.objects.get(
             result_form=result_form)
         self.assertEqual(result_form_stat.approved_by_supervisor,
