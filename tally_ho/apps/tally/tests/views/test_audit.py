@@ -1,9 +1,12 @@
 from django.core.exceptions import PermissionDenied
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
+from django.utils import timezone
 
 from tally_ho.apps.tally.views import audit as views
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
@@ -22,6 +25,8 @@ class TestAudit(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
+        self.encoded_result_form_audit_start_time =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
     def _common_view_tests(self, view, tally=None):
         if not tally:
@@ -115,7 +120,11 @@ class TestAudit(TestBase):
         view = views.ReviewView.as_view()
         request = self.factory.get('/')
         request.user = self.user
-        request.session = {'result_form': result_form.pk}
+        request.session =\
+            {'result_form':
+             result_form.pk,
+             'encoded_result_form_audit_start_time':
+             self.encoded_result_form_audit_start_time}
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Forward to Supervisor')
@@ -131,7 +140,11 @@ class TestAudit(TestBase):
         view = views.ReviewView.as_view()
         request = self.factory.get('/')
         request.user = self.user
-        request.session = {'result_form': result_form.pk}
+        request.session =\
+            {'result_form':
+             result_form.pk,
+             'encoded_result_form_audit_start_time':
+             self.encoded_result_form_audit_start_time}
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Mark Form as Resolved')
@@ -276,6 +289,8 @@ class TestAudit(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_audit_start_time'] =\
+            self.encoded_result_form_audit_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
 
@@ -322,6 +337,8 @@ class TestAudit(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_audit_start_time'] =\
+            self.encoded_result_form_audit_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
 
@@ -370,6 +387,8 @@ class TestAudit(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_audit_start_time'] =\
+            self.encoded_result_form_audit_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
 
@@ -382,6 +401,16 @@ class TestAudit(TestBase):
         self.assertEqual(audit.for_superadmin, True)
         self.assertEqual(audit.action_prior_to_recommendation,
                          ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
+
+        result_form_stat = ResultFormStats.objects.get(result_form=result_form)
+        approved_by_supervisor =\
+            audit.for_superadmin and audit.active
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         approved_by_supervisor)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         audit.reviewed_supervisor)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_review_post_check_audit_state_when_no_action_prior(self):
         self._create_and_login_user(username='alice')
@@ -402,6 +431,8 @@ class TestAudit(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_audit_start_time'] =\
+            self.encoded_result_form_audit_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
 
@@ -413,6 +444,16 @@ class TestAudit(TestBase):
                             FormState.AUDIT)
         self.assertEqual(audit.result_form.form_state,
                          FormState.DATA_ENTRY_1)
+
+        result_form_stat = ResultFormStats.objects.get(result_form=result_form)
+        approved_by_supervisor =\
+            audit.for_superadmin and audit.active
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         approved_by_supervisor)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         audit.reviewed_supervisor)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_review_post_supervisor_implement_de1(self):
         # save audit as clerk
@@ -454,6 +495,8 @@ class TestAudit(TestBase):
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
+        data['encoded_result_form_audit_start_time'] =\
+            self.encoded_result_form_audit_start_time
         request.session = data
         response = view(request, tally_id=tally.pk)
 
@@ -469,6 +512,16 @@ class TestAudit(TestBase):
         self.assertEqual(len(audit.result_form.results.all()), 20)
         self.assertEqual(len(audit.result_form.reconciliationform_set.all()),
                          2)
+
+        result_form_stat = ResultFormStats.objects.get(result_form=result_form)
+        approved_by_supervisor =\
+            audit.for_superadmin and audit.active
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         approved_by_supervisor)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         audit.reviewed_supervisor)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
         for result in audit.result_form.results.all():
             self.assertFalse(result.active)
