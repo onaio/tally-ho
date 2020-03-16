@@ -396,7 +396,7 @@ class TestCorrections(TestBase):
                 active=True,
                 result_form=result_form,
                 entry_version=EntryVersion.FINAL).count(), 1)
-        
+
         result_form_stat = ResultFormStats.objects.get(
             result_form=updated_result_form)
         self.assertEqual(result_form_stat.approved_by_supervisor,
