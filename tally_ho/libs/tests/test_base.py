@@ -15,6 +15,7 @@ from tally_ho.apps.tally.models.reconciliation_form import (
 )
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
@@ -101,6 +102,7 @@ def create_result_form(barcode='123456789',
                        center=None,
                        gender=Gender.MALE,
                        force_ballot=True,
+                       name=None,
                        serial_number=0,
                        user=None,
                        is_replacement=False,
@@ -113,6 +115,7 @@ def create_result_form(barcode='123456789',
         barcode=barcode,
         serial_number=serial_number,
         form_state=form_state,
+        name=name,
         station_number=station_number,
         user=user,
         center=center,
@@ -235,6 +238,24 @@ def create_station(center, registrants=1, tally=None, active=True):
         registrants=registrants,
         tally=tally)
     return station
+
+
+def create_result_form_stats(
+        processing_time,
+        user,
+        result_form,
+        approved_by_supervisor=False,
+        reviewed_by_supervisor=False):
+
+    result_form_stats, _ = ResultFormStats.objects.get_or_create(
+        processing_time=processing_time,
+        user=user,
+        result_form=result_form,
+        approved_by_supervisor=approved_by_supervisor,
+        reviewed_by_supervisor=reviewed_by_supervisor
+    )
+
+    return result_form_stats
 
 
 def result_form_data_blank(result_form):

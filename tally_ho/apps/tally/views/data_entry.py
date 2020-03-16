@@ -383,18 +383,19 @@ class ConfirmationView(LoginRequiredMixin,
 
         user = self.request.user
         if user_is_data_entry_1(user) or user_is_data_entry_2(user):
-            result_form_data_entry_start_time =\
+            data_entry_start_time =\
                 dateutil.parser.parse(self.request.session.get(
                     'encoded_result_form_data_entry_start_time'))
             del self.request.session[
                 'encoded_result_form_data_entry_start_time']
 
+            data_entry_end_time = timezone.now()
+            form_processing_time_in_seconds =\
+                (data_entry_end_time - data_entry_start_time).total_seconds()
+
             # Track data entry clerks result form processing time
             ResultFormStats.objects.get_or_create(
-                form_state=FormState.DATA_ENTRY_1 if result_form.form_state ==
-                FormState.DATA_ENTRY_2 else FormState.DATA_ENTRY_2,
-                start_time=result_form_data_entry_start_time,
-                end_time=timezone.now(),
+                processing_time=form_processing_time_in_seconds,
                 user=user.userprofile,
                 result_form=result_form)
 

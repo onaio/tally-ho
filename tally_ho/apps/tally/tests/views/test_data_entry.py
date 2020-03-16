@@ -1,7 +1,9 @@
 from django.core.exceptions import PermissionDenied
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
+from django.utils import timezone
 
 from tally_ho.apps.tally.views import data_entry as views
 from tally_ho.libs.permissions import groups
@@ -17,6 +19,7 @@ from tally_ho.libs.tests.test_base import (
     TestBase
 )
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 
@@ -25,6 +28,8 @@ class TestDataEntry(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
+        self.encoded_result_form_data_entry_start_time =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
     def _common_view_tests(self, view):
         if not hasattr(self, 'user'):
@@ -32,6 +37,9 @@ class TestDataEntry(TestBase):
         tally = create_tally()
         tally.users.add(self.user)
         request = self.factory.get('/')
+        request.session = {}
+        request.session['encoded_result_form_data_entry_start_time'] =\
+            self.encoded_result_form_data_entry_start_time
         request.user = AnonymousUser()
         response = view(request)
         self.assertEqual(response.status_code, 302)
@@ -417,12 +425,22 @@ class TestDataEntry(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_data_entry_start_time'] =\
+            self.encoded_result_form_data_entry_start_time
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(request.session.get('result_form'))
         self.assertContains(response, 'Data Entry 2')
         self.assertContains(response, reverse(
             'data-entry', kwargs={'tally_id': tally.pk}))
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_confirmation_get_corrections(self):
         self._create_and_login_user()
@@ -435,9 +453,19 @@ class TestDataEntry(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_data_entry_start_time'] =\
+            self.encoded_result_form_data_entry_start_time
         response = view(request, tally_id=tally.pk)
         self.assertIsNone(request.session.get('result_form'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Corrections')
         self.assertContains(response, reverse(
             'data-entry', kwargs={'tally_id': tally.pk}))
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)

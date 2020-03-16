@@ -26,24 +26,30 @@ INTAKE_DUPLICATE_ERROR_MESSAGE = _(
     'Duplicate of a form already entered into system.')
 
 
-def save_result_form_processing_stats(user, encoded_start_time, result_form):
+def save_result_form_processing_stats(
+    request,
+    encoded_start_time,
+    result_form
+):
     """Save result form processing stats.
 
-    :param user: The user processing the result form.
+    :param request: The request object.
     :param encoded_start_time: The encoded time the result form started
         to be processed.
     :param result_form: The result form being processed by the intake
         clerk.
     """
-    result_form_intake_start_time = dateutil.parser.parse(
+    intake_start_time = dateutil.parser.parse(
         encoded_start_time)
-    del encoded_start_time
+    del request.session['encoded_result_form_intake_start_time']
+
+    intake_end_time = timezone.now()
+    form_processing_time_in_seconds =\
+        (intake_end_time - intake_start_time).total_seconds()
 
     ResultFormStats.objects.get_or_create(
-        form_state=FormState.CORRECTION,
-        start_time=result_form_intake_start_time,
-        end_time=timezone.now(),
-        user=user.userprofile,
+        processing_time=form_processing_time_in_seconds,
+        user=request.user.userprofile,
         result_form=result_form)
 
 
@@ -382,7 +388,7 @@ class ClearanceView(LoginRequiredMixin,
             'encoded_result_form_intake_start_time')
         # Track intake clerks result form processing time
         save_result_form_processing_stats(
-            self.request.user, encoded_start_time, result_form)
+            self.request, encoded_start_time, result_form)
 
         error_msg = self.request.session.get('intake-error')
 
@@ -410,9 +416,8 @@ class ConfirmationView(LoginRequiredMixin,
             'encoded_result_form_intake_start_time')
         # Track intake clerks result form processing time
         save_result_form_processing_stats(
-            self.request.user, encoded_start_time, result_form)
+            self.request, encoded_start_time, result_form)
 
-        del self.request.session['encoded_result_form_intake_start_time']
         del self.request.session['result_form']
 
         return self.render_to_response(

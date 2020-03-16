@@ -1,12 +1,15 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
+from django.core.serializers.json import json, DjangoJSONEncoder
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.test import RequestFactory
+from django.utils import timezone
 
 from tally_ho.apps.tally.views import quality_control as views
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
@@ -33,9 +36,14 @@ class TestQualityControl(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
+        self.encoded_result_form_qa_control_start_time =\
+            json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
 
     def _common_view_tests(self, view):
         request = self.factory.get('/')
+        request.session = {}
+        request.session['encoded_result_form_qa_control_start_time'] =\
+            self.encoded_result_form_qa_control_start_time
         request.user = AnonymousUser()
         response = view(request)
         self.assertEqual(response.status_code, 302)
@@ -162,6 +170,8 @@ class TestQualityControl(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_qa_control_start_time'] =\
+            self.encoded_result_form_qa_control_start_time
         response = view(request, tally_id=tally.pk)
 
         self.assertEqual(response.status_code, 302)
@@ -170,6 +180,14 @@ class TestQualityControl(TestBase):
         quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertFalse(quality_control.active)
         self.assertEqual(request.session, {})
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_dashboard_submit_post(self):
         self._create_and_login_user()
@@ -313,6 +331,8 @@ class TestQualityControl(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_qa_control_start_time'] =\
+            self.encoded_result_form_qa_control_start_time
         response = view(request, tally_id=tally.pk)
         result_form = ResultForm.objects.get(pk=result_form.pk)
         quality_control = result_form.qualitycontrol_set.all()[0]
@@ -326,6 +346,14 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.reject_reason, reject_reason)
         self.assertFalse(quality_control.active)
         self.assertFalse(quality_control.passed_reconciliation)
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_reconciliation_get(self):
         barcode = '123456789'
@@ -436,6 +464,8 @@ class TestQualityControl(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_qa_control_start_time'] =\
+            self.encoded_result_form_qa_control_start_time
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/reject',
@@ -460,6 +490,14 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.rejected_count, 1)
         self.assertEqual(quality_control.active, False)
         self.assertEqual(quality_control.passed_reconciliation, False)
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_reconciliation_post_abort(self):
         self._create_and_login_user()
@@ -606,6 +644,8 @@ class TestQualityControl(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_qa_control_start_time'] =\
+            self.encoded_result_form_qa_control_start_time
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/reject',
@@ -624,6 +664,14 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.rejected_count, 1)
         self.assertEqual(quality_control.active, False)
         self.assertEqual(quality_control.passed_general, False)
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_general_post_abort(self):
         self._create_and_login_user()
@@ -768,6 +816,8 @@ class TestQualityControl(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_qa_control_start_time'] =\
+            self.encoded_result_form_qa_control_start_time
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('quality-control/reject',
@@ -786,6 +836,14 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.rejected_count, 1)
         self.assertEqual(quality_control.active, False)
         self.assertEqual(quality_control.passed_women, False)
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_women_post_abort(self):
         self._create_and_login_user()
@@ -1010,6 +1068,8 @@ class TestQualityControl(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request.session['encoded_result_form_qa_control_start_time'] =\
+            self.encoded_result_form_qa_control_start_time
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Archiving')
@@ -1017,3 +1077,11 @@ class TestQualityControl(TestBase):
             response,
             reverse('quality-control', kwargs={'tally_id': tally.pk}))
         self.assertEqual(request.session.get('result_form'), None)
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
