@@ -32,10 +32,14 @@ from tally_ho.libs.views.form_state import form_in_state,\
     safe_form_in_state
 
 
-def save_result_form_processing_stats(user, encoded_start_time, result_form):
+def save_result_form_processing_stats(
+    request,
+    encoded_start_time,
+    result_form
+):
     """Save result form processing stats.
 
-    :param user: The user processing the result form.
+    :param request: The request object.
     :param encoded_start_time: The encoded time the result form started
         to be processed.
     :param result_form: The result form being processed by the corrections
@@ -43,7 +47,7 @@ def save_result_form_processing_stats(user, encoded_start_time, result_form):
     """
     corrections_start_time = dateutil.parser.parse(
         encoded_start_time)
-    del encoded_start_time
+    del request.session['encoded_result_form_corrections_start_time']
 
     corrections_end_time = timezone.now()
     form_processing_time_in_seconds =\
@@ -51,7 +55,7 @@ def save_result_form_processing_stats(user, encoded_start_time, result_form):
 
     ResultFormStats.objects.get_or_create(
         processing_time=form_processing_time_in_seconds,
-        user=user.userprofile,
+        user=request.user.userprofile,
         result_form=result_form)
 
 
@@ -301,7 +305,7 @@ class CorrectionMatchView(LoginRequiredMixin,
                 'encoded_result_form_corrections_start_time')
             # Track corrections clerks result form processing time
             save_result_form_processing_stats(
-                self.request.user, encoded_start_time, result_form)
+                self.request, encoded_start_time, result_form)
 
             del self.request.session['result_form']
 
@@ -400,7 +404,7 @@ class ConfirmationView(LoginRequiredMixin,
             'encoded_result_form_corrections_start_time')
         # Track corrections clerks result form processing time
         save_result_form_processing_stats(
-            self.request.user, encoded_start_time, result_form)
+            self.request, encoded_start_time, result_form)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,

@@ -92,10 +92,14 @@ def is_clerk(user):
     return groups.CLEARANCE_CLERK in user.groups.values_list('name', flat=True)
 
 
-def save_result_form_processing_stats(user, encoded_start_time, result_form):
+def save_result_form_processing_stats(
+    request,
+    encoded_start_time,
+    result_form
+):
     """Save result form processing stats.
 
-    :param user: The user processing the result form.
+    :param request: The request object.
     :param encoded_start_time: The encoded time the result form started
         to be processed.
     :param result_form: The result form being processed by the clearance
@@ -103,7 +107,7 @@ def save_result_form_processing_stats(user, encoded_start_time, result_form):
     """
     clearance_start_time = dateutil.parser.parse(
         encoded_start_time)
-    del encoded_start_time
+    del request.session['encoded_result_form_clearance_start_time']
 
     clearance_end_time = timezone.now()
     form_processing_time_in_seconds =\
@@ -111,7 +115,7 @@ def save_result_form_processing_stats(user, encoded_start_time, result_form):
 
     ResultFormStats.objects.get_or_create(
         processing_time=form_processing_time_in_seconds,
-        user=user.userprofile,
+        user=request.user.userprofile,
         result_form=result_form)
 
 
@@ -192,7 +196,7 @@ class ReviewView(LoginRequiredMixin,
             'encoded_result_form_clearance_start_time')
         # Track clearance clerks review result form processing time
         save_result_form_processing_stats(
-            user, encoded_start_time, result_form)
+            self.request, encoded_start_time, result_form)
 
         if form.is_valid():
             clearance = get_clearance(result_form, post_data, user, form)
@@ -414,9 +418,7 @@ class AddClearanceFormView(LoginRequiredMixin,
             encoded_start_time = self.request.session.get(
                 'encoded_result_form_clearance_start_time')
             save_result_form_processing_stats(
-                self.request.user, encoded_start_time, result_form)
-
-        del self.request.session['encoded_result_form_clearance_start_time']
+                self.request, encoded_start_time, result_form)
 
         return redirect(self.success_url, tally_id=tally_id)
 

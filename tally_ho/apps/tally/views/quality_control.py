@@ -29,10 +29,14 @@ from tally_ho.libs.views.form_state import safe_form_in_state,\
     form_in_state
 
 
-def save_result_form_processing_stats(user, encoded_start_time, result_form):
+def save_result_form_processing_stats(
+    request,
+    encoded_start_time,
+    result_form
+):
     """Save result form processing stats.
 
-    :param user: The user processing the result form.
+    :param request: The request object.
     :param encoded_start_time: The encoded time the result form started
         to be processed.
     :param result_form: The result form being processed by the quality control
@@ -40,7 +44,8 @@ def save_result_form_processing_stats(user, encoded_start_time, result_form):
     """
     qa_control_start_time = dateutil.parser.parse(
         encoded_start_time)
-    del encoded_start_time
+    del request.session[
+        'encoded_result_form_qa_control_start_time']
 
     qa_control_end_time = timezone.now()
     form_processing_time_in_seconds =\
@@ -48,7 +53,7 @@ def save_result_form_processing_stats(user, encoded_start_time, result_form):
 
     ResultFormStats.objects.get_or_create(
         processing_time=form_processing_time_in_seconds,
-        user=user.userprofile,
+        user=request.user.userprofile,
         result_form=result_form)
 
 
@@ -197,7 +202,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
                 # Track quality control clerks result form processing time
                 # when a form is rejected without confirmation
                 save_result_form_processing_stats(
-                    self.request.user, encoded_start_time, result_form)
+                    self.request, encoded_start_time, result_form)
 
                 del self.request.session['result_form']
         elif 'abort' in post_data:
@@ -271,7 +276,7 @@ class ConfirmationView(LoginRequiredMixin,
             'encoded_result_form_qa_control_start_time')
         # Track quality control clerks result form processing time
         save_result_form_processing_stats(
-            self.request.user, encoded_start_time, result_form)
+            self.request, encoded_start_time, result_form)
 
         del self.request.session['result_form']
 
@@ -317,7 +322,7 @@ class ConfirmFormResetView(LoginRequiredMixin,
             # Track quality control clerks result form processing time
             # when rejecting a form
             save_result_form_processing_stats(
-                self.request.user, encoded_start_time, result_form)
+                self.request, encoded_start_time, result_form)
 
             del self.request.session['result_form']
 

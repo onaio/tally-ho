@@ -26,14 +26,14 @@ from tally_ho.libs.views.session import session_matches_post_result_form
 
 
 def save_result_form_processing_stats(
-        user,
+        request,
         encoded_start_time,
         result_form,
         approved_by_supervisor=False,
         reviewed_by_supervisor=False):
     """Save result form processing stats.
 
-    :param user: The user processing the result form.
+    :param request: The request object.
     :param encoded_start_time: The encoded time the result form started
         to be processed.
     :param result_form: The result form being processed by the audit clerk.
@@ -44,7 +44,7 @@ def save_result_form_processing_stats(
     """
     audit_start_time = dateutil.parser.parse(
         encoded_start_time)
-    del encoded_start_time
+    del request.session['encoded_result_form_audit_start_time']
 
     audit_end_time = timezone.now()
     form_processing_time_in_seconds =\
@@ -52,7 +52,7 @@ def save_result_form_processing_stats(
 
     ResultFormStats.objects.get_or_create(
         processing_time=form_processing_time_in_seconds,
-        user=user.userprofile,
+        user=request.user.userprofile,
         result_form=result_form,
         approved_by_supervisor=approved_by_supervisor,
         reviewed_by_supervisor=reviewed_by_supervisor)
@@ -253,7 +253,7 @@ class ReviewView(LoginRequiredMixin,
                 approved_by_supervisor =\
                     audit.for_superadmin and audit.active
                 save_result_form_processing_stats(
-                    user,
+                    self.request,
                     encoded_start_time,
                     result_form,
                     approved_by_supervisor,
@@ -299,13 +299,12 @@ class PrintCoverView(LoginRequiredMixin,
                                             tally__id=tally_id)
             form_in_state(result_form, FormState.AUDIT)
 
-            user = self.request.user
             # Track audit clerks result form processing time
-            if groups.user_groups(user)[0] == groups.AUDIT_CLERK:
+            if groups.user_groups(self.request.user)[0] == groups.AUDIT_CLERK:
                 encoded_start_time = self.request.session.get(
                     'encoded_result_form_audit_start_time')
                 save_result_form_processing_stats(
-                    user, encoded_start_time, result_form)
+                    self.request, encoded_start_time, result_form)
 
             del self.request.session['result_form']
 
