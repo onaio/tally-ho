@@ -16,6 +16,9 @@ class UserGroup(BaseModel):
     idle_timeout = models.PositiveIntegerField(
         null=True, blank=True, default=60)
 
+    def __str__(self):
+        return u'%s - %s' % (self.group.name, self.idle_timeout)
+
 
 @receiver(post_save, sender=Group)
 def create_user_group(sender, instance, created, **kwargs):
