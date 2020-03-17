@@ -14,6 +14,7 @@
 {% endif %}
 <h3>{% trans 'Data views' %}</h3>
 <ul>
+    <li><a href="{% url 'user-group-list' tally_id=tally_id %}">{% trans 'User Groups List' %}</a></li>
     <li><a href="{% url 'user-tally-list' tally_id %}">{% trans 'Users List' %}</a></li>
     <li><a href="{% url 'center-list' tally_id=tally_id %}">{% trans 'Center List' %}</a></li>
     <li><a href="{% url 'races-list' tally_id=tally_id %}">{% trans 'Races List' %}</a></li>
