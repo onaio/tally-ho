@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with remote_url=remote_url %}
+{% endblock %}
+
+{% block content %}
+<h1>{% trans 'User Groups List' %}</h1>
+<br />
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+</ul>
+{% endif %}
+
+<table class="datatable" class="reduce-size">
+    <thead>
+        <tr>
+            <th>{% trans 'Name' %}</th>
+            <th>{% trans 'Idle Timeout' %}</th>
+            <th>{% trans 'Edit' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}
