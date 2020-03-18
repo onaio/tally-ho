@@ -94,12 +94,6 @@ urlpatterns = [
     re_path(r'^data/forms-for-race-data/(?P<tally_id>(\d+))/(?P<ballot>.*)/$',
             form_list_view.FormListDataView.as_view(),
             name='forms-for-race-data'),
-    re_path(r'^data/user-group-list/(?P<tally_id>(\d+))/$',
-            user_group_list_view.UserGroupListView.as_view(),
-            name='user-group-list'),
-    re_path(r'^data/user-group-list-data/(?P<tally_id>(\d+))/$',
-            user_group_list_view.UserGroupListDataView.as_view(),
-            name='user-group-list-data'),
 
     re_path(r'^super-administrator/tallies$',
             super_admin.TalliesView.as_view(),
