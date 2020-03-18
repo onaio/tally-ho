@@ -11,8 +11,7 @@ from tally_ho.apps.tally.views import audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile, tally_manager
 from tally_ho.apps.tally.views.data import center_list_view, form_list_view,\
-    candidate_list_view, race_list_view, user_list_view, tally_list_view,\
-    user_group_list_view
+    candidate_list_view, race_list_view, user_list_view, tally_list_view
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 from tally_ho.apps.tally.views.reports import staff_performance_metrics
