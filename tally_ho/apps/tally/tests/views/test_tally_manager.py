@@ -6,6 +6,8 @@ from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.apps.tally.views import tally_manager as views
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
+    configure_messages,
+    create_site_info,
     create_tally,
     TestBase,
 )
@@ -18,7 +20,7 @@ class TestTallyManager(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)
 
-    def test_set_user_timout_get(self):
+    def test_set_user_timeout_get(self):
         tally = create_tally()
         tally.users.add(self.user)
         view = views.SetUserTimeOutView.as_view()
@@ -59,3 +61,28 @@ class TestTallyManager(TestBase):
             response,
             str('<input type="text" name="user_idle_timeout" size="50" '
                 'required id="id_user_idle_timeout">'))
+
+    def test_set_user_timeout_valid_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.SetUserTimeOutView.as_view()
+        user_idle_timeout = 60
+        data = {'user_idle_timeout': user_idle_timeout}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        configure_messages(request)
+
+        site_id = getattr(settings, "SITE_ID", None)
+        try:
+            Site.objects.get(pk=site_id)
+        except Site.DoesNotExist:
+            site = Site.objects.create(name="HENC RMS")
+            site_id = site.id
+        response = view(request, site_id=site_id)
+
+        success_url = 'tally-manager'
+        siteinfo = SiteInfo.objects.get(site__pk=site_id)
+
+        self.assertEqual(siteinfo.user_idle_timeout, user_idle_timeout)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(success_url,  response.url)
