@@ -16,6 +16,7 @@ from tally_ho.apps.tally.models.reconciliation_form import (
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
+from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
@@ -256,6 +257,18 @@ def create_result_form_stats(
     )
 
     return result_form_stats
+
+
+def create_site_info(
+        site,
+        user_idle_timeout):
+
+    site_info, _ = SiteInfo.objects.get_or_create(
+        site=site,
+        user_idle_timeout=user_idle_timeout
+    )
+
+    return site_info
 
 
 def result_form_data_blank(result_form):
