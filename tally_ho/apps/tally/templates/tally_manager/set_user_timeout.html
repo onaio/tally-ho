@@ -4,18 +4,18 @@
 
 {% block content %}
 
-<h1>{% blocktrans %}Set User Timeout{% endblocktrans %}</h1>
+<h1>{% blocktrans %}Set user idle timeout{% endblocktrans %}</h1>
 <br />
 
 <form name="disable-entity-form" method="post" action="">
     <div class="form-instructions">{% blocktrans %}Set timeout in minutes.{% endblocktrans %}</div>
     <br />
     <div>
-        {% blocktrans %}Current User Idle Timeout {{ userIdleTimeout }} minutes{% endblocktrans %}
+        {% blocktrans %}Current user idle timeout: {{ userIdleTimeout }} minutes{% endblocktrans %}
     </div>
     <br />
     <table class="table table-bordered">
-        {{ form.as_table }}
+        {{ form.as_p }}
     </table>
     <button class="btn btn-small btn-success" type="submit" name="save_submit">
         {% trans "Save" %}
