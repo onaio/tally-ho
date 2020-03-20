@@ -26,7 +26,4 @@ class TestSiteInfo(TestBase):
         expected_object_name =\
             f'{site_info.site.name} - {site_info.user_idle_timeout}'
         self.assertEquals(expected_object_name, str(site_info))
-
-        self.assertEqual(
-            site_info.user_idle_timeout,
-            user_idle_timeout)
+        self.assertEqual(site_info.user_idle_timeout, user_idle_timeout)
