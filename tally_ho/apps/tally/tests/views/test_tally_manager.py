@@ -86,3 +86,39 @@ class TestTallyManager(TestBase):
         self.assertEqual(siteinfo.user_idle_timeout, user_idle_timeout)
         self.assertEqual(response.status_code, 302)
         self.assertIn(success_url,  response.url)
+
+    def test_set_user_timeout_invalid_post(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.SetUserTimeOutView.as_view()
+        user_idle_timeout = 'example'
+        data = {'user_idle_timeout': user_idle_timeout}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+
+        site_id = getattr(settings, "SITE_ID", None)
+        site = None
+
+        try:
+            site = Site.objects.get(pk=site_id)
+        except Site.DoesNotExist:
+            site = Site.objects.create(name="HENC RMS")
+            site_id = site.id
+
+        create_site_info(site=site, user_idle_timeout=50)
+        response = view(request, site_id=site_id)
+        response.render()
+
+        siteinfo = SiteInfo.objects.get(site__pk=site_id)
+        self.assertNotEqual(response.status_code, 302)
+        self.assertIn(
+            str('Current User Idle Timeout '
+                '{} minutes').format(siteinfo.user_idle_timeout),
+            str(response.content))
+        self.assertContains(
+            response,
+            '<label for="id_user_idle_timeout">User idle timeout:</label>')
+        self.assertContains(
+            response,
+            str('<input type="text" name="user_idle_timeout" value="example" '
+                'size="50" required id="id_user_idle_timeout">'))
