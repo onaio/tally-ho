@@ -7,7 +7,7 @@ from tally_ho.libs.models.base_model import BaseModel
 
 class SiteInfo(BaseModel):
     site = models.OneToOneField(Site, on_delete=models.PROTECT)
-    user_idle_timeout = models.PositiveIntegerField()
+    user_idle_timeout = models.PositiveIntegerField(default=60)
 
     def __str__(self):
         return u'%s - %s' % (self.site.name, self.user_idle_timeout)
@@ -20,5 +20,5 @@ def create_site_info(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=Site)
-def save_site_info(sender, instance, **kwargs):
+def update_site_info(sender, instance, **kwargs):
     instance.siteinfo.save()
