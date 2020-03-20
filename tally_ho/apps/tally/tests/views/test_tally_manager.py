@@ -38,7 +38,7 @@ class TestTallyManager(TestBase):
             request,
             site_id=site_id)
 
-        self.assertContains(response, '<h1>Set User Timeout</h1>')
+        self.assertContains(response, '<h1>Set user idle timeout</h1>')
         self.assertContains(
             response,
             '<div class="form-instructions">Set timeout in minutes.</div>')
@@ -51,7 +51,7 @@ class TestTallyManager(TestBase):
             user_idle_timeout = getattr(settings, 'IDLE_TIMEOUT', 60)
 
         self.assertIn(
-            str('Current User Idle Timeout '
+            str('Current user idle timeout: '
                 '{} minutes').format(user_idle_timeout),
             str(response.content))
         self.assertContains(
@@ -59,8 +59,8 @@ class TestTallyManager(TestBase):
             '<label for="id_user_idle_timeout">User idle timeout:</label>')
         self.assertContains(
             response,
-            str('<input type="text" name="user_idle_timeout" size="50" '
-                'required id="id_user_idle_timeout">'))
+            str('<input type="text" name="user_idle_timeout" value="60" '
+                'size="50" required id="id_user_idle_timeout">'))
 
     def test_set_user_timeout_valid_post(self):
         tally = create_tally()
@@ -112,7 +112,7 @@ class TestTallyManager(TestBase):
         siteinfo = SiteInfo.objects.get(site__pk=site_id)
         self.assertNotEqual(response.status_code, 302)
         self.assertIn(
-            str('Current User Idle Timeout '
+            str('Current user idle timeout: '
                 '{} minutes').format(siteinfo.user_idle_timeout),
             str(response.content))
         self.assertContains(
