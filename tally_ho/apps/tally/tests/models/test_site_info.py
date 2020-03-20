@@ -22,7 +22,7 @@ class TestSiteInfo(TestBase):
         create_site_info(site, user_idle_timeout)
 
         # Test object name is site name hyphen user idle timeout
-        site_info = SiteInfo.objects.get(id=1)
+        site_info = SiteInfo.objects.get(site__id=site.id)
         expected_object_name =\
             f'{site_info.site.name} - {site_info.user_idle_timeout}'
         self.assertEquals(expected_object_name, str(site_info))
