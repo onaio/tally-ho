@@ -4,8 +4,11 @@ import json
 import logging
 
 from django.contrib.messages.views import SuccessMessageMixin
+from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -23,6 +26,7 @@ from tally_ho.apps.tally.forms.edit_user_profile_form import (
     EditAdminProfileForm,
     EditUserProfileForm,
 )
+from tally_ho.apps.tally.forms.site_info_form import SiteInfoForm
 from tally_ho.apps.tally.forms.tally_files_form import TallyFilesForm
 from tally_ho.apps.tally.forms.tally_form import TallyForm
 from tally_ho.apps.tally.management.commands.import_data import (
@@ -40,6 +44,8 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
+from django.contrib.sites.models import Site
+from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 
@@ -147,10 +153,12 @@ class DashboardView(LoginRequiredMixin,
     template_name = "tally_manager/home.html"
 
     def get(self, *args, **kwargs):
+        site_id = getattr(settings, "SITE_ID", None)
         group_logins = [g.lower().replace(' ', '_') for g in groups.GROUPS]
 
         return self.render_to_response(self.get_context_data(
-            groups=group_logins))
+            groups=group_logins,
+            site_id=site_id))
 
 
 class EditUserView(LoginRequiredMixin,
@@ -381,3 +389,66 @@ class BatchView(LoginRequiredMixin,
             'status': 'OK',
             'elements_processed': elements_processed}),
                             content_type='application/json')
+
+
+class SetUserTimeOutView(LoginRequiredMixin,
+                         mixins.GroupRequiredMixin,
+                         mixins.ReverseSuccessURLMixin,
+                         SuccessMessageMixin,
+                         UpdateView):
+    model = SiteInfo
+    form_class = SiteInfoForm
+    group_required = groups.TALLY_MANAGER
+    template_name = "tally_manager/set_user_timeout.html"
+    success_url = 'tally-manager'
+
+    def get_object(self):
+        site_id = self.kwargs.get('site_id', None)
+
+        return get_object_or_404(Site, pk=site_id)
+
+    def get(self, *args, **kwargs):
+        user_idle_timeout = None
+        self.object = self.get_object()
+
+        try:
+            siteinfo = SiteInfo.objects.get(site__pk=self.object.pk)
+            user_idle_timeout = siteinfo.user_idle_timeout
+        except SiteInfo.DoesNotExist:
+            user_idle_timeout = getattr(settings, 'DEFAULT_IDLE_TIMEOUT')
+
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  userIdleTimeout=user_idle_timeout))
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            site_info = form.save()
+
+            if isinstance(site_info, SiteInfo):
+                self.success_message = _(
+                    u"Successfully set user timeout to %(user_idle_timeout)s"
+                    u" minutes"
+                    % {'user_idle_timeout': site_info.user_idle_timeout})
+
+            return redirect(self.success_url)
+
+        user_idle_timeout = None
+
+        try:
+            siteinfo = SiteInfo.objects.get(site__pk=self.object.pk)
+            user_idle_timeout = siteinfo.user_idle_timeout
+        except SiteInfo.DoesNotExist:
+            user_idle_timeout = getattr(settings, 'DEFAULT_IDLE_TIMEOUT')
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form, userIdleTimeout=user_idle_timeout))

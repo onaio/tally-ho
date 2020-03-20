@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% blocktrans %}Set user idle timeout{% endblocktrans %}</h1>
+<br />
+
+<form name="disable-entity-form" method="post" action="">
+    <div class="form-instructions">{% blocktrans %}Set timeout in minutes.{% endblocktrans %}</div>
+    <br />
+    <div>
+        {% blocktrans %}Current user idle timeout: {{ userIdleTimeout }} minutes{% endblocktrans %}
+    </div>
+    <br />
+    <table class="table table-bordered">
+        {{ form.as_p }}
+    </table>
+    <button class="btn btn-small btn-success" type="submit" name="save_submit">
+        {% trans "Save" %}
+    </button>
+    <a class="btn btn-small btn-danger" href="{% url 'tally-manager' %}" role="button">
+        {% trans "Cancel" %}
+    </a>
+{% csrf_token %}
+</form>
+
+{% endblock %}

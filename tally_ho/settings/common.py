@@ -155,7 +155,7 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
 # In minutes
-IDLE_TIMEOUT = 60
+DEFAULT_IDLE_TIMEOUT = 60
 
 # Individual pageviews will be tracked
 TRACK_PAGEVIEWS = True

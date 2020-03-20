@@ -368,6 +368,9 @@ urlpatterns = [
 
     re_path(r'^tally-manager$',
             tally_manager.DashboardView.as_view(), name='tally-manager'),
+    re_path(r'^tally-manager/global-settings/(?P<site_id>(\d+))/$',
+            tally_manager.SetUserTimeOutView.as_view(),
+            name='global-settings'),
     re_path(r'^tally-manager/user-list/(?P<role>(user|admin))$',
             user_list_view.UserListView.as_view(),
             name='user-list'),
