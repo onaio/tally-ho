@@ -30,16 +30,15 @@ class SiteInfoForm(ModelForm):
     def save(self):
         if self.is_valid():
             user_idle_timeout = self.cleaned_data.get('user_idle_timeout')
+            site_id = getattr(settings, "SITE_ID", None)
             site_info = None
+            site = Site.objects.get(pk=site_id)
 
-            site_info_count = SiteInfo.objects.count()
-            if site_info_count:
-                site_info = SiteInfo.objects.all().first()
+            try:
+                site_info = SiteInfo.objects.get(site=site)
                 site_info.user_idle_timeout = user_idle_timeout
                 site_info.save()
-            else:
-                site_id = getattr(settings, "SITE_ID", None)
-                site = Site.objects.get(pk=site_id)
+            except SiteInfo.DoesNotExist:
                 site_info = SiteInfo.objects.create(
                     site=site, user_idle_timeout=user_idle_timeout)
 
