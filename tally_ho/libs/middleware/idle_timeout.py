@@ -18,9 +18,10 @@ class IdleTimeout(object):
 
             try:
                 siteinfo = SiteInfo.objects.get(site__pk=site_id)
-                IDLE_TIMEOUT = siteinfo.user_idle_timeout
             except SiteInfo.DoesNotExist:
                 IDLE_TIMEOUT = getattr(settings, 'DEFAULT_IDLE_TIMEOUT')
+            else:
+                IDLE_TIMEOUT = siteinfo.user_idle_timeout
 
             if last_visit:
                 time_passed = datetime.now() - datetime.fromtimestamp(
