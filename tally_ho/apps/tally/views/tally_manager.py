@@ -415,7 +415,7 @@ class SetUserTimeOutView(LoginRequiredMixin,
             siteinfo = SiteInfo.objects.get(site__pk=self.object.pk)
             user_idle_timeout = siteinfo.user_idle_timeout
         except SiteInfo.DoesNotExist:
-            user_idle_timeout = getattr(settings, 'IDLE_TIMEOUT', 60)
+            user_idle_timeout = getattr(settings, 'DEFAULT_IDLE_TIMEOUT')
 
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -447,7 +447,7 @@ class SetUserTimeOutView(LoginRequiredMixin,
             siteinfo = SiteInfo.objects.get(site__pk=self.object.pk)
             user_idle_timeout = siteinfo.user_idle_timeout
         except SiteInfo.DoesNotExist:
-            user_idle_timeout = getattr(settings, 'IDLE_TIMEOUT', 60)
+            user_idle_timeout = getattr(settings, 'DEFAULT_IDLE_TIMEOUT')
 
         return self.render_to_response(
             self.get_context_data(

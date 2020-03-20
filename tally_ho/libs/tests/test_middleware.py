@@ -40,7 +40,7 @@ class TestMiddleware(TestCase):
         t2 = 1391800228
         datetime_mock.now.return_value = datetime.fromtimestamp(t2)
         datetime_mock.fromtimestamp = datetime.fromtimestamp
-        settings.IDLE_TIMEOUT = 2  # 2 minutes
+        settings.DEFAULT_IDLE_TIMEOUT = 2  # 2 minutes
         self.request.session['last_visit'] = t1
         idt.__call__(self.request)
         self.assertNotIn('last_visit', self.request.session)

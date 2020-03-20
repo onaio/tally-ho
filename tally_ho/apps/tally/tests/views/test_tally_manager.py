@@ -48,7 +48,7 @@ class TestTallyManager(TestBase):
             siteinfo = SiteInfo.objects.get(site__pk=site_id)
             user_idle_timeout = siteinfo.user_idle_timeout
         except SiteInfo.DoesNotExist:
-            user_idle_timeout = getattr(settings, 'IDLE_TIMEOUT', 60)
+            user_idle_timeout = getattr(settings, 'DEFAULT_IDLE_TIMEOUT')
 
         self.assertIn(
             str('Current user idle timeout: '
