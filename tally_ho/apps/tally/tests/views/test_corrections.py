@@ -246,6 +246,25 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION,
                                          tally=self.tally)
+
+        data_entry_2_user =\
+            self._create_user('data_entry_2', 'password')
+        self._add_user_to_group(data_entry_2_user,
+                                groups.DATA_ENTRY_2_CLERK)
+
+        start_time = timezone.now()
+        minutes = 65.5
+        end_time = start_time + timezone.timedelta(minutes=minutes)
+
+        form_processing_time_in_seconds =\
+            (end_time - start_time).total_seconds()
+
+        result_form_stat = create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_2_user,
+            result_form=result_form
+        )
+
         create_results(result_form, vote1=2, vote2=3)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
@@ -268,6 +287,9 @@ class TestCorrections(TestBase):
                          FormState.QUALITY_CONTROL)
         self.assertEqual(response.status_code, 302)
         self.assertIn('corrections/success', response['location'])
+
+        result_form_stat.reload()
+        self.assertTrue(result_form_stat.has_de_error)
 
     def test_corrections_general_post_few_corrections(self):
         view = views.CorrectionRequiredView.as_view()
@@ -475,6 +497,25 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION,
                                          tally=self.tally)
+
+        data_entry_2_user =\
+            self._create_user('data_entry_2', 'password')
+        self._add_user_to_group(data_entry_2_user,
+                                groups.DATA_ENTRY_2_CLERK)
+
+        start_time = timezone.now()
+        minutes = 65.5
+        end_time = start_time + timezone.timedelta(minutes=minutes)
+
+        form_processing_time_in_seconds =\
+            (end_time - start_time).total_seconds()
+
+        result_form_stat = create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_2_user,
+            result_form=result_form
+        )
+
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
@@ -498,6 +539,9 @@ class TestCorrections(TestBase):
                          FormState.QUALITY_CONTROL)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections/success', response['location'])
+
+        result_form_stat.reload()
+        self.assertTrue(result_form_stat.has_de_error)
 
     def test_corrections_women_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
