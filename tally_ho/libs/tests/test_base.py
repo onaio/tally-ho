@@ -246,14 +246,16 @@ def create_result_form_stats(
         user,
         result_form,
         approved_by_supervisor=False,
-        reviewed_by_supervisor=False):
+        reviewed_by_supervisor=False,
+        has_de_error=False):
 
     result_form_stats, _ = ResultFormStats.objects.get_or_create(
         processing_time=processing_time,
         user=user,
         result_form=result_form,
         approved_by_supervisor=approved_by_supervisor,
-        reviewed_by_supervisor=reviewed_by_supervisor
+        reviewed_by_supervisor=reviewed_by_supervisor,
+        has_de_error=has_de_error
     )
 
     return result_form_stats
