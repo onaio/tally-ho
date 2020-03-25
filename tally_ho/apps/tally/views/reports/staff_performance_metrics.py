@@ -146,7 +146,7 @@ class TrackCorrections(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        TemplateView):
     group_required = groups.TALLY_MANAGER
-    template_name = 'reports/track_corrections.html'
+    template_name = 'reports/corrections_statistics.html'
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
