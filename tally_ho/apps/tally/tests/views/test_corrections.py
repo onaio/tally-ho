@@ -18,6 +18,7 @@ from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
     create_result_form,
+    create_result_form_stats,
     create_candidate,
     create_center,
     create_station,
@@ -572,6 +573,25 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION,
                                          tally=self.tally)
+
+        data_entry_2_user =\
+            self._create_user('data_entry_2', 'password')
+        self._add_user_to_group(data_entry_2_user,
+                                groups.DATA_ENTRY_2_CLERK)
+
+        start_time = timezone.now()
+        minutes = 65.5
+        end_time = start_time + timezone.timedelta(minutes=minutes)
+
+        form_processing_time_in_seconds =\
+            (end_time - start_time).total_seconds()
+
+        result_form_stat = create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_2_user,
+            result_form=result_form
+        )
+
         create_results(result_form, vote1=2, vote2=2, race_type=RaceType.WOMEN)
 
         ballot_from_val = '2'
@@ -596,10 +616,11 @@ class TestCorrections(TestBase):
             result_form=result_form).count(), 2)
 
         session = {'result_form': result_form.pk}
+        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         data = {
             'submit_corrections': 1,
-            'ballot_number_from': ballot_from_val,
-            'number_sorted_and_counted': sorted_counted_val,
+            'ballot_number_from%s' % de_1_suffix: ballot_from_val,
+            'number_sorted_and_counted%s' % de_1_suffix: sorted_counted_val,
             'is_stamped': is_stamped,
             'tally_id': self.tally.pk,
         }
@@ -625,6 +646,9 @@ class TestCorrections(TestBase):
         self.assertEqual(updated_result_form.form_state,
                          FormState.QUALITY_CONTROL)
         self.assertIn('corrections/success', response['location'])
+
+        result_form_stat.reload()
+        self.assertTrue(result_form_stat.has_de_error)
 
     def test_confirmation_get(self):
         result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,
