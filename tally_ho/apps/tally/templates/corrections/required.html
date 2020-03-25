@@ -32,7 +32,7 @@
              <td colspan="2"
              {% if field1.data != field2.data %}
                 class="warn">
-                <input type="radio" name="{{ field1.name }}" value="{{ field1.data }}" />&nbsp;
+                <input type="radio" name="{{ field1.name }}{{de_1_suffix}}" value="{{ field1.data }}" />&nbsp;
              {% else %}
                 >
              {% endif %}
@@ -45,7 +45,7 @@
              <td colspan="2"
              {% if field1.data != field2.data %}
                  class="warn">
-                 <input type="radio" name="{{ field1.name }}" value="{{ field2.data }}" />&nbsp;
+                 <input type="radio" name="{{ field1.name }}{{de_2_suffix}}" value="{{ field2.data }}" />&nbsp;
              {% else %}
                  >
              {% endif %}
@@ -63,13 +63,13 @@
     {% endif %}
 
 {% if candidates_general %}
-    {% include "corrections/comparison.html" with candidates=candidates_general  header="General" prefix="general"%}
+    {% include "corrections/comparison.html" with candidates=candidates_general  header="General" prefix="general" de_1_suffix=de_1_suffix de_2_suffix=de_2_suffix %}
 {% endif %}
 {% if candidates_component %}
-    {% include "corrections/comparison.html" with candidates=candidates_component header=component_name prefix="component"%}
+    {% include "corrections/comparison.html" with candidates=candidates_component header=component_name prefix="component" de_1_suffix=de_1_suffix de_2_suffix=de_2_suffix %}
 {% endif %}
 {% if candidates_women %}
-    {% include "corrections/comparison.html" with candidates=candidates_women  header="Women" prefix="women"%}
+    {% include "corrections/comparison.html" with candidates=candidates_women  header="Women" prefix="women" de_1_suffix=de_1_suffix de_2_suffix=de_2_suffix %}
 {% endif %}
 
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
