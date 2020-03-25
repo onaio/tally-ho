@@ -127,7 +127,7 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
         candidate_field = field
 
         # remove prefix, DE1 and DE2 suffixes to get candidate pk
-        for _ in range(number_of_times_to_call_replace):
+        for n in range(number_of_times_to_call_replace):
             if candidate_field.endswith(de_1_suffix):
                 candidate_field = candidate_field.replace(de_1_suffix, '')
             if candidate_field.endswith(de_2_suffix):
