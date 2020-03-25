@@ -157,6 +157,10 @@ CSRF_COOKIE_SECURE = False
 # In minutes
 DEFAULT_IDLE_TIMEOUT = 60
 
+# Data Entry 1 and 2 suffixes
+DE_1_SUFFIX = '_de_1'
+DE_2_SUFFIX = '_de_2'
+
 # Individual pageviews will be tracked
 TRACK_PAGEVIEWS = True
 
