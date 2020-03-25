@@ -1,14 +1,64 @@
 from collections import OrderedDict
 
 from django.conf import settings
+from django.db.models import Q
 from django.forms import ValidationError
 from django.utils.translation import ugettext as _
 
 from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import get_matched_results
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.race_type import RaceType
+from tally_ho.libs.permissions import groups
+
+
+def update_result_form_entries_with_de_errors(
+    de_1_suffix, de_2_suffix, post_data
+):
+    """Update result form stats entries that required DE corrections.
+
+    If correction value come from DE1, this means that the data entry error
+    was caused by DE2 clerk, and vise versa.
+
+    :param de_1_suffix: Suffix for identifying DE1 correction value
+    :param de_2_suffix: Suffix for identifying DE2 correction value
+    """
+    has_de_1_error = False
+    has_de_2_error = False
+
+    # check which data entry lead to corrections
+    for item in post_data:
+        if item.endswith(de_1_suffix):
+            has_de_2_error = True
+        if item.endswith(de_2_suffix):
+            has_de_1_error = True
+        if has_de_1_error and has_de_2_error:
+            break
+
+    qs = ResultFormStats.objects.filter(
+        result_form__tally__id=post_data['tally_id'])
+
+    if has_de_1_error:
+        qs =\
+            qs.filter(
+                Q(user__groups__name=groups.DATA_ENTRY_1_CLERK))\
+            .order_by('-created_date').first()
+
+        if qs and not qs.has_de_error:
+            qs.has_de_error = True
+            qs.save()
+
+    if has_de_2_error:
+        qs =\
+            qs.filter(
+                Q(user__groups__name=groups.DATA_ENTRY_2_CLERK))\
+            .order_by('-created_date').first()
+
+        if qs and not qs.has_de_error:
+            qs.has_de_error = True
+            qs.save()
 
 
 def get_matched_forms(result_form):
@@ -125,6 +175,11 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
     post_data_has_corrections =\
         any(item.endswith(de_1_suffix) or item.endswith(de_2_suffix)
             for item in post_data)
+
+    if post_data_has_corrections:
+        # Update result form stats entries that required corrections
+        update_result_form_entries_with_de_errors(
+            de_1_suffix, de_2_suffix, post_data)
 
     for field in candidate_fields:
         number_of_times_to_call_replace = 2
