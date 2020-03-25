@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.conf import settings
 from django.forms import ValidationError
 from django.utils.translation import ugettext as _
 
@@ -118,9 +119,23 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
             _(u"Please select correct results for all mis-matched votes."))
 
     changed_candidates = []
+    de_1_suffix = getattr(settings, "DE_1_SUFFIX")
+    de_2_suffix = getattr(settings, "DE_2_SUFFIX")
 
     for field in candidate_fields:
-        candidate_pk = field.replace(prefix, '')
+        number_of_times_to_call_replace = 2
+        candidate_field = field
+
+        # remove prefix, DE1 and DE2 suffixes to get candidate pk
+        for _ in range(number_of_times_to_call_replace):
+            if candidate_field.endswith(de_1_suffix):
+                candidate_field = candidate_field.replace(de_1_suffix, '')
+            if candidate_field.endswith(de_2_suffix):
+                candidate_field = candidate_field.replace(de_2_suffix, '')
+            else:
+                candidate_field = candidate_field.replace(prefix, '')
+
+        candidate_pk = candidate_field
         candidate = Candidate.objects.get(pk=candidate_pk)
         votes = post_data[field]
         save_result(candidate, result_form, EntryVersion.FINAL, votes, user)
