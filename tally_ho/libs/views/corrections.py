@@ -122,20 +122,27 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
     de_1_suffix = getattr(settings, "DE_1_SUFFIX")
     de_2_suffix = getattr(settings, "DE_2_SUFFIX")
 
+    post_data_has_corrections =\
+        any(item.endswith(de_1_suffix) or item.endswith(de_2_suffix)
+            for item in post_data)
+
     for field in candidate_fields:
         number_of_times_to_call_replace = 2
         candidate_field = field
 
-        # remove prefix, DE1 and DE2 suffixes to get candidate pk
-        for n in range(number_of_times_to_call_replace):
-            if candidate_field.endswith(de_1_suffix):
-                candidate_field = candidate_field.replace(de_1_suffix, '')
-            if candidate_field.endswith(de_2_suffix):
-                candidate_field = candidate_field.replace(de_2_suffix, '')
-            else:
-                candidate_field = candidate_field.replace(prefix, '')
+        # Remove DE1 and DE2 suffixes only when post_data has corrections
+        if post_data_has_corrections:
+            for n in range(number_of_times_to_call_replace):
+                if candidate_field.endswith(de_1_suffix):
+                    candidate_field = candidate_field.replace(de_1_suffix, '')
+                if candidate_field.endswith(de_2_suffix):
+                    candidate_field = candidate_field.replace(de_2_suffix, '')
+                else:
+                    candidate_field = candidate_field.replace(prefix, '')
 
-        candidate_pk = candidate_field
+        candidate_pk =\
+            candidate_field\
+            if post_data_has_corrections else field.replace(prefix, '')
         candidate = Candidate.objects.get(pk=candidate_pk)
         votes = post_data[field]
         save_result(candidate, result_form, EntryVersion.FINAL, votes, user)
