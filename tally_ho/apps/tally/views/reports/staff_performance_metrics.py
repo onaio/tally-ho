@@ -150,7 +150,7 @@ class TrackCorrections(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
-        result_form_stats = None
+        corrections_stats = None
         percentage_value = 100
 
         qs =\
@@ -161,7 +161,7 @@ class TrackCorrections(LoginRequiredMixin,
                 result_form__tally__id=tally_id)
 
         if qs:
-            result_form_stats =\
+            corrections_stats =\
                 qs.values('user__username')\
                 .annotate(
                     total_forms_processed=Count('user'),
@@ -175,10 +175,10 @@ class TrackCorrections(LoginRequiredMixin,
                         F('total_forms_processed_with_errors')
                         / F('total_forms_processed'),
                         output_field=IntegerField()
-                    )
-                )
+                    ))\
+                .order_by('-error_percentage')
 
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
-                result_form_stats=result_form_stats))
+                corrections_stats=corrections_stats))
