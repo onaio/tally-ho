@@ -1,7 +1,9 @@
 import dateutil.parser
 from django.core.serializers.json import json, DjangoJSONEncoder
 from django.core.exceptions import SuspiciousOperation
+from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.forms import ValidationError
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
@@ -30,6 +32,53 @@ from tally_ho.libs.views.corrections import get_matched_forms,\
     save_final_results, save_general_results, save_women_results
 from tally_ho.libs.views.form_state import form_in_state,\
     safe_form_in_state
+
+
+def update_result_form_entries_with_de_errors(
+    de_1_suffix, de_2_suffix, post_data, tally_id
+):
+    """Update result form stats entries that required DE corrections.
+
+    If correction value come from DE1, this means that the data entry error
+    was caused by DE2 clerk, and vise versa.
+
+    :param de_1_suffix: Suffix for identifying DE1 correction value
+    :param de_2_suffix: Suffix for identifying DE2 correction value
+    :param tally_id: The tally to associate with corrections.
+    """
+    has_de_1_error = False
+    has_de_2_error = False
+
+    # check which data entry lead to corrections
+    for item in post_data:
+        if item.endswith(de_1_suffix):
+            has_de_2_error = True
+        if item.endswith(de_2_suffix):
+            has_de_1_error = True
+        if has_de_1_error and has_de_2_error:
+            break
+
+    qs = ResultFormStats.objects.filter(result_form__tally__id=tally_id)
+
+    if has_de_1_error:
+        qs =\
+            qs.filter(
+                Q(user__groups__name=groups.DATA_ENTRY_1_CLERK))\
+            .order_by('-created_date').first()
+
+        if qs and not qs.has_de_error:
+            qs.has_de_error = True
+            qs.save()
+
+    if has_de_2_error:
+        qs =\
+            qs.filter(
+                Q(user__groups__name=groups.DATA_ENTRY_2_CLERK))\
+            .order_by('-created_date').first()
+
+        if qs and not qs.has_de_error:
+            qs.has_de_error = True
+            qs.save()
 
 
 def save_result_form_processing_stats(
@@ -174,15 +223,33 @@ def save_unchanged_final_recon_form(result_form, user):
         save_final_recon_form(updated, user, result_form)
 
 
-def save_recon(post_data, user, result_form):
+def save_recon(post_data, user, result_form, tally_id):
     """Build final reconciliation form from existing and submitted data.
 
     :param post_data: The form data to retrieve corrections from.
     :param user: The user to associate with the final reconciliation form.
     :param result_form: The result form to update reconciliation forms for.
+    :param tally_id: The tally to associate with corrections.
     """
     corrections = {}
     mismatched = 0
+    de_1_suffix = getattr(settings, "DE_1_SUFFIX")
+    de_2_suffix = getattr(settings, "DE_2_SUFFIX")
+    post_data_has_corrections =\
+        any(item.endswith(de_1_suffix) or item.endswith(de_2_suffix)
+            for item in post_data)
+
+    if post_data_has_corrections:
+        # Update result form stats entries that required DE corrections
+        update_result_form_entries_with_de_errors(
+            de_1_suffix, de_2_suffix, post_data, tally_id)
+
+        post_data = post_data.copy()
+        for item in post_data:
+            if item.endswith(de_1_suffix):
+                post_data[item.replace(de_1_suffix, '')] = post_data.pop(item)
+            if item.endswith(de_2_suffix):
+                post_data[item.replace(de_2_suffix, '')] = post_data.pop(item)
 
     for v1, v2, _type in get_recon_form(result_form):
         if v1.data != v2.data:
@@ -191,7 +258,8 @@ def save_recon(post_data, user, result_form):
             if value:
                 if value == 'False':
                     value = False
-                corrections[v1.name] = value
+                corrections[v1.name] =\
+                    value[0] if isinstance(value, list) else value
 
     if len(corrections) < mismatched:
         raise ValidationError(
@@ -333,6 +401,8 @@ class CorrectionRequiredView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(errors=errors,
                                   result_form=result_form,
+                                  de_1_suffix=getattr(settings, "DE_1_SUFFIX"),
+                                  de_2_suffix=getattr(settings, "DE_2_SUFFIX"),
                                   reconciliation_form=recon,
                                   candidates_general=results_general,
                                   candidates_component=results_component,
@@ -351,6 +421,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
     def post(self, *args, **kwargs):
         tally_id = self.kwargs['tally_id']
         post_data = self.request.POST
+        post_data = post_data.copy()
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.CORRECTION)
@@ -361,7 +432,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
             try:
                 with transaction.atomic():
                     if result_form.reconciliationform_exists:
-                        save_recon(post_data, user, result_form)
+                        save_recon(post_data, user, result_form, tally_id)
 
                     save_component_results(result_form, post_data, user)
                     save_general_results(result_form, post_data, user)
