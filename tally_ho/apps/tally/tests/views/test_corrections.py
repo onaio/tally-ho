@@ -1,5 +1,6 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.serializers.json import json, DjangoJSONEncoder
+from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
@@ -249,9 +250,10 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         post_data = {
-            'candidate_general_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            'candidate_general_%s%s' % (result_form.results.all()[
+                0].candidate.pk, de_1_suffix): 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections'
         }
@@ -275,9 +277,10 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 4)
         session = {'result_form': result_form.pk}
+        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         post_data = {
-            'candidate_general_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            'candidate_general_%s%s' % (result_form.results.all()[
+                0].candidate.pk, de_1_suffix): 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections',
             'tally_id': self.tally.pk
@@ -476,9 +479,10 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         post_data = {
-            'candidate_women_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            'candidate_women_%s%s' % (result_form.results.all()[
+                0].candidate.pk, de_1_suffix): 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections',
             'tally_id': self.tally.pk,
@@ -503,9 +507,10 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         post_data = {
-            'candidate_women_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            'candidate_women_%s%s' % (result_form.results.all()[
+                0].candidate.pk, de_1_suffix): 2,
             'result_form': result_form.pk,
             'reject_submit': 'reject',
             'tally_id': self.tally.pk,
