@@ -1,7 +1,8 @@
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, F, ExpressionWrapper,\
+    IntegerField, Value
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
@@ -139,3 +140,45 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
                 a_s_approvals=audit_supervisor_approvals,
                 a_s_approvals_percantage=self.approvals_percantage(
                     audit_supervisor_approvals)))
+
+
+class TrackCorrections(LoginRequiredMixin,
+                       mixins.GroupRequiredMixin,
+                       TemplateView):
+    group_required = groups.TALLY_MANAGER
+    template_name = 'reports/track_corrections.html'
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
+        result_form_stats = None
+        percentage_value = 100
+
+        qs =\
+            ResultFormStats.objects\
+            .filter(
+                user__groups__name__in=[groups.DATA_ENTRY_1_CLERK,
+                                        groups.DATA_ENTRY_2_CLERK],
+                result_form__tally__id=tally_id)
+
+        if qs:
+            result_form_stats =\
+                qs.values('user__username')\
+                .annotate(
+                    total_forms_processed=Count('user'),
+                    total_forms_processed_with_errors=Count(
+                        'user',
+                        filter=Q(has_de_error=True)
+                    ))\
+                .annotate(
+                    error_percentage=ExpressionWrapper(
+                        Value(percentage_value) *
+                        F('total_forms_processed_with_errors')
+                        / F('total_forms_processed'),
+                        output_field=IntegerField()
+                    )
+                )
+
+        return self.render_to_response(
+            self.get_context_data(
+                tally_id=tally_id,
+                result_form_stats=result_form_stats))
