@@ -116,3 +116,66 @@ class TestStaffPerformanceMetrics(TestBase):
             "<th>Approval Rate</th>")
         self.assertContains(response, f'<td>1</td>')
         self.assertContains(response, f'<td>100.0%</td>')
+
+    def test_track_corrections_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        result_form =\
+            create_result_form(
+                name="Example",
+                tally=tally,
+                form_state=FormState.CORRECTION)
+        start_time = timezone.now()
+        minutes = 65.5
+        end_time = start_time + timezone.timedelta(minutes=minutes)
+
+        form_processing_time_in_seconds =\
+            (end_time - start_time).total_seconds()
+
+        # Data entry 1 clerk result form processing entry
+        data_entry_1_user =\
+            self._create_user('data_entry_1', 'password')
+        self._add_user_to_group(data_entry_1_user,
+                                groups.DATA_ENTRY_1_CLERK)
+
+        # Form processed with data entry errors
+        create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_1_user,
+            result_form=result_form,
+            has_de_error=True
+        )
+
+        # Form processed correctly
+        create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_1_user,
+            result_form=result_form
+        )
+
+        request = self._get_request()
+        view = staff_performance_metrics.TrackCorrections.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request, tally_id=tally.pk,)
+
+        self.assertContains(
+            response,
+            "<h1>Form correction statistics</h1>")
+        self.assertContains(
+            response,
+            "<th>Name</th>")
+        self.assertContains(
+            response,
+            "<th>Total Forms Processed</th>")
+        self.assertContains(
+            response,
+            "<th>Total Forms Processed with Errors</th>")
+        self.assertContains(
+            response,
+            "<th>Percetage of Errors</th>")
+        self.assertContains(response, f'<td>{data_entry_1_user.username}</td>')
+        self.assertContains(response, f'<td>2</td>')
+        self.assertContains(response, f'<td>1</td>')
+        self.assertContains(response, f'<td>50%</td>')
