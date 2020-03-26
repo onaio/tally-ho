@@ -13,7 +13,7 @@
         <th>{% trans 'Number of Forms Sent For Review' %}</th>
         <th>{% trans 'Approval Rate' %}</th>
     </tr>
-    {% if a_s_approvals.forms_approved == 0 %}
+    {% if not a_s_approvals.forms_approved %}
     <tr>
         <td>No Data</td>
         <td></td>
@@ -35,7 +35,7 @@
         <th>{% trans 'Number of Forms Sent For Review' %}</th>
         <th>{% trans 'Approval Rate' %}</th>
     </tr>
-    {% if s_a_approvals.forms_approved == 0 %}
+    {% if not s_a_approvals.forms_approved %}
     <tr>
         <td>No Data</td>
         <td></td>
@@ -57,7 +57,7 @@
         <th>{% trans 'Number of Forms Sent For Review' %}</th>
         <th>{% trans 'Approval Rate' %}</th>
     </tr>
-    {% if t_m_approvals.forms_approved == 0 %}
+    {% if not t_m_approvals.forms_approved %}
     <tr>
         <td>No Data</td>
         <td></td>
