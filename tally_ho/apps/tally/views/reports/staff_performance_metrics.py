@@ -54,7 +54,7 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
         forms_approved = approvals['forms_approved']
         forms_sent_for_review = approvals['forms_sent_for_review']
 
-        if forms_sent_for_review > 0:
+        if forms_sent_for_review:
             return round(100 * forms_approved/forms_sent_for_review, 2)
         return 0
 
