@@ -41,11 +41,17 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/supervisor_approvals.html'
 
-    def approvals_percantage(self, approvals):
+    def approvals_percantage(
+        self, approvals, decimal_digits=2, default_percentage_value=0
+    ):
         """Calculates supervisor's approvals rate percentage value.
 
         :param approvals: A dict consisting of forms processed by supervisor
             and forms sent for review by supervisor.
+        :param decimal_digits: The number of digits to round off the percentage
+            value, default is two.
+        :param default_percentage_value: The default percentage value returned
+            when forms_sent_for_review is not True
 
         :returns: Percentage float value rounded in two dencimal points
             if forms sent for review is greater than zero,
@@ -54,9 +60,10 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
         forms_approved = approvals['forms_approved']
         forms_sent_for_review = approvals['forms_sent_for_review']
 
-        if forms_sent_for_review > 0:
-            return round(100 * forms_approved/forms_sent_for_review, 2)
-        return 0
+        if forms_sent_for_review:
+            return round(
+                100 * forms_approved/forms_sent_for_review, decimal_digits)
+        return default_percentage_value
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
@@ -69,7 +76,7 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
                 result_form__tally__id=tally_id,
                 reviewed_by_supervisor=True)
 
-        qs = tally_result_forms_stats\
+        result_forms_stats = tally_result_forms_stats\
             .annotate(
                 count_approved_by_tally_manager=Count(
                     'approved_by_supervisor',
@@ -113,21 +120,21 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
 
         tally_manager_supervisor_approvals =\
             {'forms_approved':
-             qs['approved_by_tally_manager'],
+             result_forms_stats['approved_by_tally_manager'],
              'forms_sent_for_review':
-             qs['sent_for_review_by_tally_manager']}
+             result_forms_stats['sent_for_review_by_tally_manager']}
 
         supervisor_administrator_approvals =\
             {'forms_approved':
-             qs['approved_by_supervisor_admin'],
+             result_forms_stats['approved_by_supervisor_admin'],
              'forms_sent_for_review':
-             qs['sent_for_review_by_supervisor_admin']}
+             result_forms_stats['sent_for_review_by_supervisor_admin']}
 
         audit_supervisor_approvals =\
             {'forms_approved':
-             qs['approved_by_audit_supervisor'],
+             result_forms_stats['approved_by_audit_supervisor'],
              'forms_sent_for_review':
-             qs['sent_for_review_by_audit_supervisor']}
+             result_forms_stats['sent_for_review_by_audit_supervisor']}
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
