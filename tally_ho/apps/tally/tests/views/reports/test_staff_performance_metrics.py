@@ -17,7 +17,7 @@ class TestStaffPerformanceMetrics(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)
 
-    def test_staff_perfomance_metrics_get(self):
+    def test_staff_perfomance_metrics_get_with_data(self):
         tally = create_tally()
         tally.users.add(self.user)
 
@@ -62,6 +62,26 @@ class TestStaffPerformanceMetrics(TestBase):
         self.assertContains(response, "<th>Forms Processed Per Hour</th>")
         self.assertContains(response, f'<td>{self.user.username}</td>')
         self.assertContains(response, f'<td>{processed_forms_per_hour}</td>')
+
+    def test_staff_perfomance_metrics_get_no_data(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        request = self._get_request()
+        view = staff_performance_metrics.StaffPerformanceMetricsView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.pk,
+            group_name=groups.TALLY_MANAGER)
+
+        self.assertContains(
+            response,
+            f'{groups.TALLY_MANAGER}s Performance Report')
+        self.assertContains(response, "<th>Staff Name</th>")
+        self.assertContains(response, "<th>Forms Processed Per Hour</th>")
+        self.assertContains(response, f'<td>No Data</td>')
 
     def test_surpervisors_approvals_get_with_data(self):
         tally = create_tally()
