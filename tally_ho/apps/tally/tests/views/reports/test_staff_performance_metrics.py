@@ -63,7 +63,7 @@ class TestStaffPerformanceMetrics(TestBase):
         self.assertContains(response, f'<td>{self.user.username}</td>')
         self.assertContains(response, f'<td>{processed_forms_per_hour}</td>')
 
-    def test_surpervisors_approvals_get(self):
+    def test_surpervisors_approvals_get_with_data(self):
         tally = create_tally()
         tally.users.add(self.user)
 
@@ -116,6 +116,43 @@ class TestStaffPerformanceMetrics(TestBase):
             "<th>Approval Rate</th>")
         self.assertContains(response, f'<td>1</td>')
         self.assertContains(response, f'<td>100.0%</td>')
+
+    def test_surpervisors_approvals_get_with_no_data(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        request = self._get_request()
+        view = staff_performance_metrics.SupervisorsApprovalsView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request, tally_id=tally.pk,)
+        number_of_tables = 3
+
+        self.assertContains(
+            response,
+            "<h1>Supervisors Approvals Rate Report</h1>")
+        self.assertContains(
+            response,
+            "<h3>Audit Supervisors Approval Rate</h3>")
+        self.assertContains(
+            response,
+            "<h3>Tally Managers Approval Rate</h3>")
+        self.assertContains(
+            response,
+            "<th>Number of Approved Forms</th>",
+            number_of_tables)
+        self.assertContains(
+            response,
+            "<th>Number of Forms Sent For Review</th>",
+            number_of_tables)
+        self.assertContains(
+            response,
+            "<th>Approval Rate</th>",
+            number_of_tables)
+        self.assertContains(
+            response,
+            '<td>No Data</td>',
+            number_of_tables)
 
     def test_track_corrections_get(self):
         tally = create_tally()
