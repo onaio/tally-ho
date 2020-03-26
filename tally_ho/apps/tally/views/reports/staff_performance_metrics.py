@@ -72,10 +72,13 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
         """
         forms_approved = approvals['forms_approved']
         forms_sent_for_review = approvals['forms_sent_for_review']
+        decimal_digits = 2
+        default_percentage_value = 0
 
         if forms_sent_for_review:
-            return round(100 * forms_approved/forms_sent_for_review, 2)
-        return 0
+            return round(
+                100 * forms_approved/forms_sent_for_review, decimal_digits)
+        return default_percentage_value
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
