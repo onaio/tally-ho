@@ -60,11 +60,17 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/supervisor_approvals.html'
 
-    def approvals_percantage(self, approvals):
+    def approvals_percantage(
+        self, approvals, decimal_digits=2, default_percentage_value=0
+    ):
         """Calculates supervisor's approvals rate percentage value.
 
         :param approvals: A dict consisting of forms processed by supervisor
             and forms sent for review by supervisor.
+        :param decimal_digits: The number of digits to round off the percentage
+            value, default is two.
+        :param default_percentage_value: The default percentage value returned
+            when forms_sent_for_review is not True
 
         :returns: Percentage float value rounded in two dencimal points
             if forms sent for review is greater than zero,
@@ -72,8 +78,6 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
         """
         forms_approved = approvals['forms_approved']
         forms_sent_for_review = approvals['forms_sent_for_review']
-        decimal_digits = 2
-        default_percentage_value = 0
 
         if forms_sent_for_review:
             return round(
