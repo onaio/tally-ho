@@ -91,7 +91,7 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
                 result_form__tally__id=tally_id,
                 reviewed_by_supervisor=True)
 
-        qs = tally_result_forms_stats\
+        result_forms_stats = tally_result_forms_stats\
             .annotate(
                 count_approved_by_tally_manager=Count(
                     'approved_by_supervisor',
@@ -135,21 +135,21 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
 
         tally_manager_supervisor_approvals =\
             {'forms_approved':
-             qs['approved_by_tally_manager'],
+             result_forms_stats['approved_by_tally_manager'],
              'forms_sent_for_review':
-             qs['sent_for_review_by_tally_manager']}
+             result_forms_stats['sent_for_review_by_tally_manager']}
 
         supervisor_administrator_approvals =\
             {'forms_approved':
-             qs['approved_by_supervisor_admin'],
+             result_forms_stats['approved_by_supervisor_admin'],
              'forms_sent_for_review':
-             qs['sent_for_review_by_supervisor_admin']}
+             result_forms_stats['sent_for_review_by_supervisor_admin']}
 
         audit_supervisor_approvals =\
             {'forms_approved':
-             qs['approved_by_audit_supervisor'],
+             result_forms_stats['approved_by_audit_supervisor'],
              'forms_sent_for_review':
-             qs['sent_for_review_by_audit_supervisor']}
+             result_forms_stats['sent_for_review_by_audit_supervisor']}
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
