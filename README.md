@@ -1,5 +1,5 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d610ecc632d340ff822c577054fdff38)](https://app.codacy.com/gh/onaio/tally-ho?utm_source=github.com&utm_medium=referral&utm_content=onaio/tally-ho&utm_campaign=Badge_Grade_Dashboard)
 [![Build Status](https://travis-ci.org/onaio/tally-ho.svg?branch=master)](https://travis-ci.org/onaio/tally-ho)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d610ecc632d340ff822c577054fdff38)](https://app.codacy.com/gh/onaio/tally-ho)
 
 ## Tally-Ho!
 Election results data entry and verification software built by [Ona Systems](http://company.ona.io) and commissioned by the Libyan [High National Elections Commission](http://hnec.ly/) and the [United Nations Development Program](http://www.undp.org).
