@@ -7,8 +7,7 @@ function validate_results(blank_message) {
     );
 
     var valid = true;
-    var i = 0;
-    for (i = 0; i < required_fields.length; i++) {
+    for (var i = 0; i < required_fields.length; i++) {
         var elem = required_fields[i];
         if (elem.value === ""){
             valid = false;

@@ -16,7 +16,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-if (csrftoken === undefined)
+if (typeof csrftoken === 'undefined')
     csrftoken = getCookie("csrftoken");
 
 var currentStep = 0;
@@ -42,7 +42,7 @@ function csrfSafeMethod(method) {
 }
 
 $.ajaxSetup({
-    beforeSend: function(xhr, settings) {
+    beforeSend(xhr, settings) {
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
             xhr.setRequestHeader("X-CSRFToken", csrftoken);
         }
@@ -61,12 +61,12 @@ function doRequest() {
                 offset: $("#offset" + currentStep).html(),
                 step: currentStep
             },
-            success: function (data) {
-                if (data.status == "OK") {
+            success(data) {
+                if (data.status === "OK") {
                     // If elements_processed is the same as offset, we didn"t
                     // process any new lines. Assume we are done and set the
                     // length to elements_processed.
-                    if (data.elements_processed == 0) {
+                    if (data.elements_processed === 0) {
                         $("#total" + currentStep).html(elementsProcessed);
                     }
                     elementsProcessed += data.elements_processed;

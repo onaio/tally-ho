@@ -30,7 +30,7 @@ const barcode_scanner = (barcode_input_field) => {
     if (barcode_input_field) {
         barcode_input_field.addEventListener("keydown", function (e) {
             e.preventDefault();
-            let textInput = e.key
+            let textInput = e.key;
             if (!(isNaN(parseInt(textInput))) && e.code === "KeyA") {
                 barcode_number = barcode_number + textInput;
             } else if (barcode_number && (e.keyCode === 13)) {
@@ -54,7 +54,7 @@ document.onreadystatechange = function () {
         barcode_scan_input_field.setAttribute("required", "true");
         barcode_manual_entry_input_field.removeAttribute("required");
         barcode_copy_manual_entry_input_field.removeAttribute("required");
-        barcode_scanner(barcode_scan_input_field)
+        barcode_scanner(barcode_scan_input_field);
     }
 }
 
@@ -71,8 +71,8 @@ function hide_barcode_show_placeholder() {
 
 const input_validation = () => $(document).ready(function () {
     $("#id_barcode").focusout(function (evt) {
-        if ($("#id_barcode").val() != "" && $("#id_barcode_copy").val() != $("#id_barcode").val()) {
-            hide_barcode_show_placeholder()
+        if ($("#id_barcode").val() !== "" && $("#id_barcode_copy").val() !== $("#id_barcode").val()) {
+            hide_barcode_show_placeholder();
         }
     });
 
@@ -122,8 +122,8 @@ function change_barcode_entry_mode(barcode_entry_mode) {
     const barcode_copy_manual_entry = document.getElementById("barcode_copy_manual_entry");
 
     if (barcode_entry_mode === "manual") {
-        id_form_instructions.innerText = "Enter Barcode"
-        barcode_scan_entry.setAttribute("hidden", "true")
+        id_form_instructions.innerText = "Enter Barcode";
+        barcode_scan_entry.setAttribute("hidden", "true");
         barcode_manual_entry.removeAttribute("hidden");
         barcode_manual_entry_input_field.focus();
         barcode_manual_entry_input_field.setAttribute("required", "true");
@@ -132,10 +132,10 @@ function change_barcode_entry_mode(barcode_entry_mode) {
         barcode_copy_manual_entry.removeAttribute("hidden");
         manual_entry_button.setAttribute("hidden", "true")
         scanned_entry_button.removeAttribute("hidden");
-        input_validation()
+        input_validation();
     }
     else if (barcode_entry_mode === "scan") {
-        id_form_instructions.innerText = "Scan Barcode to proceed"
+        id_form_instructions.innerText = "Scan Barcode to proceed";
         barcode_manual_entry.setAttribute("hidden", "true");
         barcode_copy_manual_entry.setAttribute("hidden", "true");
         barcode_scan_entry.removeAttribute("hidden");
@@ -147,5 +147,4 @@ function change_barcode_entry_mode(barcode_entry_mode) {
         manual_entry_button.removeAttribute("hidden");
         barcode_scanner(barcode_scan_input_field);
     }
-
 }
