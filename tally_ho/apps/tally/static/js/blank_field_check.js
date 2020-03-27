@@ -1,8 +1,8 @@
 function validate_results(blank_message) {
     var required_fields = Array.filter(
-        document.getElementsByClassName('required'),
+        document.getElementsByClassName("required"),
         function(el) {
-            return el.nodeName == 'INPUT';
+            return el.nodeName == "INPUT";
         }
     );
 
@@ -12,9 +12,9 @@ function validate_results(blank_message) {
         var elem = required_fields[i];
         if (elem.value == ""){
             valid = false;
-            elem.parentNode.setAttribute('class', 'has-error');
+            elem.parentNode.setAttribute("class", "has-error");
         } else {
-            elem.parentNode.setAttribute('class', 'has-success');
+            elem.parentNode.setAttribute("class", "has-success");
         }
     }
     if (valid === false) {
