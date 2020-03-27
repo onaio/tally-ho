@@ -171,3 +171,14 @@ LOG_FILE_PATH = os.path.join(BASE_DIR, '..', 'dev.log')
 
 # Logout Redirect
 LOGOUT_REDIRECT_URL = "/"
+
+# Session variables to be persisted after a session expires
+SESSION_VARS = [
+    'result_form',
+    'encoded_result_form_intake_start_time',
+    'encoded_result_form_clearance_start_time',
+    'encoded_result_form_data_entry_start_time',
+    'encoded_result_form_corrections_start_time',
+    'encoded_result_form_audit_start_time',
+    'encoded_result_form_qa_control_start_time',
+]
