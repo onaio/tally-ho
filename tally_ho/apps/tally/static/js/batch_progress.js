@@ -22,7 +22,7 @@ if (csrftoken === undefined)
 var currentStep = 0;
 var totalSteps = 5;
 
-for (i = 1; i <= totalSteps; i++) {
+for (var i = 1; i <= totalSteps; i++) {
     var total = parseInt($("#total" + i).html());
 
     $("#progressbar" + i).progressbar({
@@ -50,8 +50,8 @@ $.ajaxSetup({
 });
 
 function doRequest() {
-    elementsProcessed = parseInt($("#offset" + currentStep ).html());
-    total = parseInt($("#total" + currentStep).html());
+    var elementsProcessed = parseInt($("#offset" + currentStep ).html());
+    var total = parseInt($("#total" + currentStep).html());
     if (elementsProcessed < total) {
         $.ajax({
             url: $("#route").html(),

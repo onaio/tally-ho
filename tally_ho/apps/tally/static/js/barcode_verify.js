@@ -71,7 +71,7 @@ function hide_barcode_show_placeholder() {
 
 const input_validation = () => $(document).ready(function () {
     $("#id_barcode").focusout(function (evt) {
-        if ($("#id_barcode").val() != "" && $('#id_barcode_copy').val() != $('#id_barcode').val()) {
+        if ($("#id_barcode").val() != "" && $("#id_barcode_copy").val() != $("#id_barcode").val()) {
             hide_barcode_show_placeholder()
         }
     });

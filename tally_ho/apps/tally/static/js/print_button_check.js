@@ -7,8 +7,6 @@ function print_cover() {
 
 function set_as_printed() {
     if ($("#printed-url").length > 0) {
-        console.log($("#printed-url").attr("data-url"));
-
         $.ajax({
             url: $("#printed-url").attr("data-url"),
             timeout: 10000,
