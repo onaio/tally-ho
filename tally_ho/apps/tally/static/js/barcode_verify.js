@@ -56,7 +56,7 @@ document.onreadystatechange = function () {
         barcode_copy_manual_entry_input_field.removeAttribute("required");
         barcode_scanner(barcode_scan_input_field);
     }
-}
+};
 
 
 function show_barcode_hide_placeholder() {

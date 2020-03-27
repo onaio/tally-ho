@@ -52,28 +52,29 @@ def suspicious_error(request):
                   {'error_message': error_message})
 
 
+def get_user_role_url(user):
+    if user.groups.count():
+        user_group = user.groups.all()[0]
+
+        kwargs = {}
+        if user_group.name not in [groups.TALLY_MANAGER,
+                                   groups.SUPER_ADMINISTRATOR]:
+            userprofile = UserProfile.objects.get(id=user.id)
+            if not userprofile.tally:
+                return reverse('home-no-tally')
+            kwargs = {'tally_id': userprofile.tally.id}
+
+        return reverse(GROUP_URLS.get(user_group.name), kwargs=kwargs)
+
+    return None
+
+
 class HomeView(LoginRequiredMixin, TemplateView):
     template_name = "home.html"
 
-    def get_user_role_url(self, user):
-        if user.groups.count():
-            user_group = user.groups.all()[0]
-
-            kwargs = {}
-            if user_group.name not in [groups.TALLY_MANAGER,
-                                       groups.SUPER_ADMINISTRATOR]:
-                userprofile = UserProfile.objects.get(id=user.id)
-                if not userprofile.tally:
-                    return reverse('home-no-tally')
-                kwargs = {'tally_id': userprofile.tally.id}
-
-            return reverse(GROUP_URLS.get(user_group.name), kwargs=kwargs)
-
-        return None
-
     def redirect_user_to_role_view(self):
         user = self.request.user
-        redirect_url = self.get_user_role_url(user)
+        redirect_url = get_user_role_url(user)
 
         if redirect_url:
             return redirect(redirect_url)
