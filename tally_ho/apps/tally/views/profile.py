@@ -10,11 +10,10 @@ from tally_ho.apps.tally.models.user_profile import UserProfile
 class PersistSessionVars(object):
     """ The logout view, will reset all session state.
     However, we occasionally want to persist some of those session variables,
-    for example when incase a session expires in the middle of a data entry.
+    for example incase a session expires in the middle of data entry.
     :param object: The list of session variables to be persisted after
         session expiry.
     """
-
     session_backup = {}
 
     def __init__(self, vars):
@@ -64,5 +63,8 @@ def login(request, *args, **kwargs):
 
 
 @PersistSessionVars(getattr(settings, "SESSION_VARS"))
-def session_expiry_logout_view(request):
-    logout(request)
+def session_expiry_logout_view(request, *args, **kwargs):
+    view = auth_views.LogoutView.as_view()
+    response = view(request, *args, **kwargs)
+
+    return response
