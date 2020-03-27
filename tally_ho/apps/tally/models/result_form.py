@@ -300,7 +300,7 @@ class ResultForm(BaseModel):
 
         if de_1.count() > 1:
             clean_reconciliation_forms(de_1)
-        
+
         if de_2.count() > 1:
             clean_reconciliation_forms(de_2)
 

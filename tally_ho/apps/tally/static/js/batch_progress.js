@@ -16,7 +16,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-if (typeof csrftoken === 'undefined')
+if (typeof csrftoken === "undefined")
     csrftoken = getCookie("csrftoken");
 
 var currentStep = 0;
