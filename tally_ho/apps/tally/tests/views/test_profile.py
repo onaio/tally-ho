@@ -20,6 +20,17 @@ class TestProfile(TestBase):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
 
+    def test_login_view(self):
+        request = self.factory.get('/login')
+        request.user = self.user
+
+        response = views.login(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'Signed in as {self.user.username}')
+        self.assertContains(
+            response, f'<a id="logout_link" href="/accounts/logout/">')
+
     def test_session_expiry_logout_view_during_de_1(self):
         encoded_result_form_data_entry_start_time =\
             json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
