@@ -1,6 +1,5 @@
 from functools import wraps
 from django.conf import settings
-from django.contrib.auth import logout
 from django.contrib.auth import views as auth_views
 
 from django.shortcuts import redirect
