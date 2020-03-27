@@ -2,7 +2,7 @@ FROM python:3
 ENV PYTHONUNBUFFERED 1
 RUN mkdir /code
 WORKDIR /code
-ADD requirements/common.pip /code/
+COPY requirements/common.pip /code/
 
 # install pip requirements
 RUN pip install -r common.pip --src /usr/local/src
@@ -10,7 +10,7 @@ RUN pip install -r common.pip --src /usr/local/src
 # also install gunicorn
 RUN pip install gunicorn==19.9.0 --src /usr/local/src
 
-ADD . /code/
+COPY . /code/
 
 # collect static files
 RUN python manage.py collectstatic --no-input
