@@ -24,7 +24,7 @@ def create_demo_users_with_groups(force=False, password='data'):
     """
 
     for group in GROUPS:
-        obj, created = Group.objects.get_or_create(name=group)
+        obj = Group.objects.get_or_create(name=group)[0]
         username = group.replace(' ', '_').lower()[0:30]
         first_name = group[0:30]
 
@@ -42,8 +42,6 @@ def create_demo_users_with_groups(force=False, password='data'):
                 raise CommandError(
                     'Could not delete existing User or UserProfile for '
                     'username "%s"' % username)
-                import ipdb
-                ipdb.set_trace()
 
         user = create_user(username, first_name)
         user.set_password(password)

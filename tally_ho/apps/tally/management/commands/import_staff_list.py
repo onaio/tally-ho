@@ -70,8 +70,8 @@ def add_row(command, name, username, role, admin=None):
         system_role = STAFF_ROLE_DICT.get(role.upper().strip())
 
         if system_role:
-            group, created = Group.objects.get_or_create(
-                name=system_role)
+            group = Group.objects.get_or_create(
+                name=system_role)[0]
             user.groups.add(group)
         else:
             command.stdout.write(command.style.ERROR(

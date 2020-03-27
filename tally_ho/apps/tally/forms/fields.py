@@ -41,4 +41,3 @@ class RestrictedFileField(forms.FileField):
                 pass
 
             return data
-        pass

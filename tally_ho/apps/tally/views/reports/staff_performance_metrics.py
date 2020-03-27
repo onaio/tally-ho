@@ -7,6 +7,25 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 
 
+def approvals_percentage(approvals):
+    """Calculates supervisor's approvals rate percentage value.
+
+    :param approvals: A dict consisting of forms processed by supervisor
+        and forms sent for review by supervisor.
+
+    :returns: Percentage float value rounded in two dencimal points
+        if forms sent for review is greater than zero,
+        Zero if forms sent for review is not greater than zero.
+    """
+    forms_approved = approvals['forms_approved']
+    forms_sent_for_review = approvals['forms_sent_for_review']
+
+    if forms_sent_for_review > 0:
+        return round(100 * forms_approved/forms_sent_for_review, 2)
+
+    return 0
+
+
 class StaffPerformanceMetricsView(LoginRequiredMixin,
                                   mixins.GroupRequiredMixin,
                                   TemplateView):
@@ -39,23 +58,6 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
                                TemplateView):
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/supervisor_approvals.html'
-
-    def approvals_percantage(self, approvals):
-        """Calculates supervisor's approvals rate percentage value.
-
-        :param approvals: A dict consisting of forms processed by supervisor
-            and forms sent for review by supervisor.
-
-        :returns: Percentage float value rounded in two dencimal points
-            if forms sent for review is greater than zero,
-            Zero if forms sent for review is not greater than zero.
-        """
-        forms_approved = approvals['forms_approved']
-        forms_sent_for_review = approvals['forms_sent_for_review']
-
-        if forms_sent_for_review > 0:
-            return round(100 * forms_approved/forms_sent_for_review, 2)
-        return 0
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
@@ -131,11 +133,11 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
             self.get_context_data(
                 tally_id=tally_id,
                 t_m_approvals=tally_manager_supervisor_approvals,
-                t_m_approvals_percantage=self.approvals_percantage(
+                t_m_approvals_percentage=approvals_percentage(
                     tally_manager_supervisor_approvals),
                 s_a_approvals=supervisor_administrator_approvals,
-                s_a_approvals_percantage=self.approvals_percantage(
+                s_a_approvals_percentage=approvals_percentage(
                     supervisor_administrator_approvals),
                 a_s_approvals=audit_supervisor_approvals,
-                a_s_approvals_percantage=self.approvals_percantage(
+                a_s_approvals_percentage=approvals_percentage(
                     audit_supervisor_approvals)))

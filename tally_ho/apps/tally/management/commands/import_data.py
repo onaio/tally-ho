@@ -122,7 +122,7 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
                 'Missing ballot data: expected 2 ballots, missing '
                 + ('general' if ballot_number_women else 'women'))
 
-        _, created = SubConstituency.objects.get_or_create(
+        SubConstituency.objects.get_or_create(
             code=code_value,
             field_office=field_office,
             races=races,
@@ -275,7 +275,7 @@ def process_candidate_row(tally, row, id_to_ballot_order):
         ballot = Ballot.objects.get(number=code, tally=tally)
         sub_constituency = ballot.sc_component
 
-    _, created = Candidate.objects.get_or_create(
+    Candidate.objects.get_or_create(
         ballot=ballot,
         candidate_id=candidate_id,
         full_name=full_name,

@@ -73,7 +73,7 @@ def match_results(result_form, results=None):
     :param result_form: The result form to find match results for.
     :param results: The results to filter when finding matched results.
     """
-    matches, no_match = get_matched_results(result_form, results)
+    _, no_match = get_matched_results(result_form, results)
     return len(no_match) == 0
 
 
@@ -298,8 +298,11 @@ class ResultForm(BaseModel):
         de_2 = reconciliationforms.filter(
             entry_version=EntryVersion.DATA_ENTRY_2)
 
-        de_1.count() > 1 and clean_reconciliation_forms(de_1)
-        de_2.count() > 1 and clean_reconciliation_forms(de_2)
+        if de_1.count() > 1:
+            clean_reconciliation_forms(de_1)
+
+        if de_2.count() > 1:
+            clean_reconciliation_forms(de_2)
 
         return self.reconciliationform_set.filter(active=True)
 
@@ -446,7 +449,7 @@ class ResultForm(BaseModel):
     @property
     def sub_constituency_code(self):
         if self.center and self.center.sub_constituency:
-            self.center.sub_constituency.code
+            return self.center.sub_constituency.code
 
     @property
     def center_name(self):
