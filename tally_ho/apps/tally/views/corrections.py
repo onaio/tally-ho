@@ -197,11 +197,11 @@ def save_recon(post_data, user, result_form):
                 corrections[v1.name] = value
 
             # Error occured at data entry 1 stage
-            if value != v1.data:
+            if int(value) != v1.data:
                 data_entry_1_errors += 1
 
             # Error occured at data entry 2 stage
-            if value != v2.data:
+            if int(value) != v2.data:
                 data_entry_2_errors += 1
 
     if len(corrections) < mismatched:
