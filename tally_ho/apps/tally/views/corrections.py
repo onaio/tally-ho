@@ -353,8 +353,6 @@ class CorrectionRequiredView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(errors=errors,
                                   result_form=result_form,
-                                  de_1_suffix=getattr(settings, "DE_1_SUFFIX"),
-                                  de_2_suffix=getattr(settings, "DE_2_SUFFIX"),
                                   reconciliation_form=recon,
                                   candidates_general=results_general,
                                   candidates_component=results_component,
