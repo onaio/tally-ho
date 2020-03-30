@@ -9,7 +9,7 @@ from tally_ho.libs.models.base_model import BaseModel
 class ResultFormStats(BaseModel):
     class Meta:
         app_label = 'tally'
-    has_de_error = models.BooleanField(default=False)
+    data_entry_errors = models.PositiveIntegerField(default=0)
     processing_time = models.PositiveIntegerField(null=True)
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
