@@ -1,6 +1,5 @@
 from collections import OrderedDict
 
-from django.conf import settings
 from django.db.models import Q
 from django.forms import ValidationError
 from django.utils.translation import ugettext as _
@@ -148,6 +147,8 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
         candidate.
     """
     prefix = 'candidate_%s_' % prefix
+    data_entry_1_errors = 0
+    data_entry_2_errors = 0
 
     candidate_fields = [f for f in post_data if f.startswith(prefix)]
     results = get_results_for_race_type(result_form, race_type)
@@ -157,36 +158,17 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
         raise ValidationError(
             _(u"Please select correct results for all mis-matched votes."))
 
+    for rec in no_match:
+        candidate_field = f"{prefix}{rec['candidate']}"
+        if rec['votes'] == post_data[candidate_field]:
+            data_entry_1_errors += 1
+        else:
+            data_entry_2_errors += 1
+
     changed_candidates = []
-    de_1_suffix = getattr(settings, "DE_1_SUFFIX")
-    de_2_suffix = getattr(settings, "DE_2_SUFFIX")
-
-    post_data_has_corrections =\
-        any(item.endswith(de_1_suffix) or item.endswith(de_2_suffix)
-            for item in post_data)
-
-    if post_data_has_corrections:
-        # Update result form stats entries that required corrections
-        update_result_form_entries_with_de_errors(
-            de_1_suffix, de_2_suffix, post_data)
 
     for field in candidate_fields:
-        number_of_times_to_call_replace = 2
-        candidate_field = field
-
-        # Remove DE1 and DE2 suffixes only when post_data has corrections
-        if post_data_has_corrections:
-            for n in range(number_of_times_to_call_replace):
-                if candidate_field.endswith(de_1_suffix):
-                    candidate_field = candidate_field.replace(de_1_suffix, '')
-                if candidate_field.endswith(de_2_suffix):
-                    candidate_field = candidate_field.replace(de_2_suffix, '')
-                else:
-                    candidate_field = candidate_field.replace(prefix, '')
-
-        candidate_pk =\
-            candidate_field\
-            if post_data_has_corrections else field.replace(prefix, '')
+        candidate_pk = field.replace(prefix, '')
         candidate = Candidate.objects.get(pk=candidate_pk)
         votes = post_data[field]
         save_result(candidate, result_form, EntryVersion.FINAL, votes, user)
@@ -199,6 +181,10 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
         if result.candidate not in changed_candidates:
             save_result(result.candidate, result_form, EntryVersion.FINAL,
                         result.votes, user)
+
+    if data_entry_1_errors or data_entry_2_errors:
+        update_result_form_entries_with_de_errors(
+            data_entry_1_errors, data_entry_2_errors, post_data['tally_id'])
 
 
 def save_final_results(result_form, user):
