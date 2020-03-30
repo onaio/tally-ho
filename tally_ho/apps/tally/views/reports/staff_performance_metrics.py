@@ -191,14 +191,12 @@ class TrackCorrections(LoginRequiredMixin,
                 qs.values('user__username')\
                 .annotate(
                     total_forms_processed=Count('user'),
-                    total_forms_processed_with_errors=Count(
-                        'user',
-                        filter=Q(has_de_error=True)
-                    ))\
+                    total_errors=Sum(
+                        'data_entry_errors'))\
                 .annotate(
                     error_percentage=ExpressionWrapper(
                         Value(percentage_value) *
-                        F('total_forms_processed_with_errors')
+                        F('total_errors')
                         / F('total_forms_processed'),
                         output_field=IntegerField()
                     ))\
