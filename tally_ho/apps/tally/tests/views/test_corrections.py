@@ -299,10 +299,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 4)
         session = {'result_form': result_form.pk}
-        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         post_data = {
-            'candidate_general_%s%s' % (result_form.results.all()[
-                0].candidate.pk, de_1_suffix): 2,
+            'candidate_general_%s' % result_form.results.all()[
+                0].candidate.pk: 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections',
             'tally_id': self.tally.pk
@@ -520,10 +519,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
-        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         post_data = {
-            'candidate_women_%s%s' % (result_form.results.all()[
-                0].candidate.pk, de_1_suffix): 2,
+            'candidate_women_%s' % result_form.results.all()[
+                0].candidate.pk: 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections',
             'tally_id': self.tally.pk,
@@ -540,7 +538,7 @@ class TestCorrections(TestBase):
         self.assertIn('/corrections/success', response['location'])
 
         result_form_stat.reload()
-        self.assertTrue(result_form_stat.has_de_error)
+        self.assertEqual(result_form_stat.data_entry_errors, 1)
 
     def test_corrections_women_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
@@ -551,10 +549,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
-        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         post_data = {
-            'candidate_women_%s%s' % (result_form.results.all()[
-                0].candidate.pk, de_1_suffix): 2,
+            'candidate_women_%s' % result_form.results.all()[
+                0].candidate.pk: 2,
             'result_form': result_form.pk,
             'reject_submit': 'reject',
             'tally_id': self.tally.pk,
@@ -659,11 +656,10 @@ class TestCorrections(TestBase):
             result_form=result_form).count(), 2)
 
         session = {'result_form': result_form.pk}
-        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         data = {
             'submit_corrections': 1,
-            'ballot_number_from%s' % de_1_suffix: ballot_from_val,
-            'number_sorted_and_counted%s' % de_1_suffix: sorted_counted_val,
+            'ballot_number_from': ballot_from_val,
+            'number_sorted_and_counted': sorted_counted_val,
             'is_stamped': is_stamped,
             'tally_id': self.tally.pk,
         }
@@ -691,7 +687,7 @@ class TestCorrections(TestBase):
         self.assertIn('corrections/success', response['location'])
 
         result_form_stat.reload()
-        self.assertTrue(result_form_stat.has_de_error)
+        self.assertEqual(result_form_stat.data_entry_errors, 1)
 
     def test_confirmation_get(self):
         result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,
