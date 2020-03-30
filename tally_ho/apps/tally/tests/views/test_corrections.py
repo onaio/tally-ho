@@ -270,10 +270,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
-        de_1_suffix = getattr(settings, "DE_1_SUFFIX")
         post_data = {
-            'candidate_general_%s%s' % (result_form.results.all()[
-                0].candidate.pk, de_1_suffix): 2,
+            'candidate_general_%s' % result_form.results.all()[
+                0].candidate.pk: 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections'
         }
@@ -289,7 +288,7 @@ class TestCorrections(TestBase):
         self.assertIn('corrections/success', response['location'])
 
         result_form_stat.reload()
-        self.assertTrue(result_form_stat.has_de_error)
+        self.assertEqual(result_form_stat.data_entry_errors, 1)
 
     def test_corrections_general_post_few_corrections(self):
         view = views.CorrectionRequiredView.as_view()
