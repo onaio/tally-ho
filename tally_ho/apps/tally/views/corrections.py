@@ -1,7 +1,6 @@
 import dateutil.parser
 from django.core.serializers.json import json, DjangoJSONEncoder
 from django.core.exceptions import SuspiciousOperation
-from django.conf import settings
 from django.db import transaction
 from django.forms import ValidationError
 from django.forms.models import model_to_dict
@@ -185,23 +184,8 @@ def save_recon(post_data, user, result_form):
     """
     corrections = {}
     mismatched = 0
-    de_1_suffix = getattr(settings, "DE_1_SUFFIX")
-    de_2_suffix = getattr(settings, "DE_2_SUFFIX")
-    post_data_has_corrections =\
-        any(item.endswith(de_1_suffix) or item.endswith(de_2_suffix)
-            for item in post_data)
-
-    if post_data_has_corrections:
-        # Update result form stats entries that required DE corrections
-        update_result_form_entries_with_de_errors(
-            de_1_suffix, de_2_suffix, post_data)
-
-        post_data = post_data.copy()
-        for item in post_data:
-            if item.endswith(de_1_suffix):
-                post_data[item.replace(de_1_suffix, '')] = post_data.pop(item)
-            if item.endswith(de_2_suffix):
-                post_data[item.replace(de_2_suffix, '')] = post_data.pop(item)
+    data_entry_1_errors = 0
+    data_entry_2_errors = 0
 
     for v1, v2, _type in get_recon_form(result_form):
         if v1.data != v2.data:
@@ -210,8 +194,15 @@ def save_recon(post_data, user, result_form):
             if value:
                 if value == 'False':
                     value = False
-                corrections[v1.name] =\
-                    value[0] if isinstance(value, list) else value
+                corrections[v1.name] = value
+
+            # Error occured at data entry 1 stage
+            if value != v1.data:
+                data_entry_1_errors += 1
+
+            # Error occured at data entry 2 stage
+            if value != v2.data:
+                data_entry_2_errors += 1
 
     if len(corrections) < mismatched:
         raise ValidationError(
@@ -222,6 +213,10 @@ def save_recon(post_data, user, result_form):
     updated.update(corrections)
 
     save_final_recon_form(updated, user, result_form)
+
+    if data_entry_1_errors or data_entry_2_errors:
+        update_result_form_entries_with_de_errors(
+            data_entry_1_errors, data_entry_2_errors, post_data['tally_id'])
 
 
 class CorrectionView(LoginRequiredMixin,
