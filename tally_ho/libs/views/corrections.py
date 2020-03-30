@@ -15,50 +15,39 @@ from tally_ho.libs.permissions import groups
 
 
 def update_result_form_entries_with_de_errors(
-    de_1_suffix, de_2_suffix, post_data
+    data_entry_1_errors, data_entry_2_errors, tally_id
 ):
-    """Update result form stats entries that required DE corrections.
+    """Update result form stats entries that have DE errors.
 
-    If correction value come from DE1, this means that the data entry error
-    was caused by DE2 clerk, and vise versa.
-
-    :param de_1_suffix: Suffix for identifying DE1 correction value
-    :param de_2_suffix: Suffix for identifying DE2 correction value
+    :param data_entry_1_errors: Number of errors caused by data entry 1 clerk.
+    :param data_entry_2_errors: Number of errors caused by data entry 2 clerk.
+    :param tally_id: ID of tally.
     """
-    has_de_1_error = False
-    has_de_2_error = False
-
-    # check which data entry lead to corrections
-    for item in post_data:
-        if item.endswith(de_1_suffix):
-            has_de_2_error = True
-        if item.endswith(de_2_suffix):
-            has_de_1_error = True
-        if has_de_1_error and has_de_2_error:
-            break
 
     qs = ResultFormStats.objects.filter(
-        result_form__tally__id=post_data['tally_id'])
+        result_form__tally__id=tally_id)
 
-    if has_de_1_error:
-        qs =\
+    if data_entry_1_errors:
+        data_entry_1_result_form_stat =\
             qs.filter(
                 Q(user__groups__name=groups.DATA_ENTRY_1_CLERK))\
             .order_by('-created_date').first()
 
-        if qs and not qs.has_de_error:
-            qs.has_de_error = True
-            qs.save()
+        if data_entry_1_result_form_stat:
+            data_entry_1_result_form_stat.data_entry_errors +=\
+                data_entry_1_errors
+            data_entry_1_result_form_stat.save()
 
-    if has_de_2_error:
-        qs =\
+    if data_entry_2_errors:
+        data_entry_2_result_form_stat =\
             qs.filter(
                 Q(user__groups__name=groups.DATA_ENTRY_2_CLERK))\
             .order_by('-created_date').first()
 
-        if qs and not qs.has_de_error:
-            qs.has_de_error = True
-            qs.save()
+        if data_entry_2_result_form_stat:
+            data_entry_2_result_form_stat.data_entry_errors +=\
+                data_entry_2_errors
+            data_entry_2_result_form_stat.save()
 
 
 def get_matched_forms(result_form):
