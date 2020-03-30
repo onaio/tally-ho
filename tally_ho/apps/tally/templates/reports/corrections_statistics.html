@@ -10,7 +10,7 @@
     <tr>
         <th>{% trans 'Name' %}</th>
         <th>{% trans 'Total Forms Processed' %}</th>
-        <th>{% trans 'Total Forms Processed with Errors' %}</th>
+        <th>{% trans 'Total Errors' %}</th>
         <th>{% trans 'Percetage of Errors' %}</th>
     </tr>
     {% if not corrections_stats %}
@@ -25,7 +25,7 @@
     <tr>
         <td>{{ rec.user__username }}</td>
         <td>{{ rec.total_forms_processed }}</td>
-        <td>{{ rec.total_forms_processed_with_errors }}</td>
+        <td>{{ rec.total_errors }}</td>
         <td>{{ rec.error_percentage }}%</td>
     </tr>
     {% endfor %}
