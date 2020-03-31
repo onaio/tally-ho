@@ -174,7 +174,7 @@ class TestStaffPerformanceMetrics(TestBase):
             '<td>No Data</td>',
             number_of_tables)
 
-    def test_track_corrections_get(self):
+    def test_track_corrections_get_with_data(self):
         tally = create_tally()
         tally.users.add(self.user)
 
@@ -201,7 +201,7 @@ class TestStaffPerformanceMetrics(TestBase):
             processing_time=form_processing_time_in_seconds,
             user=data_entry_1_user,
             result_form=result_form,
-            has_de_error=True
+            data_entry_errors=1
         )
 
         # Form processed correctly
@@ -228,7 +228,7 @@ class TestStaffPerformanceMetrics(TestBase):
             "<th>Total Forms Processed</th>")
         self.assertContains(
             response,
-            "<th>Total Forms Processed with Errors</th>")
+            "<th>Total Errors</th>")
         self.assertContains(
             response,
             "<th>Percetage of Errors</th>")
@@ -236,3 +236,31 @@ class TestStaffPerformanceMetrics(TestBase):
         self.assertContains(response, f'<td>2</td>')
         self.assertContains(response, f'<td>1</td>')
         self.assertContains(response, f'<td>50%</td>')
+
+    def test_track_corrections_get_with_no_data(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        request = self._get_request()
+        view = staff_performance_metrics.TrackCorrections.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request, tally_id=tally.pk,)
+
+        self.assertContains(
+            response,
+            "<h1>Form correction statistics</h1>")
+        self.assertContains(
+            response,
+            "<th>Name</th>")
+        self.assertContains(
+            response,
+            "<th>Total Forms Processed</th>")
+        self.assertContains(
+            response,
+            "<th>Total Errors</th>")
+        self.assertContains(
+            response,
+            "<th>Percetage of Errors</th>")
+        self.assertContains(response, f'<td>No Data</td>')
+        self.assertContains(response, f'<td></td>', 3)
