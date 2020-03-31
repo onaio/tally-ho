@@ -231,7 +231,7 @@ class TestStaffPerformanceMetrics(TestBase):
             "<th>Total Errors</th>")
         self.assertContains(
             response,
-            "<th>Percetage of Errors</th>")
+            "<th>Percentage of Errors</th>")
         self.assertContains(response, f'<td>{data_entry_1_user.username}</td>')
         self.assertContains(response, f'<td>2</td>')
         self.assertContains(response, f'<td>1</td>')
@@ -261,6 +261,6 @@ class TestStaffPerformanceMetrics(TestBase):
             "<th>Total Errors</th>")
         self.assertContains(
             response,
-            "<th>Percetage of Errors</th>")
+            "<th>Percentage of Errors</th>")
         self.assertContains(response, f'<td>No Data</td>')
         self.assertContains(response, f'<td></td>', 3)
