@@ -9,11 +9,17 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 
 
-def approvals_percentage(approvals):
+def approvals_percantage(
+    approvals, decimal_digits=2, default_percentage_value=0
+):
     """Calculates supervisor's approvals rate percentage value.
 
     :param approvals: A dict consisting of forms processed by supervisor
         and forms sent for review by supervisor.
+    :param decimal_digits: The number of digits to round off the percentage
+        value, default is two.
+    :param default_percentage_value: The default percentage value returned
+        when forms_sent_for_review is not True
 
     :returns: Percentage float value rounded in two dencimal points
         if forms sent for review is greater than zero,
@@ -22,10 +28,10 @@ def approvals_percentage(approvals):
     forms_approved = approvals['forms_approved']
     forms_sent_for_review = approvals['forms_sent_for_review']
 
-    if forms_sent_for_review > 0:
-        return round(100 * forms_approved/forms_sent_for_review, 2)
-
-    return 0
+    if forms_sent_for_review:
+        return round(
+            100 * forms_approved/forms_sent_for_review, decimal_digits)
+    return default_percentage_value
 
 
 class StaffPerformanceMetricsView(LoginRequiredMixin,
@@ -60,30 +66,6 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
                                TemplateView):
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/supervisor_approvals.html'
-
-    def approvals_percantage(
-        self, approvals, decimal_digits=2, default_percentage_value=0
-    ):
-        """Calculates supervisor's approvals rate percentage value.
-
-        :param approvals: A dict consisting of forms processed by supervisor
-            and forms sent for review by supervisor.
-        :param decimal_digits: The number of digits to round off the percentage
-            value, default is two.
-        :param default_percentage_value: The default percentage value returned
-            when forms_sent_for_review is not True
-
-        :returns: Percentage float value rounded in two dencimal points
-            if forms sent for review is greater than zero,
-            Zero if forms sent for review is not greater than zero.
-        """
-        forms_approved = approvals['forms_approved']
-        forms_sent_for_review = approvals['forms_sent_for_review']
-
-        if forms_sent_for_review:
-            return round(
-                100 * forms_approved/forms_sent_for_review, decimal_digits)
-        return default_percentage_value
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
@@ -159,13 +141,13 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
             self.get_context_data(
                 tally_id=tally_id,
                 t_m_approvals=tally_manager_supervisor_approvals,
-                t_m_approvals_percentage=approvals_percentage(
+                t_m_approvals_percantage=approvals_percantage(
                     tally_manager_supervisor_approvals),
                 s_a_approvals=supervisor_administrator_approvals,
-                s_a_approvals_percentage=approvals_percentage(
+                s_a_approvals_percantage=approvals_percantage(
                     supervisor_administrator_approvals),
                 a_s_approvals=audit_supervisor_approvals,
-                a_s_approvals_percentage=approvals_percentage(
+                a_s_approvals_percantage=approvals_percantage(
                     audit_supervisor_approvals)))
 
 
