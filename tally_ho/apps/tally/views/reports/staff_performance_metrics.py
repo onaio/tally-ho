@@ -107,18 +107,18 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
                     'id',
                     filter=Q(user__groups__name=groups.AUDIT_SUPERVISOR)))\
             .aggregate(
-                approved_by_tally_manager=Sum(
-                    'count_approved_by_tally_manager'),
-                sent_for_review_by_tally_manager=Sum(
-                    'count_sent_for_review_by_tally_manager'),
-                approved_by_supervisor_admin=Sum(
-                    'count_approved_by_supervisor_admin'),
-                sent_for_review_by_supervisor_admin=Sum(
-                    'count_sent_for_review_by_supervisor_admin'),
-                approved_by_audit_supervisor=Sum(
-                    'count_approved_by_audit_supervisor'),
-                sent_for_review_by_audit_supervisor=Sum(
-                    'count_sent_for_review_by_audit_supervisor'))
+                approved_by_tally_manager=Coalesce(Sum(
+                    'count_approved_by_tally_manager'), V(0)),
+                sent_for_review_by_tally_manager=Coalesce(Sum(
+                    'count_sent_for_review_by_tally_manager'), V(0)),
+                approved_by_supervisor_admin=Coalesce(Sum(
+                    'count_approved_by_supervisor_admin'), V(0)),
+                sent_for_review_by_supervisor_admin=Coalesce(Sum(
+                    'count_sent_for_review_by_supervisor_admin'), V(0)),
+                approved_by_audit_supervisor=Coalesce(Sum(
+                    'count_approved_by_audit_supervisor'), V(0)),
+                sent_for_review_by_audit_supervisor=Coalesce(Sum(
+                    'count_sent_for_review_by_audit_supervisor'), V(0)))
 
         tally_manager_supervisor_approvals =\
             {'forms_approved':
