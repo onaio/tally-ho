@@ -2,7 +2,8 @@ from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
 from django.db.models import Count, Q, Sum, F, ExpressionWrapper,\
-    IntegerField, Value
+    IntegerField, Value as V
+from django.db.models.functions import Coalesce
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
@@ -45,7 +46,7 @@ class StaffPerformanceMetricsView(LoginRequiredMixin,
             .values('user__username')\
             .annotate(
                 forms_processed=Count('user'),
-                total_processing_time=Sum('processing_time'))
+                total_processing_time=Coalesce(Sum('processing_time'), V(0)))
 
         return self.render_to_response(
             self.get_context_data(
@@ -195,7 +196,7 @@ class TrackCorrections(LoginRequiredMixin,
                         'data_entry_errors'))\
                 .annotate(
                     error_percentage=ExpressionWrapper(
-                        Value(percentage_value) *
+                        V(percentage_value) *
                         F('total_errors')
                         / F('total_forms_processed'),
                         output_field=IntegerField()
