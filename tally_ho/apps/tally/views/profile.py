@@ -15,17 +15,19 @@ class PersistSessionVars(object):
     """
     session_backup = {}
 
-    def __init__(self, vars):
-        self.vars = vars
+    def __init__(self, session_vars):
+        self.session_vars = session_vars
 
     def __enter__(self):
-        for var in self.vars:
-            if self.request.session.get(var):
-                self.session_backup[var] = self.request.session.get(var)
+        for session_var in self.session_vars:
+            if self.request.session.get(session_var):
+                self.session_backup[session_var] =\
+                    self.request.session.get(session_var)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        for var in self.session_backup:
-            self.request.session[var] = self.session_backup.get(var)
+        for session_var in self.session_backup:
+            self.request.session[session_var] =\
+                self.session_backup.get(session_var)
 
     def __call__(self, test_func, *args, **kwargs):
 
