@@ -9,7 +9,7 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 
 
-def approvals_percantage(
+def approvals_percentage(
     approvals, decimal_digits=2, default_percentage_value=0
 ):
     """Calculates supervisor's approvals rate percentage value.
@@ -141,13 +141,13 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
             self.get_context_data(
                 tally_id=tally_id,
                 t_m_approvals=tally_manager_supervisor_approvals,
-                t_m_approvals_percantage=approvals_percantage(
+                t_m_approvals_percentage=approvals_percentage(
                     tally_manager_supervisor_approvals),
                 s_a_approvals=supervisor_administrator_approvals,
-                s_a_approvals_percantage=approvals_percantage(
+                s_a_approvals_percentage=approvals_percentage(
                     supervisor_administrator_approvals),
                 a_s_approvals=audit_supervisor_approvals,
-                a_s_approvals_percantage=approvals_percantage(
+                a_s_approvals_percentage=approvals_percentage(
                     audit_supervisor_approvals)))
 
 
