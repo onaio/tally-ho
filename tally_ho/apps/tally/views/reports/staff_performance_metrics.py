@@ -174,8 +174,9 @@ class TrackCorrections(LoginRequiredMixin,
                 qs.values('user__username')\
                 .annotate(
                     total_forms_processed=Count('user'),
-                    total_errors=Sum(
-                        'data_entry_errors'))\
+                    total_errors=Count(
+                        'data_entry_errors',
+                        filter=Q(data_entry_errors__gt=0)))\
                 .annotate(
                     error_percentage=ExpressionWrapper(
                         V(percentage_value) *
