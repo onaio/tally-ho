@@ -163,7 +163,7 @@ class TestCorrections(TestBase):
         string_matches = [
             'Corrections', 'Form Race Type:', 'Form Entries Match',
             'Pass to Quality Control', '<input type="hidden" '
-            'name="result_form" value="%s">' % result_form.pk]
+            f'name="result_form" value="{result_form.pk}">']
         for check_str in string_matches:
             self.assertContains(response, check_str)
 
@@ -269,9 +269,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candidate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_general_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            f'candidate_general_{candidate_pk}': 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections'
         }
@@ -298,9 +298,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 4)
         session = {'result_form': result_form.pk}
+        candidate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_general_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            f'candidate_general_{candidate_pk}': 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections',
             'tally_id': self.tally.pk
@@ -439,8 +439,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candidate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            f'candidate_{candidate_pk}': 2,
             'result_form': result_form.pk,
             'reject_submit': 'reject'
         }
@@ -470,8 +471,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candidate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            f'candidate_{candidate_pk}': 2,
             'result_form': result_form.pk,
             'abort_submit': 'reject',
             'tally_id': self.tally.pk,
@@ -518,9 +520,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_women_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            f'candidate_women_{candate_pk}': 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections',
             'tally_id': self.tally.pk,
@@ -548,9 +550,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_women_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            f'candidate_women_{candate_pk}': 2,
             'result_form': result_form.pk,
             'reject_submit': 'reject',
             'tally_id': self.tally.pk,
