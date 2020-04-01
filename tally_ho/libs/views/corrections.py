@@ -146,7 +146,7 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
     :raises: `ValidationError` if a selection is not found for every mismatched
         candidate.
     """
-    prefix = 'candidate_%s_' % prefix
+    prefix = f'candidate_{prefix}_'
     data_entry_1_errors = 0
     data_entry_2_errors = 0
 
@@ -156,7 +156,7 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
 
     if len(candidate_fields) != len(no_match):
         raise ValidationError(
-            _(u"Please select correct results for all mis-matched votes."))
+            _('Please select correct results for all mis-matched votes.'))
 
     for rec in no_match:
         candidate_field = f"{prefix}{rec['candidate']}"

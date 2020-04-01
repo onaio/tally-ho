@@ -51,7 +51,7 @@ class EditRaceForm(ModelForm):
             try:
                 race = Ballot.objects.get(id=race_id)
             except Ballot.DoesNotExist:
-                raise forms.ValidationError(_(u"Race does not exist"))
+                raise forms.ValidationError(_('Race does not exist'))
             else:
                 tally_id = self.cleaned_data.get('tally_id')
                 comment = self.cleaned_data.get('comment_input')

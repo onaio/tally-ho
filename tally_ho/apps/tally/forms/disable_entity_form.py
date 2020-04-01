@@ -68,17 +68,17 @@ class DisableEntityForm(forms.Form):
                                            code=center_code)
                 except Center.DoesNotExist:
                     raise forms.ValidationError(
-                        u"Center Number does not exist")
+                        _('Center Number does not exist'))
                 except Station.DoesNotExist:
                     raise forms.ValidationError(
-                        u"Station Number does not exist")
+                        _('Station Number does not exist'))
             elif race_id:
                 try:
                     Ballot.objects.get(id=race_id)
                 except Ballot.DoesNotExist:
-                    raise forms.ValidationError(u"Race does not exist")
+                    raise forms.ValidationError(_('Race does not exist'))
             else:
-                raise forms.ValidationError(u"Error")
+                raise forms.ValidationError(_('Error'))
 
             return cleaned_data
 

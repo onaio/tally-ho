@@ -17,13 +17,13 @@ class PassToQualityControlForm(forms.Form):
                 ResultForm.objects.get(pk=pk)
             except ResultForm.DoesNotExist:
                 raise forms.ValidationError(
-                    _(u"Result Form with key %s does not exit." % pk))
+                    _(f'Result Form with key {pk} does not exit.'))
 
             pass_to_quality_control = cleaned_data.get(
                 'pass_to_quality_control')
 
             if pass_to_quality_control != 'true':
                 raise forms.ValidationError(
-                    _(u"Suspicious activity detected."))
+                    _('Suspicious activity detected.'))
 
             return cleaned_data

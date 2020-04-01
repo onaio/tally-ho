@@ -8,5 +8,5 @@ def check_results_for_forms(resultforms):
         barcodes_with_results = [r.barcode for r in resultforms
                                  if r.results.count()]
 
-        raise forms.ValidationError(_(u'Results exist for barcodes: %s' %
-                                      barcodes_with_results))
+        raise forms.ValidationError(_('Results exist for barcodes:'
+                                      f' {barcodes_with_results}'))

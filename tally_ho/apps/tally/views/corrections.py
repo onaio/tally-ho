@@ -206,7 +206,7 @@ def save_recon(post_data, user, result_form):
 
     if len(corrections) < mismatched:
         raise ValidationError(
-            _(u"Please select correct results for all mis-matched votes."))
+            _('Please select correct results for all mis-matched votes.'))
 
     updated = get_recon_form_dict(result_form)
     updated = {k: v for k, v in updated.items() if k not in corrections}

@@ -28,15 +28,16 @@ class RestrictedFileField(forms.FileField):
                 if file_extension in self.allowed_extensions:
                     if data.size > self.max_upload_size:
                         raise forms.ValidationError(
-                            _(u'File size must be under %s.'
-                                ' Current file size is %s.') %
-                            (filesizeformat(self.max_upload_size),
-                                filesizeformat(data.size)))
+                            _('File size must be under'
+                              f' {filesizeformat(self.max_upload_size)}.'
+                              ' Current file size is'
+                              f' {filesizeformat(data.size)}.'))
                 else:
+                    allowed_extensions = ', '.join(self.allowed_extensions)
                     raise forms.ValidationError(
-                        _(u'File extention (%s) is not supported.'
-                            ' Allowed extensions are: %s.') %
-                        (file_extension, ', '.join(self.allowed_extensions)))
+                        _(f'File extention ({file_extension})'
+                          ' is not supported.'
+                          f' Allowed extensions are: {allowed_extensions}.'))
             except AttributeError:
                 pass
 
