@@ -58,9 +58,9 @@ class RemoveStationForm(forms.Form):
 
                 if not int(station_number) in valid_station_numbers:
                     raise forms.ValidationError(_(
-                        u"Invalid Station Number for this Center"))
+                        'Invalid Station Number for this Center'))
             except Center.DoesNotExist:
-                raise forms.ValidationError(u"Center Number does not exist")
+                raise forms.ValidationError(_('Center Number does not exist'))
             else:
                 check_results_for_forms(center.resultform_set.filter(
                     station_number=station_number))

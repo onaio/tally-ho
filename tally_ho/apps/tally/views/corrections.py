@@ -27,7 +27,8 @@ from tally_ho.libs.views.session import session_matches_post_result_form
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.corrections import get_matched_forms,\
     candidate_results_for_race_type, save_component_results,\
-    save_final_results, save_general_results, save_women_results
+    save_final_results, save_general_results, save_women_results,\
+    update_result_form_entries_with_de_errors
 from tally_ho.libs.views.form_state import form_in_state,\
     safe_form_in_state
 
@@ -183,6 +184,8 @@ def save_recon(post_data, user, result_form):
     """
     corrections = {}
     mismatched = 0
+    data_entry_1_errors = 0
+    data_entry_2_errors = 0
 
     for v1, v2, _type in get_recon_form(result_form):
         if v1.data != v2.data:
@@ -193,15 +196,27 @@ def save_recon(post_data, user, result_form):
                     value = False
                 corrections[v1.name] = value
 
+            # Error occured at data entry 1 stage
+            if int(value) != v1.data:
+                data_entry_1_errors += 1
+
+            # Error occured at data entry 2 stage
+            if int(value) != v2.data:
+                data_entry_2_errors += 1
+
     if len(corrections) < mismatched:
         raise ValidationError(
-            _(u"Please select correct results for all mis-matched votes."))
+            _('Please select correct results for all mis-matched votes.'))
 
     updated = get_recon_form_dict(result_form)
     updated = {k: v for k, v in updated.items() if k not in corrections}
     updated.update(corrections)
 
     save_final_recon_form(updated, user, result_form)
+
+    if data_entry_1_errors or data_entry_2_errors:
+        update_result_form_entries_with_de_errors(
+            data_entry_1_errors, data_entry_2_errors, post_data['tally_id'])
 
 
 class CorrectionView(LoginRequiredMixin,
@@ -351,6 +366,8 @@ class CorrectionRequiredView(LoginRequiredMixin,
     def post(self, *args, **kwargs):
         tally_id = self.kwargs['tally_id']
         post_data = self.request.POST
+        post_data = post_data.copy()
+        post_data['tally_id'] = tally_id
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.CORRECTION)

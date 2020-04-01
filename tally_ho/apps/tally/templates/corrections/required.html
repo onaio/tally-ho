@@ -63,13 +63,13 @@
     {% endif %}
 
 {% if candidates_general %}
-    {% include "corrections/comparison.html" with candidates=candidates_general  header="General" prefix="general"%}
+    {% include "corrections/comparison.html" with candidates=candidates_general  header="General" prefix="general" %}
 {% endif %}
 {% if candidates_component %}
-    {% include "corrections/comparison.html" with candidates=candidates_component header=component_name prefix="component"%}
+    {% include "corrections/comparison.html" with candidates=candidates_component header=component_name prefix="component" %}
 {% endif %}
 {% if candidates_women %}
-    {% include "corrections/comparison.html" with candidates=candidates_women  header="Women" prefix="women"%}
+    {% include "corrections/comparison.html" with candidates=candidates_women  header="Women" prefix="women" de_1_suffix=de_1_suffix de_2_suffix=de_2_suffix %}
 {% endif %}
 
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">

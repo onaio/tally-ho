@@ -24,5 +24,5 @@ class TallyFilesForm(forms.Form):
             file_extension = pathlib.Path(file.name).suffix
             if file_extension != '.csv':
                 raise forms.ValidationError(
-                    _(u'File extension (%s) is not supported.'
-                      ' Allowed extensions are .csv') % file_extension)
+                    _(f'File extension ({file_extension}) is not supported.'
+                      ' Allowed extensions are .csv'))

@@ -366,6 +366,10 @@ urlpatterns = [
             staff_performance_metrics.SupervisorsApprovalsView.as_view(),
             name='supervisors-approvals'),
 
+    re_path(r'^reports/internal/track-corrections/(?P<tally_id>(\d+))/$',
+            staff_performance_metrics.TrackCorrections.as_view(),
+            name='track-corrections'),
+
     re_path(r'^tally-manager$',
             tally_manager.DashboardView.as_view(), name='tally-manager'),
     re_path(r'^tally-manager/global-settings/(?P<site_id>(\d+))/$',

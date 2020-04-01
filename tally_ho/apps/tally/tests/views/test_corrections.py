@@ -17,6 +17,7 @@ from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
     create_result_form,
+    create_result_form_stats,
     create_candidate,
     create_center,
     create_station,
@@ -162,7 +163,7 @@ class TestCorrections(TestBase):
         string_matches = [
             'Corrections', 'Form Race Type:', 'Form Entries Match',
             'Pass to Quality Control', '<input type="hidden" '
-            'name="result_form" value="%s">' % result_form.pk]
+            f'name="result_form" value="{result_form.pk}">']
         for check_str in string_matches:
             self.assertContains(response, check_str)
 
@@ -244,14 +245,33 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION,
                                          tally=self.tally)
+
+        data_entry_2_user =\
+            self._create_user('data_entry_2', 'password')
+        self._add_user_to_group(data_entry_2_user,
+                                groups.DATA_ENTRY_2_CLERK)
+
+        start_time = timezone.now()
+        minutes = 65.5
+        end_time = start_time + timezone.timedelta(minutes=minutes)
+
+        form_processing_time_in_seconds =\
+            (end_time - start_time).total_seconds()
+
+        result_form_stat = create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_2_user,
+            result_form=result_form
+        )
+
         create_results(result_form, vote1=2, vote2=3)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candidate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_general_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            f'candidate_general_{candidate_pk}': 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections'
         }
@@ -266,6 +286,9 @@ class TestCorrections(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('corrections/success', response['location'])
 
+        result_form_stat.reload()
+        self.assertEqual(result_form_stat.data_entry_errors, 1)
+
     def test_corrections_general_post_few_corrections(self):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION,
@@ -275,9 +298,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 4)
         session = {'result_form': result_form.pk}
+        candidate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_general_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            f'candidate_general_{candidate_pk}': 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections',
             'tally_id': self.tally.pk
@@ -416,8 +439,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candidate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            f'candidate_{candidate_pk}': 2,
             'result_form': result_form.pk,
             'reject_submit': 'reject'
         }
@@ -447,8 +471,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candidate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_%s' % result_form.results.all()[0].candidate.pk: 2,
+            f'candidate_{candidate_pk}': 2,
             'result_form': result_form.pk,
             'abort_submit': 'reject',
             'tally_id': self.tally.pk,
@@ -471,14 +496,33 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION,
                                          tally=self.tally)
+
+        data_entry_2_user =\
+            self._create_user('data_entry_2', 'password')
+        self._add_user_to_group(data_entry_2_user,
+                                groups.DATA_ENTRY_2_CLERK)
+
+        start_time = timezone.now()
+        minutes = 65.5
+        end_time = start_time + timezone.timedelta(minutes=minutes)
+
+        form_processing_time_in_seconds =\
+            (end_time - start_time).total_seconds()
+
+        result_form_stat = create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_2_user,
+            result_form=result_form
+        )
+
         create_results(result_form, vote1=2, vote2=3, race_type=RaceType.WOMEN)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_women_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            f'candidate_women_{candate_pk}': 2,
             'result_form': result_form.pk,
             'submit_corrections': 'submit corrections',
             'tally_id': self.tally.pk,
@@ -494,6 +538,9 @@ class TestCorrections(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/corrections/success', response['location'])
 
+        result_form_stat.reload()
+        self.assertEqual(result_form_stat.data_entry_errors, 1)
+
     def test_corrections_women_post_reject(self):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION,
@@ -503,9 +550,9 @@ class TestCorrections(TestBase):
         self.assertEqual(
             Result.objects.filter(result_form=result_form).count(), 2)
         session = {'result_form': result_form.pk}
+        candate_pk = result_form.results.all()[0].candidate.pk
         post_data = {
-            'candidate_women_%s' % result_form.results.all()[
-                0].candidate.pk: 2,
+            f'candidate_women_{candate_pk}': 2,
             'result_form': result_form.pk,
             'reject_submit': 'reject',
             'tally_id': self.tally.pk,
@@ -567,6 +614,25 @@ class TestCorrections(TestBase):
         view = views.CorrectionRequiredView.as_view()
         result_form = create_result_form(form_state=FormState.CORRECTION,
                                          tally=self.tally)
+
+        data_entry_2_user =\
+            self._create_user('data_entry_2', 'password')
+        self._add_user_to_group(data_entry_2_user,
+                                groups.DATA_ENTRY_2_CLERK)
+
+        start_time = timezone.now()
+        minutes = 65.5
+        end_time = start_time + timezone.timedelta(minutes=minutes)
+
+        form_processing_time_in_seconds =\
+            (end_time - start_time).total_seconds()
+
+        result_form_stat = create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_2_user,
+            result_form=result_form
+        )
+
         create_results(result_form, vote1=2, vote2=2, race_type=RaceType.WOMEN)
 
         ballot_from_val = '2'
@@ -620,6 +686,9 @@ class TestCorrections(TestBase):
         self.assertEqual(updated_result_form.form_state,
                          FormState.QUALITY_CONTROL)
         self.assertIn('corrections/success', response['location'])
+
+        result_form_stat.reload()
+        self.assertEqual(result_form_stat.data_entry_errors, 1)
 
     def test_confirmation_get(self):
         result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,

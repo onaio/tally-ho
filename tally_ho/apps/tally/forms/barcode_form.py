@@ -71,17 +71,17 @@ class BarcodeForm(forms.Form):
             tally_id = cleaned_data.get('tally_id')
 
             if not barcode_scan and barcode != barcode_copy:
-                raise forms.ValidationError(_(u"Barcodes do not match!"))
+                raise forms.ValidationError(_('Barcodes do not match!'))
 
             try:
                 result_form = ResultForm.objects.get(
                     barcode=barcode or barcode_scan,
                     tally__id=tally_id)
             except ResultForm.DoesNotExist:
-                raise forms.ValidationError(_(u"Barcode does not exist."))
+                raise forms.ValidationError(_('Barcode does not exist.'))
             else:
                 if result_form.center and not result_form.center.active:
-                    raise forms.ValidationError(_(u"Center is disabled."))
+                    raise forms.ValidationError(_('Center is disabled.'))
                 elif result_form.station_number:
                     try:
                         station = Station.objects.get(
@@ -89,15 +89,15 @@ class BarcodeForm(forms.Form):
                             center=result_form.center)
                     except Station.DoesNotExist:
                         raise forms.ValidationError(
-                            _(u"Station does not exist."))
+                            _('Station does not exist.'))
                     else:
                         if not station.active:
                             raise forms.ValidationError(
-                                _(u"Station disabled."))
+                                _('Station disabled.'))
                         elif station.sub_constituency:
                             ballot = station.sub_constituency.get_ballot()
                             if ballot and not ballot.active:
                                 raise forms.ValidationError(
-                                    _(u"Race disabled."))
+                                    _('Race disabled.'))
 
             return cleaned_data

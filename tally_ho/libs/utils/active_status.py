@@ -34,9 +34,9 @@ def disable_enable_entity(center_code,
             entities += Station.objects.filter(center__code=center_code,
                                                center__tally__id=tally_id)
     except Center.DoesNotExist:
-        raise forms.ValidationError(_(u"Center Number does not exist"))
+        raise forms.ValidationError(_('Center Number does not exist'))
     except Station.DoesNotExist:
-        raise forms.ValidationError(_(u"Station Number does not exist"))
+        raise forms.ValidationError(_('Station Number does not exist'))
     else:
         if comment_text:
             comment = Comment(text=comment_text, tally_id=tally_id)
@@ -69,7 +69,7 @@ def disable_enable_race(race_id,
         race = Ballot.objects.get(id=race_id)
 
     except Ballot.DoesNotExist:
-        raise forms.ValidationError(_(u"Race does not exist"))
+        raise forms.ValidationError(_('Race does not exist'))
     else:
         if comment:
             Comment(text=comment, ballot=race, tally_id=tally_id).save()
@@ -93,7 +93,7 @@ def disable_enable_candidate(candidate_id):
         status_target = not entity_to_return.active
 
     except Candidate.DoesNotExist:
-        raise forms.ValidationError(_(u"Candidate does not exist"))
+        raise forms.ValidationError(_('Candidate does not exist'))
     else:
         entity_to_return.active = status_target
         entity_to_return.save()

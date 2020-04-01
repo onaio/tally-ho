@@ -68,10 +68,10 @@ class CenterDetailsForm(forms.Form):
             tally_id = cleaned_data.get('tally_id')
 
             if center_number != center_number_copy:
-                raise forms.ValidationError(_(u"Center Numbers do not match"))
+                raise forms.ValidationError(_('Center Numbers do not match'))
 
             if station_number != station_number_copy:
-                raise forms.ValidationError(_(u"Station Numbers do not match"))
+                raise forms.ValidationError(_('Station Numbers do not match'))
 
             try:
                 center = Center.objects.get(code=center_number,
@@ -82,28 +82,25 @@ class CenterDetailsForm(forms.Form):
 
                 if not int(station_number) in valid_station_numbers:
                     raise forms.ValidationError(_(
-                        u"Invalid Station Number for this Center"))
+                        'Invalid Station Number for this Center'))
 
                 if not center.active:
-                    raise forms.ValidationError(_(
-                        u"Center is disabled"))
+                    raise forms.ValidationError(_('Center is disabled'))
 
                 station = Station.objects.get(center=center,
                                               station_number=station_number)
 
                 if not station.active:
-                    raise forms.ValidationError(_(
-                        u"Station is disabled"))
+                    raise forms.ValidationError(_('Station is disabled'))
                 elif station.sub_constituency:
                     ballot = station.sub_constituency.get_ballot()
                     if ballot and not ballot.active:
-                        raise forms.ValidationError(_(u"Race is disabled."))
+                        raise forms.ValidationError(_('Race is disabled.'))
 
             except Center.DoesNotExist:
-                raise forms.ValidationError(_(u"Center Number does not exist"))
+                raise forms.ValidationError(_('Center Number does not exist'))
 
             except Station.DoesNotExist:
-                raise forms.ValidationError(
-                    _(u"Station Number does not exist"))
+                raise forms.ValidationError(_('Station Number does not exist'))
 
             return cleaned_data

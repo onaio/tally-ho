@@ -1,13 +1,52 @@
 from collections import OrderedDict
 
+from django.db.models import Q
 from django.forms import ValidationError
 from django.utils.translation import ugettext as _
 
 from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import get_matched_results
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.race_type import RaceType
+from tally_ho.libs.permissions import groups
+
+
+def update_result_form_entries_with_de_errors(
+    data_entry_1_errors, data_entry_2_errors, tally_id
+):
+    """Update result form stats entries that have DE errors.
+
+    :param data_entry_1_errors: Number of errors caused by data entry 1 clerk.
+    :param data_entry_2_errors: Number of errors caused by data entry 2 clerk.
+    :param tally_id: ID of tally.
+    """
+
+    qs = ResultFormStats.objects.filter(
+        result_form__tally__id=tally_id)
+
+    if data_entry_1_errors:
+        data_entry_1_result_form_stat =\
+            qs.filter(
+                Q(user__groups__name=groups.DATA_ENTRY_1_CLERK))\
+            .order_by('-created_date').first()
+
+        if data_entry_1_result_form_stat:
+            data_entry_1_result_form_stat.data_entry_errors +=\
+                data_entry_1_errors
+            data_entry_1_result_form_stat.save()
+
+    if data_entry_2_errors:
+        data_entry_2_result_form_stat =\
+            qs.filter(
+                Q(user__groups__name=groups.DATA_ENTRY_2_CLERK))\
+            .order_by('-created_date').first()
+
+        if data_entry_2_result_form_stat:
+            data_entry_2_result_form_stat.data_entry_errors +=\
+                data_entry_2_errors
+            data_entry_2_result_form_stat.save()
 
 
 def get_matched_forms(result_form):
@@ -107,7 +146,9 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
     :raises: `ValidationError` if a selection is not found for every mismatched
         candidate.
     """
-    prefix = 'candidate_%s_' % prefix
+    prefix = f'candidate_{prefix}_'
+    data_entry_1_errors = 0
+    data_entry_2_errors = 0
 
     candidate_fields = [f for f in post_data if f.startswith(prefix)]
     results = get_results_for_race_type(result_form, race_type)
@@ -115,7 +156,14 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
 
     if len(candidate_fields) != len(no_match):
         raise ValidationError(
-            _(u"Please select correct results for all mis-matched votes."))
+            _('Please select correct results for all mis-matched votes.'))
+
+    for rec in no_match:
+        candidate_field = f"{prefix}{rec['candidate']}"
+        if rec['votes'] == post_data[candidate_field]:
+            data_entry_1_errors += 1
+        else:
+            data_entry_2_errors += 1
 
     changed_candidates = []
 
@@ -133,6 +181,10 @@ def save_candidate_results_by_prefix(prefix, result_form, post_data,
         if result.candidate not in changed_candidates:
             save_result(result.candidate, result_form, EntryVersion.FINAL,
                         result.votes, user)
+
+    if data_entry_1_errors or data_entry_2_errors:
+        update_result_form_entries_with_de_errors(
+            data_entry_1_errors, data_entry_2_errors, post_data['tally_id'])
 
 
 def save_final_results(result_form, user):
