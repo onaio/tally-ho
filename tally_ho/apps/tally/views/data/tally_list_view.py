@@ -20,6 +20,12 @@ class TallyListDataView(LoginRequiredMixin,
         'administer',
         'edit',
     )
+    order_columns = (
+        'id',
+        'name',
+        'created_date',
+        'modified_date'
+    )
 
     def render_column(self, row, column):
         if column == 'administer':
