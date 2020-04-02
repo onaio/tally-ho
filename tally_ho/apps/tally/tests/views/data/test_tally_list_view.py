@@ -7,6 +7,9 @@ from tally_ho.libs.tests.test_base import create_tally, TestBase
 
 
 class TestTallyListView(TestBase):
+    """
+    Test tally list class base views.
+    """
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
@@ -14,6 +17,9 @@ class TestTallyListView(TestBase):
         self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
 
     def test_tally_list_view(self):
+        """
+        Test that tally list view template is rendered correctly
+        """
         tally = create_tally()
         tally.users.add(self.user)
         view = views.TallyListView.as_view()
@@ -29,6 +35,9 @@ class TestTallyListView(TestBase):
         self.assertContains(response, "Actions")
 
     def test_tally_list_data_view(self):
+        """
+        Test that tally list data view returns correct data
+        """
         tally = create_tally()
         tally.users.add(self.user)
         view = views.TallyListDataView.as_view()
@@ -56,6 +65,10 @@ class TestTallyListView(TestBase):
             tally.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
 
     def test_tally_list_data_view_valid_search_filter(self):
+        """
+        Test that tally list data view returns the correct data
+        when a valid search filter is applied.
+        """
         tally_1 = create_tally(name='example_1_tally')
         create_tally(name='example_2_tally')
         view = views.TallyListDataView.as_view()
@@ -85,6 +98,10 @@ class TestTallyListView(TestBase):
             tally_1.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
 
     def test_tally_list_data_view_invalid_search_filter(self):
+        """
+        Test that tally list data view returns no data when an invalid
+        search filter is applied.
+        """
         create_tally(name='example_1_tally')
         create_tally(name='example_2_tally')
         view = views.TallyListDataView.as_view()
