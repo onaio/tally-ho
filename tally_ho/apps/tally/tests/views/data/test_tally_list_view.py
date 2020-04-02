@@ -54,3 +54,32 @@ class TestTallyListView(TestBase):
         self.assertEquals(
             modified_formatted_date,
             tally.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
+
+    def test_tally_list_data_view_valid_search_filter(self):
+        tally_1 = create_tally(name='example_1_tally')
+        create_tally(name='example_2_tally')
+        view = views.TallyListDataView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.GET = request.GET.copy()
+        request.GET['search[value]'] = tally_1.name
+        response = view(request)
+        data = json.loads(response.content.decode())['data']
+        tally_id, tally_name, created_date, modified_formatted_date,\
+            admin_view_link, edit_link = data[0]
+
+        self.assertEquals(1, len(data))
+        self.assertEquals(
+            admin_view_link,
+            f'<a href="/super-administrator/{tally_1.id}/"'
+            ' class ="btn btn-default btn-small">Admin View</a>')
+        self.assertEquals(
+            edit_link,
+            f'<a href="/tally-manager/update-tally/{tally_1.id}/"'
+            ' class ="btn btn-default btn-small">Edit</a>')
+        self.assertEquals(tally_id, str(tally_1.id))
+        self.assertEquals(tally_name, tally_1.name)
+        self.assertEquals(created_date, str(tally_1.created_date))
+        self.assertEquals(
+            modified_formatted_date,
+            tally_1.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
