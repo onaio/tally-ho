@@ -40,8 +40,7 @@ class TallyListDataView(LoginRequiredMixin,
         keyword = self.request.GET.get('search[value]', None)
 
         if keyword:
-            qs = qs.filter(Q(name__contains=keyword) |
-                           Q(id__contains=keyword))
+            qs = qs.filter(Q(name__icontains=keyword))
 
         return qs
 
