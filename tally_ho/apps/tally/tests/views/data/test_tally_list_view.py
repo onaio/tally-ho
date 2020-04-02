@@ -83,3 +83,17 @@ class TestTallyListView(TestBase):
         self.assertEquals(
             modified_formatted_date,
             tally_1.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
+
+    def test_tally_list_data_view_invalid_search_filter(self):
+        create_tally(name='example_1_tally')
+        create_tally(name='example_2_tally')
+        view = views.TallyListDataView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.GET = request.GET.copy()
+        request.GET['search[value]'] = 'Invalid search text'
+        response = view(request)
+        json_data = json.loads(response.content.decode())
+
+        self.assertListEqual([], json_data['data'])
+        self.assertEquals(2, json_data['recordsTotal'])
