@@ -1,4 +1,5 @@
 from django.views.generic import TemplateView
+from django.db.models import Q
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
@@ -34,6 +35,15 @@ class TallyListDataView(LoginRequiredMixin,
             return row.edit_button
         else:
             return super(TallyListDataView, self).render_column(row, column)
+
+    def filter_queryset(self, qs):
+        keyword = self.request.GET.get('search[value]', None)
+
+        if keyword:
+            qs = qs.filter(Q(name__contains=keyword) |
+                           Q(id__contains=keyword))
+
+        return qs
 
 
 class TallyListView(LoginRequiredMixin,
