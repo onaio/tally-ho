@@ -1,9 +1,11 @@
 from tally_ho.apps.tally.models.result_form import \
     sanity_check_final_results
 from tally_ho.apps.tally.models.quality_control import QualityControl
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.tests.test_base import create_reconciliation_form,\
-    create_result_form, create_result, create_candidates, TestBase
+    create_result_form, create_result, create_candidates, create_audit,\
+    TestBase
 
 
 class TestResultForm(TestBase):
@@ -44,3 +46,17 @@ class TestResultForm(TestBase):
         self.assertEqual(result_form.results_final.filter().count(), 4)
         sanity_check_final_results(result_form)
         self.assertEqual(result_form.results_final.filter().count(), 2)
+
+    def test_audit_quanritine_check_name_property_method(self):
+        result_form = create_result_form()
+        quarantine_check = QuarantineCheck.objects.create(
+            user=self.user,
+            name='1',
+            method='1',
+            value=1)
+        audit = create_audit(result_form, self.user)
+        audit.quarantine_checks.add(quarantine_check)
+
+        self.assertEqual(
+            result_form.audit_quaritine_check_name,
+            audit.quarantine_checks.all()[0].name)
