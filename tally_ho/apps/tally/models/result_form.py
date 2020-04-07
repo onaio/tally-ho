@@ -255,7 +255,9 @@ class ResultForm(BaseModel):
     @property
     def audit_quaritine_check_name(self):
         if self.audit:
-            quaritine_check_name = self.audit.quarantine_checks.all()[0].name
+            quarantine_checks = self.audit.quarantine_checks.all()
+            quaritine_check_name =\
+                quarantine_checks[0].name if quarantine_checks else None
             return quaritine_check_name
 
     @property
