@@ -7,6 +7,7 @@ from django.utils import timezone
 from tally_ho.apps.tally.views import audit as views
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
@@ -60,7 +61,13 @@ class TestAudit(TestBase):
         result_form = create_result_form(form_state=FormState.AUDIT,
                                          tally=tally,
                                          station_number=42)
-        create_audit(result_form, self.user, reviewed_team=True)
+        quarantine_check = QuarantineCheck.objects.create(
+            user=self.user,
+            name='Guard against overvoting',
+            method='1',
+            value=1)
+        audit = create_audit(result_form, self.user, reviewed_team=True)
+        audit.quarantine_checks.add(quarantine_check)
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
         tally.users.add(self.user)
@@ -69,9 +76,19 @@ class TestAudit(TestBase):
         view = views.DashboardView.as_view()
         response = view(request, tally_id=tally.pk)
 
-        self.assertContains(response, 'Audit')
+        self.assertContains(response, '<h1>Audit List</h1>')
+        self.assertContains(response, '<th>Barcode</th>')
+        self.assertContains(response, '<th>Center Name</th>')
+        self.assertContains(response, '<th>Center ID</th>')
+        self.assertContains(response, '<th>Station</th>')
+        self.assertContains(response, '<th>Reviewed?</th>')
+        self.assertContains(response, '<th>Supervisor Reviewed?</th>')
+        self.assertContains(response, '<th>Modified Date</th>')
+        self.assertContains(response, '<th>Quaritine Check</th>')
+        self.assertContains(response, '<th>Review</th>')
         self.assertContains(response, username)
         self.assertContains(response, '42')
+        self.assertContains(response, 'Guard against overvoting')
 
     def test_dashboard_get_csv(self):
         self._create_and_login_user()
