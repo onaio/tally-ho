@@ -39,18 +39,23 @@ class OfficesReportView(LoginRequiredMixin,
         intaken = p.IntakenProgressReport(tally_id)
         not_intaken = p.NotRecievedProgressReport(tally_id)
         archived = p.ArchivedProgressReport(tally_id)
+        valid_votes = p.ValidVotesProgressReport(tally_id)
 
         for office in Office.objects.filter(
                 tally__id=tally_id).order_by('number'):
             intaken_results = intaken.for_center_office(office)
             not_intaken_results = not_intaken.for_center_office(office)
             archived_result = archived.for_center_office(office)
+            total_valid_votes = valid_votes.for_center_office(
+                office=office,
+                query_valid_votes=True)
             data.append({
                 'office': office.name,
                 'number': office.number,
                 'intaken': intaken_results,
                 'not_intaken': not_intaken_results,
                 'archived': archived_result,
+                'valid_votes': total_valid_votes
             })
 
         return data
