@@ -253,12 +253,9 @@ class ResultForm(BaseModel):
             return ClearanceResolution.choices()[recomendation_index.value][1]
 
     @property
-    def audit_quaritine_check_name(self):
+    def audit_quaritine_checks(self):
         if self.audit:
-            quarantine_checks = self.audit.quarantine_checks.all()
-            quaritine_check_name =\
-                quarantine_checks[0].name if quarantine_checks else None
-            return quaritine_check_name
+            return self.audit.quarantine_checks.all().values('name')
 
     @property
     def form_state_name(self):
