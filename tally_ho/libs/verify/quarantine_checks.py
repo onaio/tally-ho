@@ -1,4 +1,3 @@
-from django.utils.translation import ugettext as _
 from django.conf import settings
 
 from tally_ho.apps.tally.models.audit import Audit
