@@ -31,14 +31,16 @@
         <th>{% trans 'Archived' %}</th>
         <th>{% trans 'Office Number' %}</th>
         <th>{% trans 'Office' %}</th>
+        <th>{% trans 'Valid Votes' %}</th>
     </tr>
 {% for rec in per_office %}
     <tr>
         <td>{{ rec.not_intaken }}</td>
         <td>{{ rec.intaken }}</td>
         <td>{{ rec.archived }}</td>
-        <td>{{ rec.office.number }}</td>
+        <td>{{ rec.number }}</td>
         <td>{{ rec.office }}</td>
+        <td>{{ rec.valid_votes }}</td>
     </tr>
 {% endfor %}
 </table>
