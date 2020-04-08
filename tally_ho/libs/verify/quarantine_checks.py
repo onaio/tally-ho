@@ -1,19 +1,18 @@
-from django.utils.translation import ugettext as _
+from django.conf import settings
+
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.quarantine_check import\
     QuarantineCheck
 
 
 def create_quarantine_checks():
-    quarantine_data = [
-        [_('Trigger 1 - Guard against overvoting'), 'pass_overvote', 10, 90],
-        [_('Trigger 2 - Guard against errors and tampering with the form'),
-         'pass_tampering', 3, 3]
-    ]
-
-    for name, method, value, percentage in quarantine_data:
+    for quarantine_check in getattr(settings, 'QUARANTINE_DATA'):
         QuarantineCheck.objects.get_or_create(
-            name=name, method=method, value=value, percentage=percentage)
+            name=quarantine_check['name'],
+            method=quarantine_check['method'],
+            value=quarantine_check['value'],
+            percentage=quarantine_check['percentage']
+        )
 
 
 def quarantine_checks():

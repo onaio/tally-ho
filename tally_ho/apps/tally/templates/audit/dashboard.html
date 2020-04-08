@@ -32,6 +32,7 @@
         <th>{% trans 'Reviewed?' %}</th>
         <th>{% trans 'Supervisor Reviewed?' %}</th>
         <th>{% trans 'Modified Date' %}</th>
+        <th>{% trans 'Quaritine Check' %}</th>
         <th>{% trans 'Review' %}</th>
     </tr>
 {% for form in forms %}
@@ -43,6 +44,11 @@
         <td>{{ form.audit_team_reviewed }}</td>
         <td>{{ form.audit_supervisor_reviewed }}</td>
         <td>{{ form.modified_date }}</td>
+        <td>
+            {% for audit_quaritine_check_name in form.audit_quaritine_checks %}
+                {% trans audit_quaritine_check_name.name %}
+            {% endfor %}
+        </td>
         <td>
             <form name="form_{{ forloop.counter }}" method="post" action="">
                 <input type="hidden" name="result_form" value="{{ form.pk }}">

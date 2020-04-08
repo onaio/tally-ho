@@ -178,3 +178,15 @@ SESSION_VARS = [
     'encoded_result_form_audit_start_time',
     'encoded_result_form_qa_control_start_time',
 ]
+
+# Quaritine trigger data
+QUARANTINE_DATA = [
+    {'name': 'Trigger 1 - Guard against overvoting',
+     'method': 'pass_overvote',
+     'value': 10,
+     'percentage': 90},
+    {'name': 'Trigger 2 - Guard against errors and tampering with the form',
+     'method': 'pass_tampering',
+     'value': 3,
+     'percentage': 3},
+]
