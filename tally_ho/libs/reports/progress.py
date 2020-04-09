@@ -1,4 +1,6 @@
+from django.db.models import Sum, Value as V
 from django.db.models.query import QuerySet
+from django.db.models.functions import Coalesce
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext as _
 
@@ -77,11 +79,24 @@ class ProgressReport(object):
                 'number': number,
                 'percentage': percentage}
 
-    def for_center_office(self, office):
+    def for_center_office(self, office, query_valid_votes=False):
         filtered_queryset = self.get_filtered_queryset().filter(
             center__office=office)
+        count = filtered_queryset.count()
 
-        return filtered_queryset.count()
+        if query_valid_votes:
+            filtered_queryset =\
+                filtered_queryset\
+                .values('reconciliationform__number_valid_votes')\
+                .annotate(
+                    valid_votes=Coalesce(
+                        Sum('reconciliationform__number_valid_votes'), V(0)))\
+                .first()
+
+            count =\
+                filtered_queryset['valid_votes'] if filtered_queryset else 0
+
+        return count
 
 
 class ExpectedProgressReport(ProgressReport):
@@ -193,3 +208,14 @@ class NotRecievedProgressReport(ProgressReport):
 
         self.filtered_queryset = ResultForm.forms_in_state(
             FormState.UNSUBMITTED, tally_id=self.tally_id)
+
+
+class ValidVotesProgressReport(ProgressReport):
+    label = _(u"Valid Votes")
+
+    def __init__(self, tally_id):
+        super(ValidVotesProgressReport, self).__init__(tally_id)
+
+        self.filtered_queryset = ResultForm.objects.filter(
+            tally_id=self.tally_id,
+            reconciliationform__isnull=False)

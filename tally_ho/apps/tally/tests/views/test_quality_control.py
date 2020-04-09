@@ -22,14 +22,10 @@ from tally_ho.libs.tests.test_base import (
     create_audit,
     create_tally,
     create_ballot,
+    create_quality_control,
     TestBase,
 )
 from tally_ho.libs.verify.quarantine_checks import create_quarantine_checks
-
-
-def create_quality_control(result_form, user):
-    return QualityControl.objects.create(result_form=result_form,
-                                         user=user)
 
 
 class TestQualityControl(TestBase):
