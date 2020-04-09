@@ -88,26 +88,24 @@ class OfficesReportDownloadView(OfficesReportView):
             result = "'number','percentage','forms'\r\n"
 
             for o in overviews:
-                result += "'%s','%s','%s'\r\n" % (
-                    o.number, o.percentage, o.label)
+                result += f"'{o.number}','{o.percentage}','{o.label}'\r\n"
 
         else:
             office_data = self.get_per_office_progress()
 
-            result = "'not_intaken','intaken','archived','number','office'\r\n"
+            result =\
+                str("'not_intaken','intaken','archived','number','office'"
+                    ",'valid_votes'\r\n")
 
             for data in office_data:
-                result += "'%s','%s','%s','%s','%s'\r\n" % (
-                    data['not_intaken'],
-                    data['intaken'],
-                    data['archived'],
-                    data['number'],
-                    data['office'],
-                )
+                result +=\
+                    str(f"'{data['not_intaken']}','{data['intaken']}',"
+                        f"'{data['archived']}','{data['number']}',"
+                        f"'{data['office']}','{data['valid_votes']}'\r\n")
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = \
-            'attachment; filename="result_%s.csv"' % option
+            f'attachment; filename="result_{option}.csv"'
 
         response.write(result)
 
