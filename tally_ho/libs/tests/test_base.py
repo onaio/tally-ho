@@ -5,6 +5,7 @@ from django.test import RequestFactory
 from django.utils import timezone
 
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
@@ -224,6 +225,11 @@ def create_recon_forms(result_form, user):
     recon2 = create_reconciliation_form(result_form, user)
     recon2.entry_version = EntryVersion.DATA_ENTRY_2
     recon2.save()
+
+
+def create_quality_control(result_form, user):
+    return QualityControl.objects.create(result_form=result_form,
+                                         user=user)
 
 
 def create_station(center, registrants=1, tally=None, active=True):
