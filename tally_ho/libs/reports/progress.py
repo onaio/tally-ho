@@ -218,4 +218,4 @@ class ValidVotesProgressReport(ProgressReport):
 
         self.filtered_queryset = ResultForm.objects.filter(
             tally_id=self.tally_id,
-            reconciliationform=True)
+            reconciliationform__isnull=False)
