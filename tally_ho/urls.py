@@ -18,6 +18,7 @@ from tally_ho.apps.tally.views.reports import staff_performance_metrics
 from tally_ho.apps.tally.views.reports import station_progress_report
 from tally_ho.apps.tally.views.reports import overall_votes
 from tally_ho.apps.tally.views.reports import votes_per_candidate
+from tally_ho.apps.tally.views.reports import turnout
 
 admin.autodiscover()
 
@@ -382,6 +383,12 @@ urlpatterns = [
             r'(?P<tally_id>(\d+))/(?P<center_code>(\d+))/$',
             votes_per_candidate.VotesPerCandidateListDataView.as_view(),
             name='votes-per-candidate-list-data'),
+    re_path(r'^reports/internal/turnout-list/(?P<tally_id>(\d+))/$',
+            turnout.TurnOutListView.as_view(),
+            name='turnout-list'),
+    re_path(r'^reports/internal/turnout-list-data/(?P<tally_id>(\d+))/$',
+            turnout.TurnOutListDataView.as_view(),
+            name='turnout-list-data'),
 
     re_path(r'^reports/internal/staff-performance-metrics/(?P<tally_id>(\d+))/'
             r'(?P<group_name>.*)/$',
