@@ -48,6 +48,7 @@ class StationProgressListDataView(LoginRequiredMixin,
         return super(
             StationProgressListDataView, self).render_column(row, column)
 
+
 class StationProgressListView(LoginRequiredMixin,
                               mixins.GroupRequiredMixin,
                               mixins.TallyAccessMixin,
@@ -57,8 +58,5 @@ class StationProgressListView(LoginRequiredMixin,
     template_name = "reports/station_progress.html"
 
     def get(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id')
-
         return self.render_to_response(self.get_context_data(
-            remote_url=reverse('staion-progress-list-data', kwargs=kwargs),
-            tally_id=tally_id))
+            remote_url='staion-progress-list-data'))
