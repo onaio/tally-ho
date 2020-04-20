@@ -55,6 +55,6 @@ class StationProgressListView(LoginRequiredMixin,
     model = Station
     template_name = "reports/station_progress.html"
 
-    def get(self, *args, **kwargs):
+    def get(self, request, * args, **kwargs):
         return self.render_to_response(self.get_context_data(
             remote_url='staion-progress-list-data'))
