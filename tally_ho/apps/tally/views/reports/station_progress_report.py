@@ -44,13 +44,6 @@ class StationProgressListDataView(LoginRequiredMixin,
                            Q(center__name__contains=keyword))
         return qs
 
-    def render_column(self, row, column):
-        if column == 'edit':
-            return row.get_edit_links
-        else:
-            return super(
-                StationProgressListDataView, self).render_column(row, column)
-
 
 class StationProgressListView(LoginRequiredMixin,
                               mixins.GroupRequiredMixin,
