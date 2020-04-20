@@ -44,6 +44,9 @@ class StationProgressListDataView(LoginRequiredMixin,
                            Q(center__name__contains=keyword))
         return qs
 
+    def render_column(self, row, column):
+        return super(
+            StationProgressListDataView, self).render_column(row, column)
 
 class StationProgressListView(LoginRequiredMixin,
                               mixins.GroupRequiredMixin,
