@@ -360,7 +360,8 @@ urlpatterns = [
     re_path(r'^reports/internal/staion-progress-list/(?P<tally_id>(\d+))/$',
             station_progress_report.StationProgressListView.as_view(),
             name='staion-progress-list'),
-    re_path(r'^reports/internal/staion-progress-list-data$',
+    re_path(r'^reports/internal/staion-progress-list-data/(?P<tally_id>(\d+))'
+            r'/$',
             station_progress_report.StationProgressListDataView.as_view(),
             name='staion-progress-list-data'),
 

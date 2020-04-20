@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.urls import reverse
 from django.views.generic import TemplateView
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -29,10 +30,13 @@ class StationProgressListDataView(LoginRequiredMixin,
     )
 
     def filter_queryset(self, qs):
+        tally_id = self.kwargs['tally_id']
         station_pks = ResultForm.objects.filter(
             form_state=FormState.ARCHIVED
             ).values_list('station_number', flat=True)
-        qs = qs.filter(station_number__in=station_pks)
+
+        qs = qs.filter(station_number__in=station_pks, tally__id=tally_id)
+
         keyword = self.request.GET.get('search[value]', None)
 
         if keyword:
@@ -50,11 +54,15 @@ class StationProgressListDataView(LoginRequiredMixin,
 
 class StationProgressListView(LoginRequiredMixin,
                               mixins.GroupRequiredMixin,
+                              mixins.TallyAccessMixin,
                               TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station
     template_name = "reports/station_progress.html"
 
-    def get(self, request, * args, **kwargs):
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
         return self.render_to_response(self.get_context_data(
-            remote_url='staion-progress-list-data'))
+            remote_url=reverse('staion-progress-list-data', kwargs=kwargs),
+            tally_id=tally_id))
