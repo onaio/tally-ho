@@ -50,7 +50,6 @@ class StationProgressListDataView(LoginRequiredMixin,
 
 class StationProgressListView(LoginRequiredMixin,
                               mixins.GroupRequiredMixin,
-                              mixins.TallyAccessMixin,
                               TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station
