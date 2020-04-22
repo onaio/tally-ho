@@ -25,7 +25,7 @@
         <td>{{ rec.result_form__station_number }}</td>
         <td>{{ rec.total_votes_per_station }}</td>
         <td>
-            <a href="{% url 'station-votes-per-candidate' tally_id=tally_id result_form__station_number=result_form__station_number %}" class="btn btn-default btn-small">{% trans 'View' %}</a>
+            <a href="{% url 'station-votes-per-candidate' tally_id=tally_id station_number=rec.result_form__station_number %}" class="btn btn-default btn-small">{% trans 'View' %}</a>
         </td>
     </tr>
     {% endfor %}
