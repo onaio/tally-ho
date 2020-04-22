@@ -9,19 +9,19 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 
 
-class OveralVotes(LoginRequiredMixin,
-                  mixins.GroupRequiredMixin,
-                  mixins.TallyAccessMixin,
-                  TemplateView):
+class OverallVotes(LoginRequiredMixin,
+                   mixins.GroupRequiredMixin,
+                   mixins.TallyAccessMixin,
+                   TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "reports/overal_votes.html"
+    template_name = "reports/overall_votes.html"
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         field = 'result_form__station_number'
         report_name = _('Station')
 
-        if 'center-overal-votes' in request.build_absolute_uri():
+        if 'center-overall-votes' in request.build_absolute_uri():
             field = 'result_form__center__code'
             report_name = _('Center')
 
