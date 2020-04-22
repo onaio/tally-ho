@@ -17,6 +17,8 @@ from tally_ho.apps.tally.views.reports import races
 from tally_ho.apps.tally.views.reports import staff_performance_metrics
 from tally_ho.apps.tally.views.reports import station_progress_report
 from tally_ho.apps.tally.views.reports import station_overal_votes
+from tally_ho.apps.tally.views.reports import\
+        station_votes_per_candidate as s
 
 admin.autodiscover()
 
@@ -365,6 +367,14 @@ urlpatterns = [
             r'/$',
             station_progress_report.StationProgressListDataView.as_view(),
             name='staion-progress-list-data'),
+    re_path(r'^reports/internal/station-votes-per-candidate/'
+            r'(?P<tally_id>(\d+))/(?P<station_number>(\d+))/$',
+            s.StationVotesPerCandidateListView.as_view(),
+            name='station-votes-per-candidate'),
+    re_path(r'^reports/internal/station-votes-per-candidate-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<station_number>(\d+))/$',
+            s.StationVotesPerCandidateListDataView.as_view(),
+            name='staion-votes-per-candidate-list-data'),
 
     re_path(r'^reports/internal/staff-performance-metrics/(?P<tally_id>(\d+))/'
             r'(?P<group_name>.*)/$',
