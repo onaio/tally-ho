@@ -32,7 +32,8 @@ class StationProgressListDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
         station_pks = ResultForm.objects.filter(
-            form_state=FormState.ARCHIVED
+            form_state=FormState.ARCHIVED,
+            tally__id=tally_id
             ).values_list('station_number', flat=True)
 
         qs = qs.filter(station_number__in=station_pks, tally__id=tally_id)
