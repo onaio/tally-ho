@@ -12,8 +12,8 @@
 {% endblock %}
 
 {% block content %}
-<h1>{% trans 'Station Votes per Candidate' %}</h1>
-
+<h1>{{ report_name }} {% trans ' Votes per Candidate' %}</h1>
+<br />
 {% if messages %}
 <ul class="text-info">
     {% for message in messages %}
