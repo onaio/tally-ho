@@ -16,6 +16,7 @@ from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 from tally_ho.apps.tally.views.reports import staff_performance_metrics
 from tally_ho.apps.tally.views.reports import station_progress_report
+from tally_ho.apps.tally.views.reports import station_overal_votes
 
 admin.autodiscover()
 
@@ -377,6 +378,10 @@ urlpatterns = [
     re_path(r'^reports/internal/track-corrections/(?P<tally_id>(\d+))/$',
             staff_performance_metrics.TrackCorrections.as_view(),
             name='track-corrections'),
+
+    re_path(r'^reports/internal/station-overal-votes/(?P<tally_id>(\d+))/$',
+            station_overal_votes.StationOveralVotes.as_view(),
+            name='station-overal-votes'),
 
     re_path(r'^tally-manager$',
             tally_manager.DashboardView.as_view(), name='tally-manager'),
