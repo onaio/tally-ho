@@ -16,6 +16,8 @@ from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 from tally_ho.apps.tally.views.reports import staff_performance_metrics
 from tally_ho.apps.tally.views.reports import station_progress_report
+from tally_ho.apps.tally.views.reports import overall_votes
+from tally_ho.apps.tally.views.reports import votes_per_candidate
 
 admin.autodiscover()
 
@@ -364,6 +366,22 @@ urlpatterns = [
             r'/$',
             station_progress_report.StationProgressListDataView.as_view(),
             name='staion-progress-list-data'),
+    re_path(r'^reports/internal/station-votes-per-candidate/'
+            r'(?P<tally_id>(\d+))/(?P<station_number>(\d+))/$',
+            votes_per_candidate.VotesPerCandidateListView.as_view(),
+            name='votes-per-candidate'),
+    re_path(r'^reports/internal/station-votes-per-candidate-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<station_number>(\d+))/$',
+            votes_per_candidate.VotesPerCandidateListDataView.as_view(),
+            name='votes-per-candidate-list-data'),
+    re_path(r'^reports/internal/center-votes-per-candidate/'
+            r'(?P<tally_id>(\d+))/(?P<center_code>(\d+))/$',
+            votes_per_candidate.VotesPerCandidateListView.as_view(),
+            name='votes-per-candidate'),
+    re_path(r'^reports/internal/center-votes-per-candidate-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<center_code>(\d+))/$',
+            votes_per_candidate.VotesPerCandidateListDataView.as_view(),
+            name='votes-per-candidate-list-data'),
 
     re_path(r'^reports/internal/staff-performance-metrics/(?P<tally_id>(\d+))/'
             r'(?P<group_name>.*)/$',
@@ -377,6 +395,14 @@ urlpatterns = [
     re_path(r'^reports/internal/track-corrections/(?P<tally_id>(\d+))/$',
             staff_performance_metrics.TrackCorrections.as_view(),
             name='track-corrections'),
+
+    re_path(r'^reports/internal/station-overall-votes/(?P<tally_id>(\d+))/$',
+            overall_votes.OverallVotes.as_view(),
+            name='station-overall-votes'),
+
+    re_path(r'^reports/internal/center-overall-votes/(?P<tally_id>(\d+))/$',
+            overall_votes.OverallVotes.as_view(),
+            name='center-overall-votes'),
 
     re_path(r'^tally-manager$',
             tally_manager.DashboardView.as_view(), name='tally-manager'),

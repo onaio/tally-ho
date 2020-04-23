@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with remote_url=remote_url %}
+{% endblock %}
+
+{% block content %}
+<h1>{{ report_name }}{% trans ' Votes per Candidate' %}</h1>
+<br />
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+</ul>
+{% endif %}
+
+<table class="datatable" class="reduce-size">
+    <thead>
+        <tr>
+            <th>{% trans 'Candidate Name' %}</th>
+            <th>{% trans 'Votes' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}
