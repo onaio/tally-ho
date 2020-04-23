@@ -1,11 +1,13 @@
+import json
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.views.reports import votes_per_candidate as views
-from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import\
     create_tally, create_result_form, create_center, create_station,\
-    create_ballot, create_result, create_candidates, TestBase
+    create_ballot, create_candidates, TestBase
 
 
 class TestVotesPerCandidateListView(TestBase):
@@ -29,11 +31,6 @@ class TestVotesPerCandidateListView(TestBase):
         votes = 12
         create_candidates(result_form, votes=votes, user=self.user,
                           num_results=1)
-        for result in result_form.results.all():
-            result.entry_version = EntryVersion.FINAL
-            result.save()
-            # create duplicate final results
-            create_result(result_form, result.candidate, self.user, votes)
 
     def test_station_votes_per_candidate_list_view(self):
         """
@@ -66,3 +63,31 @@ class TestVotesPerCandidateListView(TestBase):
         self.assertContains(response, "Center Votes per Candidate")
         self.assertContains(response, "Candidate Name")
         self.assertContains(response, "Votes")
+
+    def test_station_votes_per_candidate_list_data_view(self):
+        """
+        Test that Station votes per candidate list data view returns
+        correct data
+        """
+        view = views.VotesPerCandidateListDataView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request,
+                        tally_id=self.tally.pk,
+                        station_number=self.station.station_number)
+
+        candidates = Candidate.objects.all()
+        first_candidate = candidates.first()
+        first_candidate_votes = Result.objects.get(
+            candidate=first_candidate).votes
+        candidate_name, candidate_votes = json.loads(
+                response.content.decode())['data'][0]
+
+        self.assertEquals(
+            candidate_name,
+            str('<td class="center sorting_1">'
+                f'{first_candidate.full_name}</td>'))
+        self.assertEquals(
+            candidate_votes,
+            str('<td class="center">'
+                f'{first_candidate_votes}</td>'))
