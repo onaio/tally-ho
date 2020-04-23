@@ -50,3 +50,19 @@ class TestVotesPerCandidateListView(TestBase):
         self.assertContains(response, "Station Votes per Candidate")
         self.assertContains(response, "Candidate Name")
         self.assertContains(response, "Votes")
+
+    def test_center_votes_per_candidate_list_view(self):
+        """
+        Test that Center votes per candidate list view renders correctly
+        """
+        view = views.VotesPerCandidateListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request,
+                        tally_id=self.tally.pk,
+                        center_code=self.center.code)
+
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, "Center Votes per Candidate")
+        self.assertContains(response, "Candidate Name")
+        self.assertContains(response, "Votes")
