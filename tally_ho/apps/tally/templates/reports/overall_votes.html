@@ -23,20 +23,20 @@
     {% for rec in results %}
     <tr>
         <td>
-            {% if rec.result_form__station_number %}
+            {% if 'result_form__station_number' in rec %}
                 {{ rec.result_form__station_number }}
             {% endif %}
-            {% if rec.result_form__center__code %}
+            {% if 'result_form__center__code' in rec %}
                 {{ rec.result_form__center__code }}
             {% endif %}
         </td>
         <td>{{ rec.total_votes_per_station }}</td>
         <td>
-            {% if rec.result_form__station_number %}
+            {% if 'result_form__station_number' in rec %}
                 <a href="{% url 'votes-per-candidate' tally_id=tally_id station_number=rec.result_form__station_number %}"
                     class="btn btn-default btn-small">{% trans 'View' %}</a>
             {% endif %}
-            {% if rec.result_form__center__code %}
+            {% if 'result_form__center__code' in rec %}
                 <a href="{% url 'votes-per-candidate' tally_id=tally_id center_code=rec.result_form__center__code %}"
                     class="btn btn-default btn-small">{% trans 'View' %}</a>
             {% endif %}
