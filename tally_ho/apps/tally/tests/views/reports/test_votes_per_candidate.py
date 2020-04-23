@@ -91,3 +91,31 @@ class TestVotesPerCandidateListView(TestBase):
             candidate_votes,
             str('<td class="center">'
                 f'{first_candidate_votes}</td>'))
+
+    def test_center_votes_per_candidate_list_data_view(self):
+        """
+        Test that Center votes per candidate list data view returns
+        correct data
+        """
+        view = views.VotesPerCandidateListDataView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(request,
+                        tally_id=self.tally.pk,
+                        center_code=self.center.code)
+
+        candidates = Candidate.objects.all()
+        first_candidate = candidates.first()
+        first_candidate_votes = Result.objects.get(
+            candidate=first_candidate).votes
+        candidate_name, candidate_votes = json.loads(
+                response.content.decode())['data'][0]
+
+        self.assertEquals(
+            candidate_name,
+            str('<td class="center sorting_1">'
+                f'{first_candidate.full_name}</td>'))
+        self.assertEquals(
+            candidate_votes,
+            str('<td class="center">'
+                f'{first_candidate_votes}</td>'))
