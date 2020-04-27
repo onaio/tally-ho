@@ -32,6 +32,7 @@
         <th>{% trans 'Office Number' %}</th>
         <th>{% trans 'Office' %}</th>
         <th>{% trans 'Valid Votes' %}</th>
+        <th>{% trans 'Office Candidates' %}</th>
     </tr>
 {% for rec in per_office %}
     <tr>
@@ -41,6 +42,8 @@
         <td>{{ rec.number }}</td>
         <td>{{ rec.office }}</td>
         <td>{{ rec.valid_votes }}</td>
+        <td><a href="{% url 'candidate-list-per-office' tally_id=tally_id office_id=rec.office_id %}"
+            class="btn btn-default btn-small">{{ rec.candidate_count }}</a></td>
     </tr>
 {% endfor %}
 </table>
