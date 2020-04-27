@@ -5,6 +5,7 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports import progress as p
+from tally_ho.libs.reports.progress import get_office_candidates_ids
 from tally_ho.libs.views import mixins
 
 
@@ -49,13 +50,18 @@ class OfficesReportView(LoginRequiredMixin,
             total_valid_votes = valid_votes.for_center_office(
                 office=office,
                 query_valid_votes=True)
+            office_candidates_id_array =\
+                get_office_candidates_ids(
+                    office_id=office.id, tally_id=tally_id)
             data.append({
                 'office': office.name,
+                'office_id': office.id,
                 'number': office.number,
                 'intaken': intaken_results,
                 'not_intaken': not_intaken_results,
                 'archived': archived_result,
-                'valid_votes': total_valid_votes
+                'valid_votes': total_valid_votes,
+                'candidate_count': len(office_candidates_id_array)
             })
 
         return data
