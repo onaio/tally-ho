@@ -72,6 +72,14 @@ urlpatterns = [
     re_path(r'^data/candidate-list-data/(?P<tally_id>(\d+))/$',
             candidate_list_view.CandidateListDataView.as_view(),
             name='candidate-list-data'),
+    re_path(r'^data/candidate-list-per-office/(?P<tally_id>(\d+))/'
+            r'(?P<office_id>(\d+))/$',
+            candidate_list_view.CandidateListView.as_view(),
+            name='candidate-list-per-office'),
+    re_path(r'^data/candidate-list-data-per-office/(?P<tally_id>(\d+))/'
+            r'(?P<office_id>(\d+))/$',
+            candidate_list_view.CandidateListDataView.as_view(),
+            name='candidate-list-data-per-office'),
     re_path(r'^data/form-list/(?P<tally_id>(\d+))/$',
             form_list_view.FormListView.as_view(),
             name='form-list'),
