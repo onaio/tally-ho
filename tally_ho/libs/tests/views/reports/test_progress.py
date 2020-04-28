@@ -3,7 +3,8 @@ from django.core.exceptions import ImproperlyConfigured
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.tests.test_base import create_result_form, \
-    create_center, create_tally, create_reconciliation_form, TestBase
+    create_center, create_tally, create_reconciliation_form, create_office,\
+    create_ballot, create_candidate, TestBase
 from tally_ho.libs.reports import progress
 
 
@@ -14,6 +15,8 @@ class TestProgress(TestBase):
         self._create_and_login_user()
         self.tally = create_tally()
         self.tally.users.add(self.user)
+        self.office = create_office(tally=self.tally)
+        ballot = create_ballot(tally=self.tally)
 
         for i in range(1, 11):
             create_result_form(
@@ -22,7 +25,9 @@ class TestProgress(TestBase):
                 tally=self.tally,
                 barcode=i,
                 serial_number=i,
-                form_state=i - 1)
+                office=self.office,
+                form_state=i - 1,
+                ballot=ballot)
 
         self.assertEqual(ResultForm.objects.count(), 10)
 
@@ -91,3 +96,15 @@ class TestProgress(TestBase):
         valid_votes = report.for_center_office(
             self.center.office, query_valid_votes=True)
         self.assertEqual(valid_votes, 0)
+
+    def test_get_office_candidates_ids(self):
+        """Test that office candidate ids are returned"""
+        result_form = ResultForm.objects.all()[0]
+        candidate =\
+            create_candidate(result_form.ballot, 'the candidate name')
+        candidate_ids =\
+            progress.get_office_candidates_ids(
+                self.office.id,
+                self.tally.id)
+
+        self.assertEqual(candidate_ids[0], candidate.id)
