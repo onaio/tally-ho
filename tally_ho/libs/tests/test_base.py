@@ -108,7 +108,8 @@ def create_result_form(barcode='123456789',
                        serial_number=0,
                        user=None,
                        is_replacement=False,
-                       tally=None):
+                       tally=None,
+                       office=None):
     if force_ballot and not ballot:
         ballot = create_ballot()
 
@@ -124,6 +125,7 @@ def create_result_form(barcode='123456789',
         gender=gender,
         is_replacement=is_replacement,
         tally=tally,
+        office=office,
     )
 
     return result_form
