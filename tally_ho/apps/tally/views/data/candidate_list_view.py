@@ -1,5 +1,6 @@
 from django.views.generic import TemplateView
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
@@ -60,12 +61,15 @@ class CandidateListView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id', None)
         office_id = self.kwargs.get('office_id', None)
         reverse_url = 'candidate-list-data'
+        report_title = _('Candidate List')
 
         if office_id:
             reverse_url = 'candidate-list-data-per-office'
+            report_title = _('Candidate List Per Office')
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse(
                 reverse_url,
                 kwargs=kwargs),
-            tally_id=tally_id))
+            tally_id=tally_id,
+            report_title=report_title))
