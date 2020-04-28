@@ -69,7 +69,7 @@ class TestCandidateListView(TestBase):
             race_type, modified_date_formatted, action_btn = json.loads(
                 response.content.decode())['data'][0]
 
-        self.assertEquals(candidate.id, candidate.id)
+        self.assertEquals(candidate_id, candidate.id)
         self.assertEquals(candidate_full_name,
                           str(candidate.full_name))
         self.assertEquals(order, str(candidate.order))
@@ -110,7 +110,7 @@ class TestCandidateListView(TestBase):
             race_type, modified_date_formatted, action_btn = json.loads(
                 response.content.decode())['data'][0]
 
-        self.assertEquals(candidate.id, candidate.id)
+        self.assertEquals(candidate_id, candidate.id)
         self.assertEquals(candidate_full_name,
                           str(candidate.full_name))
         self.assertEquals(order, str(candidate.order))
