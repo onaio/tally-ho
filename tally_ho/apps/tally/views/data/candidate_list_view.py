@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.views.generic import TemplateView
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -36,6 +37,7 @@ class CandidateListDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id', None)
         office_id = self.kwargs.get('office_id', None)
+        keyword = self.request.GET.get('search[value]', None)
 
         if tally_id and office_id:
             candidate_ids =\
@@ -45,6 +47,9 @@ class CandidateListDataView(LoginRequiredMixin,
 
         if tally_id and not office_id:
             qs = qs.filter(tally__id=tally_id)
+
+        if keyword:
+            qs = qs.filter(Q(full_name__contains=keyword))
 
         return qs
 
