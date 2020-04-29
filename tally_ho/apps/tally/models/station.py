@@ -88,6 +88,23 @@ class Station(BaseModel):
             station_number=self.station_number)
 
     @property
+    def num_ballots_used(self):
+        num_ballots_used = 0
+
+        for result_form in self.result_forms.filter(
+                reconciliationform=True):
+            num_ballots_used += result_form.reconciliationform.num_ballots_used
+
+        return num_ballots_used
+
+    @property
+    def percentage_turn_out(self):
+        percentage =\
+            rounded_safe_div_percent(self.num_ballots_used, self.registrants)
+
+        return percentage
+
+    @property
     def sub_constituency_code(self):
         return self.sub_constituency.code if self.sub_constituency else None
 
