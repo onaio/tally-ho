@@ -17,8 +17,19 @@ def create_quarantine_checks():
 
 def quarantine_checks():
     """Return tuples of (QuarantineCheck, validation_function)."""
-    methods = [pass_overvote, pass_tampering]
-    checks = QuarantineCheck.objects.all().order_by('pk')
+    all_methods = {'pass_overvote': pass_overvote,
+                   'pass_tampering': pass_tampering}
+    methods = []
+
+    quarantine_checks_methods =\
+        QuarantineCheck.objects.filter(
+            active=True).values_list('method', flat=True)
+
+    for method_name in quarantine_checks_methods:
+        methods.append(all_methods[method_name])
+
+    checks =\
+        QuarantineCheck.objects.filter(active=True).order_by('pk')
 
     return zip(methods, checks)
 
