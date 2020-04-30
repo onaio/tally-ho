@@ -187,7 +187,10 @@ class ResultForm(BaseModel):
     def results_final(self):
         """Return the final active results for this result form."""
         return self.results.filter(
-            active=True, entry_version=EntryVersion.FINAL)
+            active=True,
+            entry_version=EntryVersion.FINAL,
+            result_form__form_state=FormState.ARCHIVED,
+        )
 
     @property
     def station(self):
