@@ -14,6 +14,7 @@ class TestResultForm(TestBase):
         self._create_and_login_user()
 
     def test_quality_control(self):
+        """Test result form quality control"""
         result_form = create_result_form()
         quality_control = QualityControl.objects.create(
             result_form=result_form,
@@ -26,6 +27,7 @@ class TestResultForm(TestBase):
         self.assertEqual(result_form.qualitycontrol, quality_control)
 
     def test_reconciliation_match(self):
+        """Test result form reconciliation match"""
         result_form = create_result_form()
         create_reconciliation_form(result_form, self.user)
         re_form = create_reconciliation_form(result_form, self.user)
@@ -49,7 +51,8 @@ class TestResultForm(TestBase):
         sanity_check_final_results(result_form)
         self.assertEqual(result_form.results_final.filter().count(), 2)
 
-    def test_audit_quanritine_check_name_property_method(self):
+    def test_audit_quarantine_check_name_property_method(self):
+        """Test audit quarantine check name property method"""
         result_form = create_result_form()
         quarantine_check = QuarantineCheck.objects.create(
             user=self.user,
