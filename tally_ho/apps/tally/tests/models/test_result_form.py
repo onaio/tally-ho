@@ -3,6 +3,7 @@ from tally_ho.apps.tally.models.result_form import \
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.tests.test_base import create_reconciliation_form,\
     create_result_form, create_result, create_candidates, create_audit,\
     TestBase
@@ -34,8 +35,9 @@ class TestResultForm(TestBase):
         self.assertTrue(result_form.reconciliation_match)
 
     def test_sanity_check_results(self):
+        """Test sanity checks for final results"""
         votes = 12
-        result_form = create_result_form()
+        result_form = create_result_form(form_state=FormState.ARCHIVED)
         create_candidates(result_form, votes=votes, user=self.user,
                           num_results=1)
         for result in result_form.results.all():
