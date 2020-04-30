@@ -1,4 +1,3 @@
-from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.tests.test_base import create_candidates,\
     create_reconciliation_form, create_result_form, TestBase
 
@@ -22,7 +21,7 @@ class TestReconciliationForm(TestBase):
 
         for num_results in range(1, 4):
             for votes in range(1, 4):
-                result_form = create_result_form(form_state=FormState.ARCHIVED)
+                result_form = create_result_form()
                 create_candidates(result_form, self.user, votes=votes,
                                   num_results=num_results)
                 re_form = create_reconciliation_form(result_form, self.user)
