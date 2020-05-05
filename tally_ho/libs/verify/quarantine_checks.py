@@ -97,6 +97,32 @@ def pass_tampering(result_form):
     return diff <= scaled_tolerance
 
 
+def pass_ballots_number_validation(result_form):
+    """Validate that the total number of received ballots equals the
+    total of the ballots inside plus ballots outside.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    ballots_inside_and_outside =\
+        recon_form.number_ballots_inside + recon_form.number_ballots_outside
+    number_ballots_received = recon_form.number_ballots_received
+    diff = abs(number_ballots_received - ballots_inside_and_outside)
+    qc = QuarantineCheck.objects.get(method='pass_ballots_number_validation')
+    scaled_tolerance = (qc.value / 100) * (
+        number_ballots_received + ballots_inside_and_outside) / 2
+
+    return diff <= scaled_tolerance
+
+
 def check_quarantine(result_form, user):
     """Run quarantine checks.  Create an audit with links to the failed
     quarantine checks if any fail.
