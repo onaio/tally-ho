@@ -23,15 +23,15 @@
         <th>{% trans 'Status' %}</th>
         <th>{% trans 'Actions' %}</th>
     </tr>
-{% for oneCheck in checks %}
+{% for check in checks %}
     <tr>
-        <td>{{ oneCheck.name }}</td>
-        <td>{{ oneCheck.modified_date | date:"Y-m-d h:m" }}</td>
-        <td>{{ oneCheck.value }}</td>
-        <td>{{ oneCheck.percentage }}</td>
-        <td>{{ oneCheck.active }}</td>
+        <td>{{ check.name }}</td>
+        <td>{{ check.modified_date | date:"Y-m-d h:m" }}</td>
+        <td>{{ check.value }}</td>
+        <td>{{ check.percentage }}</td>
+        <td>{{ check.active }}</td>
         <td>
-            <a href="{% url 'quarantine-checks-config' oneCheck.id %}" class="btn btn-default btn-small">{% trans 'Edit' %}</a>
+            <a href="{% url 'quarantine-checks-config' check.id %}" class="btn btn-default btn-small">{% trans 'Edit' %}</a>
         </td>
     </tr>
 {% endfor %}
