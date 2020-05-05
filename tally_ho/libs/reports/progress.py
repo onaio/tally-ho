@@ -1,4 +1,6 @@
-from django.db.models import Sum, Value as V
+from django.contrib.postgres.aggregates import ArrayAgg
+
+from django.db.models import Sum, When, Case, Value as V
 from django.db.models.query import QuerySet
 from django.db.models.functions import Coalesce
 from django.core.exceptions import ImproperlyConfigured
@@ -11,6 +13,54 @@ from tally_ho.libs.models.enums.form_state import FormState
 def rounded_percent(numerator, denominator):
     return round(100 * numerator / float(denominator), 2) if\
         denominator > 0 else 0
+
+
+def get_office_candidates_ids(office_id, tally_id):
+    """Get the candidates id's for candidates in these result forms filtered by
+    office id and tally id.
+
+    If the result form is a component ballot the candidates ids from the
+    general ballot must be combined with the candidates ids from the component
+    ballot.
+
+    :returns: A list of candidates ids.
+    """
+    result_forms = ResultForm.objects.filter(
+        office_id=office_id,
+        tally_id=tally_id)
+    ballot_candidate_id_field_name =\
+        'ballot__sc_general__ballot_component__candidates__id'
+    default_case_value = 0
+
+    candidate_id_map =\
+        result_forms\
+        .aggregate(
+            ballot_component_candidate_ids=ArrayAgg(
+                Case(
+                    When(
+                        ballot__sc_general__ballot_component__isnull=False,
+                        then=ballot_candidate_id_field_name),
+                    default=V(default_case_value)),
+                distinct=True),
+            ballot_candidate_ids=ArrayAgg(
+                Case(
+                    When(
+                        ballot__candidates__id__isnull=False,
+                        then='ballot__candidates__id'),
+                    default=V(default_case_value)),
+                distinct=True))
+
+    candidate_ids =\
+        candidate_id_map['ballot_component_candidate_ids'] +\
+        candidate_id_map['ballot_candidate_ids']
+
+    # Remove default_case_value from candidate_ids
+    candidate_ids =\
+        list(filter(
+            lambda candidate_id:
+                candidate_id != default_case_value, candidate_ids))
+
+    return candidate_ids
 
 
 class ProgressReport(object):

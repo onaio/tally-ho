@@ -108,7 +108,8 @@ def create_result_form(barcode='123456789',
                        serial_number=0,
                        user=None,
                        is_replacement=False,
-                       tally=None):
+                       tally=None,
+                       office=None):
     if force_ballot and not ballot:
         ballot = create_ballot()
 
@@ -124,6 +125,7 @@ def create_result_form(barcode='123456789',
         gender=gender,
         is_replacement=is_replacement,
         tally=tally,
+        office=office,
     )
 
     return result_form
@@ -150,12 +152,16 @@ def center_data(code1, code2=None, station_number=1, tally_id=None):
     }
 
 
-def create_candidate(ballot, candidate_name, race_type=RaceType.GENERAL):
+def create_candidate(ballot,
+                     candidate_name,
+                     race_type=RaceType.GENERAL,
+                     tally=None):
     return Candidate.objects.create(ballot=ballot,
                                     full_name=candidate_name,
                                     candidate_id=1,
                                     order=1,
-                                    race_type=race_type)
+                                    race_type=race_type,
+                                    tally=tally)
 
 
 def create_center(code='1',
