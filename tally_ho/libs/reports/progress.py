@@ -16,6 +16,15 @@ def rounded_percent(numerator, denominator):
 
 
 def get_office_candidates_ids(office_id, tally_id):
+    """Get the candidates id's for candidates in these result forms filtered by
+    office id and tally id.
+
+    If the result form is a component ballot the candidates ids from the
+    general ballot must be combined with the candidates ids from the component
+    ballot.
+
+    :returns: A list of candidates ids.
+    """
     result_forms = ResultForm.objects.filter(
         office_id=office_id,
         tally_id=tally_id)
