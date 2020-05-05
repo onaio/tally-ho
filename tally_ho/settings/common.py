@@ -190,5 +190,6 @@ QUARANTINE_DATA = [
      'value': 3,
      'percentage': 3},
     {'name': 'Trigger 3 - Validate total number of ballots used',
-     'method': 'pass_ballots_number_validation'},
+     'method': 'pass_ballots_number_validation',
+     'values': 2},
 ]
