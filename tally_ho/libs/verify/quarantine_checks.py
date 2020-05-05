@@ -23,7 +23,7 @@ def quarantine_checks():
 
     quarantine_checks_methods =\
         QuarantineCheck.objects.filter(
-            active=True).values_list('method', flat=True)
+            active=True).values_list('method', flat=True).order_by('pk')
 
     for method_name in quarantine_checks_methods:
         methods.append(all_methods[method_name])
