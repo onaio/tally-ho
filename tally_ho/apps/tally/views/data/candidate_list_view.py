@@ -39,14 +39,13 @@ class CandidateListDataView(LoginRequiredMixin,
         office_id = self.kwargs.get('office_id', None)
         keyword = self.request.GET.get('search[value]', None)
 
-        if tally_id and office_id:
-            candidate_ids =\
-                get_office_candidates_ids(
-                    office_id=office_id, tally_id=tally_id)
-            qs = qs.filter(pk__in=candidate_ids)
-
-        if tally_id and not office_id:
-            qs = qs.filter(tally__id=tally_id)
+        if tally_id:
+            if office_id:
+                candidate_ids = get_office_candidates_ids(office_id=office_id,
+                                                          tally_id=tally_id)
+                qs = qs.filter(pk__in=candidate_ids)
+            else:
+                qs = qs.filter(tally__id=tally_id)
 
         if keyword:
             qs = qs.filter(Q(full_name__contains=keyword))
