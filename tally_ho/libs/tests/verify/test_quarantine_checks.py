@@ -12,12 +12,14 @@ class TestQuarantineChecks(TestBase):
         self._create_and_login_user()
 
     def test_pass_overvote_true_no_registrants(self):
+        """Test pass overvote returns true with no registrants"""
         center = create_center()
         create_station(center=center)
         result_form = create_result_form(center=center)
         self.assertEqual(pass_overvote(result_form), True)
 
     def test_pass_overvote_true_no_recon(self):
+        """Test pass overvote returns true with no recon form"""
         center = create_center()
         create_station(center=center,
                        registrants=1)
@@ -25,6 +27,7 @@ class TestQuarantineChecks(TestBase):
         self.assertEqual(pass_overvote(result_form), True)
 
     def test_pass_overvote_true(self):
+        """Test pass overvote returns true"""
         center = create_center()
         create_station(center=center,
                        registrants=1)
@@ -33,6 +36,7 @@ class TestQuarantineChecks(TestBase):
         self.assertEqual(pass_overvote(result_form), True)
 
     def test_pass_overvote_false(self):
+        """Test pass overvote returns false"""
         center = create_center()
         station = create_station(center=center, registrants=1)
         result_form = create_result_form(
@@ -44,12 +48,14 @@ class TestQuarantineChecks(TestBase):
         self.assertEqual(pass_overvote(result_form), False)
 
     def test_pass_tamper_true_no_registrants(self):
+        """Test pass tampering returns true with no registrants"""
         center = create_center()
         create_station(center=center)
         result_form = create_result_form(center=center)
         self.assertEqual(pass_tampering(result_form), True)
 
     def test_pass_tamper_true_no_recon(self):
+        """Test pass tampering returns true with no recon form"""
         center = create_center()
         create_station(center=center,
                        registrants=1)
@@ -57,6 +63,7 @@ class TestQuarantineChecks(TestBase):
         self.assertEqual(pass_tampering(result_form), True)
 
     def test_pass_tampering_true(self):
+        """Test pass tampering returns true"""
         center = create_center()
         create_station(center=center,
                        registrants=1)
@@ -67,6 +74,7 @@ class TestQuarantineChecks(TestBase):
         self.assertEqual(pass_tampering(result_form), True)
 
     def test_pass_tampering_true_diff(self):
+        """Test pass tampering returns true difference"""
         center = create_center()
         create_station(center=center,
                        registrants=1)
