@@ -17,8 +17,11 @@ def create_quarantine_checks():
 
 def quarantine_checks():
     """Return tuples of (QuarantineCheck, validation_function)."""
-    all_methods = {'pass_overvote': pass_overvote,
-                   'pass_tampering': pass_tampering}
+    all_methods =\
+        {'pass_overvote': pass_overvote,
+         'pass_tampering': pass_tampering,
+         'pass_ballots_number_validation': pass_ballots_number_validation,
+         'pass_signatures_validation': pass_signatures_validation}
     methods = []
 
     quarantine_checks_methods =\
