@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.serializers.json import json, DjangoJSONEncoder
 from django.contrib.auth.models import AnonymousUser
+from django.conf import settings
 from django.urls import reverse
 from django.test import RequestFactory
 from django.utils import timezone
@@ -23,9 +24,9 @@ from tally_ho.libs.tests.test_base import (
     create_tally,
     create_ballot,
     create_quality_control,
+    create_quarantine_checks,
     TestBase,
 )
-from tally_ho.libs.verify.quarantine_checks import create_quarantine_checks
 
 
 class TestQualityControl(TestBase):
@@ -34,6 +35,7 @@ class TestQualityControl(TestBase):
         self._create_permission_groups()
         self.encoded_result_form_qa_control_start_time =\
             json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
+        self.quarantine_data = getattr(settings, 'QUARANTINE_DATA')
 
     def _common_view_tests(self, view):
         request = self.factory.get('/')
@@ -874,7 +876,7 @@ class TestQualityControl(TestBase):
         tally.users.add(self.user)
         center = create_center()
         create_station(center)
-        create_quarantine_checks()
+        create_quarantine_checks(self.quarantine_data)
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
             center=center,
@@ -908,7 +910,7 @@ class TestQualityControl(TestBase):
     def test_quality_control_post_quarantine_pass_below_tolerance(self):
         center = create_center()
         create_station(center)
-        create_quarantine_checks()
+        create_quarantine_checks(self.quarantine_data)
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -952,7 +954,7 @@ class TestQualityControl(TestBase):
         tally.users.add(self.user)
         center = create_center()
         create_station(center)
-        create_quarantine_checks()
+        create_quarantine_checks(self.quarantine_data)
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
             tally=tally,
