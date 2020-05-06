@@ -11,6 +11,7 @@ from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.reconciliation_form import (
     ReconciliationForm,
 )
@@ -221,6 +222,17 @@ def create_reconciliation_form(
         signature_dated=True,
         entry_version=entry_version,
         user=user)
+
+
+def create_quarantine_checks(quarantine_data):
+    for quarantine_check in quarantine_data:
+        QuarantineCheck.objects.get_or_create(
+            name=quarantine_check['name'],
+            method=quarantine_check['method'],
+            active=quarantine_check['active'],
+            value=quarantine_check['value'],
+            percentage=quarantine_check['percentage']
+        )
 
 
 def create_recon_forms(result_form, user):
