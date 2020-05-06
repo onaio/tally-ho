@@ -10,6 +10,7 @@ def create_quarantine_checks():
         QuarantineCheck.objects.get_or_create(
             name=quarantine_check['name'],
             method=quarantine_check['method'],
+            active=quarantine_check['active'],
             value=quarantine_check['value'],
             percentage=quarantine_check['percentage']
         )
