@@ -191,8 +191,10 @@ QUARANTINE_DATA = [
      'percentage': 3},
     {'name': 'Trigger 3 - Validate total number of ballots used',
      'method': 'pass_ballots_number_validation',
-     'values': 2},
+     'value': 2,
+     'percentage': 2},
     {'name': 'Trigger 4 - Validate number of signatures on the voter list',
      'method': 'pass_signatures_validation',
-     'values': 2},
+     'value': 2,
+     'percentage': 2},
 ]
