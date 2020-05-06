@@ -123,6 +123,33 @@ def pass_ballots_number_validation(result_form):
     return diff <= scaled_tolerance
 
 
+def pass_signatures_validation(result_form):
+    """Validate that the total number of signatures on the voter list for
+    the voters who voted equals the number of ballots found in the ballot
+    box after polling plus cancelled ballots.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    ballots_inside_and_cancelled =\
+        recon_form.number_ballots_inside + recon_form.number_cancelled_ballots
+    number_signatures_in_vr = recon_form.number_signatures_in_vr
+    diff = abs(number_signatures_in_vr - ballots_inside_and_cancelled)
+    qc = QuarantineCheck.objects.get(method='pass_signatures_validation')
+    scaled_tolerance = (qc.value / 100) * (
+        number_signatures_in_vr + ballots_inside_and_cancelled) / 2
+
+    return diff <= scaled_tolerance
+
+
 def check_quarantine(result_form, user):
     """Run quarantine checks.  Create an audit with links to the failed
     quarantine checks if any fail.
