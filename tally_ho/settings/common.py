@@ -201,4 +201,9 @@ QUARANTINE_DATA = [
      'active': False,
      'value': 2,
      'percentage': 2},
+    {'name': 'Trigger 5 - Validate the total number of ballots inside the box',
+     'method': 'pass_ballots_inside_box_validation',
+     'active': False,
+     'value': 2,
+     'percentage': 2},
 ]
