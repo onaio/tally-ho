@@ -28,7 +28,9 @@ def quarantine_checks():
          'pass_signatures_validation':
          pass_signatures_validation,
          'pass_ballots_inside_box_validation':
-         pass_ballots_inside_box_validation}
+         pass_ballots_inside_box_validation,
+         'pass_sum_of_candidates_votes_validation':
+         pass_sum_of_candidates_votes_validation}
     methods = []
 
     quarantine_checks_methods =\
