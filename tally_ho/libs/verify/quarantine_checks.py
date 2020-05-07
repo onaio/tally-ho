@@ -118,7 +118,7 @@ def pass_ballots_number_validation(result_form):
 
     ballots_inside_and_outside_the_box = (
         recon_form.number_ballots_inside_the_box +
-        recon_form.number_ballots_outside_the_box_the_box)
+        recon_form.number_ballots_outside_the_box)
     number_ballots_received = recon_form.number_ballots_received
     diff = abs(number_ballots_received - ballots_inside_and_outside_the_box)
     qc = QuarantineCheck.objects.get(method='pass_ballots_number_validation')
