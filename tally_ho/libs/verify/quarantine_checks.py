@@ -116,9 +116,9 @@ def pass_ballots_number_validation(result_form):
     if not recon_form:
         return True
 
-    ballots_inside_and_outside_the_box =\
+    ballots_inside_and_outside_the_box = (
         recon_form.number_ballots_inside_the_box +
-        recon_form.number_ballots_outside_the_box_the_box
+        recon_form.number_ballots_outside_the_box_the_box)
     number_ballots_received = recon_form.number_ballots_received
     diff = abs(number_ballots_received - ballots_inside_and_outside_the_box)
     qc = QuarantineCheck.objects.get(method='pass_ballots_number_validation')
@@ -144,9 +144,9 @@ def pass_signatures_validation(result_form):
     if not recon_form:
         return True
 
-    cancelled_ballots_and_ballots_inside_the_box =\
+    cancelled_ballots_and_ballots_inside_the_box = (
         recon_form.number_ballots_inside_the_box +
-        recon_form.number_cancelled_ballots
+        recon_form.number_cancelled_ballots)
     number_signatures_in_vr = recon_form.number_signatures_in_vr
     diff =\
         abs(number_signatures_in_vr -
