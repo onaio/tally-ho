@@ -103,7 +103,7 @@ def pass_tampering(result_form):
 
 def pass_ballots_number_validation(result_form):
     """Validate that the total number of received ballots equals the
-    total of the ballots inside plus ballots outside.
+    total of the ballots inside the box plus ballots outside the box.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -116,13 +116,14 @@ def pass_ballots_number_validation(result_form):
     if not recon_form:
         return True
 
-    ballots_inside_and_outside =\
-        recon_form.number_ballots_inside + recon_form.number_ballots_outside
+    ballots_inside_and_outside_the_box =\
+        recon_form.number_ballots_inside_the_box +
+        recon_form.number_ballots_outside_the_box_the_box
     number_ballots_received = recon_form.number_ballots_received
-    diff = abs(number_ballots_received - ballots_inside_and_outside)
+    diff = abs(number_ballots_received - ballots_inside_and_outside_the_box)
     qc = QuarantineCheck.objects.get(method='pass_ballots_number_validation')
     scaled_tolerance = (qc.value / 100) * (
-        number_ballots_received + ballots_inside_and_outside) / 2
+        number_ballots_received + ballots_inside_and_outside_the_box) / 2
 
     return diff <= scaled_tolerance
 
@@ -143,13 +144,17 @@ def pass_signatures_validation(result_form):
     if not recon_form:
         return True
 
-    ballots_inside_and_cancelled =\
-        recon_form.number_ballots_inside + recon_form.number_cancelled_ballots
+    cancelled_ballots_and_ballots_inside_the_box =\
+        recon_form.number_ballots_inside_the_box +
+        recon_form.number_cancelled_ballots
     number_signatures_in_vr = recon_form.number_signatures_in_vr
-    diff = abs(number_signatures_in_vr - ballots_inside_and_cancelled)
+    diff =\
+        abs(number_signatures_in_vr -
+            cancelled_ballots_and_ballots_inside_the_box)
     qc = QuarantineCheck.objects.get(method='pass_signatures_validation')
-    scaled_tolerance = (qc.value / 100) * (
-        number_signatures_in_vr + ballots_inside_and_cancelled) / 2
+    scaled_tolerance =\
+        (qc.value / 100) * (number_signatures_in_vr +
+                            cancelled_ballots_and_ballots_inside_the_box) / 2
 
     return diff <= scaled_tolerance
 
