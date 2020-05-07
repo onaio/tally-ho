@@ -206,4 +206,9 @@ QUARANTINE_DATA = [
      'active': False,
      'value': 2,
      'percentage': 2},
+    {'name': 'Trigger 6 - Validate sum of votes distributed to all candidates',
+     'method': 'pass_sum_of_candidates_votes_validation',
+     'active': False,
+     'value': 2,
+     'percentage': 2},
 ]
