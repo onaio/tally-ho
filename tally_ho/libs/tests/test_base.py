@@ -11,6 +11,7 @@ from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.reconciliation_form import (
     ReconciliationForm,
 )
@@ -196,23 +197,30 @@ def create_reconciliation_form(
         ballot_number_from=1,
         number_sorted_and_counted=1,
         number_ballots_inside_box=1,
+        number_ballots_received=1,
         number_unstamped_ballots=1,
+        number_valid_votes=1,
+        number_invalid_votes=1,
+        number_unused_ballots=1,
+        number_spoiled_ballots=1,
+        number_cancelled_ballots=1,
+        number_signatures_in_vr=1,
         is_stamped=True):
     return ReconciliationForm.objects.create(
         result_form=result_form,
         ballot_number_from=ballot_number_from,
         ballot_number_to=1,
-        number_ballots_received=1,
-        number_signatures_in_vr=1,
-        number_unused_ballots=1,
-        number_spoiled_ballots=1,
-        number_cancelled_ballots=1,
+        number_ballots_received=number_ballots_received,
+        number_signatures_in_vr=number_signatures_in_vr,
+        number_unused_ballots=number_unused_ballots,
+        number_spoiled_ballots=number_spoiled_ballots,
+        number_cancelled_ballots=number_cancelled_ballots,
         number_ballots_outside_box=1,
         number_ballots_inside_box=number_ballots_inside_box,
         number_ballots_inside_and_outside_box=1,
         number_unstamped_ballots=number_unstamped_ballots,
-        number_invalid_votes=1,
-        number_valid_votes=1,
+        number_invalid_votes=number_invalid_votes,
+        number_valid_votes=number_valid_votes,
         number_sorted_and_counted=number_sorted_and_counted,
         is_stamped=is_stamped,
         signature_polling_officer_1=True,
@@ -221,6 +229,17 @@ def create_reconciliation_form(
         signature_dated=True,
         entry_version=entry_version,
         user=user)
+
+
+def create_quarantine_checks(quarantine_data):
+    for quarantine_check in quarantine_data:
+        QuarantineCheck.objects.get_or_create(
+            name=quarantine_check['name'],
+            method=quarantine_check['method'],
+            active=quarantine_check['active'],
+            value=quarantine_check['value'],
+            percentage=quarantine_check['percentage']
+        )
 
 
 def create_recon_forms(result_form, user):

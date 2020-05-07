@@ -77,5 +77,30 @@ class ReconciliationForm(BaseModel):
                 self.number_unstamped_ballots -
                 self.number_invalid_votes)
 
+    @property
+    def number_ballots_inside_the_box(self):
+        """Calculate the number of ballots inside the box based on this form.
+
+        :returns: A positive integer representing the number of ballots
+            inside.
+        """
+
+        return (self.number_valid_votes +
+                self.number_invalid_votes +
+                self.number_unstamped_ballots)
+
+    @property
+    def number_ballots_outside_the_box(self):
+        """Calculate the number of ballots outside inside the box based
+        on this form.
+
+        :returns: A positive integer representing the number of ballots
+            outside.
+        """
+
+        return (self.number_unused_ballots +
+                self.number_cancelled_ballots +
+                self.number_spoiled_ballots)
+
 
 reversion.register(ReconciliationForm)
