@@ -201,6 +201,45 @@ def pass_ballots_inside_box_validation(result_form):
     return diff <= scaled_tolerance
 
 
+def pass_sum_of_candidates_votes_validation(result_form):
+    """The total votes for candidates should equal the valid ballots:
+    after sorting the ballots inside the ballot box as valid and invalid,
+    and unstamped, the number of valid ballots should equal the
+    sum of all candidates votes.
+
+    Fails if the value of number_valid_votes from the recon form
+    does not equal the sum of all candidates votes from thr result form
+    with an N% tolerance.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    candidate_votes = []
+
+    for candidate in result_form.candidates:
+        votes = candidate.num_votes(result_form)
+        candidate_votes.append(votes)
+
+    total_candidates_votes = sum(candidate_votes)
+    number_valid_votes = recon_form.number_valid_votes
+    diff = abs(total_candidates_votes - number_valid_votes)
+
+    qc = QuarantineCheck.objects.get(
+        method='pass_sum_of_candidates_votes_validation')
+    scaled_tolerance =\
+        (qc.value / 100) * (total_candidates_votes + number_valid_votes) / 2
+
+    return diff <= scaled_tolerance
+
+
 def check_quarantine(result_form, user):
     """Run quarantine checks.  Create an audit with links to the failed
     quarantine checks if any fail.
