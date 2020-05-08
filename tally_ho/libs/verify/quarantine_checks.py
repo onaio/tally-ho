@@ -1,8 +1,8 @@
 from django.conf import settings
 
 from tally_ho.apps.tally.models.audit import Audit
-from tally_ho.apps.tally.models.quarantine_check import\
-    QuarantineCheck
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
+from tally_ho.libs.models.enums.form_state import FormState
 
 
 def create_quarantine_checks():
@@ -227,7 +227,8 @@ def pass_sum_of_candidates_votes_validation(result_form):
     candidate_votes = []
 
     for candidate in result_form.candidates:
-        votes = candidate.num_votes(result_form)
+        votes = candidate.num_votes(result_form=result_form,
+                                    form_state=FormState.QUALITY_CONTROL)
         candidate_votes.append(votes)
 
     total_candidates_votes = sum(candidate_votes)
