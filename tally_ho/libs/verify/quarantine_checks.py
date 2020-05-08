@@ -243,6 +243,37 @@ def pass_sum_of_candidates_votes_validation(result_form):
     return diff <= scaled_tolerance
 
 
+def pass_invalid_ballots_percentage_validation(result_form):
+    """Validate the percentage of invalid ballots.
+
+    Fails if the percentage of invalid ballots differs by a large margin with
+    the allowed percetage value calculated by mutiplying N% tolerance with
+    ballots inside the ballot box.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    qc = QuarantineCheck.objects.get(
+        method='pass_invalid_ballots_percentage_validation')
+    invalid_ballots_percantage =\
+        (recon_form.number_invalid_votes / 100) * \
+        recon_form.number_ballots_inside_the_box
+    allowed_invalid_ballots_percantage =\
+        (qc.percentage / 100) * recon_form.number_ballots_inside_the_box
+
+    diff = abs(invalid_ballots_percantage - allowed_invalid_ballots_percantage)
+    qc = QuarantineCheck.objects.get(method='pass_tampering')
+    scaled_tolerance = (qc.value / 100) * (
+        invalid_ballots_percantage + allowed_invalid_ballots_percantage) / 2
+
+    return diff <= scaled_tolerance
+
+
 def check_quarantine(result_form, user):
     """Run quarantine checks.  Create an audit with links to the failed
     quarantine checks if any fail.
