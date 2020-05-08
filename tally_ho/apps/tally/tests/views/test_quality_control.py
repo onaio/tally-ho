@@ -39,6 +39,9 @@ class TestQualityControl(TestBase):
         self.quarantine_data = getattr(settings, 'QUARANTINE_DATA')
 
     def _common_view_tests(self, view):
+        """
+        Test common view
+        """
         request = self.factory.get('/')
         request.session = {}
         request.session['encoded_result_form_qa_control_start_time'] =\
@@ -60,11 +63,17 @@ class TestQualityControl(TestBase):
         return response
 
     def test_quality_control_get(self):
+        """
+        Test quality control view get
+        """
         response = self._common_view_tests(views.QualityControlView.as_view())
         self.assertContains(response, 'Quality Control')
         self.assertIn(b'<form id="result_form"', response.content)
 
     def test_quality_control_post(self):
+        """
+        Test quality control view post
+        """
         barcode = '123456789'
         self._create_and_login_user()
         tally = create_tally()
@@ -91,6 +100,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.qualitycontrol.user, self.user)
 
     def test_dashboard_abort_post(self):
+        """
+        Test dashboard abort post
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -120,6 +132,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(request.session, {})
 
     def test_dashboard_incorrect_post_when_form_marked_for_release(self):
+        """
+        Test dashboard incorrrect post when form marked for release
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -150,6 +165,9 @@ class TestQualityControl(TestBase):
                       response['location'])
 
     def test_dashboard_incorrect_post_when_form_not_marked_for_release(self):
+        """
+        Test dashboard incorrrect post when form not marked for release
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -189,6 +207,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_dashboard_submit_post(self):
+        """
+        Test dashboard submit post
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -226,6 +247,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
 
     def test_dashboard_get_double_recon(self):
+        """
+        Test dashboard get double recon
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -254,6 +278,9 @@ class TestQualityControl(TestBase):
         self.assertContains(response, 'Cancel')
 
     def test_dashboard_get_double_recon_raise(self):
+        """
+        Test dashboard get double recon raise
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -281,6 +308,9 @@ class TestQualityControl(TestBase):
             view(request, tally_id=tally.pk)
 
     def test_dashboard_get(self):
+        """
+        Test dashboard get
+        """
         barcode = '123456789'
         self._create_and_login_user()
         tally = create_tally()
@@ -310,6 +340,9 @@ class TestQualityControl(TestBase):
         self.assertContains(response, 'Cancel')
 
     def test_confirm_form_reset_view_post(self):
+        """
+        Test confirm form reset view post
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -355,6 +388,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_reconciliation_get(self):
+        """
+        Test reconciliation get
+        """
         barcode = '123456789'
         self._create_and_login_user()
         tally = create_tally()
@@ -377,6 +413,9 @@ class TestQualityControl(TestBase):
         self.assertContains(response, 'Total number of the sorted and counted')
 
     def test_reconciliation_post_correct(self):
+        """
+        Test reconciliation post correct
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -408,6 +447,9 @@ class TestQualityControl(TestBase):
         self.assertTrue(quality_control.passed_reconciliation)
 
     def test_reconciliation_post_incorrect_ballot_released(self):
+        """
+        Test reconciliation post incorrect ballot released
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -442,6 +484,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.rejected_count, 0)
 
     def test_reconciliation_post_incorrect_ballot_not_released(self):
+        """
+        Test reconciliation post incorrect ballot not released
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -499,6 +544,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_reconciliation_post_abort(self):
+        """
+        Test reconciliation post abort
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -526,6 +574,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(quality_control.active, False)
 
     def test_general_get(self):
+        """
+        Test general get
+        """
         barcode = '123456789'
         self._create_and_login_user()
         tally = create_tally()
@@ -560,6 +611,9 @@ class TestQualityControl(TestBase):
         self.assertContains(response, str(votes))
 
     def test_general_post_correct(self):
+        """
+        Test general post correct
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -590,6 +644,9 @@ class TestQualityControl(TestBase):
         self.assertTrue(quality_control.passed_general)
 
     def test_general_post_incorrect_ballot_released(self):
+        """
+        Test general post incorrect ballot released
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -623,6 +680,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.rejected_count, 0)
 
     def test_general_post_incorrect_ballot_not_released(self):
+        """
+        Test general post incorrect ballot not released
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -673,6 +733,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_general_post_abort(self):
+        """
+        Test general post abort
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -700,6 +763,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(quality_control.active, False)
 
     def test_women_get(self):
+        """
+        Test women get
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -732,6 +798,9 @@ class TestQualityControl(TestBase):
         self.assertContains(response, str(votes))
 
     def test_women_post_correct(self):
+        """
+        Test women post correct
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -762,6 +831,9 @@ class TestQualityControl(TestBase):
         self.assertTrue(quality_control.passed_women)
 
     def test_women_post_incorrect_ballot_released(self):
+        """
+        Test women post incorrect ballot released
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -795,6 +867,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.rejected_count, 0)
 
     def test_women_post_incorrect_ballot_not_released(self):
+        """
+        Test women post incorrect ballot not released
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -845,6 +920,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form_stat.result_form, result_form)
 
     def test_women_post_abort(self):
+        """
+        Test women post abort
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -872,6 +950,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(quality_control.active, False)
 
     def test_quality_control_post_quarantine_pass_with_zero_diff(self):
+        """
+        Test quality control post pass quarantine trigger with zero difference
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -909,6 +990,9 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/print', response['location'])
 
     def test_quality_control_post_quarantine_pass_below_tolerance(self):
+        """
+        Test quality control post pass quarantine trigger below tolerance
+        """
         center = create_center()
         create_station(center)
         create_quarantine_checks(self.quarantine_data)
@@ -950,6 +1034,10 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/print', response['location'])
 
     def test_quality_control_post_quarantine_pass_ballot_num_validation(self):
+        """
+        Test that the total number of received ballots equals the
+        total of the ballots inside the box plus ballots outside the box
+        """
         center = create_center()
         station = create_station(center=center, registrants=21)
         quarantine_data = copy.deepcopy(self.quarantine_data)
@@ -999,6 +1087,11 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/print', response['location'])
 
     def test_quality_control_post_quarantine_pass_signatures_validation(self):
+        """
+        Test that the total number of signatures on the voter list equals
+        the number of ballots found in the ballot box after polling
+        plus cancelled ballots.
+        """
         center = create_center()
         station = create_station(center=center, registrants=21)
         quarantine_data = copy.deepcopy(self.quarantine_data)
@@ -1157,6 +1250,9 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/print', response['location'])
 
     def test_quality_control_post_quarantine(self):
+        """
+        Test quality control post
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -1193,6 +1289,9 @@ class TestQualityControl(TestBase):
         self.assertIn('quality-control/print', response['location'])
 
     def test_print_success_get(self):
+        """
+        Test print success get
+        """
         self._create_and_login_user()
         code = '12345'
         station_number = 1
@@ -1212,6 +1311,9 @@ class TestQualityControl(TestBase):
         self.assertContains(response, 'Successful Archive')
 
     def test_print_quarantine_get(self):
+        """
+        Test print quarantine get
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -1242,6 +1344,9 @@ class TestQualityControl(TestBase):
         self.assertContains(response, 'Quarantined')
 
     def test_print_post(self):
+        """
+        Test print post
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
@@ -1264,6 +1369,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.form_state, FormState.ARCHIVED)
 
     def test_confirmation_get(self):
+        """
+        Test confirmation get
+        """
         self._create_and_login_user()
         tally = create_tally()
         tally.users.add(self.user)
