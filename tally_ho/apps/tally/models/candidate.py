@@ -1,5 +1,6 @@
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Sum, Value as V
+from django.db.models.functions import Coalesce
 from django.utils.translation import ugettext as _
 from enumfields import EnumIntegerField
 import reversion
@@ -41,11 +42,12 @@ class Candidate(BaseModel):
             RaceType.COMPONENT_TEBU: _('Component Tebu')
         }[self.race_type]
 
-    def num_votes(self, result_form=None):
+    def num_votes(self, result_form=None, form_state=FormState.ARCHIVED):
         """Return the number of final active votes for this candidate in the
         result form.
 
         :param result_form: The result form to restrict the sum over votes to.
+        :param form_state: The result form state, default is archived.
 
         :returns: The number of votes for this candidate and result form or a
             list of the number of results and the number of votes if a result
@@ -53,12 +55,13 @@ class Candidate(BaseModel):
         """
         results = self.results.filter(
             entry_version=EntryVersion.FINAL,
-            result_form__form_state=FormState.ARCHIVED,
+            result_form__form_state=form_state,
             active=True)
 
         if result_form:
             results = results.filter(result_form=result_form)
-            return results.aggregate(models.Sum('votes')).values()[0] or 0
+            return results.aggregate(
+                total_votes=Coalesce(Sum('votes'), V(0)))['total_votes']
 
         results = results.distinct('entry_version', 'active', 'result_form')
 

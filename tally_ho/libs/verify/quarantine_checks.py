@@ -1,8 +1,8 @@
 from django.conf import settings
 
 from tally_ho.apps.tally.models.audit import Audit
-from tally_ho.apps.tally.models.quarantine_check import\
-    QuarantineCheck
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
+from tally_ho.libs.models.enums.form_state import FormState
 
 
 def create_quarantine_checks():
@@ -19,10 +19,18 @@ def create_quarantine_checks():
 def quarantine_checks():
     """Return tuples of (QuarantineCheck, validation_function)."""
     all_methods =\
-        {'pass_overvote': pass_overvote,
-         'pass_tampering': pass_tampering,
-         'pass_ballots_number_validation': pass_ballots_number_validation,
-         'pass_signatures_validation': pass_signatures_validation}
+        {'pass_overvote':
+         pass_overvote,
+         'pass_tampering':
+         pass_tampering,
+         'pass_ballots_number_validation':
+         pass_ballots_number_validation,
+         'pass_signatures_validation':
+         pass_signatures_validation,
+         'pass_ballots_inside_box_validation':
+         pass_ballots_inside_box_validation,
+         'pass_sum_of_candidates_votes_validation':
+         pass_sum_of_candidates_votes_validation}
     methods = []
 
     quarantine_checks_methods =\
@@ -155,6 +163,82 @@ def pass_signatures_validation(result_form):
     scaled_tolerance =\
         (qc.value / 100) * (number_signatures_in_vr +
                             cancelled_ballots_and_ballots_inside_the_box) / 2
+
+    return diff <= scaled_tolerance
+
+
+def pass_ballots_inside_box_validation(result_form):
+    """The total number of ballot papers inside the ballot box will be
+    compared against the total of valid, invalid, and unstamped ballots.
+
+    Fails if the value of number_ballots_inside_box from the recon form
+    does not equal the value of the recon property
+    number_ballots_inside_the_box with an N% tolerance.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    # Number of ballots value entered by data entry clerk on the recon form
+    number_ballots_inside_box = recon_form.number_ballots_inside_box
+
+    # The total of valid, invalid, and unstamped ballots
+    number_ballots_inside_the_box = recon_form.number_ballots_inside_the_box
+    diff =\
+        abs(number_ballots_inside_box -
+            number_ballots_inside_the_box)
+    qc = QuarantineCheck.objects.get(
+        method='pass_ballots_inside_box_validation')
+    scaled_tolerance =\
+        (qc.value / 100) * (number_ballots_inside_box +
+                            number_ballots_inside_the_box) / 2
+
+    return diff <= scaled_tolerance
+
+
+def pass_sum_of_candidates_votes_validation(result_form):
+    """The total votes for candidates should equal the valid ballots:
+    after sorting the ballots inside the ballot box as valid and invalid,
+    and unstamped, the number of valid ballots should equal the
+    sum of all candidates votes.
+
+    Fails if the value of number_valid_votes from the recon form
+    does not equal the sum of all candidates votes from thr result form
+    with an N% tolerance.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    candidate_votes = []
+
+    for candidate in result_form.candidates:
+        votes = candidate.num_votes(result_form=result_form,
+                                    form_state=FormState.QUALITY_CONTROL)
+        candidate_votes.append(votes)
+
+    total_candidates_votes = sum(candidate_votes)
+    number_valid_votes = recon_form.number_valid_votes
+    diff = abs(total_candidates_votes - number_valid_votes)
+
+    qc = QuarantineCheck.objects.get(
+        method='pass_sum_of_candidates_votes_validation')
+    scaled_tolerance =\
+        (qc.value / 100) * (total_candidates_votes + number_valid_votes) / 2
 
     return diff <= scaled_tolerance
 
