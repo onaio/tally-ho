@@ -273,12 +273,7 @@ def pass_invalid_ballots_percentage_validation(result_form):
     allowed_invalid_ballots_percantage =\
         (qc.percentage / 100) * recon_form.number_ballots_inside_the_box
 
-    diff = abs(invalid_ballots_percantage - allowed_invalid_ballots_percantage)
-    qc = QuarantineCheck.objects.get(method='pass_tampering')
-    scaled_tolerance = (qc.value / 100) * (
-        invalid_ballots_percantage + allowed_invalid_ballots_percantage) / 2
-
-    return diff <= scaled_tolerance
+    return invalid_ballots_percantage <= allowed_invalid_ballots_percantage
 
 
 def pass_turnout_percentage_validation(result_form):
@@ -313,14 +308,9 @@ def pass_turnout_percentage_validation(result_form):
     turnout_percantage =\
         (registrants / 100) * recon_form.number_ballots_used
     allowed_turnout_percantage =\
-        (qc.percentage / 100) * recon_form.number_ballots_used
+        (qc.percentage / 100) * recon_form.number_ballots_used2
 
-    diff = abs(turnout_percantage - allowed_turnout_percantage)
-    qc = QuarantineCheck.objects.get(method='pass_tampering')
-    scaled_tolerance = (qc.value / 100) * (
-        turnout_percantage + allowed_turnout_percantage) / 2
-
-    return diff <= scaled_tolerance
+    return turnout_percantage <= allowed_turnout_percantage
 
 
 def check_quarantine(result_form, user):
