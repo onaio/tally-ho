@@ -246,6 +246,9 @@ def pass_sum_of_candidates_votes_validation(result_form):
 def pass_invalid_ballots_percentage_validation(result_form):
     """Validate the percentage of invalid ballots.
 
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
     Fails if the percentage of invalid ballots differs by a large margin with
     the allowed percetage value calculated by mutiplying N% tolerance with
     ballots inside the ballot box.
@@ -270,6 +273,48 @@ def pass_invalid_ballots_percentage_validation(result_form):
     qc = QuarantineCheck.objects.get(method='pass_tampering')
     scaled_tolerance = (qc.value / 100) * (
         invalid_ballots_percantage + allowed_invalid_ballots_percantage) / 2
+
+    return diff <= scaled_tolerance
+
+
+def pass_turnout_percentage_validation(result_form):
+    """Validate the turnout percentage.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    If the `station` for this `result_form` has an empty `registrants` field
+    this will always return True.
+
+    Fails if the turnout percentage differs by a large margin with
+    the allowed percetage value calculated by mutiplying N% tolerance with
+    total votes/number of ballots used.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    registrants = result_form.station.registrants if result_form.station\
+        else None
+
+    if registrants is None:
+        return True
+
+    qc = QuarantineCheck.objects.get(
+        method='pass_turnout_percentage_validation')
+    turnout_percantage =\
+        (registrants / 100) * recon_form.number_ballots_used
+    allowed_turnout_percantage =\
+        (qc.percentage / 100) * recon_form.number_ballots_used
+
+    diff = abs(turnout_percantage - allowed_turnout_percantage)
+    qc = QuarantineCheck.objects.get(method='pass_tampering')
+    scaled_tolerance = (qc.value / 100) * (
+        turnout_percantage + allowed_turnout_percantage) / 2
 
     return diff <= scaled_tolerance
 
