@@ -30,7 +30,11 @@ def quarantine_checks():
          'pass_ballots_inside_box_validation':
          pass_ballots_inside_box_validation,
          'pass_sum_of_candidates_votes_validation':
-         pass_sum_of_candidates_votes_validation}
+         pass_sum_of_candidates_votes_validation,
+         'pass_invalid_ballots_percentage_validation':
+         pass_invalid_ballots_percentage_validation,
+         'pass_turnout_percentage_validation':
+         pass_turnout_percentage_validation}
     methods = []
 
     quarantine_checks_methods =\
@@ -210,7 +214,7 @@ def pass_sum_of_candidates_votes_validation(result_form):
     sum of all candidates votes.
 
     Fails if the value of number_valid_votes from the recon form
-    does not equal the sum of all candidates votes from thr result form
+    does not equal the sum of all candidates votes from the result form
     with an N% tolerance.
 
     If the `result_form` does not have a `reconciliation_form` this will
@@ -241,6 +245,73 @@ def pass_sum_of_candidates_votes_validation(result_form):
         (qc.value / 100) * (total_candidates_votes + number_valid_votes) / 2
 
     return diff <= scaled_tolerance
+
+
+def pass_invalid_ballots_percentage_validation(result_form):
+    """Validate the percentage of invalid ballots.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    Fails if the percentage of invalid ballots differs by a large margin with
+    the allowed percetage value calculated by mutiplying N% tolerance with
+    ballots inside the ballot box.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    qc = QuarantineCheck.objects.get(
+        method='pass_invalid_ballots_percentage_validation')
+    invalid_ballots_percantage =\
+        (recon_form.number_invalid_votes /
+         recon_form.number_ballots_inside_the_box) * 100
+    allowed_invalid_ballots_percantage =\
+        (qc.percentage /
+         recon_form.number_ballots_inside_the_box) * 100
+
+    return invalid_ballots_percantage <= allowed_invalid_ballots_percantage
+
+
+def pass_turnout_percentage_validation(result_form):
+    """Validate the turnout percentage.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    If the `station` for this `result_form` has an empty `registrants` field
+    this will always return True.
+
+    Fails if the turnout percentage differs by a large margin with
+    the allowed percetage value calculated by mutiplying N% tolerance with
+    total votes/number of ballots used.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    registrants = result_form.station.registrants if result_form.station\
+        else None
+
+    if registrants is None:
+        return True
+
+    qc = QuarantineCheck.objects.get(
+        method='pass_turnout_percentage_validation')
+    turnout_percantage =\
+        (recon_form.number_ballots_used / registrants) * 100
+    allowed_turnout_percantage =\
+        (qc.percentage / recon_form.number_ballots_used) * 100
+
+    return turnout_percantage <= allowed_turnout_percantage
 
 
 def check_quarantine(result_form, user):
