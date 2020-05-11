@@ -214,7 +214,7 @@ def pass_sum_of_candidates_votes_validation(result_form):
     sum of all candidates votes.
 
     Fails if the value of number_valid_votes from the recon form
-    does not equal the sum of all candidates votes from thr result form
+    does not equal the sum of all candidates votes from the result form
     with an N% tolerance.
 
     If the `result_form` does not have a `reconciliation_form` this will
@@ -268,10 +268,11 @@ def pass_invalid_ballots_percentage_validation(result_form):
     qc = QuarantineCheck.objects.get(
         method='pass_invalid_ballots_percentage_validation')
     invalid_ballots_percantage =\
-        (recon_form.number_invalid_votes / 100) * \
-        recon_form.number_ballots_inside_the_box
+        (recon_form.number_invalid_votes /
+         recon_form.number_ballots_inside_the_box) * 100
     allowed_invalid_ballots_percantage =\
-        (qc.percentage / 100) * recon_form.number_ballots_inside_the_box
+        (qc.percentage /
+         recon_form.number_ballots_inside_the_box) * 100
 
     return invalid_ballots_percantage <= allowed_invalid_ballots_percantage
 
@@ -306,9 +307,9 @@ def pass_turnout_percentage_validation(result_form):
     qc = QuarantineCheck.objects.get(
         method='pass_turnout_percentage_validation')
     turnout_percantage =\
-        (registrants / 100) * recon_form.number_ballots_used
+        (recon_form.number_ballots_used / registrants) * 100
     allowed_turnout_percantage =\
-        (qc.percentage / 100) * recon_form.number_ballots_used
+        (qc.percentage / recon_form.number_ballots_used) * 100
 
     return turnout_percantage <= allowed_turnout_percantage
 
