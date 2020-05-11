@@ -308,7 +308,7 @@ def pass_turnout_percentage_validation(result_form):
     turnout_percantage =\
         (registrants / 100) * recon_form.number_ballots_used
     allowed_turnout_percantage =\
-        (qc.percentage / 100) * recon_form.number_ballots_used2
+        (qc.percentage / 100) * recon_form.number_ballots_used
 
     return turnout_percantage <= allowed_turnout_percantage
 
