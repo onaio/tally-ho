@@ -216,4 +216,9 @@ QUARANTINE_DATA = [
      'active': False,
      'value': 80,
      'percentage': 20},
+    {'name': 'Trigger 6 - Validate turnout percentage',
+     'method': 'pass_turnout_percentage_validation',
+     'active': False,
+     'value': 10,
+     'percentage': 90},
 ]
