@@ -16,6 +16,22 @@ def create_quarantine_checks():
         )
 
 
+def get_total_candidates_votes(result_form):
+    """Calculate total candidates votes for the result form
+
+    :param result_form: The result form to get candidates.
+    :returns: A Int of total candidates votes.
+    """
+    candidate_votes = []
+
+    for candidate in result_form.candidates:
+        votes = candidate.num_votes(result_form=result_form,
+                                    form_state=FormState.QUALITY_CONTROL)
+        candidate_votes.append(votes)
+
+    return sum(candidate_votes)
+
+
 def quarantine_checks():
     """Return tuples of (QuarantineCheck, validation_function)."""
     all_methods =\
@@ -228,14 +244,7 @@ def pass_sum_of_candidates_votes_validation(result_form):
     if not recon_form:
         return True
 
-    candidate_votes = []
-
-    for candidate in result_form.candidates:
-        votes = candidate.num_votes(result_form=result_form,
-                                    form_state=FormState.QUALITY_CONTROL)
-        candidate_votes.append(votes)
-
-    total_candidates_votes = sum(candidate_votes)
+    total_candidates_votes = get_total_candidates_votes(result_form)
     number_valid_votes = recon_form.number_valid_votes
     diff = abs(total_candidates_votes - number_valid_votes)
 
@@ -312,6 +321,45 @@ def pass_turnout_percentage_validation(result_form):
         (qc.percentage / recon_form.number_ballots_used) * 100
 
     return turnout_percantage <= allowed_turnout_percantage
+
+
+def pass_percentage_of_votes_per_candidate_validation(result_form):
+    """Validate that the percentage of votes per candidate of the total
+    valid votes does not exceed a certain threshold.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    Fails if the percentage of votes for a particular candidate of the total
+    valid votes is greater than the allowed percetage value calculated by
+    dividing the trigger percentage value with total valid votes, and
+    multiplying by 100.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    qc = QuarantineCheck.objects.get(
+        method='pass_percentage_of_votes_per_candidate_validation')
+    allowed_candidate_votes_percentage =\
+        (qc.percentage / recon_form.number_valid_votes) * 100
+    total_candidates_votes = get_total_candidates_votes(result_form)
+
+    for candidate in result_form.candidates:
+        candidate_votes =\
+            candidate.num_votes(result_form=result_form,
+                                form_state=FormState.QUALITY_CONTROL)
+        candidate_votes_percentage =\
+            (candidate_votes/total_candidates_votes) * 100
+
+        if candidate_votes_percentage > allowed_candidate_votes_percentage:
+            return False
+
+    return True
 
 
 def check_quarantine(result_form, user):
