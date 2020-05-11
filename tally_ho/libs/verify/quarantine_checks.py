@@ -50,7 +50,9 @@ def quarantine_checks():
          'pass_invalid_ballots_percentage_validation':
          pass_invalid_ballots_percentage_validation,
          'pass_turnout_percentage_validation':
-         pass_turnout_percentage_validation}
+         pass_turnout_percentage_validation,
+         'pass_percentage_of_votes_per_candidate_validation':
+         pass_percentage_of_votes_per_candidate_validation}
     methods = []
 
     quarantine_checks_methods =\
