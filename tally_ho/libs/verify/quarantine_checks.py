@@ -264,9 +264,8 @@ def pass_invalid_ballots_percentage_validation(result_form):
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
 
-    Fails if the percentage of invalid ballots differs by a large margin with
-    the allowed percetage value calculated by mutiplying N% tolerance with
-    ballots inside the ballot box.
+    Fails if the percentage of invalid ballots is greater than the this
+    trigger percentage value.
 
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
@@ -281,8 +280,7 @@ def pass_invalid_ballots_percentage_validation(result_form):
     invalid_ballots_percantage =\
         (recon_form.number_invalid_votes /
          recon_form.number_ballots_inside_the_box) * 100
-    allowed_invalid_ballots_percantage =\
-        (qc.percentage / 100) * recon_form.number_ballots_inside_the_box
+    allowed_invalid_ballots_percantage = qc.percentage
 
     return invalid_ballots_percantage <= allowed_invalid_ballots_percantage
 
@@ -296,9 +294,8 @@ def pass_turnout_percentage_validation(result_form):
     If the `station` for this `result_form` has an empty `registrants` field
     this will always return True.
 
-    Fails if the turnout percentage differs by a large margin with
-    the allowed percetage value calculated by mutiplying N% tolerance with
-    total votes/number of ballots used.
+    Fails if the turnout percentage is greater than the this trigger percentage
+    value.
 
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
@@ -316,10 +313,10 @@ def pass_turnout_percentage_validation(result_form):
 
     qc = QuarantineCheck.objects.get(
         method='pass_turnout_percentage_validation')
+
     turnout_percantage =\
         (recon_form.number_ballots_used / registrants) * 100
-    allowed_turnout_percantage =\
-        (qc.percentage / 100) * recon_form.number_ballots_used
+    allowed_turnout_percantage = qc.percentage
 
     return turnout_percantage <= allowed_turnout_percantage
 
@@ -332,9 +329,7 @@ def pass_percentage_of_votes_per_candidate_validation(result_form):
     always return True.
 
     Fails if the percentage of votes for a particular candidate of the total
-    valid votes is greater than the allowed percetage value calculated by
-    dividing the trigger percentage value with total valid votes, and
-    multiplying by 100.
+    valid votes is greater than the this trigger percentage value.
 
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
@@ -346,8 +341,7 @@ def pass_percentage_of_votes_per_candidate_validation(result_form):
 
     qc = QuarantineCheck.objects.get(
         method='pass_percentage_of_votes_per_candidate_validation')
-    allowed_candidate_votes_percentage =\
-        (qc.percentage / 100) * recon_form.number_valid_votes
+    allowed_candidate_votes_percentage = qc.percentage
     total_candidates_votes = get_total_candidates_votes(result_form)
 
     for candidate in result_form.candidates:
