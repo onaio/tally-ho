@@ -282,8 +282,7 @@ def pass_invalid_ballots_percentage_validation(result_form):
         (recon_form.number_invalid_votes /
          recon_form.number_ballots_inside_the_box) * 100
     allowed_invalid_ballots_percantage =\
-        (qc.percentage /
-         recon_form.number_ballots_inside_the_box) * 100
+        (qc.percentage / 100) * recon_form.number_ballots_inside_the_box
 
     return invalid_ballots_percantage <= allowed_invalid_ballots_percantage
 
@@ -320,7 +319,7 @@ def pass_turnout_percentage_validation(result_form):
     turnout_percantage =\
         (recon_form.number_ballots_used / registrants) * 100
     allowed_turnout_percantage =\
-        (qc.percentage / recon_form.number_ballots_used) * 100
+        (qc.percentage / 100) * recon_form.number_ballots_used
 
     return turnout_percantage <= allowed_turnout_percantage
 
@@ -348,7 +347,7 @@ def pass_percentage_of_votes_per_candidate_validation(result_form):
     qc = QuarantineCheck.objects.get(
         method='pass_percentage_of_votes_per_candidate_validation')
     allowed_candidate_votes_percentage =\
-        (qc.percentage / recon_form.number_valid_votes) * 100
+        (qc.percentage / 100) * recon_form.number_valid_votes
     total_candidates_votes = get_total_candidates_votes(result_form)
 
     for candidate in result_form.candidates:
