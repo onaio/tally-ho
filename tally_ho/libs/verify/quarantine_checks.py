@@ -1,7 +1,12 @@
 from django.conf import settings
 
+from django.db.models.functions import Coalesce
+from django.db.models import (
+    Sum, F, IntegerField, ExpressionWrapper, Case, When, Q, Value as V)
+
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
+from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
 
 
@@ -22,37 +27,66 @@ def get_total_candidates_votes(result_form):
     :param result_form: The result form to get candidates.
     :returns: A Int of total candidates votes.
     """
-    candidate_votes = []
+    ids = [candidate.id for candidate in result_form.candidates]
 
-    for candidate in result_form.candidates:
-        votes = candidate.num_votes(result_form=result_form,
-                                    form_state=FormState.QUALITY_CONTROL)
-        candidate_votes.append(votes)
+    filter_ballot_component_candidates_by_id =\
+        Q(ballot__sc_general__ballot_component__candidates__id__in=ids)
+    ballot_component_candidates_votes_field =\
+        'ballot__sc_general__ballot_component__candidates__results__votes'
+    ballot_component_votes =\
+        Coalesce(
+            Sum(
+                Case(
+                    When(
+                        ballot__sc_general__ballot_component__isnull=False
+                        and
+                        filter_ballot_component_candidates_by_id,
+                        then=ballot_component_candidates_votes_field)
+                )
+            ),
+            V(0)
+        )
 
-    return sum(candidate_votes)
+    total_votes =\
+        ResultForm.objects.filter(pk=result_form.id)\
+        .annotate(
+            ballot_candidates_votes=Coalesce(
+                Sum('ballot__candidates__results__votes',
+                    filter=Q(ballot__candidates__id__in=ids)),
+                V(0)))\
+        .annotate(
+            ballot_component_candidates_votes=ballot_component_votes)\
+        .annotate(
+            total_votes=ExpressionWrapper(
+                F('ballot_candidates_votes') +
+                F('ballot_component_candidates_votes'),
+                output_field=IntegerField()
+            )
+        ).values('total_votes')[0]['total_votes']
+
+    return total_votes
 
 
 def quarantine_checks():
     """Return tuples of (QuarantineCheck, validation_function)."""
-    all_methods =\
-        {'pass_overvote':
-         pass_overvote,
-         'pass_tampering':
-         pass_tampering,
-         'pass_ballots_number_validation':
-         pass_ballots_number_validation,
-         'pass_signatures_validation':
-         pass_signatures_validation,
-         'pass_ballots_inside_box_validation':
-         pass_ballots_inside_box_validation,
-         'pass_sum_of_candidates_votes_validation':
-         pass_sum_of_candidates_votes_validation,
-         'pass_invalid_ballots_percentage_validation':
-         pass_invalid_ballots_percentage_validation,
-         'pass_turnout_percentage_validation':
-         pass_turnout_percentage_validation,
-         'pass_percentage_of_votes_per_candidate_validation':
-         pass_percentage_of_votes_per_candidate_validation}
+    all_methods = {'pass_overvote':
+                   pass_overvote,
+                   'pass_tampering':
+                   pass_tampering,
+                   'pass_ballots_number_validation':
+                   pass_ballots_number_validation,
+                   'pass_signatures_validation':
+                   pass_signatures_validation,
+                   'pass_ballots_inside_box_validation':
+                   pass_ballots_inside_box_validation,
+                   'pass_sum_of_candidates_votes_validation':
+                   pass_sum_of_candidates_votes_validation,
+                   'pass_invalid_ballots_percentage_validation':
+                   pass_invalid_ballots_percentage_validation,
+                   'pass_turnout_percentage_validation':
+                   pass_turnout_percentage_validation,
+                   'pass_percentage_of_votes_per_candidate_validation':
+                   pass_percentage_of_votes_per_candidate_validation}
     methods = []
 
     quarantine_checks_methods =\
