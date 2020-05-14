@@ -24,6 +24,12 @@ def create_quarantine_checks():
 def get_total_candidates_votes(result_form):
     """Calculate total candidates votes for the result form
 
+    If the result form is a component ballot, get the candidates votes
+    from the general ballot component and combine them with the
+    candidates votes from the ballot.
+
+    Sum ballot candidates votes and ballot component votes to get total votes.
+
     :param result_form: The result form to get candidates.
     :returns: A Int of total candidates votes.
     """
