@@ -29,7 +29,7 @@ class TestProfile(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, f'Signed in as {self.user.username}')
         self.assertContains(
-            response, f'<a id="logout_link" href="/accounts/logout/">')
+            response, '<a id="logout_link" href="/accounts/logout/">')
 
     def test_session_expiry_logout_view_during_de_1(self):
         encoded_result_form_data_entry_start_time =\

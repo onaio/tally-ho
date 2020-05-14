@@ -81,7 +81,7 @@ class TestStaffPerformanceMetrics(TestBase):
             f'{groups.TALLY_MANAGER}s Performance Report')
         self.assertContains(response, "<th>Staff Name</th>")
         self.assertContains(response, "<th>Forms Processed Per Hour</th>")
-        self.assertContains(response, f'<td>No Data</td>')
+        self.assertContains(response, '<td>No Data</td>')
 
     def test_surpervisors_approvals_get_with_data(self):
         tally = create_tally()
@@ -134,8 +134,8 @@ class TestStaffPerformanceMetrics(TestBase):
         self.assertContains(
             response,
             "<th>Approval Rate</th>")
-        self.assertContains(response, f'<td>1</td>')
-        self.assertContains(response, f'<td>100.0%</td>')
+        self.assertContains(response, '<td>1</td>')
+        self.assertContains(response, '<td>100.0%</td>')
 
     def test_surpervisors_approvals_get_with_no_data(self):
         tally = create_tally()
@@ -233,9 +233,9 @@ class TestStaffPerformanceMetrics(TestBase):
             response,
             "<th>Percentage of Errors</th>")
         self.assertContains(response, f'<td>{data_entry_1_user.username}</td>')
-        self.assertContains(response, f'<td>2</td>')
-        self.assertContains(response, f'<td>1</td>')
-        self.assertContains(response, f'<td>50%</td>')
+        self.assertContains(response, '<td>2</td>')
+        self.assertContains(response, '<td>1</td>')
+        self.assertContains(response, '<td>50%</td>')
 
     def test_track_corrections_get_with_no_data(self):
         tally = create_tally()
@@ -262,5 +262,5 @@ class TestStaffPerformanceMetrics(TestBase):
         self.assertContains(
             response,
             "<th>Percentage of Errors</th>")
-        self.assertContains(response, f'<td>No Data</td>')
-        self.assertContains(response, f'<td></td>', 3)
+        self.assertContains(response, '<td>No Data</td>')
+        self.assertContains(response, '<td></td>', 3)

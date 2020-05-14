@@ -73,7 +73,7 @@ def duplicates(qs, tally_id=None):
             ballot__isnull=False,
             station_number__isnull=False,
             tally__id=tally_id,
-        ).exclude(form_state=FormState.UNSUBMITTED)
+    ).exclude(form_state=FormState.UNSUBMITTED)
 
     pks = flatten([map(lambda x: x['id'], ResultForm.objects.filter(
         center=item['center'],
@@ -141,7 +141,7 @@ def get_results_duplicates(tally_id):
         center_to_forms[center.code].append(result_form)
 
     for code, vote_lists in center_to_votes.items():
-        votes_cast = sum([sum(l) for l in vote_lists]) > 0
+        votes_cast = sum([sum(vote) for vote in vote_lists]) > 0
         num_vote_lists = len(vote_lists)
         num_distinct_vote_lists = len(set(vote_lists))
 
@@ -178,7 +178,7 @@ def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
             duplicate_count__gt=1,
             tally_id=tally_id,
             duplicate_reviewed=False
-        ).values_list('ids', flat=True).distinct()
+    ).values_list('ids', flat=True).distinct()
 
     results_form_duplicates =\
         ResultForm.objects.filter(id__in=result_form_ids).order_by('ballot')
@@ -506,7 +506,7 @@ class DuplicateResultFormView(LoginRequiredMixin,
                 return HttpResponseRedirect(self.request.path_info)
             else:
                 self.success_message = _(
-                        u"All forms successfully sent to clearance")
+                    u"All forms successfully sent to clearance")
 
                 messages.add_message(
                     self.request, messages.INFO, self.success_message)
