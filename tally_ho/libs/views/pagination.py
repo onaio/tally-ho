@@ -1,15 +1,15 @@
 from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
 
 
-def paging(l, request):
+def paging(objects_list, request):
     """Return the appropriate page for this list and request.
 
-    :param l: The list of objects to paginate.
+    :param objects_list: The list of objects to paginate.
     :param request: The request to retrieve a page from.
 
     :returns: A page for this list and request.
     """
-    paginator = Paginator(l, 100)
+    paginator = Paginator(objects_list, 100)
     page = request.GET.get('page')
 
     return paginate(paginator, page)

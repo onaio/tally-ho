@@ -222,7 +222,7 @@ def save_center_duplicates(center_to_votes, center_to_forms,
         w.writeheader()
 
         for code, vote_lists in center_to_votes.items():
-            votes_cast = sum([sum(l) for l in vote_lists]) > 0
+            votes_cast = sum([sum(vote) for vote in vote_lists]) > 0
             num_vote_lists = len(vote_lists)
             num_distinct_vote_lists = len(set(vote_lists))
 
@@ -377,11 +377,11 @@ def check_position_changes(candidates_votes):
     """Order candidates by valid votes and all votes included quarantine
     """
     sort_valid_votes = OrderedDict((sorted(
-                        candidates_votes.items(), key=lambda t: t[1][0],
-                        reverse=True)))
+        candidates_votes.items(), key=lambda t: t[1][0],
+        reverse=True)))
     sort_all_votes = OrderedDict((sorted(
-                        candidates_votes.items(), key=lambda t: t[1][1],
-                        reverse=True)))
+        candidates_votes.items(), key=lambda t: t[1][1],
+        reverse=True)))
 
     # Get first five candidates
     valid_votes = dict(enumerate(sort_valid_votes.keys()[0:5]))

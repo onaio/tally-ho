@@ -1,6 +1,8 @@
 from django import template
 
 register = template.Library()
+
+
 @register.filter(name="forms_processed_per_hour")
 def forms_processed_per_hour(total_forms_processed, total_time_in_seconds):
     """Calculate forms processed per hour.

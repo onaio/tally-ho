@@ -1,8 +1,8 @@
 from itertools import chain
 
 
-def flatten(l):
-    return list(chain.from_iterable(l))
+def flatten(collection):
+    return list(chain.from_iterable(collection))
 
 
 def keys_if_value(d):
