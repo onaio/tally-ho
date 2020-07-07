@@ -1,5 +1,6 @@
 -r common.pip
 coverage
+python-coveralls
 django-debug-toolbar
 django_extensions
 flake8
