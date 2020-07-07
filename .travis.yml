@@ -1,16 +1,18 @@
 addons:
-  postgresql: '9.6'
+  postgresql: "9.6"
 language: python
 python:
-  - '3.6.5'
+  - "3.6.5"
 install:
-  - pip install -r requirements/common.pip
+  - pip install -r requirements/dev.pip
   - pip install coverage
   - pip install flake8
   - pip freeze # list our pip library versions
 before_script:
   - psql -c 'CREATE DATABASE tally;' -U postgres
 script:
-  - python manage.py test
+  - coverage run --source=. manage.py test
+after_success:
+  - coveralls
 notifications:
   slack: onaio:snkNXgprD498qQv4DgRREKJF
