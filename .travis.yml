@@ -6,6 +6,7 @@ python:
 install:
   - pip install -r requirements/common.pip
   - pip install coverage
+  - pip install coveralls
   - pip install python-coveralls
   - pip install flake8
   - pip freeze # list our pip library versions
