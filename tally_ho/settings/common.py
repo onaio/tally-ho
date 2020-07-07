@@ -227,4 +227,10 @@ QUARANTINE_DATA = [
      'active': False,
      'value': 50,
      'percentage': 50},
+    {'name':
+     'Trigger 10 - Validate percentage of blank ballots',
+     'method': 'pass_percentage_of_blank_ballots_trigger',
+     'active': False,
+     'value': 80,
+     'percentage': 20},
 ]
