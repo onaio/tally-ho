@@ -320,8 +320,8 @@ def pass_invalid_ballots_percentage_validation(result_form):
     qc = QuarantineCheck.objects.get(
         method='pass_invalid_ballots_percentage_validation')
     invalid_ballots_percentage =\
-        (recon_form.number_invalid_votes /
-         recon_form.number_ballots_inside_the_box) * 100
+        100 * (recon_form.number_invalid_votes /
+               recon_form.number_ballots_inside_the_box)
     allowed_invalid_ballots_percentage = qc.percentage
 
     return invalid_ballots_percentage <= allowed_invalid_ballots_percentage
@@ -383,8 +383,7 @@ def pass_turnout_percentage_validation(result_form):
     qc = QuarantineCheck.objects.get(
         method='pass_turnout_percentage_validation')
 
-    turnout_percentage =\
-        (recon_form.number_ballots_used / registrants) * 100
+    turnout_percentage = 100 * (recon_form.number_ballots_used / registrants)
     allowed_turnout_percentage = qc.percentage
 
     return turnout_percentage <= allowed_turnout_percentage
@@ -418,7 +417,7 @@ def pass_percentage_of_votes_per_candidate_validation(result_form):
             candidate.num_votes(result_form=result_form,
                                 form_state=FormState.QUALITY_CONTROL)
         candidate_votes_percentage =\
-            (candidate_votes/total_candidates_votes) * 100
+            100 * (candidate_votes/total_candidates_votes)
 
         if candidate_votes_percentage > allowed_candidate_votes_percentage:
             return False
