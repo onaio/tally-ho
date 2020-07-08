@@ -12,7 +12,7 @@ install:
 before_script:
   - psql -c 'CREATE DATABASE tally;' -U postgres
 script:
-  - coverage run --source=. manage.py test
+  - python manage.py test
 after_success:
   - coveralls
 notifications:
