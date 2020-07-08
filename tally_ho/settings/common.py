@@ -132,6 +132,7 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 SITE_ID = 1
 
 NOSE_ARGS = [
+    '--cover-erase',
     '--with-coverage',
     '--cover-package=tally_ho'
 ]
