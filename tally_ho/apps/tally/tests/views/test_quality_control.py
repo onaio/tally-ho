@@ -29,6 +29,10 @@ from tally_ho.libs.tests.test_base import (
     TestBase,
 )
 
+from tally_ho.libs.verify.quarantine_checks import (
+    pass_percentage_of_blank_ballots_trigger
+)
+
 
 class TestQualityControl(TestBase):
     def setUp(self):
@@ -1061,7 +1065,7 @@ class TestQualityControl(TestBase):
             number_unused_ballots=0,
             number_valid_votes=20,
             number_ballots_received=21,
-            )
+        )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -1116,7 +1120,7 @@ class TestQualityControl(TestBase):
             number_valid_votes=20,
             number_ballots_received=21,
             number_signatures_in_vr=21,
-            )
+        )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -1170,7 +1174,7 @@ class TestQualityControl(TestBase):
             number_valid_votes=20,
             number_ballots_received=21,
             number_signatures_in_vr=21,
-            )
+        )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -1224,7 +1228,7 @@ class TestQualityControl(TestBase):
             number_valid_votes=20,
             number_ballots_received=21,
             number_signatures_in_vr=21,
-            )
+        )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -1278,7 +1282,7 @@ class TestQualityControl(TestBase):
             number_valid_votes=20,
             number_ballots_received=21,
             number_signatures_in_vr=21,
-            )
+        )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -1328,7 +1332,7 @@ class TestQualityControl(TestBase):
             number_valid_votes=20,
             number_ballots_received=21,
             number_signatures_in_vr=21,
-            )
+        )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -1379,7 +1383,7 @@ class TestQualityControl(TestBase):
             number_valid_votes=20,
             number_ballots_received=21,
             number_signatures_in_vr=21,
-            )
+        )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -1400,6 +1404,187 @@ class TestQualityControl(TestBase):
         self.assertIsNone(result_form.audit)
         self.assertEqual(result_form.audited_count, 0)
         self.assertIn('quality-control/print', response['location'])
+
+    def test_quality_control_quarantine_pass_blank_ballots_trigger(self):
+        """
+        Test blank ballots check is not triggered when the percentage of
+        blank ballots has not exceeded the allowed percentage value.
+        """
+        center = create_center()
+        station = create_station(center=center, registrants=21)
+        quarantine_data = copy.deepcopy(self.quarantine_data)
+        quarantine_data[9]['active'] = True
+        create_quarantine_checks(quarantine_data)
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            tally=tally,
+            form_state=FormState.QUALITY_CONTROL,
+            center=center,
+            station_number=station.station_number)
+        create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_ballots_inside_box=21,
+            number_cancelled_ballots=0,
+            number_spoiled_ballots=0,
+            number_unstamped_ballots=0,
+            number_unused_ballots=0,
+            number_valid_votes=20,
+            number_ballots_received=21,
+            number_signatures_in_vr=21,
+            number_blank_ballots=4,
+        )
+        create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user, votes=1, num_results=10)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {
+            'correct': 1,
+            'result_form': result_form.pk,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.session = {'result_form': result_form.pk}
+        request.user = self.user
+        response = view(request, tally_id=tally.pk)
+        result_form.reload()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
+        self.assertIsNone(result_form.audit)
+        self.assertEqual(result_form.audited_count, 0)
+        self.assertIn('quality-control/print', response['location'])
+
+    def test_quality_control_quarantine_fail_blank_ballots_trigger(self):
+        """
+        Test blank ballots check is triggered when the percentage of
+        blank ballots exceeds the allowed percentage value.
+        """
+        center = create_center()
+        station = create_station(center=center, registrants=21)
+        quarantine_data = copy.deepcopy(self.quarantine_data)
+        quarantine_data[9]['active'] = True
+        create_quarantine_checks(quarantine_data)
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            tally=tally,
+            form_state=FormState.QUALITY_CONTROL,
+            center=center,
+            station_number=station.station_number)
+        create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_ballots_inside_box=21,
+            number_cancelled_ballots=0,
+            number_spoiled_ballots=0,
+            number_unstamped_ballots=0,
+            number_unused_ballots=0,
+            number_valid_votes=20,
+            number_ballots_received=21,
+            number_signatures_in_vr=21,
+            number_blank_ballots=20,
+        )
+        create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user, votes=1, num_results=10)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {
+            'correct': 1,
+            'result_form': result_form.pk,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.session = {'result_form': result_form.pk}
+        request.user = self.user
+        response = view(request, tally_id=tally.pk)
+        result_form.reload()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
+        self.assertIsNotNone(result_form.audit)
+        self.assertEqual(result_form.audited_count, 1)
+        self.assertEqual(
+            result_form.audit.quarantine_checks.all()[0].name,
+            quarantine_data[9]['name'])
+        self.assertIn('/quality-control/print', response['location'])
+
+    def test_pass_percentage_of_blank_ballots_trigger(self):
+        """
+        Test pass percentage of blank ballots trigger returns true if
+        the percentage of blank ballots has not exceeded the
+        allowed percentage value.
+        """
+        center = create_center()
+        station = create_station(center=center, registrants=21)
+        quarantine_data = copy.deepcopy(self.quarantine_data)
+        quarantine_data[9]['active'] = True
+        create_quarantine_checks(quarantine_data)
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            tally=tally,
+            form_state=FormState.QUALITY_CONTROL,
+            center=center,
+            station_number=station.station_number)
+        create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_ballots_inside_box=21,
+            number_cancelled_ballots=0,
+            number_spoiled_ballots=0,
+            number_unstamped_ballots=0,
+            number_unused_ballots=0,
+            number_valid_votes=20,
+            number_ballots_received=21,
+            number_signatures_in_vr=21,
+            number_blank_ballots=4,
+        )
+        create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user, votes=1, num_results=10)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self.assertTrue(pass_percentage_of_blank_ballots_trigger(result_form))
+
+    def test_fail_percentage_of_blank_ballots_trigger(self):
+        """
+        Test pass percentage of blank ballots trigger returns false if
+        the percentage of blank ballots has exceeded the allowed
+        percentage value.
+        """
+        center = create_center()
+        station = create_station(center=center, registrants=21)
+        quarantine_data = copy.deepcopy(self.quarantine_data)
+        quarantine_data[9]['active'] = True
+        create_quarantine_checks(quarantine_data)
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            tally=tally,
+            form_state=FormState.QUALITY_CONTROL,
+            center=center,
+            station_number=station.station_number)
+        create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_ballots_inside_box=21,
+            number_cancelled_ballots=0,
+            number_spoiled_ballots=0,
+            number_unstamped_ballots=0,
+            number_unused_ballots=0,
+            number_valid_votes=20,
+            number_ballots_received=21,
+            number_signatures_in_vr=21,
+            number_blank_ballots=20,
+        )
+        create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user, votes=1, num_results=10)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        self.assertFalse(pass_percentage_of_blank_ballots_trigger(result_form))
 
     def test_quality_control_post_quarantine(self):
         """
