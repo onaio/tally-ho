@@ -1,7 +1,9 @@
 [![Build Status](https://travis-ci.org/onaio/tally-ho.svg?branch=master)](https://travis-ci.org/onaio/tally-ho)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d610ecc632d340ff822c577054fdff38)](https://app.codacy.com/gh/onaio/tally-ho)
+[![Coverage Status](https://coveralls.io/repos/github/onaio/tally-ho/badge.svg?branch=master)](https://coveralls.io/github/onaio/tally-ho?branch=master)
 
 ## Tally-Ho!
+
 Election results data entry and verification software built by [Ona Systems](http://company.ona.io) and commissioned by the Libyan [High National Elections Commission](http://hnec.ly/) and the [United Nations Development Program](http://www.undp.org).
 
 ## Quick install
@@ -18,7 +20,7 @@ Prerequisites: this assumes you have [virtualenvwrapper](http://virtualenvwrappe
 
 ```bash
 mkvirtualenv tally --python=python3.6.5
-pip install -r requirements/dev.pip 
+pip install -r requirements/dev.pip
 ```
 
 ### Quick start with user demo data
@@ -48,7 +50,7 @@ python manage.py runserver --settings=tally_ho.settings.dev
 > This will only work if you have data files in the folder `./data`
 
 The first argument is the database user, the second is the database host IP
-address, and the third is the settings file.  Modify these arguments as needed.
+address, and the third is the settings file. Modify these arguments as needed.
 
 ```bash
 ./scripts/reload_all postgres 127.0.0.1 tally_ho.settings.common
@@ -81,11 +83,13 @@ Pass the `-s` option if you want to use `ipdb.set_trace()` to debug during a tes
 The below assumes you have `pip` installed `requirements/dev.pip`.
 
 Generate model graph for all models:
+
 ```
 python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -g -o tally-ho-all-models.png
 ```
 
 Generate model graph for app models:
+
 ```
 python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -X GroupObjectPermission,UserObjectPermission,GroupObjectPermissionBase,BaseGenericObjectPermission,UserObjectPermissionBase,BaseObjectPermission,Version,Revision,Pageview,Visitor,Session,AbstractBaseSession,Site,LogEntry,User,Group,AbstractUser,Permission,ContentType,AbstractBaseUser,PermissionsMixin,BaseModel -g -o tally-ho-app-models.png
 ```
@@ -100,5 +104,5 @@ The `MAX_FILE_UPLOAD_SIZE` variable in `tally_ho/settings/common.py` file define
 
 ## News
 
-* This is an [article about tally-ho](http://blog.ona.io/general/2014/06/12/Tally-Ho-Robust-Open-Source-Election-Software.html) and its use in Libya.
-* This presentation at PyConZA 2014 about the project, [Writing Python Code to Decide an Election](https://blog.ona.io/general/2016/02/12/writing-python-code-to-decide-an-election.html).
+- This is an [article about tally-ho](http://blog.ona.io/general/2014/06/12/Tally-Ho-Robust-Open-Source-Election-Software.html) and its use in Libya.
+- This presentation at PyConZA 2014 about the project, [Writing Python Code to Decide an Election](https://blog.ona.io/general/2016/02/12/writing-python-code-to-decide-an-election.html).
