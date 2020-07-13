@@ -18,6 +18,7 @@ from tally_ho.apps.tally.models.reconciliation_form import (
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
+from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
@@ -304,6 +305,21 @@ def create_site_info(
     )
 
     return site_info
+
+
+def create_region(
+    name='Region',
+    office=None,
+    tally=None
+):
+
+    region, _ = Region.objects.get_or_create(
+        name=name,
+        office=office,
+        tally=tally,
+    )
+
+    return region
 
 
 def result_form_data_blank(result_form):
