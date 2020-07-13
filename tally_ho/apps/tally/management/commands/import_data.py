@@ -500,3 +500,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE('import result forms'))
         import_result_forms(self)
+
+        self.stdout.write(self.style.NOTICE('import regions'))
+        import_regions(self)
