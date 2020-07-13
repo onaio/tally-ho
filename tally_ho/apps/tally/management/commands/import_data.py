@@ -519,6 +519,7 @@ def import_constituencies(command, tally=None, constituencies_file=None):
         for row in reader:
             process_constituency_row(tally, row, command=command)
 
+
 class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
 
@@ -543,3 +544,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE('import regions'))
         import_regions(self)
+
+        self.stdout.write(self.style.NOTICE('import constituencies'))
+        import_constituencies(self)
