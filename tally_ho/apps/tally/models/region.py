@@ -25,7 +25,7 @@ class Region(BaseModel):
                               on_delete=models.PROTECT)
 
     def __str__(self):
-        return u'%s - %s' % (self.number, self.name)
+        return f'{self.name} - {self.office.name}'
 
 
 reversion.register(Region)
