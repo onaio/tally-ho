@@ -14,6 +14,7 @@ from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.region import Region
+from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.libs.models.enums.form_state import FormState
@@ -27,6 +28,7 @@ CENTERS_PATH = 'data/centers.csv'
 RESULT_FORMS_PATH = 'data/result_forms.csv'
 STATIONS_PATH = 'data/stations.csv'
 REGIONS_PATH = 'data/regions.csv'
+CONSTITUENCIES_PATH = 'data/constituencies.csv'
 SUB_CONSTITUENCIES_PATH = 'data/sub_constituencies.csv'
 
 SPECIAL_VOTING = 'Special Voting'
@@ -478,6 +480,44 @@ def import_regions(command, tally=None, regions_file=None):
         for row in reader:
             process_region_row(tally, row, command=command)
 
+
+def process_constituency_row(tally, row, command=None, logger=None):
+    name, center_code = row[0:2]
+
+    center = None
+
+    try:
+        center = Center.objects.get(code=center_code, tally=tally)
+        if not center.active:
+            msg = 'Selected center "%s" is disabled' % center_code
+            if command:
+                command.stdout.write(command.style.WARNING(msg))
+            if logger:
+                logger.warning(msg)
+
+    except Center.DoesNotExist:
+        msg = 'Center "%s" does not exist' % center_code
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
+    _, created = Constituency.objects.get_or_create(
+        name=name,
+        tally=tally,
+        center=center)
+
+
+def import_constituencies(command, tally=None, constituencies_file=None):
+    file_to_parse = constituencies_file if constituencies_file else open(
+        CONSTITUENCIES_PATH, 'rU')
+
+    with file_to_parse as f:
+        reader = csv.reader(f)
+        next(reader)  # ignore header
+
+        for row in reader:
+            process_constituency_row(tally, row, command=command)
 
 class Command(BaseCommand):
     help = ugettext_lazy("Import polling data.")
