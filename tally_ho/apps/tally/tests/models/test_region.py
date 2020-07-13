@@ -10,7 +10,7 @@ class TestRegion(TestBase):
         self._add_user_to_group(self.user,
                                 groups.TALLY_MANAGER)
 
-    def test_site_info(self):
+    def test_region(self):
         tally = create_tally()
         tally.users.add(self.user)
 
