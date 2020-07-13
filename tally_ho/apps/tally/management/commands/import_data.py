@@ -13,6 +13,7 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.libs.models.enums.form_state import FormState
@@ -25,6 +26,7 @@ CANDIDATES_PATH = 'data/candidates.csv'
 CENTERS_PATH = 'data/centers.csv'
 RESULT_FORMS_PATH = 'data/result_forms.csv'
 STATIONS_PATH = 'data/stations.csv'
+REGIONS_PATH = 'data/regions.csv'
 SUB_CONSTITUENCIES_PATH = 'data/sub_constituencies.csv'
 
 SPECIAL_VOTING = 'Special Voting'
@@ -443,6 +445,38 @@ def import_result_forms(command, tally=None, result_forms_file=None):
 
     command.stdout.write(command.style.NOTICE(
         'Number of replacement forms: %s' % replacement_count))
+
+
+def process_region_row(tally, row, command=None, logger=None):
+    name, office_name = row[0:2]
+
+    office = None
+
+    try:
+        office = Office.objects.get(name=office_name.strip(), tally=tally)
+    except Office.DoesNotExist:
+        msg = 'Office "%s" does not exist' % office_name
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
+    _, created = Region.objects.get_or_create(
+        name=name,
+        tally=tally,
+        office=office)
+
+
+def import_regions(command, tally=None, regions_file=None):
+    file_to_parse = regions_file if regions_file else open(
+        REGIONS_PATH, 'rU')
+
+    with file_to_parse as f:
+        reader = csv.reader(f)
+        next(reader)  # ignore header
+
+        for row in reader:
+            process_region_row(tally, row, command=command)
 
 
 class Command(BaseCommand):
