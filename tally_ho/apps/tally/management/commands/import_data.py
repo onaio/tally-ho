@@ -533,6 +533,12 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE('import centers'))
         import_centers()
 
+        self.stdout.write(self.style.NOTICE('import regions'))
+        import_regions(self)
+
+        self.stdout.write(self.style.NOTICE('import constituencies'))
+        import_constituencies(self)
+
         self.stdout.write(self.style.NOTICE('import stations'))
         import_stations(self)
 
@@ -541,9 +547,3 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE('import result forms'))
         import_result_forms(self)
-
-        self.stdout.write(self.style.NOTICE('import regions'))
-        import_regions(self)
-
-        self.stdout.write(self.style.NOTICE('import constituencies'))
-        import_constituencies(self)
