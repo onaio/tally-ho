@@ -13,11 +13,6 @@ class Region(BaseModel):
         unique_together = ('name', 'tally')
 
     name = models.CharField(max_length=255)
-    office = models.ForeignKey(Office,
-                               null=True,
-                               blank=True,
-                               related_name='regions',
-                               on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
                               null=True,
                               blank=True,
@@ -25,7 +20,7 @@ class Region(BaseModel):
                               on_delete=models.PROTECT)
 
     def __str__(self):
-        return f'{self.name} - {self.office.name}'
+        return self.name
 
 
 reversion.register(Region)
