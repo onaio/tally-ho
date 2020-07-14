@@ -450,23 +450,11 @@ def import_result_forms(command, tally=None, result_forms_file=None):
 
 
 def process_region_row(tally, row, command=None, logger=None):
-    name, office_name = row[0:2]
-
-    office = None
-
-    try:
-        office = Office.objects.get(name=office_name.strip(), tally=tally)
-    except Office.DoesNotExist:
-        msg = 'Office "%s" does not exist' % office_name
-        if command:
-            command.stdout.write(command.style.WARNING(msg))
-        if logger:
-            logger.warning(msg)
+    name = row[0]
 
     _, created = Region.objects.get_or_create(
         name=name,
-        tally=tally,
-        office=office)
+        tally=tally)
 
 
 def import_regions(command, tally=None, regions_file=None):
@@ -482,30 +470,11 @@ def import_regions(command, tally=None, regions_file=None):
 
 
 def process_constituency_row(tally, row, command=None, logger=None):
-    name, center_code = row[0:2]
-
-    center = None
-
-    try:
-        center = Center.objects.get(code=center_code, tally=tally)
-        if not center.active:
-            msg = 'Selected center "%s" is disabled' % center_code
-            if command:
-                command.stdout.write(command.style.WARNING(msg))
-            if logger:
-                logger.warning(msg)
-
-    except Center.DoesNotExist:
-        msg = 'Center "%s" does not exist' % center_code
-        if command:
-            command.stdout.write(command.style.WARNING(msg))
-        if logger:
-            logger.warning(msg)
+    name = row[0]
 
     _, created = Constituency.objects.get_or_create(
         name=name,
-        tally=tally,
-        center=center)
+        tally=tally)
 
 
 def import_constituencies(command, tally=None, constituencies_file=None):
