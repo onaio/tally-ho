@@ -1,6 +1,6 @@
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_office,\
-    create_tally, create_region, TestBase
+from tally_ho.libs.tests.test_base import create_tally,\
+    create_region, TestBase
 from tally_ho.apps.tally.models.region import Region
 
 
@@ -13,12 +13,9 @@ class TestRegion(TestBase):
     def test_region(self):
         tally = create_tally()
         tally.users.add(self.user)
-
-        office = create_office(tally=tally)
-        region = create_region(office=office, tally=tally)
+        region = create_region(tally=tally)
 
         # Test region object name is region name hyphen office name
         region_obj = Region.objects.get(pk=region.pk)
-        expected_object_name =\
-            f'{region_obj.name} - {office.name}'
+        expected_object_name = region_obj.name
         self.assertEquals(expected_object_name, str(region_obj))

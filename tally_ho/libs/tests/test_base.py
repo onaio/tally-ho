@@ -310,13 +310,11 @@ def create_site_info(
 
 def create_region(
     name='Region',
-    office=None,
     tally=None
 ):
 
     region, _ = Region.objects.get_or_create(
         name=name,
-        office=office,
         tally=tally,
     )
 
@@ -325,13 +323,11 @@ def create_region(
 
 def create_constituency(
     name='Region',
-    center=None,
     tally=None
 ):
 
     constituency, _ = Constituency.objects.get_or_create(
         name=name,
-        center=center,
         tally=tally,
     )
 
