@@ -13,11 +13,6 @@ class Constituency(BaseModel):
         unique_together = ('name', 'tally')
 
     name = models.CharField(max_length=255)
-    center = models.ForeignKey(Center,
-                               null=True,
-                               blank=True,
-                               related_name='constituency',
-                               on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
                               null=True,
                               blank=True,
@@ -25,7 +20,7 @@ class Constituency(BaseModel):
                               on_delete=models.PROTECT)
 
     def __str__(self):
-        return f'{self.name} - {self.center.name}'
+        return self.name
 
 
 reversion.register(Constituency)
