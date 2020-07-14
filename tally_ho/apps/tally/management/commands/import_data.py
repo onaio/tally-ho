@@ -209,7 +209,7 @@ def process_center_row(tally, row, command=None, logger=None):
             region=region)
 
         Center.objects.get_or_create(
-            region=row[1],
+            region=region_name,
             code=row[2],
             office=office,
             sub_constituency=sub_constituency,
