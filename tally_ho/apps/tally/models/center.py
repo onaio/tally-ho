@@ -5,6 +5,7 @@ import reversion
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.dependencies import check_results_for_forms
@@ -38,6 +39,11 @@ class Center(BaseModel):
                               blank=True,
                               related_name='centers',
                               on_delete=models.PROTECT)
+    contituency = models.ForeignKey(Constituency,
+                                    null=True,
+                                    blank=True,
+                                    related_name='centers',
+                                    on_delete=models.PROTECT)
 
     def remove(self):
         """Remove this center and related information.
