@@ -160,16 +160,32 @@ def import_sub_constituencies_and_ballots(tally=None, subconst_file=None):
 
 def process_center_row(tally, row, command=None, logger=None):
     if not invalid_line(row):
+        try:
+            constituency_name = row[5]
+        except ValueError:
+            constituency_name = None
+
+        constituency, _ = Constituency.objects.get_or_create(
+            name=constituency_name.strip(),
+            tally=tally)
+
         sc_code = row[6]
         sub_constituency = None
 
         if sc_code == SPECIAL_VOTING:
             center_type = CenterType.SPECIAL
+            sub_constituency = SubConstituency.objects.get(
+                code=sc_code,
+                tally=tally)
+            sub_constituency.constituency = constituency
+            sub_constituency.save(update_fields=['constituency'])
         else:
             sc_code = int(row[6])
             sub_constituency = SubConstituency.objects.get(
                 code=sc_code,
                 tally=tally)
+            sub_constituency.constituency = constituency
+            sub_constituency.save(update_fields=['constituency'])
             center_type = CenterType.GENERAL
 
         try:
@@ -193,7 +209,8 @@ def process_center_row(tally, row, command=None, logger=None):
             center_type=center_type,
             longitude=strip_non_numeric(row[12]),
             latitude=strip_non_numeric(row[13]),
-            tally=tally)
+            tally=tally,
+            constituency=constituency)
 
 
 def import_centers(tally=None, centers_file=None):
