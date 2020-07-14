@@ -189,6 +189,15 @@ def process_center_row(tally, row, command=None, logger=None):
             center_type = CenterType.GENERAL
 
         try:
+            region_name = row[1]
+        except ValueError:
+            region_name = None
+
+        region, _ = Region.objects.get_or_create(
+            name=region_name.strip(),
+            tally=tally)
+
+        try:
             office_number = int(row[3])
         except ValueError:
             office_number = None
@@ -196,7 +205,8 @@ def process_center_row(tally, row, command=None, logger=None):
         office, _ = Office.objects.get_or_create(
             number=office_number,
             name=row[4].strip(),
-            tally=tally)
+            tally=tally,
+            region=region)
 
         Center.objects.get_or_create(
             region=row[1],
