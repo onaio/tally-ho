@@ -2,7 +2,6 @@ from django.db import models
 import reversion
 
 from tally_ho.apps.tally.models.tally import Tally
-from tally_ho.apps.tally.models.center import Center
 from tally_ho.libs.models.base_model import BaseModel
 
 
