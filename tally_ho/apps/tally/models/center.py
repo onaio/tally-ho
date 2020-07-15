@@ -39,11 +39,11 @@ class Center(BaseModel):
                               blank=True,
                               related_name='centers',
                               on_delete=models.PROTECT)
-    contituency = models.ForeignKey(Constituency,
-                                    null=True,
-                                    blank=True,
-                                    related_name='centers',
-                                    on_delete=models.PROTECT)
+    constituency = models.ForeignKey(Constituency,
+                                     null=True,
+                                     blank=True,
+                                     related_name='centers',
+                                     on_delete=models.PROTECT)
 
     def remove(self):
         """Remove this center and related information.
