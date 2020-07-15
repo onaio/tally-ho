@@ -174,11 +174,6 @@ def process_center_row(tally, row, command=None, logger=None):
 
         if sc_code == SPECIAL_VOTING:
             center_type = CenterType.SPECIAL
-            sub_constituency = SubConstituency.objects.get(
-                code=sc_code,
-                tally=tally)
-            sub_constituency.constituency = constituency
-            sub_constituency.save(update_fields=['constituency'])
         else:
             sc_code = int(row[6])
             sub_constituency = SubConstituency.objects.get(
