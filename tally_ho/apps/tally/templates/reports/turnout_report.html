@@ -1,21 +1,21 @@
 {% extends 'base.html' %} {% load i18n %} {% block content %}
 
-<h1>{% trans 'Regions Reports' %}</h1>
+<h1>{{ report_name }}{% trans 's Reports' %}</h1>
 
-<h3>{% trans 'Turn Report per Region' %}</h3>
+<h3>{% trans 'Turn Report per ' %}{{ report_name }}</h3>
 <a href="#">{% trans 'Export' %}</a>
 <table class="table table-striped">
   <tr>
-    <th>{% trans 'Region Name' %}</th>
+    <th>{{ report_name }}{% trans ' Name' %}</th>
     <th>{% trans 'Total number of voters' %}</th>
     <th>{% trans 'Number of voters voted' %}</th>
     <th>{% trans 'Male voters' %}</th>
     <th>{% trans 'Female voters' %}</th>
     <th>{% trans 'Turnout percentage' %}</th>
   </tr>
-  {% for rec in regions_turnout_report %}
+  {% for rec in turnout_report %}
   <tr>
-    <td>{{ rec.result_form__office__region__name }}</td>
+    <td>{{ rec.name }}</td>
     <td>{{ rec.total_number_of_registrants }}</td>
     <td>{{ rec.number_of_voters_voted }}</td>
     <td>{{ rec.male_voters }}</td>
