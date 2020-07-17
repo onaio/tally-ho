@@ -86,3 +86,10 @@ class ConstituencyTurnoutReportView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
 
+        return self.render_to_response(
+            self.get_context_data(
+                tally_id=tally_id,
+                report_name=_(u"Constituency"),
+                turnout_report=generate_voters_turnout_report(
+                    tally_id,
+                    'result_form__center__constituency__name')))
