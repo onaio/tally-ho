@@ -1,4 +1,5 @@
 from django.views.generic import TemplateView
+from django.utils.translation import ugettext_lazy as _
 from guardian.mixins import LoginRequiredMixin
 
 from django.db.models import Q, Sum, F, ExpressionWrapper, IntegerField,\
@@ -71,5 +72,17 @@ class RegionsTurnoutReportView(LoginRequiredMixin,
             self.get_context_data(
                 tally_id=tally_id,
                 report_name=_(u"Region"),
-                turnout_report=regions_turnout_report))
+                turnout_report=generate_voters_turnout_report(
+                    tally_id,
+                    'result_form__office__region__name')))
+
+
+class ConstituencyTurnoutReportView(LoginRequiredMixin,
+                                    mixins.GroupRequiredMixin,
+                                    TemplateView):
+    group_required = groups.TALLY_MANAGER
+    template_name = 'reports/turnout_report.html'
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs['tally_id']
 
