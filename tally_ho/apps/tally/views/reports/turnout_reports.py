@@ -59,6 +59,24 @@ def generate_voters_turnout_report(tally_id, report_column_name):
     return turnout_report
 
 
+def generate_turnout_csv_report(turnout_report, filename, header_map):
+    """
+    Generates a csv export of the turnout report.
+
+    :param turnout_report: Turnout report query set.
+    :param filename: Turnout report export file name.
+    :param header_map: Turnout report headers.
+
+    returns: Generates a csv export file.
+    """
+
+    return render_to_csv_response(
+        turnout_report,
+        filename=filename,
+        append_datestamp=True,
+        field_header_map=header_map)
+
+
 class RegionsTurnoutReportView(LoginRequiredMixin,
                                mixins.GroupRequiredMixin,
                                TemplateView):
