@@ -1,6 +1,7 @@
 from django.views.generic import TemplateView
 from django.utils.translation import ugettext_lazy as _
 from guardian.mixins import LoginRequiredMixin
+from djqscsv import render_to_csv_response
 
 from django.db.models import Q, Sum, F, ExpressionWrapper, IntegerField,\
     Value as V
@@ -85,14 +86,32 @@ class RegionsTurnoutReportView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
+        format_ = kwargs.get('format')
+        turnout_report = generate_voters_turnout_report(
+            tally_id,
+            'result_form__office__region__name')
+
+        if format_ and format_ == 'csv':
+            header_map = {
+                'name': 'region name',
+                'total_number_of_registrants': 'total number of voters',
+                'number_of_voters_voted': 'number of voters voted',
+                'male_voters': 'male voters',
+                'female_voters': 'female voters',
+                'turnout_percentage': 'turnout percentage'
+            }
+
+            return generate_turnout_csv_report(
+                turnout_report=turnout_report,
+                filename='regions_turnout_report',
+                header_map=header_map)
 
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
                 report_name=_(u"Region"),
-                turnout_report=generate_voters_turnout_report(
-                    tally_id,
-                    'result_form__office__region__name')))
+                report_download_url="regions-turnout-csv",
+                turnout_report=turnout_report))
 
 
 class ConstituencyTurnoutReportView(LoginRequiredMixin,
@@ -103,14 +122,32 @@ class ConstituencyTurnoutReportView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
+        format_ = kwargs.get('format')
+        turnout_report = generate_voters_turnout_report(
+            tally_id,
+            'result_form__center__constituency__name')
+
+        if format_ and format_ == 'csv':
+            header_map = {
+                'name': 'constituency name',
+                'total_number_of_registrants': 'total number of voters',
+                'number_of_voters_voted': 'number of voters voted',
+                'male_voters': 'male voters',
+                'female_voters': 'female voters',
+                'turnout_percentage': 'turnout percentage'
+            }
+
+            return generate_turnout_csv_report(
+                turnout_report=turnout_report,
+                filename='constituencies_turnout_report',
+                header_map=header_map)
 
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
                 report_name=_(u"Constituency"),
-                turnout_report=generate_voters_turnout_report(
-                    tally_id,
-                    'result_form__center__constituency__name')))
+                report_download_url="constituencies-turnout-csv",
+                turnout_report=turnout_report))
 
 
 class SubConstituencyTurnoutReportView(LoginRequiredMixin,
@@ -121,11 +158,29 @@ class SubConstituencyTurnoutReportView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
+        format_ = kwargs.get('format')
+        turnout_report = generate_voters_turnout_report(
+            tally_id,
+            'result_form__center__sub_constituency__code')
+
+        if format_ and format_ == 'csv':
+            header_map = {
+                'name': 'subconstituency name',
+                'total_number_of_registrants': 'total number of voters',
+                'number_of_voters_voted': 'number of voters voted',
+                'male_voters': 'male voters',
+                'female_voters': 'female voters',
+                'turnout_percentage': 'turnout percentage'
+            }
+
+            return generate_turnout_csv_report(
+                turnout_report=turnout_report,
+                filename='sub_constituencies_turnout_report',
+                header_map=header_map)
 
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
+                report_download_url="sub-constituencies-turnout-csv",
                 report_name=_(u"Sub Constituency"),
-                turnout_report=generate_voters_turnout_report(
-                    tally_id,
-                    'result_form__center__sub_constituency__code')))
+                turnout_report=turnout_report))
