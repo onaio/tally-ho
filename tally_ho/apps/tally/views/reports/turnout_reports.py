@@ -10,9 +10,9 @@ from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 
 
-class TurnoutReportView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        TemplateView):
+class RegionsTurnoutReportView(LoginRequiredMixin,
+                               mixins.GroupRequiredMixin,
+                               TemplateView):
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/regions.html'
 
