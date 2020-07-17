@@ -3,7 +3,7 @@
 <h1>{{ report_name }}{% trans ' Reports' %}</h1>
 
 <h3>{% trans 'Turn Report per ' %}{{ report_name }}</h3>
-<a href="#">{% trans 'Export' %}</a>
+<a href="{% url report_download_url tally_id 'csv' %}">{% trans 'Export' %}</a>
 <table class="table table-striped">
   <tr>
     <th>{{ report_name }}{% trans ' Name' %}</th>
