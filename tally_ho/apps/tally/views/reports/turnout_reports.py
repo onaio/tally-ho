@@ -101,7 +101,7 @@ class SubConstituencyTurnoutReportView(LoginRequiredMixin,
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/turnout_report.html'
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
 
         return self.render_to_response(
