@@ -185,9 +185,10 @@ def create_center(code='1',
         center_type=CenterType.GENERAL)[0]
 
 
-def create_office(name='office', tally=None):
+def create_office(name='office', tally=None, region=None):
     office, _ = Office.objects.get_or_create(name=name,
-                                             tally=tally)
+                                             tally=tally,
+                                             region=region)
 
     return office
 
