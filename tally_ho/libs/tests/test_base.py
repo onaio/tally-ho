@@ -171,7 +171,8 @@ def create_center(code='1',
                   office_name='office',
                   tally=None,
                   active=True,
-                  sub_constituency=None):
+                  sub_constituency=None,
+                  constituency=None):
     return Center.objects.get_or_create(
         code=code,
         mahalla='1',
@@ -182,7 +183,8 @@ def create_center(code='1',
         active=active,
         tally=tally,
         sub_constituency=sub_constituency,
-        center_type=CenterType.GENERAL)[0]
+        center_type=CenterType.GENERAL,
+        constituency=constituency)[0]
 
 
 def create_office(name='office', tally=None, region=None):
