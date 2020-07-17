@@ -14,7 +14,7 @@ class RegionsTurnoutReportView(LoginRequiredMixin,
                                mixins.GroupRequiredMixin,
                                TemplateView):
     group_required = groups.TALLY_MANAGER
-    template_name = 'reports/regions.html'
+    template_name = 'reports/turnout_report.html'
 
     def get(self, *args, **kwargs):
         tally_id = kwargs['tally_id']
@@ -22,8 +22,11 @@ class RegionsTurnoutReportView(LoginRequiredMixin,
             ReconciliationForm.objects.get_registrants_and_votes_type().filter(
                 result_form__tally__id=tally_id,
                 entry_version=EntryVersion.FINAL
-            ).values(
-                'result_form__office__region__name'
+            )\
+            .annotate(
+                name=F('result_form__office__region__name'))\
+            .values(
+                'name'
             )\
             .annotate(
                 number_of_voters_voted=Sum('number_valid_votes'))\
@@ -53,4 +56,6 @@ class RegionsTurnoutReportView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
-                regions_turnout_report=regions_turnout_report))
+                report_name=_(u"Region"),
+                turnout_report=regions_turnout_report))
+
