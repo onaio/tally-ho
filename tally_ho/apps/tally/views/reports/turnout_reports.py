@@ -91,7 +91,7 @@ class RegionsTurnoutReportView(LoginRequiredMixin,
             tally_id,
             'result_form__office__region__name')
 
-        if format_ and format_ == 'csv':
+        if format_ == 'csv':
             header_map = {
                 'name': 'region name',
                 'total_number_of_registrants': 'total number of voters',
@@ -127,7 +127,7 @@ class ConstituencyTurnoutReportView(LoginRequiredMixin,
             tally_id,
             'result_form__center__constituency__name')
 
-        if format_ and format_ == 'csv':
+        if format_ == 'csv':
             header_map = {
                 'name': 'constituency name',
                 'total_number_of_registrants': 'total number of voters',
@@ -163,7 +163,7 @@ class SubConstituencyTurnoutReportView(LoginRequiredMixin,
             tally_id,
             'result_form__center__sub_constituency__code')
 
-        if format_ and format_ == 'csv':
+        if format_ == 'csv':
             header_map = {
                 'name': 'subconstituency name',
                 'total_number_of_registrants': 'total number of voters',

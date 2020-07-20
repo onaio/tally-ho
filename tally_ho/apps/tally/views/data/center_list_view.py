@@ -62,7 +62,7 @@ class CenterListView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         format_ = kwargs.get('format')
 
-        if format_ and format_ == 'csv':
+        if format_ == 'csv':
             station_list = Station.objects.filter(center__tally__id=tally_id)
 
             station_list = station_list.values(
