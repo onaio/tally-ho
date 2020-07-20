@@ -28,7 +28,9 @@
 
 <h3>{% trans 'Reports' %}</h3>
 <ul>
-    <li><a href="{% url 'reports-offices' tally_id=tally_id %}">{% trans 'Reports Offices' %}</a></li>
+    <li><a href="{% url 'reports-regions' tally_id=tally_id %}">{% trans 'Reports Regions' %}</a></li>
+    <li><a href="{% url 'reports-constituencies' tally_id=tally_id %}">{% trans 'Reports Constituencies' %}</a></li>
+    <li><a href="{% url 'reports-sub-constituencies' tally_id=tally_id %}">{% trans 'Reports Sub Constituencies' %}</a></li>
     <li><a href="{% url 'reports-races' tally_id=tally_id %}">{% trans 'Reports Races' %}</a></li>
     <li><a href="{% url 'form-progress' tally_id=tally_id %}">{% trans 'Form Progress' %}</a></li>
     <li><a href="{% url 'station-overall-votes' tally_id=tally_id %}">{% trans 'Station Overall Votes' %}</a></li>

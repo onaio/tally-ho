@@ -18,6 +18,8 @@ from tally_ho.apps.tally.models.reconciliation_form import (
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
+from tally_ho.apps.tally.models.region import Region
+from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
@@ -169,7 +171,8 @@ def create_center(code='1',
                   office_name='office',
                   tally=None,
                   active=True,
-                  sub_constituency=None):
+                  sub_constituency=None,
+                  constituency=None):
     return Center.objects.get_or_create(
         code=code,
         mahalla='1',
@@ -180,12 +183,14 @@ def create_center(code='1',
         active=active,
         tally=tally,
         sub_constituency=sub_constituency,
-        center_type=CenterType.GENERAL)[0]
+        center_type=CenterType.GENERAL,
+        constituency=constituency)[0]
 
 
-def create_office(name='office', tally=None):
+def create_office(name='office', tally=None, region=None):
     office, _ = Office.objects.get_or_create(name=name,
-                                             tally=tally)
+                                             tally=tally,
+                                             region=region)
 
     return office
 
@@ -304,6 +309,32 @@ def create_site_info(
     )
 
     return site_info
+
+
+def create_region(
+    name='Region',
+    tally=None
+):
+
+    region, _ = Region.objects.get_or_create(
+        name=name,
+        tally=tally,
+    )
+
+    return region
+
+
+def create_constituency(
+    name='Region',
+    tally=None
+):
+
+    constituency, _ = Constituency.objects.get_or_create(
+        name=name,
+        tally=tally,
+    )
+
+    return constituency
 
 
 def result_form_data_blank(result_form):

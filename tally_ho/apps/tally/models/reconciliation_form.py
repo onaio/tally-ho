@@ -1,12 +1,39 @@
 from django.db import models
+from django.db.models import Subquery, OuterRef, IntegerField
 from enumfields import EnumIntegerField
 from django.utils.translation import ugettext_lazy as _
 import reversion
 
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.entry_version import EntryVersion
+
+
+class ReconciliationFormSet(models.QuerySet):
+    def get_registrants_and_votes_type(self):
+        """
+        Use result form station number to get station registrants and gender
+
+        returns: station registrants and gender
+        """
+        station_query = (
+            Station.objects.filter(
+                station_number=OuterRef('result_form__station_number'))
+        )
+
+        return self.annotate(
+            voters_gender_type=Subquery(
+                station_query.values('gender')[:1],
+                output_field=models.CharField()
+            )
+        ).annotate(
+            number_of_registrants=Subquery(
+                station_query.values('registrants')[:1],
+                output_field=IntegerField()
+            )
+        )
 
 
 class ReconciliationForm(BaseModel):
@@ -54,6 +81,7 @@ class ReconciliationForm(BaseModel):
     signature_polling_station_chair = models.BooleanField(
         _('Is the form signed by the polling station chair?'))
     signature_dated = models.BooleanField(_('Is the form dated?'))
+    objects = ReconciliationFormSet.as_manager()
 
     @property
     def number_ballots_used(self):

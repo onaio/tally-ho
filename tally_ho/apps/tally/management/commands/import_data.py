@@ -13,6 +13,8 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.region import Region
+from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.libs.models.enums.form_state import FormState
@@ -158,6 +160,15 @@ def import_sub_constituencies_and_ballots(tally=None, subconst_file=None):
 
 def process_center_row(tally, row, command=None, logger=None):
     if not invalid_line(row):
+        try:
+            constituency_name = row[5]
+        except ValueError:
+            constituency_name = None
+
+        constituency, _ = Constituency.objects.get_or_create(
+            name=constituency_name.strip(),
+            tally=tally)
+
         sc_code = row[6]
         sub_constituency = None
 
@@ -168,7 +179,18 @@ def process_center_row(tally, row, command=None, logger=None):
             sub_constituency = SubConstituency.objects.get(
                 code=sc_code,
                 tally=tally)
+            sub_constituency.constituency = constituency
+            sub_constituency.save(update_fields=['constituency'])
             center_type = CenterType.GENERAL
+
+        try:
+            region_name = row[1]
+        except ValueError:
+            region_name = None
+
+        region, _ = Region.objects.get_or_create(
+            name=region_name.strip(),
+            tally=tally)
 
         try:
             office_number = int(row[3])
@@ -178,10 +200,11 @@ def process_center_row(tally, row, command=None, logger=None):
         office, _ = Office.objects.get_or_create(
             number=office_number,
             name=row[4].strip(),
-            tally=tally)
+            tally=tally,
+            region=region)
 
         Center.objects.get_or_create(
-            region=row[1],
+            region=region_name,
             code=row[2],
             office=office,
             sub_constituency=sub_constituency,
@@ -191,7 +214,8 @@ def process_center_row(tally, row, command=None, logger=None):
             center_type=center_type,
             longitude=strip_non_numeric(row[12]),
             latitude=strip_non_numeric(row[13]),
-            tally=tally)
+            tally=tally,
+            constituency=constituency)
 
 
 def import_centers(tally=None, centers_file=None):
