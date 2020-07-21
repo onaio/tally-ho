@@ -5,11 +5,15 @@ import sys
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                           "tally_ho.settings.default")
+    # Drop --with-coverage arg if passed
+    if '--with-coverage' in sys.argv:
+        sys.argv.remove('--with-coverage')
+
     is_testing = 'test' in sys.argv
     if is_testing:
         import coverage
         cov = coverage.coverage(
-            source=['.'],
+            source=['tally_ho'],
             omit=['*/tests/*',
                   'manage.py',
                   'tally_ho/wsgi.py',
