@@ -12,7 +12,7 @@ from tally_ho.apps.tally.views import audit, clearance,\
     super_admin, profile, tally_manager
 from tally_ho.apps.tally.views.data import center_list_view, form_list_view,\
     candidate_list_view, race_list_view, user_list_view, tally_list_view
-from tally_ho.apps.tally.views.reports import turnout_reports
+from tally_ho.apps.tally.views.reports import administrative_areas_reports
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 from tally_ho.apps.tally.views.reports import staff_performance_metrics
@@ -360,26 +360,38 @@ urlpatterns = [
             name='clearance-printed'),
 
     re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/$',
-            turnout_reports.RegionsTurnoutReportView.as_view(),
+            administrative_areas_reports.RegionsReportsView.as_view(),
             name='reports-regions'),
     re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
-            r'(?P<format>(csv))/$',
-            turnout_reports.RegionsTurnoutReportView.as_view(),
+            r'(?P<export_type>(turnout-csv))/$',
+            administrative_areas_reports.RegionsReportsView.as_view(),
             name='regions-turnout-csv'),
+    re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
+            r'(?P<export_type>(summary-csv))/$',
+            administrative_areas_reports.RegionsReportsView.as_view(),
+            name='regions-summary-csv'),
     re_path(r'^reports/internal/constituencies/(?P<tally_id>(\d+))/$',
-            turnout_reports.ConstituencyTurnoutReportView.as_view(),
+            administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='reports-constituencies'),
     re_path(r'^reports/internal/constituencies/(?P<tally_id>(\d+))/'
-            r'(?P<format>(csv))/$',
-            turnout_reports.ConstituencyTurnoutReportView.as_view(),
+            r'(?P<export_type>(turnout-csv))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='constituencies-turnout-csv'),
+    re_path(r'^reports/internal/constituencies/(?P<tally_id>(\d+))/'
+            r'(?P<export_type>(summary-csv))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(),
+            name='constituencies-summary-csv'),
     re_path(r'^reports/internal/sub-constituencies/(?P<tally_id>(\d+))/$',
-            turnout_reports.SubConstituencyTurnoutReportView.as_view(),
+            administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='reports-sub-constituencies'),
     re_path(r'^reports/internal/sub-constituencies/(?P<tally_id>(\d+))/'
-            r'(?P<format>(csv))/$',
-            turnout_reports.SubConstituencyTurnoutReportView.as_view(),
+            r'(?P<export_type>(turnout-csv))/$',
+            administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituencies-turnout-csv'),
+    re_path(r'^reports/internal/sub-constituencies/(?P<tally_id>(\d+))/'
+            r'(?P<export_type>(summary-csv))/$',
+            administrative_areas_reports.SubConstituencyReportsView.as_view(),
+            name='sub-constituencies-summary-csv'),
     re_path(r'^reports/internal/offices/(?P<tally_id>(\d+))/$',
             offices.OfficesReportView.as_view(),
             name='reports-offices'),
