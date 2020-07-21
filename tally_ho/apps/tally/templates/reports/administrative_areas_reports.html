@@ -1,0 +1,51 @@
+{% extends 'base.html' %} {% load i18n %} {% block content %}
+
+<h1>{{ report_name }}{% trans ' Reports' %}</h1>
+
+<h3>{% trans 'Turn Report' %}</h3>
+<a href="{% url turn_out_report_download_url tally_id 'turnout-csv' %}"
+  >{% trans 'Export' %}</a
+>
+<table class="table table-striped">
+  <tr>
+    <th>{{ report_name }}{% trans ' Name' %}</th>
+    <th>{% trans 'Total number of voters' %}</th>
+    <th>{% trans 'Number of voters voted' %}</th>
+    <th>{% trans 'Male voters' %}</th>
+    <th>{% trans 'Female voters' %}</th>
+    <th>{% trans 'Turnout percentage' %}</th>
+  </tr>
+  {% for rec in turnout_report %}
+  <tr>
+    <td>{{ rec.name }}</td>
+    <td>{{ rec.total_number_of_registrants }}</td>
+    <td>{{ rec.number_of_voters_voted }}</td>
+    <td>{{ rec.male_voters }}</td>
+    <td>{{ rec.female_voters }}</td>
+    <td>{{ rec.turnout_percentage }} %</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3>{% trans 'Votes Summary Report' %}</h3>
+<a href="{% url summary_report_download_url tally_id 'summary-csv' %}"
+  >{% trans 'Export' %}</a
+>
+<table class="table table-striped">
+  <tr>
+    <th>{{ report_name }}{% trans ' Name' %}</th>
+    <th>{% trans 'Total number of valid votes' %}</th>
+    <th>{% trans 'Total number of invalid votes' %}</th>
+    <th>{% trans 'Total number of cancelled votes' %}</th>
+  </tr>
+  {% for rec in summary_report %}
+  <tr>
+    <td>{{ rec.name }}</td>
+    <td>{{ rec.number_valid_votes }}</td>
+    <td>{{ rec.number_invalid_votes }}</td>
+    <td>{{ rec.number_cancelled_ballots }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
