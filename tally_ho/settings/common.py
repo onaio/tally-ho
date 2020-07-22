@@ -132,9 +132,9 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 SITE_ID = 1
 
 NOSE_ARGS = [
+    '--logging-level=INFO',
     '--cover-erase',
-    '--with-coverage',
-    '--cover-package=tally_ho'
+    '--cover-html'
 ]
 
 STATICFILES_FINDERS = (

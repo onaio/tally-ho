@@ -1,5 +1,6 @@
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+from djqscsv import render_to_csv_response
 
 
 def get_edits_link(station):
@@ -107,3 +108,21 @@ def get_result_form_edit_delete_links(result_form):
                               url_delete_form, _('Delete'))
 
     return button_html
+
+
+def generate_csv_export(report_query_set, filename, header_map):
+    """
+    Generates a csv export.
+
+    :param report_query_set: Report query set.
+    :param filename: Export file name.
+    :param header_map: Export headers.
+
+    returns: Generates a csv export file.
+    """
+
+    return render_to_csv_response(
+        report_query_set,
+        filename=filename,
+        append_datestamp=True,
+        field_header_map=header_map)
