@@ -8,7 +8,7 @@ from tally_ho.libs.tests.test_base import create_result_form,\
     create_center, create_region, create_constituency, create_office, TestBase
 
 
-class TestReports(TestBase):
+class TestAdministrativeAreasReports(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
