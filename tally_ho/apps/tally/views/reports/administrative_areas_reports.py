@@ -142,6 +142,9 @@ class RegionsReportsView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
         export_type_ = kwargs.get('export_type')
+        report_type_ = kwargs.get('report_type')
+        report_id = kwargs.get('region_id')
+
         column_name = 'result_form__office__region__name'
         turnout_report = generate_voters_turnout_report(
             tally_id,
@@ -153,6 +156,15 @@ class RegionsReportsView(LoginRequiredMixin,
             tally_id,
             'office__region__name',
             'office__region__id')
+
+        if report_type_ == 'region-report':
+            self.request.session['station_ids'] =\
+                list(regions_with_forms_in_audit.values_list(
+                    'station_number', flat=True))
+            self.request.session['region_name'] =\
+                Region.objects.get(id=report_id).name
+
+            return redirect('center-list', tally_id=tally_id)
 
         if export_type_ == 'turnout-csv':
             header_map = {
