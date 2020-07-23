@@ -12,6 +12,9 @@
 {% endblock %}
 
 {% block content %}
+{% if region_name %}
+    <h1>{% trans 'Region Name: ' %} {{ region_name }}</h1>
+{% endif %}
 <h1>{% trans 'Center and Station List' %}</h1>
 
 <div class="pull-left">
