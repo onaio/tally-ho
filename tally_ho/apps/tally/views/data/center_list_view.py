@@ -32,8 +32,23 @@ class CenterListDataView(LoginRequiredMixin,
         'edit',
     )
 
+    order_columns = (
+        'tally',
+        'station_number'
+    )
+
     def filter_queryset(self, qs):
         keyword = self.request.GET.get('search[value]', None)
+        tally_id = self.kwargs.get('tally_id')
+        station_ids = self.request.session.get(
+            'station_ids')
+
+        if station_ids:
+            qs =\
+                qs.filter(
+                    center__tally__id=tally_id,
+                    station_number__in=station_ids).distinct(
+                        'tally', 'station_number')
 
         if keyword:
             qs = qs.filter(Q(station_number__contains=keyword) |
