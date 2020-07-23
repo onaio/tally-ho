@@ -48,4 +48,33 @@
   {% endfor %}
 </table>
 
+<h3>{% trans 'Process Discrepancy Report' %}</h3>
+<table class="table table-striped">
+  <tr>
+    <th>{{ report_name }}{% trans ' Name' %}</th>
+    <th>{% trans 'Centers in Audit' %}</th>
+    <th>{% trans 'Stations in Audit' %}</th>
+    <th>{% trans 'Total' %}</th>
+    <th>{% trans 'Actions' %}</th>
+  </tr>
+  {% for rec in admin_ares_with_forms_in_audit %}
+  <tr>
+    <td>{{ rec.admin_area_name }}</td>
+    <td>{{ rec.number_of_centers_in_audit_state }}</td>
+    <td>{{ rec.number_of_stations_in_audit_state }}</td>
+    <td>{{ rec.total_num_of_centers_and_stations_in_audit }}</td>
+    <td>
+      <a href="#" class="btn btn-default btn-small vertical-margin"
+        >View Constituencies Report</a
+      >
+      <a
+        href="{% url regions_report_url tally_id rec.admin_area_id 'region-report' %}"
+        class="btn btn-default btn-small vertical-margin"
+        >View Region Report</a
+      >
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
 {% endblock %}
