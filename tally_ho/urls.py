@@ -363,6 +363,10 @@ urlpatterns = [
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='reports-regions'),
     re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/(?P<report_type>(region-report))/$',
+            administrative_areas_reports.RegionsReportsView.as_view(),
+            name='regions-discrepancy-report'),
+    re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
             r'(?P<export_type>(turnout-csv))/$',
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='regions-turnout-csv'),
