@@ -261,9 +261,10 @@ class ReviewView(LoginRequiredMixin,
 
             return redirect(url, tally_id=tally_id)
         else:
-            return self.render_to_response(self.get_context_data(form=form,
-                                           result_form=result_form,
-                                           tally_id=tally_id))
+            return self.render_to_response(
+                self.get_context_data(form=form,
+                                      result_form=result_form,
+                                      tally_id=tally_id))
 
 
 class PrintCoverView(LoginRequiredMixin,
@@ -346,7 +347,7 @@ class CreateAuditView(LoginRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode'] or\
-                        form.cleaned_data['barcode_scan']
+                form.cleaned_data['barcode_scan']
             result_form = get_object_or_404(ResultForm,
                                             barcode=barcode,
                                             tally__id=tally_id)
