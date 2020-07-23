@@ -149,6 +149,10 @@ class RegionsReportsView(LoginRequiredMixin,
         summary_report = generate_votes_summary_report(
             tally_id,
             column_name)
+        regions_with_forms_in_audit = get_admin_areas_with_forms_in_audit(
+            tally_id,
+            'office__region__name',
+            'office__region__id')
 
         if export_type_ == 'turnout-csv':
             header_map = {
@@ -185,7 +189,9 @@ class RegionsReportsView(LoginRequiredMixin,
                 turn_out_report_download_url="regions-turnout-csv",
                 summary_report_download_url="regions-summary-csv",
                 turnout_report=turnout_report,
-                summary_report=summary_report))
+                summary_report=summary_report,
+                admin_ares_with_forms_in_audit=regions_with_forms_in_audit,
+                regions_report_url='regions-discrepancy-report'))
 
 
 class ConstituencyReportsView(LoginRequiredMixin,
