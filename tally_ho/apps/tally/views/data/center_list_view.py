@@ -91,4 +91,7 @@ class CenterListView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('center-list-data', kwargs=kwargs),
-            tally_id=tally_id))
+            tally_id=tally_id,
+            region_name=self.request.session.get(
+                'region_name', None)
+        ))
