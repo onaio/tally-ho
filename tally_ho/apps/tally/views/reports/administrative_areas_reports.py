@@ -2,14 +2,55 @@ from django.views.generic import TemplateView
 from django.utils.translation import ugettext_lazy as _
 from guardian.mixins import LoginRequiredMixin
 
-from django.db.models import Q, Sum, F, ExpressionWrapper, IntegerField,\
-    Value as V
+from django.db.models import Count, Q, Sum, F, ExpressionWrapper,\
+    IntegerField, Value as V
 from django.db.models.functions import Coalesce
+from django.shortcuts import redirect
+from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.utils.templates import generate_csv_export
+
+
+def get_admin_areas_with_forms_in_audit(
+        tally_id, report_column_name, report_column_id):
+    """
+    Genarate a report of stations and centers with result forms in audit state.
+
+    :param tally_id: The reconciliation forms tally.
+    :param report_column_name: The result form report column name.
+    :param report_column_id: The result form report column id.
+
+    returns: The stations and centers report grouped by the report column name.
+    """
+    qs =\
+        ResultForm.objects.filter(
+            tally__id=tally_id,
+            form_state=FormState.AUDIT
+        )\
+        .annotate(
+            admin_area_name=F(report_column_name))\
+        .annotate(
+            admin_area_id=F(report_column_id))\
+        .values(
+            'admin_area_name',
+            'admin_area_id'
+        )\
+        .annotate(
+            number_of_centers_in_audit_state=Count('center'))\
+        .annotate(
+            number_of_stations_in_audit_state=Count('station_number'))\
+        .annotate(
+            total_num_of_centers_and_stations_in_audit=ExpressionWrapper(
+                F('number_of_centers_in_audit_state') +
+                F('number_of_stations_in_audit_state'),
+                output_field=IntegerField()))
+
+    return qs
 
 
 def generate_voters_turnout_report(tally_id, report_column_name):
