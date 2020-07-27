@@ -101,8 +101,9 @@ def audit(tally_id=None):
     considering only forms that are not unsubmitted.
 
     :returns: A list of result forms in the system that are in audit pending
-    state.
+        state.
     """
+
     return ResultForm.objects.filter(form_state=FormState.AUDIT,
                                      tally__id=tally_id)
 
