@@ -14,6 +14,7 @@
 
 import sys
 import os
+import django
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -21,7 +22,7 @@ import os
 sys.path.insert(0, os.path.abspath('../..'))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE',
                       'tally_ho.settings.common')
-
+django.setup()
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
