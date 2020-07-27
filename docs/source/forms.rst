@@ -37,12 +37,6 @@ Login Form
     :members:
     :undoc-members:
 
-New Result Form
----------------
-.. automodule:: tally_ho.apps.tally.forms.new_result_form
-    :members:
-    :undoc-members:
-
 Pass to Quality Control Form
 ----------------------------
 .. automodule:: tally_ho.apps.tally.forms.pass_to_quality_control_form
