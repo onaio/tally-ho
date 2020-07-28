@@ -1,12 +1,6 @@
 Views
 =====
 
-Archive
--------
-.. automodule:: tally_ho.apps.tally.views.archive
-    :members:
-    :undoc-members:
-
 Clearance
 ---------
 .. automodule:: tally_ho.apps.tally.views.clearance

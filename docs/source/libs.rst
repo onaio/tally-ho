@@ -45,7 +45,7 @@ BaseModel
 
 Dependencies
 ------------
-.. automodule:: tally_ho.libs.permissions.dependencies
+.. automodule:: tally_ho.libs.models.dependencies
     :members:
     :undoc-members:
 

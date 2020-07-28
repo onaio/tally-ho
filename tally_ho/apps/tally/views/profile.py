@@ -10,9 +10,11 @@ class PersistSessionVars(object):
     """The logout view, will reset all session state.
     However, we occasionally want to persist some of those session variables,
     for example incase a session expires in the middle of data entry.
-    :param object: The list of session variables to be persisted after
-        session expiry.
+
+    :param object: The list of session variables to be persisted after session
+        expiry.
     """
+
     session_backup = {}
 
     def __init__(self, session_vars):
