@@ -232,14 +232,25 @@ class ConstituencyReportsView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
+        region_id = kwargs['region_id']
+        region_name =\
+            Region.objects.get(
+                id=region_id, tally__id=tally_id).name if region_id else None
         export_type_ = kwargs.get('export_type')
         column_name = 'result_form__center__constituency__name'
-        turnout_report = generate_voters_turnout_report(
-            tally_id,
-            column_name)
-        summary_report = generate_votes_summary_report(
-            tally_id,
-            column_name)
+        column_id = 'result_form__center__constituency__id'
+        turnout_report = generate_report(
+            tally_id=tally_id,
+            report_column_name=column_name,
+            report_column_id=column_id,
+            report_type_name=report_types[1],
+            region_id=region_id)
+        summary_report = generate_report(
+            tally_id=tally_id,
+            report_column_name=column_name,
+            report_column_id=column_id,
+            report_type_name=report_types[2],
+            region_id=region_id)
 
         if export_type_ == 'turnout-csv':
             header_map = {
@@ -272,11 +283,16 @@ class ConstituencyReportsView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
-                report_name=_(u"Constituency"),
-                turn_out_report_download_url="constituencies-turnout-csv",
-                summary_report_download_url="constituencies-summary-csv",
+                region_id=region_id,
+                administrative_area_name=_(u'Constituencies'),
+                administrative_area_child_report_name=_(u'Sub Constituencies'),
+                turn_out_report_download_url='constituencies-turnout-csv',
+                summary_report_download_url='constituencies-summary-csv',
                 turnout_report=turnout_report,
-                summary_report=summary_report))
+                summary_report=summary_report,
+                region_name=region_name,
+                child_turnout_report_url='sub-constituency-turnout-report',
+                child_summary_report_url='sub-constituency-summary-report'))
 
 
 class SubConstituencyReportsView(LoginRequiredMixin,
