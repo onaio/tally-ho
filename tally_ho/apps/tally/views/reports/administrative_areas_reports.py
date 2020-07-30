@@ -7,6 +7,7 @@ from django.db.models import Count, Q, Sum, F, ExpressionWrapper,\
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.libs.permissions import groups
@@ -14,6 +15,8 @@ from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.utils.templates import generate_csv_export
+
+report_types = {1: "turnout", 2: "summary"}
 
 
 def get_admin_areas_with_forms_in_audit(
@@ -53,23 +56,29 @@ def get_admin_areas_with_forms_in_audit(
     return qs
 
 
-def generate_voters_turnout_report(
+def generate_report(
         tally_id,
         report_column_name,
         report_column_id,
+        report_type_name,
         region_id=None,
         constituency_id=None):
     """
-    Genarate voters turnout report by using the final reconciliation
-    form to get voter stats.
+    Genarate report by using the final reconciliation form to get voter stats.
 
     :param tally_id: The reconciliation forms tally.
     :param report_column_name: The result form report column name.
     :param region_id: The region id for filtering the recon forms.
     :param constituency_id: The constituency id for filtering the recon forms.
+    :param report_type_name: The report type name to generate.
 
     returns: The turnout report grouped by the report column name.
     """
+    turnout_report_type_name = report_types[1]
+    summary_report_type_name = report_types[2]
+    turnout_report = None
+    summary_report = None
+
     qs =\
         ReconciliationForm.objects.get_registrants_and_votes_type().filter(
             result_form__tally__id=tally_id,
@@ -81,8 +90,7 @@ def generate_voters_turnout_report(
     if constituency_id:
         qs =\
             qs.filter(result_form__center__constituency__id=constituency_id)
-
-    turnout_report =\
+    qs =\
         qs\
         .annotate(
             name=F(report_column_name))\
@@ -94,65 +102,47 @@ def generate_voters_turnout_report(
             'name',
             'admin_area_id',
             'constituency_id'
-        )\
-        .annotate(
-            number_of_voters_voted=Sum('number_valid_votes'))\
-        .annotate(
-            total_number_of_registrants=Sum('number_of_registrants'))\
-        .annotate(
-            total_number_of_ballots_used=Sum(
-                ExpressionWrapper(F('number_valid_votes') +
-                                  F('number_cancelled_ballots') +
-                                  F('number_unstamped_ballots') +
-                                  F('number_invalid_votes'),
-                                  output_field=IntegerField())))\
-        .annotate(turnout_percentage=ExpressionWrapper(
-            V(100) *
-            F('total_number_of_ballots_used') /
-            F('total_number_of_registrants'),
-            output_field=IntegerField()))\
-        .annotate(male_voters=Coalesce(
-            Sum('number_valid_votes',
-                filter=Q(voters_gender_type=0)),
-            V(0)))\
-        .annotate(female_voters=Coalesce(
-            Sum('number_valid_votes',
-                filter=Q(voters_gender_type=1)),
-            V(0)))
+        )
 
-    return turnout_report
+    if report_type_name == turnout_report_type_name:
+        turnout_report =\
+            qs\
+            .annotate(
+                number_of_voters_voted=Sum('number_valid_votes'))\
+            .annotate(
+                total_number_of_registrants=Sum('number_of_registrants'))\
+            .annotate(
+                total_number_of_ballots_used=Sum(
+                    ExpressionWrapper(F('number_valid_votes') +
+                                      F('number_cancelled_ballots') +
+                                      F('number_unstamped_ballots') +
+                                      F('number_invalid_votes'),
+                                      output_field=IntegerField())))\
+            .annotate(turnout_percentage=ExpressionWrapper(
+                V(100) *
+                F('total_number_of_ballots_used') /
+                F('total_number_of_registrants'),
+                output_field=IntegerField()))\
+            .annotate(male_voters=Coalesce(
+                Sum('number_valid_votes',
+                    filter=Q(voters_gender_type=0)),
+                V(0)))\
+            .annotate(female_voters=Coalesce(
+                Sum('number_valid_votes',
+                    filter=Q(voters_gender_type=1)),
+                V(0)))
 
+    if report_type_name == summary_report_type_name:
+        summary_report =\
+            qs\
+            .annotate(
+                number_valid_votes=Sum('number_valid_votes'))\
+            .annotate(
+                number_invalid_votes=Sum('number_invalid_votes'))\
+            .annotate(
+                number_cancelled_ballots=Sum('number_cancelled_ballots'))
 
-def generate_votes_summary_report(tally_id, adminstrative_area_col_name):
-    """
-    Genarate votes summary report per adminstrative
-    area (region, constituency etc.).
-
-    :param tally_id: The reconciliation forms tally.
-    :param adminstrative_area_col_name: The result form adminstrative area
-    column name.
-
-    returns: The votes summary report grouped by the adminstrative area
-    column name.
-    """
-    summary_report =\
-        ReconciliationForm.objects.get_registrants_and_votes_type().filter(
-            result_form__tally__id=tally_id,
-            entry_version=EntryVersion.FINAL
-        )\
-        .annotate(
-            name=F(adminstrative_area_col_name))\
-        .values(
-            'name'
-        )\
-        .annotate(
-            number_valid_votes=Sum('number_valid_votes'))\
-        .annotate(
-            number_invalid_votes=Sum('number_invalid_votes'))\
-        .annotate(
-            number_cancelled_ballots=Sum('number_cancelled_ballots'))
-
-    return summary_report
+    return turnout_report or summary_report
 
 
 class RegionsReportsView(LoginRequiredMixin,
