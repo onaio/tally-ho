@@ -174,9 +174,9 @@ class RegionsReportsView(LoginRequiredMixin,
             report_column_id=column_id,
             report_type_name=report_types[2])
         regions_with_forms_in_audit = get_admin_areas_with_forms_in_audit(
-            tally_id,
-            'office__region__name',
-            'office__region__id')
+            tally_id=tally_id,
+            report_column_name='office__region__name',
+            report_column_id='office__region__id')
 
         if report_type_ == 'region-report':
             self.request.session['station_ids'] =\
