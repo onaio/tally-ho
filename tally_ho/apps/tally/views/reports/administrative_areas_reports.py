@@ -183,7 +183,7 @@ class RegionsReportsView(LoginRequiredMixin,
                 list(regions_with_forms_in_audit.values_list(
                     'station_number', flat=True))
             self.request.session['region_name'] =\
-                Region.objects.get(id=report_id).name
+                Region.objects.get(id=region_id).name
 
             return redirect('center-list', tally_id=tally_id)
 
