@@ -53,25 +53,47 @@ def get_admin_areas_with_forms_in_audit(
     return qs
 
 
-def generate_voters_turnout_report(tally_id, report_column_name):
+def generate_voters_turnout_report(
+        tally_id,
+        report_column_name,
+        report_column_id,
+        region_id=None,
+        constituency_id=None):
     """
     Genarate voters turnout report by using the final reconciliation
     form to get voter stats.
 
     :param tally_id: The reconciliation forms tally.
     :param report_column_name: The result form report column name.
+    :param region_id: The region id for filtering the recon forms.
+    :param constituency_id: The constituency id for filtering the recon forms.
 
     returns: The turnout report grouped by the report column name.
     """
-    turnout_report =\
+    qs =\
         ReconciliationForm.objects.get_registrants_and_votes_type().filter(
             result_form__tally__id=tally_id,
             entry_version=EntryVersion.FINAL
-        )\
+        )
+    if region_id:
+        qs = qs.filter(result_form__office__region__id=region_id)
+
+    if constituency_id:
+        qs =\
+            qs.filter(result_form__center__constituency__id=constituency_id)
+
+    turnout_report =\
+        qs\
         .annotate(
             name=F(report_column_name))\
+        .annotate(
+            admin_area_id=F(report_column_id))\
+        .annotate(
+            constituency_id=F('result_form__center__constituency__id'))\
         .values(
-            'name'
+            'name',
+            'admin_area_id',
+            'constituency_id'
         )\
         .annotate(
             number_of_voters_voted=Sum('number_valid_votes'))\
