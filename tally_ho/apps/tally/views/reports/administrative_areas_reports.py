@@ -20,7 +20,7 @@ report_types = {1: "turnout", 2: "summary"}
 
 
 def get_admin_areas_with_forms_in_audit(
-        tally_id, report_column_name, report_column_id):
+        tally_id, report_column_name, report_column_id, region_id=None):
     """
     Genarate a report of stations and centers with result forms in audit state.
 
@@ -34,8 +34,12 @@ def get_admin_areas_with_forms_in_audit(
         ResultForm.objects.filter(
             tally__id=tally_id,
             form_state=FormState.AUDIT
-        )\
-        .annotate(
+        )
+    if region_id:
+        qs =\
+            qs.filter(office__region__id=region_id)
+    qs =\
+        qs.annotate(
             admin_area_name=F(report_column_name))\
         .annotate(
             admin_area_id=F(report_column_id))\
