@@ -299,18 +299,37 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                                  mixins.GroupRequiredMixin,
                                  TemplateView):
     group_required = groups.TALLY_MANAGER
-    template_name = 'reports/administrative_areas_reports.html'
 
     def get(self, request, *args, **kwargs):
-        tally_id = kwargs['tally_id']
         export_type_ = kwargs.get('export_type')
+        tally_id = kwargs['tally_id']
+        region_id = kwargs['region_id']
+        constituency_id = kwargs['constituency_id']
+
+        region_name =\
+            Region.objects.get(
+                id=region_id, tally__id=tally_id).name if region_id else None
+        constituency_name =\
+            Constituency.objects.get(
+                id=constituency_id,
+                tally__id=tally_id).name if constituency_id else None
+
         column_name = 'result_form__center__sub_constituency__code'
-        turnout_report = generate_voters_turnout_report(
-            tally_id,
-            column_name)
-        summary_report = generate_votes_summary_report(
-            tally_id,
-            column_name)
+        column_id = 'result_form__center__sub_constituency__id'
+        turnout_report = generate_report(
+            tally_id=tally_id,
+            report_column_name=column_name,
+            report_column_id=column_id,
+            report_type_name=report_types[1],
+            region_id=region_id,
+            constituency_id=constituency_id)
+        summary_report = generate_report(
+            tally_id=tally_id,
+            report_column_name=column_name,
+            report_column_id=column_id,
+            report_type_name=report_types[2],
+            region_id=region_id,
+            constituency_id=constituency_id)
 
         if export_type_ == 'turnout-csv':
             header_map = {
@@ -343,8 +362,12 @@ class SubConstituencyReportsView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
+                region_id=region_id,
+                constituency_id=constituency_id,
                 turn_out_report_download_url="sub-constituencies-turnout-csv",
                 summary_report_download_url="sub-constituencies-summary-csv",
                 turnout_report=turnout_report,
                 summary_report=summary_report,
-                report_name=_(u"Sub Constituency")))
+                administrative_area_name=_(u"Sub Constituencies"),
+                region_name=region_name,
+                constituency_name=constituency_name))
