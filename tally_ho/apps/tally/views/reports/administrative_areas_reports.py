@@ -229,7 +229,6 @@ class ConstituencyReportsView(LoginRequiredMixin,
                               mixins.GroupRequiredMixin,
                               TemplateView):
     group_required = groups.TALLY_MANAGER
-    template_name = 'reports/administrative_areas_reports.html'
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
