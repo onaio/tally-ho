@@ -374,22 +374,48 @@ urlpatterns = [
             r'(?P<export_type>(summary-csv))/$',
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='regions-summary-csv'),
-    re_path(r'^reports/internal/constituencies/(?P<tally_id>(\d+))/$',
+    re_path(r'^reports/internal/constituencies/turnout/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(
+                template_name="reports/turnout_report.html"
+            ),
+            name='constituency-turnout-report'),
+    re_path(r'^reports/internal/constituencies/summary/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(
+                template_name="reports/summary_report.html"
+            ),
+            name='constituency-summary-report'),
+    re_path(r'^reports/internal/constituencies/turnout/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/(?P<export_type>(turnout-csv))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='constituencies-turnout-csv'),
-    re_path(r'^reports/internal/constituencies/(?P<tally_id>(\d+))/'
-            r'(?P<export_type>(summary-csv))/$',
+    re_path(r'^reports/internal/constituencies/summary/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/(?P<export_type>(summary-csv))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='constituencies-summary-csv'),
-    re_path(r'^reports/internal/sub-constituencies/(?P<tally_id>(\d+))/$',
-            administrative_areas_reports.SubConstituencyReportsView.as_view(),
-            name='reports-sub-constituencies'),
-    re_path(r'^reports/internal/sub-constituencies/(?P<tally_id>(\d+))/'
-            r'(?P<export_type>(turnout-csv))/$',
+    re_path(r'^reports/internal/sub-constituencies/turnout/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/$',
+            administrative_areas_reports.SubConstituencyReportsView.as_view(
+                template_name="reports/turnout_report.html"
+            ),
+            name='sub-constituency-turnout-report'),
+    re_path(r'^reports/internal/sub-constituencies/summary/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/$',
+            administrative_areas_reports.SubConstituencyReportsView.as_view(
+                template_name="reports/summary_report.html"
+            ),
+            name='sub-constituency-summary-report'),
+    re_path(r'^reports/internal/sub-constituencies/turnout/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<export_type>(turnout-csv))/$',
             administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituencies-turnout-csv'),
-    re_path(r'^reports/internal/sub-constituencies/(?P<tally_id>(\d+))/'
-            r'(?P<export_type>(summary-csv))/$',
+    re_path(r'^reports/internal/sub-constituencies/summary/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<export_type>(summary-csv))/$',
             administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituencies-summary-csv'),
     re_path(r'^reports/internal/offices/(?P<tally_id>(\d+))/$',
