@@ -1,0 +1,56 @@
+{% extends 'base.html' %} {% load i18n %} {% block content %}
+
+<h1>{% trans 'Region Name ' %}{{ region_name }}</h1>
+<br />
+{% if constituency_name %}
+<h1>{% trans 'Constituency Name ' %}{{ constituency_name }}</h1>
+<br />
+{% endif %}
+
+<h3>{{ administrative_area_name }}{% trans ' Turn Out Report' %}</h3>
+{% if constituency_id %}
+<a
+  href="{% url turn_out_report_download_url tally_id region_id constituency_id 'turnout-csv' %}"
+  >{% trans 'Export' %}</a
+>
+{% else %}
+<a
+  href="{% url turn_out_report_download_url tally_id region_id 'turnout-csv' %}"
+  >{% trans 'Export' %}</a
+>
+{% endif %}
+
+<table class="table table-striped">
+  <tr>
+    <th>{% trans 'Name' %}</th>
+    <th>{% trans 'Total number of voters' %}</th>
+    <th>{% trans 'Number of voters voted' %}</th>
+    <th>{% trans 'Male voters' %}</th>
+    <th>{% trans 'Female voters' %}</th>
+    <th>{% trans 'Turnout percentage' %}</th>
+    {% if administrative_area_child_report_name %}
+    <th>{% trans 'Actions' %}</th>
+    {% endif %}
+  </tr>
+  {% for rec in turnout_report %}
+  <tr>
+    <td>{{ rec.name }}</td>
+    <td>{{ rec.total_number_of_registrants }}</td>
+    <td>{{ rec.number_of_voters_voted }}</td>
+    <td>{{ rec.male_voters }}</td>
+    <td>{{ rec.female_voters }}</td>
+    <td>{{ rec.turnout_percentage }} %</td>
+    {% if administrative_area_child_report_name %}
+    <td>
+      <a
+        href="{% url child_turnout_report_url tally_id rec.admin_area_id rec.constituency_id %}"
+        class="btn btn-default btn-small vertical-margin"
+        >{{ administrative_area_child_report_name }}</a
+      >
+    </td>
+    {% endif %}
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
