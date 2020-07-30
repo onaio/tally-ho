@@ -376,10 +376,6 @@ urlpatterns = [
             name='regions-summary-csv'),
     re_path(r'^reports/internal/constituencies/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(),
-            name='reports-constituencies'),
-    re_path(r'^reports/internal/constituencies/(?P<tally_id>(\d+))/'
-            r'(?P<export_type>(turnout-csv))/$',
-            administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='constituencies-turnout-csv'),
     re_path(r'^reports/internal/constituencies/(?P<tally_id>(\d+))/'
             r'(?P<export_type>(summary-csv))/$',
