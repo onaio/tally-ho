@@ -214,13 +214,15 @@ class RegionsReportsView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
-                report_name=_(u"Region"),
-                turn_out_report_download_url="regions-turnout-csv",
-                summary_report_download_url="regions-summary-csv",
+                report_name=_(u'Region'),
+                turn_out_report_download_url='regions-turnout-csv',
+                summary_report_download_url='regions-summary-csv',
                 turnout_report=turnout_report,
                 summary_report=summary_report,
                 admin_ares_with_forms_in_audit=regions_with_forms_in_audit,
-                regions_report_url='regions-discrepancy-report'))
+                regions_report_url='regions-discrepancy-report',
+                child_turnout_report_url='constituency-turnout-report',
+                child_summary_report_url='constituency-summary-report'))
 
 
 class ConstituencyReportsView(LoginRequiredMixin,

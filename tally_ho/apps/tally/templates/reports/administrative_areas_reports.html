@@ -14,6 +14,7 @@
     <th>{% trans 'Male voters' %}</th>
     <th>{% trans 'Female voters' %}</th>
     <th>{% trans 'Turnout percentage' %}</th>
+    <th>{% trans 'Actions' %}</th>
   </tr>
   {% for rec in turnout_report %}
   <tr>
@@ -23,6 +24,13 @@
     <td>{{ rec.male_voters }}</td>
     <td>{{ rec.female_voters }}</td>
     <td>{{ rec.turnout_percentage }} %</td>
+    <td>
+      <a
+        href="{% url child_turnout_report_url tally_id rec.admin_area_id %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Constituencies Report</a
+      >
+    </td>
   </tr>
   {% endfor %}
 </table>
@@ -37,6 +45,7 @@
     <th>{% trans 'Total number of valid votes' %}</th>
     <th>{% trans 'Total number of invalid votes' %}</th>
     <th>{% trans 'Total number of cancelled votes' %}</th>
+    <th>{% trans 'Actions' %}</th>
   </tr>
   {% for rec in summary_report %}
   <tr>
@@ -44,6 +53,13 @@
     <td>{{ rec.number_valid_votes }}</td>
     <td>{{ rec.number_invalid_votes }}</td>
     <td>{{ rec.number_cancelled_ballots }}</td>
+    <td>
+      <a
+        href="{% url 'constituency-summary-report' tally_id rec.admin_area_id %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Constituencies Report</a
+      >
+    </td>
   </tr>
   {% endfor %}
 </table>
