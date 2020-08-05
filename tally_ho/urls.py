@@ -411,6 +411,23 @@ urlpatterns = [
                 template_name="reports/summary_report.html"
             ),
             name='constituency-summary-report'),
+    re_path(r'^reports/internal/constituencies/discrepancy/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(
+                template_name="reports/process_discrepancy_report.html"
+            ),
+            name='constituency-discrepancy-report'),
+    re_path(r'^reports/internal/constituencies/centers-and-stations-in-audit/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/'
+            r'(?P<report_type>(centers-and-stations-in-audit-report))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(),
+            name='constituency-discrepancy-report'),
+    re_path(r'^reports/internal/constituencies/discrepancy/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<export_type>(discrepancy-csv))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(),
+            name='constituencies-discrepancy-csv'),
     re_path(r'^reports/internal/constituencies/turnout/(?P<tally_id>(\d+))/'
             r'(?P<region_id>(\d+))/(?P<export_type>(turnout-csv))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(),
