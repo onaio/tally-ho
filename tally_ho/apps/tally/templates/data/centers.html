@@ -15,6 +15,12 @@
 {% if region_name %}
     <h1>{% trans 'Region Name: ' %} {{ region_name }}</h1>
 {% endif %}
+{% if constituency_name %}
+    <h1>{% trans 'Constituency Name: ' %} {{ constituency_name }}</h1>
+{% endif %}
+{% if sub_constituency_code %}
+    <h1>{% trans 'Sub Constituency Code: ' %} {{ sub_constituency_code }}</h1>
+{% endif %}
 <h1>{% trans 'Center and Station List' %}</h1>
 
 <div class="pull-left">
