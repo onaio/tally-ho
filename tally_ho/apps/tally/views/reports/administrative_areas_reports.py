@@ -20,13 +20,20 @@ report_types = {1: "turnout", 2: "summary"}
 
 
 def get_admin_areas_with_forms_in_audit(
-        tally_id, report_column_name, report_column_id, region_id=None):
+        tally_id,
+        report_column_name,
+        report_column_id,
+        region_id=None,
+        constituency_id=None):
     """
     Genarate a report of stations and centers with result forms in audit state.
 
     :param tally_id: The reconciliation forms tally.
     :param report_column_name: The result form report column name.
     :param report_column_id: The result form report column id.
+    :param region_id: The result form report region id used for filtering.
+    :param constituency_id: The result form report constituency id
+        used for filtering.
 
     returns: The stations and centers report grouped by the report column name.
     """
@@ -38,6 +45,9 @@ def get_admin_areas_with_forms_in_audit(
     if region_id:
         qs =\
             qs.filter(office__region__id=region_id)
+    if constituency_id:
+        qs =\
+            qs.filter(center__constituency__id=constituency_id)
     qs =\
         qs.annotate(
             admin_area_name=F(report_column_name))\
