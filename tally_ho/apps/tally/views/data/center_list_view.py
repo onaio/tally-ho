@@ -7,6 +7,9 @@ from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.region import Region
+from tally_ho.apps.tally.models.constituency import Constituency
+from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 
@@ -49,6 +52,7 @@ class CenterListDataView(LoginRequiredMixin,
                     center__tally__id=tally_id,
                     station_number__in=station_ids).distinct(
                         'tally', 'station_number')
+            del self.request.session['station_ids']
 
         if keyword:
             qs = qs.filter(Q(station_number__contains=keyword) |
