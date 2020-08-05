@@ -52,10 +52,16 @@ def get_admin_areas_with_forms_in_audit(
         qs.annotate(
             admin_area_name=F(report_column_name))\
         .annotate(
-            admin_area_id=F(report_column_id))\
+            region_id=F('office__region__id'))\
+        .annotate(
+            constituency_id=F('center__constituency__id'))\
+        .annotate(
+            sub_constituency_id=F('center__sub_constituency__id'))\
         .values(
             'admin_area_name',
-            'admin_area_id'
+            'region_id',
+            'constituency_id',
+            'sub_constituency_id'
         )\
         .annotate(
             number_of_centers_in_audit_state=Count('center'))\
