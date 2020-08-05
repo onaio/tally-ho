@@ -440,6 +440,23 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 filename='sub_constituencies_summary_report',
                 header_map=header_map)
 
+        if export_type_ == 'discrepancy-csv':
+            header_map = {
+                'admin_area_name':
+                'constituency name',
+                'number_of_centers_in_audit_state':
+                'centers in audit',
+                'number_of_stations_in_audit_state':
+                'stations in audit',
+                'total_num_of_centers_and_stations_in_audit':
+                'total number of centers and stations in audit'
+            }
+
+            return generate_csv_export(
+                report_query_set=sub_constituencies_forms_in_audit,
+                filename='sub_constituencies_discrepancy_report',
+                header_map=header_map)
+
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
