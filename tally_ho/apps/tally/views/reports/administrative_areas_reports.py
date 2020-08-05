@@ -338,8 +338,10 @@ class SubConstituencyReportsView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         export_type_ = kwargs.get('export_type')
         tally_id = kwargs['tally_id']
-        region_id = kwargs['region_id']
-        constituency_id = kwargs['constituency_id']
+        region_id = kwargs.get('region_id', None)
+        constituency_id = kwargs.get('constituency_id', None)
+        sub_constituency_id = kwargs.get('sub_constituency_id', None)
+        report_type = kwargs.get('report_type', None)
 
         region_name =\
             Region.objects.get(
@@ -365,6 +367,18 @@ class SubConstituencyReportsView(LoginRequiredMixin,
             report_type_name=report_types[2],
             region_id=region_id,
             constituency_id=constituency_id)
+
+        if report_type == 'centers-and-stations-in-audit-report':
+            self.request.session['station_ids'] =\
+                list(sub_constituencies_forms_in_audit.values_list(
+                    'station_number', flat=True))
+
+            return redirect(
+                'center-and-stations-in-audit-list',
+                tally_id=tally_id,
+                region_id=region_id,
+                constituency_id=constituency_id,
+                sub_constituency_id=sub_constituency_id)
 
         if export_type_ == 'turnout-csv':
             header_map = {
