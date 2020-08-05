@@ -79,6 +79,16 @@ urlpatterns = [
             r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
             center_list_view.CenterListDataView.as_view(),
             name='center-list-data'),
+    re_path(r'^data/center-list/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/'
+            r'(?P<sub_constituency_id>(\d+))/$',
+            center_list_view.CenterListView.as_view(),
+            name='center-and-stations-in-audit-list'),
+    re_path(r'^data/center-list-data/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/'
+            r'(?P<sub_constituency_id>(\d+))/$',
+            center_list_view.CenterListDataView.as_view(),
+            name='center-list-data'),
     re_path(r'^data/races-list/(?P<tally_id>(\d+))/$',
             race_list_view.RaceListView.as_view(),
             name='races-list'),
