@@ -388,7 +388,8 @@ urlpatterns = [
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='reports-regions'),
     re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
-            r'(?P<region_id>(\d+))/(?P<report_type>(region-report))/$',
+            r'(?P<region_id>(\d+))/'
+            r'(?P<report_type>(centers-and-stations-in-audit-report))/$',
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='regions-discrepancy-report'),
     re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
