@@ -194,14 +194,15 @@ class RegionsReportsView(LoginRequiredMixin,
             report_column_name='office__region__name',
             report_column_id='office__region__id')
 
-        if report_type_ == 'region-report':
+        if report_type_ == 'centers-and-stations-in-audit-report':
             self.request.session['station_ids'] =\
                 list(regions_with_forms_in_audit.values_list(
                     'station_number', flat=True))
-            self.request.session['region_name'] =\
-                Region.objects.get(id=region_id).name
 
-            return redirect('center-list', tally_id=tally_id)
+            return redirect(
+                'center-and-stations-in-audit-list',
+                tally_id=tally_id,
+                region_id=region_id)
 
         if export_type_ == 'turnout-csv':
             header_map = {
