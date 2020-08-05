@@ -76,6 +76,8 @@ class CenterListView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id', None)
+        constituency_id = kwargs.get('constituency_id', None)
+        sub_constituency_id = kwargs.get('sub_constituency_id', None)
         format_ = kwargs.get('format')
         region_name = None
         constituency_name = None
@@ -83,6 +85,14 @@ class CenterListView(LoginRequiredMixin,
 
         if region_id:
             region_name = Region.objects.get(id=region_id).name
+
+        if constituency_id:
+            constituency_name = Constituency.objects.get(
+                id=constituency_id).name
+
+        if sub_constituency_id:
+            sub_constituency_code = SubConstituency.objects.get(
+                id=sub_constituency_id).code
 
         if format_ == 'csv':
             station_list = Station.objects.filter(center__tally__id=tally_id)
@@ -114,5 +124,7 @@ class CenterListView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('center-list-data', kwargs=kwargs),
             tally_id=tally_id,
-            region_name=region_name
+            region_name=region_name,
+            constituency_name=constituency_name,
+            sub_constituency_code=sub_constituency_code
         ))
