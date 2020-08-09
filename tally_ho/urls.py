@@ -17,6 +17,7 @@ from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 from tally_ho.apps.tally.views.reports import staff_performance_metrics
 from tally_ho.apps.tally.views.reports import station_progress_report
+from tally_ho.apps.tally.views.reports import candidate_list_by_votes
 from tally_ho.apps.tally.views.reports import overall_votes
 from tally_ho.apps.tally.views.reports import votes_per_candidate
 
@@ -98,6 +99,14 @@ urlpatterns = [
     re_path(r'^data/candidate-list-data/(?P<tally_id>(\d+))/$',
             candidate_list_view.CandidateListDataView.as_view(),
             name='candidate-list-data'),
+    re_path(r'^reports/internal/candidate-list-by-votes/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/$',
+            candidate_list_by_votes.CandidateVotesListView.as_view(),
+            name='candidate-list-by-votes'),
+    re_path(r'^reports/internal/candidates-list-by-votes-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+            candidate_list_by_votes.CandidateVotesListDataView.as_view(),
+            name='candidates-list-by-votes-list-data'),
     re_path(r'^data/candidate-list-per-office/(?P<tally_id>(\d+))/'
             r'(?P<office_id>(\d+))/$',
             candidate_list_view.CandidateListView.as_view(),
@@ -392,6 +401,11 @@ urlpatterns = [
             r'(?P<report_type>(centers-and-stations-in-audit-report))/$',
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='regions-discrepancy-report'),
+    re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/'
+            r'(?P<report_type>(candidates-list-by-votes-report))/$',
+            administrative_areas_reports.RegionsReportsView.as_view(),
+            name='region-votes-per-candidate-list'),
     re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
             r'(?P<export_type>(turnout-csv))/$',
             administrative_areas_reports.RegionsReportsView.as_view(),
