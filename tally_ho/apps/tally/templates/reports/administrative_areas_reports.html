@@ -95,4 +95,31 @@
   {% endfor %}
 </table>
 
+<h3>{% trans 'Progressive Report' %}</h3>
+<table class="table table-striped">
+  <tr>
+    <th>{% trans 'Name' %}</th>
+    <th>{% trans 'Total number of Candidates' %}</th>
+    <th>{% trans 'Total number of Votes' %}</th>
+    <th>{% trans 'Actions' %}</th>
+  </tr>
+  {% for rec in progressive_report %}
+  <tr>
+    <td>{{ rec.name }}</td>
+    <td>{{ rec.total_candidates }}</td>
+    <td>{{ rec.total_votes }}</td>
+    <td>
+      <a href="#" class="btn btn-default btn-small vertical-margin"
+        >Region Constituencies Progressive Report</a
+      >
+      <a
+        href="{% url 'region-votes-per-candidate-list' tally_id rec.admin_area_id 'candidates-list-by-votes-report' %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Region votes per candidate</a
+      >
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
 {% endblock %}
