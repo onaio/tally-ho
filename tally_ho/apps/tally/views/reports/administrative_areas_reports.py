@@ -356,6 +356,11 @@ class ConstituencyReportsView(LoginRequiredMixin,
             report_column_id=column_id,
             report_type_name=report_types[2],
             region_id=region_id)
+        progressive_report = generate_progressive_report(
+            tally_id=tally_id,
+            report_column_name=column_name,
+            report_column_id=column_id,
+            region_id=region_id)
         constituencies_forms_in_audit = get_admin_areas_with_forms_in_audit(
             tally_id=tally_id,
             report_column_name='center__constituency__name',
@@ -431,6 +436,7 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 ),
                 turnout_report=turnout_report,
                 summary_report=summary_report,
+                progressive_report=progressive_report,
                 process_discrepancy_report=constituencies_forms_in_audit,
                 region_name=region_name,
                 child_turnout_report_url='sub-constituency-turnout-report',
