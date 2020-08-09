@@ -405,7 +405,8 @@ urlpatterns = [
             r'(?P<region_id>(\d+))/'
             r'(?P<report_type>(candidates-list-by-votes-report))/$',
             administrative_areas_reports.RegionsReportsView.as_view(),
-            name='region-votes-per-candidate-list'),
+            name='region-votes-per-candidate'),
+
     re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
             r'(?P<export_type>(turnout-csv))/$',
             administrative_areas_reports.RegionsReportsView.as_view(),
@@ -414,6 +415,7 @@ urlpatterns = [
             r'(?P<export_type>(summary-csv))/$',
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='regions-summary-csv'),
+
     re_path(r'^reports/internal/constituencies/turnout/(?P<tally_id>(\d+))/'
             r'(?P<region_id>(\d+))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(
@@ -438,6 +440,7 @@ urlpatterns = [
             r'(?P<report_type>(centers-and-stations-in-audit-report))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='constituency-discrepancy-report'),
+
     re_path(r'^reports/internal/constituencies/discrepancy/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
             r'(?P<export_type>(discrepancy-csv))/$',
@@ -451,6 +454,7 @@ urlpatterns = [
             r'(?P<region_id>(\d+))/(?P<export_type>(summary-csv))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='constituencies-summary-csv'),
+
     re_path(r'^reports/internal/sub-constituencies/turnout/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
             r'(?P<constituency_id>(\d+))/$',
@@ -479,6 +483,7 @@ urlpatterns = [
             r'(?P<report_type>(centers-and-stations-in-audit-report))/$',
             administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituency-discrepancy-report'),
+
     re_path(r'^reports/internal/sub-constituencies/discrepancy/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
             r'(?P<constituency_id>(\d+))/(?P<export_type>(discrepancy-csv))/$',
@@ -494,6 +499,7 @@ urlpatterns = [
             r'(?P<constituency_id>(\d+))/(?P<export_type>(summary-csv))/$',
             administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituencies-summary-csv'),
+
     re_path(r'^reports/internal/offices/(?P<tally_id>(\d+))/$',
             offices.OfficesReportView.as_view(),
             name='reports-offices'),
