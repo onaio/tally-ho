@@ -315,7 +315,16 @@ class RegionsReportsView(LoginRequiredMixin,
                 admin_ares_with_forms_in_audit=regions_with_forms_in_audit,
                 regions_report_url='regions-discrepancy-report',
                 child_turnout_report_url='constituency-turnout-report',
-                child_summary_report_url='constituency-summary-report'))
+                child_summary_report_url='constituency-summary-report',
+                child_discrepancy_report_url=str(
+                    'constituency-discrepancy-report'
+                ),
+                child_progressive_report_url=str(
+                    'constituency-progressive-report'
+                ),
+                admin_area_votes_per_candidate_report_url=str(
+                    'region-votes-per-candidate'
+                )))
 
 
 class ConstituencyReportsView(LoginRequiredMixin,
