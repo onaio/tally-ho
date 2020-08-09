@@ -141,6 +141,7 @@ def generate_report(
 
     :param tally_id: The reconciliation forms tally.
     :param report_column_name: The result form report column name.
+    :param report_column_id: The result form report column id.
     :param region_id: The region id for filtering the recon forms.
     :param constituency_id: The constituency id for filtering the recon forms.
     :param report_type_name: The report type name to generate.
@@ -149,12 +150,11 @@ def generate_report(
     """
     turnout_report_type_name = report_types[1]
     summary_report_type_name = report_types[2]
-    turnout_report = None
-    summary_report = None
 
     qs =\
         ReconciliationForm.objects.get_registrants_and_votes_type().filter(
             result_form__tally__id=tally_id,
+            result_form__form_state=FormState.ARCHIVED,
             entry_version=EntryVersion.FINAL
         )
     if region_id:
@@ -178,7 +178,7 @@ def generate_report(
         )
 
     if report_type_name == turnout_report_type_name:
-        turnout_report =\
+        qs =\
             qs\
             .annotate(
                 number_of_voters_voted=Sum('number_valid_votes'))\
@@ -206,7 +206,7 @@ def generate_report(
                 V(0)))
 
     if report_type_name == summary_report_type_name:
-        summary_report =\
+        qs =\
             qs\
             .annotate(
                 number_valid_votes=Sum('number_valid_votes'))\
@@ -215,7 +215,7 @@ def generate_report(
             .annotate(
                 number_cancelled_ballots=Sum('number_cancelled_ballots'))
 
-    return turnout_report or summary_report
+    return qs
 
 
 class RegionsReportsView(LoginRequiredMixin,
