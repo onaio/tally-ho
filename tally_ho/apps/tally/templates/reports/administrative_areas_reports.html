@@ -8,8 +8,8 @@
 >
 <table class="table table-striped">
   <tr>
-    <th>{{ report_name }}{% trans ' Name' %}</th>
-    <th>{% trans 'Total number of voters' %}</th>
+    <th>{% trans 'Name' %}</th>
+    <th>{% trans 'Number of voters' %}</th>
     <th>{% trans 'Number of voters voted' %}</th>
     <th>{% trans 'Male voters' %}</th>
     <th>{% trans 'Female voters' %}</th>
@@ -28,7 +28,7 @@
       <a
         href="{% url child_turnout_report_url tally_id rec.admin_area_id %}"
         class="btn btn-default btn-small vertical-margin"
-        >Constituencies Report</a
+        >Region Constituencies Report</a
       >
     </td>
   </tr>
@@ -41,7 +41,7 @@
 >
 <table class="table table-striped">
   <tr>
-    <th>{{ report_name }}{% trans ' Name' %}</th>
+    <th>{% trans 'Name' %}</th>
     <th>{% trans 'Total number of valid votes' %}</th>
     <th>{% trans 'Total number of invalid votes' %}</th>
     <th>{% trans 'Total number of cancelled votes' %}</th>
@@ -57,7 +57,7 @@
       <a
         href="{% url 'constituency-summary-report' tally_id rec.admin_area_id %}"
         class="btn btn-default btn-small vertical-margin"
-        >Constituencies Report</a
+        >Region Constituencies Report</a
       >
     </td>
   </tr>
@@ -67,7 +67,7 @@
 <h3>{% trans 'Process Discrepancy Report' %}</h3>
 <table class="table table-striped">
   <tr>
-    <th>{{ report_name }}{% trans ' Name' %}</th>
+    <th>{% trans 'Name' %}</th>
     <th>{% trans 'Centers in Audit' %}</th>
     <th>{% trans 'Stations in Audit' %}</th>
     <th>{% trans 'Total' %}</th>
@@ -83,7 +83,7 @@
       <a
         href="{% url 'constituency-discrepancy-report' tally_id rec.region_id %}"
         class="btn btn-default btn-small vertical-margin"
-        >Constituencies Process Discrepancy Report</a
+        >Region Constituencies Process Discrepancy Report</a
       >
       <a
         href="{% url regions_report_url tally_id rec.region_id 'centers-and-stations-in-audit-report' %}"
