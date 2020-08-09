@@ -378,6 +378,17 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 region_id=region_id,
                 constituency_id=constituency_id)
 
+        if report_type == 'votes-per-candidate-report':
+            self.request.session['result_ids'] =\
+                list(progressive_report.values_list(
+                    'id', flat=True))
+
+            return redirect(
+                'candidate-list-by-votes',
+                tally_id=tally_id,
+                region_id=region_id,
+                constituency_id=constituency_id)
+
         if export_type_ == 'turnout-csv':
             header_map = {
                 'name': 'constituency name',
@@ -421,6 +432,21 @@ class ConstituencyReportsView(LoginRequiredMixin,
             return generate_csv_export(
                 report_query_set=constituencies_forms_in_audit,
                 filename='constituencies_discrepancy_report',
+                header_map=header_map)
+
+        if export_type_ == 'progressive-csv':
+            header_map = {
+                'name':
+                'constituency name',
+                'total_candidates':
+                'total candidates',
+                'total_votes':
+                'total votes',
+            }
+
+            return generate_csv_export(
+                report_query_set=progressive_report,
+                filename='constituencies_progressive_report',
                 header_map=header_map)
 
         return self.render_to_response(
@@ -515,6 +541,18 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 constituency_id=constituency_id,
                 sub_constituency_id=sub_constituency_id)
 
+        if report_type == 'votes-per-candidate-report':
+            self.request.session['result_ids'] =\
+                list(progressive_report.values_list(
+                    'id', flat=True))
+
+            return redirect(
+                'candidate-list-by-votes',
+                tally_id=tally_id,
+                region_id=region_id,
+                constituency_id=constituency_id,
+                sub_constituency_id=sub_constituency_id)
+
         if export_type_ == 'turnout-csv':
             header_map = {
                 'name': 'subconstituency name',
@@ -558,6 +596,21 @@ class SubConstituencyReportsView(LoginRequiredMixin,
             return generate_csv_export(
                 report_query_set=sub_constituencies_forms_in_audit,
                 filename='sub_constituencies_discrepancy_report',
+                header_map=header_map)
+
+        if export_type_ == 'progressive-csv':
+            header_map = {
+                'name':
+                'sub constituency name',
+                'total_candidates':
+                'total candidates',
+                'total_votes':
+                'total votes',
+            }
+
+            return generate_csv_export(
+                report_query_set=progressive_report,
+                filename='sub_constituencies_progressive_report',
                 header_map=header_map)
 
         return self.render_to_response(
