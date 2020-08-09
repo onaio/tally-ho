@@ -261,6 +261,16 @@ class RegionsReportsView(LoginRequiredMixin,
                 tally_id=tally_id,
                 region_id=region_id)
 
+        if report_type_ == 'candidates-list-by-votes-report':
+            self.request.session['result_ids'] =\
+                list(progressive_report.values_list(
+                    'id', flat=True))
+
+            return redirect(
+                'candidate-list-by-votes',
+                tally_id=tally_id,
+                region_id=region_id)
+
         if export_type_ == 'turnout-csv':
             header_map = {
                 'name': 'region name',
