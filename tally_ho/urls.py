@@ -107,6 +107,25 @@ urlpatterns = [
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
             candidate_list_by_votes.CandidateVotesListDataView.as_view(),
             name='candidates-list-by-votes-list-data'),
+    re_path(r'^reports/internal/candidate-list-by-votes/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
+            candidate_list_by_votes.CandidateVotesListView.as_view(),
+            name='candidate-list-by-votes'),
+    re_path(r'^reports/internal/candidates-list-by-votes-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/$',
+            candidate_list_by_votes.CandidateVotesListDataView.as_view(),
+            name='candidates-list-by-votes-list-data'),
+    re_path(r'^reports/internal/candidate-list-by-votes/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/'
+            r'(?P<sub_constituency_id>(\d+))/$',
+            candidate_list_by_votes.CandidateVotesListView.as_view(),
+            name='candidate-list-by-votes'),
+    re_path(r'^reports/internal/candidates-list-by-votes-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<sub_constituency_id>(\d+))/$',
+            candidate_list_by_votes.CandidateVotesListDataView.as_view(),
+            name='candidates-list-by-votes-list-data'),
     re_path(r'^data/candidate-list-per-office/(?P<tally_id>(\d+))/'
             r'(?P<office_id>(\d+))/$',
             candidate_list_view.CandidateListView.as_view(),
