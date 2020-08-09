@@ -265,7 +265,7 @@ class RegionsReportsView(LoginRequiredMixin,
                 tally_id=tally_id,
                 region_id=region_id)
 
-        if report_type_ == 'candidates-list-by-votes-report':
+        if report_type_ == 'votes-per-candidate-report':
             self.request.session['result_ids'] =\
                 list(progressive_report.values_list(
                     'id', flat=True))
