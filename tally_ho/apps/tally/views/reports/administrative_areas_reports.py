@@ -57,13 +57,17 @@ def generate_progressive_report(
         .annotate(
             name=F(report_column_name))\
         .annotate(
-            admin_area_id=F(report_column_id))\
+            admin_area_id=F('result_form__office__region__id'))\
         .annotate(
             constituency_id=F('result_form__center__constituency__id'))\
+        .annotate(
+            sub_constituency_id=F(
+                'result_form__center__sub_constituency__id'))\
         .values(
             'name',
             'admin_area_id',
-            'constituency_id'
+            'constituency_id',
+            'sub_constituency_id'
         )\
         .annotate(
             total_candidates=Count('candidate__id'),
