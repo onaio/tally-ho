@@ -1,0 +1,60 @@
+{% extends 'base.html' %} {% load i18n %} {% block content %}
+
+<h1>{% trans 'Region Name ' %}{{ region_name }}</h1>
+<br />
+{% if constituency_name %}
+<h1>{% trans 'Constituency Name ' %}{{ constituency_name }}</h1>
+<br />
+{% endif %}
+
+<h3>{{ administrative_area_name }}{% trans ' Progressive Report' %}</h3>
+{% if constituency_id %}
+<a
+  href="{% url progressive_report_download_url tally_id region_id constituency_id 'progressive-csv' %}"
+  >{% trans 'Export' %}</a
+>
+{% else %}
+<a
+  href="{% url progressive_report_download_url tally_id region_id 'progressive-csv' %}"
+  >{% trans 'Export' %}</a
+>
+{% endif %}
+
+<table class="table table-striped">
+  <tr>
+    <th>{% trans 'Name' %}</th>
+    <th>{% trans 'Total number of Candidates' %}</th>
+    <th>{% trans 'Total number of Votes' %}</th>
+    <th>{% trans 'Actions' %}</th>
+  </tr>
+  {% for rec in progressive_report %}
+  <tr>
+    <td>{{ rec.name }}</td>
+    <td>{{ rec.total_candidates }}</td>
+    <td>{{ rec.total_votes }}</td>
+    <td>
+      {% if administrative_area_child_report_name %}
+      <a
+        href="{% url child_progressive_report_url tally_id rec.admin_area_id rec.constituency_id %}"
+        class="btn btn-default btn-small vertical-margin"
+        >{{ administrative_area_child_report_name }} Progressive Report</a
+      >
+      {% endif %} {% if not administrative_area_child_report_name %}
+      <a
+        href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id rec.sub_constituency_id 'votes-per-candidate-report' %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Sub Constituency votes per candidate</a
+      >
+      {% else %}
+      <a
+        href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id 'votes-per-candidate-report' %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Constituency votes per candidate</a
+      >
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
