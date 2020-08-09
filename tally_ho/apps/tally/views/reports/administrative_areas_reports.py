@@ -7,6 +7,7 @@ from django.db.models import Count, Q, Sum, F, ExpressionWrapper,\
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
@@ -17,6 +18,58 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.utils.templates import generate_csv_export
 
 report_types = {1: "turnout", 2: "summary"}
+
+
+def generate_progressive_report(
+        tally_id,
+        report_column_name,
+        report_column_id,
+        region_id=None,
+        constituency_id=None):
+    """
+    Genarate progressive report of candidates by votes.
+
+    :param tally_id: The result form tally.
+    :param report_column_name: The result form report column name.
+    :param report_column_id: The result form report column id.
+    :param region_id: The result form region id.
+    :param constituency_id: The result form constituency id.
+
+    returns: The candidates votes stats based on an administrative area.
+    """
+    qs =\
+        Result.objects.filter(
+            result_form__tally__id=tally_id,
+            result_form__form_state=FormState.ARCHIVED,
+            entry_version=EntryVersion.FINAL,
+            active=True
+        )
+
+    if region_id:
+        qs = qs.filter(result_form__office__region__id=region_id)
+
+    if constituency_id:
+        qs =\
+            qs.filter(result_form__center__constituency__id=constituency_id)
+
+    qs =\
+        qs\
+        .annotate(
+            name=F(report_column_name))\
+        .annotate(
+            admin_area_id=F(report_column_id))\
+        .annotate(
+            constituency_id=F('result_form__center__constituency__id'))\
+        .values(
+            'name',
+            'admin_area_id',
+            'constituency_id'
+        )\
+        .annotate(
+            total_candidates=Count('candidate__id'),
+            total_votes=Sum('votes'))
+
+    return qs
 
 
 def get_admin_areas_with_forms_in_audit(
