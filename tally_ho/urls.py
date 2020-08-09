@@ -500,12 +500,31 @@ urlpatterns = [
             r'(?P<report_type>(centers-and-stations-in-audit-report))/$',
             administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituency-discrepancy-report'),
+    re_path(r'^reports/internal/sub-constituencies/progressive/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/$',
+            administrative_areas_reports.SubConstituencyReportsView.as_view(
+                template_name="reports/progressive_report.html"
+            ),
+            name='sub-constituency-progressive-report'),
+    re_path(r'^reports/internal/sub-constituencies/'
+            r'votes-per-candidate/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/'
+            r'(?P<sub_constituency_id>(\d+))/'
+            r'(?P<report_type>(votes-per-candidate-report))/$',
+            administrative_areas_reports.SubConstituencyReportsView.as_view(),
+            name='sub-constituency-votes-per-candidate'),
 
     re_path(r'^reports/internal/sub-constituencies/discrepancy/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
             r'(?P<constituency_id>(\d+))/(?P<export_type>(discrepancy-csv))/$',
             administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituencies-discrepancy-csv'),
+    re_path(r'^reports/internal/sub-constituencies/progressive/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<export_type>(progressive-csv))/$',
+            administrative_areas_reports.SubConstituencyReportsView.as_view(),
+            name='sub-constituencies-progressive-csv'),
     re_path(r'^reports/internal/sub-constituencies/turnout/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
             r'(?P<constituency_id>(\d+))/(?P<export_type>(turnout-csv))/$',

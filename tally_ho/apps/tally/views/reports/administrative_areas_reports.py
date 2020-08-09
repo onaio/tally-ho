@@ -431,6 +431,9 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 administrative_area_child_report_name=_(u'Sub Constituencies'),
                 turn_out_report_download_url='constituencies-turnout-csv',
                 summary_report_download_url='constituencies-summary-csv',
+                progressive_report_download_url=str(
+                    'constituencies-progressive-csv'
+                ),
                 discrepancy_report_download_url=str(
                     'constituencies-discrepancy-csv'
                 ),
@@ -441,6 +444,12 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 region_name=region_name,
                 child_turnout_report_url='sub-constituency-turnout-report',
                 child_summary_report_url='sub-constituency-summary-report',
+                child_progressive_report_url=str(
+                    'sub-constituency-progressive-report'
+                ),
+                admin_area_votes_per_candidate_report_url=str(
+                    'constituency-votes-per-candidate'
+                ),
                 constituency_discrepancy_report_url=str(
                     'constituency-discrepancy-report'
                 ),
