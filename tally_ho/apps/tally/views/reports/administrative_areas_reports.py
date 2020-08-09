@@ -242,6 +242,10 @@ class RegionsReportsView(LoginRequiredMixin,
             report_column_name=column_name,
             report_column_id=column_id,
             report_type_name=report_types[2])
+        progressive_report = generate_progressive_report(
+            tally_id=tally_id,
+            report_column_name=column_name,
+            report_column_id=column_id)
         regions_with_forms_in_audit = get_admin_areas_with_forms_in_audit(
             tally_id=tally_id,
             report_column_name='office__region__name',
@@ -293,6 +297,7 @@ class RegionsReportsView(LoginRequiredMixin,
                 summary_report_download_url='regions-summary-csv',
                 turnout_report=turnout_report,
                 summary_report=summary_report,
+                progressive_report=progressive_report,
                 admin_ares_with_forms_in_audit=regions_with_forms_in_audit,
                 regions_report_url='regions-discrepancy-report',
                 child_turnout_report_url='constituency-turnout-report',
