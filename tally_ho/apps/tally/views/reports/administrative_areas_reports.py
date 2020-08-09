@@ -521,6 +521,12 @@ class SubConstituencyReportsView(LoginRequiredMixin,
             report_type_name=report_types[2],
             region_id=region_id,
             constituency_id=constituency_id)
+        progressive_report = generate_progressive_report(
+            tally_id=tally_id,
+            report_column_name=column_name,
+            report_column_id=column_id,
+            region_id=region_id,
+            constituency_id=constituency_id)
         sub_constituencies_forms_in_audit =\
             get_admin_areas_with_forms_in_audit(
                 tally_id=tally_id,
@@ -620,11 +626,18 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 constituency_id=constituency_id,
                 turn_out_report_download_url="sub-constituencies-turnout-csv",
                 summary_report_download_url="sub-constituencies-summary-csv",
+                progressive_report_download_url=str(
+                    'sub-constituencies-progressive-csv'
+                ),
+                admin_area_votes_per_candidate_report_url=str(
+                    'sub-constituency-votes-per-candidate'
+                ),
                 discrepancy_report_download_url=str(
                     'sub-constituencies-discrepancy-csv'
                 ),
                 turnout_report=turnout_report,
                 summary_report=summary_report,
+                progressive_report=progressive_report,
                 process_discrepancy_report=sub_constituencies_forms_in_audit,
                 administrative_area_name=_(u"Sub Constituencies"),
                 region_name=region_name,
