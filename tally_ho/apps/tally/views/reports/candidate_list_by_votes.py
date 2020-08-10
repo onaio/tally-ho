@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 
 from django.db.models import Sum, F
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.utils.html import escape
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.result import Result
@@ -48,11 +49,9 @@ class CandidateVotesListDataView(LoginRequiredMixin,
 
     def render_column(self, row, column):
         if column == 'name':
-            return str('<td class="center sorting_1">'
-                       f'{row["name"]}</td>')
+            return escape('{0}'.format(row["name"]))
         elif column == 'total_votes':
-            return str('<td class="center">'
-                       f'{row["total_votes"]}</td>')
+            return escape('{0}'.format(row["total_votes"]))
         else:
             return super(
                 CandidateVotesListDataView, self).render_column(row, column)
