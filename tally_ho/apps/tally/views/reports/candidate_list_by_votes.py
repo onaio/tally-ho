@@ -23,6 +23,7 @@ class CandidateVotesListDataView(LoginRequiredMixin,
         'candidate.full_name',
         'votes'
     )
+    order_columns = ('votes', 'id')
 
     def filter_queryset(self, qs):
         result_ids = self.request.session.get(
