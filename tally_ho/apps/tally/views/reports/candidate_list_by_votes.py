@@ -31,7 +31,11 @@ class CandidateVotesListDataView(LoginRequiredMixin,
 
         if result_ids:
             qs =\
-                qs.filter(pk__in=result_ids)
+                qs.filter(pk__in=result_ids)\
+                .annotate(
+                    name=F('candidate__full_name'))\
+                .values(
+                    'name').annotate(total_votes=Sum('votes'))
 
         keyword = self.request.GET.get('search[value]', None)
 
