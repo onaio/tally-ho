@@ -46,8 +46,15 @@ class CandidateVotesListDataView(LoginRequiredMixin,
         return qs
 
     def render_column(self, row, column):
-        return super(
-            CandidateVotesListDataView, self).render_column(row, column)
+        if column == 'name':
+            return str('<td class="center sorting_1">'
+                       f'{row["name"]}</td>')
+        elif column == 'total_votes':
+            return str('<td class="center">'
+                       f'{row["total_votes"]}</td>')
+        else:
+            return super(
+                CandidateVotesListDataView, self).render_column(row, column)
 
 
 class CandidateVotesListView(LoginRequiredMixin,
