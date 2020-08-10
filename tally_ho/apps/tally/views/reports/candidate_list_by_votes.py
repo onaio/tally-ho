@@ -42,7 +42,7 @@ class CandidateVotesListDataView(LoginRequiredMixin,
         keyword = self.request.GET.get('search[value]', None)
 
         if keyword:
-            qs = qs.filter(Q(candidate__full_name__contains=keyword))
+            qs = qs.filter(Q(name__contains=keyword))
         return qs
 
     def render_column(self, row, column):
