@@ -623,6 +623,7 @@ class SubConstituencyReportsView(LoginRequiredMixin,
             self.get_context_data(
                 tally_id=tally_id,
                 region_id=region_id,
+                administrative_area_child_report_name=None,
                 constituency_id=constituency_id,
                 turn_out_report_download_url="sub-constituencies-turnout-csv",
                 summary_report_download_url="sub-constituencies-summary-csv",
