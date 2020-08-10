@@ -20,10 +20,12 @@ class CandidateVotesListDataView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     model = Result
     columns = (
-        'candidate.full_name',
-        'votes'
+        'name',
+        'total_votes',
     )
-    order_columns = ('votes', 'id')
+    order_columns = (
+        'total_votes',
+    )
 
     def filter_queryset(self, qs):
         result_ids = self.request.session.get(
