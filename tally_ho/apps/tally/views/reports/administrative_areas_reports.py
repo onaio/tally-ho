@@ -70,7 +70,7 @@ def generate_progressive_report(
             'sub_constituency_id'
         )\
         .annotate(
-            total_candidates=Count('candidate__id'),
+            total_candidates=Count('candidate__id', distinct=True),
             total_votes=Sum('votes'))
 
     return qs
