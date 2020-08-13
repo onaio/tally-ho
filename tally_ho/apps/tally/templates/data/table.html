@@ -1,7 +1,11 @@
 {% load i18n staticfiles %}
 <script src="{% static "js/jquery-1.11.0.min.js" %}"></script>
 <script src="{% static "js/jquery.dataTables.min.js" %}"></script>
+<script src="{% static "js/dataTables.buttons.min.js" %}"></script>
+<script src="{% static "js/buttons.html5.min.js" %}"></script>
+<script src="{% static "js/dataTables.select.min.js" %}"></script>
 <script src="{% static "js/data_table.js" %}"></script>
+
 <script type="text/javascript">
     var LIST_JSON_URL = '{{ remote_url }}';
     // translations for datatables
