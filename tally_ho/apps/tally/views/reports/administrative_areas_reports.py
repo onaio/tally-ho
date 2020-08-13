@@ -547,10 +547,14 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 constituency_id=constituency_id,
                 sub_constituency_id=sub_constituency_id)
 
-        if report_type == 'votes-per-candidate-report':
+        if report_type in\
+                ['votes-per-candidate-report',
+                 'candidate-list-sorted-by-ballots-number']:
             self.request.session['result_ids'] =\
                 list(progressive_report.values_list(
                     'id', flat=True))
+            self.request.session['ballot_report'] =\
+                report_type == 'candidate-list-sorted-by-ballots-number'
 
             return redirect(
                 'candidate-list-by-votes',
