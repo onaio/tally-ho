@@ -533,6 +533,13 @@ urlpatterns = [
             r'(?P<report_type>(votes-per-candidate-report))/$',
             administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituency-votes-per-candidate'),
+    re_path(r'^reports/internal/sub-constituencies/'
+            r'votes-per-candidate/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/'
+            r'(?P<sub_constituency_id>(\d+))/'
+            r'(?P<report_type>(candidate-list-sorted-by-ballots-number))/$',
+            administrative_areas_reports.SubConstituencyReportsView.as_view(),
+            name='sub-constituency-votes-per-candidate'),
 
     re_path(r'^reports/internal/sub-constituencies/discrepancy/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
