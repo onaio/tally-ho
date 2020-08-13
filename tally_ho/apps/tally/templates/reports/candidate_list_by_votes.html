@@ -37,6 +37,9 @@
         <tr>
             <th>{% trans 'Candidate Name' %}</th>
             <th>{% trans 'Votes' %}</th>
+            {% if ballot_report %}
+                <th>{% trans 'Ballot Number' %}</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody></tbody>
