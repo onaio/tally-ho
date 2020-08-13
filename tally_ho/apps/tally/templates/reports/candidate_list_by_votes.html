@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with remote_url=remote_url %}
+{% include "data/table.html" with remote_url=remote_url export_file_name=export_file_name %}
 {% endblock %}
 
 {% block content %}
@@ -33,7 +33,7 @@
 </ul>
 {% endif %}
 
-<table class="datatable" class="reduce-size">
+<table class="display datatable" class="reduce-size">
     <thead>
         <tr>
             <th>{% trans 'Candidate Name' %}</th>

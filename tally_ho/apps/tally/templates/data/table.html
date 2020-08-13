@@ -7,6 +7,7 @@
 <script src="{% static "js/data_table.js" %}"></script>
 
 <script type="text/javascript">
+    const exportFileName = '{{ export_file_name }}';
     var LIST_JSON_URL = '{{ remote_url }}';
     // translations for datatables
     var dt_language = {
