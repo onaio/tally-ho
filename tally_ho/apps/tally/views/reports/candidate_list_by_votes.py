@@ -70,6 +70,8 @@ class CandidateVotesListView(LoginRequiredMixin,
         region_id = kwargs.get('region_id', None)
         constituency_id = kwargs.get('constituency_id', None)
         sub_constituency_id = kwargs.get('sub_constituency_id', None)
+        ballot_report = self.request.session.get(
+            'ballot_report', None)
 
         region_name = None
         constituency_name = None
@@ -92,4 +94,6 @@ class CandidateVotesListView(LoginRequiredMixin,
             tally_id=tally_id,
             region_name=region_name,
             constituency_name=constituency_name,
-            sub_constituency_code=sub_constituency_code))
+            sub_constituency_code=sub_constituency_code,
+            export_file_name='candidates-list-by-votes',
+            ballot_report=ballot_report))
