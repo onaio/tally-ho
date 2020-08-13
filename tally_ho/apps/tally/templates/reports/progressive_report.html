@@ -23,8 +23,8 @@
 <table class="table table-striped">
   <tr>
     <th>{% trans 'Name' %}</th>
-    <th>{% trans 'Total number of Candidates' %}</th>
-    <th>{% trans 'Total number of Votes' %}</th>
+    <th>{% trans 'Number of Candidates' %}</th>
+    <th>{% trans 'Number of Votes' %}</th>
     <th>{% trans 'Actions' %}</th>
   </tr>
   {% for rec in progressive_report %}
@@ -44,6 +44,11 @@
         href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id rec.sub_constituency_id 'votes-per-candidate-report' %}"
         class="btn btn-default btn-small vertical-margin"
         >Sub Constituency votes per candidate</a
+      >
+      <a
+        href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id rec.sub_constituency_id 'candidate-list-sorted-by-ballots-number' %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Sub Constituency candidates list by ballot order</a
       >
       {% else %}
       <a
