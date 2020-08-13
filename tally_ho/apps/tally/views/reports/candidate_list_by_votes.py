@@ -24,6 +24,7 @@ class CandidateVotesListDataView(LoginRequiredMixin,
     columns = (
         'name',
         'total_votes',
+        'ballot_number',
     )
     order_columns = (
         'total_votes',
@@ -34,12 +35,18 @@ class CandidateVotesListDataView(LoginRequiredMixin,
             'result_ids')
 
         if result_ids:
+            if self.request.session.get(
+                    'ballot_report', None):
+                self.order_columns = ('ballot_number',)
+
             qs =\
                 qs.filter(pk__in=result_ids)\
                 .annotate(
-                    name=F('candidate__full_name'))\
+                    name=F('candidate__full_name'),
+                    ballot_number=F('candidate__ballot__number'))\
                 .values(
-                    'name').annotate(total_votes=Sum('votes'))
+                    'name',
+                    'ballot_number').annotate(total_votes=Sum('votes'))
 
         keyword = self.request.GET.get('search[value]', None)
 
