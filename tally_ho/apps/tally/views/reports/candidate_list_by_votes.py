@@ -59,6 +59,8 @@ class CandidateVotesListDataView(LoginRequiredMixin,
             return escape('{0}'.format(row["name"]))
         elif column == 'total_votes':
             return escape('{0}'.format(row["total_votes"]))
+        elif column == 'ballot_number':
+            return escape('{0}'.format(row["ballot_number"]))
         else:
             return super(
                 CandidateVotesListDataView, self).render_column(row, column)
