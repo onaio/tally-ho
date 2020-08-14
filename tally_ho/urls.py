@@ -465,10 +465,40 @@ urlpatterns = [
                 template_name="reports/process_discrepancy_report.html"
             ),
             name='constituency-discrepancy-report'),
+    re_path(r'^reports/internal/constituencies/under-investigation/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(
+                template_name="reports/admin_areas_under_investigation.html"
+            ),
+            name='constituencies-under-investigation-report'),
+    re_path(r'^reports/internal/constituencies/after-investigation/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(
+                template_name=str(
+                    "reports/admin_areas_excluded_after_investigation.html"
+                )
+            ),
+            name='constituencies-excluded-after-investigation-report'),
     re_path(r'^reports/internal/constituencies/centers-and-stations-in-audit/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
             r'(?P<constituency_id>(\d+))/'
             r'(?P<report_type>(centers-and-stations-in-audit-report))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(),
+            name='constituency-discrepancy-report'),
+    re_path(r'^reports/internal/constituencies/'
+            r'centers-and-stations-excluded-after-investigation/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/'
+            r'(?P<report_type>'
+            r'(centers-and-stations-under-investigation))/$',
+            administrative_areas_reports.ConstituencyReportsView.as_view(),
+            name='constituency-discrepancy-report'),
+    re_path(r'^reports/internal/constituencies/'
+            r'centers-and-stations-excluded-after-investigation/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/'
+            r'(?P<report_type>'
+            r'(centers-and-stations-excluded-after-investigation))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='constituency-discrepancy-report'),
     re_path(r'^reports/internal/constituencies/progressive/'
