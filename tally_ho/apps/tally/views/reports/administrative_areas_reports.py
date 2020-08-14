@@ -310,23 +310,26 @@ class RegionsReportsView(LoginRequiredMixin,
         export_type_ = kwargs.get('export_type')
         report_type_ = kwargs.get('report_type')
         region_id = kwargs.get('region_id')
-
         column_name = 'result_form__office__region__name'
         column_id = 'result_form__office__region__id'
+
         turnout_report = generate_report(
             tally_id=tally_id,
             report_column_name=column_name,
             report_column_id=column_id,
             report_type_name=report_types[1])
+
         summary_report = generate_report(
             tally_id=tally_id,
             report_column_name=column_name,
             report_column_id=column_id,
             report_type_name=report_types[2])
+
         progressive_report = generate_progressive_report(
             tally_id=tally_id,
             report_column_name=column_name,
             report_column_id=column_id)
+
         regions_with_forms_in_audit = get_admin_areas_with_forms_in_audit(
             tally_id=tally_id,
             report_column_name='office__region__name',
