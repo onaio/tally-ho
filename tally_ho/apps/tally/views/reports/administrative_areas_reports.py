@@ -10,6 +10,7 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.region import Region
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
@@ -17,7 +18,83 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.utils.templates import generate_csv_export
 
-report_types = {1: "turnout", 2: "summary"}
+report_types = {1: "turnout",
+                2: "summary",
+                3: "stations_centers_under_investigation",
+                4: "stations_centers_excluded_after_investigation"}
+
+
+def get_stations_and_centers_by_admin_area(
+        tally_id,
+        report_column_name,
+        report_column_id,
+        report_type_name,
+        region_id=None,
+        constituency_id=None):
+    """
+    Genarate a report of stations and centers under investigation or excluded
+    after investigation.
+
+    :param tally_id: The reconciliation forms tally.
+    :param report_column_name: The result form report column name.
+    :param report_column_id: The result form report column id.
+    :param report_type_name: The report type name to generate.
+    :param region_id: The result form report region id used for filtering.
+    :param constituency_id: The result form report constituency id
+        used for filtering.
+
+    returns: The stations and centers report grouped by the adminstrative
+        area name.
+    """
+    qs =\
+        Station.objects.filter(tally__id=tally_id)
+
+    stations_centers_under_investigation_report_type_name =\
+        report_types[3]
+    stations_centers_excluded_after_investigation_report_type_name =\
+        report_types[4]
+
+    if report_type_name ==\
+            stations_centers_under_investigation_report_type_name:
+        qs =\
+            qs.filter(active=False)
+
+    if report_type_name ==\
+            stations_centers_excluded_after_investigation_report_type_name:
+        qs =\
+            qs.filter(
+                Q(active=True,
+                  center__disable_reason__isnull=False) |
+                Q(active=True,
+                  disable_reason__isnull=False))
+
+    if region_id:
+        qs =\
+            qs.filter(center__office__region__id=region_id)
+    if constituency_id:
+        qs =\
+            qs.filter(center__constituency__id=constituency_id)
+
+    qs =\
+        qs.annotate(
+            admin_area_name=F(report_column_name),
+            region_id=F('center__office__region__id'),
+            constituency_id=F('center__constituency__id'))\
+        .values(
+            'admin_area_name',
+            'region_id',
+            'constituency_id',
+            'sub_constituency__id'
+        )\
+        .annotate(
+            number_of_centers=Count('center'),
+            number_of_stations=Count('station_number'),
+            total_number_of_centers_and_stations=ExpressionWrapper(
+                F('number_of_centers') +
+                F('number_of_stations'),
+                output_field=IntegerField()))
+
+    return qs
 
 
 def generate_progressive_report(
