@@ -422,6 +422,18 @@ urlpatterns = [
             name='regions-discrepancy-report'),
     re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
             r'(?P<region_id>(\d+))/'
+            r'(?P<report_type>'
+            r'(centers-and-stations-under-investigation))/$',
+            administrative_areas_reports.RegionsReportsView.as_view(),
+            name='regions-discrepancy-report'),
+    re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/'
+            r'(?P<report_type>'
+            r'(centers-and-stations-excluded-after-investigation))/$',
+            administrative_areas_reports.RegionsReportsView.as_view(),
+            name='regions-discrepancy-report'),
+    re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
+            r'(?P<region_id>(\d+))/'
             r'(?P<report_type>(votes-per-candidate-report))/$',
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='region-votes-per-candidate'),
