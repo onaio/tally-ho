@@ -16,7 +16,17 @@
     <th>{% trans 'Turnout percentage' %}</th>
     <th>{% trans 'Actions' %}</th>
   </tr>
-  {% for rec in turnout_report %}
+  {% if not turnout_report %}
+  <tr>
+    <td>{% trans 'No Data' %}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  {% else %} {% for rec in turnout_report %}
   <tr>
     <td>{{ rec.name }}</td>
     <td>{{ rec.total_number_of_registrants }}</td>
@@ -32,7 +42,7 @@
       >
     </td>
   </tr>
-  {% endfor %}
+  {% endfor %} {% endif %}
 </table>
 
 <h3>{% trans 'Votes Summary Report' %}</h3>
@@ -47,7 +57,15 @@
     <th>{% trans 'Total number of cancelled votes' %}</th>
     <th>{% trans 'Actions' %}</th>
   </tr>
-  {% for rec in summary_report %}
+  {% if not summary_report %}
+  <tr>
+    <td>{% trans 'No Data' %}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  {% else %} {% for rec in summary_report %}
   <tr>
     <td>{{ rec.name }}</td>
     <td>{{ rec.number_valid_votes }}</td>
@@ -61,7 +79,7 @@
       >
     </td>
   </tr>
-  {% endfor %}
+  {% endfor %} {% endif %}
 </table>
 
 <h3>{% trans 'Process Discrepancy Report' %}</h3>
@@ -103,7 +121,14 @@
     <th>{% trans 'Total number of Votes' %}</th>
     <th>{% trans 'Actions' %}</th>
   </tr>
-  {% for rec in progressive_report %}
+  {% if not progressive_report %}
+  <tr>
+    <td>{% trans 'No Data' %}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  {% else %} {% for rec in progressive_report %}
   <tr>
     <td>{{ rec.name }}</td>
     <td>{{ rec.total_candidates }}</td>
@@ -121,7 +146,7 @@
       >
     </td>
   </tr>
-  {% endfor %}
+  {% endfor %} {% endif %}
 </table>
 
 {% endblock %}
