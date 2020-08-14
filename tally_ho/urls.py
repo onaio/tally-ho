@@ -67,7 +67,7 @@ urlpatterns = [
             name='center-list-data'),
     re_path(r'^data/center-list/(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
             center_list_view.CenterListView.as_view(),
-            name='center-and-stations-in-audit-list'),
+            name='center-and-stations-list'),
     re_path(r'^data/center-list-data/(?P<tally_id>(\d+))/'
             r'(?P<region_id>(\d+))/$',
             center_list_view.CenterListDataView.as_view(),
@@ -75,7 +75,7 @@ urlpatterns = [
     re_path(r'^data/center-list/(?P<tally_id>(\d+))/'
             r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
             center_list_view.CenterListView.as_view(),
-            name='center-and-stations-in-audit-list'),
+            name='center-and-stations-list'),
     re_path(r'^data/center-list-data/(?P<tally_id>(\d+))/'
             r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
             center_list_view.CenterListDataView.as_view(),
@@ -84,7 +84,7 @@ urlpatterns = [
             r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/'
             r'(?P<sub_constituency_id>(\d+))/$',
             center_list_view.CenterListView.as_view(),
-            name='center-and-stations-in-audit-list'),
+            name='center-and-stations-list'),
     re_path(r'^data/center-list-data/(?P<tally_id>(\d+))/'
             r'(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/'
             r'(?P<sub_constituency_id>(\d+))/$',
