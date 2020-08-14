@@ -82,16 +82,26 @@
   {% endfor %} {% endif %}
 </table>
 
-<h3>{% trans 'Process Discrepancy Report' %}</h3>
+<h3>{% trans 'Process Discrepancy Reports' %}</h3>
+<br />
+<h4>{% trans 'Stations and Centers under process audit' %}</h4>
 <table class="table table-striped">
   <tr>
     <th>{% trans 'Name' %}</th>
-    <th>{% trans 'Centers in Audit' %}</th>
-    <th>{% trans 'Stations in Audit' %}</th>
+    <th>{% trans 'Centers' %}</th>
+    <th>{% trans 'Stations' %}</th>
     <th>{% trans 'Total' %}</th>
     <th>{% trans 'Actions' %}</th>
   </tr>
-  {% for rec in admin_ares_with_forms_in_audit %}
+  {% if not admin_ares_with_forms_in_audit %}
+  <tr>
+    <td>{% trans 'No Data' %}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  {% else %} {% for rec in admin_ares_with_forms_in_audit %}
   <tr>
     <td>{{ rec.admin_area_name }}</td>
     <td>{{ rec.number_of_centers_in_audit_state }}</td>
@@ -101,16 +111,94 @@
       <a
         href="{% url child_discrepancy_report_url tally_id rec.region_id %}"
         class="btn btn-default btn-small vertical-margin"
-        >Region Constituencies Process Discrepancy Report</a
+        >Region Constituencies under process Audit</a
       >
       <a
         href="{% url regions_report_url tally_id rec.region_id 'centers-and-stations-in-audit-report' %}"
         class="btn btn-default btn-small vertical-margin"
-        >Region Centers and Stations in Audit</a
+        >Region Centers and Stations under process Audit</a
       >
     </td>
   </tr>
-  {% endfor %}
+  {% endfor %} {% endif %}
+</table>
+<br />
+<h4>{% trans 'Stations and Centers under Investigation' %}</h4>
+<table class="table table-striped">
+  <tr>
+    <th>{% trans 'Name' %}</th>
+    <th>{% trans 'Centers' %}</th>
+    <th>{% trans 'Stations' %}</th>
+    <th>{% trans 'Total' %}</th>
+    <th>{% trans 'Actions' %}</th>
+  </tr>
+  {% if not centers_stations_under_invg %}
+  <tr>
+    <td>{% trans 'No Data' %}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  {% else %} {% for rec in centers_stations_under_invg %}
+  <tr>
+    <td>{{ rec.admin_area_name }}</td>
+    <td>{{ rec.number_of_centers }}</td>
+    <td>{{ rec.number_of_stations }}</td>
+    <td>{{ rec.total_number_of_centers_and_stations }}</td>
+    <td>
+      <a
+        href="{% url 'constituencies-under-investigation-report' tally_id rec.region_id %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Region Constituencies under Investigation</a
+      >
+      <a
+        href="{% url regions_report_url tally_id rec.region_id 'centers-and-stations-under-investigation' %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Region Centers and Stations under Investigation</a
+      >
+    </td>
+  </tr>
+  {% endfor %} {% endif %}
+</table>
+<br />
+<h4>{% trans 'Stations and Centers excluded after investigation' %}</h4>
+<table class="table table-striped">
+  <tr>
+    <th>{% trans 'Name' %}</th>
+    <th>{% trans 'Centers' %}</th>
+    <th>{% trans 'Stations' %}</th>
+    <th>{% trans 'Total' %}</th>
+    <th>{% trans 'Actions' %}</th>
+  </tr>
+  {% if not centers_stations_ex_after_invg %}
+  <tr>
+    <td>{% trans 'No Data' %}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  {% else %} {% for rec in centers_stations_ex_after_invg %}
+  <tr>
+    <td>{{ rec.admin_area_name }}</td>
+    <td>{{ rec.number_of_centers }}</td>
+    <td>{{ rec.number_of_stations }}</td>
+    <td>{{ rec.total_number_of_centers_and_stations }}</td>
+    <td>
+      <a
+        href="{% url 'constituencies-excluded-after-investigation-report' tally_id rec.region_id %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Region Constituencies excluded after investigation</a
+      >
+      <a
+        href="{% url regions_report_url tally_id rec.region_id 'centers-and-stations-excluded-after-investigation' %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Region Centers and Stations excluded after investigation</a
+      >
+    </td>
+  </tr>
+  {% endfor %} {% endif %}
 </table>
 
 <h3>{% trans 'Progressive Report' %}</h3>
