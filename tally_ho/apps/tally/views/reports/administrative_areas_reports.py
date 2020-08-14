@@ -335,15 +335,18 @@ class RegionsReportsView(LoginRequiredMixin,
             report_column_name='office__region__name',
             report_column_id='office__region__id')
 
-        if report_type_ == 'centers-and-stations-in-audit-report':
-            self.request.session['station_ids'] =\
-                list(regions_with_forms_in_audit.values_list(
-                    'station_number', flat=True))
-
-            return redirect(
-                'center-and-stations-in-audit-list',
+        centers_stations_under_invg =\
+            get_stations_and_centers_by_admin_area(
                 tally_id=tally_id,
-                region_id=region_id)
+                report_column_name='center__office__region__name',
+                report_column_id='center__office__region__id',
+                report_type_name=report_types[3])
+        centers_stations_ex_after_invg =\
+            get_stations_and_centers_by_admin_area(
+                tally_id=tally_id,
+                report_column_name='center__office__region__name',
+                report_column_id='center__office__region__id',
+                report_type_name=report_types[4])
 
         if report_type_ == 'votes-per-candidate-report':
             self.request.session['result_ids'] =\
@@ -393,6 +396,8 @@ class RegionsReportsView(LoginRequiredMixin,
                 summary_report=summary_report,
                 progressive_report=progressive_report,
                 admin_ares_with_forms_in_audit=regions_with_forms_in_audit,
+                centers_stations_under_invg=centers_stations_under_invg,
+                centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 regions_report_url='regions-discrepancy-report',
                 child_turnout_report_url='constituency-turnout-report',
                 child_summary_report_url='constituency-summary-report',
