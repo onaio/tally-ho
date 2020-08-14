@@ -500,6 +500,36 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 report_type_name=report_types[4],
                 region_id=region_id)
 
+        if report_type in\
+            ['centers-and-stations-in-audit-report',
+             'centers-and-stations-under-investigation',
+             'centers-and-stations-excluded-after-investigation']:
+
+            if report_type == 'centers-and-stations-in-audit-report':
+                self.request.session['station_ids'] =\
+                    list(constituencies_forms_in_audit.filter(
+                        center__office__region__id=region_id).values_list(
+                        'station_number', flat=True))
+
+            if report_type == 'centers-and-stations-under-investigation':
+                self.request.session['station_ids'] =\
+                    list(centers_stations_under_invg.filter(
+                        center__office__region__id=region_id).values_list(
+                        'station_number', flat=True))
+
+            if report_type ==\
+                    'centers-and-stations-excluded-after-investigation':
+                self.request.session['station_ids'] =\
+                    list(centers_stations_ex_after_invg.filter(
+                        center__office__region__id=region_id).values_list(
+                        'station_number', flat=True))
+
+            return redirect(
+                'center-and-stations-list',
+                tally_id=tally_id,
+                region_id=region_id,
+                constituency_id=constituency_id)
+
         if report_type == 'votes-per-candidate-report':
             self.request.session['result_ids'] =\
                 list(progressive_report.values_list(
