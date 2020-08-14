@@ -1,0 +1,61 @@
+{% extends 'base.html' %} {% load i18n %} {% block content %}
+
+<h1>{% trans 'Region Name ' %}{{ region_name }}</h1>
+<br />
+{% if constituency_name %}
+<h1>{% trans 'Constituency Name ' %}{{ constituency_name }}</h1>
+<br />
+{% endif %}
+
+<h3>
+  {{ administrative_area_name }}{% trans ' under investigation' %}
+</h3>
+
+<table class="table table-striped">
+  <tr>
+    <th>{% trans 'Name' %}</th>
+    <th>{% trans 'Centers' %}</th>
+    <th>{% trans 'Stations' %}</th>
+    <th>{% trans 'Total' %}</th>
+    <th>{% trans 'Actions' %}</th>
+  </tr>
+  {% if not centers_stations_under_invg %}
+  <tr>
+    <td>{% trans 'No Data' %}</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  {% else %} {% for rec in centers_stations_under_invg %}
+  <tr>
+    <td>{{ rec.admin_area_name }}</td>
+    <td>{{ rec.number_of_centers }}</td>
+    <td>{{ rec.number_of_stations }}</td>
+    <td>{{ rec.total_number_of_centers_and_stations }}</td>
+    <td>
+      {% if administrative_area_child_report_name %}
+      <a
+        href="{% url child_admin_area_under_investigation_report_url tally_id rec.region_id rec.constituency_id %}"
+        class="btn btn-default btn-small vertical-margin"
+        >{{ administrative_area_child_report_name }}</a
+      >
+      {% endif %} {% if not administrative_area_child_report_name %}
+      <a
+        href="{% url sub_constituency_discrepancy_report_url tally_id rec.region_id rec.constituency_id rec.sub_constituency__id 'centers-and-stations-under-investigation' %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Sub Constituency Centers and Stations under investigation</a
+      >
+      {% else %}
+      <a
+        href="{% url constituency_discrepancy_report_url tally_id rec.region_id rec.constituency_id 'centers-and-stations-under-investigation' %}"
+        class="btn btn-default btn-small vertical-margin"
+        >Constituency Centers and Stations under investigation</a
+      >
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %} {% endif %}
+</table>
+
+{% endblock %}
