@@ -532,8 +532,12 @@ class ConstituencyReportsView(LoginRequiredMixin,
 
         if report_type == 'votes-per-candidate-report':
             self.request.session['result_ids'] =\
-                list(progressive_report.values_list(
-                    'id', flat=True))
+                list(progressive_report
+                     .filter(
+                         result_form__center__office__region__id=region_id)
+                     .values_list(
+                         'id', flat=True))
+            self.request.session['ballot_report'] = False
 
             return redirect(
                 'candidate-list-by-votes',
@@ -711,8 +715,11 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 ['votes-per-candidate-report',
                  'candidate-list-sorted-by-ballots-number']:
             self.request.session['result_ids'] =\
-                list(progressive_report.values_list(
-                    'id', flat=True))
+                list(progressive_report
+                     .filter(
+                         result_form__center__office__region__id=region_id)
+                     .values_list(
+                         'id', flat=True))
             self.request.session['ballot_report'] =\
                 report_type == 'candidate-list-sorted-by-ballots-number'
 
