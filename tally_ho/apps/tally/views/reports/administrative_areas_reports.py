@@ -699,13 +699,49 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 region_id=region_id,
                 constituency_id=constituency_id)
 
-        if report_type == 'centers-and-stations-in-audit-report':
-            self.request.session['station_ids'] =\
-                list(sub_constituencies_forms_in_audit.values_list(
-                    'station_number', flat=True))
+        centers_stations_under_invg =\
+            get_stations_and_centers_by_admin_area(
+                tally_id=tally_id,
+                report_column_name='center__office__region__name',
+                report_column_id='center__office__region__id',
+                report_type_name=report_types[3],
+                region_id=region_id,
+                constituency_id=constituency_id)
+        centers_stations_ex_after_invg =\
+            get_stations_and_centers_by_admin_area(
+                tally_id=tally_id,
+                report_column_name='center__office__region__name',
+                report_column_id='center__office__region__id',
+                report_type_name=report_types[4],
+                region_id=region_id,
+                constituency_id=constituency_id)
+
+        if report_type in\
+            ['centers-and-stations-in-audit-report',
+             'centers-and-stations-under-investigation',
+             'centers-and-stations-excluded-after-investigation']:
+
+            if report_type == 'centers-and-stations-in-audit-report':
+                self.request.session['station_ids'] =\
+                    list(sub_constituencies_forms_in_audit.filter(
+                        center__office__region__id=region_id).values_list(
+                        'station_number', flat=True))
+
+            if report_type == 'centers-and-stations-under-investigation':
+                self.request.session['station_ids'] =\
+                    list(centers_stations_under_invg.filter(
+                        center__office__region__id=region_id).values_list(
+                        'station_number', flat=True))
+
+            if report_type ==\
+                    'centers-and-stations-excluded-after-investigation':
+                self.request.session['station_ids'] =\
+                    list(centers_stations_ex_after_invg.filter(
+                        center__office__region__id=region_id).values_list(
+                        'station_number', flat=True))
 
             return redirect(
-                'center-and-stations-in-audit-list',
+                'center-and-stations-list',
                 tally_id=tally_id,
                 region_id=region_id,
                 constituency_id=constituency_id,
@@ -811,6 +847,8 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 summary_report=summary_report,
                 progressive_report=progressive_report,
                 process_discrepancy_report=sub_constituencies_forms_in_audit,
+                centers_stations_under_invg=centers_stations_under_invg,
+                centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 administrative_area_name=_(u"Sub Constituencies"),
                 region_name=region_name,
                 constituency_name=constituency_name,
