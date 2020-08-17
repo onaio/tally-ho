@@ -5,6 +5,7 @@
 {% block styles %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 {% endblock %}
 
@@ -24,10 +25,6 @@
 {% endif %}
 <h1>{% trans 'Center and Station List' %}</h1>
 
-<div class="pull-left">
-    Export:
-    <a href="{% url 'center-list-csv' tally_id 'csv' %}">{% trans 'Download' %}</a>
-</div>
 <div class="pull-right">
     <form method="get" action="{% url 'create-station' tally_id%}">
         <button type="submit" class="btn btn-primary btn-small">
