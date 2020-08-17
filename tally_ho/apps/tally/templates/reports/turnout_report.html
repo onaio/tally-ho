@@ -1,55 +1,79 @@
-{% extends 'base.html' %} {% load i18n %} {% block content %}
+{% extends region_name|yesno:'base.html,empty.html' %} 
 
+{% load i18n staticfiles %}
+
+{% block styles %}
+{% if region_name %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+{% endif %}
+{% endblock %}
+
+{% block javascript %}
+{% if region_name %}
+{% include "data/table.html" with export_file_name='turnout_report' server_side=False %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if region_name %}
 <h1>{% trans 'Region Name ' %}{{ region_name }}</h1>
 <br />
+{% endif %}
 {% if constituency_name %}
 <h1>{% trans 'Constituency Name ' %}{{ constituency_name }}</h1>
 <br />
 {% endif %}
-
+{% if administrative_area_name %}
 <h3>{{ administrative_area_name }}{% trans ' Turn Out Report' %}</h3>
-{% if constituency_id %}
-<a
-  href="{% url turn_out_report_download_url tally_id region_id constituency_id 'turnout-csv' %}"
-  >{% trans 'Export' %}</a
->
-{% else %}
-<a
-  href="{% url turn_out_report_download_url tally_id region_id 'turnout-csv' %}"
-  >{% trans 'Export' %}</a
->
+<br />
 {% endif %}
 
-<table class="table table-striped">
-  <tr>
-    <th>{% trans 'Name' %}</th>
-    <th>{% trans 'Total number of voters' %}</th>
-    <th>{% trans 'Number of voters voted' %}</th>
-    <th>{% trans 'Male voters' %}</th>
-    <th>{% trans 'Female voters' %}</th>
-    <th>{% trans 'Turnout percentage' %}</th>
-    {% if administrative_area_child_report_name %}
-    <th>{% trans 'Actions' %}</th>
-    {% endif %}
-  </tr>
+<table class="display datatable reduce-size">
+  <thead>
+    <tr>
+      <th>{% trans 'Name' %}</th>
+      <th>{% trans 'Total number of voters' %}</th>
+      <th>{% trans 'Number of voters voted' %}</th>
+      <th>{% trans 'Male voters' %}</th>
+      <th>{% trans 'Female voters' %}</th>
+      <th>{% trans 'Turnout percentage' %}</th>
+      {% if administrative_area_child_report_name %}
+      <th class="actions">{% trans 'Actions' %}</th>
+      {% endif %}
+    </tr>
+  </thead>
   {% for rec in turnout_report %}
-  <tr>
-    <td>{{ rec.name }}</td>
-    <td>{{ rec.total_number_of_registrants }}</td>
-    <td>{{ rec.number_of_voters_voted }}</td>
-    <td>{{ rec.male_voters }}</td>
-    <td>{{ rec.female_voters }}</td>
-    <td>{{ rec.turnout_percentage }} %</td>
-    {% if administrative_area_child_report_name %}
-    <td>
-      <a
-        href="{% url child_turnout_report_url tally_id rec.admin_area_id rec.constituency_id %}"
-        class="btn btn-default btn-small vertical-margin"
-        >{{ administrative_area_child_report_name }}</a
-      >
-    </td>
-    {% endif %}
-  </tr>
+  <tbody>
+    <tr>
+      <td>{{ rec.name }}</td>
+      <td>{{ rec.total_number_of_registrants }}</td>
+      <td>{{ rec.number_of_voters_voted }}</td>
+      <td>{{ rec.male_voters }}</td>
+      <td>{{ rec.female_voters }}</td>
+      <td>{{ rec.turnout_percentage }} %</td>
+      {% if administrative_area_child_report_name and region_name %}
+      <td>
+        <a
+          href="{% url child_turnout_report_url tally_id rec.admin_area_id rec.constituency_id %}"
+          class="btn btn-default btn-small vertical-margin"
+          >{{ administrative_area_child_report_name }}</a
+        >
+      </td>
+      {% elif administrative_area_child_report_name %}
+        <td>
+          <a
+            href="{% url child_turnout_report_url tally_id rec.admin_area_id %}"
+            class="btn btn-default btn-small vertical-margin"
+            >{{ administrative_area_child_report_name }}</a
+          >
+      </td>
+      {% endif %}
+    </tr>
+  </tbody>
   {% endfor %}
 </table>
 

@@ -1,61 +1,89 @@
-{% extends 'base.html' %} {% load i18n %} {% block content %}
+{% extends region_name|yesno:'base.html,empty.html' %} 
 
-<h1>{% trans 'Region Name ' %}{{ region_name }}</h1>
-<br />
+{% load i18n staticfiles %}
+
+{% block styles %}
+{% if region_name %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+{% endif %}
+{% endblock %}
+
+{% block javascript %}
+{% if region_name %}
+{% include "data/table.html" with export_file_name='region_stations_and_centers_excluded_after_investigation' server_side=False %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if region_name %}
+  <h1>{% trans 'Region Name ' %}{{ region_name }}</h1>
+  <br />
+{% endif %}
 {% if constituency_name %}
-<h1>{% trans 'Constituency Name ' %}{{ constituency_name }}</h1>
+  <h1>{% trans 'Constituency Name ' %}{{ constituency_name }}</h1>
+  <br />
+{% endif %}
+
+{% if administrative_area_name %}
+<h3>{{ administrative_area_name }}{% trans ' excluded after investigation' %}</h3>
 <br />
 {% endif %}
 
-<h3>
-  {{ administrative_area_name }}{% trans ' excluded after investigation' %}
-</h3>
-
-<table class="table table-striped">
-  <tr>
-    <th>{% trans 'Name' %}</th>
-    <th>{% trans 'Centers' %}</th>
-    <th>{% trans 'Stations' %}</th>
-    <th>{% trans 'Total' %}</th>
-    <th>{% trans 'Actions' %}</th>
-  </tr>
-  {% if not centers_stations_ex_after_invg %}
-  <tr>
-    <td>{% trans 'No Data' %}</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  {% else %} {% for rec in centers_stations_ex_after_invg %}
-  <tr>
-    <td>{{ rec.admin_area_name }}</td>
-    <td>{{ rec.number_of_centers }}</td>
-    <td>{{ rec.number_of_stations }}</td>
-    <td>{{ rec.total_number_of_centers_and_stations }}</td>
-    <td>
-      {% if administrative_area_child_report_name %}
-      <a
-        href="{% url child_admin_area_excluded_after_investigation_report_url tally_id rec.region_id rec.constituency_id %}"
-        class="btn btn-default btn-small vertical-margin"
-        >{{ administrative_area_child_report_name }}</a
-      >
-      {% endif %} {% if not administrative_area_child_report_name %}
-      <a
-        href="{% url sub_constituency_discrepancy_report_url tally_id rec.region_id rec.constituency_id rec.sub_constituency__id 'centers-and-stations-excluded-after-investigation' %}"
-        class="btn btn-default btn-small vertical-margin"
-        >Sub Constituency Centers and Stations excluded after investigation</a
-      >
-      {% else %}
-      <a
-        href="{% url constituency_discrepancy_report_url tally_id rec.region_id rec.constituency_id 'centers-and-stations-excluded-after-investigation' %}"
-        class="btn btn-default btn-small vertical-margin"
-        >Constituency Centers and Stations excluded after investigation</a
-      >
-      {% endif %}
-    </td>
-  </tr>
-  {% endfor %} {% endif %}
+<table class="display datatable reduce-size">
+  <thead>
+    <tr>
+      <th>{% trans 'Name' %}</th>
+      <th>{% trans 'Centers' %}</th>
+      <th>{% trans 'Stations' %}</th>
+      <th>{% trans 'Total' %}</th>
+      <th class="actions">{% trans 'Actions' %}</th>
+    </tr>
+  </thead>
+  {% for rec in centers_stations_ex_after_invg %}
+  <tbody>
+    <tr>
+      <td>{{ rec.admin_area_name }}</td>
+      <td>{{ rec.number_of_centers }}</td>
+      <td>{{ rec.number_of_stations }}</td>
+      <td>{{ rec.total_number_of_centers_and_stations }}</td>
+      <td>
+        {% if administrative_area_child_report_name and region_name %}
+          <a
+            href="{% url child_admin_area_excluded_after_investigation_report_url tally_id rec.region_id rec.constituency_id %}"
+            class="btn btn-default btn-small vertical-margin"
+            >{{ administrative_area_child_report_name }}</a
+          >
+          <a
+            href="{% url constituency_discrepancy_report_url tally_id rec.region_id rec.constituency_id 'centers-and-stations-excluded-after-investigation' %}"
+            class="btn btn-default btn-small vertical-margin"
+            >{% trans 'Constituency Centers and Stations excluded after investigation' %}</a
+          >
+        {% elif not administrative_area_child_report_name and region_name and constituency_name %}
+          <a
+            href="{% url sub_constituency_discrepancy_report_url tally_id rec.region_id rec.constituency_id rec.sub_constituency__id 'centers-and-stations-excluded-after-investigation' %}"
+            class="btn btn-default btn-small vertical-margin"
+            >{% trans 'Sub Constituency Centers and Stations excluded after investigation' %}</a
+          >
+        {% else %}
+          <a
+            href="{% url child_admin_area_excluded_after_investigation_report_url tally_id rec.region_id %}"
+            class="btn btn-default btn-small vertical-margin"
+            >{% trans 'Region Constituencies excluded after investigation' %}</a
+          >
+          <a
+            href="{% url regions_report_url tally_id rec.region_id 'centers-and-stations-excluded-after-investigation' %}"
+            class="btn btn-default btn-small vertical-margin"
+            >{% trans 'Region Centers and Stations excluded after investigation' %}</a
+          >
+        {% endif %}
+      </td>
+    </tr>
+  </tbody>
+  {% endfor %}
 </table>
 
 {% endblock %}
