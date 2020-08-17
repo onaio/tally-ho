@@ -19,7 +19,10 @@ $(document).ready(function () {
     serverSide: true,
     stateSave: true,
     ajax: LIST_JSON_URL,
-    dom: 'Bfrtip',
+    dom:
+      "<'row'<'col-sm-1'B><'col-sm-6'l><'col-sm-5'f>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-5'i><'col-sm-7'p>>",
     buttons: [
       {
         extend: 'csv',
