@@ -438,15 +438,6 @@ urlpatterns = [
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='region-votes-per-candidate'),
 
-    re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
-            r'(?P<export_type>(turnout-csv))/$',
-            administrative_areas_reports.RegionsReportsView.as_view(),
-            name='regions-turnout-csv'),
-    re_path(r'^reports/internal/regions/(?P<tally_id>(\d+))/'
-            r'(?P<export_type>(summary-csv))/$',
-            administrative_areas_reports.RegionsReportsView.as_view(),
-            name='regions-summary-csv'),
-
     re_path(r'^reports/internal/constituencies/turnout/(?P<tally_id>(\d+))/'
             r'(?P<region_id>(\d+))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(
@@ -513,25 +504,6 @@ urlpatterns = [
             r'(?P<report_type>(votes-per-candidate-report))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='constituency-votes-per-candidate'),
-
-    re_path(r'^reports/internal/constituencies/discrepancy/'
-            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
-            r'(?P<export_type>(discrepancy-csv))/$',
-            administrative_areas_reports.ConstituencyReportsView.as_view(),
-            name='constituencies-discrepancy-csv'),
-    re_path(r'^reports/internal/constituencies/progressive/'
-            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
-            r'(?P<export_type>(progressive-csv))/$',
-            administrative_areas_reports.ConstituencyReportsView.as_view(),
-            name='constituencies-progressive-csv'),
-    re_path(r'^reports/internal/constituencies/turnout/(?P<tally_id>(\d+))/'
-            r'(?P<region_id>(\d+))/(?P<export_type>(turnout-csv))/$',
-            administrative_areas_reports.ConstituencyReportsView.as_view(),
-            name='constituencies-turnout-csv'),
-    re_path(r'^reports/internal/constituencies/summary/(?P<tally_id>(\d+))/'
-            r'(?P<region_id>(\d+))/(?P<export_type>(summary-csv))/$',
-            administrative_areas_reports.ConstituencyReportsView.as_view(),
-            name='constituencies-summary-csv'),
 
     re_path(r'^reports/internal/sub-constituencies/turnout/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
@@ -614,27 +586,6 @@ urlpatterns = [
             r'(?P<report_type>(candidate-list-sorted-by-ballots-number))/$',
             administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituency-votes-per-candidate'),
-
-    re_path(r'^reports/internal/sub-constituencies/discrepancy/'
-            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
-            r'(?P<constituency_id>(\d+))/(?P<export_type>(discrepancy-csv))/$',
-            administrative_areas_reports.SubConstituencyReportsView.as_view(),
-            name='sub-constituencies-discrepancy-csv'),
-    re_path(r'^reports/internal/sub-constituencies/progressive/'
-            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
-            r'(?P<constituency_id>(\d+))/(?P<export_type>(progressive-csv))/$',
-            administrative_areas_reports.SubConstituencyReportsView.as_view(),
-            name='sub-constituencies-progressive-csv'),
-    re_path(r'^reports/internal/sub-constituencies/turnout/'
-            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
-            r'(?P<constituency_id>(\d+))/(?P<export_type>(turnout-csv))/$',
-            administrative_areas_reports.SubConstituencyReportsView.as_view(),
-            name='sub-constituencies-turnout-csv'),
-    re_path(r'^reports/internal/sub-constituencies/summary/'
-            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
-            r'(?P<constituency_id>(\d+))/(?P<export_type>(summary-csv))/$',
-            administrative_areas_reports.SubConstituencyReportsView.as_view(),
-            name='sub-constituencies-summary-csv'),
 
     re_path(r'^reports/internal/offices/(?P<tally_id>(\d+))/$',
             offices.OfficesReportView.as_view(),
