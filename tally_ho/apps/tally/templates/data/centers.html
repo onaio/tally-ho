@@ -25,22 +25,24 @@
 {% endif %}
 <h1>{% trans 'Center and Station List' %}</h1>
 
-<div class="pull-right">
-    <form method="get" action="{% url 'create-station' tally_id%}">
-        <button type="submit" class="btn btn-primary btn-small">
-            {% trans 'New Station' %}
-        </button>
-    </form>
-</div>
-<div class="pull-right">
-    <form method="get" action="{% url 'create-center' tally_id%}">
-        <button type="submit" class="btn btn-primary btn-small">
-            {% trans 'New Center' %}
-        </button>
-    </form>
-</div>
-<br/>
-<br/>
+{% if not region_name %}
+    <div class="pull-right">
+        <form method="get" action="{% url 'create-station' tally_id%}">
+            <button type="submit" class="btn btn-primary btn-small">
+                {% trans 'New Station' %}
+            </button>
+        </form>
+    </div>
+    <div class="pull-right">
+        <form method="get" action="{% url 'create-center' tally_id%}">
+            <button type="submit" class="btn btn-primary btn-small">
+                {% trans 'New Center' %}
+            </button>
+        </form>
+    </div>
+    <br/>
+    <br/>
+{% endif %}
 
 {% if messages %}
 <ul class="text-info">
@@ -50,7 +52,7 @@
 </ul>
 {% endif %}
 
-<table class="display datatable" class="reduce-size">
+<table class="display datatable reduce-size">
     <thead>
         <tr>
             <th>{% trans 'Office' %}</th>
@@ -64,7 +66,9 @@
             <th>{% trans 'Archived' %}</th>
             <th>{% trans 'Center enabled' %}</th>
             <th>{% trans 'Station enabled' %}</th>
+            {% if not region_name %}
             <th>{% trans 'Edit' %}</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody></tbody>
