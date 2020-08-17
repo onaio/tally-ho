@@ -29,6 +29,9 @@ $(document).ready(function () {
         filename: exportFileName,
       },
     ],
-    select: 'multi',
+    select: {
+      style: 'multi',
+    },
+    responsive: true,
   });
 });
