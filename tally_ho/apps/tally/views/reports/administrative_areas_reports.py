@@ -307,7 +307,6 @@ class RegionsReportsView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
-        export_type_ = kwargs.get('export_type')
         report_type_ = kwargs.get('report_type')
         region_id = kwargs.get('region_id')
         column_name = 'result_form__office__region__name'
@@ -391,38 +390,12 @@ class RegionsReportsView(LoginRequiredMixin,
                 tally_id=tally_id,
                 region_id=region_id)
 
-        if export_type_ == 'turnout-csv':
-            header_map = {
-                'name': 'region name',
-                'total_number_of_registrants': 'total number of voters',
-                'number_of_voters_voted': 'number of voters voted',
-                'male_voters': 'male voters',
-                'female_voters': 'female voters',
-                'turnout_percentage': 'turnout percentage'
-            }
-
-            return generate_csv_export(
-                report_query_set=turnout_report,
-                filename='regions_turnout_report',
-                header_map=header_map)
-
-        if export_type_ == 'summary-csv':
-            header_map = {
-                'name': 'region name',
-                'number_valid_votes': 'total number of valid votes',
-                'number_invalid_votes': 'total number of invalid votes',
-                'number_cancelled_ballots': 'total number of cancelled votes'
-            }
-
-            return generate_csv_export(
-                report_query_set=summary_report,
-                filename='regions_summary_report',
-                header_map=header_map)
-
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
                 report_name=_(u'Region'),
+                administrative_area_child_report_name=_(
+                    u'Region Constituencies'),
                 turn_out_report_download_url='regions-turnout-csv',
                 summary_report_download_url='regions-summary-csv',
                 turnout_report=turnout_report,
@@ -544,66 +517,6 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 tally_id=tally_id,
                 region_id=region_id,
                 constituency_id=constituency_id)
-
-        if export_type_ == 'turnout-csv':
-            header_map = {
-                'name': 'constituency name',
-                'total_number_of_registrants': 'total number of voters',
-                'number_of_voters_voted': 'number of voters voted',
-                'male_voters': 'male voters',
-                'female_voters': 'female voters',
-                'turnout_percentage': 'turnout percentage'
-            }
-
-            return generate_csv_export(
-                report_query_set=turnout_report,
-                filename='constituencies_turnout_report',
-                header_map=header_map)
-
-        if export_type_ == 'summary-csv':
-            header_map = {
-                'name': 'constituency name',
-                'number_valid_votes': 'total number of valid votes',
-                'number_invalid_votes': 'total number of invalid votes',
-                'number_cancelled_ballots': 'total number of cancelled votes'
-            }
-
-            return generate_csv_export(
-                report_query_set=summary_report,
-                filename='constituencies_summary_report',
-                header_map=header_map)
-
-        if export_type_ == 'discrepancy-csv':
-            header_map = {
-                'admin_area_name':
-                'constituency name',
-                'number_of_centers_in_audit_state':
-                'centers in audit',
-                'number_of_stations_in_audit_state':
-                'stations in audit',
-                'total_num_of_centers_and_stations_in_audit':
-                'total number of centers and stations in audit'
-            }
-
-            return generate_csv_export(
-                report_query_set=constituencies_forms_in_audit,
-                filename='constituencies_discrepancy_report',
-                header_map=header_map)
-
-        if export_type_ == 'progressive-csv':
-            header_map = {
-                'name':
-                'constituency name',
-                'total_candidates':
-                'total candidates',
-                'total_votes':
-                'total votes',
-            }
-
-            return generate_csv_export(
-                report_query_set=progressive_report,
-                filename='constituencies_progressive_report',
-                header_map=header_map)
 
         return self.render_to_response(
             self.get_context_data(
@@ -765,66 +678,6 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 region_id=region_id,
                 constituency_id=constituency_id,
                 sub_constituency_id=sub_constituency_id)
-
-        if export_type_ == 'turnout-csv':
-            header_map = {
-                'name': 'subconstituency name',
-                'total_number_of_registrants': 'total number of voters',
-                'number_of_voters_voted': 'number of voters voted',
-                'male_voters': 'male voters',
-                'female_voters': 'female voters',
-                'turnout_percentage': 'turnout percentage'
-            }
-
-            return generate_csv_export(
-                report_query_set=turnout_report,
-                filename='sub_constituencies_turnout_report',
-                header_map=header_map)
-
-        if export_type_ == 'summary-csv':
-            header_map = {
-                'name': 'subconstituency name',
-                'number_valid_votes': 'total number of valid votes',
-                'number_invalid_votes': 'total number of invalid votes',
-                'number_cancelled_ballots': 'total number of cancelled votes'
-            }
-
-            return generate_csv_export(
-                report_query_set=summary_report,
-                filename='sub_constituencies_summary_report',
-                header_map=header_map)
-
-        if export_type_ == 'discrepancy-csv':
-            header_map = {
-                'admin_area_name':
-                'constituency name',
-                'number_of_centers_in_audit_state':
-                'centers in audit',
-                'number_of_stations_in_audit_state':
-                'stations in audit',
-                'total_num_of_centers_and_stations_in_audit':
-                'total number of centers and stations in audit'
-            }
-
-            return generate_csv_export(
-                report_query_set=sub_constituencies_forms_in_audit,
-                filename='sub_constituencies_discrepancy_report',
-                header_map=header_map)
-
-        if export_type_ == 'progressive-csv':
-            header_map = {
-                'name':
-                'sub constituency name',
-                'total_candidates':
-                'total candidates',
-                'total_votes':
-                'total votes',
-            }
-
-            return generate_csv_export(
-                report_query_set=progressive_report,
-                filename='sub_constituencies_progressive_report',
-                header_map=header_map)
 
         return self.render_to_response(
             self.get_context_data(
