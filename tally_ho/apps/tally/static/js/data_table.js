@@ -16,7 +16,7 @@ $(document).ready(function () {
     ],
     searching: true,
     processing: true,
-    serverSide: true,
+    serverSide: serverSide,
     stateSave: true,
     ajax: LIST_JSON_URL,
     dom:
@@ -27,6 +27,9 @@ $(document).ready(function () {
       {
         extend: 'csv',
         filename: exportFileName,
+        exportOptions: {
+          columns: ':visible :not(.actions)',
+        },
       },
     ],
     select: {
