@@ -536,8 +536,17 @@ class ConstituencyReportsView(LoginRequiredMixin,
                     'centers-and-stations-excluded-after-investigation':
                 self.request.session['station_ids'] =\
                     list(centers_stations_ex_after_invg.filter(
-                        center__office__region__id=region_id).values_list(
-                        'station_number', flat=True))
+                        center__office__region__id=region_id,
+                        center__constituency__id=constituency_id)
+                    .annotate(
+                        station_id=station_id_query)
+                        .values_list('station_id', flat=True))\
+                    if constituency_id else list(
+                        constituencies_forms_in_audit.filter(
+                            center__office__region__id=region_id,)
+                    .annotate(
+                        station_id=station_id_query)
+                        .values_list('station_id', flat=True))
 
             return redirect(
                 'center-and-stations-list',
