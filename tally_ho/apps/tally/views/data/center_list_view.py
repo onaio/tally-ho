@@ -35,11 +35,6 @@ class CenterListDataView(LoginRequiredMixin,
         'edit',
     )
 
-    order_columns = (
-        'tally',
-        'station_number'
-    )
-
     def filter_queryset(self, qs):
         keyword = self.request.GET.get('search[value]', None)
         tally_id = self.kwargs.get('tally_id')
