@@ -51,8 +51,7 @@ class CenterListDataView(LoginRequiredMixin,
             qs =\
                 qs.filter(
                     center__tally__id=tally_id,
-                    station_number__in=station_ids).distinct(
-                        'tally', 'station_number')
+                    id__in=station_ids)
         elif station_ids and not region_id:
             del self.request.session['station_ids']
 
