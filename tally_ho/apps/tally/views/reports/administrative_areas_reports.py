@@ -252,7 +252,7 @@ def generate_report(
         qs\
         .annotate(
             name=F(report_column_name),
-            admin_area_id=F(report_column_id))\
+            admin_area_id=F('result_form__office__region__id'))\
         .values(
             'name',
             'admin_area_id',
