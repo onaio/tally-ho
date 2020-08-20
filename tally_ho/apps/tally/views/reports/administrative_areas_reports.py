@@ -183,28 +183,26 @@ def get_admin_areas_with_forms_in_audit(
             qs.filter(center__constituency__id=constituency_id)
     qs =\
         qs.annotate(
-            admin_area_name=F(report_column_name))\
-        .annotate(
+            admin_area_name=F(report_column_name),
             region_id=F('office__region__id'))\
-        .annotate(
-            constituency_id=F('center__constituency__id'))\
-        .annotate(
-            sub_constituency_id=F('center__sub_constituency__id'))\
         .values(
             'admin_area_name',
             'region_id',
-            'constituency_id',
-            'sub_constituency_id'
         )\
         .annotate(
-            number_of_centers_in_audit_state=Count('center'))\
-        .annotate(
-            number_of_stations_in_audit_state=Count('station_number'))\
-        .annotate(
+            number_of_centers_in_audit_state=Count('center'),
+            number_of_stations_in_audit_state=Count('station_number'),
             total_num_of_centers_and_stations_in_audit=ExpressionWrapper(
                 F('number_of_centers_in_audit_state') +
                 F('number_of_stations_in_audit_state'),
                 output_field=IntegerField()))
+
+    if region_id:
+        qs =\
+            qs.annotate(
+                constituency_id=F('center__constituency__id'),
+                sub_constituency_id=F('center__sub_constituency__id'),
+            )
 
     return qs
 
