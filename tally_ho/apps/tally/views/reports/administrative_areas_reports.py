@@ -371,8 +371,10 @@ class RegionsReportsView(LoginRequiredMixin,
             if report_type_ == 'centers-and-stations-under-investigation':
                 self.request.session['station_ids'] =\
                     list(centers_stations_under_invg.filter(
-                        center__office__region__id=region_id).values_list(
-                        'station_number', flat=True))
+                        center__office__region__id=region_id)
+                    .annotate(
+                        station_id=station_id_query)
+                    .values_list('station_id', flat=True))
 
             if report_type_ ==\
                     'centers-and-stations-excluded-after-investigation':
