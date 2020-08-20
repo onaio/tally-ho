@@ -42,51 +42,51 @@
       <th class="actions">{% trans 'Actions' %}</th>
     </tr>
   </thead>
-  {% for rec in progressive_report %}
   <tbody>
-    <tr>
-      <td>{{ rec.name }}</td>
-      <td>{{ rec.total_candidates }}</td>
-      <td>{{ rec.total_votes }}</td>
-      <td>
-        {% if administrative_area_child_report_name and region_name %}
-          <a
-            href="{% url child_progressive_report_url tally_id rec.admin_area_id rec.constituency_id %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{{ administrative_area_child_report_name }}{% trans ' Progressive Report' %}</a
-          >
-          <a
-            href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id 'votes-per-candidate-report' %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{% trans 'Constituency votes per candidate' %}</a
-          >
-        {% elif not administrative_area_child_report_name and region_name and constituency_name %}
-          <a
-            href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id rec.sub_constituency_id 'votes-per-candidate-report' %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{% trans 'Sub Constituency votes per candidate' %}</a
-          >
-          <a
-            href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id rec.sub_constituency_id 'candidate-list-sorted-by-ballots-number' %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{% trans 'Sub Constituency candidates list by ballot order' %}</a
-          >
-        {% else %}
-          <a
-            href="{% url child_progressive_report_url tally_id rec.admin_area_id %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{% trans 'Region Constituencies Progressive Report' %}</a
-          >
-          <a
-            href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id 'votes-per-candidate-report' %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{% trans 'Region votes per candidate' %}</a
-          >
-        {% endif %}
-      </td>
-    </tr>
+    {% for rec in progressive_report %}
+      <tr>
+        <td>{{ rec.name }}</td>
+        <td>{{ rec.total_candidates }}</td>
+        <td>{{ rec.total_votes }}</td>
+        <td>
+          {% if administrative_area_child_report_name and region_name %}
+            <a
+              href="{% url child_progressive_report_url tally_id rec.admin_area_id rec.constituency_id %}"
+              class="btn btn-default btn-small vertical-margin"
+              >{{ administrative_area_child_report_name }}{% trans ' Progressive Report' %}</a
+            >
+            <a
+              href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id 'votes-per-candidate-report' %}"
+              class="btn btn-default btn-small vertical-margin"
+              >{% trans 'Constituency votes per candidate' %}</a
+            >
+          {% elif not administrative_area_child_report_name and region_name and constituency_name %}
+            <a
+              href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id rec.sub_constituency_id 'votes-per-candidate-report' %}"
+              class="btn btn-default btn-small vertical-margin"
+              >{% trans 'Sub Constituency votes per candidate' %}</a
+            >
+            <a
+              href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id rec.constituency_id rec.sub_constituency_id 'candidate-list-sorted-by-ballots-number' %}"
+              class="btn btn-default btn-small vertical-margin"
+              >{% trans 'Sub Constituency candidates list by ballot order' %}</a
+            >
+          {% else %}
+            <a
+              href="{% url child_progressive_report_url tally_id rec.admin_area_id %}"
+              class="btn btn-default btn-small vertical-margin"
+              >{% trans 'Region Constituencies Progressive Report' %}</a
+            >
+            <a
+              href="{% url admin_area_votes_per_candidate_report_url tally_id rec.admin_area_id 'votes-per-candidate-report' %}"
+              class="btn btn-default btn-small vertical-margin"
+              >{% trans 'Region votes per candidate' %}</a
+            >
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
   </tbody>
-  {% endfor %}
 </table>
 
 {% endblock %}

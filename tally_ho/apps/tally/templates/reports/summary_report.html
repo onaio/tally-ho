@@ -45,33 +45,33 @@
       {% endif %}
     </tr>
   </thead>
-  {% for rec in summary_report %}
   <tbody>
-    <tr>
-      <td>{{ rec.name }}</td>
-      <td>{{ rec.number_valid_votes }}</td>
-      <td>{{ rec.number_invalid_votes }}</td>
-      <td>{{ rec.number_cancelled_ballots }}</td>
-      {% if administrative_area_child_report_name and region_name %}
-      <td>
-        <a
-          href="{% url child_summary_report_url tally_id rec.admin_area_id rec.constituency_id %}"
-          class="btn btn-default btn-small vertical-margin"
-          >{{ administrative_area_child_report_name }}</a
-        >
-      </td>
-      {% elif administrative_area_child_report_name %}
+    {% for rec in summary_report %}
+      <tr>
+        <td>{{ rec.name }}</td>
+        <td>{{ rec.number_valid_votes }}</td>
+        <td>{{ rec.number_invalid_votes }}</td>
+        <td>{{ rec.number_cancelled_ballots }}</td>
+        {% if administrative_area_child_report_name and region_name %}
         <td>
           <a
-            href="{% url child_summary_report_url tally_id rec.admin_area_id %}"
+            href="{% url child_summary_report_url tally_id rec.admin_area_id rec.constituency_id %}"
             class="btn btn-default btn-small vertical-margin"
             >{{ administrative_area_child_report_name }}</a
           >
-      </td>
-      {% endif %}
-    </tr>
+        </td>
+        {% elif administrative_area_child_report_name %}
+          <td>
+            <a
+              href="{% url child_summary_report_url tally_id rec.admin_area_id %}"
+              class="btn btn-default btn-small vertical-margin"
+              >{{ administrative_area_child_report_name }}</a
+            >
+        </td>
+        {% endif %}
+      </tr>
+    {% endfor %}
   </tbody>
-  {% endfor %}
 </table>
 
 {% endblock %}
