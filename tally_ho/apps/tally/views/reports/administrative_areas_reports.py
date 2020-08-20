@@ -363,8 +363,10 @@ class RegionsReportsView(LoginRequiredMixin,
             if report_type_ == 'centers-and-stations-in-audit-report':
                 self.request.session['station_ids'] =\
                     list(regions_with_forms_in_audit.filter(
-                        office__region__id=region_id).values_list(
-                        'station_number', flat=True))
+                        office__region__id=region_id)
+                    .annotate(
+                        station_id=station_id_query)
+                    .values_list('station_id', flat=True))
 
             if report_type_ == 'centers-and-stations-under-investigation':
                 self.request.session['station_ids'] =\
