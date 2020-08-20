@@ -77,13 +77,10 @@ def get_stations_and_centers_by_admin_area(
     qs =\
         qs.annotate(
             admin_area_name=F(report_column_name),
-            region_id=F('center__office__region__id'),
-            constituency_id=F('center__constituency__id'))\
+            region_id=F('center__office__region__id'),)\
         .values(
             'admin_area_name',
             'region_id',
-            'constituency_id',
-            'sub_constituency__id'
         )\
         .annotate(
             number_of_centers=Count('center'),
@@ -92,6 +89,15 @@ def get_stations_and_centers_by_admin_area(
                 F('number_of_centers') +
                 F('number_of_stations'),
                 output_field=IntegerField()))
+
+    if region_id:
+        qs =\
+            qs.annotate(
+                constituency_id=F(
+                    'center__constituency__id'),
+                sub_constituency__id=F(
+                    'sub_constituency__id'),
+            )
 
     return qs
 
@@ -131,23 +137,24 @@ def generate_progressive_report(
     qs =\
         qs\
         .annotate(
-            name=F(report_column_name))\
-        .annotate(
+            name=F(report_column_name),
             admin_area_id=F('result_form__office__region__id'))\
-        .annotate(
-            constituency_id=F('result_form__center__constituency__id'))\
-        .annotate(
-            sub_constituency_id=F(
-                'result_form__center__sub_constituency__id'))\
         .values(
             'name',
             'admin_area_id',
-            'constituency_id',
-            'sub_constituency_id'
         )\
         .annotate(
             total_candidates=Count('candidate__id', distinct=True),
             total_votes=Sum('votes'))
+
+    if region_id:
+        qs =\
+            qs.annotate(
+                constituency_id=F(
+                    'result_form__center__constituency__id'),
+                sub_constituency_id=F(
+                    'result_form__center__sub_constituency__id'),
+            )
 
     return qs
 
@@ -244,16 +251,18 @@ def generate_report(
     qs =\
         qs\
         .annotate(
-            name=F(report_column_name))\
-        .annotate(
+            name=F(report_column_name),
             admin_area_id=F(report_column_id))\
-        .annotate(
-            constituency_id=F('result_form__center__constituency__id'))\
         .values(
             'name',
             'admin_area_id',
-            'constituency_id'
         )
+
+    if region_id:
+        qs =\
+            qs.annotate(
+                constituency_id=F('result_form__center__constituency__id'),
+            )
 
     if report_type_name == turnout_report_type_name:
         qs =\
