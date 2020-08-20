@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from guardian.mixins import LoginRequiredMixin
 
 from django.db.models import Count, Q, Sum, F, ExpressionWrapper,\
-    IntegerField, Value as V
+    IntegerField, Value as V, Subquery, OuterRef
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -344,6 +344,17 @@ class RegionsReportsView(LoginRequiredMixin,
                 report_column_id='center__office__region__id',
                 report_type_name=report_types[4])
 
+        station_id_query =\
+            Subquery(
+                Station.objects.filter(
+                    tally__id=tally_id,
+                    center__code=OuterRef(
+                        'center__code'),
+                    station_number=OuterRef(
+                        'station_number'))
+                .values('id')[:1],
+                output_field=IntegerField())
+
         if report_type_ in\
             ['centers-and-stations-in-audit-report',
              'centers-and-stations-under-investigation',
@@ -468,6 +479,17 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 report_column_id='center__office__region__id',
                 report_type_name=report_types[4],
                 region_id=region_id)
+
+        station_id_query =\
+            Subquery(
+                Station.objects.filter(
+                    tally__id=tally_id,
+                    center__code=OuterRef(
+                        'center__code'),
+                    station_number=OuterRef(
+                        'station_number'))
+                .values('id')[:1],
+                output_field=IntegerField())
 
         if report_type in\
             ['centers-and-stations-in-audit-report',
@@ -623,6 +645,17 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 report_type_name=report_types[4],
                 region_id=region_id,
                 constituency_id=constituency_id)
+
+        station_id_query =\
+            Subquery(
+                Station.objects.filter(
+                    tally__id=tally_id,
+                    center__code=OuterRef(
+                        'center__code'),
+                    station_number=OuterRef(
+                        'station_number'))
+                .values('id')[:1],
+                output_field=IntegerField())
 
         if report_type in\
             ['centers-and-stations-in-audit-report',
