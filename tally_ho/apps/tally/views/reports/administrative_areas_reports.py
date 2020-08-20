@@ -16,7 +16,6 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.utils.templates import generate_csv_export
 
 report_types = {1: "turnout",
                 2: "summary",
@@ -432,7 +431,6 @@ class ConstituencyReportsView(LoginRequiredMixin,
         region_name =\
             Region.objects.get(
                 id=region_id, tally__id=tally_id).name if region_id else None
-        export_type_ = kwargs.get('export_type')
         column_name = 'result_form__center__constituency__name'
         column_id = 'result_form__center__constituency__id'
         turnout_report = generate_report(
@@ -567,7 +565,6 @@ class SubConstituencyReportsView(LoginRequiredMixin,
     group_required = groups.TALLY_MANAGER
 
     def get(self, request, *args, **kwargs):
-        export_type_ = kwargs.get('export_type')
         tally_id = kwargs['tally_id']
         region_id = kwargs.get('region_id', None)
         constituency_id = kwargs.get('constituency_id', None)
