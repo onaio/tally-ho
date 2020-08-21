@@ -10,9 +10,9 @@
 <script type="text/javascript">
     const exportFileName = '{{ export_file_name }}';
     const serverSide = '{{ server_side }}' ? $.parseJSON('{{ server_side }}'.toLowerCase()) : true;
-    var LIST_JSON_URL = '{{ remote_url }}';
+    const LIST_JSON_URL = '{{ remote_url }}';
     // translations for datatables
-    var dt_language = {
+    const dt_language = {
         "emptyTable":     "{% trans "No data available in table" %}",
         "info":           "{% trans "Showing _START_ to _END_ of _TOTAL_ entries" %}",
         "infoEmpty":      "{% trans "Showing 0 to 0 of 0 entries" %}",

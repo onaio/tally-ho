@@ -26,7 +26,6 @@ report_types = {1: "turnout",
 def get_stations_and_centers_by_admin_area(
         tally_id,
         report_column_name,
-        report_column_id,
         report_type_name,
         region_id=None,
         constituency_id=None):
@@ -36,7 +35,6 @@ def get_stations_and_centers_by_admin_area(
 
     :param tally_id: The reconciliation forms tally.
     :param report_column_name: The result form report column name.
-    :param report_column_id: The result form report column id.
     :param report_type_name: The report type name to generate.
     :param region_id: The result form report region id used for filtering.
     :param constituency_id: The result form report constituency id
@@ -105,7 +103,6 @@ def get_stations_and_centers_by_admin_area(
 def generate_progressive_report(
         tally_id,
         report_column_name,
-        report_column_id,
         region_id=None,
         constituency_id=None):
     """
@@ -113,7 +110,6 @@ def generate_progressive_report(
 
     :param tally_id: The result form tally.
     :param report_column_name: The result form report column name.
-    :param report_column_id: The result form report column id.
     :param region_id: The result form region id.
     :param constituency_id: The result form constituency id.
 
@@ -162,7 +158,6 @@ def generate_progressive_report(
 def get_admin_areas_with_forms_in_audit(
         tally_id,
         report_column_name,
-        report_column_id,
         region_id=None,
         constituency_id=None):
     """
@@ -170,7 +165,6 @@ def get_admin_areas_with_forms_in_audit(
 
     :param tally_id: The reconciliation forms tally.
     :param report_column_name: The result form report column name.
-    :param report_column_id: The result form report column id.
     :param region_id: The result form report region id used for filtering.
     :param constituency_id: The result form report constituency id
         used for filtering.
@@ -217,7 +211,6 @@ def get_admin_areas_with_forms_in_audit(
 def generate_report(
         tally_id,
         report_column_name,
-        report_column_id,
         report_type_name,
         region_id=None,
         constituency_id=None):
@@ -226,7 +219,6 @@ def generate_report(
 
     :param tally_id: The reconciliation forms tally.
     :param report_column_name: The result form report column name.
-    :param report_column_id: The result form report column id.
     :param region_id: The region id for filtering the recon forms.
     :param constituency_id: The constituency id for filtering the recon forms.
     :param report_type_name: The report type name to generate.
@@ -316,42 +308,35 @@ class RegionsReportsView(LoginRequiredMixin,
         report_type_ = kwargs.get('report_type')
         region_id = kwargs.get('region_id')
         column_name = 'result_form__office__region__name'
-        column_id = 'result_form__office__region__id'
 
         turnout_report = generate_report(
             tally_id=tally_id,
             report_column_name=column_name,
-            report_column_id=column_id,
             report_type_name=report_types[1])
 
         summary_report = generate_report(
             tally_id=tally_id,
             report_column_name=column_name,
-            report_column_id=column_id,
-            report_type_name=report_types[2])
+            report_type_name=report_types[2],)
 
         progressive_report = generate_progressive_report(
             tally_id=tally_id,
-            report_column_name=column_name,
-            report_column_id=column_id)
+            report_column_name=column_name,)
 
         regions_with_forms_in_audit = get_admin_areas_with_forms_in_audit(
             tally_id=tally_id,
-            report_column_name='office__region__name',
-            report_column_id='office__region__id')
+            report_column_name='office__region__name',)
 
         centers_stations_under_invg =\
             get_stations_and_centers_by_admin_area(
                 tally_id=tally_id,
                 report_column_name='center__office__region__name',
-                report_column_id='center__office__region__id',
-                report_type_name=report_types[3])
+                report_type_name=report_types[3],)
         centers_stations_ex_after_invg =\
             get_stations_and_centers_by_admin_area(
                 tally_id=tally_id,
                 report_column_name='center__office__region__name',
-                report_column_id='center__office__region__id',
-                report_type_name=report_types[4])
+                report_type_name=report_types[4],)
 
         station_id_query =\
             Subquery(
@@ -456,42 +441,35 @@ class ConstituencyReportsView(LoginRequiredMixin,
             Region.objects.get(
                 id=region_id, tally__id=tally_id).name if region_id else None
         column_name = 'result_form__center__constituency__name'
-        column_id = 'result_form__center__constituency__id'
         turnout_report = generate_report(
             tally_id=tally_id,
             report_column_name=column_name,
-            report_column_id=column_id,
             report_type_name=report_types[1],
             region_id=region_id)
         summary_report = generate_report(
             tally_id=tally_id,
             report_column_name=column_name,
-            report_column_id=column_id,
             report_type_name=report_types[2],
             region_id=region_id)
         progressive_report = generate_progressive_report(
             tally_id=tally_id,
             report_column_name=column_name,
-            report_column_id=column_id,
             region_id=region_id)
         constituencies_forms_in_audit = get_admin_areas_with_forms_in_audit(
             tally_id=tally_id,
             report_column_name='center__constituency__name',
-            report_column_id='center__constituency__id',
             region_id=region_id)
 
         centers_stations_under_invg =\
             get_stations_and_centers_by_admin_area(
                 tally_id=tally_id,
                 report_column_name='center__office__region__name',
-                report_column_id='center__office__region__id',
                 report_type_name=report_types[3],
                 region_id=region_id)
         centers_stations_ex_after_invg =\
             get_stations_and_centers_by_admin_area(
                 tally_id=tally_id,
                 report_column_name='center__office__region__name',
-                report_column_id='center__office__region__id',
                 report_type_name=report_types[4],
                 region_id=region_id)
 
@@ -642,32 +620,27 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 tally__id=tally_id).name if constituency_id else None
 
         column_name = 'result_form__center__sub_constituency__code'
-        column_id = 'result_form__center__sub_constituency__id'
         turnout_report = generate_report(
             tally_id=tally_id,
             report_column_name=column_name,
-            report_column_id=column_id,
             report_type_name=report_types[1],
             region_id=region_id,
             constituency_id=constituency_id)
         summary_report = generate_report(
             tally_id=tally_id,
             report_column_name=column_name,
-            report_column_id=column_id,
             report_type_name=report_types[2],
             region_id=region_id,
             constituency_id=constituency_id)
         progressive_report = generate_progressive_report(
             tally_id=tally_id,
             report_column_name=column_name,
-            report_column_id=column_id,
             region_id=region_id,
             constituency_id=constituency_id)
         sub_constituencies_forms_in_audit =\
             get_admin_areas_with_forms_in_audit(
                 tally_id=tally_id,
                 report_column_name='center__sub_constituency__name',
-                report_column_id='center__sub_constituency__id',
                 region_id=region_id,
                 constituency_id=constituency_id)
 
@@ -675,7 +648,6 @@ class SubConstituencyReportsView(LoginRequiredMixin,
             get_stations_and_centers_by_admin_area(
                 tally_id=tally_id,
                 report_column_name='center__office__region__name',
-                report_column_id='center__office__region__id',
                 report_type_name=report_types[3],
                 region_id=region_id,
                 constituency_id=constituency_id)
@@ -683,7 +655,6 @@ class SubConstituencyReportsView(LoginRequiredMixin,
             get_stations_and_centers_by_admin_area(
                 tally_id=tally_id,
                 report_column_name='center__office__region__name',
-                report_column_id='center__office__region__id',
                 report_type_name=report_types[4],
                 region_id=region_id,
                 constituency_id=constituency_id)
