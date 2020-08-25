@@ -95,12 +95,14 @@ class TestAdministrativeAreasReports(TestBase):
             f'<td>{regions_turnout_report["turnout_percentage"]} %</td>')
 
         votes_summary_report =\
-            administrative_areas_reports.generate_votes_summary_report(
-                self.tally.id, 'result_form__office__region__name')[0]
+            administrative_areas_reports.generate_report(
+                tally_id=self.tally.id,
+                report_column_name='result_form__office__region__name',
+                report_type_name=report_types[2],)[0]
 
         # Region votes summary report tests
         self.assertContains(response, "<h3>Votes Summary Report</h3>")
-        self.assertContains(response, "<th>Region Name</th>")
+        self.assertContains(response, "<th>Name</th>")
         self.assertContains(response, "<th>Total number of valid votes</th>")
         self.assertContains(response, "<th>Total number of invalid votes</th>")
         self.assertContains(
