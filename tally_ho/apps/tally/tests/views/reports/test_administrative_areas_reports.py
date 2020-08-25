@@ -120,6 +120,32 @@ class TestAdministrativeAreasReports(TestBase):
             response,
             f'<td>{votes_summary_report["number_cancelled_ballots"]}</td>')
 
+        progressive_report =\
+            administrative_areas_reports.generate_progressive_report(
+                tally_id=self.tally.id,
+                report_column_name='result_form__office__region__name',)[0]
+
+        # Region progressive report tests
+        self.assertContains(response, "<h2>Progressive Report</h2>")
+        self.assertContains(response, "<th>Name</th>")
+        self.assertContains(response, "<th>Number of Candidates</th>")
+        self.assertContains(response, "<th>Number of Votes</th>")
+        self.assertContains(
+            response,
+            f'<td>{progressive_report["name"]}</td>')
+        self.assertContains(
+            response,
+            f'<td>{progressive_report["total_candidates"]}</td>')
+        self.assertContains(
+            response,
+            f'<td>{votes_summary_report["total_votes"]}</td>')
+        self.assertContains(
+            response,
+            'Constituencies Progressive report')
+        self.assertContains(
+            response,
+            'Constituency votes per candidate')
+
     def test_constituency_reports(self):
         """
         Test that the constituency reports are rendered as expected.
