@@ -2,7 +2,8 @@ from django.test import RequestFactory
 
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
-from tally_ho.apps.tally.views.reports import administrative_areas_reports
+from tally_ho.apps.tally.views.reports import administrative_areas_reports,\
+    report_types
 from tally_ho.libs.tests.test_base import create_result_form,\
     create_station, create_reconciliation_form, create_tally,\
     create_center, create_region, create_constituency, create_office, TestBase
@@ -57,14 +58,16 @@ class TestAdministrativeAreasReports(TestBase):
             group_name=groups.TALLY_MANAGER)
 
         regions_turnout_report =\
-            administrative_areas_reports.generate_voters_turnout_report(
-                self.tally.id, 'result_form__office__region__name')[0]
+            administrative_areas_reports.generate_report(
+                tally_id=self.tally.id,
+                report_column_name='result_form__office__region__name',
+                report_type_name=report_types[1],)[0]
 
         self.assertContains(response, "<h1>Region Reports</h1>")
 
         # Region turnout report tests
         self.assertContains(response, "<h3>Turn Out Report</h3>")
-        self.assertContains(response, "<th>Region Name</th>")
+        self.assertContains(response, "<th>Name</th>")
         self.assertContains(response, "<th>Total number of voters</th>")
         self.assertContains(response, "<th>Number of voters voted</th>")
         self.assertContains(response, "<th>Male voters</th>")
@@ -80,11 +83,6 @@ class TestAdministrativeAreasReports(TestBase):
             response,
             str('<td>'
                 f'{regions_turnout_report["total_number_of_registrants"]}'
-                '</td>'))
-        self.assertContains(
-            response,
-            str('<td>'
-                f'{regions_turnout_report["total_number_of_ballots_used"]}'
                 '</td>'))
         self.assertContains(
             response,
