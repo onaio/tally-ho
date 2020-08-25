@@ -87,7 +87,7 @@ class TestAdministrativeAreasReports(TestBase):
             admin_reports.generate_report(
                 tally_id=self.tally.id,
                 report_column_name='result_form__office__region__name',
-                report_type_name=report_types[1],)[0]
+                report_type_name=admin_reports.report_types[1],)[0]
 
         self.assertContains(response, "<h1>Region Reports</h1>")
 
@@ -124,7 +124,7 @@ class TestAdministrativeAreasReports(TestBase):
             admin_reports.generate_report(
                 tally_id=self.tally.id,
                 report_column_name='result_form__office__region__name',
-                report_type_name=report_types[2],)[0]
+                report_type_name=admin_reports.report_types[2],)[0]
 
         # Region votes summary report tests
         self.assertContains(response, "<h3>Votes Summary Report</h3>")
