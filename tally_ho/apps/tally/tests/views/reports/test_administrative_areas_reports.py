@@ -287,13 +287,38 @@ class TestAdministrativeAreasReports(TestBase):
             response,
             'Region Centers and Stations under Investigation')
 
+    def test_regions_centers_and_stations_excluded_after_investigation(self):
+        """
+        Test that regions centers and stations excluded after investigation
+        report is rendered as expected.
+        """
+        # Disable station
+        self.station.active = False
+        self.station.disable_reason = DisableReason.NOT_OPENED
+        self.station.save()
+
+        # Enable station
+        self.station.active = True
+        self.station.save()
+
+        request = self._get_request()
+        view = admin_reports.RegionsReportsView.as_view()
+        request = self.factory.get('/reports-regions')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+            group_name=groups.TALLY_MANAGER)
+
         centers_stations_ex_after_invg =\
             admin_reports.get_stations_and_centers_by_admin_area(
                 tally_id=self.tally.id,
                 report_column_name='center__office__region__name',
-                report_type_name=report_types[4],)[0]
+                report_type_name=admin_reports.report_types[4],)[0]
         total_number_of_centers_and_stations =\
-            centers_stations_under_invg["total_number_of_centers_and_stations"]
+            centers_stations_ex_after_invg[str(
+                "total_number_of_centers_and_stations"
+            )]
 
         # Region centers and stations excluded after investigation tests
         self.assertContains(
