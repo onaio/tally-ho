@@ -2,8 +2,9 @@ from django.test import RequestFactory
 
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
-from tally_ho.apps.tally.views.reports import administrative_areas_reports,\
-    report_types
+from tally_ho.apps.tally.views.reports import (
+    administrative_areas_reports as admin_reports,
+    report_types)
 from tally_ho.libs.tests.test_base import create_result_form,\
     create_station, create_reconciliation_form, create_tally,\
     create_center, create_region, create_constituency, create_office, TestBase
@@ -49,7 +50,7 @@ class TestAdministrativeAreasReports(TestBase):
         Test that the region reports are rendered as expected.
         """
         request = self._get_request()
-        view = administrative_areas_reports.RegionsReportsView.as_view()
+        view = admin_reports.RegionsReportsView.as_view()
         request = self.factory.get('/reports-regions')
         request.user = self.user
         response = view(
@@ -58,7 +59,7 @@ class TestAdministrativeAreasReports(TestBase):
             group_name=groups.TALLY_MANAGER)
 
         regions_turnout_report =\
-            administrative_areas_reports.generate_report(
+            admin_reports.generate_report(
                 tally_id=self.tally.id,
                 report_column_name='result_form__office__region__name',
                 report_type_name=report_types[1],)[0]
@@ -95,7 +96,7 @@ class TestAdministrativeAreasReports(TestBase):
             f'<td>{regions_turnout_report["turnout_percentage"]} %</td>')
 
         votes_summary_report =\
-            administrative_areas_reports.generate_report(
+            admin_reports.generate_report(
                 tally_id=self.tally.id,
                 report_column_name='result_form__office__region__name',
                 report_type_name=report_types[2],)[0]
@@ -121,7 +122,7 @@ class TestAdministrativeAreasReports(TestBase):
             f'<td>{votes_summary_report["number_cancelled_ballots"]}</td>')
 
         progressive_report =\
-            administrative_areas_reports.generate_progressive_report(
+            admin_reports.generate_progressive_report(
                 tally_id=self.tally.id,
                 report_column_name='result_form__office__region__name',)[0]
 
@@ -147,13 +148,13 @@ class TestAdministrativeAreasReports(TestBase):
             'Region votes per candidate')
 
         region_forms_in_audit =\
-            administrative_areas_reports.get_admin_areas_with_forms_in_audit(
+            admin_reports.get_admin_areas_with_forms_in_audit(
                 tally_id=self.tally.id,
                 report_column_name='office__region__name',)[0]
         total_num_of_centers_and_stations_in_audit =\
             region_forms_in_audit["total_num_of_centers_and_stations_in_audit"]
 
-        # Region stations in audit report tests
+        # Region centers and stations in audit report tests
         self.assertContains(response, "<h2>Process Discrepancy Reports</h2>")
         self.assertContains(
             response, "<h4>Stations and Centers under process audit</h4>")
@@ -271,7 +272,7 @@ class TestAdministrativeAreasReports(TestBase):
         Test that the constituency reports are rendered as expected.
         """
         request = self._get_request()
-        view = administrative_areas_reports.ConstituencyReportsView.as_view()
+        view = admin_reports.ConstituencyReportsView.as_view()
         request = self.factory.get('/reports-constituencies')
         request.user = self.user
         response = view(
@@ -280,7 +281,7 @@ class TestAdministrativeAreasReports(TestBase):
             group_name=groups.TALLY_MANAGER)
 
         turnout_report =\
-            administrative_areas_reports.generate_voters_turnout_report(
+            admin_reports.generate_voters_turnout_report(
                 self.tally.id, 'result_form__center__constituency__name')[0]
 
         self.assertContains(response, "<h1>Constituency Reports</h1>")
@@ -320,7 +321,7 @@ class TestAdministrativeAreasReports(TestBase):
             f'<td>{turnout_report["turnout_percentage"]} %</td>')
 
         votes_summary_report =\
-            administrative_areas_reports.generate_votes_summary_report(
+            admin_reports.generate_votes_summary_report(
                 self.tally.id, 'result_form__center__constituency__name')[0]
 
         # Constituency votes summary report tests
@@ -349,7 +350,7 @@ class TestAdministrativeAreasReports(TestBase):
         """
         request = self._get_request()
         view =\
-            administrative_areas_reports.SubConstituencyReportsView.as_view()
+            admin_reports.SubConstituencyReportsView.as_view()
         request = self.factory.get('/reports-sub-constituencies')
         request.user = self.user
         response = view(
@@ -358,7 +359,7 @@ class TestAdministrativeAreasReports(TestBase):
             group_name=groups.TALLY_MANAGER)
 
         turnout_report =\
-            administrative_areas_reports.generate_voters_turnout_report(
+            admin_reports.generate_voters_turnout_report(
                 self.tally.id,
                 'result_form__center__sub_constituency__code')[0]
 
@@ -399,7 +400,7 @@ class TestAdministrativeAreasReports(TestBase):
             f'<td>{turnout_report["turnout_percentage"]} %</td>')
 
         votes_summary_report =\
-            administrative_areas_reports.generate_votes_summary_report(
+            admin_reports.generate_votes_summary_report(
                 self.tally.id,
                 'result_form__center__sub_constituency__code')[0]
 
