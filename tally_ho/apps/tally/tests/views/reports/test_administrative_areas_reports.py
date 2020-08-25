@@ -61,6 +61,14 @@ class TestAdministrativeAreasReports(TestBase):
             number_invalid_votes=0,
             number_ballots_received=20,
         )
+        votes = 20
+        create_candidates(self.result_form, votes=votes, user=self.user,
+                          num_results=1)
+        for result in self.result_form.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # create duplicate final results
+            create_result(self.result_form, result.candidate, self.user, votes)
 
     def test_regions_reports(self):
         """
