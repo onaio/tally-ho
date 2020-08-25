@@ -172,6 +172,23 @@ class TestAdministrativeAreasReports(TestBase):
             response,
             'Region votes per candidate')
 
+    def test_regions_centers_and_stations_in_audit_report(self):
+        """
+        Test that regions centers and stations in audit report is rendered as
+        expected.
+        """
+        self.result_form.form_state = FormState.AUDIT
+        self.result_form.save()
+
+        request = self._get_request()
+        view = admin_reports.RegionsReportsView.as_view()
+        request = self.factory.get('/reports-regions')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+            group_name=groups.TALLY_MANAGER)
+
         region_forms_in_audit =\
             admin_reports.get_admin_areas_with_forms_in_audit(
                 tally_id=self.tally.id,
