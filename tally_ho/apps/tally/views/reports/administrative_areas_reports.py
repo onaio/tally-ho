@@ -11,6 +11,7 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
@@ -50,11 +51,19 @@ def get_stations_and_centers_by_admin_area(
         report_types[3]
     stations_centers_excluded_after_investigation_report_type_name =\
         report_types[4]
+    centers_count_query = None
 
     if report_type_name ==\
             stations_centers_under_investigation_report_type_name:
         qs =\
             qs.filter(active=False)
+        centers_count_query =\
+            Subquery(
+                Center.objects.annotate(center_count=Coalesce(
+                    Count('id',
+                          filter=Q(tally__id=tally_id, active=False)), V(0)))
+                .values('center_count')[:1],
+                output_field=IntegerField())
 
     if report_type_name ==\
             stations_centers_excluded_after_investigation_report_type_name:
@@ -64,6 +73,15 @@ def get_stations_and_centers_by_admin_area(
                   center__disable_reason__isnull=False) |
                 Q(active=True,
                   disable_reason__isnull=False))
+        centers_count_query =\
+            Subquery(
+                Center.objects.annotate(center_count=Coalesce(
+                    Count('id',
+                          filter=Q(tally__id=tally_id,
+                                   active=True,
+                                   disable_reason__isnull=False)), V(0)))
+                .values('center_count')[:1],
+                output_field=IntegerField())
 
     if region_id:
         qs =\
@@ -81,7 +99,7 @@ def get_stations_and_centers_by_admin_area(
             'region_id',
         )\
         .annotate(
-            number_of_centers=Count('center'),
+            number_of_centers=centers_count_query,
             number_of_stations=Count('station_number'),
             total_number_of_centers_and_stations=ExpressionWrapper(
                 F('number_of_centers') +
