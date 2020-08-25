@@ -138,7 +138,7 @@ class TestAdministrativeAreasReports(TestBase):
             f'<td>{progressive_report["total_candidates"]}</td>')
         self.assertContains(
             response,
-            f'<td>{votes_summary_report["total_votes"]}</td>')
+            f'<td>{progressive_report["total_votes"]}</td>')
         self.assertContains(
             response,
             'Constituencies Progressive report')
