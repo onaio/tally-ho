@@ -141,10 +141,50 @@ class TestAdministrativeAreasReports(TestBase):
             f'<td>{progressive_report["total_votes"]}</td>')
         self.assertContains(
             response,
-            'Constituencies Progressive report')
+            'Region Constituencies Progressive Report')
         self.assertContains(
             response,
-            'Constituency votes per candidate')
+            'Region votes per candidate')
+
+        region_forms_in_audit =\
+            administrative_areas_reports.get_admin_areas_with_forms_in_audit(
+                tally_id=self.tally.id,
+                report_column_name='office__region__name',)[0]
+        total_num_of_centers_and_stations_in_audit =\
+            region_forms_in_audit["total_num_of_centers_and_stations_in_audit"]
+
+        # Region stations in audit report tests
+        self.assertContains(response, "<h2>Process Discrepancy Reports</h2>")
+        self.assertContains(
+            response, "<h4>Stations and Centers under process audit</h4>")
+        self.assertContains(response, "<th>Name</th>")
+        self.assertContains(response, "<th>Centers in Audit</th>")
+        self.assertContains(response, "<th>Stations in Audit</th>")
+        self.assertContains(response, "<th>Total</th>")
+        self.assertContains(
+            response,
+            f'<td>{region_forms_in_audit["admin_area_name"]}</td>')
+        self.assertContains(
+            response,
+            str('<td>'
+                f'{region_forms_in_audit["number_of_centers_in_audit_state"]}'
+                '</td>'))
+        self.assertContains(
+            response,
+            str('<td>'
+                f'{region_forms_in_audit["number_of_stations_in_audit_state"]}'
+                '</td>'))
+        self.assertContains(
+            response,
+            str('<td>'
+                f'{total_num_of_centers_and_stations_in_audit}'
+                '</td>'))
+        self.assertContains(
+            response,
+            'Region Constituencies under process Audit')
+        self.assertContains(
+            response,
+            'Region Centers and Stations under process Audit')
 
     def test_constituency_reports(self):
         """
