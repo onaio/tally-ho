@@ -226,6 +226,46 @@ class TestAdministrativeAreasReports(TestBase):
             response,
             'Region Centers and Stations under Investigation')
 
+        centers_stations_ex_after_invg =\
+            admin_reports.get_stations_and_centers_by_admin_area(
+                tally_id=self.tally.id,
+                report_column_name='center__office__region__name',
+                report_type_name=report_types[4],)[0]
+        total_number_of_centers_and_stations =\
+            centers_stations_under_invg["total_number_of_centers_and_stations"]
+
+        # Region centers and stations excluded after investigation tests
+        self.assertContains(
+            response, "<h4>Stations and Centers under Investigation</h4>")
+        self.assertContains(response, "<th>Name</th>")
+        self.assertContains(response, "<th>Centers</th>")
+        self.assertContains(response, "<th>Stations</th>")
+        self.assertContains(response, "<th>Total</th>")
+        self.assertContains(
+            response,
+            f'<td>{centers_stations_ex_after_invg["admin_area_name"]}</td>')
+        self.assertContains(
+            response,
+            str('<td>'
+                f'{centers_stations_ex_after_invg["number_of_centers"]}'
+                '</td>'))
+        self.assertContains(
+            response,
+            str('<td>'
+                f'{centers_stations_ex_after_invg["number_of_stations"]}'
+                '</td>'))
+        self.assertContains(
+            response,
+            str('<td>'
+                f'{total_number_of_centers_and_stations}'
+                '</td>'))
+        self.assertContains(
+            response,
+            'Region Constituencies excluded after investigation')
+        self.assertContains(
+            response,
+            'Region Centers and Stations excluded after investigation')
+
     def test_constituency_reports(self):
         """
         Test that the constituency reports are rendered as expected.
