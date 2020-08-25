@@ -212,11 +212,29 @@ class TestAdministrativeAreasReports(TestBase):
             response,
             'Region Centers and Stations under process Audit')
 
+    def test_regions_centers_and_stations_under_investigation_report(self):
+        """
+        Test that regions centers and stations under investigation report is
+        rendered as expected.
+        """
+        self.station.active = False
+        self.station.disable_reason = DisableReason.NOT_OPENED
+        self.station.save()
+
+        request = self._get_request()
+        view = admin_reports.RegionsReportsView.as_view()
+        request = self.factory.get('/reports-regions')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+            group_name=groups.TALLY_MANAGER)
+
         centers_stations_under_invg =\
             admin_reports.get_stations_and_centers_by_admin_area(
                 tally_id=self.tally.id,
                 report_column_name='center__office__region__name',
-                report_type_name=report_types[3],)[0]
+                report_type_name=admin_reports.report_types[3],)[0]
         total_number_of_centers_and_stations =\
             centers_stations_under_invg["total_number_of_centers_and_stations"]
 
@@ -229,16 +247,16 @@ class TestAdministrativeAreasReports(TestBase):
         self.assertContains(response, "<th>Total</th>")
         self.assertContains(
             response,
-            f'<td>{region_forms_in_audit["admin_area_name"]}</td>')
+            f'<td>{centers_stations_under_invg["admin_area_name"]}</td>')
         self.assertContains(
             response,
             str('<td>'
-                f'{region_forms_in_audit["number_of_centers"]}'
+                f'{centers_stations_under_invg["number_of_centers"]}'
                 '</td>'))
         self.assertContains(
             response,
             str('<td>'
-                f'{region_forms_in_audit["number_of_stations"]}'
+                f'{centers_stations_under_invg["number_of_stations"]}'
                 '</td>'))
         self.assertContains(
             response,
