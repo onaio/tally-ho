@@ -29,17 +29,28 @@ class TestAdministrativeAreasReports(TestBase):
         office = create_office(tally=self.tally, region=region)
         constituency = create_constituency(tally=self.tally)
         sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
-        center = create_center(tally=self.tally,
-                               sub_constituency=sc,
-                               constituency=constituency)
-        station = create_station(center=center, registrants=20)
-        result_form = create_result_form(
+        center, _ = Center.objects.get_or_create(
+            code='1',
+            mahalla='1',
+            name='1',
+            office=office,
+            region='1',
+            village='1',
+            active=True,
             tally=self.tally,
+            sub_constituency=sc,
+            center_type=CenterType.GENERAL,
+            constituency=constituency)
+        self.station = create_station(
+            center=center, registrants=20, tally=self.tally)
+        self.result_form = create_result_form(
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
             office=office,
             center=center,
-            station_number=station.station_number)
+            station_number=self.station.station_number)
         create_reconciliation_form(
-            result_form=result_form,
+            result_form=self.result_form,
             user=self.user,
             number_ballots_inside_box=20,
             number_cancelled_ballots=0,
