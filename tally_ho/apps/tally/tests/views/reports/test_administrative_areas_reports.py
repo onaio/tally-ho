@@ -2,12 +2,18 @@ from django.test import RequestFactory
 
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
+from tally_ho.apps.tally.models.center import Center
+from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.disable_reason import DisableReason
+from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.apps.tally.views.reports import (
     administrative_areas_reports as admin_reports,
-    report_types)
+)
 from tally_ho.libs.tests.test_base import create_result_form,\
     create_station, create_reconciliation_form, create_tally,\
-    create_center, create_region, create_constituency, create_office, TestBase
+    create_region, create_constituency, create_office, create_result,\
+    create_candidates, TestBase
 
 
 class TestAdministrativeAreasReports(TestBase):
