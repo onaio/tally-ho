@@ -562,6 +562,37 @@ class TestAdministrativeAreasReports(TestBase):
                       response['location'])
         self.assertEquals(request.session, {'station_ids': [tally_id]})
 
+    def test_candidates_list_redirect_regions_votes_summary_report(self):
+        """
+        Test redirect to centers list when report type is for regions votes
+        summary.
+        """
+        tally_id = self.tally.pk
+        region_id = self.region.pk
+
+        request = self._get_request()
+        view = admin_reports.RegionsReportsView.as_view()
+        request = self.factory.get('/reports-regions')
+        request.user = self.user
+        request.session = {}
+        response = view(
+            request,
+            tally_id=tally_id,
+            report_type='votes-per-candidate-report',
+            region_id=region_id,
+            group_name=groups.TALLY_MANAGER)
+
+        self.assertEquals(response.status_code, 302)
+        self.assertIn(str('/reports/internal/candidate-list-by-votes/'
+                          f'{tally_id}/{region_id}/'),
+                      response['location'])
+        self.assertEquals(request.session,
+                          {'result_ids':
+                           list(
+                               self.result_form.results.values_list(
+                                   'id', flat=True)),
+                           'ballot_report': False})
+
     def test_sub_constituency_reports(self):
         """
         Test that the sub constituency reports are rendered as expected.
