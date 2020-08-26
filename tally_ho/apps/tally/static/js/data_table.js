@@ -17,7 +17,7 @@ $(document).ready(function (dt_language, serverSide, LIST_JSON_URL, exportFileNa
     ],
     searching: true,
     processing: true,
-    serverSide: serverSide,
+    serverSide,
     stateSave: true,
     ajax: LIST_JSON_URL,
     dom:
