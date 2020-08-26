@@ -29,7 +29,7 @@ class TestAdministrativeAreasReports(TestBase):
 
         self.region = create_region(tally=self.tally)
         office = create_office(tally=self.tally, region=self.region)
-        constituency = create_constituency(tally=self.tally)
+        self.constituency = create_constituency(tally=self.tally)
         sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
         center, _ = Center.objects.get_or_create(
             code='1',
@@ -42,7 +42,7 @@ class TestAdministrativeAreasReports(TestBase):
             tally=self.tally,
             sub_constituency=sc,
             center_type=CenterType.GENERAL,
-            constituency=constituency)
+            constituency=self.constituency)
         self.station = create_station(
             center=center, registrants=20, tally=self.tally)
         self.result_form = create_result_form(
@@ -660,30 +660,44 @@ class TestAdministrativeAreasReports(TestBase):
             response,
             'Constituency votes per candidate')
 
-    def test_sub_constituency_reports(self):
+    def test_sub_constituency_turn_out_and_votes_summary_reports(self):
         """
-        Test that the sub constituency reports are rendered as expected.
+        Test that the sub constituency turn out and votes summary reports are
+        rendered as expected.
         """
         request = self._get_request()
-        view =\
-            admin_reports.SubConstituencyReportsView.as_view()
-        request = self.factory.get('/reports-sub-constituencies')
+        view = admin_reports.SubConstituencyReportsView.as_view(
+            template_name="reports/turnout_report.html"
+        )
+        request = self.factory.get('/sub-constituency-turnout-report')
         request.user = self.user
         response = view(
             request,
             tally_id=self.tally.pk,
+            region_id=self.region.pk,
+            constituency_id=self.constituency.pk,
             group_name=groups.TALLY_MANAGER)
 
+        report_column_name = 'result_form__center__sub_constituency__code'
         turnout_report =\
-            admin_reports.generate_voters_turnout_report(
-                self.tally.id,
-                'result_form__center__sub_constituency__code')[0]
-
-        self.assertContains(response, "<h1>Sub Constituency Reports</h1>")
+            admin_reports.generate_report(
+                tally_id=self.tally.pk,
+                report_column_name=report_column_name,
+                report_type_name=admin_reports.report_types[1],
+                region_id=self.region.pk,
+                constituency_id=self.constituency.pk)[0]
 
         # Sub Constituency turnout report tests
-        self.assertContains(response, "<h3>Turn Out Report</h3>")
-        self.assertContains(response, "<th>Sub Constituency Name</th>")
+        self.assertContains(
+            response,
+            f'<h1>Region Name {self.region.name}</h1>')
+        self.assertContains(
+            response,
+            f'<h1>Constituency Name {self.constituency.name}</h1>')
+        self.assertContains(
+            response,
+            "<h3>Sub Constituencies Turn Out Report</h3>")
+        self.assertContains(response, "<th>Name</th>")
         self.assertContains(response, "<th>Total number of voters</th>")
         self.assertContains(response, "<th>Number of voters voted</th>")
         self.assertContains(response, "<th>Male voters</th>")
@@ -702,11 +716,6 @@ class TestAdministrativeAreasReports(TestBase):
                 '</td>'))
         self.assertContains(
             response,
-            str('<td>'
-                f'{turnout_report["total_number_of_ballots_used"]}'
-                '</td>'))
-        self.assertContains(
-            response,
             f'<td>{turnout_report["male_voters"]}</td>')
         self.assertContains(
             response,
@@ -715,14 +724,37 @@ class TestAdministrativeAreasReports(TestBase):
             response,
             f'<td>{turnout_report["turnout_percentage"]} %</td>')
 
+        view = admin_reports.SubConstituencyReportsView.as_view(
+            template_name="reports/summary_report.html"
+        )
+        request = self.factory.get('/sub-constituency-summary-report')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+            region_id=self.region.pk,
+            constituency_id=self.constituency.pk,
+            group_name=groups.TALLY_MANAGER)
+
         votes_summary_report =\
-            admin_reports.generate_votes_summary_report(
-                self.tally.id,
-                'result_form__center__sub_constituency__code')[0]
+            admin_reports.generate_report(
+                tally_id=self.tally.id,
+                region_id=self.region.pk,
+                constituency_id=self.constituency.pk,
+                report_column_name=report_column_name,
+                report_type_name=admin_reports.report_types[2],)[0]
 
         # Sub Constituency votes summary report tests
-        self.assertContains(response, "<h3>Votes Summary Report</h3>")
-        self.assertContains(response, "<th>Sub Constituency Name</th>")
+        self.assertContains(
+            response,
+            f'<h1>Region Name {self.region.name}</h1>')
+        self.assertContains(
+            response,
+            f'<h1>Constituency Name {self.constituency.name}</h1>')
+        self.assertContains(
+            response,
+            "<h3>Sub Constituencies Votes Summary Report</h3>")
+        self.assertContains(response, "<th>Name</th>")
         self.assertContains(response, "<th>Total number of valid votes</th>")
         self.assertContains(response, "<th>Total number of invalid votes</th>")
         self.assertContains(
@@ -739,3 +771,51 @@ class TestAdministrativeAreasReports(TestBase):
         self.assertContains(
             response,
             f'<td>{votes_summary_report["number_cancelled_ballots"]}</td>')
+
+        view = admin_reports.SubConstituencyReportsView.as_view(
+            template_name="reports/progressive_report.html"
+        )
+        request = self.factory.get('/sub-constituency-progressive-report')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+            region_id=self.region.pk,
+            constituency_id=self.constituency.pk,
+            group_name=groups.TALLY_MANAGER)
+
+        progressive_report =\
+            admin_reports.generate_progressive_report(
+                tally_id=self.tally.id,
+                region_id=self.region.pk,
+                constituency_id=self.constituency.pk,
+                report_column_name=report_column_name,)[0]
+
+        # Sub Constituency progressive report tests
+        self.assertContains(
+            response,
+            f'<h1>Region Name {self.region.name}</h1>')
+        self.assertContains(
+            response,
+            f'<h1>Constituency Name {self.constituency.name}</h1>')
+        self.assertContains(
+            response,
+            "<h3>Sub Constituencies Progressive Report</h3>")
+        self.assertContains(response, "<th>Name</th>")
+        self.assertContains(response, "<th>Number of Candidates</th>")
+        self.assertContains(response, "<th>Number of Votes</th>")
+        self.assertContains(
+            response,
+            f'<td>{progressive_report["name"]}</td>')
+        self.assertContains(
+            response,
+            f'<td>{progressive_report["total_candidates"]}</td>')
+        self.assertContains(
+            response,
+            f'<td>{progressive_report["total_votes"]}</td>')
+        self.assertContains(
+            response,
+            'Sub Constituency votes per candidate')
+        self.assertContains(
+            response,
+            'Sub Constituency candidates list by ballot order')
