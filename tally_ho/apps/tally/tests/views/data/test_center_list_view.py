@@ -20,6 +20,5 @@ class TestCenterListView(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Center and Station List")
-        self.assertContains(response, "Download")
         self.assertContains(response, "New Station")
         self.assertContains(response, "New Center")
