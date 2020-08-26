@@ -419,6 +419,9 @@ class RegionsReportsView(LoginRequiredMixin,
         return self.render_to_response(
             self.get_context_data(
                 tally_id=tally_id,
+                administrative_area_name=None,
+                region_name=None,
+                constituency_name=None,
                 report_name=_(u'Region'),
                 administrative_area_child_report_name=_(
                     u'Region Constituencies'),
