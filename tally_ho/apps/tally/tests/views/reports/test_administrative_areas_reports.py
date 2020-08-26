@@ -450,7 +450,7 @@ class TestAdministrativeAreasReports(TestBase):
         self.assertEquals(response.status_code, 302)
         self.assertIn(f'/data/center-list/{tally_id}/{region_id}/',
                       response['location'])
-        self.assertEquals(request.session, {'station_ids': [tally_id]})
+        self.assertEquals(request.session, {'station_ids': [self.station.pk]})
 
     def test_centers_list_redirect_regions_exclude_after_investigation(self):
         """
@@ -483,7 +483,7 @@ class TestAdministrativeAreasReports(TestBase):
         self.assertEquals(response.status_code, 302)
         self.assertIn(f'/data/center-list/{tally_id}/{region_id}/',
                       response['location'])
-        self.assertEquals(request.session, {'station_ids': [tally_id]})
+        self.assertEquals(request.session, {'station_ids': [self.station.pk]})
 
     def test_candidates_list_redirect_regions_votes_summary_report(self):
         """
