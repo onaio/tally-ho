@@ -424,6 +424,34 @@ class TestAdministrativeAreasReports(TestBase):
             response,
             'Region Centers and Stations excluded after investigation')
 
+    def test_centers_list_redirect_for_regions_under_investigation(self):
+        """
+        Test redirect to centers list when report type is for centers and
+        stations under investigation.
+        """
+        tally_id = self.tally.pk
+        region_id = self.region.pk
+        self.station.active = False
+        self.station.disable_reason = DisableReason.NOT_OPENED
+        self.station.save()
+
+        request = self._get_request()
+        view = admin_reports.RegionsReportsView.as_view()
+        request = self.factory.get('/reports-regions')
+        request.user = self.user
+        request.session = {}
+        response = view(
+            request,
+            tally_id=tally_id,
+            report_type='centers-and-stations-under-investigation',
+            region_id=region_id,
+            group_name=groups.TALLY_MANAGER)
+
+        self.assertEquals(response.status_code, 302)
+        self.assertIn(f'/data/center-list/{tally_id}/{region_id}/',
+                      response['location'])
+        self.assertEquals(request.session, {'station_ids': [tally_id]})
+
     def test_constituency_reports(self):
         """
         Test that the constituency reports are rendered as expected.
@@ -500,34 +528,6 @@ class TestAdministrativeAreasReports(TestBase):
         self.assertContains(
             response,
             f'<td>{votes_summary_report["number_cancelled_ballots"]}</td>')
-
-    def test_centers_list_redirect_for_regions_under_investigation(self):
-        """
-        Test redirect to centers list when report type is for centers and
-        stations under investigation.
-        """
-        tally_id = self.tally.pk
-        region_id = self.region.pk
-        self.station.active = False
-        self.station.disable_reason = DisableReason.NOT_OPENED
-        self.station.save()
-
-        request = self._get_request()
-        view = admin_reports.RegionsReportsView.as_view()
-        request = self.factory.get('/reports-regions')
-        request.user = self.user
-        request.session = {}
-        response = view(
-            request,
-            tally_id=tally_id,
-            report_type='centers-and-stations-under-investigation',
-            region_id=region_id,
-            group_name=groups.TALLY_MANAGER)
-
-        self.assertEquals(response.status_code, 302)
-        self.assertIn(f'/data/center-list/{tally_id}/{region_id}/',
-                      response['location'])
-        self.assertEquals(request.session, {'station_ids': [tally_id]})
 
     def test_centers_list_redirect_regions_exclude_after_investigation(self):
         """
