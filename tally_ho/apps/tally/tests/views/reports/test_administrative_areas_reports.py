@@ -253,6 +253,7 @@ class TestAdministrativeAreasReports(TestBase):
             region_id=region_id,
             group_name=groups.TALLY_MANAGER)
 
+        self.assertEquals(response.status_code, 302)
         self.assertIn(f'/data/center-list/{tally_id}/{region_id}/',
                       response['location'])
 
