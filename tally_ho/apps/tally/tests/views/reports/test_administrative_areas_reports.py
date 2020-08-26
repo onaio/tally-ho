@@ -1,3 +1,4 @@
+import json
 from django.test import RequestFactory
 
 from tally_ho.libs.permissions import groups
@@ -10,6 +11,7 @@ from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.apps.tally.views.reports import (
     administrative_areas_reports as admin_reports,
 )
+from tally_ho.apps.tally.views.data import center_list_view
 from tally_ho.libs.tests.test_base import create_result_form,\
     create_station, create_reconciliation_form, create_tally,\
     create_region, create_constituency, create_office, create_result,\
@@ -25,8 +27,8 @@ class TestAdministrativeAreasReports(TestBase):
         self.tally = create_tally()
         self.tally.users.add(self.user)
 
-        region = create_region(tally=self.tally)
-        office = create_office(tally=self.tally, region=region)
+        self.region = create_region(tally=self.tally)
+        office = create_office(tally=self.tally, region=self.region)
         constituency = create_constituency(tally=self.tally)
         sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
         center, _ = Center.objects.get_or_create(
@@ -228,6 +230,75 @@ class TestAdministrativeAreasReports(TestBase):
         self.assertContains(
             response,
             'Region Centers and Stations under process Audit')
+
+    def test_regions_centers_and_stations_in_audit_list_report(self):
+        """
+        Test that regions centers and stations in audit list report is
+        rendered as expected.
+        """
+        tally_id = self.tally.pk
+        region_id = self.region.pk
+        self.result_form.form_state = FormState.AUDIT
+        self.result_form.save()
+
+        request = self._get_request()
+        view = admin_reports.RegionsReportsView.as_view()
+        request = self.factory.get('/reports-regions')
+        request.user = self.user
+        request.session = {}
+        response = view(
+            request,
+            tally_id=tally_id,
+            report_type='centers-and-stations-in-audit-report',
+            region_id=region_id,
+            group_name=groups.TALLY_MANAGER)
+
+        self.assertIn(f'/data/center-list/{tally_id}/{region_id}/',
+                      response['location'])
+
+        session = request.session
+        request = self.factory.get(
+            f'center-list-data/{tally_id}/{region_id}/')
+        request.user = self.user
+        request.session = session
+        view = center_list_view.CenterListDataView.as_view()
+        response = view(
+            request,
+            tally_id=tally_id,
+            region_id=region_id)
+
+        office, voting_district, center_name, center_code, station_number,\
+            gender, registrants, received, archived, center_enabled,\
+            station_enabled, edit_link = json.loads(
+                response.content.decode())['data'][0]
+        center_edit_link =\
+            f"/super-administrator/edit-center/{tally_id}/{center_code}"
+        station_edit_link =\
+            f"/super-administrator/edit-station/{tally_id}/{self.station.pk}"
+
+        self.assertEquals(office, self.station.center.office.name)
+        self.assertEquals(voting_district, str(
+            self.station.sub_constituency.code))
+        self.assertEquals(center_name, self.station.center.name)
+        self.assertEquals(center_code, str(self.station.center.code))
+        self.assertEquals(station_number, str(self.station.station_number))
+        self.assertEquals(gender, self.station.gender.label)
+        self.assertEquals(registrants, str(self.station.registrants))
+        self.assertEquals(
+            received,
+            str(("%.2f" % round(self.station.percent_received, 2))))
+        self.assertEquals(
+            archived,
+            str(("%.2f" % round(self.station.percent_archived, 2))))
+        self.assertEquals(center_enabled, str(self.station.center.active))
+        self.assertEquals(station_enabled, str(self.station.active))
+        self.assertEquals(
+            edit_link,
+            str(f'<a href="{center_edit_link}"'
+                ' class="btn btn-default btn-small vertical-margin">Center</a>'
+                f'<a href="{station_edit_link}"'
+                ' class="btn btn-default btn-small vertical-margin">Station'
+                '</a>'))
 
     def test_regions_centers_and_stations_under_investigation_report(self):
         """
