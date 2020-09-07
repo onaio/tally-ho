@@ -25,7 +25,7 @@ class UserListDataView(LoginRequiredMixin,
 
     def render_column(self, row, column):
         if column == 'edit':
-            return row.get_edit_tally_link
+            return row.get_edit_link
         else:
             return super(UserListDataView, self).render_column(
                 row, column)
@@ -69,9 +69,9 @@ class UserListView(LoginRequiredMixin,
         is_admin = role == 'admin'
 
         return self.render_to_response(self.get_context_data(
-               role=role,
-               is_admin=is_admin,
-               remote_url=reverse('user-list-data', kwargs={'role': role})))
+            role=role,
+            is_admin=is_admin,
+            remote_url=reverse('user-list-data', kwargs={'role': role})))
 
 
 class UserTallyListView(LoginRequiredMixin,
