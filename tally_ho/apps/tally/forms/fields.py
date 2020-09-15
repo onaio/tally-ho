@@ -9,7 +9,7 @@ from django.conf import settings
 class RestrictedFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
         self.allowed_extensions = kwargs.pop('allowed_extensions', None)
-        self.check_file_size = kwargs.pop('check_file_size', True)
+        self.check_file_size = kwargs.pop('check_file_size', None)
         self.max_upload_size = kwargs.pop('max_upload_size', None)
 
         if self.check_file_size and not self.max_upload_size:
