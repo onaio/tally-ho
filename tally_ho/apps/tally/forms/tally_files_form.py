@@ -1,18 +1,40 @@
-import pathlib
 from django import forms
-from django.utils.translation import ugettext_lazy as _
+from tally_ho.apps.tally.forms.fields import RestrictedFileField
+
+ALLOWED_FILE_EXTENTIONS = ['.csv']
 
 
 class TallyFilesForm(forms.Form):
-    subconst_file = forms.FileField(label='Subconstituency file',
-                                    required=True)
-    centers_file = forms.FileField(label='Centers file', required=True)
-    stations_file = forms.FileField(label='Stations file', required=True)
-    candidates_file = forms.FileField(label='Candidates file', required=True)
-    ballots_order_file = forms.FileField(label='Ballot order file',
-                                         required=True)
-    result_forms_file = forms.FileField(label='Result forms file',
-                                        required=True)
+    subconst_file =\
+        RestrictedFileField(label='Subconstituency file',
+                            required=True,
+                            check_file_size=False,
+                            allowed_extensions=ALLOWED_FILE_EXTENTIONS)
+    centers_file =\
+        RestrictedFileField(label='Centers file',
+                            required=True,
+                            check_file_size=False,
+                            allowed_extensions=ALLOWED_FILE_EXTENTIONS)
+    stations_file =\
+        RestrictedFileField(label='Stations file',
+                            required=True,
+                            check_file_size=False,
+                            allowed_extensions=ALLOWED_FILE_EXTENTIONS)
+    candidates_file =\
+        RestrictedFileField(label='Candidates file',
+                            required=True,
+                            check_file_size=False,
+                            allowed_extensions=ALLOWED_FILE_EXTENTIONS)
+    ballots_order_file =\
+        RestrictedFileField(label='Ballot order file',
+                            required=True,
+                            check_file_size=False,
+                            allowed_extensions=ALLOWED_FILE_EXTENTIONS)
+    result_forms_file =\
+        RestrictedFileField(label='Result forms file',
+                            required=True,
+                            check_file_size=False,
+                            allowed_extensions=ALLOWED_FILE_EXTENTIONS)
     tally_id = forms.IntegerField(widget=forms.HiddenInput())
 
     def clean(self):
