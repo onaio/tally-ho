@@ -39,7 +39,7 @@ class RestrictedFileField(forms.FileField):
                     raise forms.ValidationError(
                         _(f'File extention ({file_extension})'
                           ' is not supported.'
-                          f' Allowed extensions are: {allowed_extensions}.'))
+                          f' Allowed extension(s) are: {allowed_extensions}.'))
             except AttributeError:
                 pass
 
