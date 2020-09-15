@@ -19,7 +19,7 @@ class EditRaceForm(ModelForm):
             'document',
         ]
 
-    document = RestrictedFileField(required=False)
+    document = RestrictedFileField(required=False, check_file_size=True)
 
     comment_input = forms.CharField(
         required=False,
