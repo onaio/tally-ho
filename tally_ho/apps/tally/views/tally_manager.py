@@ -411,8 +411,14 @@ class BatchView(LoginRequiredMixin,
         offset = int(request.POST.get('offset', 0))
         current_step = int(request.POST.get('step', 1))
 
-        elements_processed = process_batch_step(
+        elements_processed, error_message = process_batch_step(
             current_step, offset, kwargs, tally)
+
+        if error_message:
+            return HttpResponse(json.dumps({
+                'status': 'Error',
+                'error_message': str(error_message)}),
+                content_type='application/json')
 
         return HttpResponse(json.dumps({
             'status': 'OK',
