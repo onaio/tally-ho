@@ -338,15 +338,7 @@ class TallyFilesFormView(LoginRequiredMixin,
 
         tally = Tally.objects.get(id=tally_id)
 
-        with transaction.atomic():
-            Station.objects.filter(tally=tally).delete()
-            Center.objects.filter(tally=tally).delete()
-            SubConstituency.objects.filter(tally=tally).delete()
-            Ballot.objects.filter(tally=tally).delete()
-            Office.objects.filter(tally=tally).delete()
-            Ballot.objects.filter(tally=tally).delete()
-            Candidate.objects.filter(tally=tally).delete()
-            ResultForm.objects.filter(tally=tally).delete()
+        delete_all_tally_objects(tally)
 
         subconst_file_name_prefix = FILE_NAMES_PREFIXS['subconst_file']
         subconst_file = f'{subconst_file_name_prefix}{tally_id}.csv'
