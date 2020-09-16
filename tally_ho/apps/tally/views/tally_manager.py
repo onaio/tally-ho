@@ -69,6 +69,14 @@ STEP_TO_ARGS = {
         'result_forms_file_lines',
         process_results_form_row]
 }
+FILE_NAMES_PREFIXS = {
+    'subconst_file': 'subcontituencies_',
+    'centers_file': 'centers_',
+    'stations_file': 'stations_',
+    'candidates_file': 'candidates_',
+    'ballots_order_file': 'ballot_order_',
+    'result_forms_file': 'result_forms_',
+}
 logger = logging.getLogger(__name__)
 
 
@@ -323,24 +331,32 @@ class TallyFilesFormView(LoginRequiredMixin,
             Candidate.objects.filter(tally=tally).delete()
             ResultForm.objects.filter(tally=tally).delete()
 
-        subconst_file = 'subcontituencies_%d.csv' % (tally_id)
+        subconst_file_name_prefix = FILE_NAMES_PREFIXS['subconst_file']
+        subconst_file = f'{subconst_file_name_prefix}{tally_id}.csv'
         subconst_file_lines = save_file(data['subconst_file'], subconst_file)
 
-        centers_file = 'centers_%d.csv' % (tally_id)
+        centers_file_name_prefix = FILE_NAMES_PREFIXS['centers_file']
+        centers_file = f'{centers_file_name_prefix}{tally_id}.csv'
         centers_file_lines = save_file(data['centers_file'], centers_file)
 
-        stations_file = 'stations_%d.csv' % (tally_id)
+        stations_file_name_prefix = FILE_NAMES_PREFIXS['stations_file']
+        stations_file = f'{stations_file_name_prefix}{tally_id}.csv'
         stations_file_lines = save_file(data['stations_file'], stations_file)
 
-        candidates_file = 'candidates_%d.csv' % (tally_id)
+        candidates_file_name_prefix = FILE_NAMES_PREFIXS['candidates_file']
+        candidates_file = f'{candidates_file_name_prefix}{tally_id}.csv'
         candidates_file_lines = save_file(data['candidates_file'],
                                           candidates_file)
 
-        ballots_order_file = 'ballot_order_%d.csv' % (tally_id)
+        ballots_order_file_name_prefix =\
+            FILE_NAMES_PREFIXS['ballots_order_file']
+        ballots_order_file =\
+            f'{ballots_order_file_name_prefix}{tally_id}.csv'
         ballots_order_file_lines = save_file(data['ballots_order_file'],
                                              ballots_order_file)
 
-        result_forms_file = 'result_forms_%d.csv' % (tally_id)
+        result_forms_file_name_prefix = FILE_NAMES_PREFIXS['result_forms_file']
+        result_forms_file = f'{result_forms_file_name_prefix}{tally_id}.csv'
         result_forms_file_lines = save_file(data['result_forms_file'],
                                             result_forms_file)
 
