@@ -351,15 +351,22 @@ class TallyUpdateView(LoginRequiredMixin,
 class TallyRemoveView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
                       mixins.ReverseSuccessURLMixin,
-                      DeleteView):
+                      TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'tally_manager/tally_remove.html'
-    group_required = groups.TALLY_MANAGER
-    model = Tally
-    success_url = 'tally-list'
 
-    def get_object(self, queryset=None):
-        self.object = Tally.objects.get(id=self.kwargs['tally_id'])
-        return self.object
+    def get(self, *args, **kwargs):
+        tally = Tally.objects.get(id=self.kwargs['tally_id'])
+
+        return self.render_to_response(self.get_context_data(
+            tally=tally))
+
+    def post(self, *args, **kwargs):
+        tally = Tally.objects.get(id=self.kwargs['tally_id'])
+        tally.active = False
+        tally.save()
+
+        return redirect("tally-list")
 
 
 class TallyFilesFormView(LoginRequiredMixin,
