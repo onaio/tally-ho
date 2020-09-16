@@ -423,7 +423,7 @@ class BatchView(LoginRequiredMixin,
         return HttpResponse(json.dumps({
             'status': 'OK',
             'elements_processed': elements_processed}),
-                            content_type='application/json')
+            content_type='application/json')
 
 
 class SetUserTimeOutView(LoginRequiredMixin,
