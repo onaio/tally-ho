@@ -127,11 +127,15 @@ def import_rows_batch(tally,
     if ballot_file_to_parse:
         with ballot_file_to_parse as f:
             reader = csv.reader(f)
-            next(reader)  # ignore header
 
-            for row in reader:
-                id_, ballot_number = row
-                id_to_ballot_order[id_] = ballot_number
+            for line, row in enumerate(reader):
+                if line == 0 and settings.BALLOT_ORDER_COLUMN_NAMES != row:
+                    delete_all_tally_objects(tally)
+                    error_message = _(u'Invalid ballot order file')
+                    return elements_processed, error_message
+                if line != 0:
+                    id_, ballot_number = row
+                    id_to_ballot_order[id_] = ballot_number
 
     with file_to_parse as f:
         reader = csv.reader(f)
@@ -147,7 +151,7 @@ def import_rows_batch(tally,
                 elements_processed += 1
             count += 1
 
-    return elements_processed
+    return elements_processed, None
 
 
 def process_batch_step(current_step, offset, file_map, tally):
