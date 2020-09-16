@@ -44,6 +44,7 @@
 
 <div id="route" class="hidden" style="display:none">{{ request.path }}</div>
 <div id="route_destination" style="display:none">{% url 'tally-manager' %}</div>
+<div id="tally_files_route" style="display:none">{% url 'tally-files-form' tally_id=tally_id %}</div>
 <div id="errors_number" style="display:none">0</div>
 
 {% endblock %}
