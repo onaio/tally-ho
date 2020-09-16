@@ -80,6 +80,23 @@ FILE_NAMES_PREFIXS = {
 logger = logging.getLogger(__name__)
 
 
+def delete_all_tally_objects(tally):
+    """
+    Delete all tally objects.
+
+    :param tally: The tally for filtering objects to delete.
+    """
+    with transaction.atomic():
+        Station.objects.filter(tally=tally).delete()
+        Center.objects.filter(tally=tally).delete()
+        SubConstituency.objects.filter(tally=tally).delete()
+        Ballot.objects.filter(tally=tally).delete()
+        Office.objects.filter(tally=tally).delete()
+        Ballot.objects.filter(tally=tally).delete()
+        Candidate.objects.filter(tally=tally).delete()
+        ResultForm.objects.filter(tally=tally).delete()
+
+
 def save_file(file_uploaded, file_name):
     num_lines = 0
 
