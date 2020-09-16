@@ -123,6 +123,10 @@ def import_rows_batch(tally,
     elements_processed = 0
     id_to_ballot_order = {}
     ballot_file_to_parse = kwargs.get('ballots_order_file', False)
+    file_to_parse_name = file_to_parse.name.split(UPLOADED_FILES_PATH)[1]
+
+    subconst_file_name_prefix = FILE_NAMES_PREFIXS['subconst_file']
+    subconst_file_name = f'{subconst_file_name_prefix}{tally.id}.csv'
 
     if ballot_file_to_parse:
         with ballot_file_to_parse as f:
@@ -140,7 +144,16 @@ def import_rows_batch(tally,
     with file_to_parse as f:
         reader = csv.reader(f)
         count = 0
+        check_file_column_names = True
         for line, row in enumerate(reader):
+            if line == 0 and check_file_column_names:
+                if file_to_parse_name == subconst_file_name and\
+                        row != settings.SUB_CONSTITUENCY_COLUMN_NAMES:
+                    delete_all_tally_objects(tally)
+                    error_message = _(u'Invalid sub constituency file')
+                    return elements_processed, error_message
+                else:
+                    check_file_column_names = False
             if count >= offset and count < (offset + BATCH_BLOCK_SIZE):
                 if line != 0:
                     if id_to_ballot_order:
