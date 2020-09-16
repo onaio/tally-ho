@@ -131,6 +131,8 @@ def import_rows_batch(tally,
     centers_file_name = f'{centers_file_name_prefix}{tally.id}.csv'
     stations_file_name_prefix = FILE_NAMES_PREFIXS['stations_file']
     stations_file_name = f'{stations_file_name_prefix}{tally.id}.csv'
+    candidates_file_name_prefix = FILE_NAMES_PREFIXS['candidates_file']
+    candidates_file_name = f'{candidates_file_name_prefix}{tally.id}.csv'
 
     if ballot_file_to_parse:
         with ballot_file_to_parse as f:
@@ -165,6 +167,11 @@ def import_rows_batch(tally,
                         row != settings.STATION_COLUMN_NAMES:
                     delete_all_tally_objects(tally)
                     error_message = _(u'Invalid stations file')
+                    return elements_processed, error_message
+                elif file_to_parse_name == candidates_file_name and\
+                        row != settings.CANDIDATE_COLUMN_NAMES:
+                    delete_all_tally_objects(tally)
+                    error_message = _(u'Invalid candidates file')
                     return elements_processed, error_message
                 else:
                     check_file_column_names = False
