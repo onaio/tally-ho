@@ -205,7 +205,7 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk)
         response.render()
-        self.assertNotIn(tally.name, str(response.content))
+        self.assertIn(tally.name, str(response.content))
         self.assertIn(
             "You have no tally assigned to be administrated",
             str(response.content))
