@@ -9,7 +9,7 @@ from tally_ho.apps.tally.forms.fields import RestrictedFileField
 class RestrictedFileFieldTest(SimpleTestCase):
 
     def test_file_extension_error(self):
-        f = RestrictedFileField(check_file_size=True)
+        f = RestrictedFileField()
         file_size = settings.MAX_FILE_UPLOAD_SIZE
         video = SimpleUploadedFile(
             "file.mp4", bytes(file_size), content_type="video/mp4")
@@ -20,7 +20,7 @@ class RestrictedFileFieldTest(SimpleTestCase):
             f.clean(video)
 
     def test_file_size_error(self):
-        f = RestrictedFileField(check_file_size=True)
+        f = RestrictedFileField()
         file_size = settings.MAX_FILE_UPLOAD_SIZE * 2
         image = SimpleUploadedFile(
             "image.jpg", bytes(file_size), content_type="image/jpeg")
@@ -31,7 +31,7 @@ class RestrictedFileFieldTest(SimpleTestCase):
             f.clean(image)
 
     def test_no_validation_error(self):
-        f = RestrictedFileField(check_file_size=True)
+        f = RestrictedFileField()
         file_size = settings.MAX_FILE_UPLOAD_SIZE
         image = SimpleUploadedFile(
             "image.jpg", bytes(file_size), content_type="image/jpeg")

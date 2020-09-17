@@ -18,4 +18,4 @@ class CreateRaceForm(ModelForm):
         ]
 
         widgets = {"tally": forms.HiddenInput()}
-    document = RestrictedFileField(required=False, check_file_size=True)
+    document = RestrictedFileField(required=False)
