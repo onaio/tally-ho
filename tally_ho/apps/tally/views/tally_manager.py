@@ -69,7 +69,32 @@ STEP_TO_ARGS = {
         'result_forms_file_lines',
         process_results_form_row]
 }
+FILE_NAMES_PREFIXS = {
+    'subconst_file': 'subcontituencies_',
+    'centers_file': 'centers_',
+    'stations_file': 'stations_',
+    'candidates_file': 'candidates_',
+    'ballots_order_file': 'ballot_order_',
+    'result_forms_file': 'result_forms_',
+}
 logger = logging.getLogger(__name__)
+
+
+def delete_all_tally_objects(tally):
+    """
+    Delete all tally objects.
+
+    :param tally: The tally for filtering objects to delete.
+    """
+    with transaction.atomic():
+        Station.objects.filter(tally=tally).delete()
+        Center.objects.filter(tally=tally).delete()
+        SubConstituency.objects.filter(tally=tally).delete()
+        Ballot.objects.filter(tally=tally).delete()
+        Office.objects.filter(tally=tally).delete()
+        Ballot.objects.filter(tally=tally).delete()
+        Candidate.objects.filter(tally=tally).delete()
+        ResultForm.objects.filter(tally=tally).delete()
 
 
 def save_file(file_uploaded, file_name):
@@ -98,20 +123,65 @@ def import_rows_batch(tally,
     elements_processed = 0
     id_to_ballot_order = {}
     ballot_file_to_parse = kwargs.get('ballots_order_file', False)
+    file_to_parse_name = file_to_parse.name.split(UPLOADED_FILES_PATH)[1]
+
+    subconst_file_name_prefix = FILE_NAMES_PREFIXS['subconst_file']
+    subconst_file_name = f'{subconst_file_name_prefix}{tally.id}.csv'
+    centers_file_name_prefix = FILE_NAMES_PREFIXS['centers_file']
+    centers_file_name = f'{centers_file_name_prefix}{tally.id}.csv'
+    stations_file_name_prefix = FILE_NAMES_PREFIXS['stations_file']
+    stations_file_name = f'{stations_file_name_prefix}{tally.id}.csv'
+    candidates_file_name_prefix = FILE_NAMES_PREFIXS['candidates_file']
+    candidates_file_name = f'{candidates_file_name_prefix}{tally.id}.csv'
+    result_forms_file_name_prefix = FILE_NAMES_PREFIXS['result_forms_file']
+    result_forms_file_name = f'{result_forms_file_name_prefix}{tally.id}.csv'
 
     if ballot_file_to_parse:
         with ballot_file_to_parse as f:
             reader = csv.reader(f)
-            next(reader)  # ignore header
 
-            for row in reader:
-                id_, ballot_number = row
-                id_to_ballot_order[id_] = ballot_number
+            for line, row in enumerate(reader):
+                if line == 0 and settings.BALLOT_ORDER_COLUMN_NAMES != row:
+                    delete_all_tally_objects(tally)
+                    error_message = _(u'Invalid ballot order file')
+                    return elements_processed, error_message
+                if line != 0:
+                    id_, ballot_number = row
+                    id_to_ballot_order[id_] = ballot_number
 
     with file_to_parse as f:
         reader = csv.reader(f)
         count = 0
+        check_file_column_names = True
         for line, row in enumerate(reader):
+            if line == 0 and check_file_column_names:
+                if file_to_parse_name == subconst_file_name and\
+                        row != settings.SUB_CONSTITUENCY_COLUMN_NAMES:
+                    delete_all_tally_objects(tally)
+                    error_message = _(u'Invalid sub constituency file')
+                    return elements_processed, error_message
+                elif file_to_parse_name == centers_file_name and\
+                        row != settings.CENTER_COLUMN_NAMES:
+                    delete_all_tally_objects(tally)
+                    error_message = _(u'Invalid centers file')
+                    return elements_processed, error_message
+                elif file_to_parse_name == stations_file_name and\
+                        row != settings.STATION_COLUMN_NAMES:
+                    delete_all_tally_objects(tally)
+                    error_message = _(u'Invalid stations file')
+                    return elements_processed, error_message
+                elif file_to_parse_name == candidates_file_name and\
+                        row != settings.CANDIDATE_COLUMN_NAMES:
+                    delete_all_tally_objects(tally)
+                    error_message = _(u'Invalid candidates file')
+                    return elements_processed, error_message
+                elif file_to_parse_name == result_forms_file_name and\
+                        row != settings.RESULT_FORM_COLUMN_NAMES:
+                    delete_all_tally_objects(tally)
+                    error_message = _(u'Invalid result form file')
+                    return elements_processed, error_message
+                else:
+                    check_file_column_names = False
             if count >= offset and count < (offset + BATCH_BLOCK_SIZE):
                 if line != 0:
                     if id_to_ballot_order:
@@ -122,7 +192,7 @@ def import_rows_batch(tally,
                 elements_processed += 1
             count += 1
 
-    return elements_processed
+    return elements_processed, None
 
 
 def process_batch_step(current_step, offset, file_map, tally):
@@ -281,15 +351,22 @@ class TallyUpdateView(LoginRequiredMixin,
 class TallyRemoveView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
                       mixins.ReverseSuccessURLMixin,
-                      DeleteView):
+                      TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'tally_manager/tally_remove.html'
-    group_required = groups.TALLY_MANAGER
-    model = Tally
-    success_url = 'tally-list'
 
-    def get_object(self, queryset=None):
-        self.object = Tally.objects.get(id=self.kwargs['tally_id'])
-        return self.object
+    def get(self, *args, **kwargs):
+        tally = Tally.objects.get(id=self.kwargs['tally_id'])
+
+        return self.render_to_response(self.get_context_data(
+            tally=tally))
+
+    def post(self, *args, **kwargs):
+        tally = Tally.objects.get(id=self.kwargs['tally_id'])
+        tally.active = False
+        tally.save()
+
+        return redirect("tally-list")
 
 
 class TallyFilesFormView(LoginRequiredMixin,
@@ -313,34 +390,34 @@ class TallyFilesFormView(LoginRequiredMixin,
 
         tally = Tally.objects.get(id=tally_id)
 
-        with transaction.atomic():
-            Station.objects.filter(tally=tally).delete()
-            Center.objects.filter(tally=tally).delete()
-            SubConstituency.objects.filter(tally=tally).delete()
-            Ballot.objects.filter(tally=tally).delete()
-            Office.objects.filter(tally=tally).delete()
-            Ballot.objects.filter(tally=tally).delete()
-            Candidate.objects.filter(tally=tally).delete()
-            ResultForm.objects.filter(tally=tally).delete()
+        delete_all_tally_objects(tally)
 
-        subconst_file = 'subcontituencies_%d.csv' % (tally_id)
+        subconst_file_name_prefix = FILE_NAMES_PREFIXS['subconst_file']
+        subconst_file = f'{subconst_file_name_prefix}{tally_id}.csv'
         subconst_file_lines = save_file(data['subconst_file'], subconst_file)
 
-        centers_file = 'centers_%d.csv' % (tally_id)
+        centers_file_name_prefix = FILE_NAMES_PREFIXS['centers_file']
+        centers_file = f'{centers_file_name_prefix}{tally_id}.csv'
         centers_file_lines = save_file(data['centers_file'], centers_file)
 
-        stations_file = 'stations_%d.csv' % (tally_id)
+        stations_file_name_prefix = FILE_NAMES_PREFIXS['stations_file']
+        stations_file = f'{stations_file_name_prefix}{tally_id}.csv'
         stations_file_lines = save_file(data['stations_file'], stations_file)
 
-        candidates_file = 'candidates_%d.csv' % (tally_id)
+        candidates_file_name_prefix = FILE_NAMES_PREFIXS['candidates_file']
+        candidates_file = f'{candidates_file_name_prefix}{tally_id}.csv'
         candidates_file_lines = save_file(data['candidates_file'],
                                           candidates_file)
 
-        ballots_order_file = 'ballot_order_%d.csv' % (tally_id)
+        ballots_order_file_name_prefix =\
+            FILE_NAMES_PREFIXS['ballots_order_file']
+        ballots_order_file =\
+            f'{ballots_order_file_name_prefix}{tally_id}.csv'
         ballots_order_file_lines = save_file(data['ballots_order_file'],
                                              ballots_order_file)
 
-        result_forms_file = 'result_forms_%d.csv' % (tally_id)
+        result_forms_file_name_prefix = FILE_NAMES_PREFIXS['result_forms_file']
+        result_forms_file = f'{result_forms_file_name_prefix}{tally_id}.csv'
         result_forms_file_lines = save_file(data['result_forms_file'],
                                             result_forms_file)
 
@@ -382,13 +459,19 @@ class BatchView(LoginRequiredMixin,
         offset = int(request.POST.get('offset', 0))
         current_step = int(request.POST.get('step', 1))
 
-        elements_processed = process_batch_step(
+        elements_processed, error_message = process_batch_step(
             current_step, offset, kwargs, tally)
+
+        if error_message:
+            return HttpResponse(json.dumps({
+                'status': 'Error',
+                'error_message': str(error_message)}),
+                content_type='application/json')
 
         return HttpResponse(json.dumps({
             'status': 'OK',
             'elements_processed': elements_processed}),
-                            content_type='application/json')
+            content_type='application/json')
 
 
 class SetUserTimeOutView(LoginRequiredMixin,

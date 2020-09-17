@@ -76,6 +76,9 @@ function doRequest() {
             elementsProcessed
           );
           doRequest();
+        } else if (data.status === "Error") {
+          alert(data.error_message);
+          location.href = $("#tally_files_route").html();
         }
       },
     });

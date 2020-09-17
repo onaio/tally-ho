@@ -37,6 +37,7 @@ class TallyListDataView(LoginRequiredMixin,
             return super(TallyListDataView, self).render_column(row, column)
 
     def filter_queryset(self, qs):
+        qs = qs.filter(active=True)
         keyword = self.request.GET.get('search[value]', None)
 
         if keyword:

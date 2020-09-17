@@ -9,9 +9,10 @@ from django.conf import settings
 class RestrictedFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
         self.allowed_extensions = kwargs.pop('allowed_extensions', None)
+        self.check_file_size = kwargs.pop('check_file_size', True)
         self.max_upload_size = kwargs.pop('max_upload_size', None)
 
-        if not self.max_upload_size:
+        if self.check_file_size and not self.max_upload_size:
             self.max_upload_size = settings.MAX_FILE_UPLOAD_SIZE
 
         if not self.allowed_extensions:
@@ -26,7 +27,8 @@ class RestrictedFileField(forms.FileField):
 
             try:
                 if file_extension in self.allowed_extensions:
-                    if data.size > self.max_upload_size:
+                    if self.check_file_size and\
+                            data.size > self.max_upload_size:
                         raise forms.ValidationError(
                             _('File size must be under'
                               f' {filesizeformat(self.max_upload_size)}.'
@@ -35,9 +37,9 @@ class RestrictedFileField(forms.FileField):
                 else:
                     allowed_extensions = ', '.join(self.allowed_extensions)
                     raise forms.ValidationError(
-                        _(f'File extention ({file_extension})'
+                        _(f'File extension ({file_extension})'
                           ' is not supported.'
-                          f' Allowed extensions are: {allowed_extensions}.'))
+                          f' Allowed extension(s) are: {allowed_extensions}.'))
             except AttributeError:
                 pass
 

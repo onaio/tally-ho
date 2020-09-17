@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 {% load i18n %}
+{% load app_filters %}
+
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -54,7 +56,8 @@
                             {% if is_superadmin or is_tallymanager %}
                                 {% if tally_id %}
                                 | <a id="home-tally" href="{% url 'super-administrator' tally_id %}">
-                                    {% trans 'Tally dashboard' %}</a>
+                                    {{ tally_id|get_tally_name }}{% trans ' Tally dashboard' %}</a>
+                                
                                 {% endif %}
                             {% endif %}
                             {% trans 'Signed in as'%} {{user.username}} -

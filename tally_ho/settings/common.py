@@ -235,3 +235,62 @@ QUARANTINE_DATA = [
      'value': 80,
      'percentage': 20},
 ]
+
+SUB_CONSTITUENCY_COLUMN_NAMES = ['SubCon #', 'Field Office', 'Races',
+                                 'Ballot Number - General',
+                                 'Ballot Number - Women', 'Number of Ballots',
+                                 'Component Ballot', 'A4 Ballot', 'A3 Ballot',
+                                 'A3 Folded Ballot', 'Ballot Size for General',
+                                 'Ballot Size for Women',
+                                 'Ballot Size for Consultation',
+                                 'R&R Form Size - General',
+                                 'R&R Form Size - Women',
+                                 'R&R Form Size - Consultation',
+                                 'R&R Form A3 Size', 'R&R Form A3 folded Size',
+                                 'Screens Per Station',
+                                 'Ballot Boxes Per Station', '']
+
+CENTER_COLUMN_NAMES = ['#', 'Region/ المنطقة', 'PC Code/ رمز مركز الانتخاب',
+                       'Office #/ الللجنة الانتخابية #',
+                       'Office/ الللجنة الانتخابية ',
+                       'Main C/ الدائرة الانتخابية الرئيسية',
+                       'SubC # / رقم الدائرة الفرعية ',
+                       'SubC name / الدائرة الفرعية', 'Name PC',
+                       'Mahalla / المحلة',
+                       'Village / المدينة/القرية', 'نوع المركز / Type',
+                       'E  خط العرض   / Coordinates E',
+                       'N  خط العرض   / Coordinates N']
+
+STATION_COLUMN_NAMES = ['Centre #', 'Centre Name', 'SubCon #',
+                        'Station number', 'Station Gender',
+                        'Number of Registrants', 'First Name',
+                        'First Name Number', 'Last Name', 'Last Name Number',
+                        'When Generated']
+
+RESULT_FORM_COLUMN_NAMES = ['Ballot Number', 'PC Code/ رمز مركز الانتخاب',
+                            'Station', 'Gender', 'Name PC',
+                            'Office/ الللجنة الانتخابية ',
+                            'Office #/ الللجنة الانتخابية #',
+                            'Bar Code Number', 'Serial Number']
+
+CANDIDATE_COLUMN_NAMES = ['ID', 'Duplicate', 'Office_ID', 'E_Mail',
+                          'Uploaded_Date_Time', 'Main_District_ID',
+                          'Sub_District_ID', 'Voting_District', 'National_ID',
+                          'Family_Book_ID', 'Name', 'Fathers_Name',
+                          'G_Fathers_Name', 'Family_Name', 'Full_Name',
+                          'Mothers_Name', 'Phone_Mobile', 'Land_Line',
+                          'Race_Type', 'Gender_Type', 'Date_Of_Birth',
+                          'Electoral_Camp_ID', 'Check_Family_Book',
+                          'Check_ID', 'Check_IPC_Form', 'Check_Education_Cert',
+                          'Check_Clearance_From_Moi', 'Check_Supporters_List',
+                          'Check_Payment_Reset', 'Check_Bank_Account',
+                          'Check_Two_Photos', 'Check_Code_Of_Conduct',
+                          'Check_Signature', 'User_ID', 'Registration',
+                          'Candidate_Number', 'Uploaded_By', 'Gender_En',
+                          'Gender_Ar', 'Type_Of_Candidate_En',
+                          'Type_Of_Candidate_Ar', 'Main_District_Ar',
+                          'Main_District_En', 'Office_Name_Ar',
+                          'Office_Name_En', 'Sub_District_Ar',
+                          'Sub_District_En', 'Region']
+
+BALLOT_ORDER_COLUMN_NAMES = ['ID', 'Ballot_Number']

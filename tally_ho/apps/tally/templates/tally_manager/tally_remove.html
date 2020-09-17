@@ -25,14 +25,14 @@
         <tr>
             <td>{% trans 'Name' %}:</td>
             <td>
-                {{ object.name }}
+                {{ tally.name }}
             </td>
         </tr>
     </table>
     <button class="btn btn-success" type="submit" name="submit">
         {% trans "Accept" %}
     </button>
-    <a class="btn btn-danger" href="{% url 'update-tally' tally_id=object.id %}">
+    <a class="btn btn-danger" href="{% url 'update-tally' tally_id=tally.id %}">
         {% trans "Cancel" %}
     </a>
     {% csrf_token %}
