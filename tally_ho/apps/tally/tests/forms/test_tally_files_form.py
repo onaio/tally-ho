@@ -28,7 +28,7 @@ class TallyFilesFormTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn(
             str('File extension (.jpg) is not supported.'
-                ' Allowed extensions are .csv'),
+                ' Allowed extension(s) are .csv'),
             form.errors['__all__'])
 
     def test_correct_file_extension(self):
