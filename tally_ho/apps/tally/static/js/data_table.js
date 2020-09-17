@@ -1,7 +1,7 @@
 $(document).ready(function () {
   $('.datatable').dataTable({
     language: dt_language, // global variable defined in html
-    order: [[0, 'desc']],
+    order: [[0, "desc"]],
     lengthMenu: [
       [10, 25, 50, 100, 500],
       [10, 25, 50, 100, 500],
@@ -10,7 +10,7 @@ $(document).ready(function () {
       {
         orderable: true,
         searchable: true,
-        className: 'center',
+        className: "center",
         targets: [0, 1],
       },
     ],
@@ -25,15 +25,15 @@ $(document).ready(function () {
       "<'row'<'col-sm-5'i><'col-sm-7'p>>",
     buttons: [
       {
-        extend: 'csv',
+        extend: "csv",
         filename: exportFileName,
         exportOptions: {
-          columns: ':visible :not(.actions)',
+          columns: ":visible :not(.actions)",
         },
       },
     ],
     select: {
-      style: 'multi',
+      style: "multi",
     },
     responsive: true,
   });
