@@ -569,7 +569,7 @@ class TestSuperAdmin(TestBase):
         self.assertFalse(response.context_data['form'].is_valid())
         self.assertEqual(
             response.context_data['form'].errors['document'][0],
-            str('File extention (.mp4) is not supported.'
+            str('File extension (.mp4) is not supported.'
                 ' Allowed extension(s) are: .png, .jpg, .doc, .pdf.'))
 
     def test_create_race_invalid_document_size_error(self):
