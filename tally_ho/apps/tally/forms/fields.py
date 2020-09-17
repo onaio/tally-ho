@@ -37,7 +37,7 @@ class RestrictedFileField(forms.FileField):
                 else:
                     allowed_extensions = ', '.join(self.allowed_extensions)
                     raise forms.ValidationError(
-                        _(f'File extention ({file_extension})'
+                        _(f'File extension ({file_extension})'
                           ' is not supported.'
                           f' Allowed extension(s) are: {allowed_extensions}.'))
             except AttributeError:
