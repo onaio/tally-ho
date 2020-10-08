@@ -56,9 +56,187 @@ urlpatterns = [
 
     re_path(r'^media/(?P<path>.*)$', serve,
             {'document_root': settings.MEDIA_ROOT}),
+
     re_path(r'^data/center-list/(?P<tally_id>(\d+))/$',
             center_list_view.CenterListView.as_view(),
             name='center-list'),
+
+    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.TurnOutReportView.as_view(),
+            name='turnout-list'),
+    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+            administrative_areas_reports.TurnOutReportView.as_view(),
+            name='constituency-turnout-report'),
+    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))'
+            r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
+            administrative_areas_reports.TurnOutReportView.as_view(),
+            name='sub-constituency-turnout-report'),
+
+    re_path(r'^data/summary-list/(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.SummaryReportView.as_view(),
+            name='summary-list'),
+    re_path(r'^data/summary-list/(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+            administrative_areas_reports.SummaryReportView.as_view(),
+            name='constituency-summary-report'),
+    re_path(r'^data/summary-list/(?P<tally_id>(\d+))'
+            r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
+            administrative_areas_reports.SummaryReportView.as_view(),
+            name='sub-constituency-summary-report'),
+
+    re_path(r'^data/stations-and-centers-under-investigation-list/'
+            r'(?P<tally_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportView.as_view(),
+            name='stations-and-centers-under-investigation-list'),
+    re_path(r'^data/cons-stations-and-centers-under-investigation/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportView.as_view(),
+            name='cons-stations-and-centers-under-investigation'),
+    re_path(r'^data/sub-cons-stations-and-centers-under-investigation/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportView.as_view(),
+            name='sub-cons-stations-and-centers-under-investigation'),
+
+    re_path(r'^data/stations-and-centers-under-process-audit-list/'
+            r'(?P<tally_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-process-audit-list))/$',
+            administrative_areas_reports.DiscrepancyReportView.as_view(),
+            name='stations-and-centers-under-process-audit-list'),
+    re_path(r'^data/cons-stations-and-centers-under-process-audit-list/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-process-audit-list))/$',
+            administrative_areas_reports.DiscrepancyReportView.as_view(),
+            name='cons-stations-and-centers-under-process-audit-list'),
+    re_path(r'^data/sub-cons-stations-and-centers-under-process-audit-list/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-process-audit-list))/$',
+            administrative_areas_reports.DiscrepancyReportView.as_view(),
+            name='sub-cons-stations-and-centers-under-process-audit-list'),
+
+    re_path(r'^data/progressive-report-list/(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.ProgressiveReportView.as_view(),
+            name='progressive-report-list'),
+    re_path(r'^data/cons-progressive-report-list/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+            administrative_areas_reports.ProgressiveReportView.as_view(),
+            name='cons-progressive-report-list'),
+    re_path(r'^data/sub-cons-progressive-report-list/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/$',
+            administrative_areas_reports.ProgressiveReportView.as_view(),
+            name='sub-cons-progressive-report-list'),
+
+    re_path(r'^data/stations-and-centers-excluded-after-investigation-list/'
+            r'(?P<tally_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-excluded-after-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportView.as_view(),
+            name='stations-and-centers-excluded-after-investigation-list'),
+    re_path(r'^data/cons-stations-and-centers-excluded-after-investigation/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-excluded-after-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportView.as_view(),
+            name='cons-stations-and-centers-excluded-after-investigation'),
+    re_path(r'^data/'
+            r'sub-cons-stations-and-centers-excluded-after-investigation/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-excluded-after-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportView.as_view(),
+            name='sub-cons-stations-and-centers-excluded-after-investigation'),
+
+    re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.TurnoutReportDataView.as_view(),
+            name='turnout-list-data'),
+    re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))'
+            r'/(?P<region_id>(\d+))/$',
+            administrative_areas_reports.TurnoutReportDataView.as_view(),
+            name='turnout-list-data'),
+    re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))'
+            r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
+            administrative_areas_reports.TurnoutReportDataView.as_view(),
+            name='turnout-list-data'),
+
+    re_path(r'^data/summary-list-data/(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.SummaryReportDataView.as_view(),
+            name='summary-list-data'),
+    re_path(r'^data/summary-list-data/(?P<tally_id>(\d+))'
+            r'/(?P<region_id>(\d+))/$',
+            administrative_areas_reports.SummaryReportDataView.as_view(),
+            name='summary-list-data'),
+    re_path(r'^data/summary-list-data/(?P<tally_id>(\d+))'
+            r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
+            administrative_areas_reports.SummaryReportDataView.as_view(),
+            name='summary-list-data'),
+
+    re_path(r'^data/stations-and-centers-under-investigation-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportDataView.as_view(),
+            name='stations-and-centers-under-investigation-list-data'),
+    re_path(r'^data/stations-and-centers-under-investigation-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportDataView.as_view(),
+            name='stations-and-centers-under-investigation-list-data'),
+    re_path(r'^data/stations-and-centers-under-investigation-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportDataView.as_view(),
+            name='stations-and-centers-under-investigation-list-data'),
+
+    re_path(r'^data/stations-and-centers-under-process-audit-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-process-audit-list))/$',
+            administrative_areas_reports.DiscrepancyReportDataView.as_view(),
+            name='stations-and-centers-under-process-audit-list-data'),
+    re_path(r'^data/stations-and-centers-under-process-audit-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-process-audit-list))/$',
+            administrative_areas_reports.DiscrepancyReportDataView.as_view(),
+            name='stations-and-centers-under-process-audit-list-data'),
+    re_path(r'^data/stations-and-centers-under-process-audit-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-under-process-audit-list))/$',
+            administrative_areas_reports.DiscrepancyReportDataView.as_view(),
+            name='stations-and-centers-under-process-audit-list-data'),
+
+    re_path(r'^data/stations-and-centers-excluded-after-investigation-data/'
+            r'(?P<tally_id>(\d+))/'
+            r'(?P<report_name>'
+            r'(stations-and-centers-excluded-after-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportDataView.as_view(),
+            name='stations-and-centers-excluded-after-investigation-data'),
+    re_path(r'^data/stations-and-centers-excluded-after-investigation-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-excluded-after-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportDataView.as_view(),
+            name='stations-and-centers-excluded-after-investigation-data'),
+    re_path(r'^data/stations-and-centers-excluded-after-investigation-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/(?P<report_name>'
+            r'(stations-and-centers-excluded-after-investigation-list))/$',
+            administrative_areas_reports.DiscrepancyReportDataView.as_view(),
+            name='stations-and-centers-excluded-after-investigation-data'),
+
+    re_path(r'^data/progressive-report-list-data/(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.ProgressiveReportDataView.as_view(),
+            name='progressive-report-list-data'),
+    re_path(r'^data/progressive-report-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+            administrative_areas_reports.ProgressiveReportDataView.as_view(),
+            name='progressive-report-list-data'),
+    re_path(r'^data/progressive-report-list-data/'
+            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+            r'(?P<constituency_id>(\d+))/$',
+            administrative_areas_reports.ProgressiveReportDataView.as_view(),
+            name='progressive-report-list-data'),
+
     re_path(r'^data/center-list/(?P<tally_id>(\d+))/(?P<format>(csv))/$',
             center_list_view.CenterListView.as_view(),
             name='center-list-csv'),
@@ -438,18 +616,6 @@ urlpatterns = [
             administrative_areas_reports.RegionsReportsView.as_view(),
             name='region-votes-per-candidate'),
 
-    re_path(r'^reports/internal/constituencies/turnout/(?P<tally_id>(\d+))/'
-            r'(?P<region_id>(\d+))/$',
-            administrative_areas_reports.ConstituencyReportsView.as_view(
-                template_name="reports/turnout_report.html"
-            ),
-            name='constituency-turnout-report'),
-    re_path(r'^reports/internal/constituencies/summary/(?P<tally_id>(\d+))/'
-            r'(?P<region_id>(\d+))/$',
-            administrative_areas_reports.ConstituencyReportsView.as_view(
-                template_name="reports/summary_report.html"
-            ),
-            name='constituency-summary-report'),
     re_path(r'^reports/internal/constituencies/discrepancy/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
             administrative_areas_reports.ConstituencyReportsView.as_view(
@@ -505,20 +671,6 @@ urlpatterns = [
             administrative_areas_reports.ConstituencyReportsView.as_view(),
             name='constituency-votes-per-candidate'),
 
-    re_path(r'^reports/internal/sub-constituencies/turnout/'
-            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
-            r'(?P<constituency_id>(\d+))/$',
-            administrative_areas_reports.SubConstituencyReportsView.as_view(
-                template_name="reports/turnout_report.html"
-            ),
-            name='sub-constituency-turnout-report'),
-    re_path(r'^reports/internal/sub-constituencies/summary/'
-            r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
-            r'(?P<constituency_id>(\d+))/$',
-            administrative_areas_reports.SubConstituencyReportsView.as_view(
-                template_name="reports/summary_report.html"
-            ),
-            name='sub-constituency-summary-report'),
     re_path(r'^reports/internal/sub-constituencies/discrepancy/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
             r'(?P<constituency_id>(\d+))/$',
