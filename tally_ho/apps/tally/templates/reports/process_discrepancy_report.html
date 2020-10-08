@@ -1,89 +1,53 @@
-{% extends region_name|yesno:'base.html,empty.html' %} 
+{% extends 'base.html' %} 
 
 {% load i18n staticfiles %}
 
 {% block styles %}
-{% if region_name %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
-{% endif %}
+<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
 {% endblock %}
 
 {% block javascript %}
-{% if region_name %}
-{% include "data/table.html" with export_file_name='process_discrepancy_report' server_side=False %}
-{% endif %}
+{% include "data/table.html" with export_file_name='turnout_report' server_side=True  %}
 {% endblock %}
-
 {% block content %}
 
-{% if region_name %}
-  <h1>{% trans 'Region Name ' %}{{ region_name }}</h1>
-  <br />
-{% endif %}
-{% if constituency_name %}
-  <h1>{% trans 'Constituency Name ' %}{{ constituency_name }}</h1>
-  <br />
-{% endif %}
-
-{% if administrative_area_name %}
-<h3>{{ administrative_area_name }}{% trans ' Process Discrepancy Report' %}</h3>
+{% if not region_name %}
+<h1>{% trans ' Regions ' %}{{ report_type }}</h1>
 <br />
 {% endif %}
 
-<table class="display datatable reduce-size">
+{% if region_name and not constituency_name %}
+<h1>{{ region_name }} {% trans ' Region Constituencies ' %}{{ report_type }}</h1>
+<br />
+{% endif %}
+
+{% if constituency_name %}
+<h1>{{ constituency_name }} {% trans ' Constituency ' %}{{ report_type }}</h1>
+<h2>{% trans 'Region Name: ' %}{{ region_name }}</h2>
+<br />
+{% endif %}
+
+<table id="report" class="display datatable">
   <thead>
     <tr>
-      <th>{% trans 'Name' %}</th>
-      <th>{% trans 'Centers in Audit' %}</th>
-      <th>{% trans 'Stations in Audit' %}</th>
-      <th>{% trans 'Total' %}</th>
-      <th class="actions">{% trans 'Actions' %}</th>
+      {% if constituency_name %}
+        <th>{% trans 'Code' %}</th>
+      {% else %}
+        <th>{% trans 'Name' %}</th>
+      {% endif %}
+      <th>{% trans 'Total Centers' %}</th>
+      <th>{% trans 'Total Stations' %}</th>
+      <th>{% trans 'Total Centers and Stations' %}</th>
+      <th class="hide-from-export">{% trans 'Stations' %}</th>
+      <th class="hide-from-export">{% trans 'Centers' %}</th>
+      <th class="hide-from-export">{% trans 'Actions' %}</th>
     </tr>
   </thead>
-  <tbody>
-    {% for rec in process_discrepancy_report %}
-      <tr>
-        <td>{{ rec.admin_area_name }}</td>
-        <td>{{ rec.number_of_centers_in_audit_state }}</td>
-        <td>{{ rec.number_of_stations_in_audit_state }}</td>
-        <td>{{ rec.total_num_of_centers_and_stations_in_audit }}</td>
-        <td>
-          {% if administrative_area_child_report_name and region_name %}
-          <a
-            href="{% url child_discrepancy_report_url tally_id rec.region_id rec.constituency_id %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{{ administrative_area_child_report_name }}</a
-          >
-          <a
-            href="{% url constituency_discrepancy_report_url tally_id rec.region_id rec.constituency_id 'centers-and-stations-in-audit-report' %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{% trans 'Constituency Centers and Stations in Audit' %}</a
-          >
-          {% elif not administrative_area_child_report_name and region_name and constituency_name %}
-          <a
-            href="{% url sub_constituency_discrepancy_report_url tally_id rec.region_id rec.constituency_id rec.sub_constituency_id 'centers-and-stations-in-audit-report' %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{% trans 'Sub Constituency Centers and Stations in Audit' %}</a
-          >
-          {% else %}
-          <a
-            href="{% url child_discrepancy_report_url tally_id rec.region_id %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{% trans 'Region Constituencies under process Audit' %}</a
-          >
-          <a
-            href="{% url regions_report_url tally_id rec.region_id 'centers-and-stations-in-audit-report' %}"
-            class="btn btn-default btn-small vertical-margin"
-            >{% trans 'Region Centers and Stations under process Audit' %}</a
-          >
-          {% endif %}
-        </td>
-      </tr>
-    {% endfor %}
-  </tbody>
+  <tbody></tbody>
 </table>
 
 {% endblock %}
