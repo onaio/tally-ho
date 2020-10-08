@@ -226,6 +226,1336 @@ def get_admin_areas_with_forms_in_audit(
     return qs
 
 
+def custom_queryset_filter(
+        tally_id,
+        qs,
+        data=None,
+        **kwargs):
+    """
+    Filter queryset by tally_id, region_id and constituency_ids.
+
+    :param tally_id: The reconciliation forms tally.
+    :param region_id: The region id for filtering the reconciliation forms.
+    :param constituency_ids: The constituency ids to exclude from the queryset.
+
+    returns: The filtered queryset.
+    """
+    admin_area_id = kwargs.get('region_id')
+    constituency_id = kwargs.get('constituency_id')
+    report_type = kwargs.get('report_type')
+    column_name = 'result_form__office__region__name'
+    column_id = 'result_form__center__office__region__id'
+    turnout_report_type = report_types[1]
+    summary_report_type = report_types[2]
+
+    if admin_area_id and constituency_id:
+        column_name = 'result_form__center__sub_constituency__code'
+        column_id = 'result_form__center__sub_constituency__id'
+    elif admin_area_id:
+        column_name = 'result_form__center__constituency__name'
+        column_id = 'result_form__center__constituency__id'
+
+    if admin_area_id:
+        qs =\
+            qs\
+            .filter(result_form__office__region__id=admin_area_id)\
+
+    if constituency_id:
+        qs =\
+            qs.filter(result_form__center__constituency__id=constituency_id)
+
+    if data:
+        parent_qs = qs
+        for item in data:
+            region_id = item['region_id']
+            constituency_ids =\
+                item['select_1_ids'] if len(
+                    item['select_1_ids']) else [0]
+            sub_constituency_ids =\
+                item['select_2_ids'] if len(
+                    item['select_2_ids']) else [0]
+
+            if admin_area_id and constituency_id:
+                current_qs =\
+                    parent_qs\
+                    .get_registrants_and_votes_type()\
+                    .filter(
+                        result_form__center__sub_constituency__id=region_id)
+            elif admin_area_id:
+                current_qs =\
+                    parent_qs\
+                    .get_registrants_and_votes_type()\
+                    .filter(
+                        result_form__center__constituency__id=region_id)
+            else:
+                current_qs =\
+                    parent_qs\
+                    .get_registrants_and_votes_type()\
+                    .filter(
+                        result_form__center__office__region__id=region_id)
+
+            current_qs =\
+                current_qs\
+                .filter(
+                    result_form__tally__id=tally_id,
+                    result_form__form_state=FormState.ARCHIVED,
+                    entry_version=EntryVersion.FINAL
+                )\
+                .annotate(
+                    name=F(column_name),
+                    admin_area_id=F(column_id))\
+                .values(
+                    'name',
+                    'admin_area_id',
+                )\
+                .annotate(
+                    region_id=F('result_form__office__region__id'),
+                    constituency_id=F('result_form__center__constituency__id'),
+                )
+
+            if report_type == turnout_report_type:
+                current_qs =\
+                    current_qs\
+                    .annotate(
+                        number_of_voters_voted=Coalesce(Sum(
+                            'number_valid_votes',
+                            filter=(
+                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                            default=V(0)), V(0)))\
+                    .annotate(
+                        total_number_of_registrants=Sum(
+                            'number_of_registrants',
+                            filter=(
+                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                            default=V(0)))\
+                    .annotate(
+                        total_number_of_ballots_used=Coalesce(Sum(
+                            ExpressionWrapper(F('number_valid_votes') +
+                                            F('number_cancelled_ballots') +
+                                            F('number_unstamped_ballots') +
+                                            F('number_invalid_votes'),
+                                            output_field=IntegerField()),
+                            filter=(
+                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))), V(0)))\
+                    .annotate(turnout_percentage=Coalesce(ExpressionWrapper(
+                        V(100) *
+                        F('total_number_of_ballots_used') /
+                        F('total_number_of_registrants'),
+                        output_field=IntegerField()), V(0)))\
+                    .annotate(male_voters=Coalesce(
+                        Sum('number_valid_votes',
+                            filter=(
+                                Q(voters_gender_type=0) &
+                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))),
+                        V(0)))\
+                    .annotate(female_voters=Coalesce(
+                        Sum('number_valid_votes',
+                            filter=(
+                                Q(voters_gender_type=1) &
+                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))),
+                        V(0)))\
+                    .annotate(constituencies_ids=ArrayAgg(
+                        'result_form__center__constituency__id', distinct=True))\
+                    .annotate(
+                        sub_constituencies_ids=ArrayAgg(
+                        'result_form__center__sub_constituency__id', distinct=True)
+                    )
+
+            if report_type == summary_report_type:
+                current_qs =\
+                    current_qs\
+                    .annotate(
+                        number_valid_votes=Coalesce(
+                            Sum(
+                                'number_valid_votes',
+                                filter=(
+                                    ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                                    ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                                default=V(0)), V(0)),
+                        number_invalid_votes=Coalesce(
+                            Sum(
+                                'number_invalid_votes',
+                                filter=(
+                                    ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                                    ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                                default=V(0)), V(0)),
+                        number_cancelled_ballots=Coalesce(
+                            Sum(
+                                'number_cancelled_ballots',
+                                filter=(
+                                    ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                                    ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                                default=V(0)), V(0)),
+                        constituencies_ids=ArrayAgg(
+                            'result_form__center__constituency__id',
+                            distinct=True),
+                        sub_constituencies_ids=ArrayAgg(
+                            'result_form__center__sub_constituency__id',
+                            distinct=True))
+
+            qs = qs.union(current_qs) if not isinstance(
+                qs[0], ReconciliationForm) else current_qs
+    else:
+        qs =\
+            qs.get_registrants_and_votes_type()\
+            .filter(
+                result_form__tally__id=tally_id,
+                result_form__form_state=FormState.ARCHIVED,
+                entry_version=EntryVersion.FINAL
+            )\
+            .annotate(
+                name=F(column_name),
+                admin_area_id=F(column_id))\
+            .values(
+                'name',
+                'admin_area_id',
+            )\
+            .annotate(
+                region_id=F('result_form__office__region__id'),
+                constituency_id=F('result_form__center__constituency__id'),
+            )
+
+        if report_type == turnout_report_type:
+            qs =\
+                qs\
+                .annotate(
+                    number_of_voters_voted=Sum('number_valid_votes'))\
+                .annotate(
+                    total_number_of_registrants=Sum('number_of_registrants'))\
+                .annotate(
+                    total_number_of_ballots_used=Sum(
+                        ExpressionWrapper(F('number_valid_votes') +
+                                          F('number_cancelled_ballots') +
+                                          F('number_unstamped_ballots') +
+                                          F('number_invalid_votes'),
+                                          output_field=IntegerField())))\
+                .annotate(turnout_percentage=ExpressionWrapper(
+                    V(100) *
+                    F('total_number_of_ballots_used') /
+                    F('total_number_of_registrants'),
+                    output_field=IntegerField()))\
+                .annotate(male_voters=Coalesce(
+                    Sum('number_valid_votes',
+                        filter=Q(voters_gender_type=0)),
+                    V(0)))\
+                .annotate(female_voters=Coalesce(
+                    Sum('number_valid_votes',
+                        filter=Q(voters_gender_type=1)),
+                    V(0)))\
+                .annotate(constituencies_ids=ArrayAgg(
+                    'result_form__center__constituency__id',
+                    distinct=True))\
+                .annotate(sub_constituencies_ids=ArrayAgg(
+                    'result_form__center__sub_constituency__id',
+                    distinct=True))
+
+        if report_type == summary_report_type:
+            qs =\
+                qs\
+                .annotate(
+                    number_valid_votes=Sum('number_valid_votes'),
+                    number_invalid_votes=Sum('number_invalid_votes'),
+                    number_cancelled_ballots=Sum('number_cancelled_ballots'),
+                    constituencies_ids=ArrayAgg(
+                        'result_form__center__constituency__id',
+                        distinct=True),
+                    sub_constituencies_ids=ArrayAgg(
+                        'result_form__center__sub_constituency__id',
+                        distinct=True))
+
+    return qs
+
+
+def build_select_options(qs, ids=[]):
+    select = str('selected=''\"selected"')
+
+    return [str(
+                '<option 'f'{select if str(item.id) in ids else ""}'' value='f'{item.id}''>'f'{item.name}''</option>') for item in
+                list(qs)]
+
+
+class TurnoutReportDataView(LoginRequiredMixin,
+                            mixins.GroupRequiredMixin,
+                            mixins.TallyAccessMixin,
+                            BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
+    model = ReconciliationForm
+    columns = ('name',
+               'total_number_of_registrants',
+               'number_of_voters_voted',
+               'male_voters',
+               'female_voters',
+               'turnout_percentage',
+               'constituencies_ids',
+               'sub_constituencies_ids',
+               'actions')
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs.get('tally_id')
+        region_id = self.kwargs.get('region_id')
+        constituency_id = self.kwargs.get('constituency_id')
+        data = self.request.POST.get('data')
+        keyword = self.request.GET.get('search[value]')
+
+        if data:
+            qs = custom_queryset_filter(
+                        tally_id,
+                        qs,
+                        ast.literal_eval(data),
+                        report_type='turnout',
+                        region_id=region_id,
+                        constituency_id=constituency_id)
+        else:
+            qs =\
+                custom_queryset_filter(
+                    tally_id,
+                    qs,
+                    report_type='turnout',
+                    region_id=region_id,
+                    constituency_id=constituency_id)
+
+        if keyword:
+            qs = qs.filter(Q(name__contains=keyword) |
+                           Q(total_number_of_registrants__contains=keyword) |
+                           Q(number_of_voters_voted__contains=keyword) |
+                           Q(male_voters__contains=keyword) |
+                           Q(female_voters__contains=keyword) |
+                           Q(turnout_percentage__contains=keyword))
+        return qs
+
+    def render_column(self, row, column):
+        tally_id = self.kwargs.get('tally_id')
+        region_id = self.kwargs.get('region_id')
+        constituency_id = self.kwargs.get('constituency_id')
+        data = self.request.POST.get('data')
+        administrative_area_child_report_name = _(u'Region Constituencies')
+        url =\
+            reverse('constituency-turnout-report',
+                    kwargs={'tally_id': tally_id,
+                            'region_id': row['region_id']})
+
+        if region_id:
+            administrative_area_child_report_name = _(u'Sub Constituencies')
+            url =\
+                reverse('sub-constituency-turnout-report',
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'constituency_id': row['constituency_id']})
+
+        if column == 'name':
+            return str('<td class="center">'
+                       f'{row["name"]}</td>')
+        elif column == 'total_number_of_registrants':
+            total_number_of_registrants =\
+                row["total_number_of_registrants"]\
+                if row["total_number_of_registrants"] is not None else 0
+            return str('<td class="center">'
+                       f'{total_number_of_registrants}</td>')
+        elif column == 'number_of_voters_voted':
+            return str('<td class="center">'
+                       f'{row["number_of_voters_voted"]}</td>')
+        elif column == 'male_voters':
+            return str('<td class="center">'
+                       f'{row["male_voters"]}</td>')
+        elif column == 'female_voters':
+            return str('<td class="center">'
+                       f'{row["female_voters"]}</td>')
+        elif column == 'turnout_percentage':
+            return str('<td class="center">'
+                       f'{row["turnout_percentage"]}%</td>')
+        elif column == 'constituencies_ids':
+            disabled = 'disabled' if region_id else ''
+            region_cons_ids = []
+            qs = Constituency.objects.filter(
+                tally__id=tally_id,
+                id__in=row['constituencies_ids'])\
+                .values_list('id', 'name', named=True)
+            if data:
+                region_cons_data =\
+                    [item for item in ast.literal_eval(
+                        data) if ast.literal_eval(item['region_id']) ==
+                        row["admin_area_id"]]
+                region_cons_ids = region_cons_data[0]['select_1_ids']
+            constituencies =\
+                build_select_options(qs, ids=region_cons_ids)
+            return str('<td class="center">'
+                       '<select style="min-width: 6em;"'
+                       f'{disabled}'
+                       ' id="select-1" multiple'
+                       ' data-id='f'{row["admin_area_id"]}''>'
+                       f'{constituencies}'
+                       '</select>'
+                       '</td>')
+        elif column == 'sub_constituencies_ids':
+            disabled = 'disabled' if constituency_id else ''
+            region_sub_cons_ids = []
+            qs =\
+                SubConstituency.objects.annotate(
+                    name=F('code')).filter(
+                    tally__id=tally_id,
+                    id__in=row['sub_constituencies_ids'])\
+                .values_list('id', 'name', named=True)
+            if data:
+                region_sub_cons_data =\
+                    [item for item in ast.literal_eval(
+                        data)
+                        if ast.literal_eval(item['region_id']) ==
+                        row["admin_area_id"]]
+                region_sub_cons_ids =\
+                    region_sub_cons_data[0]['select_2_ids']
+
+            sub_constituencies =\
+                build_select_options(
+                    qs, ids=region_sub_cons_ids)
+            return str('<td class="center">'
+                       '<select style="min-width: 6em;"'
+                       f'{disabled}'
+                       ' id="select-2" multiple'
+                       ' data-id='f'{row["admin_area_id"]}''>'
+                       f'{sub_constituencies}'
+                       '</select>'
+                       '</td>')
+        elif column == 'actions':
+            if constituency_id:
+                return str(
+                    '<button id="filter-report" disabled '
+                    'class="btn btn-default btn-small">Submit</button>')
+            return str('<a href='f'{url}'
+                       ' class="btn btn-default btn-small vertical-margin"> '
+                       f'{administrative_area_child_report_name}'
+                       '</a>'
+                       '<button id="filter-report" '
+                       'class="btn btn-default btn-small">Submit</button>')
+        else:
+            return super(
+                TurnoutReportDataView, self).render_column(row, column)
+
+
+class TurnOutReportView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        TemplateView):
+    group_required = groups.TALLY_MANAGER
+    model = ReconciliationForm
+    template_name = 'reports/turnout_report.html'
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        region_id = kwargs.get('region_id')
+        constituency_id = kwargs.get('constituency_id')
+        region_name = None
+        constituency_name = None
+
+        if region_id:
+            try:
+                region_name =\
+                    Region.objects.get(
+                        id=region_id,
+                        tally__id=tally_id).name
+            except Region.DoesNotExist:
+                pass
+
+        if constituency_id:
+            try:
+                constituency_name =\
+                    Constituency.objects.get(
+                        id=constituency_id,
+                        tally__id=tally_id).name
+            except Constituency.DoesNotExist:
+                pass
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('turnout-list-data', kwargs=kwargs),
+            tally_id=tally_id,
+            region_name=region_name,
+            constituency_name=constituency_name
+        ))
+
+
+class SummaryReportDataView(LoginRequiredMixin,
+                            mixins.GroupRequiredMixin,
+                            mixins.TallyAccessMixin,
+                            BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
+    model = ReconciliationForm
+    columns = ('name',
+               'number_valid_votes',
+               'number_invalid_votes',
+               'number_cancelled_ballots',
+               'constituencies_ids',
+               'sub_constituencies_ids',
+               'actions')
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs.get('tally_id')
+        region_id = self.kwargs.get('region_id')
+        constituency_id = self.kwargs.get('constituency_id')
+        data = self.request.POST.get('data')
+        keyword = self.request.GET.get('search[value]')
+
+        if data:
+            qs = custom_queryset_filter(
+                    tally_id,
+                    qs,
+                    ast.literal_eval(data),
+                    report_type='summary',
+                    region_id=region_id,
+                    constituency_id=constituency_id)
+        else:
+            qs =\
+                custom_queryset_filter(
+                    tally_id,
+                    qs,
+                    report_type='summary',
+                    region_id=region_id,
+                    constituency_id=constituency_id)
+
+        if keyword:
+            qs = qs.filter(Q(name__contains=keyword) |
+                           Q(total_number_of_registrants__contains=keyword) |
+                           Q(number_of_voters_voted__contains=keyword) |
+                           Q(male_voters__contains=keyword) |
+                           Q(female_voters__contains=keyword) |
+                           Q(turnout_percentage__contains=keyword))
+        return qs
+
+    def render_column(self, row, column):
+        tally_id = self.kwargs.get('tally_id')
+        region_id = self.kwargs.get('region_id')
+        constituency_id = self.kwargs.get('constituency_id')
+        data = self.request.POST.get('data')
+        administrative_area_child_report_name = _(u'Region Constituencies')
+        url =\
+            reverse('constituency-summary-report',
+                    kwargs={'tally_id': tally_id,
+                            'region_id': row['admin_area_id']})
+
+        if region_id:
+            administrative_area_child_report_name = _(u'Sub Constituencies')
+            url =\
+                reverse('sub-constituency-summary-report',
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['admin_area_id'],
+                                'constituency_id': row['constituency_id']})
+
+        if column == 'name':
+            return str('<td class="center">'
+                       f'{row["name"]}</td>')
+        elif column == 'number_valid_votes':
+            return str('<td class="center">'
+                       f'{row["number_valid_votes"]}</td>')
+        elif column == 'number_invalid_votes':
+            return str('<td class="center">'
+                       f'{row["number_invalid_votes"]}</td>')
+        elif column == 'number_cancelled_ballots':
+            return str('<td class="center">'
+                       f'{row["number_cancelled_ballots"]}</td>')
+        elif column == 'constituencies_ids':
+            disabled = 'disabled' if region_id else ''
+            region_cons_ids = []
+            qs = Constituency.objects.filter(
+                tally__id=tally_id,
+                id__in=row['constituencies_ids'])\
+                .values_list('id', 'name', named=True)
+            if data:
+                region_cons_data =\
+                    [item for item in ast.literal_eval(
+                        data) if ast.literal_eval(item['region_id']) ==
+                        row["admin_area_id"]]
+                region_cons_ids = region_cons_data[0]['select_1_ids']
+            constituencies =\
+                build_select_options(qs, ids=region_cons_ids)
+            return str('<td class="center">'
+                       '<select style="min-width: 6em;"'
+                       f'{disabled}'
+                       ' id="select-1" multiple'
+                       ' data-id='f'{row["admin_area_id"]}''>'
+                       f'{constituencies}'
+                       '</select>'
+                       '</td>')
+        elif column == 'sub_constituencies_ids':
+            disabled = 'disabled' if constituency_id else ''
+            region_sub_cons_ids = []
+            qs =\
+                SubConstituency.objects.annotate(
+                    name=F('code')).filter(
+                    tally__id=tally_id,
+                    id__in=row['sub_constituencies_ids'])\
+                .values_list('id', 'name', named=True)
+            if data:
+                region_sub_cons_data =\
+                    [item for item in ast.literal_eval(
+                        data)
+                        if ast.literal_eval(item['region_id']) ==
+                        row["admin_area_id"]]
+                region_sub_cons_ids =\
+                    region_sub_cons_data[0]['select_2_ids']
+
+            sub_constituencies =\
+                build_select_options(
+                    qs, ids=region_sub_cons_ids)
+            return str('<td class="center">'
+                       '<select style="min-width: 6em;"'
+                       f'{disabled}'
+                       ' id="select-2" multiple'
+                       ' data-id='f'{row["admin_area_id"]}''>'
+                       f'{sub_constituencies}'
+                       '</select>'
+                       '</td>')
+        elif column == 'actions':
+            if constituency_id:
+                return str(
+                    '<button id="filter-report" disabled '
+                    'class="btn btn-default btn-small">Submit</button>')
+            return str('<a href='f'{url}'
+                       ' class="btn btn-default btn-small vertical-margin"> '
+                       f'{administrative_area_child_report_name}'
+                       '</a>'
+                       '<button id="filter-report" '
+                       'class="btn btn-default btn-small">Submit</button>')
+        else:
+            return super(
+                SummaryReportDataView, self).render_column(row, column)
+
+
+class SummaryReportView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        TemplateView):
+    group_required = groups.TALLY_MANAGER
+    model = ReconciliationForm
+    template_name = 'reports/summary_report.html'
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        region_id = kwargs.get('region_id')
+        constituency_id = kwargs.get('constituency_id')
+        region_name = None
+        constituency_name = None
+
+        if region_id:
+            try:
+                region_name =\
+                    Region.objects.get(
+                        id=region_id,
+                        tally__id=tally_id).name
+            except Region.DoesNotExist:
+                pass
+
+        if constituency_id:
+            try:
+                constituency_name =\
+                    Constituency.objects.get(
+                        id=constituency_id,
+                        tally__id=tally_id).name
+            except Constituency.DoesNotExist:
+                pass
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('summary-list-data', kwargs=kwargs),
+            tally_id=tally_id,
+            region_name=region_name,
+            constituency_name=constituency_name
+        ))
+
+
+class ProgressiveReportDataView(LoginRequiredMixin,
+                                mixins.GroupRequiredMixin,
+                                mixins.TallyAccessMixin,
+                                BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
+    model = Result
+    columns = ('admin_area_name',
+               'total_candidates',
+               'total_votes',
+               'constituencies_ids',
+               'sub_constituencies_ids',
+               'actions')
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs.get('tally_id')
+        region_id = self.kwargs.get('region_id')
+        constituency_id = self.kwargs.get('constituency_id')
+        data = self.request.POST.get('data')
+        keyword = self.request.GET.get('search[value]')
+        qs =\
+            qs.filter(
+                result_form__tally__id=tally_id,
+                result_form__form_state=FormState.ARCHIVED,
+                entry_version=EntryVersion.FINAL,
+                active=True
+            )
+
+        if data:
+            qs = generate_progressive_report_queryset(
+                    qs,
+                    ast.literal_eval(data),
+                    region_id=region_id,
+                    constituency_id=constituency_id)
+        else:
+            qs =\
+                generate_progressive_report_queryset(
+                    qs,
+                    region_id=region_id,
+                    constituency_id=constituency_id)
+
+        if keyword:
+            qs = qs.filter(Q(admin_area_name__contains=keyword) |
+                           Q(total_candidates=keyword) |
+                           Q(total_votes=keyword))
+        return qs
+
+    def render_column(self, row, column):
+        tally_id = self.kwargs.get('tally_id')
+        region_id = self.kwargs.get('region_id')
+        constituency_id = self.kwargs.get('constituency_id')
+        data = self.request.POST.get('data')
+        child_report_button_text = None
+        child_report_url = None
+        votes_per_candidate_url = None
+        votes_per_candidate_button_text = None
+
+        if region_id and not constituency_id:
+            reverse_url =\
+                'sub-cons-progressive-report-list'
+            child_report_button_text =\
+                _(u'Sub Constituencies votes per candidate')
+            child_report_url =\
+                reverse(
+                    reverse_url,
+                    kwargs={'tally_id': tally_id,
+                            'region_id': row['region_id'],
+                            'constituency_id': row['constituency_id']})
+
+            reverse_url =\
+                'constituency-votes-per-candidate'
+            votes_per_candidate_button_text =\
+                _(u'Constituency votes per candidate')
+            votes_per_candidate_url =\
+                reverse(
+                    reverse_url,
+                    kwargs={'tally_id': tally_id,
+                            'region_id': row['region_id'],
+                            'constituency_id': row['constituency_id'],
+                            'report_type': 'votes-per-candidate-report'})
+        elif region_id and constituency_id:
+            reverse_url =\
+                'sub-constituency-votes-per-candidate'
+            child_report_button_text =\
+                _(u'Sub Constituency votes per candidate')
+            child_report_url =\
+                reverse(
+                    reverse_url,
+                    kwargs={'tally_id': tally_id,
+                            'region_id': row['region_id'],
+                            'constituency_id': row['constituency_id'],
+                            'sub_constituency_id': row['sub_constituency_id'],
+                            'report_type': 'votes-per-candidate-report'})
+
+            reverse_url =\
+                'sub-constituency-votes-per-candidate'
+            votes_per_candidate_button_text =\
+                _(u'Sub Constituency candidates list by ballot order')
+            votes_per_candidate_url =\
+                reverse(
+                    reverse_url,
+                    kwargs={'tally_id': tally_id,
+                            'region_id': row['region_id'],
+                            'constituency_id': row['constituency_id'],
+                            'sub_constituency_id': row['sub_constituency_id'],
+                            'report_type': 'candidate-list-sorted-by-ballots-number'})
+        else:
+            reverse_url =\
+                'cons-progressive-report-list'
+            child_report_button_text =\
+                _(u'Region Constituencies Progressive Report')
+            child_report_url =\
+                reverse(
+                    reverse_url,
+                    kwargs={'tally_id': tally_id,
+                            'region_id': row['region_id']})
+
+            reverse_url =\
+                'region-votes-per-candidate'
+            votes_per_candidate_button_text =\
+                _(u'Region votes per candidate')
+            votes_per_candidate_url =\
+                reverse(
+                    reverse_url,
+                    kwargs={'tally_id': tally_id,
+                            'region_id': row['region_id'],
+                            'report_type': 'votes-per-candidate-report'})
+
+        if column == 'admin_area_name':
+            return str('<td class="center">'
+                       f'{row["admin_area_name"]}</td>')
+        elif column == 'total_candidates':
+            return str('<td class="center">'
+                       f'{row["total_candidates"]}</td>')
+        elif column == 'total_votes':
+            return str('<td class="center">'
+                       f'{row["total_votes"]}</td>')
+        elif column == 'constituencies_ids':
+            disabled = 'disabled' if region_id else ''
+            region_cons_ids = []
+            qs = Constituency.objects.filter(
+                tally__id=tally_id,
+                id__in=row['constituencies_ids'])\
+                .values_list('id', 'name', named=True)
+            if data:
+                region_cons_data =\
+                    [item for item in ast.literal_eval(
+                        data) if ast.literal_eval(item['region_id']) ==
+                        row["admin_area_id"]]
+                region_cons_ids = region_cons_data[0]['select_1_ids']
+            constituencies =\
+                build_select_options(qs, ids=region_cons_ids)
+            return str('<td class="center">'
+                       '<select style="min-width: 6em;"'
+                       f'{disabled}'
+                       ' id="select-1" multiple'
+                       ' data-id='f'{row["admin_area_id"]}''>'
+                       f'{constituencies}'
+                       '</select>'
+                       '</td>')
+        elif column == 'sub_constituencies_ids':
+            disabled = 'disabled' if constituency_id else ''
+            region_sub_cons_ids = []
+            qs =\
+                SubConstituency.objects.annotate(
+                    name=F('code')).filter(
+                    tally__id=tally_id,
+                    id__in=row['sub_constituencies_ids'])\
+                .values_list('id', 'name', named=True)
+            if data:
+                region_sub_cons_data =\
+                    [item for item in ast.literal_eval(
+                        data)
+                        if ast.literal_eval(item['region_id']) ==
+                        row["admin_area_id"]]
+                region_sub_cons_ids =\
+                    region_sub_cons_data[0]['select_2_ids']
+
+            sub_constituencies =\
+                build_select_options(
+                    qs, ids=region_sub_cons_ids)
+            return str('<td class="center">'
+                       '<select style="min-width: 6em;"'
+                       f'{disabled}'
+                       ' id="select-2" multiple'
+                       ' data-id='f'{row["admin_area_id"]}''>'
+                       f'{sub_constituencies}'
+                       '</select>'
+                       '</td>')
+        elif column == 'actions':
+            child_report_link =\
+                str('<a href='f'{child_report_url}'
+                    ' class="btn btn-default btn-small vertical-margin"> '
+                    f'{child_report_button_text}'
+                    '</a>')
+            votes_per_candidate_link =\
+                str('<a href='f'{votes_per_candidate_url}'
+                    ' class="btn btn-default btn-small vertical-margin"> '
+                    f'{votes_per_candidate_button_text}'
+                    '</a>')
+            filter_button =\
+                str('<button id="filter-report" '
+                    'class="btn btn-default btn-small">Submit</button>')
+            return (
+                child_report_link +
+                votes_per_candidate_link +
+                filter_button
+            )
+        else:
+            return super(
+                ProgressiveReportDataView, self).render_column(row, column)
+
+
+class ProgressiveReportView(LoginRequiredMixin,
+                            mixins.GroupRequiredMixin,
+                            TemplateView):
+    group_required = groups.TALLY_MANAGER
+    model = Result
+    template_name = 'reports/progressive_report.html'
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        region_id = kwargs.get('region_id')
+        constituency_id = kwargs.get('constituency_id')
+        region_name = None
+        constituency_name = None
+
+        if region_id:
+            try:
+                region_name =\
+                    Region.objects.get(
+                        id=region_id,
+                        tally__id=tally_id).name
+            except Region.DoesNotExist:
+                pass
+
+        if constituency_id:
+            try:
+                constituency_name =\
+                    Constituency.objects.get(
+                        id=constituency_id,
+                        tally__id=tally_id).name
+            except Constituency.DoesNotExist:
+                pass
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('progressive-report-list-data', kwargs=kwargs),
+            tally_id=tally_id,
+            region_name=region_name,
+            constituency_name=constituency_name
+        ))
+
+
+class DiscrepancyReportDataView(LoginRequiredMixin,
+                                mixins.GroupRequiredMixin,
+                                mixins.TallyAccessMixin,
+                                BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
+    model = Station
+    columns = ('admin_area_name',
+               'number_of_centers',
+               'number_of_stations',
+               'total_number_of_centers_and_stations',
+               'station_ids',
+               'center_ids',
+               'actions')
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs.get('tally_id')
+        region_id = self.kwargs.get('region_id')
+        constituency_id = self.kwargs.get('constituency_id')
+        data = self.request.POST.get('data')
+        keyword = self.request.GET.get('search[value]')
+        report_name = self.kwargs.get('report_name')
+        stations_centers_under_process_audit =\
+            report_types[3]
+
+        if report_name == stations_centers_under_process_audit:
+            qs = ResultForm.objects.filter(
+                    tally__id=tally_id,
+                    form_state=FormState.AUDIT
+                )
+
+        if data:
+            qs = stations_and_centers_queryset(
+                    tally_id,
+                    qs,
+                    ast.literal_eval(data),
+                    report_type=report_name,
+                    region_id=region_id,
+                    constituency_id=constituency_id)
+        else:
+            qs =\
+                stations_and_centers_queryset(
+                    tally_id,
+                    qs,
+                    report_type=report_name,
+                    region_id=region_id,
+                    constituency_id=constituency_id)
+
+        if keyword:
+            qs = qs.filter(
+                    Q(admin_area_name__contains=keyword) |
+                    Q(number_of_centers__contains=keyword) |
+                    Q(number_of_stations__contains=keyword) |
+                    Q(total_number_of_centers_and_stations__contains=keyword))
+        return qs
+
+    def render_column(self, row, column):
+        tally_id = self.kwargs.get('tally_id')
+        region_id = self.kwargs.get('region_id')
+        constituency_id = self.kwargs.get('constituency_id')
+        data = self.request.POST.get('data')
+        child_report_button_text = None
+        child_report_url = None
+        station_and_centers_list_url = None
+        station_and_centers_list_button_text = None
+
+        report_name = self.kwargs.get('report_name')
+        stations_centers_under_process_audit =\
+            report_types[3]
+        stations_centers_under_investigation =\
+            report_types[4]
+        stations_centers_excluded_after_investigation =\
+            report_types[5]
+
+        if report_name == stations_centers_under_investigation:
+            if region_id and not constituency_id:
+                reverse_url =\
+                    'sub-cons-stations-and-centers-under-investigation'
+                child_report_button_text =\
+                    _(u'Sub Constituency Station and Centers under investigation')
+                child_report_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'constituency_id': row['constituency_id'],
+                                'report_name': 'stations-and-centers-under-investigation-list'})
+
+                reverse_url =\
+                    'constituency-discrepancy-report'
+                station_and_centers_list_button_text =\
+                    _(u'Constituency Centers and Stations under investigation')
+                station_and_centers_list_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'constituency_id': row['constituency_id'],
+                                'report_type': 'centers-and-stations-under-investigation'})
+            elif region_id and constituency_id:
+                reverse_url =\
+                    'sub-constituency-discrepancy-report'
+                station_and_centers_list_button_text =\
+                    _(u'Sub Constituency Stations and Centers under investigation')
+                station_and_centers_list_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'constituency_id': row['constituency_id'],
+                                'sub_constituency_id': row['sub_constituency_id'],
+                                'report_type': 'centers-and-stations-under-investigation'})
+            else:
+                reverse_url =\
+                    'cons-stations-and-centers-under-investigation'
+                child_report_button_text =\
+                    _(u'Region Constituencies under Investigation')
+                child_report_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'report_name': 'stations-and-centers-under-investigation-list'})
+
+                reverse_url =\
+                    'regions-discrepancy-report'
+                station_and_centers_list_button_text =\
+                    _(u'Region Centers and Stations under Investigation')
+                station_and_centers_list_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'report_type': 'centers-and-stations-under-investigation'})
+
+        elif report_name == stations_centers_excluded_after_investigation:
+            if region_id and not constituency_id:
+                reverse_url =\
+                    'sub-cons-stations-and-centers-excluded-after-investigation'
+                child_report_button_text =\
+                    _(u'Sub Constituency Station and Centers excluded after investigation')
+                child_report_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'constituency_id': row['constituency_id'],
+                                'report_name': 'stations-and-centers-excluded-after-investigation-list'})
+
+                reverse_url =\
+                    'constituency-discrepancy-report'
+                station_and_centers_list_button_text =\
+                    _(u'Constituency Centers and Stations excluded after investigation')
+                station_and_centers_list_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'constituency_id': row['constituency_id'],
+                                'report_type': 'centers-and-stations-excluded-after-investigation'})
+            elif region_id and constituency_id:
+                reverse_url =\
+                    'sub-constituency-discrepancy-report'
+                station_and_centers_list_button_text =\
+                    _(u'Sub Constituency Centers and Stations excluded after investigation')
+                station_and_centers_list_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'constituency_id': row['constituency_id'],
+                                'sub_constituency_id': row['sub_constituency_id'],
+                                'report_type': 'centers-and-stations-excluded-after-investigation'})
+            else:
+                reverse_url =\
+                    'cons-stations-and-centers-excluded-after-investigation'
+                child_report_button_text =\
+                    _(u'Region Constituencies excluded after investigation')
+                child_report_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'report_name': 'stations-and-centers-excluded-after-investigation-list'}) 
+
+                reverse_url =\
+                    'regions-discrepancy-report'
+                station_and_centers_list_button_text =\
+                    _(u'Region Centers and Stations excluded after investigation')
+                station_and_centers_list_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={'tally_id': tally_id,
+                                'region_id': row['region_id'],
+                                'report_type': 'centers-and-stations-excluded-after-investigation'})
+        elif report_name == stations_centers_under_process_audit:
+            if region_id and not constituency_id:
+                reverse_url =\
+                    'sub-cons-stations-and-centers-under-process-audit-list'
+                child_report_button_text =\
+                    _(u'Sub Constituencies with Station and Centers in Audit')
+                child_report_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={
+                            'tally_id':
+                            tally_id,
+                            'region_id':
+                            row['region_id'],
+                            'constituency_id':
+                            row['constituency_id'],
+                            'report_name':
+                            'stations-and-centers-under-process-audit-list'})
+
+                reverse_url =\
+                    'constituency-discrepancy-report'
+                station_and_centers_list_button_text =\
+                    _(u'Constituency Centers and Stations in Audit')
+                station_and_centers_list_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={
+                            'tally_id': tally_id,
+                            'region_id':
+                            row['region_id'],
+                            'constituency_id':
+                            row['constituency_id'],
+                            'report_type':
+                            'centers-and-stations-in-audit-report'})
+            elif region_id and constituency_id:
+                reverse_url =\
+                    'sub-constituency-discrepancy-report'
+                station_and_centers_list_button_text =\
+                    _(u'Sub Constituency Stations and Centers in Audit')
+                station_and_centers_list_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={
+                            'tally_id':
+                            tally_id,
+                            'region_id':
+                            row['region_id'],
+                            'constituency_id':
+                            row['constituency_id'],
+                            'sub_constituency_id':
+                            row['sub_constituency_id'],
+                            'report_type':
+                            'centers-and-stations-in-audit-report'})
+            else:
+                reverse_url =\
+                    'cons-stations-and-centers-under-process-audit-list'
+                child_report_button_text =\
+                    _(u'Region Constituencies with Stations and Centers in Audit')
+                child_report_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={
+                            'tally_id':
+                            tally_id,
+                            'region_id':
+                            row['region_id'],
+                            'report_name':
+                            'stations-and-centers-under-process-audit-list'})
+
+                reverse_url =\
+                    'regions-discrepancy-report'
+                station_and_centers_list_button_text =\
+                    _(u'Region Centers and Stations under process Audit')
+                station_and_centers_list_url =\
+                    reverse(
+                        reverse_url,
+                        kwargs={
+                            'tally_id':
+                            tally_id,
+                            'region_id':
+                            row['region_id'],
+                            'report_type':
+                            'centers-and-stations-in-audit-report'})
+
+        if column == 'admin_area_name':
+            return str('<td class="center">'
+                       f'{row["admin_area_name"]}</td>')
+        elif column == 'number_of_centers':
+            return str('<td class="center">'
+                       f'{row["number_of_centers"]}</td>')
+        elif column == 'number_of_stations':
+            return str('<td class="center">'
+                       f'{row["number_of_stations"]}</td>')
+        elif column == 'total_number_of_centers_and_stations':
+            return str('<td class="center">'
+                       f'{row["total_number_of_centers_and_stations"]}</td>')
+        elif column == 'station_ids':
+            region_station_ids = []
+            station_ids = row['station_ids']
+            if report_name == stations_centers_under_process_audit:
+                station_ids =\
+                    list(Station.objects.filter(
+                        station_number__in=row['station_ids'],
+                        center__id__in=row['center_ids'],
+                        tally__id=tally_id).distinct(
+                            'station_number').values_list('id', flat=True))
+            qs = Station.objects.annotate(
+                name=F('station_number')).filter(
+                    tally__id=tally_id,
+                    id__in=station_ids)\
+                .values_list('id', 'name', named=True)
+            if data:
+                region_stations_data =\
+                    [item for item in ast.literal_eval(
+                        data) if ast.literal_eval(item['region_id']) ==
+                        row["admin_area_id"]]
+                region_station_ids =\
+                    region_stations_data[0]['select_1_ids']
+            stations = build_select_options(qs, ids=region_station_ids)
+            disabled = 'disabled' if not len(stations) else ''
+
+            return str('<td class="center">'
+                       '<select style="min-width: 6em;" '
+                       f'{disabled}'
+                       ' id="select-1" multiple'
+                       ' data-id='f'{row["admin_area_id"]}''>'
+                       f'{stations}'
+                       '</select>'
+                       '</td>')
+        elif column == 'center_ids':
+            region_center_ids = []
+            qs = Center.objects.filter(
+                    tally__id=tally_id,
+                    id__in=row['center_ids'])\
+                .values_list('id', 'name', named=True)
+
+            if data:
+                region_centers_data =\
+                    [item for item in ast.literal_eval(
+                        data)
+                        if ast.literal_eval(item['region_id']) ==
+                        row["admin_area_id"]]
+                region_center_ids =\
+                    region_centers_data[0]['select_2_ids']
+
+            centers = build_select_options(qs, ids=region_center_ids)
+            disabled = 'disabled' if not len(centers) else ''
+
+            return str('<td class="center">'
+                       '<select style="min-width: 6em;" '
+                       f'{disabled}'
+                       ' id="select-2" multiple'
+                       ' data-id='f'{row["admin_area_id"]}''>'
+                       f'{centers}'
+                       '</select>'
+                       '</td>')
+        elif column == 'actions':
+            child_report_link = ''
+            station_and_centers_list_link = ''
+            if child_report_url:
+                child_report_link =\
+                    str('<a href='f'{child_report_url}'
+                        ' class="btn btn-default btn-small vertical-margin"> '
+                        f'{child_report_button_text}'
+                        '</a>')
+            if station_and_centers_list_url:
+                station_and_centers_list_link =\
+                    str('<a href='f'{station_and_centers_list_url}'
+                        ' class="btn btn-default btn-small vertical-margin"> '
+                        f'{station_and_centers_list_button_text}'
+                        '</a>')
+            filter_button =\
+                str('<button id="filter-report" '
+                    'class="btn btn-default btn-small">Submit</button>')
+            return (
+                child_report_link +
+                station_and_centers_list_link +
+                filter_button
+            )
+        else:
+            return super(
+                DiscrepancyReportDataView,
+                self).render_column(row, column)
+
+
+class DiscrepancyReportView(LoginRequiredMixin,
+                            mixins.GroupRequiredMixin,
+                            TemplateView):
+    group_required = groups.TALLY_MANAGER
+    model = Station
+    template_name = 'reports/process_discrepancy_report.html'
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        region_id = kwargs.get('region_id')
+        constituency_id = kwargs.get('constituency_id')
+        region_name = None
+        constituency_name = None
+        report_type = None
+        url = None
+
+        report_name = kwargs.get('report_name')
+        stations_centers_under_process_audit =\
+            report_types[3]
+        stations_centers_under_investigation =\
+            report_types[4]
+        stations_centers_excluded_after_investigation =\
+            report_types[5]
+        if report_name == stations_centers_under_process_audit:
+            report_type =\
+                _(u'Stations and Centers under process audit')
+            url = 'stations-and-centers-under-process-audit-list-data'
+        elif report_name == stations_centers_under_investigation:
+            report_type =\
+                _(u'Stations and Centers under investigation')
+            url = 'stations-and-centers-under-investigation-list-data'
+        elif report_name == stations_centers_excluded_after_investigation:
+            report_type =\
+                _(u'Stations and Centers excluded after investigation')
+            url = 'stations-and-centers-excluded-after-investigation-data'
+
+        if region_id:
+            try:
+                region_name =\
+                    Region.objects.get(
+                        id=region_id,
+                        tally__id=tally_id).name
+            except Region.DoesNotExist:
+                pass
+
+        if constituency_id:
+            try:
+                constituency_name =\
+                    Constituency.objects.get(
+                        id=constituency_id,
+                        tally__id=tally_id).name
+            except Constituency.DoesNotExist:
+                pass
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse(url, kwargs=kwargs),
+            tally_id=tally_id,
+            region_name=region_name,
+            constituency_name=constituency_name,
+            report_type=report_type
+        ))
+
+
 def generate_report(
         tally_id,
         report_column_name,
