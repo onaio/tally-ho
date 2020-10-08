@@ -29,6 +29,7 @@ class FormListDataView(LoginRequiredMixin,
         'station_number',
         'center.office.name',
         'center.office.number',
+        'center.office.region.name',
         'ballot.number',
         'ballot.race_type',
         'form_state',
@@ -59,6 +60,7 @@ class FormListDataView(LoginRequiredMixin,
         if keyword:
             qs = qs.filter(Q(barcode__contains=keyword) |
                            Q(center__code__contains=keyword) |
+                           Q(center__office__region__name__contains=keyword) |
                            Q(center__office__name__contains=keyword) |
                            Q(center__office__number__contains=keyword) |
                            Q(station_number__contains=keyword) |
