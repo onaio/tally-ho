@@ -1,14 +1,19 @@
+import ast
 from django.views.generic import TemplateView
 from django.utils.translation import ugettext_lazy as _
+from django.urls import reverse
+from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
 from django.db.models import Count, Q, Sum, F, ExpressionWrapper,\
     IntegerField, Value as V, Subquery, OuterRef
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.constituency import Constituency
+from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.center import Center
@@ -20,8 +25,10 @@ from tally_ho.libs.models.enums.form_state import FormState
 
 report_types = {1: "turnout",
                 2: "summary",
-                3: "stations_centers_under_investigation",
-                4: "stations_centers_excluded_after_investigation"}
+                3: "stations-and-centers-under-process-audit-list",
+                4: "stations-and-centers-under-investigation-list",
+                5: "stations-and-centers-excluded-after-investigation-list",
+                6: "progressive-report"}
 
 
 def get_stations_and_centers_by_admin_area(
@@ -118,6 +125,337 @@ def get_stations_and_centers_by_admin_area(
     return qs
 
 
+def stations_and_centers_queryset(
+        tally_id,
+        qs,
+        data=None,
+        **kwargs):
+    """
+    Genarate a report of stations and centers under investigation or excluded
+    after investigation.
+
+    :param tally_id: The reconciliation forms tally.
+    :param report_column_name: The result form report column name.
+    :param report_type_name: The report type name to generate.
+    :param region_id: The result form report region id used for filtering.
+    :param constituency_id: The result form report constituency id
+        used for filtering.
+
+    returns: The stations and centers report grouped by the adminstrative
+        area name.
+    """
+    stations_centers_under_process_audit = report_types[3]
+    stations_centers_under_investigation_report_type = report_types[4]
+    stations_centers_excluded_after_investigation_report_type = report_types[5]
+    column_name = 'center__office__region__name'
+    column_id = 'center__office__region__id'
+    admin_area_id = kwargs.get('region_id')
+    constituency_id = kwargs.get('constituency_id')
+    report_type = kwargs.get('report_type')
+
+    if admin_area_id and constituency_id:
+        column_name = 'center__sub_constituency__code'
+        column_id = 'center__sub_constituency__id'
+    elif admin_area_id:
+        column_id = 'center__constituency__id'
+        column_name = 'center__constituency__name'
+
+    qs = qs.filter(tally__id=tally_id)
+
+    if admin_area_id:
+        qs =\
+            qs.filter(center__office__region__id=admin_area_id)
+    if constituency_id:
+        qs =\
+            qs.filter(center__constituency__id=constituency_id)
+
+    if data and len(
+            [data for d in data
+                if len(d['select_1_ids']) or len(d['select_2_ids'])]):
+        parent_qs = qs
+        for item in data:
+            region_id = item['region_id']
+
+            center_ids =\
+                item['select_2_ids'] if len(
+                    item['select_2_ids']) else [0]
+            station_ids =\
+                item['select_1_ids'] if len(
+                    item['select_1_ids']) else [0]
+
+            if report_type ==\
+                    stations_centers_under_investigation_report_type:
+                if admin_area_id and constituency_id:
+                    current_qs =\
+                        parent_qs\
+                        .filter(center__sub_constituency__id=region_id)
+                elif admin_area_id:
+                    current_qs =\
+                        parent_qs.filter(center__constituency__id=region_id)
+                else:
+                    current_qs =\
+                        parent_qs.filter(center__office__region__id=region_id)
+
+                current_qs =\
+                    current_qs\
+                    .filter(active=False)\
+                    .annotate(
+                        admin_area_name=F(column_name),
+                        admin_area_id=F(column_id))\
+                    .values(
+                        'admin_area_name',
+                        'admin_area_id',
+                    )\
+                    .annotate(
+                        region_id=F('center__office__region__id'),
+                        number_of_centers=Count(
+                            'center__id',
+                            distinct=True,
+                            filter=(
+                                ~Q(center__id__in=center_ids) &
+                                Q(center__active=False)
+                            )),
+                        number_of_stations=Count(
+                            'station_number',
+                            filter=(~Q(id__in=station_ids))),
+                        total_number_of_centers_and_stations=ExpressionWrapper(
+                            F('number_of_centers') +
+                            F('number_of_stations'),
+                            output_field=IntegerField()),
+                        center_ids=ArrayAgg(
+                            'center__id',
+                            distinct=True,
+                            filter=Q(center__active=False)),
+                        station_ids=ArrayAgg(
+                            'id',
+                            distinct=True),
+                        constituency_id=F(
+                            'center__constituency__id'),
+                        sub_constituency_id=F(
+                            'center__sub_constituency__id'),)
+
+                qs = qs.union(current_qs) if not isinstance(
+                    qs[0], Station) else current_qs
+
+            elif report_type ==\
+                    stations_centers_excluded_after_investigation_report_type:
+                if admin_area_id and constituency_id:
+                    current_qs =\
+                        parent_qs\
+                        .filter(center__sub_constituency__id=region_id)
+                elif admin_area_id:
+                    current_qs =\
+                        parent_qs.filter(center__constituency__id=region_id)
+                else:
+                    current_qs =\
+                        parent_qs.filter(center__office__region__id=region_id)
+
+                current_qs =\
+                    current_qs\
+                    .filter(
+                        Q(active=True,
+                            center__disable_reason__isnull=False) |
+                        Q(active=True,
+                            disable_reason__isnull=False))\
+                    .annotate(
+                        admin_area_name=F(column_name),
+                        admin_area_id=F(column_id))\
+                    .values(
+                        'admin_area_name',
+                        'admin_area_id',
+                    )\
+                    .annotate(
+                        region_id=F('center__office__region__id'),
+                        number_of_centers=Count(
+                            'center__id',
+                            distinct=True,
+                            filter=(
+                                ~Q(center__id__in=center_ids) &
+                                Q(center__active=True,
+                                    center__disable_reason__isnull=False)
+                            )),
+                        number_of_stations=Count(
+                            'station_number',
+                            filter=(~Q(id__in=station_ids))),
+                        total_number_of_centers_and_stations=ExpressionWrapper(
+                            F('number_of_centers') +
+                            F('number_of_stations'),
+                            output_field=IntegerField()),
+                        center_ids=ArrayAgg(
+                            'center__id',
+                            distinct=True,
+                            filter=(
+                                Q(center__active=True,
+                                    center__disable_reason__isnull=False)
+                            )),
+                        station_ids=ArrayAgg(
+                            'id',
+                            distinct=True),
+                        constituency_id=F(
+                            'center__constituency__id'),
+                        sub_constituency_id=F(
+                            'center__sub_constituency__id'),)
+
+                qs = qs.union(current_qs) if not isinstance(
+                    qs[0], Station) else current_qs
+
+            elif report_type ==\
+                    stations_centers_under_process_audit:
+                station_numbers =\
+                    list(Station.objects.filter(
+                        tally__id=tally_id,
+                        id__in=station_ids).values_list(
+                            'station_number', flat=True))\
+                    if not (len(station_ids) == 1 and not station_ids[0])\
+                    else [0]
+
+                if admin_area_id and constituency_id:
+                    current_qs =\
+                        parent_qs\
+                        .filter(center__sub_constituency__id=region_id)
+                elif admin_area_id:
+                    current_qs =\
+                        parent_qs.filter(center__constituency__id=region_id)
+                else:
+                    current_qs =\
+                        parent_qs.filter(center__office__region__id=region_id)
+
+                current_qs =\
+                    current_qs\
+                    .annotate(
+                        admin_area_name=F(column_name),
+                        admin_area_id=F(column_id))\
+                    .values(
+                        'admin_area_name',
+                        'admin_area_id',
+                    )\
+                    .annotate(
+                        region_id=F('center__office__region__id'),
+                        number_of_centers=Count(
+                            'center__id',
+                            distinct=True,
+                            filter=~Q(center__id__in=center_ids)),
+                        number_of_stations=Count(
+                            'station_number',
+                            filter=(~Q(station_number__in=station_numbers))),
+                        total_number_of_centers_and_stations=ExpressionWrapper(
+                            F('number_of_centers') +
+                            F('number_of_stations'),
+                            output_field=IntegerField()),
+                        center_ids=ArrayAgg(
+                            'center__id',
+                            distinct=True),
+                        station_ids=ArrayAgg(
+                                    'station_number',
+                                    distinct=True))
+                if admin_area_id:
+                    current_qs =\
+                        current_qs.annotate(
+                            constituency_id=F(
+                                'center__constituency__id'),
+                            sub_constituency_id=F(
+                                'center__sub_constituency__id'),
+                        )
+
+                qs = qs.union(current_qs) if not isinstance(
+                    qs[0], ResultForm) else current_qs
+    else:
+        qs =\
+            qs.annotate(
+                admin_area_name=F(column_name),
+                admin_area_id=F(column_id))\
+            .values(
+                'admin_area_name',
+                'admin_area_id',
+            )
+
+        if report_type ==\
+                stations_centers_under_investigation_report_type:
+            qs =\
+                qs\
+                .filter(active=False)\
+                .annotate(
+                    number_of_centers=Count(
+                        'center__id',
+                        distinct=True,
+                        filter=Q(center__active=False)),
+                    station_ids=ArrayAgg(
+                        'id',
+                        distinct=True),
+                    center_ids=ArrayAgg(
+                        'center__id',
+                        distinct=True,
+                        filter=(
+                            Q(center__active=False,
+                              center__disable_reason__isnull=False)
+                        )),
+                    constituency_id=F(
+                        'center__constituency__id'),
+                    sub_constituency_id=F(
+                        'center__sub_constituency__id')
+                )
+        elif report_type ==\
+                stations_centers_excluded_after_investigation_report_type:
+            qs =\
+                qs\
+                .filter(
+                    Q(active=True,
+                      center__disable_reason__isnull=False) |
+                    Q(active=True,
+                        disable_reason__isnull=False))\
+                .annotate(
+                    number_of_centers=Count(
+                        'center__id',
+                        distinct=True,
+                        filter=Q(
+                            center__active=True,
+                            center__disable_reason__isnull=False)),
+                    station_ids=ArrayAgg(
+                        'id',
+                        distinct=True),
+                    center_ids=ArrayAgg(
+                        'center__id',
+                        distinct=True,
+                        filter=(
+                            Q(center__active=True,
+                              center__disable_reason__isnull=False))),
+                    constituency_id=F(
+                        'center__constituency__id'),
+                    sub_constituency_id=F(
+                        'center__sub_constituency__id')
+                )
+        elif report_type == stations_centers_under_process_audit:
+            qs =\
+                qs\
+                .annotate(
+                    number_of_centers=Count('center__id', distinct=True),
+                    station_ids=ArrayAgg(
+                        'station_number',
+                        distinct=True),
+                    center_ids=ArrayAgg(
+                        'center__id',
+                        distinct=True))
+
+            if admin_area_id:
+                qs =\
+                    qs.annotate(
+                        constituency_id=F('center__constituency__id'),
+                        sub_constituency_id=F('center__sub_constituency__id'),
+                    )
+
+        qs =\
+            qs\
+            .annotate(
+                number_of_stations=Count('station_number', distinct=True),
+                total_number_of_centers_and_stations=ExpressionWrapper(
+                    F('number_of_centers') +
+                    F('number_of_stations'),
+                    output_field=IntegerField()),
+                region_id=F('center__office__region__id'))
+
+    return qs
+
+
 def generate_progressive_report(
         tally_id,
         report_column_name,
@@ -169,6 +507,138 @@ def generate_progressive_report(
                 sub_constituency_id=F(
                     'result_form__center__sub_constituency__id'),
             )
+
+    return qs
+
+
+def generate_progressive_report_queryset(
+        qs,
+        data=None,
+        **kwargs):
+    """
+    Genarate progressive report of candidates by votes.
+
+    :param tally_id: The result form tally.
+    :param report_column_name: The result form report column name.
+    :param region_id: The result form region id.
+    :param constituency_id: The result form constituency id.
+
+    returns: The candidates votes stats based on an administrative area.
+    """
+    column_name = 'result_form__center__office__region__name'
+    column_id = 'result_form__center__office__region__id'
+    admin_area_id = kwargs.get('region_id')
+    constituency_id = kwargs.get('constituency_id')
+
+    if admin_area_id and constituency_id:
+        column_name = 'result_form__center__sub_constituency__code'
+        column_id = 'result_form__center__sub_constituency__id'
+    elif admin_area_id:
+        column_id = 'result_form__center__constituency__id'
+        column_name = 'result_form__center__constituency__name'
+
+    if admin_area_id:
+        qs = qs.filter(result_form__office__region__id=admin_area_id)
+
+    if constituency_id:
+        qs =\
+            qs.filter(result_form__center__constituency__id=constituency_id)
+
+    if data and len(
+            [data for d in data
+                if len(d['select_1_ids']) or len(d['select_2_ids'])]):
+        parent_qs = qs
+        for item in data:
+            region_id = item['region_id']
+            constituency_ids =\
+                item['select_1_ids'] if len(
+                    item['select_1_ids']) else [0]
+            sub_constituency_ids =\
+                item['select_2_ids'] if len(
+                    item['select_2_ids']) else [0]
+
+            if admin_area_id and constituency_id:
+                current_qs =\
+                    parent_qs\
+                    .filter(
+                        result_form__center__sub_constituency__id=region_id)
+            elif admin_area_id:
+                current_qs =\
+                    parent_qs.filter(
+                        result_form__center__constituency__id=region_id)
+            else:
+                current_qs =\
+                    parent_qs.filter(
+                        result_form__center__office__region__id=region_id)
+
+            current_qs =\
+                current_qs\
+                .annotate(
+                    admin_area_name=F(column_name),
+                    admin_area_id=F(column_id))\
+                .values(
+                    'admin_area_name',
+                    'admin_area_id',
+                )\
+                .annotate(
+                    total_candidates=Count(
+                        'candidate__id',
+                        distinct=True,
+                        filter=(
+                            ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                            ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))),
+                    total_votes=Coalesce(Sum(
+                        'votes',
+                        filter=(
+                            ~Q(result_form__center__constituency__id__in=constituency_ids) &
+                            ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))),
+                        V(0)),
+                    region_id=F('result_form__center__office__region__id'),
+                    constituencies_ids=ArrayAgg(
+                        'result_form__center__constituency__id',
+                        distinct=True),
+                    sub_constituencies_ids=ArrayAgg(
+                        'result_form__center__sub_constituency__id',
+                        distinct=True))
+
+            if admin_area_id:
+                current_qs =\
+                    current_qs.annotate(
+                        constituency_id=F(
+                            'result_form__center__constituency__id'),
+                        sub_constituency_id=F(
+                            'result_form__center__sub_constituency__id'),
+                    )
+            qs = qs.union(current_qs) if not isinstance(
+                qs[0], Result) else current_qs
+    else:
+        qs =\
+            qs.annotate(
+                admin_area_name=F(column_name),
+                admin_area_id=F(column_id))\
+            .values(
+                'admin_area_name',
+                'admin_area_id',
+            )\
+            .annotate(
+                total_candidates=Count('candidate__id', distinct=True),
+                total_votes=Sum('votes'),
+                region_id=F('result_form__center__office__region__id'),
+                constituencies_ids=ArrayAgg(
+                        'result_form__center__constituency__id',
+                        distinct=True),
+                sub_constituencies_ids=ArrayAgg(
+                    'result_form__center__sub_constituency__id',
+                    distinct=True))
+
+        if admin_area_id:
+            qs =\
+                qs.annotate(
+                    constituency_id=F(
+                        'result_form__center__constituency__id'),
+                    sub_constituency_id=F(
+                        'result_form__center__sub_constituency__id'),
+                )
 
     return qs
 
@@ -1657,23 +2127,9 @@ class RegionsReportsView(LoginRequiredMixin,
         region_id = kwargs.get('region_id')
         column_name = 'result_form__office__region__name'
 
-        turnout_report = generate_report(
-            tally_id=tally_id,
-            report_column_name=column_name,
-            report_type_name=report_types[1])
-
-        summary_report = generate_report(
-            tally_id=tally_id,
-            report_column_name=column_name,
-            report_type_name=report_types[2],)
-
         progressive_report = generate_progressive_report(
             tally_id=tally_id,
             report_column_name=column_name,)
-
-        regions_with_forms_in_audit = get_admin_areas_with_forms_in_audit(
-            tally_id=tally_id,
-            report_column_name='office__region__name',)
 
         centers_stations_under_invg =\
             get_stations_and_centers_by_admin_area(
@@ -1701,14 +2157,6 @@ class RegionsReportsView(LoginRequiredMixin,
             ['centers-and-stations-in-audit-report',
              'centers-and-stations-under-investigation',
              'centers-and-stations-excluded-after-investigation']:
-
-            if report_type_ == 'centers-and-stations-in-audit-report':
-                self.request.session['station_ids'] =\
-                    list(regions_with_forms_in_audit.filter(
-                        office__region__id=region_id)
-                    .annotate(
-                        station_id=station_id_query)
-                    .values_list('station_id', flat=True))
 
             if report_type_ == 'centers-and-stations-under-investigation':
                 self.request.session['station_ids'] =\
@@ -1757,10 +2205,6 @@ class RegionsReportsView(LoginRequiredMixin,
                     u'Region Constituencies'),
                 turn_out_report_download_url='regions-turnout-csv',
                 summary_report_download_url='regions-summary-csv',
-                turnout_report=turnout_report,
-                summary_report=summary_report,
-                progressive_report=progressive_report,
-                admin_ares_with_forms_in_audit=regions_with_forms_in_audit,
                 centers_stations_under_invg=centers_stations_under_invg,
                 centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 regions_report_url='regions-discrepancy-report',
@@ -1792,16 +2236,6 @@ class ConstituencyReportsView(LoginRequiredMixin,
             Region.objects.get(
                 id=region_id, tally__id=tally_id).name if region_id else None
         column_name = 'result_form__center__constituency__name'
-        turnout_report = generate_report(
-            tally_id=tally_id,
-            report_column_name=column_name,
-            report_type_name=report_types[1],
-            region_id=region_id)
-        summary_report = generate_report(
-            tally_id=tally_id,
-            report_column_name=column_name,
-            report_type_name=report_types[2],
-            region_id=region_id)
         progressive_report = generate_progressive_report(
             tally_id=tally_id,
             report_column_name=column_name,
@@ -1839,22 +2273,6 @@ class ConstituencyReportsView(LoginRequiredMixin,
             ['centers-and-stations-in-audit-report',
              'centers-and-stations-under-investigation',
              'centers-and-stations-excluded-after-investigation']:
-
-            if report_type == 'centers-and-stations-in-audit-report':
-                self.request.session['station_ids'] =\
-                    list(constituencies_forms_in_audit.filter(
-                        center__office__region__id=region_id,
-                        center__constituency__id=constituency_id)
-                    .annotate(
-                        station_id=station_id_query)
-                        .values_list('station_id', flat=True))\
-                    if constituency_id else list(
-                        constituencies_forms_in_audit.filter(
-                            center__office__region__id=region_id,)
-                    .annotate(
-                        station_id=station_id_query)
-                        .values_list('station_id', flat=True))
-
             if report_type == 'centers-and-stations-under-investigation':
                 self.request.session['station_ids'] =\
                     list(centers_stations_under_invg.filter(
@@ -1921,10 +2339,6 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 discrepancy_report_download_url=str(
                     'constituencies-discrepancy-csv'
                 ),
-                turnout_report=turnout_report,
-                summary_report=summary_report,
-                progressive_report=progressive_report,
-                process_discrepancy_report=constituencies_forms_in_audit,
                 centers_stations_under_invg=centers_stations_under_invg,
                 centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 region_name=region_name,
@@ -1971,29 +2385,11 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 tally__id=tally_id).name if constituency_id else None
 
         column_name = 'result_form__center__sub_constituency__code'
-        turnout_report = generate_report(
-            tally_id=tally_id,
-            report_column_name=column_name,
-            report_type_name=report_types[1],
-            region_id=region_id,
-            constituency_id=constituency_id)
-        summary_report = generate_report(
-            tally_id=tally_id,
-            report_column_name=column_name,
-            report_type_name=report_types[2],
-            region_id=region_id,
-            constituency_id=constituency_id)
         progressive_report = generate_progressive_report(
             tally_id=tally_id,
             report_column_name=column_name,
             region_id=region_id,
             constituency_id=constituency_id)
-        sub_constituencies_forms_in_audit =\
-            get_admin_areas_with_forms_in_audit(
-                tally_id=tally_id,
-                report_column_name='center__sub_constituency__name',
-                region_id=region_id,
-                constituency_id=constituency_id)
 
         centers_stations_under_invg =\
             get_stations_and_centers_by_admin_area(
@@ -2025,24 +2421,6 @@ class SubConstituencyReportsView(LoginRequiredMixin,
             ['centers-and-stations-in-audit-report',
              'centers-and-stations-under-investigation',
              'centers-and-stations-excluded-after-investigation']:
-
-            if report_type == 'centers-and-stations-in-audit-report':
-                self.request.session['station_ids'] =\
-                    list(sub_constituencies_forms_in_audit.filter(
-                        center__office__region__id=region_id,
-                        center__constituency__id=constituency_id,
-                        center__sub_constituency__id=sub_constituency_id,)
-                    .annotate(
-                        station_id=station_id_query)
-                        .values_list('station_id', flat=True))\
-                    if constituency_id and sub_constituency_id else list(
-                        sub_constituencies_forms_in_audit.filter(
-                            center__office__region__id=region_id,
-                            center__constituency__id=constituency_id,)
-                    .annotate(
-                        station_id=station_id_query)
-                        .values_list('station_id', flat=True))
-
             if report_type == 'centers-and-stations-under-investigation':
                 self.request.session['station_ids'] =\
                     list(centers_stations_under_invg.filter(
@@ -2121,10 +2499,6 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 discrepancy_report_download_url=str(
                     'sub-constituencies-discrepancy-csv'
                 ),
-                turnout_report=turnout_report,
-                summary_report=summary_report,
-                progressive_report=progressive_report,
-                process_discrepancy_report=sub_constituencies_forms_in_audit,
                 centers_stations_under_invg=centers_stations_under_invg,
                 centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 administrative_area_name=_(u"Sub Constituencies"),
