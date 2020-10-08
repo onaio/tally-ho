@@ -248,7 +248,7 @@ SUB_CONSTITUENCY_COLUMN_NAMES = ['SubCon #', 'Field Office', 'Races',
                                  'R&R Form Size - Consultation',
                                  'R&R Form A3 Size', 'R&R Form A3 folded Size',
                                  'Screens Per Station',
-                                 'Ballot Boxes Per Station', '']
+                                 'Ballot Boxes Per Station']
 
 CENTER_COLUMN_NAMES = ['#', 'Region/ المنطقة', 'PC Code/ رمز مركز الانتخاب',
                        'Office #/ الللجنة الانتخابية #',
