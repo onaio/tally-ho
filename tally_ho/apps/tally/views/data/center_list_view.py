@@ -23,6 +23,7 @@ class CenterListDataView(LoginRequiredMixin,
     columns = (
         'center.office.name',
         'sub_constituency.code',
+        'center.office.region.name',
         'center.name',
         'center.code',
         'station_number',
