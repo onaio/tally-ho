@@ -35,6 +35,14 @@ class TallyForm(forms.ModelForm):
         super(TallyForm, self).__init__(*args, **kwargs)
         self.fields['name'].widget.attrs.update({'class': 'form-control'})
 
+    def clean(self):
+        if self.is_valid():
+            cleaned_data = super(TallyForm, self).clean()
+            tally_name = cleaned_data.get('name')
+            cleaned_data['name'] = tally_name.lower()
+
+            return cleaned_data
+
     def save(self):
         instance = forms.ModelForm.save(self)
 
