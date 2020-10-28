@@ -67,6 +67,14 @@ class EditUserProfileForm(ModelForm):
             self.fields['tally'].initial = self.initial.get('tally_id')
             self.fields['tally'].widget = HiddenInput()
 
+    def clean(self):
+        if self.is_valid():
+            cleaned_data = super(EditUserProfileForm, self).clean()
+            username = cleaned_data.get('username')
+            cleaned_data['username'] = username.lower()
+
+            return cleaned_data
+
     def save(self):
         user = super(EditUserProfileForm, self).save()
         group = self.cleaned_data.get('group')
