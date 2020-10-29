@@ -1380,8 +1380,23 @@ class EditUserView(LoginRequiredMixin,
         return context
 
     def get_success_url(self):
-        return reverse('user-tally-list',
-                       kwargs={'tally_id': self.kwargs.get('tally_id')})
+        url_name = None
+        url_param = None
+        url_keyword = None
+
+        try:
+            self.request.session['url_name']
+        except KeyError:
+            url_name = 'user-tally-list',
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        else:
+            url_name = self.request.session['url_name']
+            url_param = self.request.session['url_param']
+            url_keyword = self.request.session['url_keyword']
+
+        return reverse(url_name,
+                       kwargs={url_keyword: url_param})
 
     def get_object(self, queryset=None):
         user = super(EditUserView, self).get_object(queryset)
