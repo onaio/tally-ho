@@ -244,7 +244,29 @@ class EditUserView(LoginRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super(EditUserView, self).get_context_data(**kwargs)
-        context['is_admin'] = self.object.is_administrator
+        is_admin = self.object.is_administrator
+        context['is_admin'] = is_admin
+        referer_url = self.request.META.get('HTTP_REFERER', None)
+        url_name = None
+        url_param = None
+        url_keyword = None
+
+        try:
+            int([param for param in referer_url.split('/') if param][-1])
+        except ValueError:
+            url_name = 'user-list'
+            url_param = 'user'
+            url_keyword = 'role'
+        else:
+            url_name = 'user-tally-list'
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        finally:
+            context['url_name'] = url_name
+            context['url_param'] = url_param
+            self.request.session['url_name'] = url_name
+            self.request.session['url_param'] = url_param
+            self.request.session['url_keyword'] = url_keyword
 
         return context
 
@@ -296,6 +318,27 @@ class CreateUserView(LoginRequiredMixin,
         role = self.kwargs.get('role', 'user')
         context = super(CreateUserView, self).get_context_data(**kwargs)
         context['is_admin'] = role == 'admin'
+        referer_url = self.request.META.get('HTTP_REFERER', None)
+        url_name = None
+        url_param = None
+        url_keyword = None
+
+        try:
+            int([param for param in referer_url.split('/') if param][-1])
+        except ValueError:
+            url_name = 'user-list'
+            url_param = 'user'
+            url_keyword = 'role'
+        else:
+            url_name = 'user-tally-list'
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        finally:
+            context['url_name'] = url_name
+            context['url_param'] = url_param
+            self.request.session['url_name'] = url_name
+            self.request.session['url_param'] = url_param
+            self.request.session['url_keyword'] = url_keyword
 
         return context
 
