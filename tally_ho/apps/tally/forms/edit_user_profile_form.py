@@ -128,6 +128,14 @@ class EditAdminProfileForm(ModelForm):
             if key not in self.MANDATORY_FIELDS:
                 self.fields[key].required = False
 
+    def clean(self):
+        if self.is_valid():
+            cleaned_data = super(EditAdminProfileForm, self).clean()
+            username = cleaned_data.get('username')
+            cleaned_data['username'] = username.lower()
+
+            return cleaned_data
+
     def save(self):
         user = super(EditAdminProfileForm, self).save()
         reboot_password = self.cleaned_data.get('reboot_password')
