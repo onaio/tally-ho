@@ -244,7 +244,29 @@ class EditUserView(LoginRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super(EditUserView, self).get_context_data(**kwargs)
-        context['is_admin'] = self.object.is_administrator
+        is_admin = self.object.is_administrator
+        context['is_admin'] = is_admin
+        referer_url = self.request.META.get('HTTP_REFERER', None)
+        url_name = None
+        url_param = None
+        url_keyword = None
+
+        try:
+            int([param for param in referer_url.split('/') if param][-1])
+        except ValueError:
+            url_name = 'user-list'
+            url_param = 'user'
+            url_keyword = 'role'
+        else:
+            url_name = 'user-tally-list'
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        finally:
+            context['url_name'] = url_name
+            context['url_param'] = url_param
+            self.request.session['url_name'] = url_name
+            self.request.session['url_param'] = url_param
+            self.request.session['url_keyword'] = url_keyword
 
         return context
 
@@ -255,10 +277,23 @@ class EditUserView(LoginRequiredMixin,
             return EditUserProfileForm
 
     def get_success_url(self):
-        self.object = self.get_object()
-        role = 'admin' if self.object.is_administrator else 'user'
+        url_name = None
+        url_param = None
+        url_keyword = None
 
-        return reverse('user-list', kwargs={'role': role})
+        try:
+            self.request.session['url_name']
+        except KeyError:
+            url_name = 'user-tally-list',
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        else:
+            url_name = self.request.session['url_name']
+            url_param = self.request.session['url_param']
+            url_keyword = self.request.session['url_keyword']
+
+        return reverse(url_name,
+                       kwargs={url_keyword: url_param})
 
 
 class RemoveUserConfirmationView(LoginRequiredMixin,
@@ -281,9 +316,23 @@ class RemoveUserConfirmationView(LoginRequiredMixin,
         return context
 
     def get_success_url(self):
-        role = 'admin' if self.object.is_administrator else 'user'
+        url_name = None
+        url_param = None
+        url_keyword = None
 
-        return reverse('user-list', kwargs={'role': role})
+        try:
+            self.request.session['url_name']
+        except KeyError:
+            url_name = 'user-tally-list',
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        else:
+            url_name = self.request.session['url_name']
+            url_param = self.request.session['url_param']
+            url_keyword = self.request.session['url_keyword']
+
+        return reverse(url_name,
+                       kwargs={url_keyword: url_param})
 
 
 class CreateUserView(LoginRequiredMixin,
@@ -296,6 +345,27 @@ class CreateUserView(LoginRequiredMixin,
         role = self.kwargs.get('role', 'user')
         context = super(CreateUserView, self).get_context_data(**kwargs)
         context['is_admin'] = role == 'admin'
+        referer_url = self.request.META.get('HTTP_REFERER', None)
+        url_name = None
+        url_param = None
+        url_keyword = None
+
+        try:
+            int([param for param in referer_url.split('/') if param][-1])
+        except ValueError:
+            url_name = 'user-list'
+            url_param = 'user'
+            url_keyword = 'role'
+        else:
+            url_name = 'user-tally-list'
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        finally:
+            context['url_name'] = url_name
+            context['url_param'] = url_param
+            self.request.session['url_name'] = url_name
+            self.request.session['url_param'] = url_param
+            self.request.session['url_keyword'] = url_keyword
 
         return context
 
@@ -306,8 +376,23 @@ class CreateUserView(LoginRequiredMixin,
             return EditUserProfileForm
 
     def get_success_url(self):
-        return reverse('user-list',
-                       kwargs={'role': self.kwargs.get('role', 'user')})
+        url_name = None
+        url_param = None
+        url_keyword = None
+
+        try:
+            self.request.session['url_name']
+        except KeyError:
+            url_name = 'user-tally-list',
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        else:
+            url_name = self.request.session['url_name']
+            url_param = self.request.session['url_param']
+            url_keyword = self.request.session['url_keyword']
+
+        return reverse(url_name,
+                       kwargs={url_keyword: url_param})
 
 
 class CreateTallyView(LoginRequiredMixin,

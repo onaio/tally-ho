@@ -12,6 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.form import lower_case_form_data
 
 disable_copy_input = {
     'onCopy': 'return false;',
@@ -67,6 +68,10 @@ class EditUserProfileForm(ModelForm):
             self.fields['tally'].initial = self.initial.get('tally_id')
             self.fields['tally'].widget = HiddenInput()
 
+    def clean(self):
+        if self.is_valid():
+            lower_case_form_data(self, EditUserProfileForm, ['username'])
+
     def save(self):
         user = super(EditUserProfileForm, self).save()
         group = self.cleaned_data.get('group')
@@ -119,6 +124,10 @@ class EditAdminProfileForm(ModelForm):
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:
                 self.fields[key].required = False
+
+    def clean(self):
+        if self.is_valid():
+            lower_case_form_data(self, EditUserProfileForm, ['username'])
 
     def save(self):
         user = super(EditAdminProfileForm, self).save()

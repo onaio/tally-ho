@@ -3,6 +3,7 @@ from django import forms
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.libs.utils.form import lower_case_form_data
 
 
 disable_copy_input = {
@@ -34,6 +35,10 @@ class TallyForm(forms.ModelForm):
 
         super(TallyForm, self).__init__(*args, **kwargs)
         self.fields['name'].widget.attrs.update({'class': 'form-control'})
+
+    def clean(self):
+        if self.is_valid():
+            lower_case_form_data(self, TallyForm, ['name'])
 
     def save(self):
         instance = forms.ModelForm.save(self)

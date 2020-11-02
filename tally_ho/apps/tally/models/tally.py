@@ -13,7 +13,8 @@ class Tally(BaseModel):
     class Meta:
         app_label = 'tally'
 
-    name = models.CharField(max_length=255, null=False, blank=False)
+    name = models.CharField(
+        max_length=255, null=False, blank=False, unique=True)
     active = models.BooleanField(default=True)
     disable_reason = EnumIntegerField(DisableReason, null=True)
 
