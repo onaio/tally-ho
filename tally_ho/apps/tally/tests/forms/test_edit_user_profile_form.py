@@ -14,6 +14,9 @@ class EditUserProfileFormTest(TestBase):
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)
 
     def test_blank_data(self):
+        """
+        Test that blank validation errors are triggered when no data is provided.
+        """
         form = EditUserProfileForm({})
         self.assertFalse(form.is_valid())
         self.assertEqual(
@@ -22,6 +25,10 @@ class EditUserProfileFormTest(TestBase):
              'group': ['This field is required.']})
 
     def test_dupliate_username_error(self):
+        """
+        Test that duplicate username error is trigger when similar usernames
+        are entered.
+        """
         username = 'john_doe'
         group = Group.objects.get(name='Quality Control Supervisor')
         old_form =\
@@ -36,6 +43,9 @@ class EditUserProfileFormTest(TestBase):
             {'username': ['A user with that username already exists.']})
 
     def test_valid_data(self):
+        """
+        Test that data is saved successfully when valid data is passed.
+        """
         group = Group.objects.get(name='Quality Control Supervisor')
         username = 'john_doe'
         form =\
