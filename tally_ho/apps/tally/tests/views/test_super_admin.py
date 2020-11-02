@@ -19,6 +19,7 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.models.enums.race_type import RaceType
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
     configure_messages,
@@ -1368,3 +1369,41 @@ class TestSuperAdmin(TestBase):
         self.assertTrue(result_form_1.duplicate_reviewed)
         self.assertNotEqual(result_form_2.form_state, FormState.CLEARANCE)
         self.assertFalse(result_form_2.duplicate_reviewed)
+
+    def test_edit_user_view_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        user = UserProfile.objects.create(
+            username='john',
+            first_name='doe',
+            reset_password=False)
+        tally.users.add(user)
+        view = views.EditUserView.as_view()
+        request = self.factory.get('/')
+        user_id = user.id
+        request.user = self.user
+        request.session = {}
+        request.META =\
+            {'HTTP_REFERER':
+             f'super-admin/edit-user/{tally.id}/{user_id}/'}
+
+        response = view(
+            request,
+            user_id=user_id,
+            tally_id=tally.id)
+        response.render()
+        self.assertEquals(request.session['url_name'], 'user-tally-list')
+        self.assertEquals(request.session['url_param'], tally.id)
+        self.assertEquals(request.session['url_keyword'], 'tally_id')
+
+        request.session = {}
+        request.META = {'HTTP_REFERER': '/tally-manager/user-list/user'}
+
+        response = view(
+            request,
+            user_id=user_id,
+            tally_id=tally.id)
+        response.render()
+        self.assertEquals(request.session['url_name'], 'user-list')
+        self.assertEquals(request.session['url_param'], 'user')
+        self.assertEquals(request.session['url_keyword'], 'role')

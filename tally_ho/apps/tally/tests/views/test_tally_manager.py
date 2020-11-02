@@ -3,6 +3,7 @@ from django.test import RequestFactory
 
 from django.contrib.sites.models import Site
 from tally_ho.apps.tally.models.site_info import SiteInfo
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views import tally_manager as views
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
@@ -61,6 +62,43 @@ class TestTallyManager(TestBase):
             response,
             str('<input type="text" name="user_idle_timeout" value="60" '
                 'size="50" required id="id_user_idle_timeout">'))
+
+    def test_edit_user_view_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        user = UserProfile.objects.create(
+            username='john',
+            first_name='doe',
+            reset_password=False)
+        view = views.EditUserView.as_view()
+        request = self.factory.get('/')
+        user_id = user.id
+        request.user = self.user
+        request.session = {}
+        request.META =\
+            {'HTTP_REFERER':
+             f'super-admin/edit-user/{tally.id}/{user_id}/'}
+
+        response = view(
+            request,
+            userId=user_id,
+            tally_id=tally.id)
+        response.render()
+        self.assertEquals(request.session['url_name'], 'user-tally-list')
+        self.assertEquals(request.session['url_param'], tally.id)
+        self.assertEquals(request.session['url_keyword'], 'tally_id')
+
+        request.session = {}
+        request.META = {'HTTP_REFERER': '/tally-manager/user-list/user'}
+
+        response = view(
+            request,
+            userId=user_id,
+            tally_id=tally.id)
+        response.render()
+        self.assertEquals(request.session['url_name'], 'user-list')
+        self.assertEquals(request.session['url_param'], 'user')
+        self.assertEquals(request.session['url_keyword'], 'role')
 
     def test_set_user_timeout_valid_post(self):
         tally = create_tally()
