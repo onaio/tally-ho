@@ -15,7 +15,8 @@ class EditUserProfileFormTest(TestBase):
 
     def test_blank_data(self):
         """
-        Test that blank validation errors are triggered when no data is provided.
+        Test that blank validation errors are triggered when no data is
+        provided.
         """
         form = EditUserProfileForm({})
         self.assertFalse(form.is_valid())
