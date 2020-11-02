@@ -70,7 +70,7 @@ class EditUserProfileForm(ModelForm):
 
     def clean(self):
         if self.is_valid():
-            lower_case_form_data(self, EditUserProfileForm,[ 'username'])
+            lower_case_form_data(self, EditUserProfileForm, ['username'])
 
     def save(self):
         user = super(EditUserProfileForm, self).save()
