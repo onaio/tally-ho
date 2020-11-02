@@ -12,6 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.form import lower_case_form_data
 
 disable_copy_input = {
     'onCopy': 'return false;',
@@ -69,11 +70,7 @@ class EditUserProfileForm(ModelForm):
 
     def clean(self):
         if self.is_valid():
-            cleaned_data = super(EditUserProfileForm, self).clean()
-            username = cleaned_data.get('username')
-            cleaned_data['username'] = username.lower()
-
-            return cleaned_data
+            lower_case_form_data(self, EditUserProfileForm,[ 'username'])
 
     def save(self):
         user = super(EditUserProfileForm, self).save()
@@ -130,11 +127,7 @@ class EditAdminProfileForm(ModelForm):
 
     def clean(self):
         if self.is_valid():
-            cleaned_data = super(EditAdminProfileForm, self).clean()
-            username = cleaned_data.get('username')
-            cleaned_data['username'] = username.lower()
-
-            return cleaned_data
+            lower_case_form_data(self, EditUserProfileForm, ['username'])
 
     def save(self):
         user = super(EditAdminProfileForm, self).save()
