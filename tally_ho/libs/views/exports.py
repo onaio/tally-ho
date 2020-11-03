@@ -421,11 +421,13 @@ def get_result_export_response(report, tally_id):
     try:
         # FIXME: if file it's been already generated,
         # does not generate new one. correct??
-        if not os.path.exists(filename):
-            export_candidate_votes(save_barcodes=True,
-                                   output_duplicates=True,
-                                   show_disabled_candidates=show_disabled,
-                                   tally_id=tally_id)
+        if not os.path.isdir(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+
+        export_candidate_votes(save_barcodes=True,
+                               output_duplicates=True,
+                               show_disabled_candidates=show_disabled,
+                               tally_id=tally_id)
 
         path = os.readlink(filename)
         filename = os.path.basename(path)
