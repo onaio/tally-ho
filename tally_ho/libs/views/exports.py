@@ -34,7 +34,7 @@ def path_with_timestamp(path):
 
 def save_csv_file_and_symlink(csv_file, path):
     new_path = path_with_timestamp(path)
-    default_storage.save(new_path, File(open(csv_file.name)))
+    default_storage.save(new_path, File(open(csv_file.name, mode='r')))
     new_path = os.path.realpath(new_path)
 
     if os.path.exists(os.path.abspath(path)):
