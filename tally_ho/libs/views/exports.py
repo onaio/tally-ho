@@ -295,7 +295,7 @@ def export_candidate_votes(save_barcodes=False,
         w = csv.DictWriter(f, header)
         w.writeheader()
 
-        for ballot in valid_ballots():
+        for ballot in valid_ballots(tally_id):
             general_ballot = ballot
             forms = distinct_forms(ballot, tally_id)
             final_forms = ResultForm.forms_in_state(
