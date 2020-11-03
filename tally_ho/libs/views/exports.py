@@ -133,7 +133,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
 
-    with csv_file as f:
+    with open(csv_file.name, 'w') as f:
         header = [
             'ballot',
             'race number',
@@ -216,7 +216,7 @@ def save_center_duplicates(center_to_votes, center_to_forms,
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
 
-    with csv_file as f:
+    with open(csv_file.name, 'w') as f:
         header = ['ballot', 'center', 'barcode', 'state', 'station', 'votes']
         w = csv.DictWriter(f, header)
         w.writeheader()
@@ -291,8 +291,7 @@ def export_candidate_votes(save_barcodes=False,
     complete_barcodes = []
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
-
-    with csv_file as f:
+    with open(csv_file.name, 'w') as f:
         w = csv.DictWriter(f, header)
         w.writeheader()
 
