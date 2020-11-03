@@ -37,11 +37,11 @@ def save_csv_file_and_symlink(csv_file, path):
     default_storage.save(new_path, File(open(csv_file.name, mode='r')))
     new_path = os.path.realpath(new_path)
 
-    if os.path.exists(os.path.abspath(path)):
+    try:
+        os.symlink(new_path, path)
+    except FileExistsError:
         os.unlink(os.path.abspath(path))
-
-    os.symlink(new_path, path)
-
+        os.symlink(new_path, path)
     return path
 
 
