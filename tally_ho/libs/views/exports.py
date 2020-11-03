@@ -383,8 +383,8 @@ def check_position_changes(candidates_votes):
         reverse=True)))
 
     # Get first five candidates
-    valid_votes = dict(enumerate(sort_valid_votes.keys()[0:5]))
-    all_votes = dict(enumerate(sort_all_votes.keys()[0:5]))
+    valid_votes = dict(enumerate(list(sort_valid_votes.keys())[0:5]))
+    all_votes = dict(enumerate(list(sort_all_votes.keys())[0:5]))
 
     # If they are not de same, warn the super-admin
     if valid_votes != all_votes:
