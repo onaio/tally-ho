@@ -52,8 +52,7 @@ def write_utf8(w, output):
     :param w: A stream to write a row to.
     :param output: A dict to encode as utf8.
     """
-    w.writerow({k: v.encode('utf8') if isinstance(v, str) else v
-                for k, v in output.items()})
+    w.writerow({k: v for k, v in output.items()})
 
 
 def valid_ballots(tally_id=None):
