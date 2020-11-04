@@ -34,14 +34,15 @@ def path_with_timestamp(path):
 
 def save_csv_file_and_symlink(csv_file, path):
     new_path = path_with_timestamp(path)
-    default_storage.save(new_path, File(open(csv_file.name)))
-    new_path = os.path.realpath(new_path)
+    file_path =\
+        default_storage.save(new_path, File(open(csv_file.name, mode='r')))
+    new_path = default_storage.path(file_path)
 
-    if os.path.exists(os.path.abspath(path)):
+    try:
+        os.symlink(new_path, path)
+    except FileExistsError:
         os.unlink(os.path.abspath(path))
-
-    os.symlink(new_path, path)
-
+        os.symlink(new_path, path)
     return path
 
 
@@ -51,8 +52,7 @@ def write_utf8(w, output):
     :param w: A stream to write a row to.
     :param output: A dict to encode as utf8.
     """
-    w.writerow({k: v.encode('utf8') if isinstance(v, str) else v
-                for k, v in output.items()})
+    w.writerow({k: v for k, v in output.items()})
 
 
 def valid_ballots(tally_id=None):
@@ -133,7 +133,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
 
-    with csv_file as f:
+    with open(csv_file.name, 'w') as f:
         header = [
             'ballot',
             'race number',
@@ -216,7 +216,7 @@ def save_center_duplicates(center_to_votes, center_to_forms,
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
 
-    with csv_file as f:
+    with open(csv_file.name, 'w') as f:
         header = ['ballot', 'center', 'barcode', 'state', 'station', 'votes']
         w = csv.DictWriter(f, header)
         w.writeheader()
@@ -291,12 +291,11 @@ def export_candidate_votes(save_barcodes=False,
     complete_barcodes = []
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
-
-    with csv_file as f:
+    with open(csv_file.name, 'w') as f:
         w = csv.DictWriter(f, header)
         w.writeheader()
 
-        for ballot in valid_ballots():
+        for ballot in valid_ballots(tally_id):
             general_ballot = ballot
             forms = distinct_forms(ballot, tally_id)
             final_forms = ResultForm.forms_in_state(
@@ -384,8 +383,8 @@ def check_position_changes(candidates_votes):
         reverse=True)))
 
     # Get first five candidates
-    valid_votes = dict(enumerate(sort_valid_votes.keys()[0:5]))
-    all_votes = dict(enumerate(sort_all_votes.keys()[0:5]))
+    valid_votes = dict(enumerate(list(sort_valid_votes.keys())[0:5]))
+    all_votes = dict(enumerate(list(sort_all_votes.keys())[0:5]))
 
     # If they are not de same, warn the super-admin
     if valid_votes != all_votes:
@@ -422,11 +421,13 @@ def get_result_export_response(report, tally_id):
     try:
         # FIXME: if file it's been already generated,
         # does not generate new one. correct??
-        if not os.path.exists(filename):
-            export_candidate_votes(save_barcodes=True,
-                                   output_duplicates=True,
-                                   show_disabled_candidates=show_disabled,
-                                   tally_id=tally_id)
+        if not os.path.isdir(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+
+        export_candidate_votes(save_barcodes=True,
+                               output_duplicates=True,
+                               show_disabled_candidates=show_disabled,
+                               tally_id=tally_id)
 
         path = os.readlink(filename)
         filename = os.path.basename(path)
@@ -434,7 +435,7 @@ def get_result_export_response(report, tally_id):
         response['Content-Type'] = 'text/csv; charset=utf-8'
 
         if path:
-            with open(path, 'rb') as f:
+            with open(path, 'r') as f:
                 response.write(f.read())
         else:
             raise Exception(_(u"File Not found!"))
