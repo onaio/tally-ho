@@ -435,7 +435,7 @@ def get_result_export_response(report, tally_id):
         response['Content-Type'] = 'text/csv; charset=utf-8'
 
         if path:
-            with open(path, 'rb') as f:
+            with open(path, 'r') as f:
                 response.write(f.read())
         else:
             raise Exception(_(u"File Not found!"))
