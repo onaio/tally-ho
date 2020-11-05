@@ -1425,10 +1425,44 @@ class CreateUserView(LoginRequiredMixin,
     def get_context_data(self, **kwargs):
         context = super(CreateUserView, self).get_context_data(**kwargs)
         context['is_admin'] = False
-        context['tally_id'] = self.kwargs.get('tally_id')
+        tally_id = self.kwargs.get('tally_id')
+        context['tally_id'] = tally_id
+        url_name = None
+        url_param = None
+        url_keyword = None
+
+        if tally_id:
+            url_name = 'user-tally-list'
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        else:
+            url_name = 'user-list'
+            url_param = 'user'
+            url_keyword = 'role'
+
+        context['url_name'] = url_name
+        context['url_param'] = url_param
+        self.request.session['url_name'] = url_name
+        self.request.session['url_param'] = url_param
+        self.request.session['url_keyword'] = url_keyword
 
         return context
 
     def get_success_url(self):
-        return reverse('user-tally-list',
-                       kwargs={'tally_id': self.kwargs.get('tally_id')})
+        url_name = None
+        url_param = None
+        url_keyword = None
+
+        try:
+            self.request.session['url_name']
+        except KeyError:
+            url_name = 'user-tally-list',
+            url_param = self.kwargs.get('tally_id')
+            url_keyword = 'tally_id'
+        else:
+            url_name = self.request.session['url_name']
+            url_param = self.request.session['url_param']
+            url_keyword = self.request.session['url_keyword']
+
+        return reverse(url_name,
+                       kwargs={url_keyword: url_param})
