@@ -343,29 +343,27 @@ class CreateUserView(LoginRequiredMixin,
 
     def get_context_data(self, **kwargs):
         role = self.kwargs.get('role', 'user')
+        tally_id = self.kwargs.get('tally_id')
         context = super(CreateUserView, self).get_context_data(**kwargs)
         context['is_admin'] = role == 'admin'
-        referer_url = self.request.META.get('HTTP_REFERER', None)
         url_name = None
         url_param = None
         url_keyword = None
 
-        try:
-            int([param for param in referer_url.split('/') if param][-1])
-        except ValueError:
+        if tally_id:
+            url_name = 'user-tally-list'
+            url_param = tally_id
+            url_keyword = 'tally_id'
+        else:
             url_name = 'user-list'
             url_param = 'user'
             url_keyword = 'role'
-        else:
-            url_name = 'user-tally-list'
-            url_param = self.kwargs.get('tally_id')
-            url_keyword = 'tally_id'
-        finally:
-            context['url_name'] = url_name
-            context['url_param'] = url_param
-            self.request.session['url_name'] = url_name
-            self.request.session['url_param'] = url_param
-            self.request.session['url_keyword'] = url_keyword
+
+        context['url_name'] = url_name
+        context['url_param'] = url_param
+        self.request.session['url_name'] = url_name
+        self.request.session['url_param'] = url_param
+        self.request.session['url_keyword'] = url_keyword
 
         return context
 
