@@ -5,8 +5,8 @@ from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
-from django.db.models import Count, Q, Sum, F, ExpressionWrapper,\
-    IntegerField, Value as V, Subquery, OuterRef
+from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper,\
+    IntegerField, CharField, Value as V, Subquery, OuterRef
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
@@ -20,6 +20,7 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
+from tally_ho.libs.views.exports import distinct_forms, valid_ballots
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 
