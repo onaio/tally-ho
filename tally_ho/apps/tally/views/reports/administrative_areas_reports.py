@@ -457,6 +457,236 @@ def stations_and_centers_queryset(
     return qs
 
 
+def results_queryset(
+        tally_id,
+        qs,
+        data=None,
+        **kwargs):
+    """
+    Genarate a report of votes per candidate.
+
+    :param tally_id: The tally id.
+    :param qs: The result parent queryset.
+    :param data: An array of dicts containing centers and stations
+        id's to filter out from the queryset.
+
+    returns: The votes per candidate queryset.
+    """
+    if data:
+        selected_center_ids =\
+            data['select_1_ids'] if len(data['select_1_ids']) else [0]
+        selected_station_ids =\
+            data['select_2_ids'] if len(data['select_2_ids']) else [0]
+
+        station_ids_query =\
+            Subquery(
+                Station.objects.filter(
+                    tally__id=tally_id,
+                    center__code=OuterRef(
+                        'result_form__center__code'),
+                    station_number=OuterRef(
+                        'result_form__station_number'))
+                .values('id')[:1],
+                output_field=IntegerField())
+        qs = qs\
+            .annotate(station_ids=station_ids_query)
+
+        qs_1 = qs\
+            .filter(
+                ~Q(result_form__center__id__in=selected_center_ids) &
+                ~Q(station_ids__in=selected_station_ids))\
+            .annotate(candidate_name=F('candidate__full_name'))\
+            .filter(candidate_name__isnull=False)
+
+        qs_2 = qs\
+            .filter(
+                ~Q(result_form__center__id__in=selected_center_ids) &
+                ~Q(station_ids__in=selected_station_ids))\
+            .annotate(
+                candidate_name=F(
+                    'result_form__ballot__sc_general__ballot_component__full_name')
+            )\
+            .filter(candidate_name__isnull=False)
+
+        qs = qs_1.union(qs_2) if len(qs_2) else qs_1
+
+        station_registrants_query =\
+            Subquery(
+                Station.objects.filter(
+                    tally__id=tally_id,
+                    center__code=OuterRef(
+                        'result_form__center__code'),
+                    station_number=OuterRef(
+                        'result_form__station_number'))
+                .values('registrants')[:1],
+                output_field=IntegerField())
+
+        qs = qs\
+            .values('candidate_name')\
+            .annotate(
+                total_votes=F('votes'),
+                ballot_number=F('result_form__ballot__number'),
+                center_code=F('result_form__center__code'),
+                station_number=F('result_form__station_number'),
+                gender=F('result_form__gender__name'),
+                barcode=F('result_form__barcode'),
+                race_type=F('result_form__ballot__race_type__name'),
+                voting_district=F(
+                    'result_form__center__sub_constituency__code'),
+                number_registrants=station_registrants_query,
+                order=F('candidate__order'),
+                race_number=F('candidate__ballot__number'),
+                candidate_status=Case(
+                    When(
+                        candidate__active=True,
+                        then=V('enabled')
+                    ), default=V('disabled'), output_field=CharField()),
+                invalid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_invalid_votes'
+                        )
+                    ), default=V(0)),
+                unstamped_ballots=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_unstamped_ballots')
+                    ), default=V(0)),
+                cancelled_ballots=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_cancelled_ballots')
+                    ), default=V(0)),
+                spoilt_ballots=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_spoiled_ballots')
+                    ), default=V(0)),
+                unused_ballots=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_unused_ballots')
+                    ), default=V(0)),
+                number_of_signatures=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_signatures_in_vr')
+                    ), default=V(0)),
+                ballots_received=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_ballots_received')
+                    ), default=V(0)),
+                valid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_valid_votes')
+                    ), default=V(0))).distinct()
+    else:
+        qs_1 = qs\
+            .annotate(candidate_name=F('candidate__full_name'))\
+            .filter(candidate_name__isnull=False)
+        qs_2 = qs\
+            .annotate(
+                candidate_name=F(
+                    'result_form__ballot__sc_general__ballot_component__full_name')
+            )\
+            .filter(candidate_name__isnull=False)
+
+        qs = qs_1.union(qs_2) if len(qs_2) else qs_1
+
+        station_registrants_query =\
+            Subquery(
+                Station.objects.filter(
+                    tally__id=tally_id,
+                    center__code=OuterRef(
+                        'result_form__center__code'),
+                    station_number=OuterRef(
+                        'result_form__station_number'))
+                .values('registrants')[:1],
+                output_field=IntegerField())
+
+        qs = qs\
+            .values('candidate_name')\
+            .annotate(
+                total_votes=F('votes'),
+                ballot_number=F('result_form__ballot__number'),
+                center_code=F('result_form__center__code'),
+                station_number=F('result_form__station_number'),
+                gender=F('result_form__gender__name'),
+                barcode=F('result_form__barcode'),
+                race_type=F('result_form__ballot__race_type__name'),
+                voting_district=F(
+                    'result_form__center__sub_constituency__code'),
+                number_registrants=station_registrants_query,
+                order=F('candidate__order'),
+                race_number=F('candidate__ballot__number'),
+                candidate_status=Case(
+                    When(
+                        candidate__active=True,
+                        then=V('enabled')
+                    ), default=V('disabled'), output_field=CharField()),
+                invalid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_invalid_votes'
+                        )
+                    ), default=V(0)),
+                unstamped_ballots=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_unstamped_ballots')
+                    ), default=V(0)),
+                cancelled_ballots=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_cancelled_ballots')
+                    ), default=V(0)),
+                spoilt_ballots=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_spoiled_ballots')
+                    ), default=V(0)),
+                unused_ballots=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_unused_ballots')
+                    ), default=V(0)),
+                number_of_signatures=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_signatures_in_vr')
+                    ), default=V(0)),
+                ballots_received=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_ballots_received')
+                    ), default=V(0)),
+                valid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(
+                            'result_form__reconciliationform__number_valid_votes')
+                    ), default=V(0))).distinct()
+
+    return qs
+
+
 def generate_progressive_report(
         tally_id,
         report_column_name,
@@ -2564,14 +2794,12 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
             if len(complete_barcodes) else qs
 
         if data:
-            qs = result_form_results_queryset(
+            qs = results_queryset(
                 tally_id,
                 qs,
                 ast.literal_eval(data))
         else:
-            qs = result_form_results_queryset(
-                    tally_id,
-                    qs)
+            qs = results_queryset(tally_id, qs)
 
         if keyword:
             qs = qs.filter(Q(candidate_name__contains=keyword) |
