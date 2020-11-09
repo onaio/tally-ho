@@ -460,8 +460,7 @@ def stations_and_centers_queryset(
 def results_queryset(
         tally_id,
         qs,
-        data=None,
-        **kwargs):
+        data=None):
     """
     Genarate a report of votes per candidate.
 
