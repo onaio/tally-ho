@@ -394,12 +394,20 @@ urlpatterns = [
             name='form-audit-data'),
     re_path(r'^super-administrator/form-results-data/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.ResultFormResultsListDataView.as_view(
-
             ),
             name='form-results-data'),
     re_path(r'^super-administrator/form-results/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.ResultFormResultsListView.as_view(),
             name='form-results'),
+    re_path(r'^super-administrator/duplicate-result-form-results-data/'
+            r'(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.DuplicateResultsListDataView.as_view(
+            ),
+            name='duplicate-results-data'),
+    re_path(r'^super-administrator/duplicate-result-form-results/'
+            r'(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.DuplicateResultsListView.as_view(),
+            name='result-forms-with-duplicate-results'),
     re_path(r'^super-administrator/results-(?P<report>.*).csv/'
             r'(?P<tally_id>(\d+))/$',
             super_admin.ResultExportView.as_view(),
