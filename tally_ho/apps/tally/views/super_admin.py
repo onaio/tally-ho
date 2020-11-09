@@ -160,7 +160,10 @@ def get_results_duplicates(tally_id):
     return result_forms_founds
 
 
-def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
+def get_result_form_with_duplicate_results(
+        ballot=None,
+        tally_id=None,
+        qs=None):
     """Build a list of result forms sorted by ballot of results forms for
     which there are more than 1 result form in the same ballot with the same
     number of votes per candidate, and the `duplicate_reviewed`
@@ -168,7 +171,8 @@ def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
 
     :returns A list of result forms in the system with duplicate results.
     """
-    result_form_ids = ResultForm.objects.exclude(results=None).values(
+    qs = ResultForm.objects.filter(tally_id=tally_id) if not qs else qs
+    result_form_ids = qs.exclude(results=None).values(
         'ballot',
         'results__votes',
         'results__candidate')\
@@ -177,12 +181,11 @@ def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
         .annotate(ids=Func('ids', function='unnest'))\
         .filter(
             duplicate_count__gt=1,
-            tally_id=tally_id,
             duplicate_reviewed=False
     ).values_list('ids', flat=True).distinct()
 
     results_form_duplicates =\
-        ResultForm.objects.filter(id__in=result_form_ids).order_by('ballot')
+        qs.filter(id__in=result_form_ids).order_by('ballot')
 
     if ballot:
         results_form_duplicates = results_form_duplicates.filter(ballot=ballot)
