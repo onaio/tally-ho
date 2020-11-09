@@ -686,6 +686,89 @@ def results_queryset(
     return qs
 
 
+def duplicate_results_queryset(
+        tally_id,
+        qs,
+        data=None):
+    """
+    Genarate a report of duplicate results per result form.
+
+    :param tally_id: The tally id.
+    :param qs: The result form parent queryset.
+    :param data: An array of dicts containing centers and stations
+        id's to filter out from the queryset.
+
+    returns: The duplicate results queryset.
+    """
+    if data:
+        selected_center_ids =\
+            data['select_1_ids'] if len(data['select_1_ids']) else [0]
+        selected_station_ids =\
+            data['select_2_ids'] if len(data['select_2_ids']) else [0]
+
+        station_ids_query =\
+            Subquery(
+                Station.objects.filter(
+                    tally__id=tally_id,
+                    center__code=OuterRef('center__code'),
+                    station_number=OuterRef('station_number'))
+                .values('id')[:1],
+                output_field=IntegerField())
+        qs = qs\
+            .annotate(station_ids=station_ids_query)\
+            .filter(
+                ~Q(center__id__in=selected_center_ids) &
+                ~Q(station_ids__in=selected_station_ids))
+
+        result_form_votes_registrants_query =\
+            Subquery(
+                Result.objects.filter(
+                    result_form__tally__id=tally_id,
+                    result_form__form_state=FormState.ARCHIVED,
+                    entry_version=EntryVersion.FINAL,
+                    active=True,
+                    result_form__center__code=OuterRef('center__code'),
+                    result_form__station_number=OuterRef('station_number'))
+                .values('result_form__barcode')
+                .annotate(total_votes=Coalesce(Sum('votes'), V(0)))
+                .values('total_votes')[:1],
+                output_field=IntegerField())
+
+        qs = qs\
+            .values('barcode')\
+            .annotate(
+                ballot_number=F('ballot__number'),
+                center_code=F('center__code'),
+                state=F('form_state'),
+                station_number=F('station_number'),
+                votes=result_form_votes_registrants_query).distinct()
+    else:
+        result_form_votes_registrants_query =\
+            Subquery(
+                Result.objects.filter(
+                    result_form__tally__id=tally_id,
+                    result_form__form_state=FormState.ARCHIVED,
+                    entry_version=EntryVersion.FINAL,
+                    active=True,
+                    result_form__center__code=OuterRef('center__code'),
+                    result_form__station_number=OuterRef('station_number'))
+                .values('result_form__barcode')
+                .annotate(total_votes=Coalesce(Sum('votes'), V(0)))
+                .values('total_votes')[:1],
+                output_field=IntegerField())
+
+        qs = qs\
+            .values('barcode')\
+            .annotate(
+                ballot_number=F('ballot__number'),
+                center_code=F('center__code'),
+                state=F('form_state'),
+                station_number=F('station_number'),
+                votes=result_form_votes_registrants_query).distinct()
+
+    return qs
+
+
 def generate_progressive_report(
         tally_id,
         report_column_name,
