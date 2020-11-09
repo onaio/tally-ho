@@ -16,7 +16,7 @@ services:
       && python manage.py create_groups --settings=tally_ho.settings.docker
       && python manage.py create_demo_users --settings=tally_ho.settings.docker
       && python manage.py create_quarantine_checks --settings=tally_ho.settings.docker
-      && DJANGO_SETTINGS_MODULE=tally_ho.settings.docker gunicorn --chdir /code --bind :8000 tally_ho.wsgi:application"
+      && DJANGO_SETTINGS_MODULE=tally_ho.settings.docker gunicorn --limit-request-line 6000 --chdir /code --bind :8000 tally_ho.wsgi:application"
     volumes:
       - .:/code
       - static_volume:/code/tally_ho/static
