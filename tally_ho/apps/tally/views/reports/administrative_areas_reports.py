@@ -3007,3 +3007,48 @@ class ResultFormResultsListView(LoginRequiredMixin,
             stations=stations,
             centers=centers,
         ))
+
+
+class DuplicateResultsListView(LoginRequiredMixin,
+                               mixins.GroupRequiredMixin,
+                               TemplateView):
+    group_required = groups.TALLY_MANAGER
+    model = ResultForm
+    template_name = 'reports/duplicate_results.html'
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        qs =\
+            self.model.objects.filter(
+                tally__id=tally_id,
+                form_state=FormState.ARCHIVED)
+
+        complete_barcodes = []
+        for ballot in valid_ballots(tally_id):
+            forms = distinct_forms(ballot, tally_id)
+            final_forms = qs.filter(id__in=[r.pk for r in forms])
+            complete_barcodes.extend(
+                [r.barcode for r in final_forms])
+
+        qs = qs.select_related()\
+            .filter(barcode__in=complete_barcodes)\
+            if len(complete_barcodes) else qs
+
+        stations =\
+            [dict(t) for t in {tuple(d.items()) for d in
+                               [{'id': result_form.station.id,
+                                 'name': result_form.station.station_number}
+                                for result_form in qs]}]
+        centers =\
+            [dict(t) for t in {tuple(d.items()) for d in
+                               [{'id': result_form.center.id,
+                                 'name': result_form.center.name}
+                                for result_form in qs]}]
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('duplicate-results-data', kwargs=kwargs),
+            tally_id=tally_id,
+            stations=stations,
+            centers=centers,
+        ))
