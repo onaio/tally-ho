@@ -22,7 +22,6 @@ from tally_ho.apps.tally.views.super_admin import (
     get_result_form_with_duplicate_results)
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
-from tally_ho.libs.views.exports import distinct_forms, valid_ballots
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 
@@ -2864,19 +2863,6 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                 entry_version=EntryVersion.FINAL,
                 active=True)
 
-        complete_barcodes = []
-        for ballot in valid_ballots(tally_id):
-            forms = distinct_forms(ballot, tally_id)
-            final_forms = qs.filter(
-                result_form__id__in=[r.pk for r in forms])
-            complete_barcodes.extend(
-                [r.result_form.barcode for r in final_forms])
-
-        qs = qs.select_related()\
-            .filter(
-                result_form__barcode__in=complete_barcodes)\
-            if len(complete_barcodes) else qs
-
         if data:
             qs = results_queryset(
                 tally_id,
@@ -2977,19 +2963,6 @@ class ResultFormResultsListView(LoginRequiredMixin,
                 entry_version=EntryVersion.FINAL,
                 active=True)
 
-        complete_barcodes = []
-        for ballot in valid_ballots(tally_id):
-            forms = distinct_forms(ballot, tally_id)
-            final_forms = qs.filter(
-                result_form__id__in=[r.pk for r in forms])
-            complete_barcodes.extend(
-                [r.result_form.barcode for r in final_forms])
-
-        qs = qs.select_related()\
-            .filter(
-                result_form__barcode__in=complete_barcodes)\
-            if len(complete_barcodes) else qs
-
         stations =\
             [dict(t) for t in {tuple(d.items()) for d in
                                [{'id': result_form.station.id,
@@ -3030,16 +3003,6 @@ class DuplicateResultsListDataView(LoginRequiredMixin,
         keyword = self.request.GET.get('search[value]')
 
         qs = qs.filter(tally__id=tally_id, form_state=FormState.ARCHIVED)
-
-        complete_barcodes = []
-        for ballot in valid_ballots(tally_id):
-            forms = distinct_forms(ballot, tally_id)
-            final_forms = qs.filter(id__in=[r.pk for r in forms])
-            complete_barcodes.extend([r.barcode for r in final_forms])
-
-        qs = qs.select_related()\
-            .filter(barcode__in=complete_barcodes)\
-            if len(complete_barcodes) else qs
 
         duplicate_result_forms =\
             get_result_form_with_duplicate_results(
@@ -3099,17 +3062,6 @@ class DuplicateResultsListView(LoginRequiredMixin,
             self.model.objects.filter(
                 tally__id=tally_id,
                 form_state=FormState.ARCHIVED)
-
-        complete_barcodes = []
-        for ballot in valid_ballots(tally_id):
-            forms = distinct_forms(ballot, tally_id)
-            final_forms = qs.filter(id__in=[r.pk for r in forms])
-            complete_barcodes.extend(
-                [r.barcode for r in final_forms])
-
-        qs = qs.select_related()\
-            .filter(barcode__in=complete_barcodes)\
-            if len(complete_barcodes) else qs
 
         stations =\
             [dict(t) for t in {tuple(d.items()) for d in
