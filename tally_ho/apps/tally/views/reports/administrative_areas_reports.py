@@ -18,6 +18,8 @@ from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
+from tally_ho.apps.tally.views.super_admin import (
+    get_result_form_with_duplicate_results)
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import distinct_forms, valid_ballots
