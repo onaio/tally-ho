@@ -2507,3 +2507,192 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                 sub_constituency_discrepancy_report_url=str(
                     'sub-constituency-discrepancy-report'
                 ),))
+
+
+class ResultFormResultsListDataView(LoginRequiredMixin,
+                                    mixins.GroupRequiredMixin,
+                                    mixins.TallyAccessMixin,
+                                    BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
+    model = Result
+    columns = ('ballot_number',
+               'race_number',
+               'center_code',
+               'station_number',
+               'gender',
+               'barcode',
+               'race_type',
+               'voting_district',
+               'order',
+               'candidate_name',
+               'total_votes',
+               'invalid_votes',
+               'unstamped_ballots',
+               'cancelled_ballots',
+               'spoilt_ballots',
+               'unused_ballots',
+               'number_of_signatures',
+               'ballots_received',
+               'valid_votes',
+               'number_registrants',
+               'candidate_status')
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs.get('tally_id')
+        data = self.request.POST.get('data')
+        keyword = self.request.GET.get('search[value]')
+
+        qs =\
+            qs.filter(
+                result_form__tally__id=tally_id,
+                result_form__form_state=FormState.ARCHIVED,
+                entry_version=EntryVersion.FINAL,
+                active=True)
+
+        complete_barcodes = []
+        for ballot in valid_ballots(tally_id):
+            forms = distinct_forms(ballot, tally_id)
+            final_forms = qs.filter(
+                result_form__id__in=[r.pk for r in forms])
+            complete_barcodes.extend(
+                [r.result_form.barcode for r in final_forms])
+
+        qs = qs.select_related()\
+            .filter(
+                result_form__barcode__in=complete_barcodes)\
+            if len(complete_barcodes) else qs
+
+        if data:
+            qs = result_form_results_queryset(
+                tally_id,
+                qs,
+                ast.literal_eval(data))
+        else:
+            qs = result_form_results_queryset(
+                    tally_id,
+                    qs)
+
+        if keyword:
+            qs = qs.filter(Q(candidate_name__contains=keyword) |
+                           Q(total_votes__contains=keyword))
+        return qs
+
+    def render_column(self, row, column):
+
+        if column == 'ballot_number':
+            return str('<td class="center">'
+                       f'{row["ballot_number"]}</td>')
+        elif column == 'race_number':
+            return str('<td class="center">'
+                       f'{row["race_number"]}</td>')
+        elif column == 'center_code':
+            return str('<td class="center">'
+                       f'{row["center_code"]}</td>')
+        elif column == 'station_number':
+            return str('<td class="center">'
+                       f'{row["station_number"]}</td>')
+        elif column == 'gender':
+            return str('<td class="center">'
+                       f'{row["gender"].name}</td>')
+        elif column == 'barcode':
+            return str('<td class="center">'
+                       f'{row["barcode"]}</td>')
+        elif column == 'race_type':
+            return str('<td class="center">'
+                       f'{row["race_type"].name}</td>')
+        elif column == 'voting_district':
+            return str('<td class="center">'
+                       f'{row["voting_district"]}</td>')
+        elif column == 'order':
+            return str('<td class="center">'
+                       f'{row["order"]}</td>')
+        elif column == 'candidate_name':
+            return str('<td class="center">'
+                       f'{row["candidate_name"]}</td>')
+        elif column == 'total_votes':
+            return str('<td class="center">'
+                       f'{row["total_votes"]}</td>')
+        elif column == 'invalid_votes':
+            return str('<td class="center">'
+                       f'{row["invalid_votes"]}</td>')
+        elif column == 'unstamped_ballots':
+            return str('<td class="center">'
+                       f'{row["unstamped_ballots"]}</td>')
+        elif column == 'cancelled_ballots':
+            return str('<td class="center">'
+                       f'{row["cancelled_ballots"]}</td>')
+        elif column == 'spoilt_ballots':
+            return str('<td class="center">'
+                       f'{row["spoilt_ballots"]}</td>')
+        elif column == 'unused_ballots':
+            return str('<td class="center">'
+                       f'{row["unused_ballots"]}</td>')
+        elif column == 'number_of_signatures':
+            return str('<td class="center">'
+                       f'{row["number_of_signatures"]}</td>')
+        elif column == 'ballots_received':
+            return str('<td class="center">'
+                       f'{row["ballots_received"]}</td>')
+        elif column == 'valid_votes':
+            return str('<td class="center">'
+                       f'{row["valid_votes"]}</td>')
+        elif column == 'number_registrants':
+            return str('<td class="center">'
+                       f'{row["number_registrants"]}</td>')
+        elif column == 'candidate_status':
+            return str('<td class="center">'
+                       f'{row["candidate_status"]}</td>')
+        else:
+            return super(
+                ResultFormResultsListDataView, self).render_column(row, column)
+
+
+class ResultFormResultsListView(LoginRequiredMixin,
+                                mixins.GroupRequiredMixin,
+                                TemplateView):
+    group_required = groups.TALLY_MANAGER
+    model = Result
+    template_name = 'reports/form_results.html'
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        qs =\
+            self.model.objects.filter(
+                result_form__tally__id=tally_id,
+                result_form__form_state=FormState.ARCHIVED,
+                entry_version=EntryVersion.FINAL,
+                active=True)
+
+        complete_barcodes = []
+        for ballot in valid_ballots(tally_id):
+            forms = distinct_forms(ballot, tally_id)
+            final_forms = qs.filter(
+                result_form__id__in=[r.pk for r in forms])
+            complete_barcodes.extend(
+                [r.result_form.barcode for r in final_forms])
+
+        qs = qs.select_related()\
+            .filter(
+                result_form__barcode__in=complete_barcodes)\
+            if len(complete_barcodes) else qs
+
+        stations =\
+            [dict(t) for t in {tuple(d.items()) for d in
+                               [{'id': result_form.station.id,
+                                 'name': result_form.station.station_number}
+                                for result_form in
+                                [result.result_form for result in qs]]}]
+        centers =\
+            [dict(t) for t in {tuple(d.items()) for d in
+                               [{'id': result_form.center.id,
+                                 'name': result_form.center.name}
+                                for result_form in
+                                [result.result_form for result in qs]]}]
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('form-results-data', kwargs=kwargs),
+            tally_id=tally_id,
+            stations=stations,
+            centers=centers,
+        ))
