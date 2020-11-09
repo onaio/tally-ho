@@ -3009,6 +3009,80 @@ class ResultFormResultsListView(LoginRequiredMixin,
         ))
 
 
+class DuplicateResultsListDataView(LoginRequiredMixin,
+                                   mixins.GroupRequiredMixin,
+                                   mixins.TallyAccessMixin,
+                                   BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
+    model = ResultForm
+    columns = ('ballot_number',
+               'center_code',
+               'barcode',
+               'state',
+               'station_number',
+               'votes')
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs.get('tally_id')
+        data = self.request.POST.get('data')
+        keyword = self.request.GET.get('search[value]')
+
+        qs = qs.filter(tally__id=tally_id, form_state=FormState.ARCHIVED)
+
+        complete_barcodes = []
+        for ballot in valid_ballots(tally_id):
+            forms = distinct_forms(ballot, tally_id)
+            final_forms = qs.filter(id__in=[r.pk for r in forms])
+            complete_barcodes.extend([r.barcode for r in final_forms])
+
+        qs = qs.select_related()\
+            .filter(barcode__in=complete_barcodes)\
+            if len(complete_barcodes) else qs
+
+        duplicate_result_forms =\
+            get_result_form_with_duplicate_results(
+                tally_id=tally_id,
+                qs=qs)
+
+        if data:
+            qs = duplicate_results_queryset(
+                    tally_id=tally_id,
+                    qs=duplicate_result_forms,
+                    data=ast.literal_eval(data))
+        else:
+            qs = duplicate_results_queryset(
+                    tally_id=tally_id,
+                    qs=duplicate_result_forms)
+
+        if keyword:
+            qs = qs.filter(Q(ballot_number__contains=keyword) |
+                           Q(votes__contains=keyword))
+        return qs
+
+    def render_column(self, row, column):
+        if column == 'ballot_number':
+            return str('<td class="center">'
+                       f'{row["ballot_number"]}</td>')
+        elif column == 'center_code':
+            return str('<td class="center">'
+                       f'{row["center_code"]}</td>')
+        elif column == 'barcode':
+            return str('<td class="center">'
+                       f'{row["barcode"]}</td>')
+        elif column == 'state':
+            return str('<td class="center">'
+                       f'{row["state"].name}</td>')
+        elif column == 'station_number':
+            return str('<td class="center">'
+                       f'{row["station_number"]}</td>')
+        elif column == 'votes':
+            return str('<td class="center">'
+                       f'{row["votes"]}</td>')
+        else:
+            return super(
+                DuplicateResultsListDataView, self).render_column(row, column)
+
+
 class DuplicateResultsListView(LoginRequiredMixin,
                                mixins.GroupRequiredMixin,
                                TemplateView):
