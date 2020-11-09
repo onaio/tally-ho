@@ -1,0 +1,72 @@
+{% extends 'base.html' %} 
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with export_file_name='form_results_report' server_side=True  %}
+{% endblock %}
+{% block content %}
+
+<h1>{% trans 'Form Results' %}</h1>
+<br>
+
+<table class="display datatable">
+  <caption style="margin-top: 2em; margin-left: -0.5em">
+    <div id="report" class="row">
+    <div class="col-sm-4">
+      <select id="select-1" name="report_length" aria-controls="report" multiple>
+        {% for center in centers %}
+          <option value={{center.id}}>{{center.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <select id="select-2" name="report_length" aria-controls="report" multiple>
+        {% for station in stations %}
+          <option value={{station.id}}>{{station.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-2"><button id="filter-report" class="btn btn-default btn-small">Apply</button></div>
+  </div>
+</caption>
+<br>
+  <thead>
+      <tr>
+        <th>{% trans 'Ballot' %}</th>
+        <th>{% trans 'Race Number' %}</th>
+        <th>{% trans 'Center' %}</th>
+        <th>{% trans 'Station' %}</th>
+        <th>{% trans 'Gender' %}</th>
+        <th>{% trans 'Barcode' %}</th>
+        <th>{% trans 'Race Type' %}</th>
+        <th>{% trans 'Voting District' %}</th>
+        <th>{% trans 'Order' %}</th>
+        <th>{% trans 'Candidate Name' %}</th>
+        <th>{% trans 'Total Votes' %}</th>
+        <th>{% trans 'Invalid Ballots' %}</th>
+        <th>{% trans 'Unstamped Ballots' %}</th>
+        <th>{% trans 'Cancelled Ballots' %}</th>
+        <th>{% trans 'Spoilt Ballots' %}</th>
+        <th>{% trans 'Unused Ballots' %}</th>
+        <th>{% trans 'Number of Signatures' %}</th>
+        <th>{% trans 'Received Ballots Papers' %}</th>
+        <th>{% trans 'Valid Votes' %}</th>
+        <th>{% trans 'Registrants' %}</th>
+        <th>{% trans 'Candidate Status' %}</th>
+      </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+
+{% endblock %}
+
