@@ -1,0 +1,57 @@
+{% extends 'base.html' %} 
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with export_file_name='duplicate_result_forms_report' server_side=True  %}
+{% endblock %}
+{% block content %}
+
+<h1>{% trans 'Result Forms with Duplicate Results' %}</h1>
+<br>
+
+<table class="display datatable">
+  <caption style="margin-top: 2em; margin-left: -0.5em">
+    <div id="report" class="row">
+    <div class="col-sm-4">
+      <select id="select-1" name="report_length" aria-controls="report" multiple>
+        {% for center in centers %}
+          <option value={{center.id}}>{{center.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <select id="select-2" name="report_length" aria-controls="report" multiple>
+        {% for station in stations %}
+          <option value={{station.id}}>{{station.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-2"><button id="filter-report" class="btn btn-default btn-small">Apply</button></div>
+  </div>
+</caption>
+<br>
+  <thead>
+      <tr>
+        <th>{% trans 'Ballot' %}</th>
+        <th>{% trans 'Center' %}</th>
+        <th>{% trans 'Barcode' %}</th>
+        <th>{% trans 'State' %}</th>
+        <th>{% trans 'Station' %}</th>
+        <th>{% trans 'Votes' %}</th>
+      </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+
+{% endblock %}
+
