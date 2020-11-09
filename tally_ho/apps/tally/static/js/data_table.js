@@ -43,26 +43,39 @@ $(document).ready(function () {
 
     table.destroy();
     let data = [];
-    $('tbody tr').each(function (i, row) {
-      const selectOneElement = $(row).find('select#select-1');
-      const selectTwoElement = $(row).find('select#select-2');
+    let selectOneIds = $('select#select-1').val()
+    let selectTwoIds = $('select#select-2').val()
 
+    if (selectOneIds || selectTwoIds) {
       const items = {
-        select_1_ids:
-          selectOneElement.val() !== null ? selectOneElement.val() : [],
-        select_2_ids:
-          selectTwoElement.val() !== null ? selectTwoElement.val() : [],
-        region_id: selectOneElement.attr('data-id'),
+        select_1_ids: selectOneIds !== null ? selectOneIds : [],
+        select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
       };
-      data.push(items);
-    });
+
+      data = items;
+    } else {
+      $('tbody tr').each(function (i, row) {
+        const selectOneElement = $(row).find('select#select-1');
+        const selectTwoElement = $(row).find('select#select-2');
+
+        const items = {
+          select_1_ids:
+            selectOneElement.val() !== null ? selectOneElement.val() : [],
+          select_2_ids:
+            selectTwoElement.val() !== null ? selectTwoElement.val() : [],
+          region_id: selectOneElement.attr('data-id'),
+        };
+        data.push(items);
+      });
+    }
+
     data = data.length
       ? data.filter((item) =>
           Object.values(item).every((value) => typeof value !== 'undefined')
         )
       : data;
 
-    $('#report').dataTable({
+    $('.datatable').dataTable({
       language: dt_language,
       order: [[0, 'desc']],
       lengthMenu: [
