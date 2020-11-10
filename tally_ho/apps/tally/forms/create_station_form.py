@@ -27,3 +27,14 @@ class CreateStationForm(ModelForm):
         widgets = {
             "tally": forms.HiddenInput()
         }
+
+    def __init__(self, *args, **kwargs):
+        super(CreateStationForm, self).__init__(*args, **kwargs)
+
+        if self.initial.get('tally'):
+            self.fields['center'] = ModelChoiceField(
+                queryset=Center.objects.filter(
+                    tally__id=11))
+            self.fields['sub_constituency'] = ModelChoiceField(
+                queryset=SubConstituency.objects.filter(
+                    tally__id=self.initial['tally']))
