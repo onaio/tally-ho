@@ -377,15 +377,22 @@ class RemoveResultFormConfirmationView(LoginRequiredMixin,
 
     def post(self, request, *args, **kwargs):
         self.tally_id = self.kwargs['tally_id']
+        next_url = request.POST.get('next', None)
 
         if 'abort_submit' in request.POST:
-            next_url = request.POST.get('next', None)
-
             return redirect(next_url, tally_id=self.kwargs['tally_id'])
         else:
-            return super(RemoveResultFormConfirmationView, self).post(request,
-                                                                      *args,
-                                                                      **kwargs)
+            try:
+                return super(
+                    RemoveResultFormConfirmationView,
+                    self).post(request, *args, **kwargs)
+            except ProtectedError:
+                barcode = self.get_object().barcode
+                request.session['error_message'] =\
+                    f"Form {barcode} is tied to 1 or more object in the system"
+                return redirect(
+                    next_url,
+                    tally_id=self.kwargs['tally_id'])
 
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id', None)
