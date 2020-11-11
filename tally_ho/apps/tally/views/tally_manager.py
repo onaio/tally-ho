@@ -239,34 +239,35 @@ class EditUserView(LoginRequiredMixin,
     model = UserProfile
     group_required = groups.TALLY_MANAGER
     template_name = 'tally_manager/edit_user_profile.html'
-    slug_url_kwarg = 'userId'
+    slug_url_kwarg = 'user_id'
     slug_field = 'id'
 
     def get_context_data(self, **kwargs):
         context = super(EditUserView, self).get_context_data(**kwargs)
         is_admin = self.object.is_administrator
+        role = self.kwargs.get('role', 'user')
+        tally_id = self.kwargs.get('tally_id')
         context['is_admin'] = is_admin
-        referer_url = self.request.META.get('HTTP_REFERER', None)
+        context['role'] = role
+        context['tally_id'] = tally_id
         url_name = None
         url_param = None
         url_keyword = None
 
-        try:
-            int([param for param in referer_url.split('/') if param][-1])
-        except ValueError:
-            url_name = 'user-list'
-            url_param = 'user'
-            url_keyword = 'role'
-        else:
+        if tally_id:
             url_name = 'user-tally-list'
-            url_param = self.kwargs.get('tally_id')
+            url_param = tally_id
             url_keyword = 'tally_id'
-        finally:
-            context['url_name'] = url_name
-            context['url_param'] = url_param
-            self.request.session['url_name'] = url_name
-            self.request.session['url_param'] = url_param
-            self.request.session['url_keyword'] = url_keyword
+        else:
+            url_name = 'user-list'
+            url_param = role
+            url_keyword = 'role'
+
+        context['url_name'] = url_name
+        context['url_param'] = url_param
+        self.request.session['url_name'] = url_name
+        self.request.session['url_param'] = url_param
+        self.request.session['url_keyword'] = url_keyword
 
         return context
 
@@ -304,7 +305,7 @@ class RemoveUserConfirmationView(LoginRequiredMixin,
     model = UserProfile
     group_required = groups.TALLY_MANAGER
     template_name = 'tally_manager/remove_user_confirmation.html'
-    slug_url_kwarg = 'userId'
+    slug_url_kwarg = 'user_id'
     slug_field = 'id'
 
     def get_context_data(self, **kwargs):
@@ -312,6 +313,8 @@ class RemoveUserConfirmationView(LoginRequiredMixin,
             RemoveUserConfirmationView, self).get_context_data(**kwargs)
         context['is_admin'] = self.object.is_administrator
         context['all_tallies'] = self.object.administrated_tallies.all()
+        context['role'] = self.kwargs.get('role', 'user')
+        context['tally_id'] = self.kwargs.get('tally_id')
 
         return context
 
@@ -356,7 +359,7 @@ class CreateUserView(LoginRequiredMixin,
             url_keyword = 'tally_id'
         else:
             url_name = 'user-list'
-            url_param = 'user'
+            url_param = role
             url_keyword = 'role'
 
         context['url_name'] = url_name
