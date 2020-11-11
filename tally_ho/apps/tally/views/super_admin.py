@@ -1363,13 +1363,16 @@ class EditUserView(LoginRequiredMixin,
     def get_initial(self):
         initial = super(EditUserView, self).get_initial()
         initial['tally_id'] = self.kwargs.get('tally_id')
+        initial['role'] = self.kwargs.get('role', 'user')
 
         return initial
 
     def get_context_data(self, **kwargs):
         context = super(EditUserView, self).get_context_data(**kwargs)
+        role = self.kwargs.get('role', 'user')
         context['is_admin'] = False
         context['tally_id'] = self.kwargs.get('tally_id')
+        context['role'] = role
         referer_url = self.request.META.get('HTTP_REFERER', None)
         url_name = None
         url_param = None
@@ -1379,7 +1382,7 @@ class EditUserView(LoginRequiredMixin,
             int([param for param in referer_url.split('/') if param][-1])
         except ValueError:
             url_name = 'user-list'
-            url_param = 'user'
+            url_param = role
             url_keyword = 'role'
         else:
             url_name = 'user-tally-list'
@@ -1439,6 +1442,7 @@ class CreateUserView(LoginRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super(CreateUserView, self).get_context_data(**kwargs)
+        role = self.kwargs.get('role', 'user')
         context['is_admin'] = False
         tally_id = self.kwargs.get('tally_id')
         context['tally_id'] = tally_id
@@ -1452,7 +1456,7 @@ class CreateUserView(LoginRequiredMixin,
             url_keyword = 'tally_id'
         else:
             url_name = 'user-list'
-            url_param = 'user'
+            url_param = role
             url_keyword = 'role'
 
         context['url_name'] = url_name
