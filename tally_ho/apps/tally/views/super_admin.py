@@ -858,9 +858,14 @@ class EditCenterView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id', None)
         context = super(EditCenterView, self).get_context_data(**kwargs)
         context['center_code'] = self.kwargs.get('center_code', None)
+        error_message = self.request.session.get('error_message')
         context['tally_id'] = tally_id
         context['is_active'] = self.object.active
         context['comments'] = self.object.comments.filter(tally__id=tally_id)
+
+        if error_message:
+            del self.request.session['error_message']
+            context['error_message'] = error_message
 
         return context
 
