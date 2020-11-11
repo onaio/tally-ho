@@ -33,13 +33,13 @@ class UserProfile(User):
 
         super(UserProfile, self).save(*args, **kwargs)
 
-    @property
-    def get_edit_link(self):
-        return get_edit_user_link(self) if self else None
+    def get_edit_link(self, **kwargs):
+        role = kwargs.get('role', 'user')
+        return get_edit_user_link(self, role=role) if self else None
 
-    @property
-    def get_edit_tally_link(self):
-        return get_edit_user_link(self, True) if self else None
+    def get_edit_tally_link(self, **kwargs):
+        role = kwargs.get('role', 'user')
+        return get_edit_user_link(self, True, role=role) if self else None
 
     @property
     def is_administrator(self):
