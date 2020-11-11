@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from django.db.models.deletion import ProtectedError
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, Func
@@ -824,15 +825,21 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
 
     def post(self, request, *args, **kwargs):
         self.tally_id = self.kwargs['tally_id']
+        next_url = request.POST.get('next', None)
 
         if 'abort_submit' in request.POST:
-            next_url = request.POST.get('next', None)
-
             return redirect(next_url, tally_id=self.kwargs['tally_id'])
         else:
-            return super(RemoveCenterConfirmationView, self).post(request,
-                                                                  *args,
-                                                                  **kwargs)
+            try:
+                return super(RemoveCenterConfirmationView, self).post(request,
+                                                                      *args,
+                                                                      **kwargs)
+            except ProtectedError:
+                request.session['error_message'] =\
+                    str(_(u"This center is tied to 1 or more stations"))
+                return redirect(
+                    next_url,
+                    tally_id=self.kwargs['tally_id'])
 
 
 class EditCenterView(LoginRequiredMixin,
