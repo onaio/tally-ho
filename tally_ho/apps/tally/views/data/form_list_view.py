@@ -128,7 +128,10 @@ class FormNotReceivedListView(FormListView):
 
 class FormNotReceivedDataView(FormListDataView):
     def filter_queryset(self, qs):
-        return ResultForm.forms_in_state(FormState.UNSUBMITTED)
+        tally_id = self.kwargs.get('tally_id')
+        return ResultForm.forms_in_state(
+            FormState.UNSUBMITTED,
+            tally_id=tally_id)
 
 
 class FormsForRaceView(FormListView):
