@@ -79,9 +79,9 @@ class FormListView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         form_state = kwargs.get('state')
         tally_id = kwargs.get('tally_id')
-        error_message = self.request.session.get('error_message')
+        error = self.request.session.get('error_message')
 
-        if error_message:
+        if error:
             del self.request.session['error_message']
 
         if form_state:
@@ -106,7 +106,7 @@ class FormListView(LoginRequiredMixin,
                                       'form-list-data',
                                       kwargs={'tally_id': tally_id}),
                                   tally_id=tally_id,
-                                  error_message=_(error_message),
+                                  error_message=_(error) if error else None,
                                   show_create_form_button=True))
 
 
