@@ -423,7 +423,7 @@ urlpatterns = [
             super_admin.RemoveCenterConfirmationView.as_view(),
             name='remove-center-confirmation'),
     re_path(r'^super-administrator/edit-center/(?P<tally_id>(\d+))/'
-            r'(?P<center_code>(\d+))$',
+            r'(?P<center_code>(\d+))/$',
             super_admin.EditCenterView.as_view(),
             name='edit-center'),
     re_path(r'^super-administrator/create-center/(?P<tally_id>(\d+))/$',
@@ -484,10 +484,12 @@ urlpatterns = [
     re_path(r'^super-admin/user-list/(?P<tally_id>(\d+))/$',
             user_list_view.UserTallyListView.as_view(),
             name='user-tally-list'),
-    re_path(r'^super-admin/user-list-data/(?P<tally_id>(\d+))/$',
+    re_path(r'^super-admin/user-list-data/(?P<role>(user|admin))/'
+            r'(?P<tally_id>(\d+))/$',
             user_list_view.UserTallyListDataView.as_view(),
             name='user-tally-list-data'),
-    re_path(r'^super-admin/edit-user/(?P<tally_id>(\d+))/(?P<user_id>(\d+))/$',
+    re_path(r'^super-admin/edit-user/(?P<role>(user|admin))/'
+            r'(?P<tally_id>(\d+))/(?P<user_id>(\d+))/$',
             super_admin.EditUserView.as_view(),
             name='edit-user-tally'),
     re_path(r'^super-admin/create-user/(?P<tally_id>(\d+))/$',
@@ -820,13 +822,23 @@ urlpatterns = [
     re_path(r'^tally-manager/user-list-data/(?P<role>(user|admin))$',
             user_list_view.UserListDataView.as_view(),
             name='user-list-data'),
-    re_path(r'^tally-manager/edit-user/(?P<userId>(\d+))$',
+    re_path(r'^tally-manager/remove-user/(?P<role>(user|admin))/'
+            r'(?P<user_id>(\d+))/$',
+            tally_manager.RemoveUserConfirmationView.as_view(),
+            name='remove-user-confirmation'),
+    re_path(r'^tally-manager/edit-user/(?P<role>(user|admin))/'
+            r'(?P<user_id>(\d+))/$',
+            tally_manager.EditUserView.as_view(),
+            name='edit-user'),
+    re_path(r'^tally-manager/edit-user/(?P<role>(user|admin))/'
+            r'(?P<tally_id>(\d+))/(?P<user_id>(\d+))/$',
             tally_manager.EditUserView.as_view(),
             name='edit-user'),
     re_path(r'^tally-manager/create-user/(?P<role>(user|admin))$',
             tally_manager.CreateUserView.as_view(),
             name='create-user'),
-    re_path(r'^tally-manager/remove-user/(?P<userId>.+)$',
+    re_path(r'^tally-manager/remove-user/(?P<role>(user|admin))/'
+            r'(?P<tally_id>(\d+))/(?P<user_id>(\d+))/$',
             tally_manager.RemoveUserConfirmationView.as_view(),
             name='remove-user-confirmation'),
     re_path(r'^tally-manager/create-tally$',
