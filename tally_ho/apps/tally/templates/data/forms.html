@@ -58,6 +58,11 @@ Export:
 </ul>
 {% endif %}
 
+{% if error_message %}
+    <p class="text-danger">{{ error_message }}</p>
+{% endif %}
+<br/>
+
 <table class="display datatable reduce-size">
     <thead>
         <tr>
