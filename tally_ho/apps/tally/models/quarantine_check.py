@@ -17,6 +17,7 @@ class QuarantineCheck(BaseModel):
     value = models.FloatField()
     percentage = models.FloatField(default=100)
     active = models.BooleanField(default=False)
+    description = models.TextField(null=True, blank=True)
 
     def local_name(self):
         return _(self.name)
