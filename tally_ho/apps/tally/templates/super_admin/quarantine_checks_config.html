@@ -36,6 +36,13 @@
             </td>
         </tr>
         <tr>
+            <td>{% trans 'Description:' %}</td>
+            <td>
+                {{ form.description.errors }}
+                {{ form.description }}
+            </td>
+        </tr>
+        <tr>
             <td>{% trans 'Percentage:' %}</td>
             <td>
                 {{ form.percentage.errors }}
