@@ -16,11 +16,13 @@ disable_copy_input = {
 class QuarantineCheckForm(ModelForm):
     class Meta:
         model = QuarantineCheck
-        fields = ['name', 'value', 'percentage', 'active']
+        fields = ['name', 'value', 'percentage', 'active', 'description']
 
     def __init__(self, *args, **kargs):
         super(QuarantineCheckForm, self).__init__(*args, **kargs)
         self.fields['name'].widget.attrs.update({'class': 'form-control'})
         self.fields['value'].widget.attrs.update({'class': 'form-control'})
         self.fields['percentage'].widget.attrs.update(
+            {'class': 'form-control'})
+        self.fields['description'].widget.attrs.update(
             {'class': 'form-control'})
