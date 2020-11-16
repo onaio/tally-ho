@@ -22,6 +22,7 @@
   <caption style="margin-top: 2em; margin-left: -0.5em">
     <div id="report" class="row">
     <div class="col-sm-4">
+      <p style="text-align: left; margin-left: .5em;">Centers</p>
       <select id="select-1" name="report_length" aria-controls="report" multiple>
         {% for center in centers %}
           <option value={{center.id}}>{{center.name}}</option>
@@ -29,6 +30,7 @@
       </select>
     </div>
     <div class="col-sm-4">
+      <p style="text-align: left; margin-left: .5em;">Stations</p>
       <select id="select-2" name="report_length" aria-controls="report" multiple>
         {% for station in stations %}
           <option value={{station.id}}>{{station.name}}</option>
