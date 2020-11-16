@@ -6,7 +6,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
 from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper,\
-    IntegerField, CharField, Value as V, Subquery, OuterRef
+    IntegerField, CharField, Func, FloatField, Value as V, Subquery, OuterRef
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
@@ -20,10 +20,12 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.views.super_admin import (
     get_result_form_with_duplicate_results)
+from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.utils.query_set_helpers import Round
 
 report_types = {1: "turnout",
                 2: "summary",
@@ -3274,4 +3276,204 @@ class DuplicateResultsListView(LoginRequiredMixin,
             tally_id=tally_id,
             stations=stations,
             centers=centers,
+        ))
+
+
+class AllCandidatesVotesDataView(LoginRequiredMixin,
+                                 mixins.GroupRequiredMixin,
+                                 mixins.TallyAccessMixin,
+                                 BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
+    model = Ballot
+    columns = ('ballot_number',
+               'stations',
+               'stations_completed',
+               'stations_complete_percent',
+               'candidates__full_name',
+               'total_votes',
+               'candidate_votes_included_quarantine')
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs.get('tally_id')
+        data = self.request.POST.get('data')
+        keyword = self.request.GET.get('search[value]')
+
+        qs = qs.filter(tally__id=tally_id)
+
+        if data:
+            qs = candidates_votes_queryset(
+                    tally_id=tally_id,
+                    qs=qs,
+                    data=ast.literal_eval(data))
+        else:
+            qs = candidates_votes_queryset(
+                    tally_id=tally_id,
+                    qs=qs)
+
+        if keyword:
+            qs = qs.filter(Q(candidates__full_name__contains=keyword))
+        return qs
+
+    def render_column(self, row, column):
+        if column == 'ballot_number':
+            return str('<td class="center">'
+                       f'{row["ballot_number"]}</td>')
+        elif column == 'stations':
+            return str('<td class="center">'
+                       f'{row["stations"]}</td>')
+        elif column == 'stations_completed':
+            return str('<td class="center">'
+                       f'{row["stations_completed"]}</td>')
+        elif column == 'stations_complete_percent':
+            return str('<td class="center">'
+                       f'{row["stations_complete_percent"]}</td>')
+        elif column == 'candidates__full_name':
+            return str('<td class="center">'
+                       f'{row["candidates__full_name"]}</td>')
+        elif column == 'total_votes':
+            return str('<td class="center">'
+                       f'{row["total_votes"]}</td>')
+        elif column == 'candidate_votes_included_quarantine':
+            return str('<td class="center">'
+                       f'{row["candidate_votes_included_quarantine"]}</td>')
+        else:
+            return super(
+                AllCandidatesVotesDataView,
+                self
+            ).render_column(row, column)
+
+
+class AllCandidatesVotesListView(LoginRequiredMixin,
+                                 mixins.GroupRequiredMixin,
+                                 TemplateView):
+    group_required = groups.TALLY_MANAGER
+    model = Station
+    template_name = 'reports/candidates_votes_report.html'
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        qs = self.model.objects.filter(
+           tally__id=tally_id
+        ).distinct('center__code', 'station_number')
+
+        stations =\
+            list(
+                qs.annotate(
+                    name=F('station_number')).values(
+                        'name').annotate(
+                            id=F('id')).distinct('station_number'))
+        centers =\
+            list(
+                qs.annotate(
+                    name=F('center__code')).values(
+                        'name').annotate(id=F('center__id')).distinct(
+                            'center__code'))
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('all-candidates-votes-data', kwargs=kwargs),
+            tally_id=tally_id,
+            stations=stations,
+            centers=centers,
+            title=_(u'All Candidates Votes'),
+            export_file_name=_(u'all_candidates_votes')
+        ))
+
+
+class ActiveCandidatesVotesDataView(LoginRequiredMixin,
+                                    mixins.GroupRequiredMixin,
+                                    mixins.TallyAccessMixin,
+                                    BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
+    model = Ballot
+    columns = ('ballot_number',
+               'stations',
+               'stations_completed',
+               'stations_complete_percent',
+               'candidates__full_name',
+               'total_votes',
+               'candidate_votes_included_quarantine')
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs.get('tally_id')
+        data = self.request.POST.get('data')
+        keyword = self.request.GET.get('search[value]')
+
+        qs = qs.filter(tally__id=tally_id, candidates__active=True)
+
+        if data:
+            qs = candidates_votes_queryset(
+                    tally_id=tally_id,
+                    qs=qs,
+                    data=ast.literal_eval(data))
+        else:
+            qs = candidates_votes_queryset(
+                    tally_id=tally_id,
+                    qs=qs)
+
+        if keyword:
+            qs = qs.filter(Q(candidates__full_name__contains=keyword))
+        return qs
+
+    def render_column(self, row, column):
+        if column == 'ballot_number':
+            return str('<td class="center">'
+                       f'{row["ballot_number"]}</td>')
+        elif column == 'stations':
+            return str('<td class="center">'
+                       f'{row["stations"]}</td>')
+        elif column == 'stations_completed':
+            return str('<td class="center">'
+                       f'{row["stations_completed"]}</td>')
+        elif column == 'stations_complete_percent':
+            return str('<td class="center">'
+                       f'{row["stations_complete_percent"]}</td>')
+        elif column == 'candidates__full_name':
+            return str('<td class="center">'
+                       f'{row["candidates__full_name"]}</td>')
+        elif column == 'total_votes':
+            return str('<td class="center">'
+                       f'{row["total_votes"]}</td>')
+        elif column == 'candidate_votes_included_quarantine':
+            return str('<td class="center">'
+                       f'{row["candidate_votes_included_quarantine"]}</td>')
+        else:
+            return super(
+                ActiveCandidatesVotesDataView,
+                self
+            ).render_column(row, column)
+
+
+class ActiveCandidatesVotesListView(LoginRequiredMixin,
+                                    mixins.GroupRequiredMixin,
+                                    TemplateView):
+    group_required = groups.TALLY_MANAGER
+    model = Station
+    template_name = 'reports/candidates_votes_report.html'
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        qs = self.model.objects.filter(
+           tally__id=tally_id
+        ).distinct('center__code', 'station_number')
+
+        stations =\
+            list(
+                qs.annotate(
+                    name=F('station_number')).values(
+                        'name').annotate(
+                            id=F('id')).distinct('station_number'))
+        centers =\
+            list(
+                qs.annotate(
+                    name=F('center__code')).values(
+                        'name').annotate(id=F('center__id')).distinct(
+                            'center__code'))
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('active-candidates-votes-data', kwargs=kwargs),
+            tally_id=tally_id,
+            stations=stations,
+            centers=centers,
+            title=_(u'Active Candidates Votes'),
+            export_file_name=_(u'active_candidates_votes')
         ))
