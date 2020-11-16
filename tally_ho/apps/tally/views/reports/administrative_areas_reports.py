@@ -770,6 +770,201 @@ def duplicate_results_queryset(
     return qs
 
 
+def candidates_votes_queryset(
+        tally_id,
+        qs,
+        data=None):
+    """
+    Genarate a report of candidates votes per ballot.
+
+    :param tally_id: The Tally id.
+    :param qs: The ballot queryset.
+    :param data: An array of dicts containing centers and stations
+        id's to filter out from the queryset.
+
+    returns: The ballot queryset containing candidates votes grouped by
+        candidate name.
+    """
+    template = '%(function)s(%(expressions)s AS FLOAT)'
+    stations_completed =\
+        Func(F('stations_completed'), function='CAST', template=template)
+    stations = Func(F('stations'), function='CAST', template=template)
+    ew = Round((100 * stations_completed/stations), digits=3)
+    if data:
+        selected_center_ids =\
+            data['select_1_ids'] if len(data['select_1_ids']) else [0]
+        selected_station_ids =\
+            data['select_2_ids'] if len(data['select_2_ids']) else [0]
+
+        station_numbers_query =\
+            Subquery(
+                Station.objects.filter(
+                    tally__id=tally_id,
+                    id__in=selected_station_ids)
+                .values('station_number')[:1],
+                output_field=IntegerField())
+
+        qs = qs\
+            .filter(
+                ~Q(resultform__center__id__in=selected_center_ids) &
+                ~Q(resultform__station_number__in=station_numbers_query))
+
+        candidate_votes_query =\
+            Subquery(
+                Result.objects.filter(
+                    candidate__id=OuterRef('candidate_id'),
+                    entry_version=EntryVersion.FINAL,
+                    result_form__form_state=FormState.ARCHIVED,
+                    active=True).annotate(
+                        candidate_votes=Case(
+                            When(votes__isnull=False,
+                                 then=F('votes')),
+                            default=V(0),
+                            output_field=IntegerField())).values(
+                                'candidate_votes'
+                )[:1], output_field=IntegerField())
+
+        all_candidate_votes_query =\
+            Subquery(
+                Result.objects.filter(
+                    candidate__id=OuterRef('candidate_id'),
+                    entry_version=EntryVersion.FINAL,
+                    active=True).filter(
+                        Q(result_form__form_state=FormState.ARCHIVED) |
+                        Q(result_form__form_state=FormState.AUDIT)
+                    ).annotate(
+                        candidate_votes=Case(
+                            When(votes__isnull=False,
+                                 then=F('votes')),
+                            default=V(0),
+                            output_field=IntegerField())).values(
+                                'candidate_votes'
+                )[:1], output_field=IntegerField())
+
+        qs = qs\
+            .values('candidates__full_name')\
+            .annotate(
+                ballot_number=F('number'),
+                candidate_id=F('candidates__id'),
+                stations=Count(
+                    'resultform__set',
+                    filter=Q(resultform__tally__id=tally_id,
+                             resultform__center__isnull=False,
+                             resultform__station_number__isnull=False,
+                             resultform__ballot__isnull=False)
+                ),
+                stations_completed=Count(
+                    'resultform__set',
+                    filter=Q(
+                        resultform__tally__id=tally_id,
+                        resultform__center__isnull=False,
+                        resultform__station_number__isnull=False,
+                        resultform__ballot__isnull=False,
+                        resultform__form_state=FormState.ARCHIVED)
+                ),
+                votes=candidate_votes_query,
+                total_votes=Case(
+                    When(
+                        votes__isnull=False,
+                        then=F('votes')
+                    ),
+                    default=V(0),
+                    output_field=IntegerField()
+                ),
+                all_candidate_votes=all_candidate_votes_query,
+                candidate_votes_included_quarantine=Case(
+                    When(
+                        all_candidate_votes__isnull=False,
+                        then=F('all_candidate_votes')
+                    ),
+                    default=V(0),
+                    output_field=IntegerField()
+                ),
+                stations_complete_percent=Case(
+                    When(stations__gt=0, then=ew),
+                    default=V(0),
+                    output_field=FloatField()
+                ))
+    else:
+        candidate_votes_query =\
+            Subquery(
+                Result.objects.filter(
+                    candidate__id=OuterRef('candidate_id'),
+                    entry_version=EntryVersion.FINAL,
+                    result_form__form_state=FormState.ARCHIVED,
+                    active=True).annotate(
+                        candidate_votes=Case(
+                            When(votes__isnull=False,
+                                 then=F('votes')),
+                            default=V(0),
+                            output_field=IntegerField())).values(
+                                'candidate_votes'
+                            )[:1], output_field=IntegerField())
+
+        all_candidate_votes_query =\
+            Subquery(
+                Result.objects.filter(
+                    candidate__id=OuterRef('candidate_id'),
+                    entry_version=EntryVersion.FINAL,
+                    active=True).filter(
+                        Q(result_form__form_state=FormState.ARCHIVED) |
+                        Q(result_form__form_state=FormState.AUDIT)
+                ).annotate(
+                        candidate_votes=Case(
+                            When(votes__isnull=False,
+                                 then=F('votes')),
+                            default=V(0),
+                            output_field=IntegerField())).values(
+                                'candidate_votes'
+                )[:1], output_field=IntegerField())
+        qs = qs\
+            .values('candidates__full_name')\
+            .annotate(
+                ballot_number=F('number'),
+                candidate_id=F('candidates__id'),
+                stations=Count(
+                    'resultform__set',
+                    filter=Q(resultform__tally__id=tally_id,
+                             resultform__center__isnull=False,
+                             resultform__station_number__isnull=False,
+                             resultform__ballot__isnull=False)
+                    ),
+                stations_completed=Count(
+                    'resultform__set',
+                    filter=Q(
+                        resultform__tally__id=tally_id,
+                        resultform__center__isnull=False,
+                        resultform__station_number__isnull=False,
+                        resultform__ballot__isnull=False,
+                        resultform__form_state=FormState.ARCHIVED)
+                    ),
+                votes=candidate_votes_query,
+                total_votes=Case(
+                    When(
+                        votes__isnull=False,
+                        then=F('votes')
+                    ),
+                    default=V(0),
+                    output_field=IntegerField()
+                ),
+                all_candidate_votes=all_candidate_votes_query,
+                candidate_votes_included_quarantine=Case(
+                    When(
+                        all_candidate_votes__isnull=False,
+                        then=F('all_candidate_votes')
+                    ),
+                    default=V(0),
+                    output_field=IntegerField()
+                ),
+                stations_complete_percent=Case(
+                    When(stations__gt=0, then=ew),
+                    default=V(0),
+                    output_field=FloatField()
+                ))
+
+    return qs
+
+
 def generate_progressive_report(
         tally_id,
         report_column_name,
