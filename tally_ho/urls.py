@@ -408,6 +408,23 @@ urlpatterns = [
             r'(?P<tally_id>(\d+))/$',
             administrative_areas_reports.DuplicateResultsListView.as_view(),
             name='result-forms-with-duplicate-results'),
+    re_path(r'^super-administrator/all-candidate-votes-data/'
+            r'(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.AllCandidatesVotesDataView.as_view(),
+            name='all-candidates-votes-data'),
+    re_path(r'^super-administrator/all-candidates-votes/(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.AllCandidatesVotesListView.as_view(),
+            name='all-candidates-votes'),
+    re_path(r'^super-administrator/active-candidate-votes-data/'
+            r'(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.ActiveCandidatesVotesDataView.as_view(
+            ),
+            name='active-candidates-votes-data'),
+    re_path(r'^super-administrator/active-candidates-votes/'
+            r'(?P<tally_id>(\d+))/$',
+            administrative_areas_reports.ActiveCandidatesVotesListView.as_view(
+            ),
+            name='active-candidates-votes'),
     re_path(r'^super-administrator/results-(?P<report>.*).csv/'
             r'(?P<tally_id>(\d+))/$',
             super_admin.ResultExportView.as_view(),
