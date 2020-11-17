@@ -138,6 +138,7 @@ $(document).ready(function () {
         {
           extend: 'csv',
           filename: exportFileName,
+          action: exportAction,
           exportOptions: {
             columns: ':visible :not(.actions)',
           },
