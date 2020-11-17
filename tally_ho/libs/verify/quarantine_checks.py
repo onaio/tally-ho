@@ -12,11 +12,12 @@ from tally_ho.libs.models.enums.form_state import FormState
 
 def create_quarantine_checks():
     for quarantine_check in getattr(settings, 'QUARANTINE_DATA'):
-        QuarantineCheck.objects.get_or_create(
+        QuarantineCheck.objects.update_or_create(
             name=quarantine_check['name'],
             method=quarantine_check['method'],
             value=quarantine_check['value'],
             defaults={'active': quarantine_check['active'],
+                      'description': quarantine_check['description'],
                       'percentage': quarantine_check['percentage']},
         )
 
