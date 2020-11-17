@@ -1,4 +1,32 @@
 $(document).ready(function () {
+  const exportAction = function (e, dt, button, config) {
+    const self = this;
+    const oldStart = dt.settings()[0]._iDisplayStart;
+    dt.one('preXhr', function (e, s, data) {
+        // Just this once, load all data from the server...
+        data.start = 0;
+        data.length = -1;;
+        dt.one('preDraw', function (e, settings) {
+            if (button[0].className.indexOf('buttons-csv') >= 0) {
+                $.fn.dataTable.ext.buttons.csvHtml5.available(dt, config) ?
+                    $.fn.dataTable.ext.buttons.csvHtml5.action.call(self, e, dt, button, config) :
+                    $.fn.dataTable.ext.buttons.csvFlash.action.call(self, e, dt, button, config);
+            }
+            dt.one('preXhr', function (e, s, data) {
+                // DataTables thinks the first item displayed is index 0, but we're not drawing that.
+                // Set the property to what it was before exporting.
+                settings._iDisplayStart = oldStart;
+                data.start = oldStart;
+            });
+            // Reload the grid with the original page. Otherwise, API functions like table.cell(this) don't work properly.
+            setTimeout(dt.ajax.reload, 0);
+            // Prevent rendering of the full data to the DOM
+            return false;
+        });
+    });
+    // Requery the server with the new one-time export settings
+    dt.ajax.reload();
+  };
   $('.datatable').dataTable({
     language: dt_language, // global variable defined in html
     order: [[0, "desc"]],
@@ -27,6 +55,7 @@ $(document).ready(function () {
       {
         extend: "csv",
         filename: exportFileName,
+        action: exportAction,
         exportOptions: {
           columns: ':visible :not(.hide-from-export)',
         },
