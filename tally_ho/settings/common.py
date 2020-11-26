@@ -207,19 +207,17 @@ QUARANTINE_DATA = [
      'method': 'pass_tampering',
      'active': True,
      'value': 3,
-     'percentage': 3},
+     'percentage': 0},
     {'name': 'Trigger 3 - Validate total number of ballots used',
      'description':
-     str('Guard against errors and tampering with the form. '
-         'If the result form does not have a reconciliation form this trigger '
-         'will always pass. '
-         'Fails if the sum of the results section of the form does not equal '
-         'the number of ballots expected based on the calculation of the '
-         'key fields from the reconciliation form with a N% tolerance.'),
+     str('Validate that the total number of received ballots equals the '
+         'total of the ballots inside the box plus ballots outside the box.'
+         ' If the result form does not have a reconciliation form this trigger'
+         ' will always pass.'),
      'method': 'pass_ballots_number_validation',
      'active': False,
      'value': 2,
-     'percentage': 2},
+     'percentage': 0},
     {'name': 'Trigger 4 - Validate number of signatures on the voter list',
      'description':
      str('Validate that the total number of received ballots equals the '
@@ -229,7 +227,7 @@ QUARANTINE_DATA = [
      'method': 'pass_signatures_validation',
      'active': False,
      'value': 2,
-     'percentage': 2},
+     'percentage': 0},
     {'name': 'Trigger 5 - Validate the total number of ballots inside the box',
      'description':
      str('The total number of ballot papers inside the ballot box will be '
@@ -242,12 +240,12 @@ QUARANTINE_DATA = [
      'method': 'pass_ballots_inside_box_validation',
      'active': False,
      'value': 2,
-     'percentage': 2},
+     'percentage': 0},
     {'name': 'Trigger 6 - Validate sum of votes distributed to all candidates',
      'description':
      str('The total votes for candidates should equal the valid ballots: '
          'after sorting the ballots inside the ballot box as valid and '
-         'invalid, and unstamped, the number of valid ballots should equal the'
+         'invalid, and unstamped. The above sum should equal the'
          ' sum of all candidates votes. '
          'If the result form does not have a reconciliation form this trigger '
          'will always pass. '
@@ -256,8 +254,8 @@ QUARANTINE_DATA = [
          'with an N% tolerance.'),
      'method': 'pass_sum_of_candidates_votes_validation',
      'active': False,
-     'value': 2,
-     'percentage': 2},
+     'value': 0,
+     'percentage': 0},
     {'name': 'Trigger 7 - Validate percentage of invalid ballots',
      'description':
      str('Validate the percentage of invalid ballots. '
@@ -267,7 +265,7 @@ QUARANTINE_DATA = [
          'trigger percentage value.'),
      'method': 'pass_invalid_ballots_percentage_validation',
      'active': False,
-     'value': 80,
+     'value': 0,
      'percentage': 20},
     {'name': 'Trigger 8 - Validate turnout percentage',
      'description':
@@ -280,7 +278,7 @@ QUARANTINE_DATA = [
          'trigger percentage value.'),
      'method': 'pass_turnout_percentage_validation',
      'active': False,
-     'value': 100,
+     'value': 0,
      'percentage': 100},
     {'name':
      'Trigger 9 - Validate percentage of votes per candidate of total votes',
@@ -294,7 +292,7 @@ QUARANTINE_DATA = [
          'percentage value.'),
      'method': 'pass_percentage_of_votes_per_candidate_validation',
      'active': False,
-     'value': 50,
+     'value': 0,
      'percentage': 50},
     {'name':
      'Trigger 10 - Validate percentage of blank ballots',
@@ -306,7 +304,7 @@ QUARANTINE_DATA = [
          'trigger percentage value.'),
      'method': 'pass_percentage_of_blank_ballots_trigger',
      'active': False,
-     'value': 80,
+     'value': 0,
      'percentage': 20},
 ]
 
