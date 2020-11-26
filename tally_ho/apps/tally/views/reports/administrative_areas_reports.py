@@ -35,6 +35,34 @@ report_types = {1: "turnout",
                 6: "progressive-report"}
 
 
+def build_station_and_centers_list(tally_id):
+    """
+    Create a list of stations and centers filtered by tally id.
+
+    :param tally_id: Tally id.
+
+    returns: list of stations and centers.
+    """
+    qs = Station.objects.filter(
+           tally__id=tally_id
+        ).distinct('center__code', 'station_number')
+
+    stations =\
+        list(
+            qs.annotate(
+                name=F('station_number')).values(
+                    'name').annotate(
+                        id=F('id')).distinct('station_number'))
+    centers =\
+        list(
+            qs.annotate(
+                name=F('center__code')).values(
+                    'name').annotate(id=F('center__id')).distinct(
+                        'center__code'))
+
+    return stations, centers
+
+
 def get_stations_and_centers_by_admin_area(
         tally_id,
         report_column_name,
@@ -3152,26 +3180,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-
-        qs =\
-            self.model.objects.filter(
-                result_form__tally__id=tally_id,
-                result_form__form_state=FormState.ARCHIVED,
-                entry_version=EntryVersion.FINAL,
-                active=True)
-
-        stations =\
-            [dict(t) for t in {tuple(d.items()) for d in
-                               [{'id': result_form.station.id,
-                                 'name': result_form.station.station_number}
-                                for result_form in
-                                [result.result_form for result in qs]]}]
-        centers =\
-            [dict(t) for t in {tuple(d.items()) for d in
-                               [{'id': result_form.center.id,
-                                 'name': result_form.center.name}
-                                for result_form in
-                                [result.result_form for result in qs]]}]
+        stations, centers = build_station_and_centers_list(tally_id)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-results-data', kwargs=kwargs),
@@ -3254,22 +3263,7 @@ class DuplicateResultsListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-
-        qs =\
-            self.model.objects.filter(
-                tally__id=tally_id,
-                form_state=FormState.ARCHIVED)
-
-        stations =\
-            [dict(t) for t in {tuple(d.items()) for d in
-                               [{'id': result_form.station.id,
-                                 'name': result_form.station.station_number}
-                                for result_form in qs]}]
-        centers =\
-            [dict(t) for t in {tuple(d.items()) for d in
-                               [{'id': result_form.center.id,
-                                 'name': result_form.center.name}
-                                for result_form in qs]}]
+        stations, centers = build_station_and_centers_list(tally_id)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('duplicate-results-data', kwargs=kwargs),
@@ -3352,22 +3346,7 @@ class AllCandidatesVotesListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        qs = self.model.objects.filter(
-           tally__id=tally_id
-        ).distinct('center__code', 'station_number')
-
-        stations =\
-            list(
-                qs.annotate(
-                    name=F('station_number')).values(
-                        'name').annotate(
-                            id=F('id')).distinct('station_number'))
-        centers =\
-            list(
-                qs.annotate(
-                    name=F('center__code')).values(
-                        'name').annotate(id=F('center__id')).distinct(
-                            'center__code'))
+        stations, centers = build_station_and_centers_list(tally_id)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('all-candidates-votes-data', kwargs=kwargs),
@@ -3452,22 +3431,7 @@ class ActiveCandidatesVotesListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        qs = self.model.objects.filter(
-           tally__id=tally_id
-        ).distinct('center__code', 'station_number')
-
-        stations =\
-            list(
-                qs.annotate(
-                    name=F('station_number')).values(
-                        'name').annotate(
-                            id=F('id')).distinct('station_number'))
-        centers =\
-            list(
-                qs.annotate(
-                    name=F('center__code')).values(
-                        'name').annotate(id=F('center__id')).distinct(
-                            'center__code'))
+        stations, centers = build_station_and_centers_list(tally_id)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('active-candidates-votes-data', kwargs=kwargs),
