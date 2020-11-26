@@ -34,44 +34,14 @@ def get_total_candidates_votes(result_form):
     :param result_form: The result form to get candidates.
     :returns: A Int of total candidates votes.
     """
-    ids = [candidate.id for candidate in result_form.candidates]
 
-    filter_ballot_component_candidates_by_id =\
-        Q(ballot__sc_general__ballot_component__candidates__id__in=ids)
-    ballot_component_candidates_votes_field =\
-        'ballot__sc_general__ballot_component__candidates__results__votes'
-    ballot_component_votes =\
-        Coalesce(
-            Sum(
-                Case(
-                    When(
-                        ballot__sc_general__ballot_component__isnull=False
-                        and
-                        filter_ballot_component_candidates_by_id,
-                        then=ballot_component_candidates_votes_field)
-                )
-            ),
-            V(0)
-        )
+    vote_list = ()
 
-    total_votes =\
-        ResultForm.objects.filter(pk=result_form.id)\
-        .annotate(
-            ballot_candidates_votes=Coalesce(
-                Sum('ballot__candidates__results__votes',
-                    filter=Q(ballot__candidates__id__in=ids)),
-                V(0)))\
-        .annotate(
-            ballot_component_candidates_votes=ballot_component_votes)\
-        .annotate(
-            total_votes=ExpressionWrapper(
-                F('ballot_candidates_votes') +
-                F('ballot_component_candidates_votes'),
-                output_field=IntegerField()
-            )
-        ).values('total_votes')[0]['total_votes']
+    for candidate in result_form.candidates:
+        votes = candidate.num_votes(result_form, result_form.form_state)
+        vote_list += (votes,)
 
-    return total_votes
+    return sum(vote_list)
 
 
 def quarantine_checks():
@@ -291,14 +261,10 @@ def pass_sum_of_candidates_votes_validation(result_form):
 
     total_candidates_votes = get_total_candidates_votes(result_form)
     number_valid_votes = recon_form.number_valid_votes
-    diff = abs(total_candidates_votes - number_valid_votes)
 
-    qc = QuarantineCheck.objects.get(
-        method='pass_sum_of_candidates_votes_validation')
-    scaled_tolerance =\
-        (qc.value / 100) * (total_candidates_votes + number_valid_votes) / 2
+    diff = total_candidates_votes - number_valid_votes
 
-    return diff <= scaled_tolerance
+    return diff > 0
 
 
 def pass_invalid_ballots_percentage_validation(result_form):
