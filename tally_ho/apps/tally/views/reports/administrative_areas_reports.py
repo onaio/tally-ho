@@ -3098,7 +3098,7 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
 
         if keyword:
             qs = qs.filter(Q(candidate_name__contains=keyword) |
-                           Q(total_votes__contains=keyword))
+                           Q(total_votes=keyword))
         return qs
 
     def render_column(self, row, column):
