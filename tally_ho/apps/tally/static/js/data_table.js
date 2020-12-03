@@ -72,8 +72,8 @@ $(document).ready(function () {
 
     table.destroy();
     let data = [];
-    let selectOneIds = $('select#select-1').val()
-    let selectTwoIds = $('select#select-2').val()
+    let selectOneIds = $('select#centers').val();
+    let selectTwoIds = $('select#stations').val();
 
     if (selectOneIds || selectTwoIds) {
       const items = {
@@ -127,6 +127,55 @@ $(document).ready(function () {
         url: LIST_JSON_URL,
         type: 'POST',
         data: { data: JSON.stringify(data) },
+        traditional: true,
+        dataType: 'json',
+      },
+      dom:
+        "<'row'<'col-sm-1'B><'col-sm-6'l><'col-sm-5'f>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+      buttons: [
+        {
+          extend: 'csv',
+          filename: exportFileName,
+          action: exportAction,
+          exportOptions: {
+            columns: ':visible :not(.actions)',
+          },
+        },
+      ],
+      responsive: true,
+    });
+  });
+
+  $('#report').on('click', '#reset', function () {
+    const table = $('.datatable').DataTable();
+
+    table.destroy();
+
+    $('.datatable').dataTable({
+      language: dt_language,
+      order: [[0, 'desc']],
+      lengthMenu: [
+        [10, 25, 50, 100, 500],
+        [10, 25, 50, 100, 500],
+      ],
+      columnDefs: [
+        {
+          orderable: true,
+          searchable: true,
+          className: 'center',
+          targets: [0, 1],
+        },
+      ],
+      searching: true,
+      processing: true,
+      serverSide: true,
+      stateSave: true,
+      ajax: {
+        url: LIST_JSON_URL,
+        type: 'POST',
+        data: { data: JSON.stringify([]) },
         traditional: true,
         dataType: 'json',
       },
