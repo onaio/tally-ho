@@ -1204,6 +1204,13 @@ class QuarantineChecksListView(LoginRequiredMixin,
     template_name = 'super_admin/quarantine_checks_list.html'
     group_required = groups.SUPER_ADMINISTRATOR
 
+    def get_context_data(self, **kwargs):
+        context =\
+            super(QuarantineChecksListView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
+
+        return context
+
     def get(self, *args, **kwargs):
         all_checks = QuarantineCheck.objects.all().order_by('id')
 
@@ -1222,7 +1229,13 @@ class QuarantineChecksConfigView(LoginRequiredMixin,
 
     model = QuarantineCheck
     form_class = QuarantineCheckForm
-    success_url = 'quarantine-checks'
+
+    def get_context_data(self, **kwargs):
+        context =\
+            super(QuarantineChecksConfigView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
+
+        return context
 
     def get_object(self, queryset=None):
         obj = QuarantineCheck.objects.get(id=self.kwargs['checkId'])
