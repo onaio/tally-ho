@@ -33,7 +33,7 @@
         <td>{{ check.percentage }}</td>
         <td>{{ check.active }}</td>
         <td>
-            <a href="{% url 'quarantine-checks-config' check.id %}" class="btn btn-default btn-small">{% trans 'Edit' %}</a>
+            <a href="{% url 'quarantine-checks-config' tally_id check.id %}" class="btn btn-default btn-small">{% trans 'Edit' %}</a>
         </td>
     </tr>
 {% endfor %}

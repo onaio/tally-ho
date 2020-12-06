@@ -22,7 +22,7 @@
     <li><a href="{% url 'form-not-received-view' tally_id=tally_id %}">{% trans 'Forms Not Received' %}</a></li>
     <li><a href="{% url 'form-action-view' tally_id=tally_id %}">{% trans 'Forms Waiting for Approval' %}</a></li>
     <li><a href="{% url 'duplicate-result-tracking' tally_id=tally_id %}">{% trans 'Duplicate Result Tracking' %}</a></li>
-    <li><a href="{% url 'quarantine-checks' %}">{% trans 'Quarantine Checks' %}</a></li>
+    <li><a href="{% url 'quarantine-checks' tally_id=tally_id %}">{% trans 'Quarantine Checks' %}</a></li>
 </ul>
 
 
