@@ -1241,6 +1241,11 @@ class QuarantineChecksConfigView(LoginRequiredMixin,
         obj = QuarantineCheck.objects.get(id=self.kwargs['checkId'])
         return obj
 
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id', None)
+
+        return reverse('quarantine-checks', kwargs={'tally_id': tally_id})
+
 
 class RemoveStationConfirmationView(LoginRequiredMixin,
                                     mixins.GroupRequiredMixin,
