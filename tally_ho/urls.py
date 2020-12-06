@@ -483,11 +483,11 @@ urlpatterns = [
     re_path(r'^super-administrator/remove-station/(?P<tally_id>(\d+))/$',
             super_admin.RemoveStationView.as_view(),
             name='remove-station'),
-    re_path(r'^super-administrator/quarantine-checks$',
+    re_path(r'^super-administrator/quarantine-checks/(?P<tally_id>(\d+))$',
             super_admin.QuarantineChecksListView.as_view(),
             name='quarantine-checks'),
     re_path(r'^super-administrator/quarantine-checks/config/'
-            r'(?P<checkId>(\d+))$',
+            r'(?P<tally_id>(\d+))/(?P<checkId>(\d+))$',
             super_admin.QuarantineChecksConfigView.as_view(),
             name='quarantine-checks-config'),
     re_path(r'^super-administrator/remove-station/(?P<tally_id>(\d+))/'
