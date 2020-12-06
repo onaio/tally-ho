@@ -1,3 +1,4 @@
+from django import forms
 from django.forms import ModelForm
 
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
@@ -9,7 +10,7 @@ disable_copy_input = {
     'onDrop': 'return false;',
     'onPaste': 'return false;',
     'autocomplete': 'off',
-    'class': 'form-control required'
+    'class': 'form-control'
 }
 
 
@@ -17,6 +18,9 @@ class QuarantineCheckForm(ModelForm):
     class Meta:
         model = QuarantineCheck
         fields = ['name', 'value', 'percentage', 'active', 'description']
+
+    value = forms.CharField(required=False)
+    percentage = forms.CharField(required=False)
 
     def __init__(self, *args, **kargs):
         super(QuarantineCheckForm, self).__init__(*args, **kargs)
