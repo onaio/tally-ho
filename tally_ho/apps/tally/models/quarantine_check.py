@@ -14,8 +14,8 @@ class QuarantineCheck(BaseModel):
 
     name = models.CharField(max_length=256, unique=True)
     method = models.CharField(max_length=256, unique=True)
-    value = models.FloatField()
-    percentage = models.FloatField(default=100)
+    value = models.FloatField(default=0)
+    percentage = models.FloatField(default=0)
     active = models.BooleanField(default=False)
     description = models.TextField(null=True, blank=True)
 
