@@ -45,14 +45,14 @@ def build_station_and_centers_list(tally_id):
     """
     qs = Station.objects.filter(
            tally__id=tally_id
-        ).distinct('center__code', 'station_number')
+        ).distinct('tally__id', 'center__code', 'station_number')
 
     stations =\
         list(
             qs.annotate(
                 name=F('station_number')).values(
                     'name').annotate(
-                        id=F('id')).distinct('station_number'))
+                        id=F('id')))
     centers =\
         list(
             qs.annotate(
@@ -86,11 +86,25 @@ def get_stations_and_centers_by_admin_area(
     qs =\
         Station.objects.filter(tally__id=tally_id)
 
-    stations_centers_under_investigation_report_type_name =\
+    stations_centers_audit_report_type_name =\
         report_types[3]
-    stations_centers_excluded_after_investigation_report_type_name =\
+    stations_centers_under_investigation_report_type_name =\
         report_types[4]
+    stations_centers_excluded_after_investigation_report_type_name =\
+        report_types[5]
     centers_count_query = None
+
+    if report_type_name ==\
+            stations_centers_audit_report_type_name:
+        qs =\
+            qs.filter(active=False)
+        centers_count_query =\
+            Subquery(
+                Center.objects.annotate(center_count=Coalesce(
+                    Count('id',
+                          filter=Q(tally__id=tally_id, active=False)), V(0)))
+                .values('center_count')[:1],
+                output_field=IntegerField())
 
     if report_type_name ==\
             stations_centers_under_investigation_report_type_name:
@@ -502,24 +516,25 @@ def results_queryset(
 
     returns: The votes per candidate queryset.
     """
+    station_id_query =\
+        Subquery(
+            Station.objects.filter(
+                tally__id=tally_id,
+                center__code=OuterRef(
+                    'result_form__center__code'),
+                station_number=OuterRef(
+                    'result_form__station_number'))
+            .values('id')[:1],
+            output_field=IntegerField())
+
     if data:
         selected_center_ids =\
             data['select_1_ids'] if len(data['select_1_ids']) else [0]
         selected_station_ids =\
             data['select_2_ids'] if len(data['select_2_ids']) else [0]
 
-        station_ids_query =\
-            Subquery(
-                Station.objects.filter(
-                    tally__id=tally_id,
-                    center__code=OuterRef(
-                        'result_form__center__code'),
-                    station_number=OuterRef(
-                        'result_form__station_number'))
-                .values('id')[:1],
-                output_field=IntegerField())
         qs = qs\
-            .annotate(station_ids=station_ids_query)
+            .annotate(station_ids=station_id_query)
 
         qs_1 = qs\
             .filter(
@@ -557,6 +572,7 @@ def results_queryset(
                 total_votes=F('votes'),
                 ballot_number=F('result_form__ballot__number'),
                 center_code=F('result_form__center__code'),
+                station_id=station_id_query,
                 station_number=F('result_form__station_number'),
                 gender=F('result_form__gender__name'),
                 barcode=F('result_form__barcode'),
@@ -650,6 +666,7 @@ def results_queryset(
                 total_votes=F('votes'),
                 ballot_number=F('result_form__ballot__number'),
                 center_code=F('result_form__center__code'),
+                station_id=station_id_query,
                 station_number=F('result_form__station_number'),
                 gender=F('result_form__gender__name'),
                 barcode=F('result_form__barcode'),
@@ -731,22 +748,23 @@ def duplicate_results_queryset(
 
     returns: The duplicate results queryset.
     """
+    station_id_query =\
+        Subquery(
+            Station.objects.filter(
+                tally__id=tally_id,
+                center__code=OuterRef('center__code'),
+                station_number=OuterRef('station_number'))
+            .values('id')[:1],
+            output_field=IntegerField())
+
     if data:
         selected_center_ids =\
             data['select_1_ids'] if len(data['select_1_ids']) else [0]
         selected_station_ids =\
             data['select_2_ids'] if len(data['select_2_ids']) else [0]
 
-        station_ids_query =\
-            Subquery(
-                Station.objects.filter(
-                    tally__id=tally_id,
-                    center__code=OuterRef('center__code'),
-                    station_number=OuterRef('station_number'))
-                .values('id')[:1],
-                output_field=IntegerField())
         qs = qs\
-            .annotate(station_ids=station_ids_query)\
+            .annotate(station_ids=station_id_query)\
             .filter(
                 ~Q(center__id__in=selected_center_ids) &
                 ~Q(station_ids__in=selected_station_ids))
@@ -772,6 +790,7 @@ def duplicate_results_queryset(
                 center_code=F('center__code'),
                 state=F('form_state'),
                 station_number=F('station_number'),
+                station_id=station_id_query,
                 votes=result_form_votes_registrants_query).distinct()
     else:
         result_form_votes_registrants_query =\
@@ -794,6 +813,7 @@ def duplicate_results_queryset(
                 ballot_number=F('ballot__number'),
                 center_code=F('center__code'),
                 state=F('form_state'),
+                station_id=station_id_query,
                 station_number=F('station_number'),
                 votes=result_form_votes_registrants_query).distinct()
 
@@ -820,24 +840,27 @@ def candidates_votes_queryset(
         Func(F('stations_completed'), function='CAST', template=template)
     stations = Func(F('stations'), function='CAST', template=template)
     ew = Round((100 * stations_completed/stations), digits=3)
+    station_id_query =\
+        Subquery(
+            Station.objects.filter(
+                tally__id=tally_id,
+                center__code=OuterRef('resultform__center__code'),
+                station_number=OuterRef('resultform__station_number'))
+            .values('id')[:1],
+            output_field=IntegerField())
+
     if data:
         selected_center_ids =\
             data['select_1_ids'] if len(data['select_1_ids']) else [0]
         selected_station_ids =\
             data['select_2_ids'] if len(data['select_2_ids']) else [0]
 
-        station_numbers_query =\
-            Subquery(
-                Station.objects.filter(
-                    tally__id=tally_id,
-                    id__in=selected_station_ids)
-                .values('station_number')[:1],
-                output_field=IntegerField())
+        qs = qs.annotate(station_ids=station_id_query)
 
         qs = qs\
             .filter(
                 ~Q(resultform__center__id__in=selected_center_ids) &
-                ~Q(resultform__station_number__in=station_numbers_query))
+                ~Q(station_ids__in=selected_station_ids))
 
         candidate_votes_query =\
             Subquery(
@@ -883,6 +906,8 @@ def candidates_votes_queryset(
                              resultform__station_number__isnull=False,
                              resultform__ballot__isnull=False)
                 ),
+                center_code=F('resultform__center__code'),
+                station_id=station_id_query,
                 stations_completed=Count(
                     'resultform__set',
                     filter=Q(
@@ -947,6 +972,7 @@ def candidates_votes_queryset(
                             output_field=IntegerField())).values(
                                 'candidate_votes'
                 )[:1], output_field=IntegerField())
+
         qs = qs\
             .values('candidates__full_name')\
             .annotate(
@@ -959,6 +985,8 @@ def candidates_votes_queryset(
                              resultform__station_number__isnull=False,
                              resultform__ballot__isnull=False)
                     ),
+                center_code=F('resultform__center__code'),
+                station_id=station_id_query,
                 stations_completed=Count(
                     'resultform__set',
                     filter=Q(
@@ -1488,6 +1516,12 @@ def build_select_options(qs, ids=[]):
                 list(qs)]
 
 
+def build_ul_li(qs):
+    return [str(
+        '<li class=""><a role="option" class="dropdown-item" id="bs-select-1-0" tabindex="0" aria-selected="false" aria-setsize="1" aria-posinset="1"><span class=" bs-ok-default check-mark"></span><span class="text">'f'{item.name}''</span></a></li>') for item in
+                list(qs)]
+
+
 class TurnoutReportDataView(LoginRequiredMixin,
                             mixins.GroupRequiredMixin,
                             mixins.TallyAccessMixin,
@@ -1621,6 +1655,7 @@ class TurnoutReportDataView(LoginRequiredMixin,
             sub_constituencies =\
                 build_select_options(
                     qs, ids=region_sub_cons_ids)
+            # sub_constituencies_li_list = build_ul_li(qs)
             return str('<td class="center">'
                        '<select style="min-width: 6em;"'
                        f'{disabled}'
@@ -1808,7 +1843,8 @@ class SummaryReportDataView(LoginRequiredMixin,
                 build_select_options(
                     qs, ids=region_sub_cons_ids)
             return str('<td class="center">'
-                       '<select style="min-width: 6em;"'
+                       '<select style="min-width: 6em !important;"'
+                       'class="selectpicker" data-actions-box="true" '
                        f'{disabled}'
                        ' id="select-2" multiple'
                        ' data-id='f'{row["admin_area_id"]}''>'
@@ -2132,7 +2168,6 @@ class DiscrepancyReportDataView(LoginRequiredMixin,
     columns = ('admin_area_name',
                'number_of_centers',
                'number_of_stations',
-               'total_number_of_centers_and_stations',
                'station_ids',
                'center_ids',
                'actions')
@@ -2174,8 +2209,7 @@ class DiscrepancyReportDataView(LoginRequiredMixin,
             qs = qs.filter(
                     Q(admin_area_name__contains=keyword) |
                     Q(number_of_centers__contains=keyword) |
-                    Q(number_of_stations__contains=keyword) |
-                    Q(total_number_of_centers_and_stations__contains=keyword))
+                    Q(number_of_stations__contains=keyword))
         return qs
 
     def render_column(self, row, column):
@@ -2410,9 +2444,6 @@ class DiscrepancyReportDataView(LoginRequiredMixin,
         elif column == 'number_of_stations':
             return str('<td class="center">'
                        f'{row["number_of_stations"]}</td>')
-        elif column == 'total_number_of_centers_and_stations':
-            return str('<td class="center">'
-                       f'{row["total_number_of_centers_and_stations"]}</td>')
         elif column == 'station_ids':
             region_station_ids = []
             station_ids = row['station_ids']
@@ -2665,21 +2696,32 @@ class RegionsReportsView(LoginRequiredMixin,
         report_type_ = kwargs.get('report_type')
         region_id = kwargs.get('region_id')
         column_name = 'result_form__office__region__name'
+        qs = Station.objects.filter(tally__id=tally_id)
 
         progressive_report = generate_progressive_report(
             tally_id=tally_id,
             report_column_name=column_name,)
 
+        centers_stations_in_audit =\
+            stations_and_centers_queryset(
+                tally_id=tally_id,
+                qs=ResultForm.objects.filter(
+                    tally__id=tally_id,
+                    form_state=FormState.AUDIT
+                ),
+                report_type=report_types[3])
+
         centers_stations_under_invg =\
-            get_stations_and_centers_by_admin_area(
+            stations_and_centers_queryset(
                 tally_id=tally_id,
-                report_column_name='center__office__region__name',
-                report_type_name=report_types[3],)
+                qs=qs,
+                report_type=report_types[4])
+
         centers_stations_ex_after_invg =\
-            get_stations_and_centers_by_admin_area(
+            stations_and_centers_queryset(
                 tally_id=tally_id,
-                report_column_name='center__office__region__name',
-                report_type_name=report_types[4],)
+                qs=qs,
+                report_type=report_types[5])
 
         station_id_query =\
             Subquery(
@@ -2696,6 +2738,14 @@ class RegionsReportsView(LoginRequiredMixin,
             ['centers-and-stations-in-audit-report',
              'centers-and-stations-under-investigation',
              'centers-and-stations-excluded-after-investigation']:
+
+            if report_type_ == 'centers-and-stations-in-audit-report':
+                self.request.session['station_ids'] =\
+                    list(centers_stations_in_audit.filter(
+                        center__office__region__id=region_id)
+                    .annotate(
+                        station_id=station_id_query)
+                    .values_list('station_id', flat=True))
 
             if report_type_ == 'centers-and-stations-under-investigation':
                 self.request.session['station_ids'] =\
@@ -2779,23 +2829,28 @@ class ConstituencyReportsView(LoginRequiredMixin,
             tally_id=tally_id,
             report_column_name=column_name,
             region_id=region_id)
-        constituencies_forms_in_audit = get_admin_areas_with_forms_in_audit(
-            tally_id=tally_id,
-            report_column_name='center__constituency__name',
-            region_id=region_id)
+
+        qs = Station.objects.filter(tally__id=tally_id)
+
+        centers_stations_in_audit =\
+            stations_and_centers_queryset(
+                tally_id=tally_id,
+                qs=ResultForm.objects.filter(
+                    tally__id=tally_id,
+                    form_state=FormState.AUDIT
+                ),
+                report_type=report_types[3])
 
         centers_stations_under_invg =\
-            get_stations_and_centers_by_admin_area(
+            stations_and_centers_queryset(
                 tally_id=tally_id,
-                report_column_name='center__office__region__name',
-                report_type_name=report_types[3],
-                region_id=region_id)
+                qs=qs,
+                report_type=report_types[4])
         centers_stations_ex_after_invg =\
-            get_stations_and_centers_by_admin_area(
+            stations_and_centers_queryset(
                 tally_id=tally_id,
-                report_column_name='center__office__region__name',
-                report_type_name=report_types[4],
-                region_id=region_id)
+                qs=qs,
+                report_type=report_types[5])
 
         station_id_query =\
             Subquery(
@@ -2812,17 +2867,20 @@ class ConstituencyReportsView(LoginRequiredMixin,
             ['centers-and-stations-in-audit-report',
              'centers-and-stations-under-investigation',
              'centers-and-stations-excluded-after-investigation']:
+            if report_type == 'centers-and-stations-in-audit-report':
+                self.request.session['station_ids'] =\
+                    list(centers_stations_in_audit.filter(
+                        center__office__region__id=region_id,
+                        center__constituency__id=constituency_id)
+                    .annotate(
+                        station_id=station_id_query)
+                        .values_list('station_id', flat=True))
+
             if report_type == 'centers-and-stations-under-investigation':
                 self.request.session['station_ids'] =\
                     list(centers_stations_under_invg.filter(
                         center__office__region__id=region_id,
                         center__constituency__id=constituency_id)
-                    .annotate(
-                        station_id=station_id_query)
-                        .values_list('station_id', flat=True))\
-                    if constituency_id else list(
-                        constituencies_forms_in_audit.filter(
-                            center__office__region__id=region_id,)
                     .annotate(
                         station_id=station_id_query)
                         .values_list('station_id', flat=True))
@@ -2833,12 +2891,6 @@ class ConstituencyReportsView(LoginRequiredMixin,
                     list(centers_stations_ex_after_invg.filter(
                         center__office__region__id=region_id,
                         center__constituency__id=constituency_id)
-                    .annotate(
-                        station_id=station_id_query)
-                        .values_list('station_id', flat=True))\
-                    if constituency_id else list(
-                        constituencies_forms_in_audit.filter(
-                            center__office__region__id=region_id,)
                     .annotate(
                         station_id=station_id_query)
                         .values_list('station_id', flat=True))
@@ -2930,20 +2982,28 @@ class SubConstituencyReportsView(LoginRequiredMixin,
             region_id=region_id,
             constituency_id=constituency_id)
 
+        qs = Station.objects.filter(tally__id=tally_id)
+
+        centers_stations_in_audit =\
+            stations_and_centers_queryset(
+                tally_id=tally_id,
+                qs=ResultForm.objects.filter(
+                    tally__id=tally_id,
+                    form_state=FormState.AUDIT
+                ),
+                report_type=report_types[3])
+
         centers_stations_under_invg =\
-            get_stations_and_centers_by_admin_area(
+            stations_and_centers_queryset(
                 tally_id=tally_id,
-                report_column_name='center__office__region__name',
-                report_type_name=report_types[3],
-                region_id=region_id,
-                constituency_id=constituency_id)
+                qs=qs,
+                report_type=report_types[4])
+
         centers_stations_ex_after_invg =\
-            get_stations_and_centers_by_admin_area(
+            stations_and_centers_queryset(
                 tally_id=tally_id,
-                report_column_name='center__office__region__name',
-                report_type_name=report_types[4],
-                region_id=region_id,
-                constituency_id=constituency_id)
+                qs=qs,
+                report_type=report_types[5])
 
         station_id_query =\
             Subquery(
@@ -2960,19 +3020,22 @@ class SubConstituencyReportsView(LoginRequiredMixin,
             ['centers-and-stations-in-audit-report',
              'centers-and-stations-under-investigation',
              'centers-and-stations-excluded-after-investigation']:
+            if report_type == 'centers-and-stations-in-audit-report':
+                self.request.session['station_ids'] =\
+                    list(centers_stations_in_audit.filter(
+                        center__office__region__id=region_id,
+                        center__constituency__id=constituency_id,
+                        center__sub_constituency__id=sub_constituency_id,)
+                    .annotate(
+                        station_id=station_id_query)
+                        .values_list('station_id', flat=True))
+
             if report_type == 'centers-and-stations-under-investigation':
                 self.request.session['station_ids'] =\
                     list(centers_stations_under_invg.filter(
                         center__office__region__id=region_id,
                         center__constituency__id=constituency_id,
                         center__sub_constituency__id=sub_constituency_id,)
-                    .annotate(
-                        station_id=station_id_query)
-                        .values_list('station_id', flat=True))\
-                    if constituency_id and sub_constituency_id else list(
-                        centers_stations_under_invg.filter(
-                            center__office__region__id=region_id,
-                            center__constituency__id=constituency_id,)
                     .annotate(
                         station_id=station_id_query)
                         .values_list('station_id', flat=True))
@@ -2984,13 +3047,6 @@ class SubConstituencyReportsView(LoginRequiredMixin,
                         center__office__region__id=region_id,
                         center__constituency__id=constituency_id,
                         center__sub_constituency__id=sub_constituency_id,)
-                    .annotate(
-                        station_id=station_id_query)
-                        .values_list('station_id', flat=True))\
-                    if constituency_id and sub_constituency_id else list(
-                        centers_stations_ex_after_invg.filter(
-                            center__office__region__id=region_id,
-                            center__constituency__id=constituency_id,)
                     .annotate(
                         station_id=station_id_query)
                         .values_list('station_id', flat=True))
@@ -3058,6 +3114,7 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                'race_number',
                'center_code',
                'station_number',
+               'station_id',
                'gender',
                'barcode',
                'race_type',
@@ -3115,6 +3172,9 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         elif column == 'station_number':
             return str('<td class="center">'
                        f'{row["station_number"]}</td>')
+        elif column == 'station_id':
+            return str('<td class="center">'
+                       f'{row["station_id"]}</td>')
         elif column == 'gender':
             return str('<td class="center">'
                        f'{row["gender"].name}</td>')
@@ -3201,6 +3261,7 @@ class DuplicateResultsListDataView(LoginRequiredMixin,
                'barcode',
                'state',
                'station_number',
+               'station_id',
                'votes')
 
     def filter_queryset(self, qs):
@@ -3246,6 +3307,9 @@ class DuplicateResultsListDataView(LoginRequiredMixin,
         elif column == 'station_number':
             return str('<td class="center">'
                        f'{row["station_number"]}</td>')
+        elif column == 'station_id':
+            return str('<td class="center">'
+                       f'{row["station_id"]}</td>')
         elif column == 'votes':
             return str('<td class="center">'
                        f'{row["votes"]}</td>')
@@ -3280,6 +3344,8 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
     group_required = groups.TALLY_MANAGER
     model = Ballot
     columns = ('ballot_number',
+               'center_code',
+               'station_id',
                'stations',
                'stations_completed',
                'stations_complete_percent',
@@ -3312,6 +3378,12 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
         if column == 'ballot_number':
             return str('<td class="center">'
                        f'{row["ballot_number"]}</td>')
+        if column == 'center_code':
+            return str('<td class="center">'
+                       f'{row["center_code"]}</td>')
+        if column == 'station_id':
+            return str('<td class="center">'
+                       f'{row["station_id"]}</td>')
         elif column == 'stations':
             return str('<td class="center">'
                        f'{row["stations"]}</td>')
@@ -3365,6 +3437,8 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
     group_required = groups.TALLY_MANAGER
     model = Ballot
     columns = ('ballot_number',
+               'center_code',
+               'station_id',
                'stations',
                'stations_completed',
                'stations_complete_percent',
@@ -3397,6 +3471,12 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
         if column == 'ballot_number':
             return str('<td class="center">'
                        f'{row["ballot_number"]}</td>')
+        elif column == 'center_code':
+            return str('<td class="center">'
+                       f'{row["center_code"]}</td>')
+        elif column == 'station_id':
+            return str('<td class="center">'
+                       f'{row["station_id"]}</td>')
         elif column == 'stations':
             return str('<td class="center">'
                        f'{row["stations"]}</td>')
