@@ -196,3 +196,11 @@ a.vertical-margin {
 table.select-max-width > tbody  > tr > td > select {
     width: 200px;
 }
+
+.dropdown-menu {
+	min-width: 16em !important;
+}
+
+.bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+	width: 100% !important;
+}
