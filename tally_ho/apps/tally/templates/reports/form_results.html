@@ -8,6 +8,7 @@
 <link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
 {% endblock %}
 
 {% block javascript %}
@@ -23,7 +24,7 @@
     <div id="report" class="row">
     <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">Centers</p>
-      <select id="centers" name="report_length" aria-controls="report" multiple>
+      <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
         {% for center in centers %}
           <option value={{center.id}}>{{center.name}}</option>
         {% endfor %}
@@ -31,19 +32,18 @@
     </div>
     <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">Stations</p>
-      <select id="stations" name="report_length" aria-controls="report" multiple>
+      <select class="selectpicker" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
         {% for station in stations %}
-          <option value={{station.id}}>{{station.name}}</option>
+          <option value={{station.id}}>{{station.id}}</option>
         {% endfor %}
       </select>
     </div>
     <div class="col-sm-4">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title" style="text-align: left;">Filter Results</h5>
-          <p class="card-text" style="text-align: left;">Filter out Centers and Stations from results. Press ctrl/cmd key to select/deselect multiple options.</p>
+          <p class="card-text" style="text-align: left;">Filter out Centers and Stations from results.</p>
           <button style="float: left;" id="filter-report" class="btn btn-default btn-small">Apply</button>
-          <button style="float: left; margin-left: 1em;" id="reset" class="btn btn-default btn-small">Reset</button>
+          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">Reset</a>
         </div>
       </div>
     </div>
@@ -55,7 +55,8 @@
         <th>{% trans 'Ballot' %}</th>
         <th>{% trans 'Race Number' %}</th>
         <th>{% trans 'Center' %}</th>
-        <th>{% trans 'Station' %}</th>
+        <th>{% trans 'Station Number' %}</th>
+        <th>{% trans 'Station ID' %}</th>
         <th>{% trans 'Gender' %}</th>
         <th>{% trans 'Barcode' %}</th>
         <th>{% trans 'Race Type' %}</th>

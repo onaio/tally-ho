@@ -8,6 +8,7 @@
 <link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
 {% endblock %}
 
 {% block javascript %}
@@ -23,7 +24,7 @@
     <div id="report" class="row">
     <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">Centers</p>
-      <select id="select-1" name="report_length" aria-controls="report" multiple>
+      <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
         {% for center in centers %}
           <option value={{center.id}}>{{center.name}}</option>
         {% endfor %}
@@ -31,13 +32,21 @@
     </div>
     <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">Stations</p>
-      <select id="select-2" name="report_length" aria-controls="report" multiple>
+      <select class="selectpicker" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
         {% for station in stations %}
-          <option value={{station.id}}>{{station.name}}</option>
+          <option value={{station.id}}>{{station.id}}</option>
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-2"><button id="filter-report" class="btn btn-default btn-small">Apply</button></div>
+    <div class="col-sm-4">
+      <div class="card">
+        <div class="card-body">
+          <p class="card-text" style="text-align: left;">Filter out Centers and Stations from report.</p>
+          <button style="float: left;" id="filter-report" class="btn btn-default btn-small">Apply</button>
+          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">Reset</a>
+        </div>
+      </div>
+    </div>
   </div>
 </caption>
 <br>
@@ -47,7 +56,8 @@
         <th>{% trans 'Center' %}</th>
         <th>{% trans 'Barcode' %}</th>
         <th>{% trans 'State' %}</th>
-        <th>{% trans 'Station' %}</th>
+        <th>{% trans 'Station Number' %}</th>
+        <th>{% trans 'Station ID' %}</th>
         <th>{% trans 'Votes' %}</th>
       </tr>
   </thead>
