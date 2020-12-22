@@ -1516,12 +1516,6 @@ def build_select_options(qs, ids=[]):
                 list(qs)]
 
 
-def build_ul_li(qs):
-    return [str(
-        '<li class=""><a role="option" class="dropdown-item" id="bs-select-1-0" tabindex="0" aria-selected="false" aria-setsize="1" aria-posinset="1"><span class=" bs-ok-default check-mark"></span><span class="text">'f'{item.name}''</span></a></li>') for item in
-                list(qs)]
-
-
 class TurnoutReportDataView(LoginRequiredMixin,
                             mixins.GroupRequiredMixin,
                             mixins.TallyAccessMixin,
@@ -1655,7 +1649,6 @@ class TurnoutReportDataView(LoginRequiredMixin,
             sub_constituencies =\
                 build_select_options(
                     qs, ids=region_sub_cons_ids)
-            # sub_constituencies_li_list = build_ul_li(qs)
             return str('<td class="center">'
                        '<select style="min-width: 6em;"'
                        f'{disabled}'
@@ -1844,7 +1837,6 @@ class SummaryReportDataView(LoginRequiredMixin,
                     qs, ids=region_sub_cons_ids)
             return str('<td class="center">'
                        '<select style="min-width: 6em !important;"'
-                       'class="selectpicker" data-actions-box="true" '
                        f'{disabled}'
                        ' id="select-2" multiple'
                        ' data-id='f'{row["admin_area_id"]}''>'
