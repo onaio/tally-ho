@@ -34,9 +34,9 @@ class StationProgressListDataView(LoginRequiredMixin,
         station_pks = ResultForm.objects.filter(
             form_state=FormState.ARCHIVED,
             tally__id=tally_id
-        ).values_list('station_number', flat=True)
+        ).values_list('center__stations__id', flat=True)
 
-        qs = qs.filter(station_number__in=station_pks, tally__id=tally_id)
+        qs = qs.filter(id__in=station_pks, tally__id=tally_id)
 
         keyword = self.request.GET.get('search[value]', None)
 
