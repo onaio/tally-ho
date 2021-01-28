@@ -3363,7 +3363,14 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
                     qs=qs)
 
         if keyword:
-            qs = qs.filter(Q(candidates__full_name__contains=keyword))
+            qs = qs.filter(
+                Q(full_name__contains=keyword) |
+                Q(total_votes__contains=keyword) |
+                Q(candidate_votes_included_quarantine__contains=keyword) |
+                Q(stations_completed__contains=keyword) |
+                Q(ballot_number__contains=keyword) |
+                Q(center_code__contains=keyword) |
+                Q(station_id__contains=keyword))
         return qs
 
     def render_column(self, row, column):
