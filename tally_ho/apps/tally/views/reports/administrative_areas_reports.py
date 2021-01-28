@@ -6,7 +6,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
 from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper,\
-    IntegerField, CharField, Func, FloatField, Value as V, Subquery, OuterRef
+    IntegerField, CharField, Value as V, Subquery, OuterRef
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
@@ -18,14 +18,13 @@ from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
+from tally_ho.apps.tally.models.all_candidates_votes import AllCandidatesVotes
 from tally_ho.apps.tally.views.super_admin import (
     get_result_form_with_duplicate_results)
-from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.utils.query_set_helpers import Round
 
 report_types = {1: "turnout",
                 2: "summary",
@@ -821,13 +820,11 @@ def duplicate_results_queryset(
 
 
 def candidates_votes_queryset(
-        tally_id,
         qs,
         data=None):
     """
     Genarate a report of candidates votes per ballot.
 
-    :param tally_id: The Tally id.
     :param qs: The ballot queryset.
     :param data: An array of dicts containing centers and stations
         id's to filter out from the queryset.
@@ -835,190 +832,15 @@ def candidates_votes_queryset(
     returns: The ballot queryset containing candidates votes grouped by
         candidate name.
     """
-    template = '%(function)s(%(expressions)s AS FLOAT)'
-    stations_completed =\
-        Func(F('stations_completed'), function='CAST', template=template)
-    stations = Func(F('stations'), function='CAST', template=template)
-    ew = Round((100 * stations_completed/stations), digits=3)
-    station_id_query =\
-        Subquery(
-            Station.objects.filter(
-                tally__id=tally_id,
-                center__code=OuterRef('resultform__center__code'),
-                station_number=OuterRef('resultform__station_number'))
-            .values('id')[:1],
-            output_field=IntegerField())
-
     if data:
         selected_center_ids =\
             data['select_1_ids'] if len(data['select_1_ids']) else [0]
         selected_station_ids =\
             data['select_2_ids'] if len(data['select_2_ids']) else [0]
 
-        qs = qs.annotate(station_ids=station_id_query)
-
         qs = qs\
-            .filter(
-                ~Q(resultform__center__id__in=selected_center_ids) &
-                ~Q(station_ids__in=selected_station_ids))
-
-        candidate_votes_query =\
-            Subquery(
-                Result.objects.filter(
-                    candidate__id=OuterRef('candidate_id'),
-                    entry_version=EntryVersion.FINAL,
-                    result_form__form_state=FormState.ARCHIVED,
-                    active=True).annotate(
-                        candidate_votes=Case(
-                            When(votes__isnull=False,
-                                 then=F('votes')),
-                            default=V(0),
-                            output_field=IntegerField())).values(
-                                'candidate_votes'
-                )[:1], output_field=IntegerField())
-
-        all_candidate_votes_query =\
-            Subquery(
-                Result.objects.filter(
-                    candidate__id=OuterRef('candidate_id'),
-                    entry_version=EntryVersion.FINAL,
-                    active=True).filter(
-                        Q(result_form__form_state=FormState.ARCHIVED) |
-                        Q(result_form__form_state=FormState.AUDIT)
-                    ).annotate(
-                        candidate_votes=Case(
-                            When(votes__isnull=False,
-                                 then=F('votes')),
-                            default=V(0),
-                            output_field=IntegerField())).values(
-                                'candidate_votes'
-                )[:1], output_field=IntegerField())
-
-        qs = qs\
-            .values('candidates__full_name')\
-            .annotate(
-                ballot_number=F('number'),
-                candidate_id=F('candidates__id'),
-                stations=Count(
-                    'resultform__set',
-                    filter=Q(resultform__tally__id=tally_id,
-                             resultform__center__isnull=False,
-                             resultform__station_number__isnull=False,
-                             resultform__ballot__isnull=False)
-                ),
-                center_code=F('resultform__center__code'),
-                station_id=station_id_query,
-                stations_completed=Count(
-                    'resultform__set',
-                    filter=Q(
-                        resultform__tally__id=tally_id,
-                        resultform__center__isnull=False,
-                        resultform__station_number__isnull=False,
-                        resultform__ballot__isnull=False,
-                        resultform__form_state=FormState.ARCHIVED)
-                ),
-                votes=candidate_votes_query,
-                total_votes=Case(
-                    When(
-                        votes__isnull=False,
-                        then=F('votes')
-                    ),
-                    default=V(0),
-                    output_field=IntegerField()
-                ),
-                all_candidate_votes=all_candidate_votes_query,
-                candidate_votes_included_quarantine=Case(
-                    When(
-                        all_candidate_votes__isnull=False,
-                        then=F('all_candidate_votes')
-                    ),
-                    default=V(0),
-                    output_field=IntegerField()
-                ),
-                stations_complete_percent=Case(
-                    When(stations__gt=0, then=ew),
-                    default=V(0),
-                    output_field=FloatField()
-                ))
-    else:
-        candidate_votes_query =\
-            Subquery(
-                Result.objects.filter(
-                    candidate__id=OuterRef('candidate_id'),
-                    entry_version=EntryVersion.FINAL,
-                    result_form__form_state=FormState.ARCHIVED,
-                    active=True).annotate(
-                        candidate_votes=Case(
-                            When(votes__isnull=False,
-                                 then=F('votes')),
-                            default=V(0),
-                            output_field=IntegerField())).values(
-                                'candidate_votes'
-                            )[:1], output_field=IntegerField())
-
-        all_candidate_votes_query =\
-            Subquery(
-                Result.objects.filter(
-                    candidate__id=OuterRef('candidate_id'),
-                    entry_version=EntryVersion.FINAL,
-                    active=True).filter(
-                        Q(result_form__form_state=FormState.ARCHIVED) |
-                        Q(result_form__form_state=FormState.AUDIT)
-                ).annotate(
-                        candidate_votes=Case(
-                            When(votes__isnull=False,
-                                 then=F('votes')),
-                            default=V(0),
-                            output_field=IntegerField())).values(
-                                'candidate_votes'
-                )[:1], output_field=IntegerField())
-
-        qs = qs\
-            .values('candidates__full_name')\
-            .annotate(
-                ballot_number=F('number'),
-                candidate_id=F('candidates__id'),
-                stations=Count(
-                    'resultform__set',
-                    filter=Q(resultform__tally__id=tally_id,
-                             resultform__center__isnull=False,
-                             resultform__station_number__isnull=False,
-                             resultform__ballot__isnull=False)
-                    ),
-                center_code=F('resultform__center__code'),
-                station_id=station_id_query,
-                stations_completed=Count(
-                    'resultform__set',
-                    filter=Q(
-                        resultform__tally__id=tally_id,
-                        resultform__center__isnull=False,
-                        resultform__station_number__isnull=False,
-                        resultform__ballot__isnull=False,
-                        resultform__form_state=FormState.ARCHIVED)
-                    ),
-                votes=candidate_votes_query,
-                total_votes=Case(
-                    When(
-                        votes__isnull=False,
-                        then=F('votes')
-                    ),
-                    default=V(0),
-                    output_field=IntegerField()
-                ),
-                all_candidate_votes=all_candidate_votes_query,
-                candidate_votes_included_quarantine=Case(
-                    When(
-                        all_candidate_votes__isnull=False,
-                        then=F('all_candidate_votes')
-                    ),
-                    default=V(0),
-                    output_field=IntegerField()
-                ),
-                stations_complete_percent=Case(
-                    When(stations__gt=0, then=ew),
-                    default=V(0),
-                    output_field=FloatField()
-                ))
+            .filter(~Q(center_id__in=selected_center_ids) &
+                    ~Q(station_id__in=selected_station_ids))
 
     return qs
 
@@ -3147,7 +2969,10 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
 
         if keyword:
             qs = qs.filter(Q(candidate_name__contains=keyword) |
-                           Q(total_votes=keyword))
+                           Q(barcode__contains=keyword) |
+                           Q(total_votes__contains=keyword) |
+                           Q(station_id__contains=keyword) |
+                           Q(center_code__contains=keyword))
         return qs
 
     def render_column(self, row, column):
@@ -3268,19 +3093,21 @@ class DuplicateResultsListDataView(LoginRequiredMixin,
                 tally_id=tally_id,
                 qs=qs)
 
-        if data:
-            qs = duplicate_results_queryset(
-                    tally_id=tally_id,
-                    qs=duplicate_result_forms,
-                    data=ast.literal_eval(data))
-        else:
-            qs = duplicate_results_queryset(
-                    tally_id=tally_id,
-                    qs=duplicate_result_forms)
+        qs = duplicate_results_queryset(
+                tally_id=tally_id,
+                qs=duplicate_result_forms,
+                data=ast.literal_eval(data)) if data\
+            else duplicate_results_queryset(
+                        tally_id=tally_id,
+                        qs=duplicate_result_forms)
 
         if keyword:
-            qs = qs.filter(Q(ballot_number__contains=keyword) |
-                           Q(votes__contains=keyword))
+            qs = qs.filter(Q(votes__contains=keyword) |
+                           Q(barcode__contains=keyword) |
+                           Q(ballot_number__contains=keyword) |
+                           Q(station_id__contains=keyword) |
+                           Q(center_code__contains=keyword) |
+                           Q(state__contains=keyword))
         return qs
 
     def render_column(self, row, column):
@@ -3334,14 +3161,14 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
                                  mixins.TallyAccessMixin,
                                  BaseDatatableView):
     group_required = groups.TALLY_MANAGER
-    model = Ballot
+    model = AllCandidatesVotes
     columns = ('ballot_number',
                'center_code',
                'station_id',
                'stations',
                'stations_completed',
                'stations_complete_percent',
-               'candidates__full_name',
+               'full_name',
                'total_votes',
                'candidate_votes_included_quarantine')
 
@@ -3349,18 +3176,27 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         data = self.request.POST.get('data')
         keyword = self.request.GET.get('search[value]')
+        qs =\
+            qs.filter(
+                tally_id=tally_id,
+                full_name__isnull=False)\
+            .values('ballot_number',
+                    'center_code',
+                    'station_id',
+                    'stations',
+                    'full_name',
+                    'stations_completed',
+                    'votes',
+                    'total_votes',
+                    'all_candidate_votes',
+                    'candidate_votes_included_quarantine',
+                    'stations_complete_percent')
 
-        qs = qs.filter(tally__id=tally_id)
-
-        if data:
-            qs = candidates_votes_queryset(
-                    tally_id=tally_id,
-                    qs=qs,
-                    data=ast.literal_eval(data))
-        else:
-            qs = candidates_votes_queryset(
-                    tally_id=tally_id,
-                    qs=qs)
+        qs = candidates_votes_queryset(
+            qs=qs,
+            data=ast.literal_eval(data))\
+            if data else candidates_votes_queryset(
+            qs=qs)
 
         if keyword:
             qs = qs.filter(
@@ -3377,10 +3213,10 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
         if column == 'ballot_number':
             return str('<td class="center">'
                        f'{row["ballot_number"]}</td>')
-        if column == 'center_code':
+        elif column == 'center_code':
             return str('<td class="center">'
                        f'{row["center_code"]}</td>')
-        if column == 'station_id':
+        elif column == 'station_id':
             return str('<td class="center">'
                        f'{row["station_id"]}</td>')
         elif column == 'stations':
@@ -3391,10 +3227,10 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
                        f'{row["stations_completed"]}</td>')
         elif column == 'stations_complete_percent':
             return str('<td class="center">'
-                       f'{row["stations_complete_percent"]}</td>')
-        elif column == 'candidates__full_name':
+                       f'{float(row["stations_complete_percent"])}</td>')
+        elif column == 'full_name':
             return str('<td class="center">'
-                       f'{row["candidates__full_name"]}</td>')
+                       f'{row["full_name"]}</td>')
         elif column == 'total_votes':
             return str('<td class="center">'
                        f'{row["total_votes"]}</td>')
@@ -3434,14 +3270,14 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
                                     mixins.TallyAccessMixin,
                                     BaseDatatableView):
     group_required = groups.TALLY_MANAGER
-    model = Ballot
+    model = AllCandidatesVotes
     columns = ('ballot_number',
                'center_code',
                'station_id',
                'stations',
                'stations_completed',
                'stations_complete_percent',
-               'candidates__full_name',
+               'full_name',
                'total_votes',
                'candidate_votes_included_quarantine')
 
@@ -3450,16 +3286,29 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
         data = self.request.POST.get('data')
         keyword = self.request.GET.get('search[value]')
 
-        qs = qs.filter(tally__id=tally_id, candidates__active=True)
+        qs =\
+            qs.filter(
+                tally_id=tally_id,
+                candidate_active=True,
+                full_name__isnull=False)\
+            .values('ballot_number',
+                    'center_code',
+                    'station_id',
+                    'stations',
+                    'full_name',
+                    'stations_completed',
+                    'votes',
+                    'total_votes',
+                    'all_candidate_votes',
+                    'candidate_votes_included_quarantine',
+                    'stations_complete_percent')
 
         if data:
             qs = candidates_votes_queryset(
-                    tally_id=tally_id,
                     qs=qs,
                     data=ast.literal_eval(data))
         else:
             qs = candidates_votes_queryset(
-                    tally_id=tally_id,
                     qs=qs)
 
         if keyword:
@@ -3491,10 +3340,10 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
                        f'{row["stations_completed"]}</td>')
         elif column == 'stations_complete_percent':
             return str('<td class="center">'
-                       f'{row["stations_complete_percent"]}</td>')
-        elif column == 'candidates__full_name':
+                       f'{float(row["stations_complete_percent"])}</td>')
+        elif column == 'full_name':
             return str('<td class="center">'
-                       f'{row["candidates__full_name"]}</td>')
+                       f'{row["full_name"]}</td>')
         elif column == 'total_votes':
             return str('<td class="center">'
                        f'{row["total_votes"]}</td>')
