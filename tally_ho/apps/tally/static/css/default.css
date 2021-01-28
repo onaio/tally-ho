@@ -204,3 +204,8 @@ table.select-max-width > tbody  > tr > td > select {
 .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
 	width: 100% !important;
 }
+
+table.dataTable tbody tr:first-child td:first-child {
+	display: flex;
+  margin-top: 0.7em;
+}
