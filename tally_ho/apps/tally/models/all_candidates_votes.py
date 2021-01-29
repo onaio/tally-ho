@@ -15,7 +15,7 @@ class AllCandidatesVotes(models.Model):
     stations = models.PositiveIntegerField(default=0)
     center_id = models.IntegerField()
     center_code = models.IntegerField()
-    station_number = models.IntegerField()
+    station_number = models.PositiveSmallIntegerField(blank=True, null=True)
     station_id = models.IntegerField()
     stations_completed = models.PositiveIntegerField(default=0)
     votes = models.PositiveIntegerField(default=0)
