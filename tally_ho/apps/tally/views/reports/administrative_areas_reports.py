@@ -3164,6 +3164,7 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
     model = AllCandidatesVotes
     columns = ('ballot_number',
                'center_code',
+               'station_number',
                'station_id',
                'stations',
                'stations_completed',
@@ -3181,6 +3182,7 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
                 tally_id=tally_id,
                 full_name__isnull=False)\
             .values('ballot_number',
+                    'station_number',
                     'center_code',
                     'station_id',
                     'stations',
@@ -3206,6 +3208,7 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
                 Q(stations_completed__contains=keyword) |
                 Q(ballot_number__contains=keyword) |
                 Q(center_code__contains=keyword) |
+                Q(station_number__contains=keyword) |
                 Q(station_id__contains=keyword))
         return qs
 
@@ -3219,6 +3222,9 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
         elif column == 'station_id':
             return str('<td class="center">'
                        f'{row["station_id"]}</td>')
+        elif column == 'station_number':
+            return str('<td class="center">'
+                       f'{row["station_number"]}</td>')
         elif column == 'stations':
             return str('<td class="center">'
                        f'{row["stations"]}</td>')
@@ -3273,6 +3279,7 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
     model = AllCandidatesVotes
     columns = ('ballot_number',
                'center_code',
+               'station_number',
                'station_id',
                'stations',
                'stations_completed',
@@ -3293,6 +3300,7 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
                 full_name__isnull=False)\
             .values('ballot_number',
                     'center_code',
+                    'station_number',
                     'station_id',
                     'stations',
                     'full_name',
@@ -3319,7 +3327,8 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
                 Q(stations_completed__contains=keyword) |
                 Q(ballot_number__contains=keyword) |
                 Q(center_code__contains=keyword) |
-                Q(station_id__contains=keyword))
+                Q(station_id__contains=keyword) |
+                Q(station_number__contains=keyword))
         return qs
 
     def render_column(self, row, column):
@@ -3332,6 +3341,9 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
         elif column == 'station_id':
             return str('<td class="center">'
                        f'{row["station_id"]}</td>')
+        elif column == 'station_number':
+            return str('<td class="center">'
+                       f'{row["station_number"]}</td>')
         elif column == 'stations':
             return str('<td class="center">'
                        f'{row["stations"]}</td>')
