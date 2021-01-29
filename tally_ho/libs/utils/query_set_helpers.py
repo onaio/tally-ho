@@ -111,6 +111,7 @@ def build_all_candidates_votes_queryset():
                 ),
             center_code=result_form_center_code_sub_query,
             center_id=result_form_center_id_sub_query,
+            station_number=F('ballots__resultform__station_number'),
             station_id=station_id_query,
             stations_completed=Count(
                 'ballots__resultform__set',
