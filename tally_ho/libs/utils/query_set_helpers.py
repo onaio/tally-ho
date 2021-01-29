@@ -1,3 +1,4 @@
+from django.db import transaction, connection
 from django.db.models import ExpressionWrapper, Count, Q, F, FloatField,\
     Func, Subquery, OuterRef, Case, IntegerField, When, Value as V
 from tally_ho.apps.tally.models.tally import Tally
@@ -147,3 +148,10 @@ def build_all_candidates_votes_queryset():
             ))
 
     return qs
+
+
+@transaction.atomic
+def refresh_all_candidates_votes_materiliazed_view():
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "REFRESH MATERIALIZED VIEW CONCURRENTLY tally_allcandidatesvotes")
