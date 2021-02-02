@@ -209,3 +209,7 @@ table.dataTable tbody tr:first-child td:first-child {
 	display: flex;
   margin-top: 0.7em;
 }
+
+.bootstrap-select>.dropdown-toggle {
+	white-space: normal !important;
+}
