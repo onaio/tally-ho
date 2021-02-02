@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
+
 import reversion
 
 
@@ -13,10 +15,9 @@ class AllCandidatesVotes(models.Model):
     candidate_id = models.IntegerField()
     candidate_active = models.BooleanField(default=False)
     stations = models.PositiveIntegerField(default=0)
-    center_id = models.IntegerField()
-    center_code = models.IntegerField()
-    station_number = models.PositiveSmallIntegerField(blank=True, null=True)
-    station_id = models.IntegerField()
+    center_ids = ArrayField(models.IntegerField())
+    station_numbers = ArrayField(models.PositiveSmallIntegerField(
+        blank=True, null=True))
     stations_completed = models.PositiveIntegerField(default=0)
     votes = models.PositiveIntegerField(default=0)
     total_votes = models.PositiveIntegerField(default=0)
