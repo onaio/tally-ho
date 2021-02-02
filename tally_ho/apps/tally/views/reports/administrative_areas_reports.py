@@ -819,17 +819,17 @@ def duplicate_results_queryset(
     return qs
 
 
-def candidates_votes_queryset(
+def filter_candidates_votes_queryset(
         qs,
         data=None):
     """
-    Genarate a report of candidates votes per ballot.
+    Filter candidates votes report.
 
-    :param qs: The ballot queryset.
+    :param qs: The votes queryset.
     :param data: An array of dicts containing centers and stations
         id's to filter out from the queryset.
 
-    returns: The ballot queryset containing candidates votes grouped by
+    returns: The queryset containing candidates votes grouped by
         candidate name.
     """
     if data:
@@ -837,10 +837,7 @@ def candidates_votes_queryset(
             data['select_1_ids'] if len(data['select_1_ids']) else [0]
         selected_station_ids =\
             data['select_2_ids'] if len(data['select_2_ids']) else [0]
-
-        qs = qs\
-            .filter(~Q(center_id__in=selected_center_ids) &
-                    ~Q(station_id__in=selected_station_ids))
+        qs = qs.filter(~Q(center_ids__contains=selected_center_ids))
 
     return qs
 
@@ -3163,9 +3160,6 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
     group_required = groups.TALLY_MANAGER
     model = AllCandidatesVotes
     columns = ('ballot_number',
-               'center_code',
-               'station_number',
-               'station_id',
                'stations',
                'stations_completed',
                'stations_complete_percent',
@@ -3177,28 +3171,20 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         data = self.request.POST.get('data')
         keyword = self.request.GET.get('search[value]')
-        qs =\
-            qs.filter(
-                tally_id=tally_id,
-                full_name__isnull=False)\
-            .values('ballot_number',
-                    'station_number',
-                    'center_code',
-                    'station_id',
-                    'stations',
-                    'full_name',
-                    'stations_completed',
-                    'votes',
-                    'total_votes',
-                    'all_candidate_votes',
-                    'candidate_votes_included_quarantine',
-                    'stations_complete_percent')
+        qs = qs.values('ballot_number',
+                       'stations',
+                       'stations_completed',
+                       'stations_complete_percent',
+                       'full_name',
+                       'total_votes',
+                       'candidate_votes_included_quarantine',
+                       'center_ids',
+                       'station_numbers').filter(tally_id=tally_id)
 
-        qs = candidates_votes_queryset(
-            qs=qs,
-            data=ast.literal_eval(data))\
-            if data else candidates_votes_queryset(
-            qs=qs)
+        if data:
+            qs = filter_candidates_votes_queryset(
+                    qs=qs,
+                    data=ast.literal_eval(data))\
 
         if keyword:
             qs = qs.filter(
@@ -3206,25 +3192,14 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
                 Q(total_votes__contains=keyword) |
                 Q(candidate_votes_included_quarantine__contains=keyword) |
                 Q(stations_completed__contains=keyword) |
-                Q(ballot_number__contains=keyword) |
-                Q(center_code__contains=keyword) |
-                Q(station_number__contains=keyword) |
-                Q(station_id__contains=keyword))
+                Q(ballot_number__contains=keyword))
+
         return qs
 
     def render_column(self, row, column):
         if column == 'ballot_number':
             return str('<td class="center">'
                        f'{row["ballot_number"]}</td>')
-        elif column == 'center_code':
-            return str('<td class="center">'
-                       f'{row["center_code"]}</td>')
-        elif column == 'station_id':
-            return str('<td class="center">'
-                       f'{row["station_id"]}</td>')
-        elif column == 'station_number':
-            return str('<td class="center">'
-                       f'{row["station_number"]}</td>')
         elif column == 'stations':
             return str('<td class="center">'
                        f'{row["stations"]}</td>')
@@ -3233,7 +3208,7 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
                        f'{row["stations_completed"]}</td>')
         elif column == 'stations_complete_percent':
             return str('<td class="center">'
-                       f'{float(row["stations_complete_percent"])}</td>')
+                       f'{row["stations_complete_percent"]}</td>')
         elif column == 'full_name':
             return str('<td class="center">'
                        f'{row["full_name"]}</td>')
@@ -3278,9 +3253,6 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
     group_required = groups.TALLY_MANAGER
     model = AllCandidatesVotes
     columns = ('ballot_number',
-               'center_code',
-               'station_number',
-               'station_id',
                'stations',
                'stations_completed',
                'stations_complete_percent',
@@ -3293,31 +3265,21 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
         data = self.request.POST.get('data')
         keyword = self.request.GET.get('search[value]')
 
-        qs =\
-            qs.filter(
-                tally_id=tally_id,
-                candidate_active=True,
-                full_name__isnull=False)\
-            .values('ballot_number',
-                    'center_code',
-                    'station_number',
-                    'station_id',
-                    'stations',
-                    'full_name',
-                    'stations_completed',
-                    'votes',
-                    'total_votes',
-                    'all_candidate_votes',
-                    'candidate_votes_included_quarantine',
-                    'stations_complete_percent')
+        qs = qs.values('ballot_number',
+                       'stations',
+                       'stations_completed',
+                       'stations_complete_percent',
+                       'full_name',
+                       'total_votes',
+                       'candidate_votes_included_quarantine',
+                       'center_ids',
+                       'station_numbers').filter(tally_id=tally_id,
+                                                 candidate_active=True)
 
         if data:
-            qs = candidates_votes_queryset(
+            qs = filter_candidates_votes_queryset(
                     qs=qs,
-                    data=ast.literal_eval(data))
-        else:
-            qs = candidates_votes_queryset(
-                    qs=qs)
+                    data=ast.literal_eval(data))\
 
         if keyword:
             qs = qs.filter(
@@ -3325,25 +3287,14 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
                 Q(total_votes__contains=keyword) |
                 Q(candidate_votes_included_quarantine__contains=keyword) |
                 Q(stations_completed__contains=keyword) |
-                Q(ballot_number__contains=keyword) |
-                Q(center_code__contains=keyword) |
-                Q(station_id__contains=keyword) |
-                Q(station_number__contains=keyword))
+                Q(ballot_number__contains=keyword))
+
         return qs
 
     def render_column(self, row, column):
         if column == 'ballot_number':
             return str('<td class="center">'
                        f'{row["ballot_number"]}</td>')
-        elif column == 'center_code':
-            return str('<td class="center">'
-                       f'{row["center_code"]}</td>')
-        elif column == 'station_id':
-            return str('<td class="center">'
-                       f'{row["station_id"]}</td>')
-        elif column == 'station_number':
-            return str('<td class="center">'
-                       f'{row["station_number"]}</td>')
         elif column == 'stations':
             return str('<td class="center">'
                        f'{row["stations"]}</td>')
@@ -3352,7 +3303,7 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
                        f'{row["stations_completed"]}</td>')
         elif column == 'stations_complete_percent':
             return str('<td class="center">'
-                       f'{float(row["stations_complete_percent"])}</td>')
+                       f'{row["stations_complete_percent"]}</td>')
         elif column == 'full_name':
             return str('<td class="center">'
                        f'{row["full_name"]}</td>')
