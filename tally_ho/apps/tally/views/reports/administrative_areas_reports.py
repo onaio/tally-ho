@@ -3261,7 +3261,8 @@ class AllCandidatesVotesListView(LoginRequiredMixin,
             stations=stations,
             centers=centers,
             title=_(u'All Candidates Votes'),
-            export_file_name=_(u'all_candidates_votes')
+            export_file_name=_(u'all_candidates_votes'),
+            get_centers_stations_url='/ajax/get-centers-stations/'
         ))
 
 
@@ -3356,5 +3357,6 @@ class ActiveCandidatesVotesListView(LoginRequiredMixin,
             stations=stations,
             centers=centers,
             title=_(u'Active Candidates Votes'),
-            export_file_name=_(u'active_candidates_votes')
+            export_file_name=_(u'active_candidates_votes'),
+            get_centers_stations_url='/ajax/get-centers-stations/'
         ))
