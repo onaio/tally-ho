@@ -13,6 +13,31 @@
 
 {% block javascript %}
 {% include "data/table.html" with export_file_name=export_file_name server_side=True  %}
+<script>
+  $('#centers').change(function () {
+    const center_ids = $('.selectpicker').val();
+
+    if(center_ids) {
+      $.ajax({
+        url: '{{ get_centers_stations_url }}',
+        data: { data: JSON.stringify({
+          'center_ids': center_ids,
+          'tally_id': '{{ tally_id }}'
+        }) },
+        traditional: true,
+        dataType: 'json',
+        success: data => {
+          const { station_ids } = data;
+          $('.center-stations').selectpicker('val', station_ids);
+        }
+      });
+    } else {
+      $('.center-stations').selectpicker('deselectAll');
+      $('.center-stations').selectpicker('refresh');
+    }
+  });
+
+</script>
 {% endblock %}
 {% block content %}
 
@@ -32,7 +57,7 @@
     </div>
     <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">Stations</p>
-      <select class="selectpicker" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
+      <select class="selectpicker center-stations" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
         {% for station in stations %}
           <option value={{station.id}}>{{station.id}}</option>
         {% endfor %}
