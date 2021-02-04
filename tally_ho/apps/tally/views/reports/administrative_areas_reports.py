@@ -3178,13 +3178,13 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
                                  BaseDatatableView):
     group_required = groups.TALLY_MANAGER
     model = AllCandidatesVotes
-    columns = ('ballot_number',
+    columns = ('full_name',
+               'total_votes',
+               'candidate_votes_included_quarantine',
                'stations',
                'stations_completed',
                'stations_complete_percent',
-               'full_name',
-               'total_votes',
-               'candidate_votes_included_quarantine')
+               'ballot_number')
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
@@ -3272,13 +3272,13 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
                                     BaseDatatableView):
     group_required = groups.TALLY_MANAGER
     model = AllCandidatesVotes
-    columns = ('ballot_number',
+    columns = ('full_name',
+               'total_votes',
+               'candidate_votes_included_quarantine',
                'stations',
                'stations_completed',
                'stations_complete_percent',
-               'full_name',
-               'total_votes',
-               'candidate_votes_included_quarantine')
+               'ballot_number')
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
