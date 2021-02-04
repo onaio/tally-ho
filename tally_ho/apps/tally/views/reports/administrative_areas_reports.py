@@ -3,13 +3,14 @@ from django.views.generic import TemplateView
 from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.http import JsonResponse
 from guardian.mixins import LoginRequiredMixin
-
 from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper,\
     IntegerField, CharField, Value as V, Subquery, OuterRef
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
+
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.constituency import Constituency
@@ -24,7 +25,6 @@ from tally_ho.apps.tally.views.super_admin import (
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
-from tally_ho.libs.models.enums.form_state import FormState
 
 report_types = {1: "turnout",
                 2: "summary",
@@ -1333,6 +1333,25 @@ def build_select_options(qs, ids=[]):
     return [str(
                 '<option 'f'{select if str(item.id) in ids else ""}'' value='f'{item.id}''>'f'{item.name}''</option>') for item in
                 list(qs)]
+
+
+def get_centers_stations(request):
+    """
+    Retrieves stations that belong to the centers available in the request.
+
+    :param request: The request object containing the list of center ids.
+
+    returns: A JSON response of the centers stations ids
+    """
+    data = ast.literal_eval(request.GET.get('data'))
+    center_ids = data.get('center_ids')
+    tally_id = data.get('tally_id')
+
+    return JsonResponse({
+        'station_ids': list(Station.objects.filter(
+            tally__id=tally_id,
+            center__id__in=center_ids).values_list('id', flat=True))
+    })
 
 
 class TurnoutReportDataView(LoginRequiredMixin,
