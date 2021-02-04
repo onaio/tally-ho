@@ -3216,9 +3216,15 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
         return qs
 
     def render_column(self, row, column):
-        if column == 'ballot_number':
+        if column == 'full_name':
             return str('<td class="center">'
-                       f'{row["ballot_number"]}</td>')
+                       f'{row["full_name"]}</td>')
+        elif column == 'total_votes':
+            return str('<td class="center">'
+                       f'{row["total_votes"]}</td>')
+        elif column == 'candidate_votes_included_quarantine':
+            return str('<td class="center">'
+                       f'{row["candidate_votes_included_quarantine"]}</td>')
         elif column == 'stations':
             return str('<td class="center">'
                        f'{row["stations"]}</td>')
@@ -3228,15 +3234,9 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
         elif column == 'stations_complete_percent':
             return str('<td class="center">'
                        f'{row["stations_complete_percent"]}</td>')
-        elif column == 'full_name':
+        elif column == 'ballot_number':
             return str('<td class="center">'
-                       f'{row["full_name"]}</td>')
-        elif column == 'total_votes':
-            return str('<td class="center">'
-                       f'{row["total_votes"]}</td>')
-        elif column == 'candidate_votes_included_quarantine':
-            return str('<td class="center">'
-                       f'{row["candidate_votes_included_quarantine"]}</td>')
+                       f'{row["ballot_number"]}</td>')
         else:
             return super(
                 AllCandidatesVotesDataView,
@@ -3312,9 +3312,15 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
         return qs
 
     def render_column(self, row, column):
-        if column == 'ballot_number':
+        if column == 'full_name':
             return str('<td class="center">'
-                       f'{row["ballot_number"]}</td>')
+                       f'{row["full_name"]}</td>')
+        elif column == 'total_votes':
+            return str('<td class="center">'
+                       f'{row["total_votes"]}</td>')
+        elif column == 'candidate_votes_included_quarantine':
+            return str('<td class="center">'
+                       f'{row["candidate_votes_included_quarantine"]}</td>')
         elif column == 'stations':
             return str('<td class="center">'
                        f'{row["stations"]}</td>')
@@ -3324,15 +3330,9 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
         elif column == 'stations_complete_percent':
             return str('<td class="center">'
                        f'{row["stations_complete_percent"]}</td>')
-        elif column == 'full_name':
+        elif column == 'ballot_number':
             return str('<td class="center">'
-                       f'{row["full_name"]}</td>')
-        elif column == 'total_votes':
-            return str('<td class="center">'
-                       f'{row["total_votes"]}</td>')
-        elif column == 'candidate_votes_included_quarantine':
-            return str('<td class="center">'
-                       f'{row["candidate_votes_included_quarantine"]}</td>')
+                       f'{row["ballot_number"]}</td>')
         else:
             return super(
                 ActiveCandidatesVotesDataView,
