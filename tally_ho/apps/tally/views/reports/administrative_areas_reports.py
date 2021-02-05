@@ -25,6 +25,7 @@ from tally_ho.apps.tally.views.super_admin import (
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.form_state import FormState
 
 report_types = {1: "turnout",
                 2: "summary",
@@ -3080,6 +3081,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
             tally_id=tally_id,
             stations=stations,
             centers=centers,
+            get_centers_stations_url='/ajax/get-centers-stations/'
         ))
 
 
@@ -3169,6 +3171,7 @@ class DuplicateResultsListView(LoginRequiredMixin,
             tally_id=tally_id,
             stations=stations,
             centers=centers,
+            get_centers_stations_url='/ajax/get-centers-stations/'
         ))
 
 
