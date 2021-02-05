@@ -210,6 +210,10 @@ table.dataTable tbody tr:first-child td:first-child {
   margin-top: 0.7em;
 }
 
+table.dataTable tbody tr td[style=""] {
+	display: none;
+}
+
 .bootstrap-select>.dropdown-toggle {
 	white-space: normal !important;
 }
