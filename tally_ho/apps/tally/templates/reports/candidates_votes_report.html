@@ -12,32 +12,7 @@
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with export_file_name=export_file_name server_side=True  %}
-<script>
-  $('#centers').change(function () {
-    const center_ids = $('.selectpicker').val();
-
-    if(center_ids) {
-      $.ajax({
-        url: '{{ get_centers_stations_url }}',
-        data: { data: JSON.stringify({
-          'center_ids': center_ids,
-          'tally_id': '{{ tally_id }}'
-        }) },
-        traditional: true,
-        dataType: 'json',
-        success: data => {
-          const { station_ids } = data;
-          $('.center-stations').selectpicker('val', station_ids);
-        }
-      });
-    } else {
-      $('.center-stations').selectpicker('deselectAll');
-      $('.center-stations').selectpicker('refresh');
-    }
-  });
-
-</script>
+{% include "data/table.html" with export_file_name=export_file_name server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url  %}
 {% endblock %}
 {% block content %}
 
