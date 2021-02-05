@@ -2941,8 +2941,12 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                                     BaseDatatableView):
     group_required = groups.TALLY_MANAGER
     model = Result
-    columns = ('ballot_number',
-               'race_number',
+    columns = ('candidate_name',
+               'total_votes',
+               'invalid_votes',
+               'valid_votes',
+               'number_registrants',
+               'candidate_status',
                'center_code',
                'station_number',
                'station_id',
@@ -2951,18 +2955,14 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                'race_type',
                'voting_district',
                'order',
-               'candidate_name',
-               'total_votes',
-               'invalid_votes',
                'unstamped_ballots',
                'cancelled_ballots',
                'spoilt_ballots',
                'unused_ballots',
                'number_of_signatures',
                'ballots_received',
-               'valid_votes',
-               'number_registrants',
-               'candidate_status')
+               'ballot_number',
+               'race_number',)
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
@@ -2994,12 +2994,24 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
 
     def render_column(self, row, column):
 
-        if column == 'ballot_number':
+        if column == 'candidate_name':
             return str('<td class="center">'
-                       f'{row["ballot_number"]}</td>')
-        elif column == 'race_number':
+                       f'{row["candidate_name"]}</td>')
+        elif column == 'total_votes':
             return str('<td class="center">'
-                       f'{row["race_number"]}</td>')
+                       f'{row["total_votes"]}</td>')
+        elif column == 'invalid_votes':
+            return str('<td class="center">'
+                       f'{row["invalid_votes"]}</td>')
+        elif column == 'valid_votes':
+            return str('<td class="center">'
+                       f'{row["valid_votes"]}</td>')
+        elif column == 'number_registrants':
+            return str('<td class="center">'
+                       f'{row["number_registrants"]}</td>')
+        elif column == 'candidate_status':
+            return str('<td class="center">'
+                       f'{row["candidate_status"]}</td>')
         elif column == 'center_code':
             return str('<td class="center">'
                        f'{row["center_code"]}</td>')
@@ -3024,15 +3036,6 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         elif column == 'order':
             return str('<td class="center">'
                        f'{row["order"]}</td>')
-        elif column == 'candidate_name':
-            return str('<td class="center">'
-                       f'{row["candidate_name"]}</td>')
-        elif column == 'total_votes':
-            return str('<td class="center">'
-                       f'{row["total_votes"]}</td>')
-        elif column == 'invalid_votes':
-            return str('<td class="center">'
-                       f'{row["invalid_votes"]}</td>')
         elif column == 'unstamped_ballots':
             return str('<td class="center">'
                        f'{row["unstamped_ballots"]}</td>')
@@ -3051,15 +3054,12 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         elif column == 'ballots_received':
             return str('<td class="center">'
                        f'{row["ballots_received"]}</td>')
-        elif column == 'valid_votes':
+        elif column == 'ballot_number':
             return str('<td class="center">'
-                       f'{row["valid_votes"]}</td>')
-        elif column == 'number_registrants':
+                       f'{row["ballot_number"]}</td>')
+        elif column == 'race_number':
             return str('<td class="center">'
-                       f'{row["number_registrants"]}</td>')
-        elif column == 'candidate_status':
-            return str('<td class="center">'
-                       f'{row["candidate_status"]}</td>')
+                       f'{row["race_number"]}</td>')
         else:
             return super(
                 ResultFormResultsListDataView, self).render_column(row, column)
