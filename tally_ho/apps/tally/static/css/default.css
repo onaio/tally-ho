@@ -205,12 +205,12 @@ table.select-max-width > tbody  > tr > td > select {
 	width: 100% !important;
 }
 
-table.dataTable tbody tr:first-child td:first-child {
+table.results tbody tr:first-child td:first-child {
 	display: flex;
   margin-top: 0.7em;
 }
 
-table.dataTable tbody tr td[style=""] {
+table.results tbody tr td[style=""] {
 	display: none;
 }
 
