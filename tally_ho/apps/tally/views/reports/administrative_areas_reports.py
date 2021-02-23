@@ -1182,7 +1182,7 @@ def custom_queryset_filter(
                             default=V(0)), V(0)))\
                     .annotate(
                         total_number_of_registrants=Sum(
-                            'number_of_registrants',
+                            'result_form__center__stations__registrants',
                             filter=(
                                 ~Q(result_form__center__constituency__id__in=constituency_ids) &
                                 ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
@@ -1283,7 +1283,7 @@ def custom_queryset_filter(
                 .annotate(
                     number_of_voters_voted=Sum('number_valid_votes'))\
                 .annotate(
-                    total_number_of_registrants=Sum('number_of_registrants'))\
+                    total_number_of_registrants=Sum('result_form__center__stations__registrants'))\
                 .annotate(
                     total_number_of_ballots_used=Sum(
                         ExpressionWrapper(F('number_valid_votes') +
@@ -2481,7 +2481,7 @@ def generate_report(
             .annotate(
                 number_of_voters_voted=Sum('number_valid_votes'))\
             .annotate(
-                total_number_of_registrants=Sum('number_of_registrants'))\
+                total_number_of_registrants=Sum('result_form__center__stations__registrants'))\
             .annotate(
                 total_number_of_ballots_used=Sum(
                     ExpressionWrapper(F('number_valid_votes') +
