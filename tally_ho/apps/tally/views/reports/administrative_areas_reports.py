@@ -527,6 +527,25 @@ def results_queryset(
             .values('id')[:1],
             output_field=IntegerField())
 
+    reconform_num_invalid_votes =\
+        'result_form__reconciliationform__number_invalid_votes'
+    reconform_num_unstamped_ballots =\
+        'result_form__reconciliationform__number_unstamped_ballots'
+    reconform_num_cancelled_ballots =\
+        'result_form__reconciliationform__number_cancelled_ballots'
+    reconform_num_spoiled_ballots =\
+        'result_form__reconciliationform__number_spoiled_ballots'
+    reconform_num_unused_ballots =\
+        'result_form__reconciliationform__number_unused_ballots'
+    reconform_num_signatures_in_vr =\
+        'result_form__reconciliationform__number_signatures_in_vr'
+    reconform_num_ballots_received =\
+        'result_form__reconciliationform__number_ballots_received'
+    reconform_num_valid_votes =\
+        'result_form__reconciliationform__number_valid_votes'
+    ballot_comp_candidate_name =\
+        'result_form__ballot__sc_general__ballot_component__full_name'
+
     if data:
         selected_center_ids =\
             data['select_1_ids'] if len(data['select_1_ids']) else [0]
@@ -547,10 +566,7 @@ def results_queryset(
             .filter(
                 ~Q(result_form__center__id__in=selected_center_ids) &
                 ~Q(station_ids__in=selected_station_ids))\
-            .annotate(
-                candidate_name=F(
-                    'result_form__ballot__sc_general__ballot_component__full_name')
-            )\
+            .annotate(candidate_name=F(ballot_comp_candidate_name))\
             .filter(candidate_name__isnull=False)
 
         qs = qs_1.union(qs_2) if len(qs_2) else qs_1
@@ -590,51 +606,42 @@ def results_queryset(
                 invalid_votes=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_invalid_votes'
-                        )
+                        then=F(reconform_num_invalid_votes)
                     ), default=V(0)),
                 unstamped_ballots=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_unstamped_ballots')
+                        then=F(reconform_num_unstamped_ballots)
                     ), default=V(0)),
                 cancelled_ballots=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_cancelled_ballots')
+                        then=F(reconform_num_cancelled_ballots)
                     ), default=V(0)),
                 spoilt_ballots=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_spoiled_ballots')
+                        then=F(reconform_num_spoiled_ballots)
                     ), default=V(0)),
                 unused_ballots=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_unused_ballots')
+                        then=F(reconform_num_unused_ballots)
                     ), default=V(0)),
                 number_of_signatures=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_signatures_in_vr')
+                        then=F(reconform_num_signatures_in_vr)
                     ), default=V(0)),
                 ballots_received=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_ballots_received')
+                        then=F(reconform_num_ballots_received)
                     ), default=V(0)),
                 valid_votes=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_valid_votes')
+                        then=F(reconform_num_valid_votes)
                     ), default=V(0))).distinct()
     else:
         qs_1 = qs\
@@ -642,8 +649,7 @@ def results_queryset(
             .filter(candidate_name__isnull=False)
         qs_2 = qs\
             .annotate(
-                candidate_name=F(
-                    'result_form__ballot__sc_general__ballot_component__full_name')
+                candidate_name=F(ballot_comp_candidate_name)
             )\
             .filter(candidate_name__isnull=False)
 
@@ -684,51 +690,42 @@ def results_queryset(
                 invalid_votes=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_invalid_votes'
-                        )
+                        then=F(reconform_num_invalid_votes)
                     ), default=V(0)),
                 unstamped_ballots=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_unstamped_ballots')
+                        then=F(reconform_num_unstamped_ballots)
                     ), default=V(0)),
                 cancelled_ballots=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_cancelled_ballots')
+                        then=F(reconform_num_cancelled_ballots)
                     ), default=V(0)),
                 spoilt_ballots=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_spoiled_ballots')
+                        then=F(reconform_num_spoiled_ballots)
                     ), default=V(0)),
                 unused_ballots=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_unused_ballots')
+                        then=F(reconform_num_unused_ballots)
                     ), default=V(0)),
                 number_of_signatures=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_signatures_in_vr')
+                        then=F(reconform_num_signatures_in_vr)
                     ), default=V(0)),
                 ballots_received=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_ballots_received')
+                        then=F(reconform_num_ballots_received)
                     ), default=V(0)),
                 valid_votes=Case(
                     When(
                         result_form__reconciliationform__isnull=False,
-                        then=F(
-                            'result_form__reconciliationform__number_valid_votes')
+                        then=F(reconform_num_valid_votes)
                     ), default=V(0))).distinct()
 
     return qs
@@ -836,8 +833,9 @@ def filter_candidates_votes_queryset(
     if data:
         selected_center_ids =\
             data['select_1_ids'] if len(data['select_1_ids']) else [0]
-        selected_station_ids =\
-            data['select_2_ids'] if len(data['select_2_ids']) else [0]
+        # TODO: Find a way to filter by station ids
+        # selected_station_ids =\
+        #     data['select_2_ids'] if len(data['select_2_ids']) else [0]
         qs = qs.filter(~Q(center_ids__contains=selected_center_ids))
 
     return qs
@@ -943,6 +941,12 @@ def generate_progressive_report_queryset(
             sub_constituency_ids =\
                 item['select_2_ids'] if len(
                     item['select_2_ids']) else [0]
+            con_ids = constituency_ids
+            filter_by_constituency_id =\
+                ~Q(result_form__center__constituency__id__in=con_ids)
+            subcn_ids = sub_constituency_ids
+            filter_by_sub_constituency_id =\
+                ~Q(result_form__center__sub_constituency__id__in=subcn_ids)
 
             if admin_area_id and constituency_id:
                 current_qs =\
@@ -972,13 +976,13 @@ def generate_progressive_report_queryset(
                         'candidate__id',
                         distinct=True,
                         filter=(
-                            ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                            ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))),
+                            filter_by_constituency_id &
+                            filter_by_sub_constituency_id)),
                     total_votes=Coalesce(Sum(
                         'votes',
                         filter=(
-                            ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                            ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))),
+                            filter_by_constituency_id &
+                            filter_by_sub_constituency_id)),
                         V(0)),
                     region_id=F('result_form__center__office__region__id'),
                     constituencies_ids=ArrayAgg(
@@ -1132,6 +1136,13 @@ def custom_queryset_filter(
                 item['select_2_ids'] if len(
                     item['select_2_ids']) else [0]
 
+            con_ids = constituency_ids
+            filter_by_constituency_id =\
+                ~Q(result_form__center__constituency__id__in=con_ids)
+            subcn_ids = sub_constituency_ids
+            filter_by_sub_constituency_id =\
+                ~Q(result_form__center__sub_constituency__id__in=subcn_ids)
+
             if admin_area_id and constituency_id:
                 current_qs =\
                     parent_qs\
@@ -1177,26 +1188,27 @@ def custom_queryset_filter(
                         number_of_voters_voted=Coalesce(Sum(
                             'number_valid_votes',
                             filter=(
-                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                                filter_by_constituency_id &
+                                filter_by_sub_constituency_id),
                             default=V(0)), V(0)))\
                     .annotate(
                         total_number_of_registrants=Sum(
                             'result_form__center__stations__registrants',
                             filter=(
-                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                                filter_by_constituency_id &
+                                filter_by_sub_constituency_id),
                             default=V(0)))\
                     .annotate(
                         total_number_of_ballots_used=Coalesce(Sum(
-                            ExpressionWrapper(F('number_valid_votes') +
-                                            F('number_cancelled_ballots') +
-                                            F('number_unstamped_ballots') +
-                                            F('number_invalid_votes'),
-                                            output_field=IntegerField()),
+                            ExpressionWrapper(
+                                F('number_valid_votes') +
+                                F('number_cancelled_ballots') +
+                                F('number_unstamped_ballots') +
+                                F('number_invalid_votes'),
+                                output_field=IntegerField()),
                             filter=(
-                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))), V(0)))\
+                                filter_by_constituency_id &
+                                filter_by_sub_constituency_id)), V(0)))\
                     .annotate(turnout_percentage=Coalesce(ExpressionWrapper(
                         V(100) *
                         F('total_number_of_ballots_used') /
@@ -1206,21 +1218,23 @@ def custom_queryset_filter(
                         Sum('number_valid_votes',
                             filter=(
                                 Q(voters_gender_type=0) &
-                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))),
+                                filter_by_constituency_id &
+                                filter_by_sub_constituency_id)),
                         V(0)))\
                     .annotate(female_voters=Coalesce(
                         Sum('number_valid_votes',
                             filter=(
                                 Q(voters_gender_type=1) &
-                                ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                                ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids))),
+                                filter_by_constituency_id &
+                                filter_by_sub_constituency_id)),
                         V(0)))\
                     .annotate(constituencies_ids=ArrayAgg(
-                        'result_form__center__constituency__id', distinct=True))\
+                        'result_form__center__constituency__id',
+                        distinct=True))\
                     .annotate(
                         sub_constituencies_ids=ArrayAgg(
-                        'result_form__center__sub_constituency__id', distinct=True)
+                            'result_form__center__sub_constituency__id',
+                            distinct=True)
                     )
 
             if report_type == summary_report_type:
@@ -1230,23 +1244,21 @@ def custom_queryset_filter(
                         number_valid_votes=Coalesce(
                             Sum(
                                 'number_valid_votes',
-                                filter=(
-                                    ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                                    ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                                filter=(filter_by_constituency_id &
+                                        filter_by_sub_constituency_id),
                                 default=V(0)), V(0)),
                         number_invalid_votes=Coalesce(
                             Sum(
                                 'number_invalid_votes',
-                                filter=(
-                                    ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                                    ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                                filter=(filter_by_constituency_id &
+                                        filter_by_sub_constituency_id),
                                 default=V(0)), V(0)),
                         number_cancelled_ballots=Coalesce(
                             Sum(
                                 'number_cancelled_ballots',
                                 filter=(
-                                    ~Q(result_form__center__constituency__id__in=constituency_ids) &
-                                    ~Q(result_form__center__sub_constituency__id__in=sub_constituency_ids)),
+                                    filter_by_constituency_id &
+                                    filter_by_sub_constituency_id),
                                 default=V(0)), V(0)),
                         constituencies_ids=ArrayAgg(
                             'result_form__center__constituency__id',
@@ -1283,7 +1295,8 @@ def custom_queryset_filter(
                 .annotate(
                     number_of_voters_voted=Sum('number_valid_votes'))\
                 .annotate(
-                    total_number_of_registrants=Sum('result_form__center__stations__registrants'))\
+                    total_number_of_registrants=Sum(
+                        'result_form__center__stations__registrants'))\
                 .annotate(
                     total_number_of_ballots_used=Sum(
                         ExpressionWrapper(F('number_valid_votes') +
@@ -1332,8 +1345,9 @@ def build_select_options(qs, ids=[]):
     select = str('selected=''\"selected"')
 
     return [str(
-                '<option 'f'{select if str(item.id) in ids else ""}'' value='f'{item.id}''>'f'{item.name}''</option>') for item in
-                list(qs)]
+        '<option 'f'{select if str(item.id) in ids else ""}'
+        ' value='f'{item.id}''>'f'{item.name}''</option>') for item in
+        list(qs)]
 
 
 def get_centers_stations(request):
@@ -1838,11 +1852,16 @@ class ProgressiveReportDataView(LoginRequiredMixin,
             votes_per_candidate_url =\
                 reverse(
                     reverse_url,
-                    kwargs={'tally_id': tally_id,
-                            'region_id': row['region_id'],
-                            'constituency_id': row['constituency_id'],
-                            'sub_constituency_id': row['sub_constituency_id'],
-                            'report_type': 'candidate-list-sorted-by-ballots-number'})
+                    kwargs={'tally_id':
+                            tally_id,
+                            'region_id':
+                            row['region_id'],
+                            'constituency_id':
+                            row['constituency_id'],
+                            'sub_constituency_id':
+                            row['sub_constituency_id'],
+                            'report_type':
+                            'candidate-list-sorted-by-ballots-number'})
         else:
             reverse_url =\
                 'cons-progressive-report-list'
@@ -2065,15 +2084,21 @@ class DiscrepancyReportDataView(LoginRequiredMixin,
             if region_id and not constituency_id:
                 reverse_url =\
                     'sub-cons-stations-and-centers-under-investigation'
-                child_report_button_text =\
-                    _(u'Sub Constituency Station and Centers under investigation')
+                button_text =\
+                    u'Sub Constituency Station and Centers under investigation'
+                child_report_button_text = _(button_text)
                 child_report_url =\
                     reverse(
                         reverse_url,
-                        kwargs={'tally_id': tally_id,
-                                'region_id': row['region_id'],
-                                'constituency_id': row['constituency_id'],
-                                'report_name': 'stations-and-centers-under-investigation-list'})
+                        kwargs={'tally_id':
+                                tally_id,
+                                'region_id':
+                                row['region_id'],
+                                'constituency_id':
+                                row['constituency_id'],
+                                'report_name':
+                                'stations-and-centers-under-investigation-list'
+                                })
 
                 reverse_url =\
                     'constituency-discrepancy-report'
@@ -2082,106 +2107,154 @@ class DiscrepancyReportDataView(LoginRequiredMixin,
                 station_and_centers_list_url =\
                     reverse(
                         reverse_url,
-                        kwargs={'tally_id': tally_id,
-                                'region_id': row['region_id'],
-                                'constituency_id': row['constituency_id'],
-                                'report_type': 'centers-and-stations-under-investigation'})
+                        kwargs={'tally_id':
+                                tally_id,
+                                'region_id':
+                                row['region_id'],
+                                'constituency_id':
+                                row['constituency_id'],
+                                'report_type':
+                                'centers-and-stations-under-investigation'})
             elif region_id and constituency_id:
                 reverse_url =\
                     'sub-constituency-discrepancy-report'
+                button_text_1 =\
+                    'Sub Constituency Stations and Centers'
+                button_text_2 =\
+                    ' under investigation'
                 station_and_centers_list_button_text =\
-                    _(u'Sub Constituency Stations and Centers under investigation')
+                    _(u'{}{}'.format(button_text_1, button_text_2))
                 station_and_centers_list_url =\
                     reverse(
                         reverse_url,
-                        kwargs={'tally_id': tally_id,
-                                'region_id': row['region_id'],
-                                'constituency_id': row['constituency_id'],
-                                'sub_constituency_id': row['sub_constituency_id'],
-                                'report_type': 'centers-and-stations-under-investigation'})
+                        kwargs={'tally_id':
+                                tally_id,
+                                'region_id':
+                                row['region_id'],
+                                'constituency_id':
+                                row['constituency_id'],
+                                'sub_constituency_id':
+                                row['sub_constituency_id'],
+                                'report_type':
+                                'centers-and-stations-under-investigation'})
             else:
                 reverse_url =\
                     'cons-stations-and-centers-under-investigation'
                 child_report_button_text =\
                     _(u'Region Constituencies under Investigation')
+                report_name =\
+                    'stations-and-centers-under-investigation-list'
                 child_report_url =\
                     reverse(
                         reverse_url,
                         kwargs={'tally_id': tally_id,
                                 'region_id': row['region_id'],
-                                'report_name': 'stations-and-centers-under-investigation-list'})
+                                'report_name': report_name})
 
                 reverse_url =\
                     'regions-discrepancy-report'
                 station_and_centers_list_button_text =\
                     _(u'Region Centers and Stations under Investigation')
+                report_type =\
+                    'centers-and-stations-under-investigation'
                 station_and_centers_list_url =\
                     reverse(
                         reverse_url,
                         kwargs={'tally_id': tally_id,
                                 'region_id': row['region_id'],
-                                'report_type': 'centers-and-stations-under-investigation'})
+                                'report_type': report_type})
 
         elif report_name == stations_centers_excluded_after_investigation:
             if region_id and not constituency_id:
-                reverse_url =\
-                    'sub-cons-stations-and-centers-excluded-after-investigation'
+                url_part_1 =\
+                    'sub-cons-stations-and-centers-excluded'
+                url_part_2 =\
+                    '-after-investigation'
+                reverse_url = '{}{}'.format(url_part_1, url_part_2)
+                button_text_1 =\
+                    'Sub Constituency Station and Centers'
+                button_text_2 =\
+                    ' excluded after investigation'
                 child_report_button_text =\
-                    _(u'Sub Constituency Station and Centers excluded after investigation')
+                    _(u'{}{}'.format(button_text_1, button_text_2))
+                report_name =\
+                    'stations-and-centers-excluded-after-investigation-list'
                 child_report_url =\
                     reverse(
                         reverse_url,
                         kwargs={'tally_id': tally_id,
                                 'region_id': row['region_id'],
                                 'constituency_id': row['constituency_id'],
-                                'report_name': 'stations-and-centers-excluded-after-investigation-list'})
+                                'report_name': report_name})
 
                 reverse_url =\
                     'constituency-discrepancy-report'
+                button_text_1 =\
+                    'Constituency Centers and Stations excluded'
+                button_text_2 =\
+                    ' after investigation'
                 station_and_centers_list_button_text =\
-                    _(u'Constituency Centers and Stations excluded after investigation')
+                    _(u'{}{}'.format(button_text_1, button_text_2))
+                report_type =\
+                    'centers-and-stations-excluded-after-investigation'
                 station_and_centers_list_url =\
                     reverse(
                         reverse_url,
                         kwargs={'tally_id': tally_id,
                                 'region_id': row['region_id'],
                                 'constituency_id': row['constituency_id'],
-                                'report_type': 'centers-and-stations-excluded-after-investigation'})
+                                'report_type': report_type})
             elif region_id and constituency_id:
                 reverse_url =\
                     'sub-constituency-discrepancy-report'
+                button_text_1 =\
+                    'Sub Constituency Centers and Stations excluded '
+                button_text_2 =\
+                    'after investigation'
                 station_and_centers_list_button_text =\
-                    _(u'Sub Constituency Centers and Stations excluded after investigation')
+                    _(u'{}{}'.format(button_text_1, button_text_2))
+                report_type =\
+                    'centers-and-stations-excluded-after-investigation'
                 station_and_centers_list_url =\
                     reverse(
                         reverse_url,
-                        kwargs={'tally_id': tally_id,
-                                'region_id': row['region_id'],
-                                'constituency_id': row['constituency_id'],
-                                'sub_constituency_id': row['sub_constituency_id'],
-                                'report_type': 'centers-and-stations-excluded-after-investigation'})
+                        kwargs={'tally_id':
+                                tally_id,
+                                'region_id':
+                                row['region_id'],
+                                'constituency_id':
+                                row['constituency_id'],
+                                'sub_constituency_id':
+                                row['sub_constituency_id'],
+                                'report_type':
+                                report_type})
             else:
                 reverse_url =\
                     'cons-stations-and-centers-excluded-after-investigation'
                 child_report_button_text =\
                     _(u'Region Constituencies excluded after investigation')
+                report_name =\
+                    'stations-and-centers-excluded-after-investigation-list'
                 child_report_url =\
                     reverse(
                         reverse_url,
                         kwargs={'tally_id': tally_id,
                                 'region_id': row['region_id'],
-                                'report_name': 'stations-and-centers-excluded-after-investigation-list'}) 
+                                'report_name': report_name})
 
                 reverse_url =\
                     'regions-discrepancy-report'
-                station_and_centers_list_button_text =\
-                    _(u'Region Centers and Stations excluded after investigation')
+                button_text =\
+                    u'Region Centers and Stations excluded after investigation'
+                station_and_centers_list_button_text = _(button_text)
+                report_type =\
+                    'centers-and-stations-excluded-after-investigation'
                 station_and_centers_list_url =\
                     reverse(
                         reverse_url,
                         kwargs={'tally_id': tally_id,
                                 'region_id': row['region_id'],
-                                'report_type': 'centers-and-stations-excluded-after-investigation'})
+                                'report_type': report_type})
         elif report_name == stations_centers_under_process_audit:
             if region_id and not constituency_id:
                 reverse_url =\
@@ -2238,8 +2311,9 @@ class DiscrepancyReportDataView(LoginRequiredMixin,
             else:
                 reverse_url =\
                     'cons-stations-and-centers-under-process-audit-list'
-                child_report_button_text =\
-                    _(u'Region Constituencies with Stations and Centers in Audit')
+                button_text =\
+                    u'Region Constituencies with Stations and Centers in Audit'
+                child_report_button_text = _(button_text)
                 child_report_url =\
                     reverse(
                         reverse_url,
@@ -2481,7 +2555,8 @@ def generate_report(
             .annotate(
                 number_of_voters_voted=Sum('number_valid_votes'))\
             .annotate(
-                total_number_of_registrants=Sum('result_form__center__stations__registrants'))\
+                total_number_of_registrants=Sum(
+                    'result_form__center__stations__registrants'))\
             .annotate(
                 total_number_of_ballots_used=Sum(
                     ExpressionWrapper(F('number_valid_votes') +
