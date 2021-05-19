@@ -82,20 +82,26 @@ def create_result(result_form, candidate, user, votes):
                           entry_version=EntryVersion.FINAL)
 
 
-def create_candidates(result_form, user,
-                      name='the candidate name', votes=123,
-                      women_name='women candidate name', num_results=10):
+def create_candidates(result_form,
+                      user,
+                      name='the candidate name',
+                      votes=123,
+                      women_name='women candidate name',
+                      num_results=10,
+                      tally=None):
     for i in range(num_results):
         candidate = Candidate.objects.create(ballot=result_form.ballot,
                                              candidate_id=1,
                                              full_name=name,
                                              order=0,
-                                             race_type=RaceType.GENERAL)
+                                             race_type=RaceType.GENERAL,
+                                             tally=tally)
         candidate_f = Candidate.objects.create(ballot=result_form.ballot,
                                                candidate_id=1,
                                                full_name=women_name,
                                                order=0,
-                                               race_type=RaceType.WOMEN)
+                                               race_type=RaceType.WOMEN,
+                                               tally=tally)
         create_result(result_form, candidate, user, votes)
         create_result(result_form, candidate_f, user, votes)
 
