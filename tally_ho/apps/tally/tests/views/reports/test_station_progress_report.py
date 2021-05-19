@@ -37,6 +37,7 @@ class StationProgressListView(TestBase):
         station = create_station(center=center, tally=tally)
         create_result_form(
             form_state=FormState.ARCHIVED,
+            center=center,
             tally=tally,
             station_number=station.station_number)
         view = views.StationProgressListDataView.as_view()
