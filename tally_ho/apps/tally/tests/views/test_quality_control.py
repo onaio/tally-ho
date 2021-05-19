@@ -1207,7 +1207,7 @@ class TestQualityControl(TestBase):
         center = create_center()
         station = create_station(center=center, registrants=21)
         quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[5]['active'] = True
+        quarantine_data[4]['active'] = True
         create_quarantine_checks(quarantine_data)
         self._create_and_login_user()
         tally = create_tally()
