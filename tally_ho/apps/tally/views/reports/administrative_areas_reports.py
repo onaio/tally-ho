@@ -1537,26 +1537,22 @@ class TurnOutReportView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
-        region_name = None
-        constituency_name = None
 
-        if region_id:
-            try:
-                region_name =\
-                    Region.objects.get(
-                        id=region_id,
-                        tally__id=tally_id).name
-            except Region.DoesNotExist:
-                pass
+        try:
+            region_name =\
+                region_id and Region.objects.get(
+                    id=region_id,
+                    tally__id=tally_id).name
+        except Region.DoesNotExist:
+            region_name = None
 
-        if constituency_id:
-            try:
-                constituency_name =\
-                    Constituency.objects.get(
-                        id=constituency_id,
-                        tally__id=tally_id).name
-            except Constituency.DoesNotExist:
-                pass
+        try:
+            constituency_name =\
+                constituency_id and Constituency.objects.get(
+                    id=constituency_id,
+                    tally__id=tally_id).name
+        except Constituency.DoesNotExist:
+            constituency_name = None
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('turnout-list-data', kwargs=kwargs),
@@ -1723,26 +1719,22 @@ class SummaryReportView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
-        region_name = None
-        constituency_name = None
 
-        if region_id:
-            try:
-                region_name =\
-                    Region.objects.get(
-                        id=region_id,
-                        tally__id=tally_id).name
-            except Region.DoesNotExist:
-                pass
+        try:
+            region_name =\
+                region_id and Region.objects.get(
+                    id=region_id,
+                    tally__id=tally_id).name
+        except Region.DoesNotExist:
+            region_name = None
 
-        if constituency_id:
-            try:
-                constituency_name =\
-                    Constituency.objects.get(
-                        id=constituency_id,
-                        tally__id=tally_id).name
-            except Constituency.DoesNotExist:
-                pass
+        try:
+            constituency_name =\
+                constituency_id and Constituency.objects.get(
+                    id=constituency_id,
+                    tally__id=tally_id).name
+        except Constituency.DoesNotExist:
+            constituency_name = None
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('summary-list-data', kwargs=kwargs),
@@ -1980,26 +1972,22 @@ class ProgressiveReportView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
-        region_name = None
-        constituency_name = None
 
-        if region_id:
-            try:
-                region_name =\
-                    Region.objects.get(
-                        id=region_id,
-                        tally__id=tally_id).name
-            except Region.DoesNotExist:
-                pass
+        try:
+            region_name =\
+                region_id and Region.objects.get(
+                    id=region_id,
+                    tally__id=tally_id).name
+        except Region.DoesNotExist:
+            region_name = None
 
-        if constituency_id:
-            try:
-                constituency_name =\
-                    Constituency.objects.get(
-                        id=constituency_id,
-                        tally__id=tally_id).name
-            except Constituency.DoesNotExist:
-                pass
+        try:
+            constituency_name =\
+                constituency_id and Constituency.objects.get(
+                    id=constituency_id,
+                    tally__id=tally_id).name
+        except Constituency.DoesNotExist:
+            constituency_name = None
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('progressive-report-list-data', kwargs=kwargs),
@@ -2449,8 +2437,6 @@ class DiscrepancyReportView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
-        region_name = None
-        constituency_name = None
         report_type = None
         url = None
 
@@ -2474,23 +2460,21 @@ class DiscrepancyReportView(LoginRequiredMixin,
                 _(u'Stations and Centers excluded after investigation')
             url = 'stations-and-centers-excluded-after-investigation-data'
 
-        if region_id:
-            try:
-                region_name =\
-                    Region.objects.get(
-                        id=region_id,
-                        tally__id=tally_id).name
-            except Region.DoesNotExist:
-                pass
+        try:
+            region_name =\
+                region_id and Region.objects.get(
+                    id=region_id,
+                    tally__id=tally_id).name
+        except Region.DoesNotExist:
+            region_name = None
 
-        if constituency_id:
-            try:
-                constituency_name =\
-                    Constituency.objects.get(
-                        id=constituency_id,
-                        tally__id=tally_id).name
-            except Constituency.DoesNotExist:
-                pass
+        try:
+            constituency_name =\
+                constituency_id and Constituency.objects.get(
+                    id=constituency_id,
+                    tally__id=tally_id).name
+        except Constituency.DoesNotExist:
+            constituency_name = None
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse(url, kwargs=kwargs),
@@ -2868,10 +2852,10 @@ class SubConstituencyReportsView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
-        region_id = kwargs.get('region_id', None)
-        constituency_id = kwargs.get('constituency_id', None)
-        sub_constituency_id = kwargs.get('sub_constituency_id', None)
-        report_type = kwargs.get('report_type', None)
+        region_id = kwargs.get('region_id')
+        constituency_id = kwargs.get('constituency_id')
+        sub_constituency_id = kwargs.get('sub_constituency_id')
+        report_type = kwargs.get('report_type')
 
         region_name =\
             Region.objects.get(

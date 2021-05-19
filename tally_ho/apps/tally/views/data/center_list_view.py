@@ -76,24 +76,32 @@ class CenterListView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        region_id = kwargs.get('region_id', None)
-        constituency_id = kwargs.get('constituency_id', None)
-        sub_constituency_id = kwargs.get('sub_constituency_id', None)
+        region_id = kwargs.get('region_id')
+        constituency_id = kwargs.get('constituency_id')
+        sub_constituency_id = kwargs.get('sub_constituency_id')
         format_ = kwargs.get('format')
-        region_name = None
-        constituency_name = None
-        sub_constituency_code = None
 
-        if region_id:
-            region_name = Region.objects.get(id=region_id).name
+        try:
+            region_name = region_id and Region.objects.get(
+                tally__id=tally_id, id=region_id).name
+        except Region.DoesNotExist:
+            region_name = None
 
-        if constituency_id:
-            constituency_name = Constituency.objects.get(
-                id=constituency_id).name
+        try:
+            constituency_name =\
+                constituency_id and Constituency.objects.get(
+                    id=constituency_id,
+                    tally__id=tally_id).name
+        except Constituency.DoesNotExist:
+            constituency_name = None
 
-        if sub_constituency_id:
-            sub_constituency_code = SubConstituency.objects.get(
-                id=sub_constituency_id).code
+        try:
+            sub_constituency_code =\
+                sub_constituency_id and SubConstituency.objects.get(
+                    id=sub_constituency_id,
+                    tally__id=tally_id).code
+        except SubConstituency.DoesNotExist:
+            sub_constituency_code = None
 
         if format_ == 'csv':
             station_list = Station.objects.filter(center__tally__id=tally_id)
