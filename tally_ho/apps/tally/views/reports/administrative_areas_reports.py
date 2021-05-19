@@ -1341,7 +1341,9 @@ def custom_queryset_filter(
     return qs
 
 
-def build_select_options(qs, ids=[]):
+def build_select_options(qs, ids=None):
+    if ids is None:
+        ids = []
     select = str('selected=''\"selected"')
 
     return [str(
