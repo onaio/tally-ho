@@ -1,4 +1,7 @@
+---
 exclude_paths:
-  - "docs/*"
-  - "tally_ho/libs/*"
+  - "docs/**"
+  - "tally_ho/libs/**"
+  - "**.min.js"
+  - "**.min.css"
   - "tally_ho/apps/tally/static/js/data_table.js"
