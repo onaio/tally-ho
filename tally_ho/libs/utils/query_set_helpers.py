@@ -2,7 +2,6 @@ from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.db import transaction, connection
 from django.db.models import ExpressionWrapper, Count, Q, F, FloatField,\
     Func, Subquery, OuterRef, Case, IntegerField, When, Value as V
-import ipdb
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.models.enums.entry_version import EntryVersion

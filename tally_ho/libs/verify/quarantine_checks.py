@@ -1,12 +1,7 @@
 from django.conf import settings
 
-from django.db.models.functions import Coalesce
-from django.db.models import (
-    Sum, F, IntegerField, ExpressionWrapper, Case, When, Q, Value as V)
-
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
-from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
 
 
