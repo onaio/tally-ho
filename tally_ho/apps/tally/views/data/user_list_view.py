@@ -20,7 +20,12 @@ class UserListDataView(LoginRequiredMixin,
         'email',
         'first_name',
         'last_name',
+        'date_joined',
         'edit',
+    )
+
+    order_columns = (
+        'date_joined',
     )
 
     def render_column(self, row, column):
@@ -101,6 +106,7 @@ class UserTallyListDataView(UserListDataView):
         'email',
         'first_name',
         'last_name',
+        'date_joined',
         'edit',
     )
 
