@@ -1,4 +1,5 @@
 from django import forms
+from collections import deque
 
 from django.forms import (
     ModelForm,
@@ -52,6 +53,10 @@ class CreateStationForm(ModelForm):
         super(CreateStationForm, self).__init__(*args, **kwargs)
 
         if self.initial.get('tally'):
+            self.fields['gender'] = TypedChoiceField(
+                required=True,
+                choices=append_default_empty_option(Gender.choices()),
+                coerce=int,)
             self.fields['center'] = ModelChoiceField(
                 queryset=Center.objects.filter(
                     tally__id=self.initial['tally']))
