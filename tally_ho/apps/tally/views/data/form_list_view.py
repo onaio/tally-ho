@@ -45,7 +45,7 @@ class FormListDataView(LoginRequiredMixin,
 
     def filter_queryset(self, qs):
         ballot_number = self.request.GET.get('ballot[value]', None)
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         keyword = self.request.GET.get('search[value]', None)
 
         if tally_id:

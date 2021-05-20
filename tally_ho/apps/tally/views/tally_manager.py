@@ -572,7 +572,7 @@ class SetUserTimeOutView(LoginRequiredMixin,
     success_url = 'tally-manager'
 
     def get_object(self):
-        site_id = self.kwargs.get('site_id', None)
+        site_id = self.kwargs.get('site_id')
 
         return get_object_or_404(Site, pk=site_id)
 

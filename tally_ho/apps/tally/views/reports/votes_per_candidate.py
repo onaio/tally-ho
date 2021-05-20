@@ -34,8 +34,8 @@ class VotesPerCandidateListDataView(LoginRequiredMixin,
                        votes__gt=0,
                        result_form__tally_id=tally_id)
 
-        station_number = self.kwargs.get('station_number', None)
-        center_code = self.kwargs.get('center_code', None)
+        station_number = self.kwargs.get('station_number')
+        center_code = self.kwargs.get('center_code')
 
         if station_number:
             qs = qs.filter(result_form__station_number=station_number)
@@ -76,8 +76,8 @@ class VotesPerCandidateListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        station_number = kwargs.get('station_number', None)
-        center_code = kwargs.get('center_code', None)
+        station_number = kwargs.get('station_number')
+        center_code = kwargs.get('center_code')
         report_name = None
 
         if station_number:

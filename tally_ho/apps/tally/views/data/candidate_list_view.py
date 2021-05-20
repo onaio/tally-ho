@@ -35,8 +35,8 @@ class CandidateListDataView(LoginRequiredMixin,
                 row, column)
 
     def filter_queryset(self, qs):
-        tally_id = self.kwargs.get('tally_id', None)
-        office_id = self.kwargs.get('office_id', None)
+        tally_id = self.kwargs.get('tally_id')
+        office_id = self.kwargs.get('office_id')
         keyword = self.request.GET.get('search[value]', None)
 
         if tally_id:
@@ -62,8 +62,8 @@ class CandidateListView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         # check cache
-        tally_id = self.kwargs.get('tally_id', None)
-        office_id = self.kwargs.get('office_id', None)
+        tally_id = self.kwargs.get('tally_id')
+        office_id = self.kwargs.get('office_id')
         reverse_url = 'candidate-list-data'
         report_title = _('Candidate List')
 

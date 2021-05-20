@@ -37,7 +37,7 @@ class UserListDataView(LoginRequiredMixin,
         return super(UserListDataView, self).get(request, *args, **kwargs)
 
     def filter_queryset(self, qs):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         keyword = self.request.GET.get('search[value]', None)
 
         if self.role == 'admin':

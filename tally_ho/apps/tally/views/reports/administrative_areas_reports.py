@@ -2710,8 +2710,8 @@ class ConstituencyReportsView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         tally_id = kwargs['tally_id']
         region_id = kwargs['region_id']
-        report_type = kwargs.get('report_type', None)
-        constituency_id = kwargs.get('constituency_id', None)
+        report_type = kwargs.get('report_type')
+        constituency_id = kwargs.get('constituency_id')
 
         region_name =\
             Region.objects.get(
