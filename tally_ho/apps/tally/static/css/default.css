@@ -215,6 +215,10 @@ table#report tbody tr.parent td:first-child {
   margin-top: 0.7em;
 }
 
+table#stations-list tbody tr td select {
+	max-width: 20em;
+}
+
 table.results tbody tr td[style=""] {
 	display: none;
 }
