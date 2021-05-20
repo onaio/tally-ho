@@ -2,11 +2,13 @@ from django import forms
 
 from django.forms import (
     ModelForm,
-    ModelChoiceField
+    ModelChoiceField,
+    TypedChoiceField,
 )
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
+from tally_ho.libs.models.enums.gender import Gender
 
 disable_copy_input = {
     'onCopy': 'return false;',
@@ -16,6 +18,18 @@ disable_copy_input = {
     'autocomplete': 'off',
     'class': 'form-control'
 }
+
+
+def append_default_empty_option(choices):
+    """Add default empty option to Gender choices.
+
+    :param choices: List of Gender choices
+    :returns: A list Gender choices.
+    """
+    gender_choices = deque(choices)
+    gender_choices.appendleft(tuple(['', 'Select Gender']))
+
+    return list(gender_choices)
 
 
 class CreateStationForm(ModelForm):
