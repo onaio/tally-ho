@@ -2,6 +2,7 @@ import csv
 from io import StringIO
 import json
 import logging
+import time
 
 from django.contrib.messages.views import SuccessMessageMixin
 from django.conf import settings
@@ -449,6 +450,7 @@ class TallyRemoveView(LoginRequiredMixin,
 
     def post(self, *args, **kwargs):
         tally = Tally.objects.get(id=self.kwargs['tally_id'])
+        tally.name = '{}-{}'.format(tally.name, time.strftime("%Y%m%d-%H%M%S"))
         tally.active = False
         tally.save()
 
