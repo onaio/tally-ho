@@ -49,4 +49,4 @@ jobs:
         run: |
           python3 -m venv venv
             . venv/bin/activate
-          python manage.py test
+          python manage.py test --settings=tally_ho.settings.dev
