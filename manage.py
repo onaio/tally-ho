@@ -18,6 +18,7 @@ if __name__ == "__main__":
                   'manage.py',
                   'tally_ho/wsgi.py',
                   '*/migrations/*',
+                  '*/venv/*'
                   '*/settings/*',
                   '*/templates/*'])
         cov.set_option('report:show_missing', True)

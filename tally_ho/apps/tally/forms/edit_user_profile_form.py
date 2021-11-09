@@ -127,7 +127,7 @@ class EditAdminProfileForm(ModelForm):
 
     def clean(self):
         if self.is_valid():
-            lower_case_form_data(self, EditUserProfileForm, ['username'])
+            lower_case_form_data(self, EditAdminProfileForm, ['username'])
 
     def save(self):
         user = super(EditAdminProfileForm, self).save()

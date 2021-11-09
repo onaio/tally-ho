@@ -59,19 +59,25 @@
                 <td width="30%" class="blue-bg"><input class="blue-bg" tabindex="110" autocomplete="off" class="required form-control" id="id_number_unstamped_ballots" name="number_unstamped_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
             </tr>
             <tr>
-                <th><span class="bignum">10</span></th>
+                <th width="10%"><span class="bignum">10</span></th>
+                <th width="60%"><label for="id_number_blank_ballots">
+                    {% trans 'Number of blank ballots:' %}</label></th>
+                <td width="30%" class="blue-bg"><input class="blue-bg" tabindex="110" autocomplete="off" class="required form-control" id="id_number_blank_ballots" name="number_blank_ballots" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+            </tr>
+            <tr>
+                <th><span class="bignum">11</span></th>
                 <th><label for="id_number_invalid_votes">
                     {% trans 'Number of invalid votes (including the blanks):' %}</label></th>
                 <td class="blue-bg"><input class="blue-bg" tabindex="120" autocomplete="off" class="required form-control" id="id_number_invalid_votes" name="number_invalid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
             </tr>
             <tr>
-                <th><span class="bignum">11</span></th>
+                <th><span class="bignum">12</span></th>
                 <th><label for="id_number_valid_votes">
                     {% trans 'Number of valid votes:' %}</label></th>
                 <td class="blue-bg"><input class="blue-bg" tabindex="130" autocomplete="off" class="required form-control" id="id_number_valid_votes" name="number_valid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
             </tr>
             <tr>
-                <th><span class="bignum">12</span></th>
+                <th><span class="bignum">13</span></th>
                 <th><label for="id_number_sorted_and_counted">
                     {% trans 'Total number of the sorted and counted ballots:' %}</label></th>
                 <td class="blue-bg"><input tabindex="140" class="blue-bg" autocomplete="off" class="required form-control" id="id_number_sorted_and_counted" name="number_sorted_and_counted" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/><br/></td>

@@ -29,6 +29,7 @@ class FormListDataView(LoginRequiredMixin,
         'station_number',
         'center.office.name',
         'center.office.number',
+        'center.office.region.name',
         'ballot.number',
         'ballot.race_type',
         'form_state',
@@ -44,7 +45,7 @@ class FormListDataView(LoginRequiredMixin,
 
     def filter_queryset(self, qs):
         ballot_number = self.request.GET.get('ballot[value]', None)
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         keyword = self.request.GET.get('search[value]', None)
 
         if tally_id:
@@ -59,6 +60,7 @@ class FormListDataView(LoginRequiredMixin,
         if keyword:
             qs = qs.filter(Q(barcode__contains=keyword) |
                            Q(center__code__contains=keyword) |
+                           Q(center__office__region__name__contains=keyword) |
                            Q(center__office__name__contains=keyword) |
                            Q(center__office__number__contains=keyword) |
                            Q(station_number__contains=keyword) |
@@ -77,6 +79,10 @@ class FormListView(LoginRequiredMixin,
     def get(self, *args, **kwargs):
         form_state = kwargs.get('state')
         tally_id = kwargs.get('tally_id')
+        error = self.request.session.get('error_message')
+
+        if error:
+            del self.request.session['error_message']
 
         if form_state:
             if form_state == ALL:
@@ -100,6 +106,7 @@ class FormListView(LoginRequiredMixin,
                                       'form-list-data',
                                       kwargs={'tally_id': tally_id}),
                                   tally_id=tally_id,
+                                  error_message=_(error) if error else None,
                                   show_create_form_button=True))
 
 
@@ -126,7 +133,10 @@ class FormNotReceivedListView(FormListView):
 
 class FormNotReceivedDataView(FormListDataView):
     def filter_queryset(self, qs):
-        return ResultForm.forms_in_state(FormState.UNSUBMITTED)
+        tally_id = self.kwargs.get('tally_id')
+        return ResultForm.forms_in_state(
+            FormState.UNSUBMITTED,
+            tally_id=tally_id)
 
 
 class FormsForRaceView(FormListView):

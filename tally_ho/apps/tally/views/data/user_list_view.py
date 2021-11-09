@@ -24,8 +24,9 @@ class UserListDataView(LoginRequiredMixin,
     )
 
     def render_column(self, row, column):
+        role = self.kwargs.get('role', 'user')
         if column == 'edit':
-            return row.get_edit_tally_link
+            return row.get_edit_link(role=role)
         else:
             return super(UserListDataView, self).render_column(
                 row, column)
@@ -36,7 +37,7 @@ class UserListDataView(LoginRequiredMixin,
         return super(UserListDataView, self).get(request, *args, **kwargs)
 
     def filter_queryset(self, qs):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         keyword = self.request.GET.get('search[value]', None)
 
         if self.role == 'admin':
@@ -69,9 +70,9 @@ class UserListView(LoginRequiredMixin,
         is_admin = role == 'admin'
 
         return self.render_to_response(self.get_context_data(
-               role=role,
-               is_admin=is_admin,
-               remote_url=reverse('user-list-data', kwargs={'role': role})))
+            role=role,
+            is_admin=is_admin,
+            remote_url=reverse('user-list-data', kwargs={'role': role})))
 
 
 class UserTallyListView(LoginRequiredMixin,
@@ -90,7 +91,7 @@ class UserTallyListView(LoginRequiredMixin,
             role=role,
             is_admin=is_admin,
             remote_url=reverse('user-tally-list-data',
-                               kwargs={'tally_id': tally_id}),
+                               kwargs={'tally_id': tally_id, 'role': role}),
             tally_id=tally_id))
 
 
@@ -104,8 +105,9 @@ class UserTallyListDataView(UserListDataView):
     )
 
     def render_column(self, row, column):
+        role = self.kwargs.get('role', 'user')
         if column == 'edit':
-            return row.get_edit_tally_link
+            return row.get_edit_tally_link(role=role)
         else:
             return super(UserTallyListDataView, self).render_column(
                 row, column)

@@ -1,0 +1,84 @@
+{% extends 'base.html' %} 
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url %}
+{% endblock %}
+{% block content %}
+
+<h1>{% trans 'Form Results' %}</h1>
+<br>
+
+<table class="display datatable results">
+  <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
+    <div id="report" class="row">
+    <div class="col-sm-4">
+      <p style="text-align: left; margin-left: .5em;">Centers</p>
+      <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
+        {% for center in centers %}
+          <option value={{center.id}}>{{center.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <p style="text-align: left; margin-left: .5em;">Stations</p>
+      <select class="selectpicker center-stations" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
+        {% for station in stations %}
+          <option value={{station.id}}>{{station.id}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <div class="card">
+        <div class="card-body">
+          <p class="card-text" style="text-align: left;">Filter out Centers and Stations from results.</p>
+          <button style="float: left;" id="filter-report" class="btn btn-default btn-small">Apply</button>
+          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">Reset</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</caption>
+<br>
+  <thead>
+      <tr>
+        <th>{% trans 'Candidate Name' %}</th>
+        <th>{% trans 'Total Votes' %}</th>
+        <th>{% trans 'Invalid Ballots' %}</th>
+        <th>{% trans 'Valid Votes' %}</th>
+        <th>{% trans 'Registrants' %}</th>
+        <th>{% trans 'Candidate Status' %}</th>
+        <th>{% trans 'Center' %}</th>
+        <th>{% trans 'Station Number' %}</th>
+        <th>{% trans 'Station ID' %}</th>
+        <th>{% trans 'Gender' %}</th>
+        <th>{% trans 'Barcode' %}</th>
+        <th>{% trans 'Race Type' %}</th>
+        <th>{% trans 'Voting District' %}</th>
+        <th>{% trans 'Order' %}</th>
+        <th>{% trans 'Unstamped Ballots' %}</th>
+        <th>{% trans 'Cancelled Ballots' %}</th>
+        <th>{% trans 'Spoilt Ballots' %}</th>
+        <th>{% trans 'Unused Ballots' %}</th>
+        <th>{% trans 'Number of Signatures' %}</th>
+        <th>{% trans 'Received Ballots Papers' %}</th>
+        <th>{% trans 'Ballot' %}</th>
+        <th>{% trans 'Race Number' %}</th>
+      </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+
+{% endblock %}
+

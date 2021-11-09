@@ -36,6 +36,13 @@
             </td>
         </tr>
         <tr>
+            <td>{% trans 'Description:' %}</td>
+            <td>
+                {{ form.description.errors }}
+                {{ form.description }}
+            </td>
+        </tr>
+        <tr>
             <td>{% trans 'Percentage:' %}</td>
             <td>
                 {{ form.percentage.errors }}
@@ -54,7 +61,7 @@
     <button class="btn btn-success btn-small" type="submit" name="submit">
         {% trans "Save" %}
     </button>
-    <a href="{% url 'quarantine-checks' %}" class="btn btn-danger btn-small">
+    <a href="{% url 'quarantine-checks' tally_id=tally_id %}" class="btn btn-danger btn-small">
         {% trans "Cancel" %}
     </a>
     {% csrf_token %}

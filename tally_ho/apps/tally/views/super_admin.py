@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from django.db.models.deletion import ProtectedError
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count, Func
@@ -160,7 +161,10 @@ def get_results_duplicates(tally_id):
     return result_forms_founds
 
 
-def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
+def get_result_form_with_duplicate_results(
+        ballot=None,
+        tally_id=None,
+        qs=None):
     """Build a list of result forms sorted by ballot of results forms for
     which there are more than 1 result form in the same ballot with the same
     number of votes per candidate, and the `duplicate_reviewed`
@@ -168,7 +172,8 @@ def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
 
     :returns A list of result forms in the system with duplicate results.
     """
-    result_form_ids = ResultForm.objects.exclude(results=None).values(
+    qs = ResultForm.objects.filter(tally_id=tally_id) if not qs else qs
+    result_form_ids = qs.exclude(results=None).values(
         'ballot',
         'results__votes',
         'results__candidate')\
@@ -177,12 +182,11 @@ def get_result_form_with_duplicate_results(ballot=None, tally_id=None):
         .annotate(ids=Func('ids', function='unnest'))\
         .filter(
             duplicate_count__gt=1,
-            tally_id=tally_id,
             duplicate_reviewed=False
     ).values_list('ids', flat=True).distinct()
 
     results_form_duplicates =\
-        ResultForm.objects.filter(id__in=result_form_ids).order_by('ballot')
+        qs.filter(id__in=result_form_ids).order_by('ballot')
 
     if ballot:
         results_form_duplicates = results_form_duplicates.filter(ballot=ballot)
@@ -261,7 +265,7 @@ class CreateResultFormView(LoginRequiredMixin,
         return initial
 
     def get_context_data(self, **kwargs):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         context = super(CreateResultFormView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
         context['barcode'] = self.barcode
@@ -275,7 +279,7 @@ class CreateResultFormView(LoginRequiredMixin,
         return context
 
     def form_valid(self, form):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         self.initial = {
             'tally_id': tally_id,
         }
@@ -307,7 +311,7 @@ class CreateResultFormView(LoginRequiredMixin,
         return super(CreateResultFormView, self).form_valid(form)
 
     def get_success_url(self):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
 
         return reverse(self.success_url, kwargs={'tally_id': tally_id})
 
@@ -325,7 +329,7 @@ class EditResultFormView(LoginRequiredMixin,
     success_message = _(u'Form Successfully Updated')
 
     def get_context_data(self, **kwargs):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         context = super(EditResultFormView, self).get_context_data(**kwargs)
         context['barcode'] = self.object.barcode
         context['station_number'] = self.object.station_number
@@ -335,14 +339,14 @@ class EditResultFormView(LoginRequiredMixin,
         return context
 
     def get_object(self):
-        tally_id = self.kwargs.get('tally_id', None)
-        form_id = self.kwargs.get('form_id', None)
+        tally_id = self.kwargs.get('tally_id')
+        form_id = self.kwargs.get('form_id')
 
         return get_object_or_404(ResultForm, tally__id=tally_id, id=form_id)
 
     def get_success_url(self):
-        tally_id = self.kwargs.get('tally_id', None)
-        form_id = self.kwargs.get('form_id', None)
+        tally_id = self.kwargs.get('tally_id')
+        form_id = self.kwargs.get('form_id')
 
         return reverse('update-form',
                        kwargs={'tally_id': tally_id, 'form_id': form_id})
@@ -373,18 +377,25 @@ class RemoveResultFormConfirmationView(LoginRequiredMixin,
 
     def post(self, request, *args, **kwargs):
         self.tally_id = self.kwargs['tally_id']
+        next_url = request.POST.get('next', None)
 
         if 'abort_submit' in request.POST:
-            next_url = request.POST.get('next', None)
-
             return redirect(next_url, tally_id=self.kwargs['tally_id'])
         else:
-            return super(RemoveResultFormConfirmationView, self).post(request,
-                                                                      *args,
-                                                                      **kwargs)
+            try:
+                return super(
+                    RemoveResultFormConfirmationView,
+                    self).post(request, *args, **kwargs)
+            except ProtectedError:
+                barcode = self.get_object().barcode
+                request.session['error_message'] =\
+                    f"Form {barcode} is tied to 1 or more object in the system"
+                return redirect(
+                    next_url,
+                    tally_id=self.kwargs['tally_id'])
 
     def get_success_url(self):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
 
         return reverse('form-list', kwargs={'tally_id': tally_id})
 
@@ -716,7 +727,7 @@ class CreateCenterView(LoginRequiredMixin,
         return initial
 
     def get_context_data(self, **kwargs):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         context = super(CreateCenterView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
         context['title'] = _(u'New Center')
@@ -733,7 +744,7 @@ class CreateCenterView(LoginRequiredMixin,
         return super(CreateCenterView, self).form_valid(form)
 
     def get_success_url(self):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
 
         return reverse('center-list', kwargs={'tally_id': tally_id})
 
@@ -821,15 +832,21 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
 
     def post(self, request, *args, **kwargs):
         self.tally_id = self.kwargs['tally_id']
+        next_url = request.POST.get('next', None)
 
         if 'abort_submit' in request.POST:
-            next_url = request.POST.get('next', None)
-
             return redirect(next_url, tally_id=self.kwargs['tally_id'])
         else:
-            return super(RemoveCenterConfirmationView, self).post(request,
-                                                                  *args,
-                                                                  **kwargs)
+            try:
+                return super(RemoveCenterConfirmationView, self).post(request,
+                                                                      *args,
+                                                                      **kwargs)
+            except ProtectedError:
+                request.session['error_message'] =\
+                    str(_(u"This center is tied to 1 or more stations"))
+                return redirect(
+                    next_url,
+                    tally_id=self.kwargs['tally_id'])
 
 
 class EditCenterView(LoginRequiredMixin,
@@ -845,23 +862,28 @@ class EditCenterView(LoginRequiredMixin,
     success_message = _(u'Center Successfully Updated')
 
     def get_context_data(self, **kwargs):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         context = super(EditCenterView, self).get_context_data(**kwargs)
-        context['center_code'] = self.kwargs.get('center_code', None)
+        context['center_code'] = self.kwargs.get('center_code')
+        error_message = self.request.session.get('error_message')
         context['tally_id'] = tally_id
         context['is_active'] = self.object.active
         context['comments'] = self.object.comments.filter(tally__id=tally_id)
 
+        if error_message:
+            del self.request.session['error_message']
+            context['error_message'] = error_message
+
         return context
 
     def get_object(self):
-        tally_id = self.kwargs.get('tally_id', None)
-        center_code = self.kwargs.get('center_code', None)
+        tally_id = self.kwargs.get('tally_id')
+        center_code = self.kwargs.get('center_code')
 
         return get_object_or_404(Center, tally__id=tally_id, code=center_code)
 
     def get_success_url(self):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
 
         return reverse('center-list', kwargs={'tally_id': tally_id})
 
@@ -879,8 +901,8 @@ class DisableEntityView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         station_number = kwargs.get('station_number')
-        center_code = kwargs.get('center_code', None)
-        tally_id = kwargs.get('tally_id', None)
+        center_code = kwargs.get('center_code')
+        tally_id = kwargs.get('tally_id')
 
         entity_name = u'Center' if not station_number else u'Station'
 
@@ -901,7 +923,7 @@ class DisableEntityView(LoginRequiredMixin,
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        tally_id = kwargs.get('tally_id', None)
+        tally_id = kwargs.get('tally_id')
 
         if form.is_valid():
             entity = form.save()
@@ -932,7 +954,7 @@ class EnableEntityView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         station_number = kwargs.get('station_number')
-        center_code = kwargs.get('center_code', None)
+        center_code = kwargs.get('center_code')
         tally_id = kwargs.get('tally_id')
 
         entityName = u'Center' if not station_number else u'Station'
@@ -965,7 +987,7 @@ class CreateRaceView(LoginRequiredMixin,
         return initial
 
     def get_context_data(self, **kwargs):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         context = super(CreateRaceView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
         context['title'] = _(u'New Race')
@@ -980,7 +1002,7 @@ class CreateRaceView(LoginRequiredMixin,
         return super(CreateRaceView, self).form_valid(form)
 
     def get_success_url(self):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
 
         return reverse('races-list', kwargs={'tally_id': tally_id})
 
@@ -1021,7 +1043,7 @@ class EditRaceView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        race_id = kwargs.get('id', None)
+        race_id = kwargs.get('id')
 
         self.initial = {
             'tally_id': tally_id,
@@ -1118,7 +1140,7 @@ class CreateStationView(LoginRequiredMixin,
         return initial
 
     def get_context_data(self, **kwargs):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
         context = super(CreateStationView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
         context['title'] = _(u'New Station')
@@ -1127,7 +1149,7 @@ class CreateStationView(LoginRequiredMixin,
         return context
 
     def get_success_url(self):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
 
         return reverse('center-list', kwargs={'tally_id': tally_id})
 
@@ -1182,6 +1204,13 @@ class QuarantineChecksListView(LoginRequiredMixin,
     template_name = 'super_admin/quarantine_checks_list.html'
     group_required = groups.SUPER_ADMINISTRATOR
 
+    def get_context_data(self, **kwargs):
+        context =\
+            super(QuarantineChecksListView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
+
+        return context
+
     def get(self, *args, **kwargs):
         all_checks = QuarantineCheck.objects.all().order_by('id')
 
@@ -1200,11 +1229,22 @@ class QuarantineChecksConfigView(LoginRequiredMixin,
 
     model = QuarantineCheck
     form_class = QuarantineCheckForm
-    success_url = 'quarantine-checks'
+
+    def get_context_data(self, **kwargs):
+        context =\
+            super(QuarantineChecksConfigView, self).get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
+
+        return context
 
     def get_object(self, queryset=None):
         obj = QuarantineCheck.objects.get(id=self.kwargs['checkId'])
         return obj
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id')
+
+        return reverse('quarantine-checks', kwargs={'tally_id': tally_id})
 
 
 class RemoveStationConfirmationView(LoginRequiredMixin,
@@ -1221,8 +1261,8 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
     tally_id = None
 
     def delete(self, request, *args, **kwargs):
-        tally_id = kwargs.get('tally_id', None)
-        station_id = kwargs.get('station_id', None)
+        tally_id = kwargs.get('tally_id')
+        station_id = kwargs.get('station_id')
 
         self.object = self.get_object(station_id)
         success_url = self.get_success_url()
@@ -1232,8 +1272,8 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
         return redirect(success_url, tally_id=tally_id)
 
     def get(self, request, *args, **kwargs):
-        tally_id = kwargs.get('tally_id', None)
-        station_id = kwargs.get('station_id', None)
+        tally_id = kwargs.get('tally_id')
+        station_id = kwargs.get('station_id')
 
         self.object = self.get_object(station_id)
         context = self.get_context_data(object=self.object, tally_id=tally_id)
@@ -1274,7 +1314,7 @@ class EditStationView(LoginRequiredMixin,
         context['center_code'] = self.object.center.code
         context['station_number'] = self.object.station_number
         context['station_id'] = self.object.pk
-        context['tally_id'] = self.kwargs.get('tally_id', None)
+        context['tally_id'] = self.kwargs.get('tally_id')
         context['is_active'] = self.object.active
         context['center_is_active'] = self.object.center.active
         context['comments'] = self.object.comments.all()
@@ -1282,12 +1322,12 @@ class EditStationView(LoginRequiredMixin,
         return context
 
     def get_object(self):
-        station_id = self.kwargs.get('station_id', None)
+        station_id = self.kwargs.get('station_id')
 
         return get_object_or_404(Station, pk=station_id)
 
     def get_success_url(self):
-        tally_id = self.kwargs.get('tally_id', None)
+        tally_id = self.kwargs.get('tally_id')
 
         return reverse('center-list', kwargs={'tally_id': tally_id})
 
@@ -1348,13 +1388,16 @@ class EditUserView(LoginRequiredMixin,
     def get_initial(self):
         initial = super(EditUserView, self).get_initial()
         initial['tally_id'] = self.kwargs.get('tally_id')
+        initial['role'] = self.kwargs.get('role', 'user')
 
         return initial
 
     def get_context_data(self, **kwargs):
         context = super(EditUserView, self).get_context_data(**kwargs)
+        role = self.kwargs.get('role', 'user')
         context['is_admin'] = False
         context['tally_id'] = self.kwargs.get('tally_id')
+        context['role'] = role
         referer_url = self.request.META.get('HTTP_REFERER', None)
         url_name = None
         url_param = None
@@ -1364,7 +1407,7 @@ class EditUserView(LoginRequiredMixin,
             int([param for param in referer_url.split('/') if param][-1])
         except ValueError:
             url_name = 'user-list'
-            url_param = 'user'
+            url_param = role
             url_keyword = 'role'
         else:
             url_name = 'user-tally-list'
@@ -1424,6 +1467,7 @@ class CreateUserView(LoginRequiredMixin,
 
     def get_context_data(self, **kwargs):
         context = super(CreateUserView, self).get_context_data(**kwargs)
+        role = self.kwargs.get('role', 'user')
         context['is_admin'] = False
         tally_id = self.kwargs.get('tally_id')
         context['tally_id'] = tally_id
@@ -1437,7 +1481,7 @@ class CreateUserView(LoginRequiredMixin,
             url_keyword = 'tally_id'
         else:
             url_name = 'user-list'
-            url_param = 'user'
+            url_param = role
             url_keyword = 'role'
 
         context['url_name'] = url_name

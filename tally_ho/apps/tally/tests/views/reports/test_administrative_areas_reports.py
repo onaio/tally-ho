@@ -1,11 +1,20 @@
+import json
 from django.test import RequestFactory
 
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
-from tally_ho.apps.tally.views.reports import administrative_areas_reports
+from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.center_type import CenterType
+from tally_ho.apps.tally.views.reports import (
+    administrative_areas_reports as admin_reports,
+)
 from tally_ho.libs.tests.test_base import create_result_form,\
     create_station, create_reconciliation_form, create_tally,\
-    create_center, create_region, create_constituency, create_office, TestBase
+    create_region, create_constituency, create_office, create_result,\
+    create_candidates, TestBase
 
 
 class TestAdministrativeAreasReports(TestBase):
@@ -17,21 +26,33 @@ class TestAdministrativeAreasReports(TestBase):
         self.tally = create_tally()
         self.tally.users.add(self.user)
 
-        region = create_region(tally=self.tally)
-        office = create_office(tally=self.tally, region=region)
-        constituency = create_constituency(tally=self.tally)
-        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
-        center = create_center(tally=self.tally,
-                               sub_constituency=sc,
-                               constituency=constituency)
-        station = create_station(center=center, registrants=20)
-        result_form = create_result_form(
+        self.region = create_region(tally=self.tally)
+        office = create_office(tally=self.tally, region=self.region)
+        self.constituency = create_constituency(tally=self.tally)
+        self.sc, _ =\
+            SubConstituency.objects.get_or_create(code=1, field_office='1')
+        center, _ = Center.objects.get_or_create(
+            code='1',
+            mahalla='1',
+            name='1',
+            office=office,
+            region='1',
+            village='1',
+            active=True,
             tally=self.tally,
+            sub_constituency=self.sc,
+            center_type=CenterType.GENERAL,
+            constituency=self.constituency)
+        self.station = create_station(
+            center=center, registrants=20, tally=self.tally)
+        self.result_form = create_result_form(
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
             office=office,
             center=center,
-            station_number=station.station_number)
-        create_reconciliation_form(
-            result_form=result_form,
+            station_number=self.station.station_number)
+        self.recon_form = create_reconciliation_form(
+            result_form=self.result_form,
             user=self.user,
             number_ballots_inside_box=20,
             number_cancelled_ballots=0,
@@ -42,237 +63,101 @@ class TestAdministrativeAreasReports(TestBase):
             number_invalid_votes=0,
             number_ballots_received=20,
         )
+        votes = 20
+        create_candidates(self.result_form, votes=votes, user=self.user,
+                          num_results=1, tally=self.tally)
+        for result in self.result_form.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # create duplicate final results
+            create_result(self.result_form, result.candidate, self.user, votes)
 
-    def test_regions_reports(self):
+    def test_sub_constituency_turn_out_and_votes_summary_reports(self):
         """
-        Test that the region reports are rendered as expected.
+        Test that the sub constituency turn out and votes summary reports are
+        rendered as expected.
         """
         request = self._get_request()
-        view = administrative_areas_reports.RegionsReportsView.as_view()
-        request = self.factory.get('/reports-regions')
+        view = admin_reports.TurnoutReportDataView.as_view()
+        request = self.factory.get('/sub-constituency-turnout-report')
         request.user = self.user
         response = view(
             request,
             tally_id=self.tally.pk,
-            group_name=groups.TALLY_MANAGER)
-
-        regions_turnout_report =\
-            administrative_areas_reports.generate_voters_turnout_report(
-                self.tally.id, 'result_form__office__region__name')[0]
-
-        self.assertContains(response, "<h1>Region Reports</h1>")
-
-        # Region turnout report tests
-        self.assertContains(response, "<h3>Turn Out Report</h3>")
-        self.assertContains(response, "<th>Region Name</th>")
-        self.assertContains(response, "<th>Total number of voters</th>")
-        self.assertContains(response, "<th>Number of voters voted</th>")
-        self.assertContains(response, "<th>Male voters</th>")
-        self.assertContains(response, "<th>Female voters</th>")
-        self.assertContains(response, "<th>Turnout percentage</th>")
-        self.assertContains(
-            response,
-            f'<td>{regions_turnout_report["name"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{regions_turnout_report["number_of_voters_voted"]}</td>')
-        self.assertContains(
-            response,
-            str('<td>'
-                f'{regions_turnout_report["total_number_of_registrants"]}'
-                '</td>'))
-        self.assertContains(
-            response,
-            str('<td>'
-                f'{regions_turnout_report["total_number_of_ballots_used"]}'
-                '</td>'))
-        self.assertContains(
-            response,
-            f'<td>{regions_turnout_report["male_voters"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{regions_turnout_report["female_voters"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{regions_turnout_report["turnout_percentage"]} %</td>')
-
-        votes_summary_report =\
-            administrative_areas_reports.generate_votes_summary_report(
-                self.tally.id, 'result_form__office__region__name')[0]
-
-        # Region votes summary report tests
-        self.assertContains(response, "<h3>Votes Summary Report</h3>")
-        self.assertContains(response, "<th>Region Name</th>")
-        self.assertContains(response, "<th>Total number of valid votes</th>")
-        self.assertContains(response, "<th>Total number of invalid votes</th>")
-        self.assertContains(
-            response, "<th>Total number of cancelled votes</th>")
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["name"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["number_valid_votes"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["number_invalid_votes"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["number_cancelled_ballots"]}</td>')
-
-    def test_constituency_reports(self):
-        """
-        Test that the constituency reports are rendered as expected.
-        """
-        request = self._get_request()
-        view = administrative_areas_reports.ConstituencyReportsView.as_view()
-        request = self.factory.get('/reports-constituencies')
-        request.user = self.user
-        response = view(
-            request,
-            tally_id=self.tally.pk,
-            group_name=groups.TALLY_MANAGER)
-
-        turnout_report =\
-            administrative_areas_reports.generate_voters_turnout_report(
-                self.tally.id, 'result_form__center__constituency__name')[0]
-
-        self.assertContains(response, "<h1>Constituency Reports</h1>")
-
-        # Constituency turnout report tests
-        self.assertContains(response, "<h3>Turn Out Report</h3>")
-        self.assertContains(response, "<th>Constituency Name</th>")
-        self.assertContains(response, "<th>Total number of voters</th>")
-        self.assertContains(response, "<th>Number of voters voted</th>")
-        self.assertContains(response, "<th>Male voters</th>")
-        self.assertContains(response, "<th>Female voters</th>")
-        self.assertContains(response, "<th>Turnout percentage</th>")
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["name"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["number_of_voters_voted"]}</td>')
-        self.assertContains(
-            response,
-            str('<td>'
-                f'{turnout_report["total_number_of_registrants"]}'
-                '</td>'))
-        self.assertContains(
-            response,
-            str('<td>'
-                f'{turnout_report["total_number_of_ballots_used"]}'
-                '</td>'))
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["male_voters"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["female_voters"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["turnout_percentage"]} %</td>')
-
-        votes_summary_report =\
-            administrative_areas_reports.generate_votes_summary_report(
-                self.tally.id, 'result_form__center__constituency__name')[0]
-
-        # Constituency votes summary report tests
-        self.assertContains(response, "<h3>Votes Summary Report</h3>")
-        self.assertContains(response, "<th>Constituency Name</th>")
-        self.assertContains(response, "<th>Total number of valid votes</th>")
-        self.assertContains(response, "<th>Total number of invalid votes</th>")
-        self.assertContains(
-            response, "<th>Total number of cancelled votes</th>")
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["name"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["number_valid_votes"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["number_invalid_votes"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["number_cancelled_ballots"]}</td>')
-
-    def test_sub_constituency_reports(self):
-        """
-        Test that the sub constituency reports are rendered as expected.
-        """
-        request = self._get_request()
-        view =\
-            administrative_areas_reports.SubConstituencyReportsView.as_view()
-        request = self.factory.get('/reports-sub-constituencies')
-        request.user = self.user
-        response = view(
-            request,
-            tally_id=self.tally.pk,
-            group_name=groups.TALLY_MANAGER)
-
-        turnout_report =\
-            administrative_areas_reports.generate_voters_turnout_report(
-                self.tally.id,
-                'result_form__center__sub_constituency__code')[0]
-
-        self.assertContains(response, "<h1>Sub Constituency Reports</h1>")
+            region_id=self.region.pk,
+            constituency_id=self.constituency.pk)
 
         # Sub Constituency turnout report tests
-        self.assertContains(response, "<h3>Turn Out Report</h3>")
-        self.assertContains(response, "<th>Sub Constituency Name</th>")
-        self.assertContains(response, "<th>Total number of voters</th>")
-        self.assertContains(response, "<th>Number of voters voted</th>")
-        self.assertContains(response, "<th>Male voters</th>")
-        self.assertContains(response, "<th>Female voters</th>")
-        self.assertContains(response, "<th>Turnout percentage</th>")
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["name"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["number_of_voters_voted"]}</td>')
-        self.assertContains(
-            response,
-            str('<td>'
-                f'{turnout_report["total_number_of_registrants"]}'
-                '</td>'))
-        self.assertContains(
-            response,
-            str('<td>'
-                f'{turnout_report["total_number_of_ballots_used"]}'
-                '</td>'))
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["male_voters"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["female_voters"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{turnout_report["turnout_percentage"]} %</td>')
+        code, number_of_voters_voted, total_number_of_registrants,\
+            male_voters, female_voters, turnout_percentage, _, _, _ =\
+            json.loads(
+                response.content.decode())['data'][0]
 
-        votes_summary_report =\
-            administrative_areas_reports.generate_votes_summary_report(
-                self.tally.id,
-                'result_form__center__sub_constituency__code')[0]
+        self.assertEquals(
+            code, '<td class="center">{}</td>'.format(self.sc.code))
+        self.assertEquals(
+            number_of_voters_voted,
+            '<td class="center">{}</td>'.format(
+                self.recon_form.number_ballots_received))
+        self.assertEquals(total_number_of_registrants,
+                          '<td class="center">{}</td>'.format(
+                              self.station.registrants))
+        self.assertEquals(male_voters, '<td class="center">20</td>')
+        self.assertEquals(female_voters, '<td class="center">0</td>')
+        self.assertEquals(turnout_percentage, '<td class="center">100%</td>')
+
+        view = admin_reports.SummaryReportDataView.as_view()
+        request = self.factory.get('/sub-constituency-summary-report')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+            region_id=self.region.pk,
+            constituency_id=self.constituency.pk)
 
         # Sub Constituency votes summary report tests
-        self.assertContains(response, "<h3>Votes Summary Report</h3>")
-        self.assertContains(response, "<th>Sub Constituency Name</th>")
-        self.assertContains(response, "<th>Total number of valid votes</th>")
-        self.assertContains(response, "<th>Total number of invalid votes</th>")
-        self.assertContains(
-            response, "<th>Total number of cancelled votes</th>")
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["name"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["number_valid_votes"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["number_invalid_votes"]}</td>')
-        self.assertContains(
-            response,
-            f'<td>{votes_summary_report["number_cancelled_ballots"]}</td>')
+        code, valid_votes, invalid_votes, cancelled_votes, _, _, _ =\
+            json.loads(
+                response.content.decode())['data'][0]
+
+        self.assertEquals(
+            code, '<td class="center">{}</td>'.format(self.sc.code))
+        self.assertEquals(
+            valid_votes,
+            '<td class="center">{}</td>'.format(
+                self.recon_form.number_valid_votes))
+        self.assertEquals(
+            invalid_votes,
+            '<td class="center">{}</td>'.format(
+                self.recon_form.number_invalid_votes))
+        self.assertEquals(
+            cancelled_votes,
+            '<td class="center">{}</td>'.format(
+                self.recon_form.number_cancelled_ballots))
+
+        view = admin_reports.ProgressiveReportDataView.as_view()
+        request = self.factory.get('/sub-cons-progressive-report-list')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+            region_id=self.region.pk,
+            constituency_id=self.constituency.pk)
+        candidates_count = Candidate.objects.filter(
+            tally__id=self.tally.pk).count()
+
+        # Sub Constituency progressive report tests
+        code, num_candidates, num_votes, _, _, _ =\
+            json.loads(
+                response.content.decode())['data'][0]
+
+        self.assertEquals(
+            code, '<td class="center">{}</td>'.format(self.sc.code))
+        self.assertEquals(
+            num_votes,
+            '<td class="center">{}</td>'.format(
+                self.result_form.num_votes))
+        self.assertEquals(
+            num_candidates,
+            '<td class="center">{}</td>'.format(
+                candidates_count))

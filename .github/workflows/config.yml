@@ -1,0 +1,52 @@
+name: Django CI
+
+on: [push]
+
+jobs:
+  container-job:
+    runs-on: ubuntu-18.04
+
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub postgres image
+        image: postgres:9.6.2-alpine
+        env:
+          POSTGRES_USER: tally
+          POSTGRES_DB: tally
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      # Connect Postgres service with custom container image
+      # https://github.community/t/connect-postgres-service-with-custom-container-image/189994
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: tally
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/dev.pip') }}
+          path: ./venv
+
+      - name: Install Dependencies
+        run: |
+          python3 -m venv venv
+            . venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements/dev.pip
+
+      - name: Run Tests
+        run: |
+          python3 -m venv venv
+            . venv/bin/activate
+          python manage.py test --settings=tally_ho.settings.dev

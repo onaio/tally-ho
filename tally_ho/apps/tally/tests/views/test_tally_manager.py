@@ -81,7 +81,7 @@ class TestTallyManager(TestBase):
 
         response = view(
             request,
-            userId=user_id,
+            user_id=user_id,
             tally_id=tally.id)
         response.render()
         self.assertEquals(request.session['url_name'], 'user-tally-list')
@@ -93,12 +93,11 @@ class TestTallyManager(TestBase):
 
         response = view(
             request,
-            userId=user_id,
+            user_id=user_id,
             tally_id=tally.id)
         response.render()
-        self.assertEquals(request.session['url_name'], 'user-list')
-        self.assertEquals(request.session['url_param'], 'user')
-        self.assertEquals(request.session['url_keyword'], 'role')
+        self.assertEquals(request.session['url_name'], 'user-tally-list')
+        self.assertEquals(request.session['url_keyword'], 'tally_id')
 
     def test_set_user_timeout_valid_post(self):
         tally = create_tally()

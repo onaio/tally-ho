@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with remote_url=remote_url export_file_name=export_file_name %}
+{% endblock %}
+
+{% block content %}
+<h1>{% trans 'Candidates List by Votes' %}</h1>
+
+{% if region_name %}
+    <h1>{% trans 'Region Name: ' %} {{ region_name }}</h1>
+{% endif %}
+{% if constituency_name %}
+    <h1>{% trans 'Constituency Name: ' %} {{ constituency_name }}</h1>
+{% endif %}
+{% if sub_constituency_code %}
+    <h1>{% trans 'Sub Constituency Code: ' %} {{ sub_constituency_code }}</h1>
+{% endif %}
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+</ul>
+{% endif %}
+
+<table class="display datatable" class="reduce-size">
+    <thead>
+        <tr>
+            <th>{% trans 'Candidate Name' %}</th>
+            <th>{% trans 'Votes' %}</th>
+            {% if ballot_report %}
+                <th>{% trans 'Ballot Number' %}</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}

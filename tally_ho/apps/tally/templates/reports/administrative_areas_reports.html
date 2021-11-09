@@ -1,51 +1,52 @@
-{% extends 'base.html' %} {% load i18n %} {% block content %}
+{% extends 'base.html' %}
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with export_file_name=export_file_name server_side=False %}
+{% endblock %}
+
+{% block content %}
 
 <h1>{{ report_name }}{% trans ' Reports' %}</h1>
+<br />
 
 <h3>{% trans 'Turn Out Report' %}</h3>
-<a href="{% url turn_out_report_download_url tally_id 'turnout-csv' %}"
-  >{% trans 'Export' %}</a
->
-<table class="table table-striped">
-  <tr>
-    <th>{{ report_name }}{% trans ' Name' %}</th>
-    <th>{% trans 'Total number of voters' %}</th>
-    <th>{% trans 'Number of voters voted' %}</th>
-    <th>{% trans 'Male voters' %}</th>
-    <th>{% trans 'Female voters' %}</th>
-    <th>{% trans 'Turnout percentage' %}</th>
-  </tr>
-  {% for rec in turnout_report %}
-  <tr>
-    <td>{{ rec.name }}</td>
-    <td>{{ rec.total_number_of_registrants }}</td>
-    <td>{{ rec.number_of_voters_voted }}</td>
-    <td>{{ rec.male_voters }}</td>
-    <td>{{ rec.female_voters }}</td>
-    <td>{{ rec.turnout_percentage }} %</td>
-  </tr>
-  {% endfor %}
-</table>
+<br />
+{% include "reports/turnout_report.html" with administrative_area_child_report_name=administrative_area_child_report_name turnout_report=turnout_report child_turnout_report_url=child_turnout_report_url tally_id=tally_id %}
 
 <h3>{% trans 'Votes Summary Report' %}</h3>
-<a href="{% url summary_report_download_url tally_id 'summary-csv' %}"
-  >{% trans 'Export' %}</a
->
-<table class="table table-striped">
-  <tr>
-    <th>{{ report_name }}{% trans ' Name' %}</th>
-    <th>{% trans 'Total number of valid votes' %}</th>
-    <th>{% trans 'Total number of invalid votes' %}</th>
-    <th>{% trans 'Total number of cancelled votes' %}</th>
-  </tr>
-  {% for rec in summary_report %}
-  <tr>
-    <td>{{ rec.name }}</td>
-    <td>{{ rec.number_valid_votes }}</td>
-    <td>{{ rec.number_invalid_votes }}</td>
-    <td>{{ rec.number_cancelled_ballots }}</td>
-  </tr>
-  {% endfor %}
-</table>
+<br />
+{% include "reports/summary_report.html" with administrative_area_child_report_name=administrative_area_child_report_name summary_report=summary_report child_summary_report_url='constituency-summary-report' tally_id=tally_id %}
+
+<br />
+<h2>{% trans 'Process Discrepancy Reports' %}</h2>
+<br />
+
+<h4>{% trans 'Stations and Centers under process audit' %}</h4>
+<br />
+{% include "reports/process_discrepancy_report.html" with administrative_area_child_report_name=administrative_area_child_report_name process_discrepancy_report=admin_ares_with_forms_in_audit child_discrepancy_report_url=child_discrepancy_report_url tally_id=tally_id %}
+<br />
+
+<h4>{% trans 'Stations and Centers under Investigation' %}</h4>
+<br />
+{% include "reports/admin_areas_under_investigation.html" with administrative_area_child_report_name=administrative_area_child_report_name centers_stations_under_invg=centers_stations_under_invg child_admin_area_under_investigation_report_url='constituencies-under-investigation-report' tally_id=tally_id %}
+<br />
+
+<h4>{% trans 'Stations and Centers excluded after investigation' %}</h4>
+<br />
+{% include "reports/admin_areas_excluded_after_investigation.html" with administrative_area_child_report_name=administrative_area_child_report_name centers_stations_ex_after_invg=centers_stations_ex_after_invg child_admin_area_excluded_after_investigation_report_url='constituencies-excluded-after-investigation-report' tally_id=tally_id %}
+<br />
+
+<h2>{% trans 'Progressive Report' %}</h2>
+{% include "reports/progressive_report.html" with administrative_area_child_report_name=administrative_area_child_report_name progressive_report=progressive_report child_progressive_report_url=child_progressive_report_url admin_area_votes_per_candidate_report_url=admin_area_votes_per_candidate_report_url tally_id=tally_id %}
+<br />
 
 {% endblock %}

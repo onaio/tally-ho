@@ -4,36 +4,45 @@
 
 {% block styles %}
 {{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with remote_url=remote_url %}
+{% include "data/table.html" with remote_url=remote_url export_file_name=export_file_name %}
 {% endblock %}
 
 {% block content %}
+{% if region_name %}
+    <h1>{% trans 'Region Name: ' %} {{ region_name }}</h1>
+{% endif %}
+{% if constituency_name %}
+    <h1>{% trans 'Constituency Name: ' %} {{ constituency_name }}</h1>
+{% endif %}
+{% if sub_constituency_code %}
+    <h1>{% trans 'Sub Constituency Code: ' %} {{ sub_constituency_code }}</h1>
+{% endif %}
 <h1>{% trans 'Center and Station List' %}</h1>
 
-<div class="pull-left">
-    Export:
-    <a href="{% url 'center-list-csv' tally_id 'csv' %}">{% trans 'Download' %}</a>
-</div>
-<div class="pull-right">
-    <form method="get" action="{% url 'create-station' tally_id%}">
-        <button type="submit" class="btn btn-primary btn-small">
-            {% trans 'New Station' %}
-        </button>
-    </form>
-</div>
-<div class="pull-right">
-    <form method="get" action="{% url 'create-center' tally_id%}">
-        <button type="submit" class="btn btn-primary btn-small">
-            {% trans 'New Center' %}
-        </button>
-    </form>
-</div>
-<br/>
-<br/>
+{% if not region_name %}
+    <div class="pull-right">
+        <form method="get" action="{% url 'create-station' tally_id%}">
+            <button type="submit" class="btn btn-primary btn-small">
+                {% trans 'New Station' %}
+            </button>
+        </form>
+    </div>
+    <div class="pull-right">
+        <form method="get" action="{% url 'create-center' tally_id%}">
+            <button type="submit" class="btn btn-primary btn-small">
+                {% trans 'New Center' %}
+            </button>
+        </form>
+    </div>
+    <br/>
+    <br/>
+{% endif %}
 
 {% if messages %}
 <ul class="text-info">
@@ -43,11 +52,12 @@
 </ul>
 {% endif %}
 
-<table class="datatable" class="reduce-size">
+<table class="display datatable reduce-size">
     <thead>
         <tr>
             <th>{% trans 'Office' %}</th>
             <th>{% trans 'Voting district' %}</th>
+            <th>{% trans 'Region Name' %}</th>
             <th>{% trans 'Center Name' %}</th>
             <th>{% trans 'Center Number' %}</th>
             <th>{% trans 'Station Number' %}</th>
@@ -57,7 +67,9 @@
             <th>{% trans 'Archived' %}</th>
             <th>{% trans 'Center enabled' %}</th>
             <th>{% trans 'Station enabled' %}</th>
+            {% if not region_name %}
             <th>{% trans 'Edit' %}</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody></tbody>

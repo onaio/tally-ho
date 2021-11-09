@@ -5,6 +5,8 @@
 {% block styles %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 {% endblock %}
 
 {% block javascript %}
@@ -56,7 +58,12 @@ Export:
 </ul>
 {% endif %}
 
-<table class="datatable">
+{% if error_message %}
+    <p class="text-danger">{{ error_message }}</p>
+{% endif %}
+<br/>
+
+<table class="display datatable reduce-size">
     <thead>
         <tr>
             <th>{% trans 'Barcode' %}</th>
@@ -64,6 +71,7 @@ Export:
             <th>{% trans 'Station Number' %}</th>
             <th>{% trans 'Office' %}</th>
             <th>{% trans 'Office Number' %}</th>
+            <th>{% trans 'Region Name' %}</th>
             <th>{% trans 'Voting District' %}</th>
             <th>{% trans 'Race Type' %}</th>
             <th>{% trans 'Form State' %}</th>

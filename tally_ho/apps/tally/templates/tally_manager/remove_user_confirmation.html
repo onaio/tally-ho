@@ -37,7 +37,11 @@
         {% endif %}
     </table>
     <button type="submit" name="accept_submit" class="btn btn-success">{% trans "Accept" %}</button>
-    <a class="btn btn-danger" href="{% url 'edit-user' object.id %}" role="button">{% trans "Cancel" %}</a>
+    {% if tally_id %}
+        <a class="btn btn-danger" href="{% url 'edit-user' role tally_id object.id %}" role="button">{% trans "Cancel" %}</a>
+    {% else %}
+        <a class="btn btn-danger" href="{% url 'edit-user' role object.id %}" role="button">{% trans "Cancel" %}</a>
+    {% endif %}
     {% csrf_token %}
 </form>
 

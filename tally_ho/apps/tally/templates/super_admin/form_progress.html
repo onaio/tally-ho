@@ -4,7 +4,9 @@
 
 {% block styles %}
 {{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 {% endblock %}
 
 {% block javascript %}

@@ -18,7 +18,7 @@ SECRET_KEY = 'el7%8*2=m()uxvg%ebet#o81y(qi%yi-k&&4iz^z=sces+i9lt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 INTERNAL_IPS = ["127.0.0.1"]
 
 
@@ -183,56 +183,128 @@ SESSION_VARS = [
 # Quaritine trigger data
 QUARANTINE_DATA = [
     {'name': 'Trigger 1 - Guard against overvoting',
+     'description':
+     str('Check to guard against overvoting. '
+         'If the result form does not have a reconciliation form this trigger '
+         ' will always pass. '
+         'If the station for this result_form has an empty registrants field '
+         'this trigger will always pass. '
+         'Fails if the number of ballots reported to be used in a '
+         'station exceeds the number of potential voters minus the number '
+         'of registrants plus N persons to accomodate staff and security.'),
      'method': 'pass_overvote',
      'active': True,
      'value': 10,
      'percentage': 90},
     {'name': 'Trigger 2 - Guard against errors and tampering with the form',
+     'description':
+     str('Guard against errors and tampering with the form. '
+         'If the result form does not have a reconciliation form this trigger '
+         'will always pass. '
+         'Fails if the sum of the results section of the form does not equal '
+         'the number of ballots expected based on the calculation of the '
+         'key fields from the reconciliation form with a N% tolerance.'),
      'method': 'pass_tampering',
      'active': True,
      'value': 3,
-     'percentage': 3},
+     'percentage': 0},
     {'name': 'Trigger 3 - Validate total number of ballots used',
+     'description':
+     str('Validate that the total number of received ballots equals the '
+         'total of the ballots inside the box plus ballots outside the box.'
+         ' If the result form does not have a reconciliation form this trigger'
+         ' will always pass.'),
      'method': 'pass_ballots_number_validation',
      'active': False,
      'value': 2,
-     'percentage': 2},
+     'percentage': 0},
     {'name': 'Trigger 4 - Validate number of signatures on the voter list',
+     'description':
+     str('Validate that the total number of received ballots equals the '
+         'total of the ballots inside the box plus ballots outside the box. '
+         'If the result form does not have a reconciliation form this trigger '
+         'will always pass.'),
      'method': 'pass_signatures_validation',
      'active': False,
      'value': 2,
-     'percentage': 2},
+     'percentage': 0},
     {'name': 'Trigger 5 - Validate the total number of ballots inside the box',
+     'description':
+     str('The total number of ballot papers inside the ballot box will be '
+         'compared against the total of valid, invalid, and unstamped ballots.'
+         ' If the result form does not have a reconciliation form this trigger'
+         ' will always pass. '
+         'Fails if the value of the number of ballots inside box from the '
+         'recon form does not equal the value of the recon property '
+         'number of ballots inside the box with an N% tolerance.'),
      'method': 'pass_ballots_inside_box_validation',
      'active': False,
      'value': 2,
-     'percentage': 2},
+     'percentage': 0},
     {'name': 'Trigger 6 - Validate sum of votes distributed to all candidates',
+     'description':
+     str('The total votes for candidates should equal the valid ballots: '
+         'after sorting the ballots inside the ballot box as valid and '
+         'invalid, and unstamped. The above sum should equal the'
+         ' sum of all candidates votes. '
+         'If the result form does not have a reconciliation form this trigger '
+         'will always pass. '
+         'Fails if the value of the number of valid votes from the recon form '
+         'does not equal the sum of all candidates votes from the result form '
+         'with an N% tolerance.'),
      'method': 'pass_sum_of_candidates_votes_validation',
      'active': False,
-     'value': 2,
-     'percentage': 2},
+     'value': 0,
+     'percentage': 0},
     {'name': 'Trigger 7 - Validate percentage of invalid ballots',
+     'description':
+     str('Validate the percentage of invalid ballots. '
+         'If the result form does not have a reconciliation form this trigger '
+         'will always pass. '
+         'Fails if the percentage of invalid ballots is greater than the this '
+         'trigger percentage value.'),
      'method': 'pass_invalid_ballots_percentage_validation',
      'active': False,
-     'value': 80,
+     'value': 0,
      'percentage': 20},
     {'name': 'Trigger 8 - Validate turnout percentage',
+     'description':
+     str('Validate the turnout percentage. '
+         'If the result form does not have a reconciliation form this trigger '
+         'will always pass. '
+         'If the station for this result form has an empty registrants field '
+         'this trigger will always pass. '
+         'Fails if the turnout percentage is greater than the this '
+         'trigger percentage value.'),
      'method': 'pass_turnout_percentage_validation',
      'active': False,
-     'value': 100,
+     'value': 0,
      'percentage': 100},
     {'name':
      'Trigger 9 - Validate percentage of votes per candidate of total votes',
+     'description':
+     str('Validate that the percentage of votes per candidate of the total '
+         'valid votes does not exceed a certain threshold. '
+         'If the result form does not have a reconciliation form this trigger '
+         'will always pass. '
+         'Fails if the percentage of votes for a particular candidate '
+         'of the total valid votes is greater than the this trigger '
+         'percentage value.'),
      'method': 'pass_percentage_of_votes_per_candidate_validation',
      'active': False,
-     'value': 50,
+     'value': 0,
      'percentage': 50},
     {'name':
      'Trigger 10 - Validate percentage of blank ballots',
+     'description':
+     str('Validate the percentage of blank ballots. '
+         'If the result form does not have a reconciliation form this trigger '
+         'will always pass. '
+         'Fails if the percentage of blank ballots is greater than the this '
+         'trigger percentage value.'),
      'method': 'pass_percentage_of_blank_ballots_trigger',
      'active': False,
-     'value': 80,
+     'value': 0,
      'percentage': 20},
 ]
 
@@ -248,7 +320,7 @@ SUB_CONSTITUENCY_COLUMN_NAMES = ['SubCon #', 'Field Office', 'Races',
                                  'R&R Form Size - Consultation',
                                  'R&R Form A3 Size', 'R&R Form A3 folded Size',
                                  'Screens Per Station',
-                                 'Ballot Boxes Per Station', '']
+                                 'Ballot Boxes Per Station']
 
 CENTER_COLUMN_NAMES = ['#', 'Region/ المنطقة', 'PC Code/ رمز مركز الانتخاب',
                        'Office #/ الللجنة الانتخابية #',

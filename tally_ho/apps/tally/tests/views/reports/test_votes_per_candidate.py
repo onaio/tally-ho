@@ -81,7 +81,7 @@ class TestVotesPerCandidateListView(TestBase):
         first_candidate_votes = Result.objects.get(
             candidate=first_candidate).votes
         candidate_name, candidate_votes = json.loads(
-                response.content.decode())['data'][0]
+            response.content.decode())['data'][0]
 
         self.assertEquals(
             candidate_name,
@@ -109,7 +109,7 @@ class TestVotesPerCandidateListView(TestBase):
         first_candidate_votes = Result.objects.get(
             candidate=first_candidate).votes
         candidate_name, candidate_votes = json.loads(
-                response.content.decode())['data'][0]
+            response.content.decode())['data'][0]
 
         self.assertEquals(
             candidate_name,

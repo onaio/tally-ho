@@ -66,11 +66,12 @@ def get_active_candidate_link(candidate):
     return button_html
 
 
-def get_edit_user_link(user, is_tally=False):
+def get_edit_user_link(user, is_tally=False, **kwargs):
+    role = kwargs.get('role', 'user')
     if is_tally and user.tally:
-        url = reverse('edit-user-tally', args=[user.tally.id, user.id])
+        url = reverse('edit-user-tally', args=[role, user.tally.id, user.id])
     else:
-        url = reverse('edit-user', args=[user.id])
+        url = reverse('edit-user', args=[role, user.id])
     button_html = '<a href="%s" class="btn btn-default btn-small">%s</a>' %\
         (url, _('Edit'))
 

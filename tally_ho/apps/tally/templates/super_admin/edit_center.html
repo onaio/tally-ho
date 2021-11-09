@@ -7,6 +7,10 @@
 <h1>{% trans 'Edit Center' %}</h1>
 
 <br/>
+{% if error_message %}
+    <p class="text-danger">{{ error_message }}</p>
+{% endif %}
+<br/>
 
 <form name="form" method="post" action="">
     <table class="table table-bordered">

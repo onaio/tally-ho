@@ -1,6 +1,12 @@
 from django import forms
-from django.forms import ModelForm
+
+from django.forms import (
+    ModelForm,
+    ModelChoiceField
+)
 from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 
 disable_copy_input = {
     'onCopy': 'return false;',
@@ -27,3 +33,14 @@ class CreateStationForm(ModelForm):
         widgets = {
             "tally": forms.HiddenInput()
         }
+
+    def __init__(self, *args, **kwargs):
+        super(CreateStationForm, self).__init__(*args, **kwargs)
+
+        if self.initial.get('tally'):
+            self.fields['center'] = ModelChoiceField(
+                queryset=Center.objects.filter(
+                    tally__id=11))
+            self.fields['sub_constituency'] = ModelChoiceField(
+                queryset=SubConstituency.objects.filter(
+                    tally__id=self.initial['tally']))

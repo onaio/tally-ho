@@ -19,6 +19,7 @@
         <th>{% trans 'Name' %}</th>
         <th>{% trans 'Modification date' %}</th>
         <th>{% trans 'Value' %}</th>
+        <th>{% trans 'Description' %}</th>
         <th>{% trans 'Percentage' %}</th>
         <th>{% trans 'Status' %}</th>
         <th>{% trans 'Actions' %}</th>
@@ -28,10 +29,11 @@
         <td>{{ check.name }}</td>
         <td>{{ check.modified_date | date:"Y-m-d h:m" }}</td>
         <td>{{ check.value }}</td>
+        <td>{{ check.description }}</td>
         <td>{{ check.percentage }}</td>
         <td>{{ check.active }}</td>
         <td>
-            <a href="{% url 'quarantine-checks-config' check.id %}" class="btn btn-default btn-small">{% trans 'Edit' %}</a>
+            <a href="{% url 'quarantine-checks-config' tally_id check.id %}" class="btn btn-default btn-small">{% trans 'Edit' %}</a>
         </td>
     </tr>
 {% endfor %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %} 
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with export_file_name=export_file_name server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url  %}
+{% endblock %}
+{% block content %}
+
+<h1>{{ title }}</h1>
+<br>
+
+<table class="display datatable results">
+  <caption style="margin-top: 2em; margin-left: -0.5em">
+    <div id="report" class="row">
+    <div class="col-sm-4">
+      <p style="text-align: left; margin-left: .5em;">Centers</p>
+      <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
+        {% for center in centers %}
+          <option value={{center.id}}>{{center.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <p style="text-align: left; margin-left: .5em;">Stations</p>
+      <select class="selectpicker center-stations" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
+        {% for station in stations %}
+          <option value={{station.id}}>{{station.id}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <div class="card">
+        <div class="card-body">
+          <p class="card-text" style="text-align: left;">Filter out Centers and Stations from report.</p>
+          <button style="float: left;" id="filter-report" class="btn btn-default btn-small">Apply</button>
+          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">Reset</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</caption>
+<br>
+  <thead>
+      <tr>
+        <th>{% trans 'Candidate Name' %}</th>
+        <th>{% trans 'Votes' %}</th>
+        <th>{% trans 'All Votes including Quarantine' %}</th>
+        <th>{% trans 'Stations' %}</th>
+        <th>{% trans 'Stations Completed' %}</th>
+        <th>{% trans 'Stations Percent Completed' %}</th>
+        <th>{% trans 'Ballot' %}</th>
+      </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+
+{% endblock %}
+
