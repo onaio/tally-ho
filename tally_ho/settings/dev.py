@@ -18,6 +18,8 @@ GRAPH_MODELS = {
     'group_models': True,
 }
 
+TEST_RUNNER = 'tally_ho.libs.utils.disable_test_logs.DisableLoggingNoseTestSuiteRunner'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
