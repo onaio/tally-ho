@@ -57,8 +57,10 @@
             <th>{% trans 'Email' %}</th>
             <th>{% trans 'First Name' %}</th>
             <th>{% trans 'Last Name' %}</th>
+            {% if not tally_id %}
             <th>{% trans 'Tally Name' %}</th>
             <th>{% trans 'Date Joined' %}</th>
+            {% endif %}
             <th class="hide-from-export">{% trans 'Actions' %}</th>
         </tr>
     </thead>
