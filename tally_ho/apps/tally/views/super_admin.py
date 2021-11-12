@@ -383,6 +383,8 @@ class RemoveResultFormConfirmationView(LoginRequiredMixin,
             return redirect(next_url, tally_id=self.kwargs['tally_id'])
         else:
             try:
+                messages.add_message(
+                    self.request, messages.INFO, self.success_message)
                 return super(
                     RemoveResultFormConfirmationView,
                     self).post(request, *args, **kwargs)
