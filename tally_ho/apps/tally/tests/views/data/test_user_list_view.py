@@ -40,13 +40,12 @@ class TestUserListView(TestBase):
         """
         tally = create_tally()
         tally.users.add(self.user)
-        audit_supervisor_user =\
+        audit_user =\
             UserProfile.objects.create(
                 username='audit_supervisor',
-                password='password',
                 first_name='audit',
                 last_name='supervisor')
-        self._add_user_to_group(audit_supervisor_user,
+        self._add_user_to_group(audit_user,
                                 groups.AUDIT_SUPERVISOR)
         view = views.UserListDataView.as_view()
         request = self.factory.get('/user-list/user')
@@ -59,12 +58,11 @@ class TestUserListView(TestBase):
 
         self.assertEquals(
             edit_link,
-            f'<a href="/tally-manager/edit-user/user/\
-                {audit_supervisor_user.id}/"'
+            f'<a href="/tally-manager/edit-user/user/{audit_user.id}/"'
             ' class="btn btn-default btn-small">Edit</a>')
-        self.assertEquals(username, audit_supervisor_user.username)
-        self.assertEquals(first_name, audit_supervisor_user.first_name)
-        self.assertEquals(last_name, audit_supervisor_user.last_name)
+        self.assertEquals(username, audit_user.username)
+        self.assertEquals(first_name, audit_user.first_name)
+        self.assertEquals(last_name, audit_user.last_name)
         self.assertEquals(date_joined,
-                          audit_supervisor_user.date_joined.strftime(
+                          audit_user.date_joined.strftime(
                               '%a, %d %b %Y %H:%M:%S %Z'))
