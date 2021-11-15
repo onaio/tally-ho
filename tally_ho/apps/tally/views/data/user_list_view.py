@@ -20,11 +20,15 @@ class UserListDataView(LoginRequiredMixin,
         'email',
         'first_name',
         'last_name',
+        'tally.name',
+        'date_joined',
         'edit',
     )
 
     def render_column(self, row, column):
         role = self.kwargs.get('role', 'user')
+        if column == 'date_joined':
+            return row.date_joined.strftime('%a, %d %b %Y %H:%M:%S %Z')
         if column == 'edit':
             return row.get_edit_link(role=role)
         else:
