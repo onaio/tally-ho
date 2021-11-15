@@ -989,6 +989,7 @@ class TestSuperAdmin(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
+        request._messages = default_storage(request)
         response = view(
             request,
             form_id=result_form.pk,
