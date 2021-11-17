@@ -1,3 +1,4 @@
+celery==5.0.5
 django==2.1.1
 django-datatables-view==1.17.0
 django-enumfields==0.10.1
@@ -7,6 +8,7 @@ django-queryset-csv==1.0.1
 django-reversion==3.0.0
 -e git+https://github.com/onaio/django-tracking2.git@e745e060d9f72eab36f4e7051b062afce04b6cb7#egg=django-tracking2
 psycopg2-binary==2.8.6
+redis==3.5.3
 six==1.11.0
 mock==2.0.0
 python-dateutil==2.8.1
