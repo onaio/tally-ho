@@ -67,10 +67,26 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'tally',
-        'USER': 'postgres',
+        'USER': 'tally',
         'PASSWORD': 'tally',
         'HOST': '127.0.0.1',
     }
+}
+
+# Celery settings
+## use True for testing and False when you use rabbitMQ and celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_CACHE_BACKEND = 'memory'
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 2
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = 'Africa/Nairobi'
+CELERY_ROUTES = {
+    'tally_ho.libs.views.exports.export_candidate_votes': {
+        'queue': 'export_candidate_votes'}
 }
 
 # Internationalization
@@ -131,11 +147,11 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 SITE_ID = 1
 
-NOSE_ARGS = [
-    '--logging-level=INFO',
-    '--cover-erase',
-    '--cover-html'
-]
+# NOSE_ARGS = [
+#     '--logging-level=INFO',
+#     '--cover-erase',
+#     '--cover-html'
+# ]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
