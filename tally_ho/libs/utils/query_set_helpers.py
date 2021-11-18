@@ -2,11 +2,12 @@ from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.db import transaction, connection
 from django.db.models import ExpressionWrapper, Count, Q, F, FloatField,\
     Func, Subquery, OuterRef, Case, IntegerField, When, Value as V
+
+from tally_ho import celery_tally_ho
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-
 
 class Cast(Func):
     function = 'CAST'
@@ -127,9 +128,12 @@ def build_tally_candidates_votes_queryset():
 
     return qs
 
-
 @transaction.atomic
 def refresh_all_candidates_votes_materiliazed_view():
     with connection.cursor() as cursor:
         cursor.execute(
             "REFRESH MATERIALIZED VIEW CONCURRENTLY tally_allcandidatesvotes")
+
+@celery_tally_ho.task
+def async_refresh_all_candidates_votes_materiliazed_view():
+    return refresh_all_candidates_votes_materiliazed_view()

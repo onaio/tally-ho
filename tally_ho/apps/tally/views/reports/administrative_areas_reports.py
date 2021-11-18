@@ -1,4 +1,6 @@
 import ast
+import time
+import json
 from django.views.generic import TemplateView
 from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
@@ -11,6 +13,7 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
 
+from celery.result import AsyncResult
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.constituency import Constituency
@@ -22,6 +25,9 @@ from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.all_candidates_votes import AllCandidatesVotes
 from tally_ho.apps.tally.views.super_admin import (
     get_result_form_with_duplicate_results)
+from tally_ho.libs.utils.query_set_helpers import (
+    async_refresh_all_candidates_votes_materiliazed_view
+)
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
@@ -3265,9 +3271,18 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
                        'station_numbers').filter(tally_id=tally_id)
 
         if data:
-            qs = filter_candidates_votes_queryset(
-                    qs=qs,
-                    data=ast.literal_eval(data))\
+            if json.loads(data).get('refresh'):
+                result = async_refresh_all_candidates_votes_materiliazed_view\
+                    .apply_async(ignore_result=True)
+                celery_result = AsyncResult(result.task_id)
+                status = 'PENDING'
+                if celery_result.status and celery_result.status == 'PENDING':
+                    while status == 'PENDING':
+                        if celery_result.status == 'SUCCESS':
+                            status = 'SUCCESS'
+                        time.sleep(30)
+            else:
+                qs = filter_candidates_votes_queryset(qs=qs, data=json.loads(data))
 
         if keyword:
             qs = qs.filter(
