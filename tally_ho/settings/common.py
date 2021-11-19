@@ -85,8 +85,8 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = 'Africa/Nairobi'
 CELERY_ROUTES = {
-    'tally_ho.libs.views.exports.export_candidate_votes': {
-        'queue': 'export_candidate_votes'}
+    'tally_ho.libs.utils.query_set_helpers': {
+        'queue': 'async_refresh_all_candidates_votes_materiliazed_view'}
 }
 
 # Internationalization
@@ -147,11 +147,11 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 SITE_ID = 1
 
-# NOSE_ARGS = [
-#     '--logging-level=INFO',
-#     '--cover-erase',
-#     '--cover-html'
-# ]
+NOSE_ARGS = [
+    '--logging-level=INFO',
+    '--cover-erase',
+    '--cover-html'
+]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
