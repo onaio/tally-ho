@@ -46,12 +46,10 @@ class CreateStationForm(ModelForm):
             self.fields['sub_constituency'] = ModelChoiceField(
                 queryset=SubConstituency.objects.filter(
                     tally__id=self.initial['tally']))
-
         self.fields['gender'].choices = self.fields['gender'].choices[:-1]
 
     def clean(self):
         cleaned_data = super(CreateStationForm, self).clean()
-
         center = cleaned_data.get('center')
         if not center:
             raise ValidationError(_('Center field is required'))

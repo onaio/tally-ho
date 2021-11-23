@@ -45,12 +45,10 @@ class CreateResultForm(ModelForm):
             self.fields['ballot'] = ModelChoiceField(
                 queryset=Ballot.objects.filter(
                     tally__id=self.initial['tally']))
-
         self.fields['gender'].choices = self.fields['gender'].choices[:-1]
 
     def clean(self):
         cleaned_data = super(CreateResultForm, self).clean()
-
         tally = cleaned_data.get('tally', None)
         center = cleaned_data.get('center', None)
         station_number = cleaned_data.get('station_number', None)
