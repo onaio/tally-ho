@@ -49,6 +49,7 @@ class CreateResultForm(ModelForm):
     def clean(self):
         cleaned_data = super(CreateResultForm, self).clean()
 
+        tally = cleaned_data.get('tally', None)
         center = cleaned_data.get('center', None)
         station_number = cleaned_data.get('station_number', None)
         ballot = cleaned_data.get('ballot', None)
@@ -71,6 +72,20 @@ class CreateResultForm(ModelForm):
         except Station.DoesNotExist:
             raise ValidationError(
                 _('Station does not exist for the selected center'))
+
+        # Make Center code, station number and ballot unique per result form.
+        try:
+            result_form = ResultForm.objects.get(
+                station_number=station_number,
+                center__code=center.code,
+                ballot__id=ballot.pk,
+                tally__id=tally.pk)
+            if result_form:
+                raise ValidationError(
+                    _(u"A result form with the selected center,"
+                      u" station number and ballot already exists"))
+        except ResultForm.DoesNotExist:
+            pass
 
         if center.sub_constituency and \
                 ballot.number != center.sub_constituency.code:
