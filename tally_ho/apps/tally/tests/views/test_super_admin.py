@@ -435,7 +435,7 @@ class TestSuperAdmin(TestBase):
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 200)
 
-    def test_create_station(self):
+    def test_create_station_invalid(self):
         tally = create_tally()
         tally.users.add(self.user)
         view = views.CreateStationView.as_view()
@@ -444,11 +444,55 @@ class TestSuperAdmin(TestBase):
         }
         request = self.factory.post('/', data)
         request.user = self.user
+        request.session = {}
         configure_messages(request)
         response = view(
             request,
             tally_id=tally.pk)
-        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context_data['form'].is_valid())
+        self.assertEqual(
+            response.context_data['form'].errors['center'][0],
+            str('This field is required.'))
+        self.assertEqual(
+            response.context_data['form'].errors['station_number'][0],
+            str('This field is required.'))
+        self.assertEqual(
+            response.context_data['form'].errors['gender'][0],
+            str('This field is required.'))
+        self.assertEqual(
+            response.context_data['form'].errors['sub_constituency'][0],
+            str('This field is required.'))
+
+    def test_create_station_valid(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        sc, _ = SubConstituency.objects.get_or_create(
+            code=1,
+            field_office='1',
+            tally=tally)
+        center = create_center('12345',
+                               tally=tally,
+                               sub_constituency=sc)
+        station = create_station(center)
+        view = views.CreateStationView.as_view()
+        data = {
+            'center': center.pk,
+            'sub_constituency': sc.pk,
+            'station_number': station.station_number,
+            'tally_id': tally.pk,
+            'gender': station.gender.value,
+        }
+        request = self.factory.post('/', data)
+        request.user = self.user
+        request.session = {}
+        configure_messages(request)
+        response = view(
+            request,
+            tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response['location'],
+            str('/data/center-list/{}/').format(tally.pk))
 
     def test_disable_entity_view_post_station_invalid(self):
         tally = create_tally()
