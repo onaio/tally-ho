@@ -11,17 +11,20 @@
 <table class="table table-striped">
     <tr>
         <th>{% trans 'Staff Name' %}</th>
+        <th>{% trans 'Total Forms Processed' %}</th>
         <th>{% trans 'Forms Processed Per Hour' %}</th>
     </tr>
     {% if not result_form_stats %}
     <tr>
         <td>{% trans 'No Data' %}</td>
         <td></td>
+        <td></td>
     </tr>
     {% else %}
     {% for rec in result_form_stats %}
     <tr>
         <td>{{ rec.user__username }}</td>
+        <td>{{ rec.forms_processed }}</td>
         <td>{{ rec.forms_processed|forms_processed_per_hour:rec.total_processing_time }}</td>
     </tr>
     {% endfor %}
