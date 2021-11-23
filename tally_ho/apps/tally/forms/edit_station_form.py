@@ -31,3 +31,5 @@ class EditStationForm(ModelForm):
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:
                 self.fields[key].required = False
+
+        self.fields['gender'].choices = self.fields['gender'].choices[:-1]

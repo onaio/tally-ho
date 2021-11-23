@@ -38,6 +38,8 @@ class EditResultForm(ModelForm):
                 queryset=Ballot.objects.filter(
                     tally__id=self.initial['tally']))
 
+        self.fields['gender'].choices = self.fields['gender'].choices[:-1]
+
     def clean(self):
         cleaned_data = super(EditResultForm, self).clean()
 
