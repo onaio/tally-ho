@@ -40,7 +40,7 @@ class CreateStationForm(ModelForm):
         if self.initial.get('tally'):
             self.fields['center'] = ModelChoiceField(
                 queryset=Center.objects.filter(
-                    tally__id=11))
+                    tally__id=self.initial['tally']))
             self.fields['sub_constituency'] = ModelChoiceField(
                 queryset=SubConstituency.objects.filter(
                     tally__id=self.initial['tally']))
