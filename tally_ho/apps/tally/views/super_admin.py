@@ -1194,12 +1194,6 @@ class RemoveStationView(LoginRequiredMixin,
 
         if form.is_valid():
             station = form.save()
-            self.success_message = _(
-                u"Successfully removed station %(station)s from "
-                u"center %(center)s." % {
-                    'center': station.center.code,
-                    'station': station.station_number
-                })
             self.success_url = reverse(
                 'remove-station-confirmation',
                 kwargs={
