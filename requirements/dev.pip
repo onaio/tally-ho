@@ -7,3 +7,4 @@ flake8
 ipython
 ipdb
 sphinx
+autopep8
