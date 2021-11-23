@@ -1,5 +1,4 @@
 from django import forms
-from django.db import models
 
 from django.forms import (
     ModelForm,
@@ -10,7 +9,6 @@ from django.utils.translation import ugettext as _
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
-from tally_ho.libs.models.enums.gender import Gender
 
 disable_copy_input = {
     'onCopy': 'return false;',

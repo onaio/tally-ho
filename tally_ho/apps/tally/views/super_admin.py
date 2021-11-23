@@ -1149,7 +1149,7 @@ class CreateStationView(LoginRequiredMixin,
         context['route_name'] = 'center-list'
 
         return context
-    
+
     def post(self, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -1159,8 +1159,10 @@ class CreateStationView(LoginRequiredMixin,
             self.success_message = _(
                 u"Successfully created station %(center)s"
                 % {'center': station.center.code})
-            messages.add_message(self.request, messages.INFO, self.success_message)
-            self.success_url = reverse('center-list', kwargs={'tally_id': tally_id})
+            messages.add_message(
+                self.request, messages.INFO, self.success_message)
+            self.success_url = reverse(
+                'center-list', kwargs={'tally_id': tally_id})
             return redirect(self.success_url)
         return self.form_invalid(form)
 
@@ -1313,10 +1315,9 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
                 )
             except Http404:
                 pass
-            finally:
-                return super(
-                    RemoveStationConfirmationView,
-                    self).post(request,*args,**kwargs)
+            return super(
+                RemoveStationConfirmationView,
+                self).post(request, *args, **kwargs)
 
 
 class EditStationView(LoginRequiredMixin,
