@@ -1128,7 +1128,7 @@ class CreateStationView(LoginRequiredMixin,
                         mixins.TallyAccessMixin,
                         mixins.ReverseSuccessURLMixin,
                         SuccessMessageMixin,
-                        CreateView):
+                        FormView):
     model = Station
     form_class = CreateStationForm
     group_required = groups.SUPER_ADMINISTRATOR
@@ -1149,11 +1149,20 @@ class CreateStationView(LoginRequiredMixin,
         context['route_name'] = 'center-list'
 
         return context
-
-    def get_success_url(self):
+    
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
         tally_id = self.kwargs.get('tally_id')
-
-        return reverse('center-list', kwargs={'tally_id': tally_id})
+        if form.is_valid():
+            station = form.save()
+            self.success_message = _(
+                u"Successfully created station %(center)s"
+                % {'center': station.center.code})
+            messages.add_message(self.request, messages.INFO, self.success_message)
+            self.success_url = reverse('center-list', kwargs={'tally_id': tally_id})
+            return redirect(self.success_url)
+        return self.form_invalid(form)
 
 
 class RemoveStationView(LoginRequiredMixin,
