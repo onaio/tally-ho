@@ -1296,16 +1296,33 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
         return get_object_or_404(Station, pk=station_id)
 
     def post(self, request, *args, **kwargs):
-        self.tally_id = self.kwargs['tally_id']
+        self.tally_id = self.kwargs.get('tally_id')
+        station_id = self.kwargs.get('station_id')
 
         if 'abort_submit' in request.POST:
             next_url = request.POST.get('next', None)
 
             return redirect(next_url, tally_id=self.tally_id)
         else:
-            return super(RemoveStationConfirmationView, self).post(request,
-                                                                   *args,
-                                                                   **kwargs)
+            try:
+                station = self.get_object(station_id)
+                self.success_message = _(
+                    u"Successfully removed station %(station)s from "
+                    u"center %(center)s." % {
+                        'center': station.center.code,
+                        'station': station.station_number
+                    })
+                messages.add_message(
+                    self.request,
+                    messages.INFO,
+                    self.success_message
+                )
+            except Http404:
+                pass
+            finally:
+                return super(
+                    RemoveStationConfirmationView,
+                    self).post(request,*args,**kwargs)
 
 
 class EditStationView(LoginRequiredMixin,
