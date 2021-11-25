@@ -254,6 +254,7 @@ def process_station_row(tally, row, command=None, logger=None):
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise SubConstituency.DoesNotExist(msg)
 
     gender = getattr(Gender, gender.upper())
 
@@ -354,13 +355,14 @@ def process_results_form_row(tally, row, command=None, logger=None):
             if logger:
                 logger.warning(msg)
 
-    except ballot.DoesNotExist:
+    except Ballot.DoesNotExist:
         msg = str('Ballot "%s" does not exist for tally "%s"') %\
             (ballot_number, tally.name)
         if command:
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Ballot.DoesNotExist(msg)
 
     center = None
 
@@ -379,6 +381,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Center.DoesNotExist(msg)
 
     try:
         station = Station.objects.get(
@@ -398,6 +401,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Station.DoesNotExist(msg)
 
     if center and center.sub_constituency and \
             ballot.number != center.sub_constituency.code:
@@ -420,6 +424,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
+            raise Office.DoesNotExist(msg)
 
     is_replacement = True if center is None else False
 
