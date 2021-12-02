@@ -346,62 +346,65 @@ def process_results_form_row(tally, row, command=None, logger=None):
     gender = gender and getattr(Gender, gender.upper())
     ballot = None
 
-    try:
-        ballot = Ballot.objects.get(number=ballot_number, tally=tally)
-        if not ballot.active:
-            msg = 'Race for ballot "%s" is disabled' % ballot_number
+    if ballot_number:
+        try:
+            ballot = Ballot.objects.get(number=ballot_number, tally=tally)
+            if not ballot.active:
+                msg = 'Race for ballot "%s" is disabled' % ballot_number
+                if command:
+                    command.stdout.write(command.style.WARNING(msg))
+                if logger:
+                    logger.warning(msg)
+
+        except Ballot.DoesNotExist:
+            msg = str('Ballot "%s" does not exist for tally "%s"') %\
+                (ballot_number, tally.name)
             if command:
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-
-    except Ballot.DoesNotExist:
-        msg = str('Ballot "%s" does not exist for tally "%s"') %\
-            (ballot_number, tally.name)
-        if command:
-            command.stdout.write(command.style.WARNING(msg))
-        if logger:
-            logger.warning(msg)
-        raise Ballot.DoesNotExist(msg)
+            raise Ballot.DoesNotExist(msg)
 
     center = None
 
-    try:
-        center = Center.objects.get(code=code, tally=tally)
-        if not center.active:
-            msg = 'Selected center "%s" is disabled' % code
+    if code:
+        try:
+            center = Center.objects.get(code=code, tally=tally)
+            if not center.active:
+                msg = 'Selected center "%s" is disabled' % code
+                if command:
+                    command.stdout.write(command.style.WARNING(msg))
+                if logger:
+                    logger.warning(msg)
+
+        except Center.DoesNotExist:
+            msg = 'Center "%s" does not exist' % code
             if command:
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
+            raise Center.DoesNotExist(msg)
 
-    except Center.DoesNotExist:
-        msg = 'Center "%s" does not exist' % code
-        if command:
-            command.stdout.write(command.style.WARNING(msg))
-        if logger:
-            logger.warning(msg)
-        raise Center.DoesNotExist(msg)
+    if station_number and center:
+        try:
+            station = Station.objects.get(
+                station_number=station_number,
+                center=center)
+            if not station.active:
+                msg = 'Selected station "%s" is disabled' % station_number
+                if command:
+                    command.stdout.write(command.style.WARNING(msg))
+                if logger:
+                    logger.warning(msg)
 
-    try:
-        station = Station.objects.get(
-            station_number=station_number,
-            center=center)
-        if not station.active:
-            msg = 'Selected station "%s" is disabled' % station_number
+        except Station.DoesNotExist:
+            msg = str('Station "%s" does not exist for center "%s"') %\
+                (station_number, code)
             if command:
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-
-    except Station.DoesNotExist:
-        msg = str('Station "%s" does not exist for center "%s"') %\
-            (station_number, code)
-        if command:
-            command.stdout.write(command.style.WARNING(msg))
-        if logger:
-            logger.warning(msg)
-        raise Station.DoesNotExist(msg)
+            raise Station.DoesNotExist(msg)
 
     if center and center.sub_constituency and \
             ballot.number != center.sub_constituency.code:
@@ -426,7 +429,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
                 logger.warning(msg)
             raise Office.DoesNotExist(msg)
 
-    is_replacement = True if center is None else False
+    is_replacement = center is None
 
     if is_replacement:
         replacement_count = 1
