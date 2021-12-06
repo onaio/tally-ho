@@ -33,11 +33,13 @@ class FormListDataView(LoginRequiredMixin,
         'ballot.number',
         'ballot.race_type',
         'form_state',
-        'modified_date_formatted',
+        'modified_date',
         'action'
     )
 
     def render_column(self, row, column):
+        if column == 'modified_date':
+            return row.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z')
         if column == 'action':
             return row.get_action_button
         else:
@@ -134,9 +136,19 @@ class FormNotReceivedListView(FormListView):
 class FormNotReceivedDataView(FormListDataView):
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
-        return ResultForm.forms_in_state(
+        keyword = self.request.GET.get('search[value]', None)
+        qs = ResultForm.forms_in_state(
             FormState.UNSUBMITTED,
             tally_id=tally_id)
+        if keyword:
+            qs = qs.filter(Q(barcode__contains=keyword) |
+                           Q(center__code__contains=keyword) |
+                           Q(center__office__region__name__contains=keyword) |
+                           Q(center__office__name__contains=keyword) |
+                           Q(center__office__number__contains=keyword) |
+                           Q(station_number__contains=keyword) |
+                           Q(ballot__number__contains=keyword))
+        return qs
 
 
 class FormsForRaceView(FormListView):

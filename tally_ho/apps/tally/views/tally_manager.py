@@ -87,14 +87,13 @@ def delete_all_tally_objects(tally):
     :param tally: The tally for filtering objects to delete.
     """
     with transaction.atomic():
+        ResultForm.objects.filter(tally=tally).delete()
+        Candidate.objects.filter(tally=tally).delete()
         Station.objects.filter(tally=tally).delete()
         Center.objects.filter(tally=tally).delete()
         SubConstituency.objects.filter(tally=tally).delete()
         Ballot.objects.filter(tally=tally).delete()
         Office.objects.filter(tally=tally).delete()
-        Ballot.objects.filter(tally=tally).delete()
-        Candidate.objects.filter(tally=tally).delete()
-        ResultForm.objects.filter(tally=tally).delete()
 
 
 def save_file(file_uploaded, file_name):
@@ -184,10 +183,24 @@ def import_rows_batch(tally,
                     check_file_column_names = False
             if count >= offset and count < (offset + BATCH_BLOCK_SIZE):
                 if line != 0:
+                    is_not_empty_row =\
+                        any(field.strip() for field in row)
                     if id_to_ballot_order:
-                        function(tally, row, id_to_ballot_order)
+                        if is_not_empty_row:
+                            try:
+                                function(tally, row, id_to_ballot_order)
+                            except Exception as e:
+                                delete_all_tally_objects(tally)
+                                error_message = _(u'{}'.format(str(e)))
+                                return elements_processed, error_message
                     else:
-                        function(tally, row, logger=logger)
+                        if is_not_empty_row:
+                            try:
+                                function(tally, row, logger=logger)
+                            except Exception as e:
+                                delete_all_tally_objects(tally)
+                                error_message = _(u'{}'.format(str(e)))
+                                return elements_processed, error_message
 
                 elements_processed += 1
             count += 1

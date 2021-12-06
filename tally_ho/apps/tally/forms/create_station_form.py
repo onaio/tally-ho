@@ -2,8 +2,10 @@ from django import forms
 
 from django.forms import (
     ModelForm,
-    ModelChoiceField
+    ModelChoiceField,
+    ValidationError
 )
+from django.utils.translation import ugettext as _
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
@@ -40,7 +42,16 @@ class CreateStationForm(ModelForm):
         if self.initial.get('tally'):
             self.fields['center'] = ModelChoiceField(
                 queryset=Center.objects.filter(
-                    tally__id=11))
+                    tally__id=self.initial['tally']))
             self.fields['sub_constituency'] = ModelChoiceField(
                 queryset=SubConstituency.objects.filter(
                     tally__id=self.initial['tally']))
+        self.fields['gender'].choices = self.fields['gender'].choices[:-1]
+
+    def clean(self):
+        cleaned_data = super(CreateStationForm, self).clean()
+        center = cleaned_data.get('center')
+        if not center:
+            raise ValidationError(_('Center field is required'))
+
+        return cleaned_data
