@@ -18,7 +18,11 @@
 
 <h1>{% trans 'Result Forms with Duplicate Results' %}</h1>
 <br>
-
+<div class="row">
+  <div class="col-sm-5">
+    <a href="{% url 'result-export' tally_id=tally_id report='duplicates' %}">{% trans 'Download Result Forms With Duplicate Results' %}</a>
+  </div>
+</div>
 <table class="display datatable results">
   <caption style="margin-top: 2em; margin-left: -0.5em">
     <div id="report" class="row">
