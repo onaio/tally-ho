@@ -48,19 +48,10 @@ $(document).ready(function () {
     stateSave: true,
     ajax: LIST_JSON_URL,
     dom:
-      "<'row'<'col-sm-1'B><'col-sm-6'l><'col-sm-5'f>>" +
+      "<'row'<'col-sm-6'l><'col-sm-6'f>>" +
       "<'row'<'col-sm-12'tr>>" +
       "<'row'<'col-sm-5'i><'col-sm-7'p>>",
-    buttons: [
-      {
-        extend: "csv",
-        filename: exportFileName,
-        action: exportAction,
-        exportOptions: {
-          columns: ':visible :not(.hide-from-export)',
-        },
-      },
-    ],
+    buttons: [],
     select: {
       style: "multi",
     },
