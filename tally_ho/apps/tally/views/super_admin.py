@@ -1335,6 +1335,8 @@ class EditStationView(LoginRequiredMixin,
     def get_context_data(self, **kwargs):
         context = super(EditStationView, self).get_context_data(**kwargs)
         context['center_code'] = self.object.center.code
+        context['sub_con'] = self.object.sub_constituency.code
+        context['region'] = self.object.center.office.region.name
         context['station_number'] = self.object.station_number
         context['station_id'] = self.object.pk
         context['tally_id'] = self.kwargs.get('tally_id')
