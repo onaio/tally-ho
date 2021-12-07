@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, Subquery, OuterRef, IntegerField, Value as V
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 from django.urls import reverse
@@ -9,6 +9,7 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
@@ -26,6 +27,7 @@ class FormListDataView(LoginRequiredMixin,
     columns = (
         'barcode',
         'center.code',
+        'station_id',
         'station_number',
         'center.office.name',
         'center.office.number',
@@ -49,9 +51,23 @@ class FormListDataView(LoginRequiredMixin,
         ballot_number = self.request.GET.get('ballot[value]', None)
         tally_id = self.kwargs.get('tally_id')
         keyword = self.request.GET.get('search[value]', None)
+        station_id_query =\
+            Subquery(
+                Station.objects.filter(
+                    tally__id=tally_id,
+                    center__code=OuterRef(
+                        'center__code'),
+                    station_number=OuterRef(
+                        'station_number'))
+                .values('id')[:1],
+                output_field=IntegerField())
 
         if tally_id:
-            qs = qs.filter(tally__id=tally_id)
+            qs =\
+                qs.filter(tally__id=tally_id)\
+                .annotate(
+                    station_id=station_id_query,
+                )
 
         if ballot_number:
             ballot = Ballot.objects.get(number=ballot_number,
@@ -62,6 +78,7 @@ class FormListDataView(LoginRequiredMixin,
         if keyword:
             qs = qs.filter(Q(barcode__contains=keyword) |
                            Q(center__code__contains=keyword) |
+                           Q(station_id__contains=keyword) |
                            Q(center__office__region__name__contains=keyword) |
                            Q(center__office__name__contains=keyword) |
                            Q(center__office__number__contains=keyword) |
