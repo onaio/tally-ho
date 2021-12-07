@@ -3008,9 +3008,11 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                'valid_votes',
                'number_registrants',
                'candidate_status',
+               'region_name',
+               'office_name',
                'center_code',
-               'station_number',
                'station_id',
+               'station_number',
                'gender',
                'barcode',
                'race_type',
@@ -3073,6 +3075,12 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         elif column == 'candidate_status':
             return str('<td class="center">'
                        f'{row["candidate_status"]}</td>')
+        elif column == 'office_name':
+            return str('<td class="center">'
+                       f'{row["office_name"]}</td>')
+        elif column == 'region_name':
+            return str('<td class="center">'
+                       f'{row["region_name"]}</td>')
         elif column == 'center_code':
             return str('<td class="center">'
                        f'{row["center_code"]}</td>')
