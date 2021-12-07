@@ -1,4 +1,4 @@
-from django.db.models import Q, Subquery, OuterRef, IntegerField, Value as V
+from django.db.models import Q, Subquery, OuterRef, IntegerField
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 from django.urls import reverse
