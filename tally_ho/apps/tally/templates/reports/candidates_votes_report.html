@@ -18,7 +18,15 @@
 
 <h1>{{ title }}</h1>
 <br>
-
+<div class="row">
+  <div class="col-sm-4">
+    {% if 'Active' in title %}
+    <a href="{% url 'result-export' tally_id=tally_id report='active-candidates' %}">{% trans 'Download Active Candidate Votes' %}</a>
+    {% else %}
+    <a href="{% url 'result-export' tally_id=tally_id report='all-candidates' %}">{% trans 'Download All Candidate Votes' %}</a>
+    {% endif %}
+  </div>
+</div>
 <table class="display datatable results">
   <caption style="margin-top: 2em; margin-left: -0.5em">
     <div id="report" class="row">

@@ -5,19 +5,11 @@
 {% block content %}
 
 <h1>{% trans 'Downloads' %}</h1>
-<!-- TODO: uncomment after figuring out how these reports can be used on the hnec public site -->
-<!-- <ul>
-    <li><a href="{% url 'form-results' tally_id=tally_id %}">{% trans 'Result Form List' %}</a></li>
-    <li><a href="{% url 'all-candidates-votes' tally_id=tally_id %}">{% trans 'All Candidate Votes' %}</a></li>
-    <li><a href="{% url 'active-candidates-votes' tally_id=tally_id %}">{% trans 'Active Candidate Votes' %}</a></li>
-    <li><a href="{% url 'result-forms-with-duplicate-results' tally_id=tally_id %}">{% trans 'Result Forms With Duplicate Results' %}</a></li>
-</ul> -->
-
 <ul>
-    <li><a href="{% url 'result-export' tally_id=tally_id report='formresults' %}">{% trans 'Result Form List' %}</a></li>
-    <li><a href="{% url 'result-export' tally_id=tally_id report='all-candidates' %}">{% trans 'All Candidate Votes' %}</a></li>
-    <li><a href="{% url 'result-export' tally_id=tally_id report='active-candidates' %}">{% trans 'Active Candidate Votes' %}</a></li>
-    <li><a href="{% url 'result-export' tally_id=tally_id report='duplicates' %}">{% trans 'Result Forms With Duplicate Results' %}</a></li>
+  <li><a href="{% url 'form-results' tally_id=tally_id %}">{% trans 'Result Form List' %}</a></li>
+  <li><a href="{% url 'all-candidates-votes' tally_id=tally_id %}">{% trans 'All Candidate Votes' %}</a></li>
+  <li><a href="{% url 'active-candidates-votes' tally_id=tally_id %}">{% trans 'Active Candidate Votes' %}</a></li>
+  <li><a href="{% url 'result-forms-with-duplicate-results' tally_id=tally_id %}">{% trans 'Result Forms With Duplicate Results' %}</a></li>
 </ul>
 
 {% endblock %}

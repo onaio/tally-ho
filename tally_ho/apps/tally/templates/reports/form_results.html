@@ -18,7 +18,11 @@
 
 <h1>{% trans 'Form Results' %}</h1>
 <br>
-
+<div class="row">
+  <div class="col-sm-4">
+    <a href="{% url 'result-export' tally_id=tally_id report='formresults' %}">{% trans 'Download Form List' %}</a>
+  </div>
+</div>
 <table class="display datatable results">
   <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
     <div id="report" class="row">
