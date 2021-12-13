@@ -1,4 +1,6 @@
 import ast
+import json
+
 from django.views.generic import TemplateView
 from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
@@ -1369,6 +1371,51 @@ def get_centers_stations(request):
             tally__id=tally_id,
             center__id__in=center_ids).values_list('id', flat=True))
     })
+
+
+def get_results(request):
+    """
+    Builds a json object of candidates results.
+
+    :param request: The request object containing the tally id.
+
+    returns: A JSON response of candidates results
+    """
+    tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    qs = Result.objects.filter(
+                result_form__tally__id=tally_id,
+                result_form__form_state=FormState.ARCHIVED,
+                entry_version=EntryVersion.FINAL,
+                active=True)
+
+    data = results_queryset(tally_id, qs).values(
+                'candidate_name',
+                'total_votes',
+                'ballot_number',
+                'region_id',
+                'region_name',
+                'office_id',
+                'office_name',
+                'center_code',
+                'station_id',
+                'station_number',
+                'barcode',
+                'voting_district',
+                'number_registrants',
+                'order',
+                'race_number',
+                'candidate_status',
+                'invalid_votes',
+                'unstamped_ballots',
+                'cancelled_ballots',
+                'spoilt_ballots',
+                'unused_ballots',
+                'number_of_signatures',
+                'ballots_received',
+                'valid_votes',
+            )
+    
+    return JsonResponse(list(data), safe=False)
 
 
 class TurnoutReportDataView(LoginRequiredMixin,
@@ -3150,7 +3197,8 @@ class ResultFormResultsListView(LoginRequiredMixin,
             tally_id=tally_id,
             stations=stations,
             centers=centers,
-            get_centers_stations_url='/ajax/get-centers-stations/'
+            get_centers_stations_url='/ajax/get-centers-stations/',
+            results_download_url='/ajax/download-results/'
         ))
 
 

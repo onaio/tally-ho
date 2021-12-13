@@ -428,6 +428,9 @@ urlpatterns = [
     re_path(r'^ajax/get-centers-stations/$',
             administrative_areas_reports.get_centers_stations,
             name='get-centers-stations'),
+    re_path(r'^ajax/download-results/$',
+            administrative_areas_reports.get_results,
+            name='download-results'),
     re_path(r'^super-administrator/results-(?P<report>.*).csv/'
             r'(?P<tally_id>(\d+))/$',
             super_admin.ResultExportView.as_view(),
