@@ -577,18 +577,20 @@ def results_queryset(
             Subquery(
                 Station.objects.filter(
                     tally__id=tally_id,
-                    center__code=OuterRef(
-                        'result_form__center__code'),
-                    station_number=OuterRef(
-                        'result_form__station_number'))
+                    id=OuterRef('station_id'))
                 .values('registrants')[:1],
                 output_field=IntegerField())
 
         qs = qs\
-            .values('candidate_name')\
+            .values('result_form__barcode')\
             .annotate(
+                candidate_name=F('candidate_name'),
                 total_votes=F('votes'),
                 ballot_number=F('result_form__ballot__number'),
+                region_id=F('result_form__center__office__region__pk'),
+                region_name=F('result_form__center__office__region__name'),
+                office_id=F('result_form__center__office__pk'),
+                office_name=F('result_form__center__office__name'),
                 center_code=F('result_form__center__code'),
                 station_id=station_id_query,
                 station_number=F('result_form__station_number'),
@@ -661,18 +663,20 @@ def results_queryset(
             Subquery(
                 Station.objects.filter(
                     tally__id=tally_id,
-                    center__code=OuterRef(
-                        'result_form__center__code'),
-                    station_number=OuterRef(
-                        'result_form__station_number'))
+                    id=OuterRef('station_id'))
                 .values('registrants')[:1],
                 output_field=IntegerField())
 
         qs = qs\
-            .values('candidate_name')\
+            .values('result_form__barcode')\
             .annotate(
+                candidate_name=F('candidate_name'),
                 total_votes=F('votes'),
                 ballot_number=F('result_form__ballot__number'),
+                region_id=F('result_form__center__office__region__pk'),
+                region_name=F('result_form__center__office__region__name'),
+                office_id=F('result_form__center__office__pk'),
+                office_name=F('result_form__center__office__name'),
                 center_code=F('result_form__center__code'),
                 station_id=station_id_query,
                 station_number=F('result_form__station_number'),
