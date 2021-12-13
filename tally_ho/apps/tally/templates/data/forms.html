@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with remote_url=remote_url %}
+{% include "data/table.html" with remote_url=remote_url result_forms_download_url=result_forms_download_url %}
 {% endblock %}
 
 {% block content %}
@@ -39,13 +39,16 @@ Export:
 {% endif %}
 </div>
 {% if show_create_form_button %}
-<div class="pull-right">
-    <form method="get" action="{% url 'create-form' tally_id%}">
-        <button type="submit" class="btn btn-primary btn-small">
-            {% trans 'New Form' %}
-        </button>
-    </form>
-</div>
+    <div class="col-4" id="result-forms-report" style="float: left;padding-left: 0;">
+        <button style="margin-bottom: 2em; margin-top: 2em;" id="export-result-forms" class="btn btn-default btn-small">Export in JSON</button>
+    </div>
+    <div class="pull-right">
+        <form method="get" action="{% url 'create-form' tally_id%}">
+            <button type="submit" class="btn btn-primary btn-small">
+                {% trans 'New Form' %}
+            </button>
+        </form>
+    </div>
 {% endif %}
 <br/>
 <br/>

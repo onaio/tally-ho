@@ -1,7 +1,10 @@
-from django.db.models import Q, Subquery, OuterRef, IntegerField
+import json
+
+from django.db.models import Q, Subquery, OuterRef, IntegerField, F
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView
 from django.urls import reverse
+from django.http import JsonResponse
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from djqscsv import render_to_csv_response
@@ -126,7 +129,8 @@ class FormListView(LoginRequiredMixin,
                                       kwargs={'tally_id': tally_id}),
                                   tally_id=tally_id,
                                   error_message=_(error) if error else None,
-                                  show_create_form_button=True))
+                                  show_create_form_button=True,
+                                  result_forms_download_url='/ajax/download-result-forms/'))
 
 
 class FormNotReceivedListView(FormListView):
@@ -181,3 +185,51 @@ class FormsForRaceView(FormListView):
             tally_id=tally_id,
             remote_url=reverse('forms-for-race-data',
                                args=[tally_id, ballot])))
+
+
+def get_result_forms(request):
+    """
+    Builds a json object of result forms.
+
+    :param request: The request object containing the tally id.
+
+    returns: A JSON response of result forms
+    """
+    tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    station_id_query =\
+        Subquery(
+            Station.objects.filter(
+                tally__id=tally_id,
+                center__code=OuterRef(
+                    'center__code'),
+                station_number=OuterRef(
+                    'station_number'))
+            .values('id')[:1],
+            output_field=IntegerField())
+
+    form_list = ResultForm.objects.filter(tally__id=tally_id)\
+        .annotate(
+            center_code=F('center__code'),
+            office_name=F('center__office__name'),
+            office_number=F('center__office__number'),
+            region_id=F('center__office__region__id'),
+            region_name=F('center__office__region__name'),
+            station_id=station_id_query)\
+        .values(
+            'barcode',
+            'station_id',
+            'station_number',
+            'center_code',
+            'office_id',
+            'office_name',
+            'office_number',
+            'region_id',
+            'region_name',
+            'form_state',
+    )
+
+    for form in form_list:
+        if isinstance(form['form_state'], FormState):
+            form['form_state'] = form['form_state'].value
+
+    return JsonResponse(list(form_list), safe=False)
