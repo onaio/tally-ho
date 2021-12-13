@@ -13,12 +13,14 @@
 <script src="{% static "js/get_centers_stations.js" %}"></script>
 <script src="{% static "js/download_results.js" %}"></script>
 <script src="{% static "js/download_result_forms.js" %}"></script>
+<script src="{% static "js/download_centers_and_stations_list.js" %}"></script>
 
 <script type="text/javascript">
     const tallyId = '{{ tally_id }}';
     const getCentersStationsUrl = '{{ get_centers_stations_url }}';
     const resultsDownloadUrl = '{{ results_download_url }}';
     const resultFormsDownloadUrl = '{{ result_forms_download_url }}';
+    const centersAndStationsDownloadUrl = '{{ centers_and_stations_list_download_url }}';
     const exportFileName = '{{ export_file_name }}';
     const serverSide = '{{ server_side }}' ? $.parseJSON('{{ server_side }}'.toLowerCase()) : true;
     const LIST_JSON_URL = '{{ remote_url }}';

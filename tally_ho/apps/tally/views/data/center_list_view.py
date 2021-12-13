@@ -1,10 +1,13 @@
-from django.db.models import Q
+import json
+
+from django.db.models import Q, F
 from django.urls import reverse
 from django.views.generic import TemplateView
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.region import Region
@@ -135,5 +138,44 @@ class CenterListView(LoginRequiredMixin,
             tally_id=tally_id,
             region_name=region_name,
             constituency_name=constituency_name,
-            sub_constituency_code=sub_constituency_code
+            sub_constituency_code=sub_constituency_code,
+            centers_and_stations_list_download_url='/ajax/download-centers-and-stations-list/'
         ))
+
+
+def get_centers_stations_list(request):
+    """
+    Builds a json object of centers and stations list.
+
+    :param request: The request object containing the tally id.
+
+    returns: A JSON response of centers and stations list
+    """
+    tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    centers_stations_list = Station.objects.filter(center__tally__id=tally_id)\
+        .annotate(
+            center_name=F('center__name'),
+            center_code=F('center__code'),
+            office_id=F('center__office__id'),
+            office_name=F('center__office__name'),
+            office_number=F('center__office__number'),
+            sub_constituency_code=F('sub_constituency__code'),
+            region_id=F('center__office__region__id'),
+            region_name=F('center__office__region__name'),
+            station_id=F('id'))\
+        .values(
+            'region_id',
+            'region_name',
+            'office_id',
+            'office_name',
+            'sub_constituency_code',
+            'center_code',
+            'center_name',
+            'station_id',
+            'station_number',
+            'registrants',
+            'percent_received',
+            'percent_archived',
+        ).order_by('center__code')
+
+    return JsonResponse(list(centers_stations_list), safe=False)

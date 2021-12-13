@@ -61,6 +61,10 @@ urlpatterns = [
             center_list_view.CenterListView.as_view(),
             name='center-list'),
 
+    re_path(r'^ajax/download-centers-and-stations-list/$',
+            center_list_view.get_centers_stations_list,
+            name='download-centers-and-stations-list'),
+
     re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.TurnOutReportView.as_view(),
             name='turnout-list'),
