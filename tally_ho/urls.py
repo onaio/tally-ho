@@ -308,6 +308,9 @@ urlpatterns = [
             r'(?P<constituency_id>(\d+))/(?P<sub_constituency_id>(\d+))/$',
             candidate_list_by_votes.CandidateVotesListDataView.as_view(),
             name='candidates-list-by-votes-list-data'),
+    re_path(r'^ajax/download-candidates-list/$',
+            candidate_list_view.get_candidates_list,
+            name='download-candidates-list'),
     re_path(r'^data/candidate-list-per-office/(?P<tally_id>(\d+))/'
             r'(?P<office_id>(\d+))/$',
             candidate_list_view.CandidateListView.as_view(),
