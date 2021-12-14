@@ -216,6 +216,8 @@ def get_result_forms(request):
             region_name=F('center__office__region__name'),
             station_id=station_id_query)\
         .values(
+            'id',
+            'tally_id',
             'barcode',
             'station_id',
             'station_number',
@@ -230,6 +232,6 @@ def get_result_forms(request):
 
     for form in form_list:
         if isinstance(form['form_state'], FormState):
-            form['form_state'] = form['form_state'].value
+            form['form_state'] = form['form_state'].label
 
     return JsonResponse(list(form_list), safe=False)
