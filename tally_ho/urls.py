@@ -11,7 +11,8 @@ from tally_ho.apps.tally.views import audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile, tally_manager
 from tally_ho.apps.tally.views.data import center_list_view, form_list_view,\
-    candidate_list_view, race_list_view, user_list_view, tally_list_view
+    candidate_list_view, race_list_view, user_list_view, tally_list_view,\
+            region_list_view, office_list_view
 from tally_ho.apps.tally.views.reports import administrative_areas_reports
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
@@ -897,6 +898,24 @@ urlpatterns = [
     re_path(r'^tally-manager/data/tally-list-data$',
             tally_list_view.TallyListDataView.as_view(),
             name='tally-list-data'),
+    re_path(r'^data/office-list/(?P<tally_id>(\d+))/$',
+            office_list_view.OfficeListView.as_view(),
+            name='office-list'),
+    re_path(r'^data/office-list-data/(?P<tally_id>(\d+))/$',
+            office_list_view.OfficeListDataView.as_view(),
+            name='office-list-data'),
+    re_path(r'^ajax/download-offices-list/$',
+            office_list_view.get_offices_list,
+            name='download-offices-list'),
+    re_path(r'^data/region-list/(?P<tally_id>(\d+))/$',
+            region_list_view.RegionListView.as_view(),
+            name='region-list'),
+    re_path(r'^data/region-list-data/(?P<tally_id>(\d+))/$',
+            region_list_view.RegionListDataView.as_view(),
+            name='region-list-data'),
+    re_path(r'^ajax/download-regions-list/$',
+            region_list_view.get_regions_list,
+            name='download-regions-list'),
 
     path('operation-not-allowed',
          home.suspicious_error,

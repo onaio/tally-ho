@@ -15,6 +15,8 @@
 <h3>{% trans 'Data views' %}</h3>
 <ul>
     <li><a href="{% url 'user-tally-list' tally_id %}">{% trans 'Users List' %}</a></li>
+    <li><a href="{% url 'region-list' tally_id=tally_id %}">{% trans 'Region List' %}</a></li>
+    <li><a href="{% url 'office-list' tally_id=tally_id %}">{% trans 'Office List' %}</a></li>
     <li><a href="{% url 'center-list' tally_id=tally_id %}">{% trans 'Center List' %}</a></li>
     <li><a href="{% url 'races-list' tally_id=tally_id %}">{% trans 'Races List' %}</a></li>
     <li><a href="{% url 'form-list' tally_id=tally_id %}">{% trans 'Form List' %}</a></li>

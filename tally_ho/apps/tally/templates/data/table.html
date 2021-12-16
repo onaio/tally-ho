@@ -10,6 +10,8 @@
 <script src="{% static "js/data_table.js" %}"></script>
 <script src="{% static "js/bootstrap-select.min.js" %}"></script>
 <script src="{% static "js/defaults-en_US.min.js" %}"></script>
+<script src="{% static "js/download_regions.js" %}"></script>
+<script src="{% static "js/download_offices.js" %}"></script>
 <script src="{% static "js/get_centers_stations.js" %}"></script>
 <script src="{% static "js/download_results.js" %}"></script>
 <script src="{% static "js/download_result_forms.js" %}"></script>
@@ -18,6 +20,8 @@
 
 <script type="text/javascript">
     const tallyId = '{{ tally_id }}';
+    const regionsDownloadUrl = '{{ regions_list_download_url }}';
+    const officesDownloadUrl = '{{ offices_list_download_url }}';
     const getCentersStationsUrl = '{{ get_centers_stations_url }}';
     const resultsDownloadUrl = '{{ results_download_url }}';
     const resultFormsDownloadUrl = '{{ result_forms_download_url }}';

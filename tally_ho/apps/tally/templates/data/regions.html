@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with remote_url=remote_url export_file_name=export_file_name regions_list_download_url=regions_list_download_url %}
+{% endblock %}
+
+{% block content %}
+
+<h1>{% trans 'Region List' %}</h1>
+
+<div class="pull left" id="region-list-report">
+    <button style="margin-bottom: 2em; margin-top: 2em;" id="export-region-list" class="btn btn-default btn-small">Export in JSON</button>
+</div>
+<br/>
+<br/>
+
+<table class="display datatable reduce-size">
+    <thead>
+        <tr>
+            <th>{% trans 'ID' %}</th>
+            <th>{% trans 'Name' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}
