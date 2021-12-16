@@ -254,7 +254,8 @@ def process_station_row(tally, row, command=None, logger=None):
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
-        raise SubConstituency.DoesNotExist(msg)
+        # Todo: Uncomment after cleaning initial tally files
+        # raise SubConstituency.DoesNotExist(msg)
 
     gender = getattr(Gender, gender.upper())
 
@@ -363,7 +364,8 @@ def process_results_form_row(tally, row, command=None, logger=None):
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-            raise Ballot.DoesNotExist(msg)
+            # Todo: Uncomment after cleaning initial tally files
+            # raise Ballot.DoesNotExist(msg)
 
     center = None
 
@@ -383,7 +385,8 @@ def process_results_form_row(tally, row, command=None, logger=None):
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-            raise Center.DoesNotExist(msg)
+            # Todo: Uncomment after cleaning initial tally files
+            # raise Center.DoesNotExist(msg)
 
     if station_number and center:
         try:
@@ -404,7 +407,8 @@ def process_results_form_row(tally, row, command=None, logger=None):
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-            raise Station.DoesNotExist(msg)
+            # Todo: Uncomment after cleaning initial tally files
+            # raise Station.DoesNotExist(msg)
 
     if center and center.sub_constituency and \
             ballot.number != center.sub_constituency.code:
@@ -427,7 +431,8 @@ def process_results_form_row(tally, row, command=None, logger=None):
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-            raise Office.DoesNotExist(msg)
+            # Todo: Uncomment after cleaning initial tally files
+            # raise Office.DoesNotExist(msg)
 
     is_replacement = center is None
 
