@@ -48,7 +48,7 @@ class OfficeListView(LoginRequiredMixin,
     model = Office
     template_name = "data/offices.html"
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
 
         return self.render_to_response(self.get_context_data(

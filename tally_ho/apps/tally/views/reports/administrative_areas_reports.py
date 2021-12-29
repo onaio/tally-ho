@@ -1418,7 +1418,7 @@ def get_results(request):
                 'ballots_received',
                 'valid_votes',
             )
-    
+
     return JsonResponse(list(data), safe=False)
 
 
