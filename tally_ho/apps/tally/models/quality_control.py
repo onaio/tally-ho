@@ -15,6 +15,7 @@ class QualityControl(BaseModel):
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
+    passed_presidential = models.NullBooleanField()
     passed_general = models.NullBooleanField()
     passed_reconciliation = models.NullBooleanField()
     passed_women = models.NullBooleanField()
