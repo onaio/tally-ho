@@ -104,5 +104,5 @@ The `MAX_FILE_UPLOAD_SIZE` variable in `tally_ho/settings/common.py` file define
 
 ## News
 
-- This is an [article about tally-ho](http://blog.ona.io/general/2014/06/12/Tally-Ho-Robust-Open-Source-Election-Software.html) and its use in Libya.
-- This presentation at PyConZA 2014 about the project, [Writing Python Code to Decide an Election](https://blog.ona.io/general/2016/02/12/writing-python-code-to-decide-an-election.html).
+- This is an [article about tally-ho](https://ona.io/home/writing-python-code-to-decide-an-election-2/) and its use in Libya.
+- This presentation at PyConZA 2014 about the project, [Writing Python Code to Decide an Election](https://ona.io/home/writing-python-code-to-decide-an-election-2/).
