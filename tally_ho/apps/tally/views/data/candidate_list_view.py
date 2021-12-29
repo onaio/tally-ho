@@ -1,14 +1,18 @@
-from django.db.models import Q
+import json
+
+from django.db.models import Q, F
 from django.views.generic import TemplateView
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.http import JsonResponse
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.reports.progress import get_office_candidates_ids
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
+from tally_ho.libs.models.enums.race_type import RaceType
 
 
 class CandidateListDataView(LoginRequiredMixin,
@@ -20,6 +24,7 @@ class CandidateListDataView(LoginRequiredMixin,
     columns = (
         'candidate_id',
         'full_name',
+        'active',
         'order',
         'ballot.number',
         'race_type',
@@ -43,7 +48,7 @@ class CandidateListDataView(LoginRequiredMixin,
             if office_id:
                 candidate_ids = get_office_candidates_ids(office_id=office_id,
                                                           tally_id=tally_id)
-                qs = qs.filter(pk__in=candidate_ids)
+                qs = qs.filter(tally__id=tally_id, pk__in=candidate_ids)
             else:
                 qs = qs.filter(tally__id=tally_id)
 
@@ -76,4 +81,31 @@ class CandidateListView(LoginRequiredMixin,
                 reverse_url,
                 kwargs=kwargs),
             tally_id=tally_id,
-            report_title=report_title))
+            report_title=report_title,
+            candidates_list_download_url='/ajax/download-candidates-list/'))
+
+
+def get_candidates_list(request):
+    """
+    Builds a json object of candidates list.
+
+    :param request: The request object containing the tally id.
+
+    returns: A JSON response of candidates list
+    """
+    tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    candidates_list = Candidate.objects.filter(tally__id=tally_id)\
+        .annotate(ballot_number=F('ballot__number'),)\
+        .values(
+            'candidate_id',
+            'full_name',
+            'active',
+            'order',
+            'ballot_number',
+            'race_type',
+    )
+    for candidate in candidates_list:
+        if isinstance(candidate['race_type'], RaceType):
+            candidate['race_type'] = candidate['race_type'].value
+
+    return JsonResponse(list(candidates_list), safe=False)

@@ -11,7 +11,8 @@ from tally_ho.apps.tally.views import audit, clearance,\
     corrections, data_entry, home, intake, quality_control,\
     super_admin, profile, tally_manager
 from tally_ho.apps.tally.views.data import center_list_view, form_list_view,\
-    candidate_list_view, race_list_view, user_list_view, tally_list_view
+    candidate_list_view, race_list_view, user_list_view, tally_list_view,\
+            region_list_view, office_list_view
 from tally_ho.apps.tally.views.reports import administrative_areas_reports
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
@@ -60,6 +61,10 @@ urlpatterns = [
     re_path(r'^data/center-list/(?P<tally_id>(\d+))/$',
             center_list_view.CenterListView.as_view(),
             name='center-list'),
+
+    re_path(r'^ajax/download-centers-and-stations-list/$',
+            center_list_view.get_centers_stations_list,
+            name='download-centers-and-stations-list'),
 
     re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.TurnOutReportView.as_view(),
@@ -304,6 +309,9 @@ urlpatterns = [
             r'(?P<constituency_id>(\d+))/(?P<sub_constituency_id>(\d+))/$',
             candidate_list_by_votes.CandidateVotesListDataView.as_view(),
             name='candidates-list-by-votes-list-data'),
+    re_path(r'^ajax/download-candidates-list/$',
+            candidate_list_view.get_candidates_list,
+            name='download-candidates-list'),
     re_path(r'^data/candidate-list-per-office/(?P<tally_id>(\d+))/'
             r'(?P<office_id>(\d+))/$',
             candidate_list_view.CandidateListView.as_view(),
@@ -312,6 +320,9 @@ urlpatterns = [
             r'(?P<office_id>(\d+))/$',
             candidate_list_view.CandidateListDataView.as_view(),
             name='candidate-list-data-per-office'),
+    re_path(r'^ajax/download-result-forms/$',
+            form_list_view.get_result_forms,
+            name='download-result-forms'),
     re_path(r'^data/form-list/(?P<tally_id>(\d+))/$',
             form_list_view.FormListView.as_view(),
             name='form-list'),
@@ -428,6 +439,9 @@ urlpatterns = [
     re_path(r'^ajax/get-centers-stations/$',
             administrative_areas_reports.get_centers_stations,
             name='get-centers-stations'),
+    re_path(r'^ajax/download-results/$',
+            administrative_areas_reports.get_results,
+            name='download-results'),
     re_path(r'^super-administrator/results-(?P<report>.*).csv/'
             r'(?P<tally_id>(\d+))/$',
             super_admin.ResultExportView.as_view(),
@@ -884,6 +898,24 @@ urlpatterns = [
     re_path(r'^tally-manager/data/tally-list-data$',
             tally_list_view.TallyListDataView.as_view(),
             name='tally-list-data'),
+    re_path(r'^data/office-list/(?P<tally_id>(\d+))/$',
+            office_list_view.OfficeListView.as_view(),
+            name='office-list'),
+    re_path(r'^data/office-list-data/(?P<tally_id>(\d+))/$',
+            office_list_view.OfficeListDataView.as_view(),
+            name='office-list-data'),
+    re_path(r'^ajax/download-offices-list/$',
+            office_list_view.get_offices_list,
+            name='download-offices-list'),
+    re_path(r'^data/region-list/(?P<tally_id>(\d+))/$',
+            region_list_view.RegionListView.as_view(),
+            name='region-list'),
+    re_path(r'^data/region-list-data/(?P<tally_id>(\d+))/$',
+            region_list_view.RegionListDataView.as_view(),
+            name='region-list-data'),
+    re_path(r'^ajax/download-regions-list/$',
+            region_list_view.get_regions_list,
+            name='download-regions-list'),
 
     path('operation-not-allowed',
          home.suspicious_error,

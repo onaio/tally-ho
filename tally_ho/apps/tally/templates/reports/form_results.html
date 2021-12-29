@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url %}
+{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url results_download_url=results_download_url %}
 {% endblock %}
 {% block content %}
 
@@ -22,6 +22,9 @@
 <table class="display datatable results">
   <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
     <div id="report" class="row">
+    <div class="col-12">
+      <button style="float: left; margin-bottom: 2em;" id="export-form-results" class="btn btn-default btn-small">Export in JSON</button>
+    </div>
     <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">Centers</p>
       <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
@@ -63,7 +66,6 @@
         <th>{% trans 'Center' %}</th>
         <th>{% trans 'Station ID' %}</th>
         <th>{% trans 'Station Number' %}</th>
-        <th>{% trans 'Gender' %}</th>
         <th>{% trans 'Barcode' %}</th>
         <th>{% trans 'Race Type' %}</th>
         <th>{% trans 'Voting District' %}</th>
