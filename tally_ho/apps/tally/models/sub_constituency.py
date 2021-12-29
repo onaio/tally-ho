@@ -15,6 +15,9 @@ class SubConstituency(BaseModel):
     ballot_component = models.ForeignKey(Ballot, null=True,
                                          on_delete=models.PROTECT,
                                          related_name='sc_component')
+    ballot_presidential = models.ForeignKey(Ballot, null=True,
+                                       on_delete=models.PROTECT,
+                                       related_name='sc_presidential')
     ballot_general = models.ForeignKey(Ballot, null=True,
                                        on_delete=models.PROTECT,
                                        related_name='sc_general')
