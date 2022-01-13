@@ -342,9 +342,10 @@ STATION_COLUMN_NAMES = ['Centre #', 'Centre Name', 'SubCon #',
 
 RESULT_FORM_COLUMN_NAMES = ['Ballot Number', 'PC Code/ رمز مركز الانتخاب',
                             'Station', 'Gender', 'Name PC',
-                            'Office/ الللجنة الانتخابية ',
+                            'Office/ الللجنة الانتخابية',
                             'Office #/ الللجنة الانتخابية #',
-                            'Bar Code Number', 'Serial Number']
+                            'Barcode Number', 'Serial Number',
+                            'المنطقة Region', '#المنطقة /# Region']
 
 CANDIDATE_COLUMN_NAMES = ['ID', 'Duplicate', 'Office_ID', 'E_Mail',
                           'Uploaded_Date_Time', 'Main_District_ID',
