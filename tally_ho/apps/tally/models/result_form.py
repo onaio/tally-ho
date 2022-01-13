@@ -407,6 +407,7 @@ class ResultForm(BaseModel):
             returns False.
         """
         return (
+            (not self.has_presidential_results or self.presidential_match) and
             (not self.has_general_results or self.general_match) and
             (not self.reconciliationform_exists or
              self.reconciliation_match) and
