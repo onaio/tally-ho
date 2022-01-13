@@ -29,6 +29,7 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.race_type import RaceType
 
 report_types = {1: "turnout",
                 2: "summary",
@@ -1418,9 +1419,15 @@ def get_results(request):
                 'number_of_signatures',
                 'ballots_received',
                 'valid_votes',
+                'race_type',
             )
+    for result in data:
+        if isinstance(result['race_type'], RaceType):
+            result['race_type'] = result['race_type'].name
 
-    return JsonResponse(list(data), safe=False)
+    return JsonResponse(
+        data={'data': list(data), 'created_at': timezone.now()},
+        safe=False)
 
 
 class TurnoutReportDataView(LoginRequiredMixin,
