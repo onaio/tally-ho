@@ -179,6 +179,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
 
         if 'correct' in post_data:
             # send to dashboard
+            quality_control.passed_presidential = True
             quality_control.passed_general = True
             quality_control.passed_reconciliation = True
             quality_control.passed_women = True
