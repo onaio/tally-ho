@@ -193,6 +193,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
                 url = 'quality-control-confirm-reject'
             # send to reject page
             else:
+                quality_control.passed_presidential = False
                 quality_control.passed_general = False
                 quality_control.passed_reconciliation = False
                 quality_control.passed_women = False
