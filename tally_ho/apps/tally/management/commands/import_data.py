@@ -372,7 +372,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
     row = empty_strings_to_none(row)
     # take first 9 values
     ballot_number, code, station_number, gender, name,\
-        office_name, _, barcode, serial_number = row[0:9]
+        office_name, _, barcode, serial_number, _, region_id = row[0:11]
 
     gender = gender and getattr(Gender, gender.upper())
     ballot = None
@@ -454,7 +454,10 @@ def process_results_form_row(tally, row, command=None, logger=None):
 
     if office_name:
         try:
-            office = Office.objects.get(name=office_name.strip(), tally=tally)
+            office = Office.objects.get(
+                name=office_name.strip(),
+                tally=tally,
+                region__id=region_id)
         except Office.DoesNotExist:
             msg = 'Office "%s" does not exist' % office_name
             if command:
