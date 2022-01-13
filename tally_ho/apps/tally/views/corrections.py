@@ -28,7 +28,7 @@ from tally_ho.libs.views import mixins
 from tally_ho.libs.views.corrections import get_matched_forms,\
     candidate_results_for_race_type, save_component_results,\
     save_final_results, save_general_results, save_women_results,\
-    update_result_form_entries_with_de_errors
+    update_result_form_entries_with_de_errors, save_presidential_results
 from tally_ho.libs.views.form_state import form_in_state,\
     safe_form_in_state
 
@@ -386,6 +386,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
                         save_recon(post_data, user, result_form)
 
                     save_component_results(result_form, post_data, user)
+                    save_presidential_results(result_form, post_data, user)
                     save_general_results(result_form, post_data, user)
                     save_women_results(result_form, post_data, user)
             except ValidationError as e:
