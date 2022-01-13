@@ -113,6 +113,9 @@ def get_corrections_forms(result_form):
         race if there is one.
     """
     recon = get_recon_form(result_form) if result_form.has_recon else None
+    presidential = candidate_results_for_race_type(result_form,
+                                                   RaceType.PRESIDENTIAL,
+                                                   num_results=2)
     general = candidate_results_for_race_type(result_form,
                                               RaceType.GENERAL,
                                               num_results=2)
@@ -126,7 +129,7 @@ def get_corrections_forms(result_form):
     # get name of component race type
     c_name = component[0][0].race_type_name if len(component) else None
 
-    return [recon, general, women, component, c_name]
+    return [recon, presidential, general, women, component, c_name]
 
 
 def get_recon_form(result_form):
@@ -342,13 +345,15 @@ class CorrectionRequiredView(LoginRequiredMixin,
 
     def corrections_response(self, result_form, errors=None):
         tally_id = self.kwargs.get('tally_id')
-        recon, results_general, results_women, results_component, c_name =\
+        recon, results_presidential, results_general,\
+            results_women, results_component, c_name =\
             get_corrections_forms(result_form)
 
         return self.render_to_response(
             self.get_context_data(errors=errors,
                                   result_form=result_form,
                                   reconciliation_form=recon,
+                                  candidates_presidential=results_presidential,
                                   candidates_general=results_general,
                                   candidates_component=results_component,
                                   candidates_women=results_women,
