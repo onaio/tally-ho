@@ -311,14 +311,25 @@ def process_candidate_row(tally, row, id_to_ballot_order):
         sub_constituency = SubConstituency.objects.get(
             code=code, tally=tally)
 
-        if race_type != RaceType.WOMEN:
+        if race_type == RaceType.PRESIDENTIAL:
+            ballot = sub_constituency.ballot_presidential
+        elif race_type == RaceType.GENERAL:
             ballot = sub_constituency.ballot_general
         else:
             ballot = sub_constituency.ballot_women
 
+        # Create ballot incase it's missing in the sub constituency file
+        if ballot == None:
+            ballot, _ = Ballot.objects.get_or_create(
+                number=int(code),
+                race_type=race_type,
+                tally=tally)
+
     except SubConstituency.DoesNotExist:
-        ballot = Ballot.objects.get(number=code, tally=tally)
-        sub_constituency = ballot.sc_component
+        ballot, _ = Ballot.objects.get_or_create(
+                number=int(code),
+                race_type=race_type,
+                tally=tally)
 
     Candidate.objects.get_or_create(
         ballot=ballot,
