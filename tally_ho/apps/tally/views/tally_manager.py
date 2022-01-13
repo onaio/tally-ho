@@ -160,28 +160,48 @@ def import_rows_batch(tally,
             if line == 0 and check_file_column_names:
                 if file_to_parse_name == subconst_file_name and\
                         row != settings.SUB_CONSTITUENCY_COLUMN_NAMES:
+                    missing_columns = list(set(settings.SUB_CONSTITUENCY_COLUMN_NAMES) - set(row))
+                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
                     delete_all_tally_objects(tally)
-                    error_message = _(u'Invalid sub constituency file')
+                    error_message =\
+                        _(u'Column {} {} missing in the sub constituency file'.format(
+                            ', '.join(missing_columns), prefix_noun,))
                     return elements_processed, error_message
                 elif file_to_parse_name == centers_file_name and\
                         row != settings.CENTER_COLUMN_NAMES:
+                    missing_columns = list(set(settings.CENTER_COLUMN_NAMES) - set(row))
+                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
                     delete_all_tally_objects(tally)
-                    error_message = _(u'Invalid centers file')
+                    error_message =\
+                        _(u'Column {} {} missing in the centers file'.format(
+                            ', '.join(missing_columns), prefix_noun,))
                     return elements_processed, error_message
                 elif file_to_parse_name == stations_file_name and\
                         row != settings.STATION_COLUMN_NAMES:
+                    missing_columns = list(set(settings.STATION_COLUMN_NAMES) - set(row))
+                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
                     delete_all_tally_objects(tally)
-                    error_message = _(u'Invalid stations file')
+                    error_message =\
+                        _(u'Column {} {} missing in the stations file'.format(
+                            ', '.join(missing_columns), prefix_noun,))
                     return elements_processed, error_message
                 elif file_to_parse_name == candidates_file_name and\
                         row != settings.CANDIDATE_COLUMN_NAMES:
+                    missing_columns = list(set(settings.CANDIDATE_COLUMN_NAMES) - set(row))
+                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
                     delete_all_tally_objects(tally)
-                    error_message = _(u'Invalid candidates file')
+                    error_message =\
+                        _(u'Column {} {} missing in the candidates file'.format(
+                            ', '.join(missing_columns), prefix_noun,))
                     return elements_processed, error_message
                 elif file_to_parse_name == result_forms_file_name and\
                         row != settings.RESULT_FORM_COLUMN_NAMES:
+                    missing_columns = list(set(settings.RESULT_FORM_COLUMN_NAMES) - set(row))
+                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
                     delete_all_tally_objects(tally)
-                    error_message = _(u'Invalid result form file')
+                    error_message =\
+                        _(u'Column {} {} missing in the result form file'.format(
+                            ', '.join(missing_columns), prefix_noun))
                     return elements_processed, error_message
                 else:
                     check_file_column_names = False
