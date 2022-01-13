@@ -85,9 +85,9 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
     row = empty_strings_to_none(row)
 
     try:
-        code_value, field_office, races, ballot_number_general,\
-            ballot_number_women, number_of_ballots,\
-            ballot_number_component = row[:7]
+        code_value, field_office, races, ballot_number_presidential,\
+            ballot_number_general, ballot_number_women,\
+            number_of_ballots, ballot_number_component = row[:8]
 
         code_value = int(code_value)
         number_of_ballots = number_of_ballots and int(
@@ -105,6 +105,12 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
             ballot_component, _ = Ballot.objects.get_or_create(
                 number=int(ballot_number_component),
                 race_type=component_race_type,
+                tally=tally)
+
+        if ballot_number_presidential:
+            ballot_presidential, _ = Ballot.objects.get_or_create(
+                number=int(ballot_number_presidential),
+                race_type=RaceType.PRESIDENTIAL,
                 tally=tally)
 
         if ballot_number_general:
@@ -130,6 +136,7 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
             field_office=field_office,
             races=races,
             ballot_component=ballot_component,
+            ballot_presidential=ballot_presidential,
             ballot_general=ballot_general,
             ballot_women=ballot_women,
             number_of_ballots=number_of_ballots,
