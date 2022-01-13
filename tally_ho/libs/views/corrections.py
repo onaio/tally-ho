@@ -212,6 +212,11 @@ def save_general_results(result_form, post_data, user):
                                      RaceType.GENERAL, user)
 
 
+def save_presidential_results(result_form, post_data, user):
+    save_candidate_results_by_prefix('presidential', result_form, post_data,
+                                     RaceType.PRESIDENTIAL, user)
+
+
 def save_result(candidate, result_form, entry_version, votes, user):
     Result.objects.create(candidate=candidate,
                           result_form=result_form,
