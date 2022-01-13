@@ -55,6 +55,8 @@ class SubConstituency(BaseModel):
                 return _('General and Component')
 
             return _('General')
+        elif self.ballot_presidential:
+            return _('Presidential')
         else:
             return _('Undefined')
 
@@ -70,6 +72,8 @@ class SubConstituency(BaseModel):
                 return self.ballot_component
 
             return self.ballot_general
+        elif self.ballot_presidential:
+            return self.ballot_presidential
         else:
             return None
 
