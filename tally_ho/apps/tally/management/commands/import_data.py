@@ -370,7 +370,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
     replacement_count = 0
 
     row = empty_strings_to_none(row)
-    # take first 9 values
+    # take first 11 values
     ballot_number, code, station_number, gender, name,\
         office_name, _, barcode, serial_number, _, region_id = row[0:11]
 
