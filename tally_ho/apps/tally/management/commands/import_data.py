@@ -57,7 +57,8 @@ def get_race_type(race_code):
         1: RaceType.WOMEN,
         2: RaceType.COMPONENT_AMAZIGH,
         3: RaceType.COMPONENT_TWARAG,
-        4: RaceType.COMPONENT_TEBU
+        4: RaceType.COMPONENT_TEBU,
+        5: RaceType.PRESIDENTIAL
     }[int(race_code)]
 
 
