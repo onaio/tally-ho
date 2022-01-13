@@ -233,6 +233,10 @@ class ResultForm(BaseModel):
         return self.women_results.count() > 0
 
     @property
+    def has_presidential_results(self):
+        return self.presidential_results.count() > 0
+
+    @property
     def qualitycontrol(self):
         quality_controls = self.qualitycontrol_set.filter(active=True)
         return quality_controls[0] if len(quality_controls) else None
