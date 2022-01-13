@@ -296,6 +296,11 @@ class ResultForm(BaseModel):
             if self.women_results else True
 
     @property
+    def presidential_match(self):
+        return match_results(self, self.presidential_results) \
+            if self.presidential_results else False
+
+    @property
     def corrections_reconciliationforms(self):
         """Return the reconciliation forms for this result form to be used in
         corrections.
