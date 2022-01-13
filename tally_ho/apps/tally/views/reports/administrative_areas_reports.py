@@ -3127,21 +3127,21 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         elif column == 'candidate_status':
             return str('<td class="center">'
                        f'{row["candidate_status"]}</td>')
-        elif column == 'office_name':
-            return str('<td class="center">'
-                       f'{row["office_name"]}</td>')
         elif column == 'region_name':
             return str('<td class="center">'
                        f'{row["region_name"]}</td>')
+        elif column == 'office_name':
+            return str('<td class="center">'
+                       f'{row["office_name"]}</td>')
         elif column == 'center_code':
             return str('<td class="center">'
                        f'{row["center_code"]}</td>')
-        elif column == 'station_number':
-            return str('<td class="center">'
-                       f'{row["station_number"]}</td>')
         elif column == 'station_id':
             return str('<td class="center">'
                        f'{row["station_id"]}</td>')
+        elif column == 'station_number':
+            return str('<td class="center">'
+                       f'{row["station_number"]}</td>')
         elif column == 'gender':
             return str('<td class="center">'
                        f'{row["gender"].name}</td>')
