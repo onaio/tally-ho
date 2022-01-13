@@ -96,6 +96,7 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
         ballot_component = None
         ballot_general = None
         ballot_women = None
+        max_ballot_number = 3
 
         if ballot_number_component:
             component_race_type = get_component_race_type(
@@ -125,11 +126,21 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
                 race_type=RaceType.WOMEN,
                 tally=tally)
 
-        if number_of_ballots == 2 and not (
-                ballot_general and ballot_women):
+        if number_of_ballots == max_ballot_number and not (
+                ballot_general
+                and ballot_women
+                and ballot_presidential):
+            missing_ballot = None
+            if not ballot_general:
+                missing_ballot = 'general'
+            elif not ballot_women:
+                missing_ballot = 'women'
+            else:
+                missing_ballot = 'presidential'
+
             raise Exception(
-                'Missing ballot data: expected 2 ballots, missing '
-                + ('general' if ballot_number_women else 'women'))
+                'Missing ballot data: expected {} ballots, missing {}'
+                .format(max_ballot_number, missing_ballot))
 
         SubConstituency.objects.get_or_create(
             code=code_value,
