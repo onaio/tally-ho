@@ -70,7 +70,8 @@ def results_for_race(result_form, race_type):
         entry_version=EntryVersion.FINAL).order_by('candidate__order')
 
     if race_type is None:
-        results = results.filter(candidate__race_type__gt=RaceType.WOMEN)
+        results = results.filter(
+            candidate__race_type__gt=RaceType.PRESIDENTIAL)
     else:
         results = results.filter(candidate__race_type=race_type)
 
