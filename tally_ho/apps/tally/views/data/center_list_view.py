@@ -8,6 +8,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.region import Region
@@ -178,4 +179,6 @@ def get_centers_stations_list(request):
             'percent_archived',
         ).order_by('center__code')
 
-    return JsonResponse(list(centers_stations_list), safe=False)
+    return JsonResponse(
+        data={'data': list(centers_stations_list), 'created_at': timezone.now()},
+        safe=False)

@@ -12,6 +12,7 @@ from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper,\
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
