@@ -213,6 +213,12 @@ class ResultForm(BaseModel):
             candidate__race_type=RaceType.GENERAL)
 
     @property
+    def presidential_results(self):
+        return self.results.filter(
+            active=True,
+            candidate__race_type=RaceType.PRESIDENTIAL)
+
+    @property
     def women_results(self):
         return self.results.filter(
             active=True,
