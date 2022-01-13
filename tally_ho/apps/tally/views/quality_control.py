@@ -315,6 +315,7 @@ class ConfirmFormResetView(LoginRequiredMixin,
             result_form_pk = self.request.session.get('result_form')
             result_form = ResultForm.objects.get(id=result_form_pk)
             quality_control = result_form.qualitycontrol
+            quality_control.passed_presidential = False
             quality_control.passed_general = False
             quality_control.passed_reconciliation = False
             quality_control.passed_women = False
