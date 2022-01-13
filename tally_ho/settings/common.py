@@ -309,6 +309,7 @@ QUARANTINE_DATA = [
 ]
 
 SUB_CONSTITUENCY_COLUMN_NAMES = ['SubCon #', 'Field Office', 'Races',
+                                 'Ballot Number – Presidential',
                                  'Ballot Number - General',
                                  'Ballot Number - Women', 'Number of Ballots',
                                  'Component Ballot', 'A4 Ballot', 'A3 Ballot',
