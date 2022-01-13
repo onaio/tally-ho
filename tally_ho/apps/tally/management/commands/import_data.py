@@ -33,7 +33,7 @@ SPECIAL_VOTING = 'Special Voting'
 
 
 def empty_string_to(value, default):
-    return value if len(value) else default
+    return value if value and len(value) else default
 
 
 def empty_strings_to_none(row):
