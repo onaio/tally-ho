@@ -197,6 +197,7 @@ def get_result_forms(request):
     returns: A JSON response of result forms
     """
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    race_types = json.loads(request.GET.get('data')).get('race_types')
     station_id_query =\
         Subquery(
             Station.objects.filter(
@@ -208,7 +209,9 @@ def get_result_forms(request):
             .values('id')[:1],
             output_field=IntegerField())
 
-    form_list = ResultForm.objects.filter(tally__id=tally_id)\
+    form_list = ResultForm.objects.filter(
+        tally__id=tally_id,
+        ballot__race_type__in=race_types)\
         .annotate(
             center_code=F('center__code'),
             office_name=F('center__office__name'),
