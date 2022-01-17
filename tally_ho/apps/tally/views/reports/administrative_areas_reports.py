@@ -1388,9 +1388,12 @@ def get_results(request):
     returns: A JSON response of candidates results
     """
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    race_types = json.loads(request.GET.get('data')).get('race_types')
+
     qs = Result.objects.filter(
                 result_form__tally__id=tally_id,
                 result_form__form_state=FormState.ARCHIVED,
+                result_form__ballot__race_type__in=race_types,
                 entry_version=EntryVersion.FINAL,
                 active=True)
 
