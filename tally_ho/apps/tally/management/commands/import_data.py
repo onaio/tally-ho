@@ -33,7 +33,7 @@ SPECIAL_VOTING = 'Special Voting'
 
 
 def empty_string_to(value, default):
-    return value if len(value) else default
+    return value if value and len(value) else default
 
 
 def empty_strings_to_none(row):
@@ -57,7 +57,8 @@ def get_race_type(race_code):
         1: RaceType.WOMEN,
         2: RaceType.COMPONENT_AMAZIGH,
         3: RaceType.COMPONENT_TWARAG,
-        4: RaceType.COMPONENT_TEBU
+        4: RaceType.COMPONENT_TEBU,
+        5: RaceType.PRESIDENTIAL
     }[int(race_code)]
 
 
@@ -84,9 +85,9 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
     row = empty_strings_to_none(row)
 
     try:
-        code_value, field_office, races, ballot_number_general,\
-            ballot_number_women, number_of_ballots,\
-            ballot_number_component = row[:7]
+        code_value, field_office, races, ballot_number_presidential,\
+            ballot_number_general, ballot_number_women,\
+            number_of_ballots, ballot_number_component = row[:8]
 
         code_value = int(code_value)
         number_of_ballots = number_of_ballots and int(
@@ -95,6 +96,7 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
         ballot_component = None
         ballot_general = None
         ballot_women = None
+        max_ballot_number = 3
 
         if ballot_number_component:
             component_race_type = get_component_race_type(
@@ -104,6 +106,12 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
             ballot_component, _ = Ballot.objects.get_or_create(
                 number=int(ballot_number_component),
                 race_type=component_race_type,
+                tally=tally)
+
+        if ballot_number_presidential:
+            ballot_presidential, _ = Ballot.objects.get_or_create(
+                number=int(ballot_number_presidential),
+                race_type=RaceType.PRESIDENTIAL,
                 tally=tally)
 
         if ballot_number_general:
@@ -118,17 +126,28 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
                 race_type=RaceType.WOMEN,
                 tally=tally)
 
-        if number_of_ballots == 2 and not (
-                ballot_general and ballot_women):
+        if number_of_ballots == max_ballot_number and not (
+                ballot_general
+                and ballot_women
+                and ballot_presidential):
+            missing_ballot = None
+            if not ballot_general:
+                missing_ballot = 'general'
+            elif not ballot_women:
+                missing_ballot = 'women'
+            else:
+                missing_ballot = 'presidential'
+
             raise Exception(
-                'Missing ballot data: expected 2 ballots, missing '
-                + ('general' if ballot_number_women else 'women'))
+                'Missing ballot data: expected {} ballots, missing {}'
+                .format(max_ballot_number, missing_ballot))
 
         SubConstituency.objects.get_or_create(
             code=code_value,
             field_office=field_office,
             races=races,
             ballot_component=ballot_component,
+            ballot_presidential=ballot_presidential,
             ballot_general=ballot_general,
             ballot_women=ballot_women,
             number_of_ballots=number_of_ballots,
@@ -292,14 +311,25 @@ def process_candidate_row(tally, row, id_to_ballot_order):
         sub_constituency = SubConstituency.objects.get(
             code=code, tally=tally)
 
-        if race_type != RaceType.WOMEN:
+        if race_type == RaceType.PRESIDENTIAL:
+            ballot = sub_constituency.ballot_presidential
+        elif race_type == RaceType.GENERAL:
             ballot = sub_constituency.ballot_general
         else:
             ballot = sub_constituency.ballot_women
 
+        # Create ballot incase it's missing in the sub constituency file
+        if ballot == None:
+            ballot, _ = Ballot.objects.get_or_create(
+                number=int(code),
+                race_type=race_type,
+                tally=tally)
+
     except SubConstituency.DoesNotExist:
-        ballot = Ballot.objects.get(number=code, tally=tally)
-        sub_constituency = ballot.sc_component
+        ballot, _ = Ballot.objects.get_or_create(
+                number=int(code),
+                race_type=race_type,
+                tally=tally)
 
     Candidate.objects.get_or_create(
         ballot=ballot,
@@ -340,9 +370,9 @@ def process_results_form_row(tally, row, command=None, logger=None):
     replacement_count = 0
 
     row = empty_strings_to_none(row)
-    # take first 9 values
+    # take first 11 values
     ballot_number, code, station_number, gender, name,\
-        office_name, _, barcode, serial_number = row[0:9]
+        office_name, _, barcode, serial_number, _, region_id = row[0:11]
 
     gender = gender and getattr(Gender, gender.upper())
     ballot = None
@@ -424,7 +454,10 @@ def process_results_form_row(tally, row, command=None, logger=None):
 
     if office_name:
         try:
-            office = Office.objects.get(name=office_name.strip(), tally=tally)
+            office = Office.objects.get(
+                name=office_name.strip(),
+                tally=tally,
+                region__id=region_id)
         except Office.DoesNotExist:
             msg = 'Office "%s" does not exist' % office_name
             if command:

@@ -29,8 +29,8 @@ def form_ballot_numbers(number):
     return COMPONENT_TO_BALLOTS[number] if is_component(number) else [number]
 
 
-def sub_constituency(sc_general, sc_women, sc_component):
-    return sc_general or sc_women or sc_component
+def sub_constituency(sc_general, sc_women, sc_component, sc_presidential):
+    return sc_general or sc_women or sc_component or sc_presidential
 
 
 def race_type_name(race_type, sc_general):
@@ -89,7 +89,8 @@ class Ballot(BaseModel):
     def sub_constituency(self):
         return sub_constituency(self.sc_general.first(),
                                 self.sc_women.first(),
-                                self.sc_component.first())
+                                self.sc_component.first(),
+                                self.sc_presidential.first())
 
     @property
     def component_ballot(self):

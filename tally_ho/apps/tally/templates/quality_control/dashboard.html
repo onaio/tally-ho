@@ -14,6 +14,10 @@
 {% include 'quality_control/reconciliation.html' with form=reconciliation_form %}
 {% endif %}
 
+{% if results_presidential %}
+{% include 'quality_control/results.html' with results=results_presidential header_text='Presidential' %}
+{% endif %}
+
 {% if results_general %}
 {% include 'quality_control/results.html' with results=results_general header_text='General' %}
 {% endif %}

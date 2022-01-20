@@ -213,6 +213,12 @@ class ResultForm(BaseModel):
             candidate__race_type=RaceType.GENERAL)
 
     @property
+    def presidential_results(self):
+        return self.results.filter(
+            active=True,
+            candidate__race_type=RaceType.PRESIDENTIAL)
+
+    @property
     def women_results(self):
         return self.results.filter(
             active=True,
@@ -225,6 +231,10 @@ class ResultForm(BaseModel):
     @property
     def has_women_results(self):
         return self.women_results.count() > 0
+
+    @property
+    def has_presidential_results(self):
+        return self.presidential_results.count() > 0
 
     @property
     def qualitycontrol(self):
@@ -284,6 +294,11 @@ class ResultForm(BaseModel):
     def women_match(self):
         return match_results(self, self.women_results) \
             if self.women_results else True
+
+    @property
+    def presidential_match(self):
+        return match_results(self, self.presidential_results) \
+            if self.presidential_results else False
 
     @property
     def corrections_reconciliationforms(self):
@@ -392,6 +407,7 @@ class ResultForm(BaseModel):
             returns False.
         """
         return (
+            (not self.has_presidential_results or self.presidential_match) and
             (not self.has_general_results or self.general_match) and
             (not self.reconciliationform_exists or
              self.reconciliation_match) and
