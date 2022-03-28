@@ -8,3 +8,4 @@ ipython
 ipdb
 sphinx
 autopep8
+pydot
