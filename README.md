@@ -19,8 +19,13 @@ git clone git@github.com:onaio/tally-ho.git
 Prerequisites: this assumes you have [virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/en/latest/install.html) and [PostgreSQL](https://wiki.postgresql.org/wiki/Detailed_installation_guides) installed.
 
 ```bash
-mkvirtualenv tally --python=python3.6.5
+mkvirtualenv tally --python=python3.9.0
 pip install -r requirements/dev.pip
+```
+
+Make sure you have the latest versions of pip, wheel, and setuptools installed, run
+```bash
+python -m pip install -U pip wheel setuptools
 ```
 
 ### Quick start with user demo data
@@ -80,7 +85,7 @@ Pass the `-s` option if you want to use `ipdb.set_trace()` to debug during a tes
 
 ### Generating Model Graphs
 
-The below assumes you have `pip` installed `requirements/dev.pip`.
+The below assumes you have `pip` installed `requirements/dev.pip` and [graphviz](https://graphviz.org/download/) in your machine.
 
 Generate model graph for all models:
 
