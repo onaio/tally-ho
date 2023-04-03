@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   container-job:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-18.04
 
     services:
       # Label used to access the service container
@@ -27,10 +27,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.10
+      # refer to https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
+      - name: Set up Python 3.10.0
         uses: actions/setup-python@v2
         with:
-          python-version: 3.10
+          python-version: 3.10.0
 
       - name: Cache Dependencies
         uses: actions/cache@v2
