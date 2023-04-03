@@ -28,6 +28,12 @@ Make sure you have the latest versions of pip, wheel, and setuptools installed, 
 python -m pip install -U pip wheel setuptools
 ```
 
+Install `libpq-dev` library that contains a minimal set of `PostgreSQL`_ binaries and headers requried
+for building 3rd-party applications for `PostgreSQL`_.
+```bash
+sudo apt-get install libpq-dev
+```
+
 ### Quick start with user demo data
 
 > This will remove all data in the database.
@@ -35,7 +41,7 @@ python -m pip install -U pip wheel setuptools
 To create the database, load demo users, and start the server all in one, run
 
 ```bash
-./scripts/quickstart
+./scripts/quick_start
 ```
 
 If you've aleady setup the server, you can start the server with
