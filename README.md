@@ -19,8 +19,14 @@ git clone git@github.com:onaio/tally-ho.git
 Prerequisites: this assumes you have [virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/en/latest/install.html) and [PostgreSQL](https://wiki.postgresql.org/wiki/Detailed_installation_guides) installed.
 
 ```bash
-mkvirtualenv tally --python=python3.9.0
+mkvirtualenv tally --python=python3.9
 pip install -r requirements/dev.pip
+```
+
+Install `libpq-dev` library that contains a minimal set of `PostgreSQL`_ binaries and headers requried
+for building 3rd-party applications for `PostgreSQL`_.
+```bash
+sudo apt-get install libpq-dev
 ```
 
 Make sure you have the latest versions of pip, wheel, and setuptools installed, run
