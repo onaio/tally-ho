@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.http import JsonResponse
 from guardian.mixins import LoginRequiredMixin
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.reports.progress import get_office_candidates_ids
@@ -106,6 +107,8 @@ def get_candidates_list(request):
     )
     for candidate in candidates_list:
         if isinstance(candidate['race_type'], RaceType):
-            candidate['race_type'] = candidate['race_type'].value
+            candidate['race_type'] = candidate['race_type'].name
 
-    return JsonResponse(list(candidates_list), safe=False)
+    return JsonResponse(
+        data={'data': list(candidates_list), 'created_at': timezone.now()},
+        safe=False)

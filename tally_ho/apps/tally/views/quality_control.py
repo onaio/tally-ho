@@ -70,7 +70,8 @@ def results_for_race(result_form, race_type):
         entry_version=EntryVersion.FINAL).order_by('candidate__order')
 
     if race_type is None:
-        results = results.filter(candidate__race_type__gt=RaceType.WOMEN)
+        results = results.filter(
+            candidate__race_type__gt=RaceType.PRESIDENTIAL)
     else:
         results = results.filter(candidate__race_type=race_type)
 
@@ -155,6 +156,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
         results_component = results_for_race(result_form, None)
         results_general = results_for_race(result_form, RaceType.GENERAL)
         results_women = results_for_race(result_form, RaceType.WOMEN)
+        results_presidential = results_for_race(result_form, RaceType.PRESIDENTIAL)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
@@ -162,6 +164,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
                                   results_component=results_component,
                                   results_women=results_women,
                                   results_general=results_general,
+                                  results_presidential=results_presidential,
                                   tally_id=tally_id))
 
     def post(self, *args, **kwargs):
@@ -176,6 +179,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
 
         if 'correct' in post_data:
             # send to dashboard
+            quality_control.passed_presidential = True
             quality_control.passed_general = True
             quality_control.passed_reconciliation = True
             quality_control.passed_women = True
@@ -189,6 +193,7 @@ class QualityControlDashboardView(LoginRequiredMixin,
                 url = 'quality-control-confirm-reject'
             # send to reject page
             else:
+                quality_control.passed_presidential = False
                 quality_control.passed_general = False
                 quality_control.passed_reconciliation = False
                 quality_control.passed_women = False
@@ -310,6 +315,7 @@ class ConfirmFormResetView(LoginRequiredMixin,
             result_form_pk = self.request.session.get('result_form')
             result_form = ResultForm.objects.get(id=result_form_pk)
             quality_control = result_form.qualitycontrol
+            quality_control.passed_presidential = False
             quality_control.passed_general = False
             quality_control.passed_reconciliation = False
             quality_control.passed_women = False

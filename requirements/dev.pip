@@ -9,3 +9,4 @@ ipdb
 sphinx
 autopep8
 psycopg2-binary==2.8.6
+pydot

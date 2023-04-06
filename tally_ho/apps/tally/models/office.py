@@ -10,7 +10,7 @@ class Office(BaseModel):
     class Meta:
         app_label = 'tally'
         ordering = ['name']
-        unique_together = ('name', 'tally')
+        unique_together = ('name', 'tally', 'region')
 
     name = models.CharField(max_length=255)
     number = models.IntegerField(null=True)

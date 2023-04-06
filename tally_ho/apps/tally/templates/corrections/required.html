@@ -62,6 +62,10 @@
     </table>
     {% endif %}
 
+{% if candidates_presidential %}
+    {% include "corrections/comparison.html" with candidates=candidates_presidential  header="Presidential" prefix="presidential" %}
+{% endif %}
+
 {% if candidates_general %}
     {% include "corrections/comparison.html" with candidates=candidates_general  header="General" prefix="general" %}
 {% endif %}

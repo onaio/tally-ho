@@ -7,3 +7,4 @@ class RaceType(Enum):
     COMPONENT_AMAZIGH = 2
     COMPONENT_TWARAG = 3
     COMPONENT_TEBU = 4
+    PRESIDENTIAL = 5

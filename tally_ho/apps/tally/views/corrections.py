@@ -28,7 +28,7 @@ from tally_ho.libs.views import mixins
 from tally_ho.libs.views.corrections import get_matched_forms,\
     candidate_results_for_race_type, save_component_results,\
     save_final_results, save_general_results, save_women_results,\
-    update_result_form_entries_with_de_errors
+    update_result_form_entries_with_de_errors, save_presidential_results
 from tally_ho.libs.views.form_state import form_in_state,\
     safe_form_in_state
 
@@ -113,6 +113,9 @@ def get_corrections_forms(result_form):
         race if there is one.
     """
     recon = get_recon_form(result_form) if result_form.has_recon else None
+    presidential = candidate_results_for_race_type(result_form,
+                                                   RaceType.PRESIDENTIAL,
+                                                   num_results=2)
     general = candidate_results_for_race_type(result_form,
                                               RaceType.GENERAL,
                                               num_results=2)
@@ -126,7 +129,7 @@ def get_corrections_forms(result_form):
     # get name of component race type
     c_name = component[0][0].race_type_name if len(component) else None
 
-    return [recon, general, women, component, c_name]
+    return [recon, presidential, general, women, component, c_name]
 
 
 def get_recon_form(result_form):
@@ -255,7 +258,7 @@ class CorrectionView(LoginRequiredMixin,
 
         if form.is_valid():
             barcode = form.cleaned_data['barcode'] or\
-                        form.cleaned_data['barcode_scan']
+                form.cleaned_data['barcode_scan']
             result_form = get_object_or_404(ResultForm,
                                             barcode=barcode,
                                             tally__id=tally_id)
@@ -342,13 +345,15 @@ class CorrectionRequiredView(LoginRequiredMixin,
 
     def corrections_response(self, result_form, errors=None):
         tally_id = self.kwargs.get('tally_id')
-        recon, results_general, results_women, results_component, c_name =\
+        recon, results_presidential, results_general,\
+            results_women, results_component, c_name =\
             get_corrections_forms(result_form)
 
         return self.render_to_response(
             self.get_context_data(errors=errors,
                                   result_form=result_form,
                                   reconciliation_form=recon,
+                                  candidates_presidential=results_presidential,
                                   candidates_general=results_general,
                                   candidates_component=results_component,
                                   candidates_women=results_women,
@@ -381,6 +386,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
                         save_recon(post_data, user, result_form)
 
                     save_component_results(result_form, post_data, user)
+                    save_presidential_results(result_form, post_data, user)
                     save_general_results(result_form, post_data, user)
                     save_women_results(result_form, post_data, user)
             except ValidationError as e:

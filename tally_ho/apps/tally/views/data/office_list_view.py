@@ -3,10 +3,10 @@ import json
 from django.urls import reverse
 from django.views.generic import TemplateView
 from django.db.models import F
-
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.libs.permissions import groups
@@ -78,4 +78,6 @@ def get_offices_list(request):
             'region_name',
     )
 
-    return JsonResponse(list(offices_list), safe=False)
+    return JsonResponse(
+        data={'data': list(offices_list), 'created_at': timezone.now()},
+        safe=False)

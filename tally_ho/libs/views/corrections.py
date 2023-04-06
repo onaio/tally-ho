@@ -113,7 +113,7 @@ def get_results_for_race_type(result_form, race_type):
     """
     results = result_form.results.filter(active=True)
 
-    return results.filter(candidate__race_type__gt=RaceType.WOMEN) if\
+    return results.filter(candidate__race_type__gt=RaceType.PRESIDENTIAL) if\
         race_type is None else results.filter(candidate__race_type=race_type)
 
 
@@ -210,6 +210,11 @@ def save_component_results(result_form, post_data, user):
 def save_general_results(result_form, post_data, user):
     save_candidate_results_by_prefix('general', result_form, post_data,
                                      RaceType.GENERAL, user)
+
+
+def save_presidential_results(result_form, post_data, user):
+    save_candidate_results_by_prefix('presidential', result_form, post_data,
+                                     RaceType.PRESIDENTIAL, user)
 
 
 def save_result(candidate, result_form, entry_version, votes, user):

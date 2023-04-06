@@ -12,6 +12,7 @@ from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper,\
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
@@ -28,6 +29,7 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.race_type import RaceType
 
 report_types = {1: "turnout",
                 2: "summary",
@@ -1386,9 +1388,12 @@ def get_results(request):
     returns: A JSON response of candidates results
     """
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    race_types = json.loads(request.GET.get('data')).get('race_types')
+
     qs = Result.objects.filter(
                 result_form__tally__id=tally_id,
                 result_form__form_state=FormState.ARCHIVED,
+                result_form__ballot__race_type__in=race_types,
                 entry_version=EntryVersion.FINAL,
                 active=True)
 
@@ -1417,9 +1422,15 @@ def get_results(request):
                 'number_of_signatures',
                 'ballots_received',
                 'valid_votes',
+                'race_type',
             )
+    for result in data:
+        if isinstance(result['race_type'], RaceType):
+            result['race_type'] = result['race_type'].name
 
-    return JsonResponse(list(data), safe=False)
+    return JsonResponse(
+        data={'data': list(data), 'created_at': timezone.now()},
+        safe=False)
 
 
 class TurnoutReportDataView(LoginRequiredMixin,

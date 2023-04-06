@@ -31,6 +31,7 @@ class RacesReportView(LoginRequiredMixin,
                                                 'active',
                                                 'race_type',
                                                 'sc_component',
+                                                'sc_presidential',
                                                 'sc_general',
                                                 'sc_women',
                                                 'number',
@@ -39,7 +40,8 @@ class RacesReportView(LoginRequiredMixin,
                 form_ballot_numbers=form_ballot_numbers(d['number']))
             sc = sub_constituency(sc_cache.get(d['sc_component']),
                                   sc_cache.get(d['sc_women']),
-                                  sc_cache.get(d['sc_general']))
+                                  sc_cache.get(d['sc_general']),
+                                  sc_cache.get(d['sc_presidential']))
 
             if sc:
                 data.append({

@@ -309,6 +309,7 @@ QUARANTINE_DATA = [
 ]
 
 SUB_CONSTITUENCY_COLUMN_NAMES = ['SubCon #', 'Field Office', 'Races',
+                                 'Ballot Number – Presidential',
                                  'Ballot Number - General',
                                  'Ballot Number - Women', 'Number of Ballots',
                                  'Component Ballot', 'A4 Ballot', 'A3 Ballot',
@@ -339,11 +340,12 @@ STATION_COLUMN_NAMES = ['Centre #', 'Centre Name', 'SubCon #',
                         'First Name Number', 'Last Name', 'Last Name Number',
                         'When Generated']
 
-RESULT_FORM_COLUMN_NAMES = ['Ballot Number', 'PC Code/ رمز مركز الانتخاب',
+RESULT_FORM_COLUMN_NAMES = ['Ballot Number', 'PC Code/ ﺮﻣﺯ ﻡﺮﻛﺯ ﺍﻼﻨﺘﺧﺎﺑ',
                             'Station', 'Gender', 'Name PC',
-                            'Office/ الللجنة الانتخابية ',
-                            'Office #/ الللجنة الانتخابية #',
-                            'Bar Code Number', 'Serial Number']
+                            'Office/ ﺎﻠﻠﻠﺠﻧﺓ ﺍﻼﻨﺘﺧﺎﺒﻳﺓ',
+                            'Office #/ ﺎﻠﻠﻠﺠﻧﺓ ﺍﻼﻨﺘﺧﺎﺒﻳﺓ #',
+                            'Barcode Number', 'Serial Number',
+                            'ﺎﻠﻤﻨﻄﻗﺓ Region', '#ﺎﻠﻤﻨﻄﻗﺓ /# Region']
 
 CANDIDATE_COLUMN_NAMES = ['ID', 'Duplicate', 'Office_ID', 'E_Mail',
                           'Uploaded_Date_Time', 'Main_District_ID',

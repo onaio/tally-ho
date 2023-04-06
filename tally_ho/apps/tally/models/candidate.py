@@ -39,7 +39,8 @@ class Candidate(BaseModel):
             RaceType.WOMEN: _('Women'),
             RaceType.COMPONENT_AMAZIGH: _('Component Amazigh'),
             RaceType.COMPONENT_TWARAG: _('Component Twarag'),
-            RaceType.COMPONENT_TEBU: _('Component Tebu')
+            RaceType.COMPONENT_TEBU: _('Component Tebu'),
+            RaceType.PRESIDENTIAL: _('Presidential'),
         }[self.race_type]
 
     def num_votes(self, result_form=None, form_state=FormState.ARCHIVED):

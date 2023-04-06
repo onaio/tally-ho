@@ -2,10 +2,10 @@ import json
 
 from django.urls import reverse
 from django.views.generic import TemplateView
-
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.region import Region
 from tally_ho.libs.permissions import groups
@@ -70,4 +70,6 @@ def get_regions_list(request):
             'name',
     )
 
-    return JsonResponse(list(regions_list), safe=False)
+    return JsonResponse(
+        data={'data': list(regions_list), 'created_at': timezone.now()},
+        safe=False)
