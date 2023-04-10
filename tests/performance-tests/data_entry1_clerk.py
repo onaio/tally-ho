@@ -88,9 +88,8 @@ class UserLogin(TaskSet):
                           'form-5-votes': '3', 'form-6-votes': '7', 'form-7-votes': '8',
                           'result_form': self.result_form, 'submit': '',
                           'csrfmiddlewaretoken': csrftoken})
-        # import pdb;pdb.set_trace()
-        # while True:
-        #     time.sleep(1)
+        while True:
+            time.sleep(1)
     def on_stop(self):
         self.client.get("/accounts/logout", name="Logout")
 
