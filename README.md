@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/onaio/tally-ho.svg?branch=master)](https://travis-ci.org/onaio/tally-ho)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d610ecc632d340ff822c577054fdff38)](https://app.codacy.com/gh/onaio/tally-ho)
+![Build Status](https://github.com/onaio/tally-ho/actions/workflows/config.yml/badge.svg?branch=master)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/1e817ebba18946fa84cb129cdc914f0b)](https://app.codacy.com/gh/onaio/tally-ho/dashboard)
 [![Coverage Status](https://coveralls.io/repos/github/onaio/tally-ho/badge.svg?branch=master)](https://coveralls.io/github/onaio/tally-ho?branch=master)
 
 ## Tally-Ho!
@@ -19,8 +19,19 @@ git clone git@github.com:onaio/tally-ho.git
 Prerequisites: this assumes you have [virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/en/latest/install.html) and [PostgreSQL](https://wiki.postgresql.org/wiki/Detailed_installation_guides) installed.
 
 ```bash
-mkvirtualenv tally --python=python3.6.5
+mkvirtualenv tally --python=python3.9
 pip install -r requirements/dev.pip
+```
+
+Install `libpq-dev` library that contains a minimal set of `PostgreSQL`_ binaries and headers requried
+for building 3rd-party applications for `PostgreSQL`_.
+```bash
+sudo apt-get install libpq-dev
+```
+
+Make sure you have the latest versions of pip, wheel, and setuptools installed, run
+```bash
+python -m pip install -U pip wheel setuptools
 ```
 
 ### Quick start with user demo data
@@ -30,7 +41,7 @@ pip install -r requirements/dev.pip
 To create the database, load demo users, and start the server all in one, run
 
 ```bash
-./scripts/quickstart
+./scripts/quick_start
 ```
 
 If you've aleady setup the server, you can start the server with
@@ -80,7 +91,7 @@ Pass the `-s` option if you want to use `ipdb.set_trace()` to debug during a tes
 
 ### Generating Model Graphs
 
-The below assumes you have `pip` installed `requirements/dev.pip`.
+The below assumes you have `pip` installed `requirements/dev.pip` and [graphviz](https://graphviz.org/download/) in your machine.
 
 Generate model graph for all models:
 

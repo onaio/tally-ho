@@ -14,6 +14,7 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
 from tally_ho.libs.views.session import session_matches_post_result_form
@@ -197,19 +198,27 @@ class EnterCenterView(LoginRequiredMixin,
             is_error = False
             center_sub = center.sub_constituency
             if center_sub:
-                is_general = result_form.ballot.number == \
-                        center.sub_constituency.code
-                if not is_general:
-                    is_women = center_sub.ballot_women is not None
-                    if not is_women or (
-                            is_women and
-                            result_form.ballot.number !=
-                            center_sub.ballot_women.number):
-                        is_error = True
+                is_presidential = result_form.ballot.race_type == \
+                        RaceType.PRESIDENTIAL
+                if is_presidential and (
+                    not center_sub.ballot_presidential.number ==
+                    result_form.ballot_number
+                ):
+                    is_error = True
+                if not is_presidential:
+                    is_general = result_form.ballot.number == \
+                                center.sub_constituency.code
+                    if not is_general:
+                        is_women = center_sub.ballot_women is not None
+                        if not is_women or (
+                                is_women and
+                                result_form.ballot.number !=
+                                center_sub.ballot_women.number):
+                            is_error = True
 
             if is_error:
                 form = add_generic_error(center_form,
-                                         _(u"Ballot number do not match for"
+                                         _(u"Ballot number do not match for "
                                            u"center and form"))
                 return self.render_to_response(self.get_context_data(
                     form=form, header_text=_('Intake'),
