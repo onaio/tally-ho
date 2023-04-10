@@ -1,5 +1,5 @@
 from locust import HttpUser, TaskSet, task
-from intakebarcodes import *
+from intake_barcodes import *
 import time
 
 
