@@ -1,5 +1,4 @@
 ![Build Status](https://github.com/onaio/tally-ho/actions/workflows/config.yml/badge.svg?branch=master)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/1e817ebba18946fa84cb129cdc914f0b)](https://app.codacy.com/gh/onaio/tally-ho/dashboard)
 [![Coverage Status](https://coveralls.io/repos/github/onaio/tally-ho/badge.svg?branch=master)](https://coveralls.io/github/onaio/tally-ho?branch=master)
 
 ## Tally-Ho!
