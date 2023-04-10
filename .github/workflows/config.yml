@@ -40,13 +40,13 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python3 -m venv venv
+          python -m venv venv
             . venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements/dev.pip
 
       - name: Run Tests
         run: |
-          python3 -m venv venv
+          python -m venv venv
             . venv/bin/activate
           python manage.py test --settings=tally_ho.settings.dev
