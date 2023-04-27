@@ -9,6 +9,7 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.context_processors import get_datatables_language_de_from_locale
 from tally_ho.libs.views import mixins
 
 
@@ -75,6 +76,7 @@ class VotesPerCandidateListView(LoginRequiredMixin,
     template_name = "reports/votes_per_candidate.html"
 
     def get(self, request, *args, **kwargs):
+        language_de = get_datatables_language_de_from_locale(self.request)
         tally_id = kwargs.get('tally_id')
         station_number = kwargs.get('station_number')
         center_code = kwargs.get('center_code')
@@ -92,4 +94,5 @@ class VotesPerCandidateListView(LoginRequiredMixin,
             tally_id=tally_id,
             station_number=station_number,
             center_code=center_code,
-            report_name=report_name))
+            report_name=report_name,
+            languageDE=language_de))

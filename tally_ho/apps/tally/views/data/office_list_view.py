@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.context_processors import get_datatables_language_de_from_locale
 from tally_ho.libs.views import mixins
 
 
@@ -50,11 +51,13 @@ class OfficeListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('office-list-data', kwargs=kwargs),
             tally_id=tally_id,
-            offices_list_download_url='/ajax/download-offices-list/'
+            offices_list_download_url='/ajax/download-offices-list/',
+            languageDE=language_de
         ))
 
 

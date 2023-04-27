@@ -50,6 +50,7 @@ from tally_ho.libs.utils.active_status import (
     disable_enable_race,
     disable_enable_candidate,
 )
+from tally_ho.libs.utils.context_processors import get_datatables_language_de_from_locale
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import (
     get_result_export_response,
@@ -411,10 +412,12 @@ class FormProgressView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-progress-data',
                                kwargs={'tally_id': tally_id}),
+            languageDE=language_de,
             tally_id=tally_id))
 
 
@@ -540,10 +543,12 @@ class FormDuplicatesView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-duplicates-data',
                                kwargs={'tally_id': tally_id}),
+            languageDE=language_de,
             tally_id=tally_id))
 
 
@@ -556,10 +561,13 @@ class FormClearanceView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
+        
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-clearance-data',
                                kwargs={'tally_id': tally_id}),
+            languageDE=language_de,
             tally_id=tally_id))
 
 
@@ -572,10 +580,12 @@ class FormAuditView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-audit-data',
                                kwargs={'tally_id': tally_id}),
+            languageDE=language_de,
             tally_id=tally_id))
 
 

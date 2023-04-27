@@ -26,6 +26,7 @@ from tally_ho.apps.tally.models.all_candidates_votes import AllCandidatesVotes
 from tally_ho.apps.tally.views.super_admin import (
     get_result_form_with_duplicate_results)
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.context_processors import get_datatables_language_de_from_locale
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
@@ -1601,6 +1602,7 @@ class TurnOutReportView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         try:
             region_name =\
@@ -1622,7 +1624,8 @@ class TurnOutReportView(LoginRequiredMixin,
             remote_url=reverse('turnout-list-data', kwargs=kwargs),
             tally_id=tally_id,
             region_name=region_name,
-            constituency_name=constituency_name
+            constituency_name=constituency_name,
+            languageDE=language_de,
         ))
 
 
@@ -1783,6 +1786,7 @@ class SummaryReportView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         try:
             region_name =\
@@ -1804,7 +1808,8 @@ class SummaryReportView(LoginRequiredMixin,
             remote_url=reverse('summary-list-data', kwargs=kwargs),
             tally_id=tally_id,
             region_name=region_name,
-            constituency_name=constituency_name
+            constituency_name=constituency_name,
+            languageDE=language_de,
         ))
 
 
@@ -2036,6 +2041,7 @@ class ProgressiveReportView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         try:
             region_name =\
@@ -2057,7 +2063,8 @@ class ProgressiveReportView(LoginRequiredMixin,
             remote_url=reverse('progressive-report-list-data', kwargs=kwargs),
             tally_id=tally_id,
             region_name=region_name,
-            constituency_name=constituency_name
+            constituency_name=constituency_name,
+            languageDE=language_de,
         ))
 
 
@@ -2498,6 +2505,7 @@ class DiscrepancyReportView(LoginRequiredMixin,
     template_name = 'reports/process_discrepancy_report.html'
 
     def get(self, request, *args, **kwargs):
+        language_de = get_datatables_language_de_from_locale(self.request)
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
@@ -2545,7 +2553,8 @@ class DiscrepancyReportView(LoginRequiredMixin,
             tally_id=tally_id,
             region_name=region_name,
             constituency_name=constituency_name,
-            report_type=report_type
+            report_type=report_type,
+            languageDE=language_de,
         ))
 
 
@@ -3206,6 +3215,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         stations, centers = build_station_and_centers_list(tally_id)
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-results-data', kwargs=kwargs),
@@ -3213,7 +3223,8 @@ class ResultFormResultsListView(LoginRequiredMixin,
             stations=stations,
             centers=centers,
             get_centers_stations_url='/ajax/get-centers-stations/',
-            results_download_url='/ajax/download-results/'
+            results_download_url='/ajax/download-results/',
+            languageDE=language_de
         ))
 
 
@@ -3297,13 +3308,15 @@ class DuplicateResultsListView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         stations, centers = build_station_and_centers_list(tally_id)
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('duplicate-results-data', kwargs=kwargs),
             tally_id=tally_id,
             stations=stations,
             centers=centers,
-            get_centers_stations_url='/ajax/get-centers-stations/'
+            get_centers_stations_url='/ajax/get-centers-stations/',
+            languageDE=language_de,
         ))
 
 
@@ -3389,6 +3402,7 @@ class AllCandidatesVotesListView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         stations, centers = build_station_and_centers_list(tally_id)
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('all-candidates-votes-data', kwargs=kwargs),
@@ -3397,7 +3411,8 @@ class AllCandidatesVotesListView(LoginRequiredMixin,
             centers=centers,
             title=_(u'All Candidates Votes'),
             export_file_name=_(u'all_candidates_votes'),
-            get_centers_stations_url='/ajax/get-centers-stations/'
+            get_centers_stations_url='/ajax/get-centers-stations/',
+            languageDE=language_de,
         ))
 
 
@@ -3485,6 +3500,7 @@ class ActiveCandidatesVotesListView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         stations, centers = build_station_and_centers_list(tally_id)
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('active-candidates-votes-data', kwargs=kwargs),
@@ -3493,5 +3509,6 @@ class ActiveCandidatesVotesListView(LoginRequiredMixin,
             centers=centers,
             title=_(u'Active Candidates Votes'),
             export_file_name=_(u'active_candidates_votes'),
-            get_centers_stations_url='/ajax/get-centers-stations/'
+            get_centers_stations_url='/ajax/get-centers-stations/',
+            languageDE=language_de,
         ))
