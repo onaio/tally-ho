@@ -558,23 +558,38 @@ def results_queryset(
             data['select_1_ids'] if len(data['select_1_ids']) else [0]
         selected_station_ids =\
             data['select_2_ids'] if len(data['select_2_ids']) else [0]
-
-        qs = qs\
+        filter_in = data.get('filter_in')
+        qs = qs \
             .annotate(station_ids=station_id_query)
+        if filter_in:
+            qs_1 = qs \
+                .filter(
+                Q(result_form__center__id__in=selected_center_ids) &
+                Q(station_ids__in=selected_station_ids)) \
+                .annotate(candidate_name=F('candidate__full_name')) \
+                .filter(candidate_name__isnull=False)
 
-        qs_1 = qs\
-            .filter(
-                ~Q(result_form__center__id__in=selected_center_ids) &
-                ~Q(station_ids__in=selected_station_ids))\
-            .annotate(candidate_name=F('candidate__full_name'))\
-            .filter(candidate_name__isnull=False)
+            qs_2 = qs \
+                .filter(
+                Q(result_form__center__id__in=selected_center_ids) &
+                Q(station_ids__in=selected_station_ids)) \
+                .annotate(candidate_name=F(ballot_comp_candidate_name)) \
+                .filter(candidate_name__isnull=False)
 
-        qs_2 = qs\
-            .filter(
-                ~Q(result_form__center__id__in=selected_center_ids) &
-                ~Q(station_ids__in=selected_station_ids))\
-            .annotate(candidate_name=F(ballot_comp_candidate_name))\
-            .filter(candidate_name__isnull=False)
+        else:
+            qs_1 = qs\
+                .filter(
+                    ~Q(result_form__center__id__in=selected_center_ids) &
+                    ~Q(station_ids__in=selected_station_ids))\
+                .annotate(candidate_name=F('candidate__full_name'))\
+                .filter(candidate_name__isnull=False)
+
+            qs_2 = qs\
+                .filter(
+                    ~Q(result_form__center__id__in=selected_center_ids) &
+                    ~Q(station_ids__in=selected_station_ids))\
+                .annotate(candidate_name=F(ballot_comp_candidate_name))\
+                .filter(candidate_name__isnull=False)
 
         qs = qs_1.union(qs_2) if len(qs_2) else qs_1
 
@@ -652,6 +667,7 @@ def results_queryset(
                         result_form__reconciliationform__isnull=False,
                         then=F(reconform_num_valid_votes)
                     ), default=V(0))).distinct()
+
     else:
         qs_1 = qs\
             .annotate(candidate_name=F('candidate__full_name'))\

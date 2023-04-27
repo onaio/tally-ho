@@ -53,6 +53,35 @@
     </div>
   </div>
 </caption>
+  <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
+    <div id="in-report" class="row">
+    <div class="col-sm-4">
+      <p style="text-align: left; margin-left: .5em;">Centers</p>
+      <select class="selectpicker" id="filter-in-centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
+        {% for center in centers %}
+          <option value={{center.id}}>{{center.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <p style="text-align: left; margin-left: .5em;">Stations</p>
+      <select class="selectpicker filter-in-center-stations" id="filter-in-stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
+        {% for station in stations %}
+          <option value={{station.id}}>{{station.id}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <div class="card">
+        <div class="card-body">
+          <p class="card-text" style="text-align: left;">Filter Centers and Stations from results.</p>
+          <button style="float: left;" id="filter-in-report" class="btn btn-default btn-small">Apply</button>
+          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">Reset</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</caption>
 <br>
   <thead>
       <tr>

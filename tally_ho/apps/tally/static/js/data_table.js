@@ -148,6 +148,74 @@ $(document).ready(function () {
     });
   });
 
+  $('#in-report').on('click', '#filter-in-report', function () {
+    const table = $('.datatable').DataTable();
+
+    table.destroy();
+    let data = [];
+    let selectOneIds = $('select#filter-in-centers').val();
+    let selectTwoIds = $('select#filter-in-stations').val();
+
+    if (selectOneIds || selectTwoIds) {
+      const items = {
+        select_1_ids: selectOneIds !== null ? selectOneIds : [],
+        select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+        filter_in: "True"
+      };
+
+      data = items;
+    }
+
+    data = data.length
+      ? data.filter((item) =>
+          Object.values(item).every((value) => typeof value !== 'undefined')
+        )
+      : data;
+
+    $('.datatable').dataTable({
+      language: dt_language,
+      order: [[0, 'desc']],
+      lengthMenu: [
+        [10, 25, 50, 100, 500],
+        [10, 25, 50, 100, 500],
+      ],
+      columnDefs: [
+        {
+          orderable: true,
+          searchable: true,
+          className: 'center',
+          targets: [0, 1],
+        },
+      ],
+      searching: true,
+      processing: true,
+      serverSide: true,
+      stateSave: true,
+      ajax: {
+        url: LIST_JSON_URL,
+        type: 'POST',
+        data: { data: JSON.stringify(data) },
+        traditional: true,
+        dataType: 'json',
+      },
+      dom:
+        "<'row'<'col-sm-1'B><'col-sm-6'l><'col-sm-5'f>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+      buttons: [
+        {
+          extend: 'csv',
+          filename: exportFileName,
+          action: exportAction,
+          exportOptions: {
+            columns: ':visible :not(.actions)',
+          },
+        },
+      ],
+      responsive: true,
+    });
+  });
+
   $('#report').on('click', '#reset', function () {
     const table = $('.datatable').DataTable();
 
