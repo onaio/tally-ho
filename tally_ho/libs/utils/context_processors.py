@@ -33,11 +33,10 @@ def is_tallymanager(request):
 
 
 def locale(request):
-    locale = request.session.get('locale')
+    locale = request.session.get('locale') or getattr(
+        settings, "LANGUAGE_CODE", None)
     if locale and translation.check_for_language(locale):
         translation.activate(locale)
-    else:
-        locale = getattr(settings, "LANGUAGE_CODE", None)
     return {"locale": locale}
 
 
