@@ -23,7 +23,7 @@ class EditRaceForm(ModelForm):
 
     comment_input = forms.CharField(
         required=False,
-        label=_("Add a new comments"),
+        label=_("Add new comments"),
         widget=forms.Textarea(attrs={'cols': 80, 'rows': 5}),
     )
 

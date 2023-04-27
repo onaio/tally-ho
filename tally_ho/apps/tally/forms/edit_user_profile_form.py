@@ -3,9 +3,11 @@ from django.forms import (
     ModelForm,
     TextInput,
     ModelChoiceField,
+    ModelMultipleChoiceField,
     HiddenInput,
     BooleanField,
     CheckboxInput,
+    CheckboxSelectMultiple,
 )
 from django.utils.translation import ugettext_lazy as _
 
@@ -120,6 +122,10 @@ class EditAdminProfileForm(ModelForm):
 
         if 'instance' not in kwargs or not kwargs['instance']:
             self.fields['reboot_password'].widget = HiddenInput()
+            self.fields['administrated_tallies'] = ModelMultipleChoiceField(
+                queryset=Tally.objects.all(),
+                label=_('Administrated tallies'),
+                widget=CheckboxSelectMultiple())
 
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:
