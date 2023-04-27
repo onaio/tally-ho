@@ -63,15 +63,15 @@
 <div class="pagination">
     <span class="step-links">
         {% if forms.has_previous %}
-            <a href="?page={{ forms.previous_page_number }}">previous</a>
+            <a href="?page={{ forms.previous_page_number }}">{% trans 'previous' %}</a>
         {% endif %}
 
         <span class="current">
-            Page {{ forms.number }} of {{ forms.paginator.num_pages }}.
+            {% trans 'Page'%}  {{forms.number}} {%  trans 'of' %} {{forms.paginator.num_pages}}
         </span>
 
         {% if forms.has_next %}
-            <a href="?page={{ forms.next_page_number }}">next</a>
+            <a href="?page={{ forms.next_page_number }}">{% trans 'next' %}</a>
         {% endif %}
     </span>
 </div>

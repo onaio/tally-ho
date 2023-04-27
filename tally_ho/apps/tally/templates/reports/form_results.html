@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url results_download_url=results_download_url %}
+{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url results_download_url=results_download_url languageDE=languageDE %}
 {% endblock %}
 {% block content %}
 
@@ -23,8 +23,8 @@
   <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
     <div id="report" class="row">
     <div class="col-12">
-      <button style="float: left; margin-bottom: 2em;" id="export-form-results-presidential" class="btn btn-default btn-small">Export Presidential Results in JSON</button>
-      <button style="float: left; margin-left: 1em; margin-bottom: 2em;" id="export-form-results-parliamentary" class="btn btn-default btn-small">Export Parliamentary Results in JSON</button>
+      <button style="float: left; margin-bottom: 2em;" id="export-form-results-presidential" class="btn btn-default btn-small">{% trans 'Export Presidential Results in JSON' %}</button>
+      <button style="float: left; margin-left: 1em; margin-bottom: 2em;" id="export-form-results-parliamentary" class="btn btn-default btn-small">{% trans 'Export Parliamentary Results in JSON' %}</button>
     </div>
     <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">Centers</p>
@@ -35,7 +35,7 @@
       </select>
     </div>
     <div class="col-sm-4">
-      <p style="text-align: left; margin-left: .5em;">Stations</p>
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Stations' %}</p>
       <select class="selectpicker center-stations" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
         {% for station in stations %}
           <option value={{station.id}}>{{station.id}}</option>
@@ -45,9 +45,9 @@
     <div class="col-sm-4">
       <div class="card">
         <div class="card-body">
-          <p class="card-text" style="text-align: left;">Filter out Centers and Stations from results.</p>
-          <button style="float: left;" id="filter-report" class="btn btn-default btn-small">Apply</button>
-          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">Reset</a>
+          <p class="card-text" style="text-align: left;">{% trans 'Filter out Centers and Stations from results.' %}</p>
+          <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">{% trans 'Reset' %}</a>
         </div>
       </div>
     </div>

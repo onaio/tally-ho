@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with remote_url=remote_url result_forms_download_url=result_forms_download_url %}
+{% include "data/table.html" with remote_url=remote_url result_forms_download_url=result_forms_download_url languageDE=languageDE  %}
 {% endblock %}
 
 {% block content %}
@@ -19,7 +19,7 @@
 
 <div class="pull-left">
 {% if not none %}
-Export:
+{% trans 'Export:' %}
 {% endif %}
 {% if custom %}
 <a href="{% url 'form-not-received-view' 'csv' tally_id %}">{% trans 'All' %}</a>
@@ -40,8 +40,8 @@ Export:
 </div>
 {% if show_create_form_button %}
     <div class="col-6" id="result-forms-report" style="float: left;padding-left: 0;">
-        <button style="margin-bottom: 2em; margin-top: 2em;" id="export-result-forms-presidential" class="btn btn-default btn-small">Export Presidential Forms in JSON</button>
-        <button id="export-result-forms-parlimentary" class="btn btn-default btn-small">Export Parliamentary Forms in JSON</button>
+        <button style="margin-bottom: 2em; margin-top: 2em;" id="export-result-forms-presidential" class="btn btn-default btn-small">{% trans 'Export Presidential Forms in JSON' %}</button>
+        <button id="export-result-forms-parlimentary" class="btn btn-default btn-small">{% trans 'Export Parliamentary Forms in JSON' %}</button>
     </div>
     <div class="pull-right">
         <form method="get" action="{% url 'create-form' tally_id%}">

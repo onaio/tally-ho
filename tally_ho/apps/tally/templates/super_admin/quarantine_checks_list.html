@@ -42,15 +42,15 @@
 <div class="pagination">
     <span class="step-links">
         {% if checks.has_previous %}
-            <a href="?page={{ checks.previous_page_number }}">previous</a>
+            <a href="?page={{ checks.previous_page_number }}">{% trans 'previous' %}</a>
         {% endif %}
 
         <span class="current">
-            Page {{ checks.number }} of {{ checks.paginator.num_pages }}.
+            {% trans 'Page'%}  {{checks.number}} {%  trans 'of' %} {{checks.paginator.num_pages}}.
         </span>
 
         {% if checks.has_next %}
-            <a href="?page={{ checks.next_page_number }}">next</a>
+            <a href="?page={{ checks.next_page_number }}">{% trans 'next' %}</a>
         {% endif %}
     </span>
 </div>
