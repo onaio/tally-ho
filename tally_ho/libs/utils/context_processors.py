@@ -41,6 +41,27 @@ def locale(request):
     return {"locale": locale}
 
 
+def get_datatables_language_de_from_locale(request):
+    language_de = None
+    try:
+        locale_val = locale(request).get('locale')
+        with open(
+            os.path.join(
+                getattr(settings, "BASE_DIR", None),
+                'apps',
+                'tally',
+                'static',
+                'i18n',
+                '{}.json'.format(locale_val)
+            ),
+            'r'
+        ) as f:
+            language_de = json.load(f)
+    except Exception:
+        pass
+    return language_de
+
+
 def site_name(request):
     site_name = getattr(settings, "SITE_NAME", None)
     site_id = getattr(settings, "SITE_ID", None)
