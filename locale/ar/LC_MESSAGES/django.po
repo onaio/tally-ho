@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-27 11:57+0000\n"
+"POT-Creation-Date: 2023-04-27 13:56+0000\n"
 "PO-Revision-Date: 2014-02-21 16:33+0000\n"
 "Last-Translator: MonaHago <missahmed230@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -288,7 +288,7 @@ msgstr "تكوين مجموعات"
 msgid "Export candidate votes list."
 msgstr "قائمة أصوات مرشح التصدير."
 
-#: tally_ho/apps/tally/management/commands/import_data.py:520
+#: tally_ho/apps/tally/management/commands/import_data.py:519
 #: tally_ho/apps/tally/management/commands/import_resultforms.py:14
 msgid "Import polling data."
 msgstr "احضار  بيانات الاقتراع"
@@ -2652,10 +2652,12 @@ msgid "Other user views"
 msgstr "مستخدم اخرى"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:58
+#: tally_ho/apps/tally/templates/super_admin/home.html:75
 msgid "Intake Clerk"
 msgstr "موظف الاستقبال "
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:59
+#: tally_ho/apps/tally/templates/super_admin/home.html:77
 msgid "Clearance Clerk"
 msgstr "من قام بالتصحيح"
 
@@ -2664,6 +2666,7 @@ msgid "Data Entry Clerk"
 msgstr "موظف الادخال"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:61
+#: tally_ho/apps/tally/templates/super_admin/home.html:81
 msgid "Corrections Clerk"
 msgstr "موظف التصحيح"
 
@@ -2672,6 +2675,7 @@ msgid "Quality Control & Archiving Clerk"
 msgstr "موظف ضمان الجودة"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:63
+#: tally_ho/apps/tally/templates/super_admin/home.html:84
 msgid "Audit Clerk"
 msgstr "موظف التدقيق"
 
@@ -2690,6 +2694,34 @@ msgstr "محطة"
 #: tally_ho/apps/tally/templates/super_admin/home.html:73
 msgid "Staff Performance Metrics"
 msgstr "مقاييس أداء الموظفين"
+
+#: tally_ho/apps/tally/templates/super_admin/home.html:76
+msgid "Intake Supervisor"
+msgstr "مشرف القبول"
+
+#: tally_ho/apps/tally/templates/super_admin/home.html:78
+msgid "Clearance Supervisor"
+msgstr "مشرف التخليص"
+
+#: tally_ho/apps/tally/templates/super_admin/home.html:79
+msgid "Data Entry 1 Clerk"
+msgstr "كاتب بيانات 1"
+
+#: tally_ho/apps/tally/templates/super_admin/home.html:80
+msgid "Data Entry 2 Clerk"
+msgstr "كاتب بيانات 2"
+
+#: tally_ho/apps/tally/templates/super_admin/home.html:82
+msgid "Quality Control Clerk"
+msgstr "كاتب مراقبة الجودة"
+
+#: tally_ho/apps/tally/templates/super_admin/home.html:83
+msgid "Quality Control Supervisor"
+msgstr "مشرف ضبط الجودة"
+
+#: tally_ho/apps/tally/templates/super_admin/home.html:85
+msgid "Audit Supervisor"
+msgstr "مشرف التدقيق"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:86
 msgid "Supervisors Approvals"
@@ -3397,6 +3429,14 @@ msgstr "تم تسجيل الدخول بواسطة"
 msgid "logout"
 msgstr " الخروج"
 
+#: tally_ho/libs/templates/base.html:91
+msgid "Back to top"
+msgstr "عد إلى الأعلى"
+
+#: tally_ho/libs/templates/base.html:94
+msgid "© High National Election Commission - Libya"
+msgstr "© المفوضية الوطنية العليا للانتخابات - ليبيا"
+
 #: tally_ho/libs/templates/registration/login.html:6
 msgid "Libya Vote Tally"
 msgstr "منظومة النتائج للناخبيين الليبين"
@@ -3580,9 +3620,6 @@ msgstr "البيانات الناتجة غير مطابقه للنمودج ال�
 #~ msgid "records"
 #~ msgstr "تسجيل"
 
-#~ msgid "Back to top"
-#~ msgstr "مرة أخرى في أعلى"
-
 #~ msgid "Archiving Clerk"
 #~ msgstr "موظف الارشفه "
 
@@ -3645,9 +3682,6 @@ msgstr "البيانات الناتجة غير مطابقه للنمودج ال�
 
 #~ msgid "Select"
 #~ msgstr "اختار"
-
-#~ msgid "Intake: Successful"
-#~ msgstr "استقبال : نجاح"
 
 #~ msgid "To Quality Control [ ]  Name"
 #~ msgstr "الى ضبط الجودة  [ ] الاسم"
