@@ -1,3 +1,4 @@
+import os, json
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.utils import translation
@@ -32,7 +33,12 @@ def is_tallymanager(request):
 
 
 def locale(request):
-    return {"locale": translation.get_language_from_request(request)}
+    locale = request.session.get('locale')
+    if locale and translation.check_for_language(locale):
+        translation.activate(locale)
+    else:
+        locale = getattr(settings, "LANGUAGE_CODE", None)
+    return {"locale": locale}
 
 
 def site_name(request):
