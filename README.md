@@ -1,5 +1,5 @@
 ![Build Status](https://github.com/onaio/tally-ho/actions/workflows/config.yml/badge.svg?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/onaio/tally-ho/badge.svg?branch=master)](https://coveralls.io/github/onaio/tally-ho?branch=master)
+[![codecov](https://codecov.io/github/onaio/tally-ho/branch/master/graph/badge.svg?token=1PR3KIqgr6)](https://codecov.io/github/onaio/tally-ho)
 
 ## Tally-Ho!
 
