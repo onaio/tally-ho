@@ -18,6 +18,7 @@ class TestRaceListView(TestBase):
         view = views.RaceListView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Races List")
         self.assertContains(response, "New Race")

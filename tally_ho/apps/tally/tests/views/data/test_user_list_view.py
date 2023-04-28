@@ -26,6 +26,7 @@ class TestUserListView(TestBase):
         view = views.UserListView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request)
         self.assertContains(response, "Name")
         self.assertContains(response, "Email")

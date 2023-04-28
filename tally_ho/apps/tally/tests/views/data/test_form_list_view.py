@@ -33,6 +33,7 @@ class TestFormListView(TestBase):
         view = views.FormNotReceivedListView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Forms Not Received")
         self.assertNotContains(response, "New Form")
@@ -53,6 +54,7 @@ class TestFormListView(TestBase):
         view = views.FormsForRaceView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, ballot=ballot.number, tally_id=tally.pk)
         self.assertContains(response, "Forms for Race %s" % ballot.number)
         self.assertNotContains(response, "New Form")

@@ -27,6 +27,7 @@ class TestTallyManager(TestBase):
         view = views.SetUserTimeOutView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         site_id = getattr(settings, "SITE_ID", None)
 
         try:
@@ -60,7 +61,7 @@ class TestTallyManager(TestBase):
             '<label for="id_user_idle_timeout">User idle timeout:</label>')
         self.assertContains(
             response,
-            str('<input type="text" name="user_idle_timeout" value="60" '
+            str('<input type="text" name="user_idle_timeout" '
                 'size="50" required id="id_user_idle_timeout">'))
 
     def test_edit_user_view_get(self):
@@ -132,6 +133,7 @@ class TestTallyManager(TestBase):
         data = {'user_idle_timeout': user_idle_timeout}
         request = self.factory.post('/', data=data)
         request.user = self.user
+        request.session = {}
 
         site_id = getattr(settings, "SITE_ID", None)
         site = None

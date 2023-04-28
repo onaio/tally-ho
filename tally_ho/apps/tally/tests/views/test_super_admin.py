@@ -120,6 +120,7 @@ class TestSuperAdmin(TestBase):
         view = views.ResultExportView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Downloads")
 
@@ -129,6 +130,7 @@ class TestSuperAdmin(TestBase):
         view = views.RemoveCenterView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, 'name="center_number"')
         self.assertContains(response, '<form name="remove-center-form"')
@@ -144,6 +146,7 @@ class TestSuperAdmin(TestBase):
         }
         request = self.factory.post('/', data)
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response,
                             'Ensure this value has at least 5 character')
@@ -185,6 +188,7 @@ class TestSuperAdmin(TestBase):
         }
         request = self.factory.post('/', data)
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, u"Results exist for barcodes")
         self.assertContains(response, result_form.barcode)
@@ -195,6 +199,7 @@ class TestSuperAdmin(TestBase):
         view = views.DashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Remove a Center</a>")
 
@@ -204,6 +209,7 @@ class TestSuperAdmin(TestBase):
         view = views.TalliesView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         response.render()
         self.assertIn(tally.name, str(response.content))
@@ -217,6 +223,7 @@ class TestSuperAdmin(TestBase):
         view = views.TalliesView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         request.user.administrated_tallies.set(Tally.objects.all())
         response = view(request, tally_id=tally.pk)
         response.render()
@@ -231,6 +238,7 @@ class TestSuperAdmin(TestBase):
         view = views.RemoveStationView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, 'name="center_number"')
         self.assertContains(response, 'name="station_number"')
@@ -249,6 +257,7 @@ class TestSuperAdmin(TestBase):
         }
         request = self.factory.post('/', data)
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response,
                             'Ensure this value has at least 5 character')
@@ -302,6 +311,7 @@ class TestSuperAdmin(TestBase):
         }
         request = self.factory.post('/', data)
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, u"Results exist for barcodes")
         self.assertContains(response, result_form.barcode)
@@ -312,6 +322,7 @@ class TestSuperAdmin(TestBase):
         view = views.DashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Remove a Station</a>")
 
@@ -321,6 +332,7 @@ class TestSuperAdmin(TestBase):
         view = views.DashboardView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             tally_id=tally.pk)
@@ -392,6 +404,7 @@ class TestSuperAdmin(TestBase):
         view = views.EditStationView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             station_id=station.pk,
@@ -505,6 +518,7 @@ class TestSuperAdmin(TestBase):
         }
         request = self.factory.post('/', data)
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             center_code=center.code,
@@ -616,6 +630,7 @@ class TestSuperAdmin(TestBase):
             response.context_data['form'].errors['document'][0],
             str('File extension (.mp4) is not supported.'
                 ' Allowed extension(s) are: .png, .jpg, .doc, .pdf.'))
+        video.close()
 
     def test_create_race_invalid_document_size_error(self):
         tally = create_tally()
@@ -643,6 +658,7 @@ class TestSuperAdmin(TestBase):
             response.context_data['form'].errors['document'][0],
             str('File size must be under 10.0\xa0MB.'
                 ' Current file size is 20.0\xa0MB.'))
+        image.close()
 
     def test_create_race_view(self):
         tally = create_tally()
@@ -670,6 +686,7 @@ class TestSuperAdmin(TestBase):
         ballot = Ballot.objects.get(document__isnull=False)
         self.assertIn(image_file_name, ballot.document.path)
         shutil.rmtree(os.path.dirname(ballot.document.path))
+        image_file.close()
 
     def test_edit_race_view_get(self):
         tally = create_tally()
@@ -678,6 +695,7 @@ class TestSuperAdmin(TestBase):
         view = views.EditRaceView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             id=ballot.pk,
@@ -724,6 +742,8 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(ballot.available_for_release, True)
         self.assertEqual(ballot.comments.first().text, comment_text)
         shutil.rmtree(os.path.dirname(ballot.document.path))
+        image_file.close()
+        pdf_file.close()
 
     def test_form_duplicates_view_get(self):
         tally = create_tally()
@@ -731,6 +751,7 @@ class TestSuperAdmin(TestBase):
         view = views.FormDuplicatesView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             tally_id=tally.pk)
@@ -749,6 +770,7 @@ class TestSuperAdmin(TestBase):
         view = views.EditResultFormView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             form_id=result_form.pk,
@@ -1011,6 +1033,7 @@ class TestSuperAdmin(TestBase):
         view = views.RemoveResultFormConfirmationView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             form_id=result_form.pk,
@@ -1189,6 +1212,7 @@ class TestSuperAdmin(TestBase):
         view = views.DuplicateResultFormView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             tally_id=tally.pk,

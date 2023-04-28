@@ -23,6 +23,7 @@ class TestProfile(TestBase):
     def test_login_view(self):
         request = self.factory.get('/login')
         request.user = self.user
+        request.session = {}
 
         response = views.login(request)
 

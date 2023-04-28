@@ -41,6 +41,7 @@ class TestOverallVotes(TestBase):
         request = self.factory.get(
             f'/reports/internal/station-overall-votes/{self.tally.pk}')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             tally_id=self.tally.pk,
@@ -55,6 +56,7 @@ class TestOverallVotes(TestBase):
         request = self.factory.get(
             f'/reports/internal/center-overall-votes/{self.tally.pk}')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             tally_id=self.tally.pk,

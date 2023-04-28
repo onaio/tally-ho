@@ -39,6 +39,7 @@ class TestVotesPerCandidateListView(TestBase):
         view = views.VotesPerCandidateListView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request,
                         tally_id=self.tally.pk,
                         station_number=self.station.station_number)
@@ -55,6 +56,7 @@ class TestVotesPerCandidateListView(TestBase):
         view = views.VotesPerCandidateListView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request,
                         tally_id=self.tally.pk,
                         center_code=self.center.code)

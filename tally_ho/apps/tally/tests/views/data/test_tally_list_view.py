@@ -25,6 +25,7 @@ class TestTallyListView(TestBase):
         view = views.TallyListView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request)
         self.assertContains(response, "Tally List")
         self.assertContains(response, "Id")

@@ -24,6 +24,7 @@ class StationProgressListView(TestBase):
         view = views.StationProgressListView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Station Progess Report")
 
