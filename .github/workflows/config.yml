@@ -53,7 +53,10 @@ jobs:
 
       - name: Generate Report
         run: |
-          pip install coverage
+          python3 -m venv venv
+            . venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements/dev.pip
           coverage run --source='tally_ho' --omit='*/tests/*','manage.py','tally_ho/wsgi.py','*/migrations/*','*/venv/*''*/settings/*','*/templates/*' manage.py test --settings=tally_ho.settings.dev
 
       - name: Upload Coverage to Codecov
