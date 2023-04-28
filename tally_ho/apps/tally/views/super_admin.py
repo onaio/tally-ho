@@ -423,6 +423,22 @@ class FormProgressView(LoginRequiredMixin,
             tally_id=tally_id))
 
 
+class FormProgressByFormStateView(LoginRequiredMixin,
+                                  mixins.GroupRequiredMixin,
+                                  mixins.TallyAccessMixin,
+                                  TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/form_progress_by_form_state.html"
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('form-progress-by-form-state-data',
+                               kwargs={'tally_id': tally_id}),
+            tally_id=tally_id))
+
+
 class DuplicateResultTrackingView(LoginRequiredMixin,
                                   mixins.GroupRequiredMixin,
                                   mixins.TallyAccessMixin,
@@ -628,6 +644,33 @@ class FormProgressDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
 
+        qs = qs.filter(tally__id=tally_id)
+        return qs.exclude(form_state=FormState.UNSUBMITTED)
+
+
+class FormProgressByFormStateDataView(LoginRequiredMixin,
+                                      mixins.GroupRequiredMixin,
+                                      mixins.TallyAccessMixin,
+                                      BaseDatatableView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    model = ResultForm
+    columns = (
+        'barcode',
+        'center.code',
+        'station_number',
+        'ballot.number',
+        'center.office.name',
+        'center.office.number',
+        'ballot.race_type',
+        'form_state',
+        'rejected_count',
+        'modified_date_formatted',
+    )
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs['tally_id']
+
+        # import ipdb;ipdb.set_trace()
         qs = qs.filter(tally__id=tally_id)
         return qs.exclude(form_state=FormState.UNSUBMITTED)
 
