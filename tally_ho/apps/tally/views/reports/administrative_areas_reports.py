@@ -26,7 +26,9 @@ from tally_ho.apps.tally.models.all_candidates_votes import AllCandidatesVotes
 from tally_ho.apps.tally.views.super_admin import (
     get_result_form_with_duplicate_results)
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import get_datatables_language_de_from_locale
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale
+)
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState

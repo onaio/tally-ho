@@ -12,7 +12,9 @@ from django.utils import timezone
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.reports.progress import get_office_candidates_ids
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import get_datatables_language_de_from_locale
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale
+)
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.race_type import RaceType
 

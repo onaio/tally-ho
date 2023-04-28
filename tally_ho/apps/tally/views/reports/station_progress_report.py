@@ -9,7 +9,9 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import get_datatables_language_de_from_locale
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale
+)
 from tally_ho.libs.views import mixins
 
 

@@ -80,7 +80,7 @@ class TestDataEntry(TestBase):
                                          tally=tally,
                                          station_number=station_number)
         view = views.CenterDetailsView.as_view()
-        data = {'center_number': '1234', 'center_number': '1234'}
+        data = {'center_number': '1234'}
         session = {'result_form': result_form.pk}
         data.update(session)
         request = self.factory.post('/', data=data)

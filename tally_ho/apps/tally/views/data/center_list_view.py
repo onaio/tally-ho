@@ -15,7 +15,9 @@ from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import get_datatables_language_de_from_locale
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale
+)
 from tally_ho.libs.views import mixins
 
 
@@ -86,6 +88,7 @@ class CenterListView(LoginRequiredMixin,
         sub_constituency_id = kwargs.get('sub_constituency_id')
         format_ = kwargs.get('format')
         language_de = get_datatables_language_de_from_locale(self.request)
+        download_url = '/ajax/download-centers-and-stations-list/'
 
         try:
             region_name = region_id and Region.objects.get(
@@ -142,7 +145,7 @@ class CenterListView(LoginRequiredMixin,
             region_name=region_name,
             constituency_name=constituency_name,
             sub_constituency_code=sub_constituency_code,
-            centers_and_stations_list_download_url='/ajax/download-centers-and-stations-list/',
+            centers_and_stations_list_download_url=download_url,
             languageDE=language_de
         ))
 
@@ -183,5 +186,8 @@ def get_centers_stations_list(request):
         ).order_by('center__code')
 
     return JsonResponse(
-        data={'data': list(centers_stations_list), 'created_at': timezone.now()},
+        data={
+            'data': list(centers_stations_list),
+            'created_at': timezone.now()
+        },
         safe=False)

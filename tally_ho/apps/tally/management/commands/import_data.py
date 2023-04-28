@@ -319,7 +319,7 @@ def process_candidate_row(tally, row, id_to_ballot_order):
             ballot = sub_constituency.ballot_women
 
         # Create ballot incase it's missing in the sub constituency file
-        if ballot == None:
+        if ballot is None:
             ballot, _ = Ballot.objects.get_or_create(
                 number=int(code),
                 race_type=race_type,

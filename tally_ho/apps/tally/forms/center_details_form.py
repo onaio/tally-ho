@@ -80,7 +80,7 @@ class CenterDetailsForm(forms.Form):
                     list(d.values())[0] for d in
                     center.stations.values('station_number')]
 
-                if not int(station_number) in valid_station_numbers:
+                if int(station_number) not in valid_station_numbers:
                     raise forms.ValidationError(_(
                         'Invalid Station Number for this Center'))
 

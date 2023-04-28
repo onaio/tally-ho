@@ -5,7 +5,9 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import get_datatables_language_de_from_locale
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale
+)
 from tally_ho.libs.views import mixins
 
 
