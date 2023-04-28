@@ -44,12 +44,11 @@ jobs:
             . venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements/dev.pip
-          coverage run --source='tally_ho' --omit='*/tests/*','*/__init__.py','manage.py','tally_ho/wsgi.py','*/migrations/*','*/venv/*''*/settings/*','*/templates/*' --data-file=./coverage/reports/coverage.xml manage.py test --settings=tally_ho.settings.dev
-          ls -al ./coverage/reports/
+          coverage run --source='tally_ho' --omit='*/tests/*','*/__init__.py','manage.py','tally_ho/wsgi.py','*/migrations/*','*/venv/*''*/settings/*','*/templates/*' --data-file=./coverage.xml manage.py test --settings=tally_ho.settings.dev
+          ls -al
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./coverage/reports/
           fail_ci_if_error: true
