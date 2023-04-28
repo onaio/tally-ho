@@ -133,8 +133,7 @@ SITE_ID = 1
 
 NOSE_ARGS = [
     '--logging-level=INFO',
-    '--cover-erase',
-    '--cover-html'
+    '--exclude=performance-tests',
 ]
 
 STATICFILES_FINDERS = (
