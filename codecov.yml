@@ -1,0 +1,9 @@
+ignore:
+  - "manage.py"
+  - "tally_ho/wsgi.py"
+  - "**/tests"
+  - "**/__init__.py"
+  - "**/migrations"
+  - "**/venv"
+  - "**/settings"
+  - "**/templates"
