@@ -8,7 +8,7 @@
 .vscode/
 build
 data.tgz
-.coverage.xml
+coverage
 /data
 media
 results
