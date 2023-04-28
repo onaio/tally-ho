@@ -40,7 +40,7 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
-from tally_ho.libs.models.enums.audit_resolution import\
+from tally_ho.libs.models.enums.audit_resolution import \
     AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
@@ -73,10 +73,10 @@ def duplicates(qs, tally_id=None):
     dupes = ResultForm.objects.values(
         'center', 'ballot', 'station_number', 'tally__id').annotate(
         Count('id')).order_by().filter(id__count__gt=1).filter(
-            center__isnull=False,
-            ballot__isnull=False,
-            station_number__isnull=False,
-            tally__id=tally_id,
+        center__isnull=False,
+        ballot__isnull=False,
+        station_number__isnull=False,
+        tally__id=tally_id,
     ).exclude(form_state=FormState.UNSUBMITTED)
 
     pks = flatten([map(lambda x: x['id'], ResultForm.objects.filter(
@@ -123,7 +123,7 @@ def get_results_duplicates(tally_id):
         if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
             complete_barcodes.extend([r.barcode for r in final_forms])
 
-    result_forms = ResultForm.objects\
+    result_forms = ResultForm.objects \
         .select_related().filter(barcode__in=complete_barcodes,
                                  tally__id=tally_id)
 
@@ -179,16 +179,16 @@ def get_result_form_with_duplicate_results(
     result_form_ids = qs.exclude(results=None).values(
         'ballot',
         'results__votes',
-        'results__candidate')\
-        .annotate(ids=ArrayAgg('id'))\
-        .annotate(duplicate_count=Count('id'))\
-        .annotate(ids=Func('ids', function='unnest'))\
+        'results__candidate') \
+        .annotate(ids=ArrayAgg('id')) \
+        .annotate(duplicate_count=Count('id')) \
+        .annotate(ids=Func('ids', function='unnest')) \
         .filter(
-            duplicate_count__gt=1,
-            duplicate_reviewed=False
+        duplicate_count__gt=1,
+        duplicate_reviewed=False
     ).values_list('ids', flat=True).distinct()
 
-    results_form_duplicates =\
+    results_form_duplicates = \
         qs.filter(id__in=result_form_ids).order_by('ballot')
 
     if ballot:
@@ -230,7 +230,7 @@ class DashboardView(LoginRequiredMixin,
         kwargs['data_entry_2_clerk'] = groups.DATA_ENTRY_2_CLERK
         kwargs['corrections_clerk'] = groups.CORRECTIONS_CLERK
         kwargs['quality_control_clerk'] = groups.QUALITY_CONTROL_CLERK
-        kwargs['quality_control_supervisor'] =\
+        kwargs['quality_control_supervisor'] = \
             groups.QUALITY_CONTROL_SUPERVISOR
         kwargs['audit_clerk'] = groups.AUDIT_CLERK
         kwargs['audit_supervisor'] = groups.AUDIT_SUPERVISOR
@@ -297,7 +297,7 @@ class CreateResultFormView(LoginRequiredMixin,
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = ResultForm.objects.get(pk=pk)
 
-        if result_form.center or result_form.station_number\
+        if result_form.center or result_form.station_number \
                 or result_form.ballot or result_form.office:
             # We are writing a form we should not be, bail out.
             del self.request.session['result_form']
@@ -393,7 +393,7 @@ class RemoveResultFormConfirmationView(LoginRequiredMixin,
                     self).post(request, *args, **kwargs)
             except ProtectedError:
                 barcode = self.get_object().barcode
-                request.session['error_message'] =\
+                request.session['error_message'] = \
                     f"Form {barcode} is tied to 1 or more object in the system"
                 return redirect(
                     next_url,
@@ -510,7 +510,7 @@ class DuplicateResultFormView(LoginRequiredMixin,
                 result_form.form_state = FormState.CLEARANCE
                 result_form.save()
 
-                self.success_message =\
+                self.success_message = \
                     _(u"Form successfully sent to clearance")
 
                 messages.add_message(
@@ -898,7 +898,7 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
                                                                       *args,
                                                                       **kwargs)
             except ProtectedError:
-                request.session['error_message'] =\
+                request.session['error_message'] = \
                     str(_(u"This center is tied to 1 or more stations"))
                 return redirect(
                     next_url,
@@ -1266,7 +1266,7 @@ class QuarantineChecksListView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
 
     def get_context_data(self, **kwargs):
-        context =\
+        context = \
             super(QuarantineChecksListView, self).get_context_data(**kwargs)
         context['tally_id'] = self.kwargs.get('tally_id')
 
@@ -1292,7 +1292,7 @@ class QuarantineChecksConfigView(LoginRequiredMixin,
     form_class = QuarantineCheckForm
 
     def get_context_data(self, **kwargs):
-        context =\
+        context = \
             super(QuarantineChecksConfigView, self).get_context_data(**kwargs)
         context['tally_id'] = self.kwargs.get('tally_id')
 
