@@ -1,0 +1,8 @@
+ignore:
+  - "*/tests/*"
+  - "manage.py"
+  - "tally_ho/wsgi.py"
+  - "*/migrations/*"
+  - "*/venv/*"
+  - "*/settings/*"
+  - "*/templates/*"
