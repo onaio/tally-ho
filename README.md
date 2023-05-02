@@ -1,5 +1,6 @@
 ![Build Status](https://github.com/onaio/tally-ho/actions/workflows/config.yml/badge.svg?branch=master)
 [![codecov](https://codecov.io/github/onaio/tally-ho/branch/master/graph/badge.svg?token=1PR3KIqgr6)](https://codecov.io/github/onaio/tally-ho)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/1e817ebba18946fa84cb129cdc914f0b)](https://app.codacy.com/gh/onaio/tally-ho/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 ## Tally-Ho!
 
