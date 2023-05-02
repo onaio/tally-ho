@@ -3,3 +3,4 @@ exclude_paths:
   - "docs/**"
   - "tally_ho/libs/**"
   - "tally_ho/apps/tally/static/**"
+  - "tally_ho/apps/tally/migrations/**"
