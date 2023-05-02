@@ -9,6 +9,7 @@
 build
 data.tgz
 coverage.xml
+results.sarif
 /data
 media
 results
