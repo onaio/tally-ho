@@ -1,4 +1,5 @@
 ![Build Status](https://github.com/onaio/tally-ho/actions/workflows/config.yml/badge.svg?branch=master)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c4edd87ace2d4162bf106cd9a13af197)](https://app.codacy.com/gh/onaio/tally-ho?utm_source=github.com&utm_medium=referral&utm_content=onaio/tally-ho&utm_campaign=Badge_Grade)
 [![Coverage Status](https://coveralls.io/repos/github/onaio/tally-ho/badge.svg?branch=master)](https://coveralls.io/github/onaio/tally-ho?branch=master)
 
 ## Tally-Ho!
