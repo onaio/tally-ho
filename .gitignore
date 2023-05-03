@@ -2,12 +2,14 @@
 *.log
 *.pyc
 .coverage
+.ruff_cache
 .DS_Store
 .idea
 .vscode/
 build
 data.tgz
-covhtml
+coverage.xml
+results.sarif
 /data
 media
 results

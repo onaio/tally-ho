@@ -38,3 +38,5 @@ class TestBallot(TestBase):
         self.assertNotIn(pdf_file_name, ballot.document.path)
         self.assertIn(image_file_name, ballot.document.path)
         shutil.rmtree(os.path.dirname(ballot.document.path))
+        pdf_file.close()
+        image_file.close()

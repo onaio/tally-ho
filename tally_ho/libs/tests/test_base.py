@@ -179,11 +179,12 @@ def create_center(code='1',
                   active=True,
                   sub_constituency=None,
                   constituency=None):
+    region = create_region(tally=tally)
     return Center.objects.get_or_create(
         code=code,
         mahalla='1',
         name='1',
-        office=create_office(office_name),
+        office=create_office(office_name, region=region),
         region='1',
         village='1',
         active=active,
@@ -396,6 +397,7 @@ class TestBase(TestCase):
         # to simulate login, assing user to a request object
         request = RequestFactory().get('/')
         request.user = self.user
+        request.session = {}
         self.request = request
 
     def _create_permission_groups(self):

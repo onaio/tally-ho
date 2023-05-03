@@ -1,3 +1,5 @@
+import os
+import json
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.utils import translation
@@ -32,7 +34,32 @@ def is_tallymanager(request):
 
 
 def locale(request):
-    return {"locale": translation.get_language_from_request(request)}
+    locale = request.session.get('locale') or getattr(
+        settings, "LANGUAGE_CODE", None)
+    if locale and translation.check_for_language(locale):
+        translation.activate(locale)
+    return {"locale": locale}
+
+
+def get_datatables_language_de_from_locale(request):
+    language_de = None
+    try:
+        locale_val = locale(request).get('locale')
+        with open(
+            os.path.join(
+                getattr(settings, "BASE_DIR", None),
+                'apps',
+                'tally',
+                'static',
+                'i18n',
+                '{}.json'.format(locale_val)
+            ),
+            'r'
+        ) as f:
+            language_de = json.load(f)
+    except Exception:
+        pass
+    return language_de
 
 
 def site_name(request):

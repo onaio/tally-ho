@@ -34,6 +34,7 @@ class TestAudit(TestBase):
             tally = create_tally()
         request = self.factory.get('/')
         request.user = AnonymousUser()
+        request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertEqual('/accounts/login/?next=/', response['location'])
@@ -73,6 +74,7 @@ class TestAudit(TestBase):
         tally.users.add(self.user)
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         view = views.DashboardView.as_view()
         response = view(request, tally_id=tally.pk)
 

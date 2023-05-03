@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.tally import Tally
@@ -24,7 +25,8 @@ class TallyForm(forms.ModelForm):
     administrators = forms.ModelMultipleChoiceField(
         queryset=UserProfile.objects.filter(
             groups__name__exact=groups.SUPER_ADMINISTRATOR),
-        widget=forms.CheckboxSelectMultiple())
+        widget=forms.CheckboxSelectMultiple(),
+        label=_('Administrators'),)
 
     def __init__(self, *args, **kwargs):
 

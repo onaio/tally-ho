@@ -63,15 +63,15 @@
 <div class="pagination">
     <span class="step-links">
         {% if ballots.has_previous %}
-            <a href="?page={{ ballots.previous_page_number }}">previous</a>
+            <a href="?page={{ ballots.previous_page_number }}">{% trans 'previous' %}</a>
         {% endif %}
 
         <span class="current">
-            Page {{ ballots.number }} of {{ ballots.paginator.num_pages }}.
+             {% trans 'Page'%}  {{ ballots.number }} {%  trans 'of' %} {{ ballots.paginator.num_pages }}
         </span>
 
         {% if ballots.has_next %}
-            <a href="?page={{ ballots.next_page_number }}">next</a>
+            <a href="?page={{ ballots.next_page_number }}">{% trans 'next' %}</a>
         {% endif %}
     </span>
 </div>

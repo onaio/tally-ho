@@ -75,7 +75,7 @@ DATABASES = {
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
@@ -133,8 +133,7 @@ SITE_ID = 1
 
 NOSE_ARGS = [
     '--logging-level=INFO',
-    '--cover-erase',
-    '--cover-html'
+    '--exclude=performance-tests',
 ]
 
 STATICFILES_FINDERS = (

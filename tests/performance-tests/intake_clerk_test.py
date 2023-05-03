@@ -1,5 +1,5 @@
 from locust import HttpUser, TaskSet, task
-from intake_barcodes import *
+from intake_barcodes import INTAKE_CODES
 import time
 
 
@@ -30,7 +30,8 @@ class UserLogin(TaskSet):
     @task(5)
     def enter_barcode(self):
         response = self.client.get(
-            '/intake/center-details/{}/'.format(self.tally_id), name="Get Enter Barcode CSRF")
+            '/intake/center-details/{}/'.format(self.tally_id),
+            name="Get Enter Barcode CSRF")
         csrftoken = response.cookies['csrftoken']
         self.client.post("/intake/center-details/{}/".format(self.tally_id),
                          {'barcode': self.barcode,
@@ -38,15 +39,23 @@ class UserLogin(TaskSet):
                           'barcode_copy': self.barcode_copy,
                           'barcode_scan': '',
                           'submit': '',
-                          'tally_id': self.tally_id, 'csrfmiddlewaretoken': csrftoken}) 
-        response = self.client.get(
-            '/intake/check-center-details/{}/'.format(self.tally_id), name="Get Form State CSRF")
-        csrftoken = response.cookies['csrftoken']
-        self.client.post("/intake/check-center-details/{}/".format(self.tally_id),
-                         {'result_form': self.result_form_id, 'is_match': 'true', 'match_submit': '',
+                          'tally_id': self.tally_id,
                           'csrfmiddlewaretoken': csrftoken})
         response = self.client.get(
-            '/intake/printcover/{}/'.format(self.tally_id), name="Get Intaken CSRF")
+            '/intake/check-center-details/{}/'.format(self.tally_id),
+            name="Get Form State CSRF")
+        csrftoken = response.cookies['csrftoken']
+        self.client.post("/intake/check-center-details/{}/".format(
+            self.tally_id),
+                         {
+                            'result_form': self.result_form_id,
+                            'is_match': 'true',
+                            'match_submit': '',
+                            'csrfmiddlewaretoken': csrftoken
+                        })
+        response = self.client.get(
+            '/intake/printcover/{}/'.format(self.tally_id),
+            name="Get Intaken CSRF")
         csrftoken = response.cookies['csrftoken']
         self.client.post("/intake/printcover/{}/".format(self.tally_id),
                          {'csrfmiddlewaretoken': csrftoken,

@@ -31,29 +31,7 @@
     const serverSide = '{{ server_side }}' ? $.parseJSON('{{ server_side }}'.toLowerCase()) : true;
     const LIST_JSON_URL = '{{ remote_url }}';
     // translations for datatables
-    const dt_language = {
-        "emptyTable":     "{% trans "No data available in table" %}",
-        "info":           "{% trans "Showing _START_ to _END_ of _TOTAL_ entries" %}",
-        "infoEmpty":      "{% trans "Showing 0 to 0 of 0 entries" %}",
-        "infoFiltered":   "{% trans "(filtered from _MAX_ total entries)" %}",
-        "infoPostFix":    "",
-        "thousands":      ",",
-        "lengthMenu":     "{% trans "Show _MENU_ entries" %}",
-        "loadingRecords": "{% trans "Loading..." %}",
-        "processing":     "{% trans "Processing..." %}",
-        "search":         "{% trans "Search:" %}",
-        "zeroRecords":    "{% trans "No matching records found" %}",
-        "paginate": {
-            "first":      "{% trans "First" %}",
-            "last":       "{% trans "Last" %}",
-            "next":       "{% trans "Next" %}",
-            "previous":   "{% trans "Previous" %}"
-        },
-        "aria": {
-            "sortAscending":  "{% trans ": activate to sort column ascending" %}",
-            "sortDescending": "{% trans ": activate to sort column descending" %}"
-        }
-    }
+    const dt_language = {{ languageDE|safe }};;
 
     function getCookie(name) {
         let cookieValue = null;

@@ -45,6 +45,7 @@ class TestClearance(TestBase):
             tally = create_tally()
         tally.users.add(self.user)
         request.user = self.user
+        request.session = {}
         with self.assertRaises(PermissionDenied):
             view(request, tally_id=tally.pk)
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
@@ -74,6 +75,7 @@ class TestClearance(TestBase):
 
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         view = views.DashboardView.as_view()
         response = view(request, tally_id=tally.pk)
 
@@ -605,13 +607,13 @@ class TestClearance(TestBase):
             'ballot': [ballot.pk],
             'center': [center.pk],
             'office': [office.pk],
-            'tally_id': tally.id,
+            'tally': tally.id,
             'station_number': station.station_number,
         }
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}
-        response = view(request, tally_id=tally.pk)
+        response = view(request, tally_id=tally.id)
         result_form.reload()
 
         self.assertEqual(response.status_code, 200)

@@ -16,6 +16,9 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale
+)
 from tally_ho.libs.views import mixins
 
 
@@ -103,6 +106,8 @@ class FormListView(LoginRequiredMixin,
         form_state = kwargs.get('state')
         tally_id = kwargs.get('tally_id')
         error = self.request.session.get('error_message')
+        language_de = get_datatables_language_de_from_locale(self.request)
+        download_url = '/ajax/download-result-forms/'
 
         if error:
             del self.request.session['error_message']
@@ -131,7 +136,8 @@ class FormListView(LoginRequiredMixin,
                                   tally_id=tally_id,
                                   error_message=_(error) if error else None,
                                   show_create_form_button=True,
-                                  result_forms_download_url='/ajax/download-result-forms/'))
+                                  result_forms_download_url=download_url,
+                                  languageDE=language_de))
 
 
 class FormNotReceivedListView(FormListView):
@@ -140,6 +146,7 @@ class FormNotReceivedListView(FormListView):
     def get(self, *args, **kwargs):
         format_ = kwargs.get('format')
         tally_id = kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         if format_ == 'csv':
             form_list = ResultForm.forms_in_state(FormState.UNSUBMITTED,
@@ -152,7 +159,8 @@ class FormNotReceivedListView(FormListView):
                                   remote_url=reverse(
                                       'form-not-received-data',
                                       kwargs={'tally_id': tally_id}),
-                                  tally_id=tally_id))
+                                  tally_id=tally_id,
+                                  languageDE=language_de))
 
 
 class FormNotReceivedDataView(FormListDataView):
@@ -179,13 +187,15 @@ class FormsForRaceView(FormListView):
     def get(self, *args, **kwargs):
         ballot = kwargs.get('ballot')
         tally_id = kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             header_text=_('Forms for Race %s' % ballot),
             none=True,
             tally_id=tally_id,
             remote_url=reverse('forms-for-race-data',
-                               args=[tally_id, ballot])))
+                               args=[tally_id, ballot]),
+            languageDE=language_de))
 
 
 def get_result_forms(request):

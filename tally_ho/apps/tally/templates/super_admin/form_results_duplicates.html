@@ -41,17 +41,19 @@
 <div class="pagination">
     <span class="step-links">
         {% if forms.has_previous %}
-            <a href="?page={{ forms.previous_page_number }}">previous</a>
+            <a href="?page={{ forms.previous_page_number }}">{% trans 'previous' %}</a>
         {% endif %}
 
         {% if forms %}
         <span class="current">
-            Page {{ forms.number }} of {{ forms.paginator.num_pages }}.
+            {% blocktrans with number=forms.number  num_pages=forms.paginator.num_pages %}
+            Page {{ number }} of {{num_pages}}.
+            {% endblocktrans %}
         </span>
         {% endif %}
 
         {% if forms.has_next %}
-            <a href="?page={{ forms.next_page_number }}">next</a>
+            <a href="?page={{ forms.next_page_number }}">{% trans 'next' %}</a>
         {% endif %}
     </span>
 </div>

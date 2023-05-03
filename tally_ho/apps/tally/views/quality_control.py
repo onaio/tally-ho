@@ -156,7 +156,8 @@ class QualityControlDashboardView(LoginRequiredMixin,
         results_component = results_for_race(result_form, None)
         results_general = results_for_race(result_form, RaceType.GENERAL)
         results_women = results_for_race(result_form, RaceType.WOMEN)
-        results_presidential = results_for_race(result_form, RaceType.PRESIDENTIAL)
+        results_presidential =\
+            results_for_race(result_form, RaceType.PRESIDENTIAL)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,

@@ -12,6 +12,9 @@ from django.utils import timezone
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.reports.progress import get_office_candidates_ids
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale
+)
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.race_type import RaceType
 
@@ -72,6 +75,7 @@ class CandidateListView(LoginRequiredMixin,
         office_id = self.kwargs.get('office_id')
         reverse_url = 'candidate-list-data'
         report_title = _('Candidate List')
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         if office_id:
             reverse_url = 'candidate-list-data-per-office'
@@ -83,7 +87,8 @@ class CandidateListView(LoginRequiredMixin,
                 kwargs=kwargs),
             tally_id=tally_id,
             report_title=report_title,
-            candidates_list_download_url='/ajax/download-candidates-list/'))
+            candidates_list_download_url='/ajax/download-candidates-list/',
+            languageDE=language_de))
 
 
 def get_candidates_list(request):

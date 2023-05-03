@@ -30,6 +30,7 @@ class TallyFilesFormTest(TestCase):
             str('File extension (.jpg) is not supported.'
                 ' Allowed extension(s) are: .csv.'),
             form.errors['subconst_file'])
+        self.image_file.close()
 
     def test_correct_file_extension(self):
         file_dict = {
@@ -42,3 +43,4 @@ class TallyFilesFormTest(TestCase):
         }
         form = TallyFilesForm(data=self.data_dict, files=file_dict)
         self.assertTrue(form.is_valid())
+        self.csv_file.close()

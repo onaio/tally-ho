@@ -17,6 +17,7 @@ class RestrictedFileFieldTest(SimpleTestCase):
             str('File extension (.mp4) is not supported.'
                 ' Allowed extension(s) are: .png, .jpg, .doc, .pdf.')
         with self.assertRaisesMessage(ValidationError, file_extension_error):
+            video.close()
             f.clean(video)
 
     def test_file_size_error(self):

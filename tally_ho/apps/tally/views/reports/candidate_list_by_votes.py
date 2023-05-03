@@ -12,6 +12,9 @@ from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale
+)
 from tally_ho.libs.views import mixins
 
 
@@ -75,6 +78,7 @@ class CandidateVotesListView(LoginRequiredMixin,
     template_name = "reports/candidate_list_by_votes.html"
 
     def get(self, request, *args, **kwargs):
+        language_de = get_datatables_language_de_from_locale(self.request)
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
@@ -112,4 +116,5 @@ class CandidateVotesListView(LoginRequiredMixin,
             constituency_name=constituency_name,
             sub_constituency_code=sub_constituency_code,
             export_file_name='candidates-list-by-votes',
-            ballot_report=ballot_report))
+            ballot_report=ballot_report,
+            languageDE=language_de,))

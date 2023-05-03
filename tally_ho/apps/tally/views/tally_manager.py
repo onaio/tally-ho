@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.translation import ngettext
 from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -160,48 +161,60 @@ def import_rows_batch(tally,
             if line == 0 and check_file_column_names:
                 if file_to_parse_name == subconst_file_name and\
                         row != settings.SUB_CONSTITUENCY_COLUMN_NAMES:
-                    missing_columns = list(set(settings.SUB_CONSTITUENCY_COLUMN_NAMES) - set(row))
-                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
+                    missing_columns = list(
+                        set(settings.SUB_CONSTITUENCY_COLUMN_NAMES) - set(row))
                     delete_all_tally_objects(tally)
-                    error_message =\
-                        _(u'Column {} {} missing in the sub constituency file'.format(
-                            ', '.join(missing_columns), prefix_noun,))
+                    error_message = ngettext(
+                        'Column %(cols)s is missing' +\
+                        ' in the sub constituency file',
+                        'Columns %(cols)s are missing' +\
+                        ' in the sub constituency file',
+                        len(missing_columns)
+                    ) % {"cols": ', '.join(missing_columns),}
                     return elements_processed, error_message
                 elif file_to_parse_name == centers_file_name and\
                         row != settings.CENTER_COLUMN_NAMES:
-                    missing_columns = list(set(settings.CENTER_COLUMN_NAMES) - set(row))
-                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
+                    missing_columns = list(
+                        set(settings.CENTER_COLUMN_NAMES) - set(row))
                     delete_all_tally_objects(tally)
-                    error_message =\
-                        _(u'Column {} {} missing in the centers file'.format(
-                            ', '.join(missing_columns), prefix_noun,))
+                    error_message = ngettext(
+                        'Column %(cols)s is missing in the centers file',
+                        'Columns %(cols)s are missing in the centers file',
+                        len(missing_columns)
+                    ) % {"cols": ', '.join(missing_columns),}
                     return elements_processed, error_message
                 elif file_to_parse_name == stations_file_name and\
                         row != settings.STATION_COLUMN_NAMES:
-                    missing_columns = list(set(settings.STATION_COLUMN_NAMES) - set(row))
-                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
+                    missing_columns = list(
+                        set(settings.STATION_COLUMN_NAMES) - set(row))
                     delete_all_tally_objects(tally)
-                    error_message =\
-                        _(u'Column {} {} missing in the stations file'.format(
-                            ', '.join(missing_columns), prefix_noun,))
+                    error_message = ngettext(
+                        'Column %(cols)s is missing in the stations file',
+                        'Columns %(cols)s are missing in the stations file',
+                        len(missing_columns)
+                    ) % {"cols": ', '.join(missing_columns),}
                     return elements_processed, error_message
                 elif file_to_parse_name == candidates_file_name and\
                         row != settings.CANDIDATE_COLUMN_NAMES:
-                    missing_columns = list(set(settings.CANDIDATE_COLUMN_NAMES) - set(row))
-                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
+                    missing_columns = list(
+                        set(settings.CANDIDATE_COLUMN_NAMES) - set(row))
                     delete_all_tally_objects(tally)
-                    error_message =\
-                        _(u'Column {} {} missing in the candidates file'.format(
-                            ', '.join(missing_columns), prefix_noun,))
+                    error_message = ngettext(
+                        'Column %(cols)s is missing in the candidates file',
+                        'Columns %(cols)s are missing in the candidates file',
+                        len(missing_columns)
+                    ) % {"cols": ', '.join(missing_columns),}
                     return elements_processed, error_message
                 elif file_to_parse_name == result_forms_file_name and\
                         row != settings.RESULT_FORM_COLUMN_NAMES:
-                    missing_columns = list(set(settings.RESULT_FORM_COLUMN_NAMES) - set(row))
-                    prefix_noun = 'is' if len(missing_columns) == 1 else 'are'
+                    missing_columns = list(
+                        set(settings.RESULT_FORM_COLUMN_NAMES) - set(row))
                     delete_all_tally_objects(tally)
-                    error_message =\
-                        _(u'Column {} {} missing in the result form file'.format(
-                            ', '.join(missing_columns), prefix_noun))
+                    error_message = ngettext(
+                        'Column %(cols)s is missing in the result form file',
+                        'Columns %(cols)s are missing in the result form file',
+                        len(missing_columns)
+                    ) % {"cols": ', '.join(missing_columns),}
                     return elements_processed, error_message
                 else:
                     check_file_column_names = False

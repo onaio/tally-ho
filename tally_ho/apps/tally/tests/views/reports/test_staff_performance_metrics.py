@@ -44,6 +44,7 @@ class TestStaffPerformanceMetrics(TestBase):
         view = staff_performance_metrics.StaffPerformanceMetricsView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             tally_id=tally.pk,
@@ -71,6 +72,7 @@ class TestStaffPerformanceMetrics(TestBase):
         view = staff_performance_metrics.StaffPerformanceMetricsView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(
             request,
             tally_id=tally.pk,
@@ -116,6 +118,7 @@ class TestStaffPerformanceMetrics(TestBase):
         view = staff_performance_metrics.SupervisorsApprovalsView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk,)
 
         self.assertContains(
@@ -145,6 +148,7 @@ class TestStaffPerformanceMetrics(TestBase):
         view = staff_performance_metrics.SupervisorsApprovalsView.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk,)
         number_of_tables = 3
 
@@ -215,6 +219,7 @@ class TestStaffPerformanceMetrics(TestBase):
         view = staff_performance_metrics.TrackCorrections.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk,)
 
         self.assertContains(
@@ -245,6 +250,7 @@ class TestStaffPerformanceMetrics(TestBase):
         view = staff_performance_metrics.TrackCorrections.as_view()
         request = self.factory.get('/')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk,)
 
         self.assertContains(

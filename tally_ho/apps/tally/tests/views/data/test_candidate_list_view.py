@@ -25,6 +25,7 @@ class TestCandidateListView(TestBase):
         view = views.CandidateListView.as_view()
         request = self.factory.get('/candidate-list')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk)
 
         self.assertEquals(response.status_code, 200)
@@ -40,6 +41,7 @@ class TestCandidateListView(TestBase):
         view = views.CandidateListView.as_view()
         request = self.factory.get('/candidate-list-per-office')
         request.user = self.user
+        request.session = {}
         response = view(request, tally_id=tally.pk, office_id=office.id)
 
         self.assertEquals(response.status_code, 200)
@@ -65,13 +67,14 @@ class TestCandidateListView(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk)
 
-        candidate_id, candidate_full_name, order, ballot_number,\
+        candidate_id, candidate_full_name, active, order, ballot_number,\
             race_type, modified_date_formatted, action_btn = json.loads(
                 response.content.decode())['data'][0]
 
         self.assertEquals(candidate_id, str(candidate.candidate_id))
         self.assertEquals(candidate_full_name,
                           str(candidate.full_name))
+        self.assertEquals(active, str(candidate.active))
         self.assertEquals(order, str(candidate.order))
         self.assertEquals(ballot_number, str(candidate.ballot.number))
         self.assertEquals(race_type, str(candidate.race_type.name))
@@ -105,14 +108,14 @@ class TestCandidateListView(TestBase):
         request = self.factory.get('/candidate-list-data-per-office')
         request.user = self.user
         response = view(request, tally_id=tally.pk, office_id=office.pk)
-
-        candidate_id, candidate_full_name, order, ballot_number,\
+        candidate_id, candidate_full_name, active, order, ballot_number,\
             race_type, modified_date_formatted, action_btn = json.loads(
                 response.content.decode())['data'][0]
 
         self.assertEquals(candidate_id, str(candidate.candidate_id))
         self.assertEquals(candidate_full_name,
                           str(candidate.full_name))
+        self.assertEquals(active, str(candidate.active))
         self.assertEquals(order, str(candidate.order))
         self.assertEquals(ballot_number, str(candidate.ballot.number))
         self.assertEquals(race_type, str(candidate.race_type.name))

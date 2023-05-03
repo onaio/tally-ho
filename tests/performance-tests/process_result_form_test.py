@@ -1,5 +1,5 @@
 from locust import HttpUser, TaskSet, task
-from data import *
+from data import RESULT_FORMS_DATA, RESULTS
 import time
 
 
@@ -34,7 +34,8 @@ class UserLogin(TaskSet):
     def process_result_form(self):
         # Fill barcode
         response = self.client.get(
-            '/intake/center-details/{}/'.format(self.tally_id), name="Get Enter Barcode page CSRF")
+            '/intake/center-details/{}/'.format(self.tally_id),
+            name="Get Enter Barcode page CSRF")
         csrftoken = response.cookies['csrftoken']
         self.client.post("/intake/center-details/{}/".format(self.tally_id),
                          {'barcode': self.barcode,
@@ -42,17 +43,26 @@ class UserLogin(TaskSet):
                           'barcode_copy': self.barcode_copy,
                           'barcode_scan': '',
                           'submit': '',
-                          'tally_id': self.tally_id, 'csrfmiddlewaretoken': csrftoken})
+                          'tally_id': self.tally_id,
+                          'csrfmiddlewaretoken': csrftoken
+                          })
         # Confirm Center and Station Details
         response = self.client.get(
-            '/intake/check-center-details/{}/'.format(self.tally_id), name="Get check center and station details page CSRF")
+            '/intake/check-center-details/{}/'.format(self.tally_id),
+            name="Get check center and station details page CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/intake/check-center-details/{}/".format(self.tally_id),
-                         {'result_form': self.result_form_id, 'is_match': 'true', 'match_submit': '',
-                          'csrfmiddlewaretoken': csrftoken})
+        self.client.post("/intake/check-center-details/{}/".format(
+            self.tally_id),
+                         {
+                            'result_form': self.result_form_id,
+                            'is_match': 'true',
+                            'match_submit': '',
+                            'csrfmiddlewaretoken': csrftoken
+                        })
         # Print cover
         response = self.client.get(
-            '/intake/printcover/{}/'.format(self.tally_id), name="Get CSRF for Print Cover Letter page")
+            '/intake/printcover/{}/'.format(self.tally_id),
+            name="Get CSRF for Print Cover Letter page")
         csrftoken = response.cookies['csrftoken']
         self.client.post("/intake/printcover/{}/".format(self.tally_id),
                          {'csrfmiddlewaretoken': csrftoken,
@@ -61,7 +71,7 @@ class UserLogin(TaskSet):
         # Logout User
         self.client.get("/accounts/logout", name="Logout Intake Clerk")
         time.sleep(20)
-        
+
         # Login data entry 1 clerk
         response = self.client.get(
             '/accounts/login/', name="Get login page CSRF")
@@ -74,7 +84,8 @@ class UserLogin(TaskSet):
                           'next': '/'})
         # Fill barcode
         response = self.client.get(
-            '/data-entry/{}/'.format(self.tally_id), name="Get Enter Barcode page CSRF")
+            '/data-entry/{}/'.format(self.tally_id),
+            name="Get Enter Barcode page CSRF")
         csrftoken = response.cookies['csrftoken']
         self.client.post("/data-entry/{}/".format(self.tally_id),
                          {'barcode': self.barcode,
@@ -89,7 +100,8 @@ class UserLogin(TaskSet):
             '/data-entry/enter-center-details/{}/'.format(self.tally_id),
             name="Get Center and Station details page CSRF")
         csrf_token = response.cookies['csrftoken']
-        self.client.post("/data-entry/enter-center-details/{}/".format(self.tally_id),
+        self.client.post("/data-entry/enter-center-details/{}/".format(
+            self.tally_id),
                          {'result_form': self.result_form_id,
                           'center_number': self.center_code,
                           'center_number_placeholder': self.place_holder,
@@ -112,8 +124,7 @@ class UserLogin(TaskSet):
         # Logout User
         self.client.get("/accounts/logout", name="Logout Data Entry 1 Clerk")
         time.sleep(20)
-        
-        
+
         # Login data entry 2 clerk
         response = self.client.get(
             '/accounts/login/', name="Get login page CSRF")
@@ -126,7 +137,8 @@ class UserLogin(TaskSet):
                           'next': '/'})
         # Fill barcode
         response = self.client.get(
-            '/data-entry/{}/'.format(self.tally_id), name="Get Enter Barcode page CSRF")
+            '/data-entry/{}/'.format(self.tally_id),
+            name="Get Enter Barcode page CSRF")
         csrftoken = response.cookies['csrftoken']
         self.client.post("/data-entry/{}/".format(self.tally_id),
                          {'barcode': self.barcode,
@@ -141,7 +153,8 @@ class UserLogin(TaskSet):
             '/data-entry/enter-center-details/{}/'.format(self.tally_id),
             name="Get Center and Station details page CSRF")
         csrf_token = response.cookies['csrftoken']
-        self.client.post("/data-entry/enter-center-details/{}/".format(self.tally_id),
+        self.client.post("/data-entry/enter-center-details/{}/".format(
+            self.tally_id),
                          {'result_form': self.result_form_id,
                           'center_number': self.center_code,
                           'center_number_placeholder': self.place_holder,
@@ -164,7 +177,7 @@ class UserLogin(TaskSet):
         # Logout User
         self.client.get("/accounts/logout", name="Logout Data Entry 2 Clerk")
         time.sleep(10)
-        
+
         # Login corrections clerk
         response = self.client.get(
             '/accounts/login/', name="Get login page CSRF")
@@ -200,7 +213,7 @@ class UserLogin(TaskSet):
         # Logout User
         self.client.get("/accounts/logout", name="Logout Corrections Clerk")
         time.sleep(20)
-        
+
         # Login quality control clerk
         response = self.client.get(
             '/accounts/login/', name="Get login page CSRF")
@@ -229,7 +242,8 @@ class UserLogin(TaskSet):
             '/quality-control/dashboard/{}/'.format(self.tally_id),
             name="Get Reconciliation Page")
         csrf_token = response.cookies['csrftoken']
-        self.client.post("/quality-control/dashboard/{}/".format(self.tally_id),
+        self.client.post("/quality-control/dashboard/{}/".format(
+            self.tally_id),
                          {'result_form': self.result_form_id,
                           'correct': '',
                           'csrfmiddlewaretoken': csrf_token})

@@ -7,6 +7,9 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale
+)
 from tally_ho.libs.views import mixins
 
 
@@ -72,11 +75,13 @@ class UserListView(LoginRequiredMixin,
         # check cache
         role = kwargs.get('role', 'user')
         is_admin = role == 'admin'
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             role=role,
             is_admin=is_admin,
-            remote_url=reverse('user-list-data', kwargs={'role': role})))
+            remote_url=reverse('user-list-data', kwargs={'role': role}),
+            languageDE=language_de))
 
 
 class UserTallyListView(LoginRequiredMixin,
@@ -90,13 +95,15 @@ class UserTallyListView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         is_admin = False
         role = 'user'
+        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             role=role,
             is_admin=is_admin,
             remote_url=reverse('user-tally-list-data',
                                kwargs={'tally_id': tally_id, 'role': role}),
-            tally_id=tally_id))
+            tally_id=tally_id,
+            languageDE=language_de))
 
 
 class UserTallyListDataView(UserListDataView):

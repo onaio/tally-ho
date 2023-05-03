@@ -56,7 +56,7 @@ class RemoveStationForm(forms.Form):
                 stations = center.stations.all()
                 valid_station_numbers = [s.station_number for s in stations]
 
-                if not int(station_number) in valid_station_numbers:
+                if int(station_number) not in valid_station_numbers:
                     raise forms.ValidationError(_(
                         'Invalid Station Number for this Center'))
             except Center.DoesNotExist:

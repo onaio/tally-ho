@@ -15,6 +15,7 @@ body {
 .large input[type=text], select{
 	border:1px solid #222222!important;
 	min-width:20em;
+	max-width: 20em;
 }
 
 table.mid tr td{
