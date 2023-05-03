@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-03 07:14+0000\n"
+"POT-Creation-Date: 2023-05-03 07:49+0000\n"
 "PO-Revision-Date: 2014-02-21 16:33+0000\n"
 "Last-Translator: MonaHago <missahmed230@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -31,7 +31,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"Plural-Forms: nplurals=2; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
 #: tally_ho/apps/tally/forms/barcode_form.py:24
@@ -3294,24 +3294,51 @@ msgstr "نقل استمارة ناجحة الى "
 msgid "Candidate successfully disabled."
 msgstr "نقل استمارة ناجحة الى "
 
-#: tally_ho/apps/tally/views/tally_manager.py:149
+#: tally_ho/apps/tally/views/tally_manager.py:150
 msgid "Invalid ballot order file"
 msgstr "ملف طلب الاقتراع غير صحيح"
 
-#: tally_ho/apps/tally/views/tally_manager.py:180
-msgid "Column {} {} missing in the centers file"
-msgstr ""
+#: tally_ho/apps/tally/views/tally_manager.py:168
+#, python-format
+msgid "Column %(cols)s is missing in the sub constituency file"
+msgid_plural "Columns %(cols)s are missing in the sub constituency file"
+msgstr[0] "مفقود في ملف الدائرة الفرعية %(cols)s عمود"
+msgstr[1] "مفقودة في ملف الدائرة الفرعية %(cols)s الأعمدة"
 
-#: tally_ho/apps/tally/views/tally_manager.py:190
-msgid "Column {} {} missing in the stations file"
-msgstr ""
+#: tally_ho/apps/tally/views/tally_manager.py:181
+#, python-format
+msgid "Column %(cols)s is missing in the centers file"
+msgid_plural "Columns %(cols)s are missing in the centers file"
+msgstr[0] "مفقود في ملف المراكز %(cols)s عمود"
+msgstr[1] "مفقودة في ملف المراكز %(cols)s الأعمدة"
 
-#: tally_ho/apps/tally/views/tally_manager.py:227
-#: tally_ho/apps/tally/views/tally_manager.py:235
+#: tally_ho/apps/tally/views/tally_manager.py:192
+#, python-format
+msgid "Column %(cols)s is missing in the stations file"
+msgid_plural "Columns %(cols)s are missing in the stations file"
+msgstr[0] "مفقود في ملف المحطات %(cols)s عمود"
+msgstr[1] "مفقودة في ملف المحطات %(cols)s الأعمدة"
+
+#: tally_ho/apps/tally/views/tally_manager.py:203
+#, python-format
+msgid "Column %(cols)s is missing in the candidates file"
+msgid_plural "Columns %(cols)s are missing in the candidates file"
+msgstr[0] "مفقود في ملف المرشحين %(cols)s عمود"
+msgstr[1] "مفقودة في ملف المرشحين %(cols)s الأعمدة"
+
+#: tally_ho/apps/tally/views/tally_manager.py:214
+#, python-format
+msgid "Column %(cols)s is missing in the result form file"
+msgid_plural "Columns %(cols)s are missing in the result form file"
+msgstr[0] "مفقود في ملف نموذج النتيجة %(cols)s عمود"
+msgstr[1] "مفقودة في ملف نموذج النتيجة %(cols)s الأعمدة"
+
+#: tally_ho/apps/tally/views/tally_manager.py:231
+#: tally_ho/apps/tally/views/tally_manager.py:239
 msgid "{}"
 msgstr ""
 
-#: tally_ho/apps/tally/views/tally_manager.py:653
+#: tally_ho/apps/tally/views/tally_manager.py:657
 #, python-format
 msgid "Successfully set user timeout to %(user_idle_timeout)s minutes"
 msgstr ""
