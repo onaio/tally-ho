@@ -3,7 +3,7 @@ from collections import defaultdict
 from django.db.models.deletion import ProtectedError
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count, Func
+from django.db.models import Count, Func, Q, F
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.views.generic import FormView, TemplateView
@@ -655,24 +655,44 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
     columns = (
-        'barcode',
-        'center.code',
-        'station_number',
-        'ballot.number',
-        'center.office.name',
-        'center.office.number',
-        'ballot.race_type',
-        'form_state',
-        'rejected_count',
-        'modified_date_formatted',
+        'race_type',
+        'total_forms',
+        'unsubmitted',
+        'intake',
+        'data_entry_1',
+        'data_entry_2',
+        'correction',
+        'quality_control',
+        'archived',
+        'clearance',
+        'audit'
     )
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
+        count_by_form_state_queries = {}
+        for state in FormState:
+            if isinstance(state.value, int):
+                count_by_form_state_queries[state.name.lower()] = Count('barcode', filter=Q(form_state=state))
 
-        # import ipdb;ipdb.set_trace()
-        qs = qs.filter(tally__id=tally_id)
-        return qs.exclude(form_state=FormState.UNSUBMITTED)
+        qs = qs.filter(
+            tally__id=tally_id).annotate(
+            race_type=F("ballot__race_type__name")).values('race_type').annotate(
+            total_forms=Count("race_type"),
+            **count_by_form_state_queries)
+        return qs
+
+    def render_column(self, row, column):
+        if column in self.columns:
+            column_val = row[column]
+            if column == 'race_type':
+                column_val = row[column].name
+            return str('<td class="center">'
+                       f'{column_val}</td>')
+
+        else:
+            return super(
+                FormProgressByFormStateDataView, self).render_column(row, column)
 
 
 class FormAuditDataView(FormProgressDataView):
