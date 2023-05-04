@@ -699,7 +699,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                 processed_count = row[processed_col]
                 unprocessed_count = row[unprocessed_col]
                 # import ipdb; ipdb.set_trace()
-                race_type = row["race_type"].name
+                race_type = row["race_type"].name.lower()
                 # what should form state search param value be.
                 params = {race_type_query_param: race_type, form_state_query_param: column[0]}
                 query_param_string = urlencode(params)
