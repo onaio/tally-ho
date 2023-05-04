@@ -28,3 +28,9 @@ class FormState(Enum):
         QUALITY_CONTROL: (CORRECTION,),
         UNSUBMITTED: (CLEARANCE, INTAKE),
     }
+
+
+# form state changes for happy path
+form_state_shift_path = (
+    FormState.UNSUBMITTED, FormState.INTAKE, FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2, FormState.CORRECTION,
+    FormState.QUALITY_CONTROL, FormState.ARCHIVING, FormState.ARCHIVED)
