@@ -302,6 +302,39 @@ QUARANTINE_DATA = [
      'percentage': 20},
 ]
 
+ELECTROL_RACES = [
+    {
+        'type': 'GENERAL',
+        'code': 0,
+        'ballot_name': 'Ballot Number - General'
+    },
+    {
+        'type': 'WOMEN',
+        'code': 1,
+        'ballot_name': 'Ballot Number - Women'
+    },
+    {
+        'type': 'COMPONENT_AMAZIGH',
+        'code': 2,
+        'ballot_name': 'Component Ballot'
+    },
+    {
+        'type': 'COMPONENT_TWARAG',
+        'code': 3,
+        'ballot_name': 'Component Ballot'
+    },
+    {
+        'type': 'COMPONENT_TEBU',
+        'code': 4,
+        'ballot_name': 'Component Ballot'
+    },
+    {
+        'type': 'PRESIDENTIAL',
+        'code': 5,
+        'ballot_name': 'Ballot Number – Presidential'
+    },
+]
+
 SUB_CONSTITUENCY_COLUMN_NAMES = ['SubCon #', 'Field Office', 'Races',
                                  'Ballot Number – Presidential',
                                  'Ballot Number - General',
