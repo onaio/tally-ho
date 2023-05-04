@@ -1,4 +1,5 @@
 from collections import defaultdict
+from urllib.parse import urlencode
 
 from django.db.models.deletion import ProtectedError
 from django.core.exceptions import SuspiciousOperation
@@ -40,9 +41,10 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.apps.tally.views.constants import race_type_query_param, form_state_query_param
 from tally_ho.libs.models.enums.audit_resolution import \
     AuditResolution
-from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.form_state import FormState, form_state_shift_path
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.active_status import (
@@ -657,13 +659,13 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     columns = (
         'race_type',
         'total_forms',
-        'unsubmitted',
-        'intake',
-        'data_entry_1',
-        'data_entry_2',
-        'correction',
-        'quality_control',
-        'archived',
+        ('unsubmitted', 'unsubmitted_unprocessed'),
+        ('intake', 'intake_unprocessed'),
+        ('data_entry_1', 'data_entry_1_unprocessed'),
+        ('data_entry_2', 'data_entry_2_unprocessed'),
+        ('correction', 'correction_unprocessed'),
+        ('quality_control', 'quality_control_unprocessed'),
+        ('archived', 'archived_unprocessed'),
         'clearance',
         'audit'
     )
@@ -674,6 +676,12 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
         for state in FormState:
             if isinstance(state.value, int):
                 count_by_form_state_queries[state.name.lower()] = Count('barcode', filter=Q(form_state=state))
+        # to check unprocessed - forms that are neither in a certain state nor any other state after that
+        # when considering the form state transitions on a happy path (excluding forms that need audits, clearance)
+        for idx, state in enumerate(form_state_shift_path):
+            unprocessed_states = form_state_shift_path[idx:]
+            count_by_form_state_queries[f"{state.name.lower()}_unprocessed"] = Count('barcode', filter=~Q(
+                form_state__in=unprocessed_states))
 
         qs = qs.filter(
             tally__id=tally_id).annotate(
@@ -683,8 +691,27 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
         return qs
 
     def render_column(self, row, column):
+        tally_id = self.kwargs.get('tally_id')
         if column in self.columns:
-            column_val = row[column]
+            column_val = None
+            if isinstance(column, tuple):
+                processed_col, unprocessed_col = column
+                processed_count = row[processed_col]
+                unprocessed_count = row[unprocessed_col]
+                # import ipdb; ipdb.set_trace()
+                race_type = row["race_type"].name
+                # what should form state search param value be.
+                params = {race_type_query_param: race_type, form_state_query_param: column[0]}
+                query_param_string = urlencode(params)
+                remote_data_url = reverse(
+                    'form-list',
+                    kwargs={'tally_id': tally_id})
+                if query_param_string:
+                    remote_data_url = f"{remote_data_url}?{query_param_string}"
+                column_val = str('<span>'
+                                 f'{processed_count} / <a href={remote_data_url}>{unprocessed_count}</a></span>')
+            else:
+                column_val = row[column]
             if column == 'race_type':
                 column_val = row[column].name
             return str('<td class="center">'
