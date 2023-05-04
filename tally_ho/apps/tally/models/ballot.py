@@ -6,6 +6,7 @@ import reversion
 import os
 import uuid
 import pathlib
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
@@ -71,6 +72,11 @@ class Ballot(BaseModel):
                                 default="")
     number = models.PositiveSmallIntegerField()
     race_type = EnumIntegerField(RaceType)
+    electrol_race = models.ForeignKey(ElectrolRace,
+                                      null=True,
+                                      blank=True,
+                                      related_name='ballots',
+                                      on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
                               null=True,
                               blank=True,
