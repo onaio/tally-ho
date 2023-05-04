@@ -14,12 +14,15 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.apps.tally.views.constants import race_type_query_param, form_state_query_param
+from tally_ho.libs.models.enums.form_state import FormState, form_state_shift_path
+from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale
 )
 from tally_ho.libs.views import mixins
+from urllib.parse import urlencode
 
 
 ALL = '__all__'
@@ -58,7 +61,25 @@ class FormListDataView(LoginRequiredMixin,
         ballot_number = self.request.POST.get('ballot[value]', None)
         tally_id = self.kwargs.get('tally_id')
         keyword = self.request.POST.get('search[value]')
-        station_id_query =\
+
+        requested_form_state = self.request.GET.get(form_state_query_param, None)
+        requested_race_type = self.request.GET.get(race_type_query_param, None)
+
+        if requested_race_type:
+            race_enum_key = requested_race_type.upper()
+            if race_enum_key in RaceType.__members__:
+                specified_race_type = RaceType[race_enum_key]
+                qs = qs.filter(ballot__race_type=specified_race_type)
+        if requested_form_state:
+            state_enum_key = requested_form_state.upper()
+            if state_enum_key in FormState.__members__:
+                specified_form_state = FormState[state_enum_key]
+                # get forms that are not in this state or future possible states depending
+                # on how the form state transitions through the stages.
+                excluded_form_states = form_state_shift_path[form_state_shift_path.index(specified_form_state):]
+                qs = qs.exclude(form_state__in=excluded_form_states)
+
+        station_id_query = \
             Subquery(
                 Station.objects.filter(
                     tally__id=tally_id,
@@ -103,8 +124,13 @@ class FormListView(LoginRequiredMixin,
     template_name = "data/forms.html"
 
     def get(self, *args, **kwargs):
+        # TODO - how is this form state used?
         form_state = kwargs.get('state')
         tally_id = kwargs.get('tally_id')
+
+        requested_form_state = self.request.GET.get(form_state_query_param, None)
+        requested_race_type = self.request.GET.get(race_type_query_param, None)
+
         error = self.request.session.get('error_message')
         language_de = get_datatables_language_de_from_locale(self.request)
         download_url = '/ajax/download-result-forms/'
@@ -128,11 +154,21 @@ class FormListView(LoginRequiredMixin,
 
             return render_to_csv_response(form_list)
 
+        params = {}
+        if requested_form_state:
+            params[form_state_query_param] = requested_form_state
+        if requested_race_type:
+            params[race_type_query_param] = requested_race_type
+        query_param_string = urlencode(params)
+        remote_data_url = reverse(
+                                      'form-list-data',
+                                      kwargs={'tally_id': tally_id})
+        if query_param_string:
+            remote_data_url = f"{remote_data_url}?{query_param_string}"
+
         return self.render_to_response(
             self.get_context_data(header_text=_('Form List'),
-                                  remote_url=reverse(
-                                      'form-list-data',
-                                      kwargs={'tally_id': tally_id}),
+                                  remote_url=remote_data_url,
                                   tally_id=tally_id,
                                   error_message=_(error) if error else None,
                                   show_create_form_button=True,
