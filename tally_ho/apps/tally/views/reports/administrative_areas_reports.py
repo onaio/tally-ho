@@ -555,13 +555,18 @@ def results_queryset(
 
     if data:
         selected_center_ids =\
-            data['select_1_ids'] if len(data['select_1_ids']) else [0]
+            data['select_1_ids'] if data.get('select_1_ids') else [0]
         selected_station_ids =\
-            data['select_2_ids'] if len(data['select_2_ids']) else [0]
+            data['select_2_ids'] if data.get('select_2_ids') else [0]
+        race_type_names = data['race_type_names'] if data.get('race_type_names') else []
+        race_types = [race_type for race_type in RaceType if race_type.name in race_type_names]
         filter_in = data.get('filter_in')
         qs = qs \
             .annotate(station_ids=station_id_query)
+
         if filter_in:
+            if race_types:
+                qs = qs.filter(Q(result_form__ballot__race_type__in=race_types))
             qs_1 = qs \
                 .filter(
                 Q(result_form__center__id__in=selected_center_ids) &
@@ -577,6 +582,8 @@ def results_queryset(
                 .filter(candidate_name__isnull=False)
 
         else:
+            if race_types:
+                qs = qs.filter(~Q(result_form__ballot__race_type__in=race_types))
             qs_1 = qs\
                 .filter(
                     ~Q(result_form__center__id__in=selected_center_ids) &
@@ -3233,6 +3240,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         stations, centers = build_station_and_centers_list(tally_id)
+        race_types = list(RaceType)
         language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
@@ -3240,6 +3248,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
             tally_id=tally_id,
             stations=stations,
             centers=centers,
+            race_types=race_types,
             get_centers_stations_url='/ajax/get-centers-stations/',
             results_download_url='/ajax/download-results/',
             languageDE=language_de
