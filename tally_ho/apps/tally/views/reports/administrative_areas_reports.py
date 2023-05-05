@@ -1435,7 +1435,7 @@ def get_results(request):
                 'station_id',
                 'station_number',
                 'barcode',
-                'voting_district',
+                'sub_con_code',
                 'number_registrants',
                 'order',
                 'race_number',
