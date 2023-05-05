@@ -624,7 +624,7 @@ def results_queryset(
                 gender=F('result_form__gender__name'),
                 barcode=F('result_form__barcode'),
                 race_type=F('result_form__ballot__race_type__name'),
-                voting_district=F(
+                sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
                 order=F('candidate__order'),
@@ -711,7 +711,7 @@ def results_queryset(
                 gender=F('result_form__gender__name'),
                 barcode=F('result_form__barcode'),
                 race_type=F('result_form__ballot__race_type__name'),
-                voting_district=F(
+                sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
                 order=F('candidate__order'),
@@ -3112,7 +3112,7 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                'gender',
                'barcode',
                'race_type',
-               'voting_district',
+               'sub_con_code',
                'order',
                'unstamped_ballots',
                'cancelled_ballots',
@@ -3195,9 +3195,9 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         elif column == 'race_type':
             return str('<td class="center">'
                        f'{row["race_type"].name}</td>')
-        elif column == 'voting_district':
+        elif column == 'sub_con_code':
             return str('<td class="center">'
-                       f'{row["voting_district"]}</td>')
+                       f'{row["sub_con_code"]}</td>')
         elif column == 'order':
             return str('<td class="center">'
                        f'{row["order"]}</td>')
