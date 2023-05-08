@@ -34,12 +34,12 @@ class SubConstituency(BaseModel):
     tally = models.ForeignKey(Tally,
                               null=True,
                               blank=True,
-                              related_name='sub_constituencies',
+                              related_name='tally',
                               on_delete=models.PROTECT)
     constituency = models.ForeignKey(Constituency,
                                      null=True,
                                      blank=True,
-                                     related_name='sub_constituencies',
+                                     related_name='constituency',
                                      on_delete=models.PROTECT)
 
     def __str__(self):
