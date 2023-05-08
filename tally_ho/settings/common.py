@@ -306,49 +306,46 @@ ELECTROL_RACES = [
     {
         'type': 'GENERAL',
         'code': 0,
-        'ballot_name': 'Ballot Number - General'
+        'ballot_name': 'ballot_number_general'
     },
     {
         'type': 'WOMEN',
         'code': 1,
-        'ballot_name': 'Ballot Number - Women'
+        'ballot_name': 'ballot_number_women'
     },
     {
         'type': 'COMPONENT_AMAZIGH',
         'code': 2,
-        'ballot_name': 'Component Ballot'
+        'ballot_name': 'ballot_number_component',
+        'component_ballot_numbers': ['54'],
     },
     {
         'type': 'COMPONENT_TWARAG',
         'code': 3,
-        'ballot_name': 'Component Ballot'
+        'ballot_name': 'ballot_number_component',
+        'component_ballot_numbers': ['55', '57'],
     },
     {
         'type': 'COMPONENT_TEBU',
         'code': 4,
-        'ballot_name': 'Component Ballot'
+        'ballot_name': 'ballot_number_component',
+        'component_ballot_numbers': ['56', '58'],
     },
     {
         'type': 'PRESIDENTIAL',
         'code': 5,
-        'ballot_name': 'Ballot Number – Presidential'
+        'ballot_name': 'ballot_number_presidential',
     },
 ]
 
-SUB_CONSTITUENCY_COLUMN_NAMES = ['SubCon #', 'Field Office', 'Races',
-                                 'Ballot Number – Presidential',
-                                 'Ballot Number - General',
-                                 'Ballot Number - Women', 'Number of Ballots',
-                                 'Component Ballot', 'A4 Ballot', 'A3 Ballot',
-                                 'A3 Folded Ballot', 'Ballot Size for General',
-                                 'Ballot Size for Women',
-                                 'Ballot Size for Consultation',
-                                 'R&R Form Size - General',
-                                 'R&R Form Size - Women',
-                                 'R&R Form Size - Consultation',
-                                 'R&R Form A3 Size', 'R&R Form A3 folded Size',
-                                 'Screens Per Station',
-                                 'Ballot Boxes Per Station']
+SUB_CONSTITUENCY_COLUMN_NAMES = ['code',
+                                 'field_office',
+                                 'races',
+                                 'ballot_number_presidential',
+                                 'ballot_number_general',
+                                 'ballot_number_women',
+                                 'number_of_ballots',
+                                 'ballot_number_component']
 
 CENTER_COLUMN_NAMES = ['#', 'Region/ المنطقة', 'PC Code/ رمز مركز الانتخاب',
                        'Office #/ الللجنة الانتخابية #',
