@@ -624,7 +624,7 @@ def results_queryset(
                 gender=F('result_form__gender__name'),
                 barcode=F('result_form__barcode'),
                 race_type=F('result_form__ballot__race_type__name'),
-                voting_district=F(
+                sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
                 order=F('candidate__order'),
@@ -711,7 +711,7 @@ def results_queryset(
                 gender=F('result_form__gender__name'),
                 barcode=F('result_form__barcode'),
                 race_type=F('result_form__ballot__race_type__name'),
-                voting_district=F(
+                sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
                 order=F('candidate__order'),
@@ -1435,7 +1435,7 @@ def get_results(request):
                 'station_id',
                 'station_number',
                 'barcode',
-                'voting_district',
+                'sub_con_code',
                 'number_registrants',
                 'order',
                 'race_number',
@@ -3112,7 +3112,7 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                'gender',
                'barcode',
                'race_type',
-               'voting_district',
+               'sub_con_code',
                'order',
                'unstamped_ballots',
                'cancelled_ballots',
@@ -3152,79 +3152,9 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         return qs
 
     def render_column(self, row, column):
-
-        if column == 'candidate_name':
+        if column in self.columns:
             return str('<td class="center">'
-                       f'{row["candidate_name"]}</td>')
-        elif column == 'total_votes':
-            return str('<td class="center">'
-                       f'{row["total_votes"]}</td>')
-        elif column == 'invalid_votes':
-            return str('<td class="center">'
-                       f'{row["invalid_votes"]}</td>')
-        elif column == 'valid_votes':
-            return str('<td class="center">'
-                       f'{row["valid_votes"]}</td>')
-        elif column == 'number_registrants':
-            return str('<td class="center">'
-                       f'{row["number_registrants"]}</td>')
-        elif column == 'candidate_status':
-            return str('<td class="center">'
-                       f'{row["candidate_status"]}</td>')
-        elif column == 'office_name':
-            return str('<td class="center">'
-                       f'{row["office_name"]}</td>')
-        elif column == 'region_name':
-            return str('<td class="center">'
-                       f'{row["region_name"]}</td>')
-        elif column == 'center_code':
-            return str('<td class="center">'
-                       f'{row["center_code"]}</td>')
-        elif column == 'station_number':
-            return str('<td class="center">'
-                       f'{row["station_number"]}</td>')
-        elif column == 'station_id':
-            return str('<td class="center">'
-                       f'{row["station_id"]}</td>')
-        elif column == 'gender':
-            return str('<td class="center">'
-                       f'{row["gender"].name}</td>')
-        elif column == 'barcode':
-            return str('<td class="center">'
-                       f'{row["barcode"]}</td>')
-        elif column == 'race_type':
-            return str('<td class="center">'
-                       f'{row["race_type"].name}</td>')
-        elif column == 'voting_district':
-            return str('<td class="center">'
-                       f'{row["voting_district"]}</td>')
-        elif column == 'order':
-            return str('<td class="center">'
-                       f'{row["order"]}</td>')
-        elif column == 'unstamped_ballots':
-            return str('<td class="center">'
-                       f'{row["unstamped_ballots"]}</td>')
-        elif column == 'cancelled_ballots':
-            return str('<td class="center">'
-                       f'{row["cancelled_ballots"]}</td>')
-        elif column == 'spoilt_ballots':
-            return str('<td class="center">'
-                       f'{row["spoilt_ballots"]}</td>')
-        elif column == 'unused_ballots':
-            return str('<td class="center">'
-                       f'{row["unused_ballots"]}</td>')
-        elif column == 'number_of_signatures':
-            return str('<td class="center">'
-                       f'{row["number_of_signatures"]}</td>')
-        elif column == 'ballots_received':
-            return str('<td class="center">'
-                       f'{row["ballots_received"]}</td>')
-        elif column == 'ballot_number':
-            return str('<td class="center">'
-                       f'{row["ballot_number"]}</td>')
-        elif column == 'race_number':
-            return str('<td class="center">'
-                       f'{row["race_number"]}</td>')
+                       f'{row[{column}]}</td>')
         else:
             return super(
                 ResultFormResultsListDataView, self).render_column(row, column)
