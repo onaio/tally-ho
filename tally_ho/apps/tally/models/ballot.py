@@ -71,7 +71,7 @@ class Ballot(BaseModel):
                                 blank=True,
                                 default="")
     number = models.PositiveSmallIntegerField()
-    race_type = EnumIntegerField(RaceType)
+    race_type = EnumIntegerField(RaceType, null=True)
     electrol_race = models.ForeignKey(ElectrolRace,
                                       null=True,
                                       blank=True,
