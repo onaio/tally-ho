@@ -555,26 +555,48 @@ def results_queryset(
 
     if data:
         selected_center_ids =\
-            data['select_1_ids'] if len(data['select_1_ids']) else [0]
+            data['select_1_ids'] if data.get('select_1_ids') else [0]
         selected_station_ids =\
-            data['select_2_ids'] if len(data['select_2_ids']) else [0]
-
-        qs = qs\
+            data['select_2_ids'] if data.get('select_2_ids') else [0]
+        race_type_names = data['race_type_names'] if data.get('race_type_names') else []
+        race_types = [race_type for race_type in RaceType if race_type.name in race_type_names]
+        filter_in = data.get('filter_in')
+        qs = qs \
             .annotate(station_ids=station_id_query)
 
-        qs_1 = qs\
-            .filter(
-                ~Q(result_form__center__id__in=selected_center_ids) &
-                ~Q(station_ids__in=selected_station_ids))\
-            .annotate(candidate_name=F('candidate__full_name'))\
-            .filter(candidate_name__isnull=False)
+        if filter_in:
+            if race_types:
+                qs = qs.filter(Q(result_form__ballot__race_type__in=race_types))
+            qs_1 = qs \
+                .filter(
+                Q(result_form__center__id__in=selected_center_ids) &
+                Q(station_ids__in=selected_station_ids)) \
+                .annotate(candidate_name=F('candidate__full_name')) \
+                .filter(candidate_name__isnull=False)
 
-        qs_2 = qs\
-            .filter(
-                ~Q(result_form__center__id__in=selected_center_ids) &
-                ~Q(station_ids__in=selected_station_ids))\
-            .annotate(candidate_name=F(ballot_comp_candidate_name))\
-            .filter(candidate_name__isnull=False)
+            qs_2 = qs \
+                .filter(
+                Q(result_form__center__id__in=selected_center_ids) &
+                Q(station_ids__in=selected_station_ids)) \
+                .annotate(candidate_name=F(ballot_comp_candidate_name)) \
+                .filter(candidate_name__isnull=False)
+
+        else:
+            if race_types:
+                qs = qs.filter(~Q(result_form__ballot__race_type__in=race_types))
+            qs_1 = qs\
+                .filter(
+                    ~Q(result_form__center__id__in=selected_center_ids) &
+                    ~Q(station_ids__in=selected_station_ids))\
+                .annotate(candidate_name=F('candidate__full_name'))\
+                .filter(candidate_name__isnull=False)
+
+            qs_2 = qs\
+                .filter(
+                    ~Q(result_form__center__id__in=selected_center_ids) &
+                    ~Q(station_ids__in=selected_station_ids))\
+                .annotate(candidate_name=F(ballot_comp_candidate_name))\
+                .filter(candidate_name__isnull=False)
 
         qs = qs_1.union(qs_2) if len(qs_2) else qs_1
 
@@ -652,6 +674,7 @@ def results_queryset(
                         result_form__reconciliationform__isnull=False,
                         then=F(reconform_num_valid_votes)
                     ), default=V(0))).distinct()
+
     else:
         qs_1 = qs\
             .annotate(candidate_name=F('candidate__full_name'))\
@@ -3217,6 +3240,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         stations, centers = build_station_and_centers_list(tally_id)
+        race_types = list(RaceType)
         language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
@@ -3224,6 +3248,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
             tally_id=tally_id,
             stations=stations,
             centers=centers,
+            race_types=race_types,
             get_centers_stations_url='/ajax/get-centers-stations/',
             results_download_url='/ajax/download-results/',
             languageDE=language_de

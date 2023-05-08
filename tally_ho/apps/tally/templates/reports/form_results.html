@@ -26,15 +26,23 @@
       <button style="float: left; margin-bottom: 2em;" id="export-form-results-presidential" class="btn btn-default btn-small">{% trans 'Export Presidential Results in JSON' %}</button>
       <button style="float: left; margin-left: 1em; margin-bottom: 2em;" id="export-form-results-parliamentary" class="btn btn-default btn-small">{% trans 'Export Parliamentary Results in JSON' %}</button>
     </div>
-    <div class="col-sm-4">
-      <p style="text-align: left; margin-left: .5em;">Centers</p>
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans  'Races' %}</p>
+      <select class="selectpicker" id="filter-out-race-types" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
+        {% for race_type in race_types %}
+          <option value={{race_type.name}}>{{race_type.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Centers' %}</p>
       <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
         {% for center in centers %}
           <option value={{center.id}}>{{center.name}}</option>
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Stations' %}</p>
       <select class="selectpicker center-stations" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
         {% for station in stations %}
@@ -42,11 +50,48 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
       <div class="card">
         <div class="card-body">
-          <p class="card-text" style="text-align: left;">{% trans 'Filter out Centers and Stations from results.' %}</p>
+          <p class="card-text" style="text-align: left;">{% trans 'Filter Out.' %}</p>
           <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">{% trans 'Reset' %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</caption>
+  <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
+    <div id="in-report" class="row">
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Races' %}</p>
+      <select class="selectpicker" id="filter-in-race-types" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
+        {% for race_type in race_types %}
+          <option value={{race_type.name}}>{{race_type.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans  'Centers' %}</p>
+      <select class="selectpicker" id="filter-in-centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
+        {% for center in centers %}
+          <option value={{center.id}}>{{center.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Stations' %}</p>
+      <select class="selectpicker filter-in-center-stations" id="filter-in-stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
+        {% for station in stations %}
+          <option value={{station.id}}>{{station.id}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <div class="card">
+        <div class="card-body">
+          <p class="card-text" style="text-align: left;">{% trans 'Filter In.' %}</p>
+          <button style="float: left;" id="filter-in-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
           <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">{% trans 'Reset' %}</a>
         </div>
       </div>
