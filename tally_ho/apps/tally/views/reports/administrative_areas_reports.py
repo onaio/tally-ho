@@ -3154,7 +3154,7 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
     def render_column(self, row, column):
         if column in self.columns:
             return str('<td class="center">'
-                       f'{row[{column}]}</td>')
+                       f'{row[column]}</td>')
         else:
             return super(
                 ResultFormResultsListDataView, self).render_column(row, column)
