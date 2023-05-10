@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models import Q, Sum, Value as V
 from django.db.models.functions import Coalesce
-from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
 import reversion
 
@@ -33,14 +32,7 @@ class Candidate(BaseModel):
 
     @property
     def race_type_name(self):
-        return {
-            RaceType.GENERAL: _('General'),
-            RaceType.WOMEN: _('Women'),
-            RaceType.COMPONENT_AMAZIGH: _('Component Amazigh'),
-            RaceType.COMPONENT_TWARAG: _('Component Twarag'),
-            RaceType.COMPONENT_TEBU: _('Component Tebu'),
-            RaceType.PRESIDENTIAL: _('Presidential'),
-        }[self.race_type]
+        return self.ballot.electrol_race.type
 
     def num_votes(self, result_form=None, form_state=FormState.ARCHIVED):
         """Return the number of final active votes for this candidate in the
