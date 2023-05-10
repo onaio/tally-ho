@@ -165,9 +165,9 @@ def import_rows_batch(tally,
                         set(settings.SUB_CONSTITUENCY_COLUMN_NAMES) - set(row))
                     delete_all_tally_objects(tally)
                     error_message = ngettext(
-                        'Column %(cols)s is missing'
+                        'Column %(cols)s is missing' +\
                         ' in the sub constituency file',
-                        'Columns %(cols)s are missing'
+                        'Columns %(cols)s are missing' +\
                         ' in the sub constituency file',
                         len(missing_columns)
                     ) % {"cols": ', '.join(missing_columns),}
