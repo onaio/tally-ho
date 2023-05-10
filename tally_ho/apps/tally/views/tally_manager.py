@@ -36,6 +36,7 @@ from tally_ho.apps.tally.management.commands.import_data import (
     process_station_row,
     process_candidate_row,
     process_results_form_row,
+    import_sub_constituencies_and_ballots,
 )
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -142,6 +143,14 @@ def import_rows_batch(tally,
     result_forms_file_name_prefix = FILE_NAMES_PREFIXS['result_forms_file']
     result_forms_file_name = f'{result_forms_file_name_prefix}{tally.id}.csv'
 
+    if subconst_file_name in file_to_parse.name:
+        elements_processed =\
+            import_sub_constituencies_and_ballots(
+                tally=tally,
+                sub_con_file_path=file_to_parse.name,
+                logger=logger,
+            )
+        return elements_processed, None
     if ballot_file_to_parse:
         with ballot_file_to_parse as f:
             reader = csv.reader(f)
@@ -227,7 +236,12 @@ def import_rows_batch(tally,
                     if id_to_ballot_order:
                         if is_not_empty_row:
                             try:
-                                function(tally, row, id_to_ballot_order)
+                                function(
+                                    tally,
+                                    row,
+                                    id_to_ballot_order,
+                                    logger=logger
+                                )
                             except Exception as e:
                                 delete_all_tally_objects(tally)
                                 error_message = _(u'{}'.format(str(e)))
