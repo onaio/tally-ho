@@ -299,45 +299,34 @@ def import_stations(command, tally=None, stations_file=None):
             process_station_row(tally, row, command=command)
 
 
-def process_candidate_row(tally, row, id_to_ballot_order):
+def process_candidate_row(
+        tally,
+        row,
+        id_to_ballot_order,
+        command=None,
+        logger=None
+):
     candidate_id = row[0]
-    code = row[7]
+    ballot_number = row[7]
     full_name = row[14]
-    race_code = row[18]
-
-    race_type = get_race_type(race_code)
 
     try:
-        sub_constituency = SubConstituency.objects.get(
-            code=code, tally=tally)
+        ballot = Ballot.objects.get(
+            number=ballot_number, tally=tally)
+        Candidate.objects.get_or_create(
+            ballot=ballot,
+            candidate_id=candidate_id,
+            full_name=full_name,
+            order=id_to_ballot_order[candidate_id],
+            tally=tally)
 
-        if race_type == RaceType.PRESIDENTIAL:
-            ballot = sub_constituency.ballot_presidential
-        elif race_type == RaceType.GENERAL:
-            ballot = sub_constituency.ballot_general
-        else:
-            ballot = sub_constituency.ballot_women
-
-        # Create ballot incase it's missing in the sub constituency file
-        if ballot is None:
-            ballot, _ = Ballot.objects.get_or_create(
-                number=int(code),
-                race_type=race_type,
-                tally=tally)
-
-    except SubConstituency.DoesNotExist:
-        ballot, _ = Ballot.objects.get_or_create(
-                number=int(code),
-                race_type=race_type,
-                tally=tally)
-
-    Candidate.objects.get_or_create(
-        ballot=ballot,
-        candidate_id=candidate_id,
-        full_name=full_name,
-        order=id_to_ballot_order[candidate_id],
-        race_type=race_type,
-        tally=tally)
+    except Ballot.DoesNotExist as e:
+        msg = f'Ballot {ballot_number} does not exist, error: {e}'
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+        pass
 
 
 def import_candidates(tally=None,
