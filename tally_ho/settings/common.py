@@ -338,7 +338,7 @@ ELECTROL_RACES = [
     },
 ]
 
-SUB_CONSTITUENCY_COLUMN_NAMES = ['code',
+SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
                                  'field_office',
                                  'races',
                                  'ballot_number_presidential',
