@@ -3,7 +3,6 @@ coverage
 coveralls
 django-debug-toolbar
 django_extensions
-flake8
 ipython
 ipdb
 sphinx
