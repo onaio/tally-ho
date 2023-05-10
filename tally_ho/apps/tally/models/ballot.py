@@ -75,17 +75,17 @@ class Ballot(BaseModel):
     electrol_race = models.ForeignKey(ElectrolRace,
                                       null=True,
                                       blank=True,
-                                      related_name='ballots',
+                                      related_name='electrol_races',
                                       on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
                               null=True,
                               blank=True,
-                              related_name='ballots',
+                              related_name='tallies',
                               on_delete=models.PROTECT)
 
     @property
     def race_type_name(self):
-        return race_type_name(self.race_type, self.sc_general.first())
+        return self.electrol_race.type
 
     @property
     def document_name(self):
@@ -114,7 +114,7 @@ class Ballot(BaseModel):
 
     @property
     def is_component(self):
-        return is_component(self.number)
+        return True if self.electrol_race.component_ballot_numbers else False
 
     def __str__(self):
         return u'%s - %s' % (self.number, self.race_type_name)
