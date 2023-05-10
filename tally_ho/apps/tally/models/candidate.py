@@ -20,11 +20,10 @@ class Candidate(BaseModel):
 
     ballot = models.ForeignKey(Ballot, related_name='candidates',
                                on_delete=models.PROTECT)
-
     candidate_id = models.PositiveIntegerField()
     full_name = models.TextField()
     order = models.PositiveSmallIntegerField()
-    race_type = EnumIntegerField(RaceType)
+    race_type = EnumIntegerField(RaceType, null=True)
     active = models.BooleanField(default=True)
     tally = models.ForeignKey(Tally,
                               null=True,
