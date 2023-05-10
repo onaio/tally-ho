@@ -108,9 +108,11 @@ def save_file(file_uploaded, file_name):
         fp = StringIO(file_uploaded.read().decode('utf-8'), newline=None)
         try:
             reader = csv.reader(fp, dialect=csv.excel_tab)
+            next(reader) # Ignore header
             num_lines = sum(1 for _ in reader)
         except csv.Error:
             reader = csv.reader(fp, delimiter='\t', quoting=csv.QUOTE_NONE)
+            next(reader) # Ignore header
             num_lines = sum(1 for _ in reader)
 
     return num_lines
