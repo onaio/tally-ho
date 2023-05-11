@@ -17,5 +17,8 @@ class ElectrolRace(BaseModel):
                                           blank=True,
                                           null=True)
 
+    def __str__(self):
+        return u'%s - %s' % (self.type, self.code)
+
 
 reversion.register(ElectrolRace)
