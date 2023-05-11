@@ -12,6 +12,7 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.models.enums.disable_reason import DisableReason
+from tally_ho.libs.utils.templates import get_ballot_link
 
 
 COMPONENT_TO_BALLOTS = {
@@ -115,6 +116,10 @@ class Ballot(BaseModel):
     @property
     def is_component(self):
         return True if self.electrol_race.component_ballot_numbers else False
+
+    @property
+    def get_action_button(self):
+        return get_ballot_link(self) if self else None
 
     def __str__(self):
         return u'%s - %s' % (self.number, self.race_type_name)
