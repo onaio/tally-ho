@@ -1,6 +1,6 @@
 from django.test import RequestFactory
 
-from tally_ho.apps.tally.views.data import race_list_view as views
+from tally_ho.apps.tally.views.data import ballot_list_view as views
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import create_tally, TestBase
 

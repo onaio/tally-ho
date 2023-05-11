@@ -20,10 +20,10 @@ from tally_ho.apps.tally.views import (
     tally_manager
 )
 from tally_ho.apps.tally.views.data import (
+    ballot_list_view,
     center_list_view,
     form_list_view,
     candidate_list_view,
-    race_list_view,
     user_list_view,
     tally_list_view,
     region_list_view,
@@ -289,9 +289,12 @@ urlpatterns = [
             r'(?P<sub_constituency_id>(\d+))/$',
             center_list_view.CenterListDataView.as_view(),
             name='center-list-data'),
-    re_path(r'^data/races-list/(?P<tally_id>(\d+))/$',
-            race_list_view.RaceListView.as_view(),
-            name='races-list'),
+    re_path(r'^data/ballot-list-data/(?P<tally_id>(\d+))/$',
+            ballot_list_view.BallotListDataView.as_view(),
+            name='ballot-list-data'),
+    re_path(r'^data/ballot-list/(?P<tally_id>(\d+))/$',
+            ballot_list_view.BallotListView.as_view(),
+            name='ballot-list'),
     re_path(r'^data/candidate-list/(?P<tally_id>(\d+))/$',
             candidate_list_view.CandidateListView.as_view(),
             name='candidate-list'),
