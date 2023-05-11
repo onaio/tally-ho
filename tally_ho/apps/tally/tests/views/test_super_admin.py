@@ -602,7 +602,7 @@ class TestSuperAdmin(TestBase):
             request,
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/data/races-list/%s/' % tally.pk, response['Location'])
+        self.assertIn('/data/ballot-list/%s/' % tally.pk, response['Location'])
         ballot.reload()
         self.assertEqual(ballot.disable_reason.value, 2)
         self.assertEqual(ballot.comments.all()[0].text, comment_text)

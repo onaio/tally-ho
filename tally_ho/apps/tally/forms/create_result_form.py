@@ -58,7 +58,7 @@ class CreateResultForm(ModelForm):
             raise ValidationError(_('All fields are mandatory'))
 
         if ballot and not ballot.active:
-            raise ValidationError(_('Race for ballot is disabled'))
+            raise ValidationError(_('Ballot is disabled'))
 
         if center and not center.active:
             raise ValidationError(_('Selected center is disabled'))

@@ -1144,7 +1144,7 @@ class CreateRaceView(LoginRequiredMixin,
     form_class = CreateRaceForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/form.html'
-    success_message = _(u'Race Successfully Created')
+    success_message = _(u'Ballot Successfully Created')
 
     def get_initial(self):
         initial = super(CreateRaceView, self).get_initial()
@@ -1156,8 +1156,8 @@ class CreateRaceView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         context = super(CreateRaceView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
-        context['title'] = _(u'New Race')
-        context['route_name'] = 'races-list'
+        context['title'] = _(u'New Ballot')
+        context['route_name'] = 'ballot-list'
 
         return context
 
@@ -1170,7 +1170,7 @@ class CreateRaceView(LoginRequiredMixin,
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id')
 
-        return reverse('races-list', kwargs={'tally_id': tally_id})
+        return reverse('ballot-list', kwargs={'tally_id': tally_id})
 
 
 class EditBallotView(LoginRequiredMixin,
@@ -1229,7 +1229,7 @@ class DisableRaceView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     tally_id = None
     template_name = "super_admin/disable_entity.html"
-    success_url = 'races-list'
+    success_url = 'ballot-list'
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
@@ -1242,7 +1242,7 @@ class DisableRaceView(LoginRequiredMixin,
             'race_id_input': race_id,
         }
 
-        self.success_message = _(u"Race Successfully Disabled.")
+        self.success_message = _(u"Ballot Successfully Disabled.")
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
@@ -1258,7 +1258,7 @@ class DisableRaceView(LoginRequiredMixin,
         if form.is_valid():
             form.save()
 
-            self.success_message = _(u"Race Successfully disabled")
+            self.success_message = _(u"Ballot Successfully disabled")
 
             return self.form_valid(form)
 
@@ -1272,7 +1272,7 @@ class EnableRaceView(LoginRequiredMixin,
                      mixins.ReverseSuccessURLMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    success_url = 'races-list'
+    success_url = 'ballot-list'
 
     def get(self, *args, **kwargs):
         race_id = kwargs.get('race_id')
@@ -1282,7 +1282,7 @@ class EnableRaceView(LoginRequiredMixin,
 
         messages.add_message(self.request,
                              messages.INFO,
-                             _(u"Race Successfully enabled."))
+                             _(u"Ballot Successfully enabled."))
 
         return redirect(self.success_url, tally_id=tally_id)
 
