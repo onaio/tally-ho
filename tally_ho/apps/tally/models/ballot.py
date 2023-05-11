@@ -75,12 +75,12 @@ class Ballot(BaseModel):
     electrol_race = models.ForeignKey(ElectrolRace,
                                       null=True,
                                       blank=True,
-                                      related_name='electrol_races',
+                                      related_name='ballots',
                                       on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
                               null=True,
                               blank=True,
-                              related_name='tallies',
+                              related_name='ballots',
                               on_delete=models.PROTECT)
 
     @property
