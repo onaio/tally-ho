@@ -10,7 +10,7 @@ class CreateRaceForm(ModelForm):
         model = Ballot
         fields = localized_fields = [
             'number',
-            'race_type',
+            'electrol_race',
             'active',
             'tally',
             'available_for_release',
