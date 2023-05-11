@@ -502,10 +502,10 @@ urlpatterns = [
     re_path(r'^super-administrator/create-race/(?P<tally_id>(\d+))/$',
             super_admin.CreateRaceView.as_view(),
             name='create-race'),
-    re_path(r'^super-administrator/edit-race/(?P<tally_id>(\d+))/'
+    re_path(r'^super-administrator/edit-ballot/(?P<tally_id>(\d+))/'
             r'(?P<id>(\d+))$',
-            super_admin.EditRaceView.as_view(),
-            name='edit-race'),
+            super_admin.EditBallotView.as_view(),
+            name='edit-ballot'),
     re_path(r'^super-administrator/disable-race/(?P<tally_id>(\d+))/'
             r'(?P<race_id>(\d+))$',
             super_admin.DisableRaceView.as_view(),
