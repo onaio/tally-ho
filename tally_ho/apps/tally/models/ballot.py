@@ -58,7 +58,7 @@ class Ballot(BaseModel):
             models.Index(fields=['number']),
         ]
         ordering = ['number']
-        unique_together = ('number', 'tally')
+        unique_together = ('number', 'tally', 'electrol_race')
 
     unique_uuid = models.UUIDField(default=uuid.uuid4,
                                    unique=True,
