@@ -25,7 +25,7 @@ from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
 from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
 from tally_ho.apps.tally.forms.create_station_form import CreateStationForm
 from tally_ho.apps.tally.forms.create_race_form import CreateRaceForm
-from tally_ho.apps.tally.forms.edit_race_form import EditBallotForm
+from tally_ho.apps.tally.forms.edit_ballot_form import EditBallotForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
     EditUserProfileForm,
