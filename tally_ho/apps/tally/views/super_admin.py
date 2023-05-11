@@ -25,7 +25,7 @@ from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
 from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
 from tally_ho.apps.tally.forms.create_station_form import CreateStationForm
 from tally_ho.apps.tally.forms.create_race_form import CreateRaceForm
-from tally_ho.apps.tally.forms.edit_race_form import EditRaceForm
+from tally_ho.apps.tally.forms.edit_race_form import EditBallotForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
     EditUserProfileForm,
@@ -1173,21 +1173,21 @@ class CreateRaceView(LoginRequiredMixin,
         return reverse('races-list', kwargs={'tally_id': tally_id})
 
 
-class EditRaceView(LoginRequiredMixin,
+class EditBallotView(LoginRequiredMixin,
                    mixins.GroupRequiredMixin,
                    mixins.TallyAccessMixin,
                    mixins.ReverseSuccessURLMixin,
                    SuccessMessageMixin,
                    UpdateView):
     model = Ballot
-    form_class = EditRaceForm
+    form_class = EditBallotForm
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = 'super_admin/edit_race.html'
-    success_message = _(u'Race Successfully Updated')
+    template_name = 'super_admin/edit_ballot.html'
+    success_message = _(u'Ballot Successfully Updated')
 
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id')
-        context = super(EditRaceView, self).get_context_data(**kwargs)
+        context = super(EditBallotView, self).get_context_data(**kwargs)
         context['id'] = self.kwargs.get('id')
         context['tally_id'] = tally_id
         context['is_active'] = self.object.active
@@ -1205,7 +1205,7 @@ class EditRaceView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         id = self.kwargs.get('id')
 
-        return reverse('edit-race', kwargs={'tally_id': tally_id, 'id': id})
+        return reverse('edit-ballot', kwargs={'tally_id': tally_id, 'id': id})
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
@@ -1216,7 +1216,7 @@ class EditRaceView(LoginRequiredMixin,
             'race_id': race_id,
         }
 
-        return super(EditRaceView, self).get(*args, **kwargs)
+        return super(EditBallotView, self).get(*args, **kwargs)
 
 
 class DisableRaceView(LoginRequiredMixin,
