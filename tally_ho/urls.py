@@ -499,9 +499,9 @@ urlpatterns = [
             r'(?P<center_code>(\d+))/(?P<station_number>(\d+))?$',
             super_admin.EnableEntityView.as_view(),
             name='enable'),
-    re_path(r'^super-administrator/create-race/(?P<tally_id>(\d+))/$',
+    re_path(r'^super-administrator/create-ballot/(?P<tally_id>(\d+))/$',
             super_admin.CreateBallotView.as_view(),
-            name='create-race'),
+            name='create-ballot'),
     re_path(r'^super-administrator/edit-ballot/(?P<tally_id>(\d+))/'
             r'(?P<id>(\d+))$',
             super_admin.EditBallotView.as_view(),
