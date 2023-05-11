@@ -588,7 +588,7 @@ class TestSuperAdmin(TestBase):
         tally.users.add(self.user)
         ballot = create_ballot(tally=tally)
         comment_text = 'example comment text'
-        view = views.DisableRaceView.as_view()
+        view = views.DisableBallotView.as_view()
         data = {
             'race_id_input': ballot.pk,
             'comment_input': comment_text,

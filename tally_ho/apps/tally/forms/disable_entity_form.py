@@ -7,7 +7,7 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.models.enums.disable_reason import DisableReason
 from tally_ho.libs.utils.active_status import (
     disable_enable_entity,
-    disable_enable_race,
+    disable_enable_ballot,
 )
 
 
@@ -43,7 +43,7 @@ class DisableEntityForm(forms.Form):
         widget=forms.HiddenInput(),
     )
 
-    race_id_input = forms.CharField(
+    ballot_id_input = forms.CharField(
         required=False,
         widget=forms.HiddenInput(),
     )
@@ -54,7 +54,7 @@ class DisableEntityForm(forms.Form):
             tally_id = cleaned_data.get('tally_id')
             center_code = cleaned_data.get('center_code_input')
             station_number = cleaned_data.get('station_number_input')
-            race_id = cleaned_data.get('race_id_input')
+            ballot_id = cleaned_data.get('ballot_id_input')
 
             if center_code:
                 try:
@@ -72,11 +72,11 @@ class DisableEntityForm(forms.Form):
                 except Station.DoesNotExist:
                     raise forms.ValidationError(
                         _('Station Number does not exist'))
-            elif race_id:
+            elif ballot_id:
                 try:
-                    Ballot.objects.get(id=race_id)
+                    Ballot.objects.get(id=ballot_id)
                 except Ballot.DoesNotExist:
-                    raise forms.ValidationError(_('Race does not exist'))
+                    raise forms.ValidationError(_('Ballot does not exist'))
             else:
                 raise forms.ValidationError(_('Error'))
 
@@ -87,22 +87,22 @@ class DisableEntityForm(forms.Form):
             tally_id = self.cleaned_data.get('tally_id')
             center_code = self.cleaned_data.get('center_code_input')
             station_number = self.cleaned_data.get('station_number_input')
-            race_id = self.cleaned_data.get('race_id_input')
+            ballot_id = self.cleaned_data.get('ballot_id_input')
             disable_reason = self.cleaned_data.get('disable_reason')
             comment = self.cleaned_data.get('comment_input')
 
             result = None
 
-            if not race_id:
+            if not ballot_id:
                 result = disable_enable_entity(center_code,
                                                station_number,
                                                disable_reason,
                                                comment,
                                                tally_id)
             else:
-                result = disable_enable_race(race_id,
-                                             disable_reason,
-                                             comment,
-                                             tally_id)
+                result = disable_enable_ballot(ballot_id,
+                                               disable_reason,
+                                               comment,
+                                               tally_id)
 
             return result

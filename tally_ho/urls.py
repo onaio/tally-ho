@@ -506,14 +506,14 @@ urlpatterns = [
             r'(?P<id>(\d+))$',
             super_admin.EditBallotView.as_view(),
             name='edit-ballot'),
-    re_path(r'^super-administrator/disable-race/(?P<tally_id>(\d+))/'
-            r'(?P<race_id>(\d+))$',
-            super_admin.DisableRaceView.as_view(),
-            name='disable-race'),
-    re_path(r'^super-administrator/enable-race/(?P<tally_id>(\d+))/'
-            r'(?P<race_id>(\d+))$',
-            super_admin.EnableRaceView.as_view(),
-            name='enable-race'),
+    re_path(r'^super-administrator/disable-ballot/(?P<tally_id>(\d+))/'
+            r'(?P<ballot_id>(\d+))$',
+            super_admin.DisableBallotView.as_view(),
+            name='disable-ballot'),
+    re_path(r'^super-administrator/enable-ballot/(?P<tally_id>(\d+))/'
+            r'(?P<ballot_id>(\d+))$',
+            super_admin.EnableBallotView.as_view(),
+            name='enable-ballot'),
     re_path(r'^super-administrator/candidate-disable/(?P<tally_id>(\d+))/'
             r'(?P<candidateId>(\d+))$',
             super_admin.DisableCandidateView.as_view(),

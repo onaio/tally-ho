@@ -55,7 +55,7 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.active_status import (
     disable_enable_entity,
-    disable_enable_race,
+    disable_enable_ballot,
     disable_enable_candidate,
 )
 from tally_ho.libs.utils.context_processors import (
@@ -1219,7 +1219,7 @@ class EditBallotView(LoginRequiredMixin,
         return super(EditBallotView, self).get(*args, **kwargs)
 
 
-class DisableRaceView(LoginRequiredMixin,
+class DisableBallotView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
                       mixins.TallyAccessMixin,
                       mixins.ReverseSuccessURLMixin,
@@ -1233,13 +1233,15 @@ class DisableRaceView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        race_id = kwargs.get('race_id')
+        ballot_id = kwargs.get('ballot_id')
+        ballot = Ballot.objects.get(pk=ballot_id)
+        entity_name = f'Ballot {ballot.number} - {ballot.electrol_race.type}'
 
         self.initial = {
             'tally_id': tally_id,
             'center_code_input': None,
             'station_number_input': None,
-            'race_id_input': race_id,
+            'ballot_id_input': ballot_id,
         }
 
         self.success_message = _(u"Ballot Successfully Disabled.")
@@ -1248,6 +1250,7 @@ class DisableRaceView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(form=form,
+                                  entityName=entity_name,
                                   tally_id=tally_id))
 
     def post(self, *args, **kwargs):
@@ -1266,7 +1269,7 @@ class DisableRaceView(LoginRequiredMixin,
             form=form, tally_id=self.tally_id))
 
 
-class EnableRaceView(LoginRequiredMixin,
+class EnableBallotView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      mixins.TallyAccessMixin,
                      mixins.ReverseSuccessURLMixin,
@@ -1275,10 +1278,10 @@ class EnableRaceView(LoginRequiredMixin,
     success_url = 'ballot-list'
 
     def get(self, *args, **kwargs):
-        race_id = kwargs.get('race_id')
+        ballot_id = kwargs.get('ballot_id')
         tally_id = self.kwargs['tally_id']
 
-        disable_enable_race(race_id)
+        disable_enable_ballot(ballot_id)
 
         messages.add_message(self.request,
                              messages.INFO,

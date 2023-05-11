@@ -45,11 +45,11 @@
         {% trans "Cancel" %}
     </a>
     {% if is_active %}
-    <a class="btn btn-small btn-default" href="{% url 'disable-race' tally_id id %}" role="button">
+    <a class="btn btn-small btn-default" href="{% url 'disable-ballot' tally_id id %}" role="button">
         {% trans "Disable" %}
     </a>
     {% else %}
-    <a class="btn btn-small btn-default" href="{% url 'enable-race' tally_id id %}" role="button">
+    <a class="btn btn-small btn-default" href="{% url 'enable-ballot' tally_id id %}" role="button">
         {% trans "Enable" %}
     </a>
     {% endif %}

@@ -59,29 +59,29 @@ def disable_enable_entity(center_code,
         return entity_to_return
 
 
-def disable_enable_race(race_id,
-                        disable_reason=None,
-                        comment=None,
-                        tally_id=None):
-    race = None
+def disable_enable_ballot(ballot_id,
+                          disable_reason=None,
+                          comment=None,
+                          tally_id=None):
+    ballot = None
 
     try:
-        race = Ballot.objects.get(id=race_id)
+        ballot = Ballot.objects.get(id=ballot_id)
 
     except Ballot.DoesNotExist:
         raise forms.ValidationError(_('Race does not exist'))
     else:
         if comment:
-            Comment(text=comment, ballot=race, tally_id=tally_id).save()
+            Comment(text=comment, ballot=ballot, tally_id=tally_id).save()
 
-        race.active = not race.active
-        race.disable_reason = 0
+        ballot.active = not ballot.active
+        ballot.disable_reason = 0
 
         if disable_reason is not None:
-            race.disable_reason = disable_reason
+            ballot.disable_reason = disable_reason
 
-        race.save()
-        return race
+        ballot.save()
+        return ballot
 
 
 def disable_enable_candidate(candidate_id):
