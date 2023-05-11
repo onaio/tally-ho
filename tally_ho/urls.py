@@ -500,7 +500,7 @@ urlpatterns = [
             super_admin.EnableEntityView.as_view(),
             name='enable'),
     re_path(r'^super-administrator/create-race/(?P<tally_id>(\d+))/$',
-            super_admin.CreateRaceView.as_view(),
+            super_admin.CreateBallotView.as_view(),
             name='create-race'),
     re_path(r'^super-administrator/edit-ballot/(?P<tally_id>(\d+))/'
             r'(?P<id>(\d+))$',

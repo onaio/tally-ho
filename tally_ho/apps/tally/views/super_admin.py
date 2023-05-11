@@ -1134,7 +1134,7 @@ class EnableEntityView(LoginRequiredMixin,
         return redirect(self.success_url, tally_id=tally_id)
 
 
-class CreateRaceView(LoginRequiredMixin,
+class CreateBallotView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      mixins.TallyAccessMixin,
                      mixins.ReverseSuccessURLMixin,
@@ -1147,14 +1147,14 @@ class CreateRaceView(LoginRequiredMixin,
     success_message = _(u'Ballot Successfully Created')
 
     def get_initial(self):
-        initial = super(CreateRaceView, self).get_initial()
+        initial = super(CreateBallotView, self).get_initial()
         initial['tally'] = int(self.kwargs.get('tally_id'))
 
         return initial
 
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id')
-        context = super(CreateRaceView, self).get_context_data(**kwargs)
+        context = super(CreateBallotView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
         context['title'] = _(u'New Ballot')
         context['route_name'] = 'ballot-list'
@@ -1165,7 +1165,7 @@ class CreateRaceView(LoginRequiredMixin,
         form = CreateBallotForm(self.request.POST, self.request.FILES)
         form.save()
 
-        return super(CreateRaceView, self).form_valid(form)
+        return super(CreateBallotView, self).form_valid(form)
 
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id')

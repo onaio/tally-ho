@@ -610,7 +610,7 @@ class TestSuperAdmin(TestBase):
     def test_create_race_invalid_document_extension_error(self):
         tally = create_tally()
         tally.users.add(self.user)
-        view = views.CreateRaceView.as_view()
+        view = views.CreateBallotView.as_view()
         file_size = settings.MAX_FILE_UPLOAD_SIZE
         video = SimpleUploadedFile(
             "file.mp4", bytes(file_size), content_type="video/mp4")
@@ -638,7 +638,7 @@ class TestSuperAdmin(TestBase):
     def test_create_race_invalid_document_size_error(self):
         tally = create_tally()
         tally.users.add(self.user)
-        view = views.CreateRaceView.as_view()
+        view = views.CreateBallotView.as_view()
         file_size = settings.MAX_FILE_UPLOAD_SIZE * 2
         image = SimpleUploadedFile(
             "image.jpg", bytes(file_size), content_type="image/jpeg")
@@ -666,7 +666,7 @@ class TestSuperAdmin(TestBase):
     def test_create_race_view(self):
         tally = create_tally()
         tally.users.add(self.user)
-        view = views.CreateRaceView.as_view()
+        view = views.CreateBallotView.as_view()
         file_size = settings.MAX_FILE_UPLOAD_SIZE
         image_file_name = "image.jpg"
         image_file = SimpleUploadedFile(
