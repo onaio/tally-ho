@@ -41,7 +41,7 @@
     <button class="btn btn-small btn-success" type="submit" name="save_submit">
         {% trans "Save" %}
     </button>
-    <a class="btn btn-small btn-danger" href="{% url 'races-list' tally_id %}" role"button">
+    <a class="btn btn-small btn-danger" href="{% url 'ballot-list' tally_id %}" role"button">
         {% trans "Cancel" %}
     </a>
     {% if is_active %}
