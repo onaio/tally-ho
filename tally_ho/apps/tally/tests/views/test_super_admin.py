@@ -695,7 +695,7 @@ class TestSuperAdmin(TestBase):
         tally = create_tally()
         tally.users.add(self.user)
         ballot = create_ballot(tally)
-        view = views.EditRaceView.as_view()
+        view = views.EditBallotView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {}
@@ -703,7 +703,7 @@ class TestSuperAdmin(TestBase):
             request,
             id=ballot.pk,
             tally_id=tally.pk)
-        self.assertContains(response, 'Edit Race')
+        self.assertContains(response, 'Edit Ballot')
         self.assertContains(response, 'value="%s"' % ballot.number)
 
     def test_edit_race_view_post(self):
@@ -718,7 +718,7 @@ class TestSuperAdmin(TestBase):
             image_file_name, bytes(file_size), content_type="image/jpeg")
         ballot = create_ballot(tally, document=pdf_file)
         comment_text = 'jndfjs fsgfd'
-        view = views.EditRaceView.as_view()
+        view = views.EditBallotView.as_view()
         data = {
             'comment_input': comment_text,
             'number': ballot.number,
