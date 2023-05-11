@@ -65,6 +65,14 @@ def get_active_candidate_link(candidate):
 
     return button_html
 
+def get_ballot_link(ballot):
+    url = reverse('edit-ballot',
+                      args=[ballot.tally.id, ballot.id])
+    button_html =\
+        f'<a href="{url}" class="btn btn-default btn-small">Edit</a>'
+
+    return button_html
+
 
 def get_edit_user_link(user, is_tally=False, **kwargs):
     role = kwargs.get('role', 'user')
