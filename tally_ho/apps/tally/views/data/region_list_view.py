@@ -27,7 +27,7 @@ class RegionListDataView(LoginRequiredMixin,
     )
 
     def filter_queryset(self, qs):
-        keyword = self.request.GET.get('search[value]', None)
+        keyword = self.request.POST.get('search[value]', None)
         tally_id = self.kwargs.get('tally_id')
 
         qs = qs.filter(tally__id=tally_id)
