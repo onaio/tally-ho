@@ -75,8 +75,8 @@ class TestTallyListView(TestBase):
         view = views.TallyListDataView.as_view()
         request = self.factory.get('/')
         request.user = self.user
-        request.GET = request.GET.copy()
-        request.GET['search[value]'] = tally_1.name
+        request.POST = request.GET.copy()
+        request.POST['search[value]'] = tally_1.name
         response = view(request)
         data = json.loads(response.content.decode())['data']
         tally_id, tally_name, created_date, modified_formatted_date,\
@@ -108,8 +108,8 @@ class TestTallyListView(TestBase):
         view = views.TallyListDataView.as_view()
         request = self.factory.get('/')
         request.user = self.user
-        request.GET = request.GET.copy()
-        request.GET['search[value]'] = 'Invalid search text'
+        request.POST = request.GET.copy()
+        request.POST['search[value]'] = 'Invalid search text'
         response = view(request)
         json_data = json.loads(response.content.decode())
 
