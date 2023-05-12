@@ -221,7 +221,7 @@ class BulkCreateManager(object):
                 instances =\
                     self._commit(apps.get_model(model_name), objs=objs_list)
                 # Add the many to many fields
-                self._add_instances_many_to_many_fields(
+                self._set_many_to_many_fields_in_instances(
                     instances=instances,
                     many_to_many_fields=many_to_many_fields,
                     instance_unique_field=model_unique_field
