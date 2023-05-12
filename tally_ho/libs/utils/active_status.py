@@ -69,7 +69,7 @@ def disable_enable_ballot(ballot_id,
         ballot = Ballot.objects.get(id=ballot_id)
 
     except Ballot.DoesNotExist:
-        raise forms.ValidationError(_('Race does not exist'))
+        raise forms.ValidationError(_('Ballot does not exist'))
     else:
         if comment:
             Comment(text=comment, ballot=ballot, tally_id=tally_id).save()
