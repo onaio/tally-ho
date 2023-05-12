@@ -17,16 +17,13 @@ def forms_processed_per_hour(total_forms_processed, total_time_in_seconds):
     :returns: An Integer of forms processed per hour.
     """
     one_minute_in_seconds = 60
-    minutes = divmod(total_time_in_seconds, one_minute_in_seconds)[0]
-    hours = divmod(minutes, one_minute_in_seconds)[0]
-    forms_processed_per_hour = None
-
-    if round(hours):
-        forms_processed_per_hour = total_forms_processed/float(hours)
-
-    return forms_processed_per_hour\
-        if forms_processed_per_hour else total_forms_processed
-
+    one_hour_in_minutes = 60
+    one_hour_in_seconds = one_minute_in_seconds * one_hour_in_minutes
+    hours = (total_time_in_seconds / one_hour_in_seconds)
+    processed_forms_per_hour = total_forms_processed
+    if hours > 1:
+        processed_forms_per_hour = round(total_forms_processed / hours, 2)
+    return processed_forms_per_hour
 
 @register.filter(name="get_tally_name")
 def get_tally_name(tally_id):
