@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 import reversion
 
 from tally_ho.libs.models.base_model import BaseModel

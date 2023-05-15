@@ -1,5 +1,5 @@
 from django.core.exceptions import SuspiciousOperation
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 
 
 def session_matches_post_result_form(post_data, request):

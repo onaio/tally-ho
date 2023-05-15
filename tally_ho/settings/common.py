@@ -32,7 +32,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'django_nose',
     'guardian',
     'reversion',
     'tally_ho.apps.tally',
@@ -68,7 +67,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'tally',
         'USER': 'postgres',
-        'PASSWORD': 'tally',
+        'PASSWORD': 'postgres',
         'HOST': '127.0.0.1',
     }
 }
@@ -127,14 +126,14 @@ TEMPLATES = [
     },
 ]
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+# TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 SITE_ID = 1
 
-NOSE_ARGS = [
-    '--logging-level=INFO',
-    '--exclude=performance-tests',
-]
+# NOSE_ARGS = [
+#     '--logging-level=INFO',
+#     '--exclude=performance-tests',
+# ]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

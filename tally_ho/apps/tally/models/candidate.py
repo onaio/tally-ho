@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Q, Sum, Value as V
 from django.db.models.functions import Coalesce
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
 import reversion
 

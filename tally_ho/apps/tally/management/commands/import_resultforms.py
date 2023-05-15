@@ -3,7 +3,7 @@
 from optparse import make_option
 
 from django.core.management.base import BaseCommand
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 import tally_ho.apps.tally.management.commands.import_data as imp
 
@@ -11,7 +11,7 @@ RESULT_FORMS_PATH = 'data/new_result_forms.csv'
 
 
 class Command(imp.Command):
-    help = ugettext_lazy("Import polling data.")
+    help = gettext_lazy("Import polling data.")
     option_list = BaseCommand.option_list + (
         make_option('--result-forms-path'),
     )

@@ -3,7 +3,7 @@
 import csv
 
 from django.core.management.base import BaseCommand
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 from tally_ho.apps.tally.management.commands import import_data
 from tally_ho.apps.tally.models.center import Center
@@ -14,7 +14,7 @@ RESULT_FORMS_PATH = 'data/result_forms.csv'
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy('Check that the centers and stations assigned to '
+    help = gettext_lazy('Check that the centers and stations assigned to '
                          'result forms in the system match those in the raw '
                          'data.')
 

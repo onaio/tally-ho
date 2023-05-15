@@ -1,14 +1,13 @@
 import json
 
 from django.db.models import Q, Subquery, OuterRef, IntegerField, F
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from django.urls import reverse
 from django.http import JsonResponse
 from django.utils import timezone
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.ballot import Ballot
@@ -126,7 +125,7 @@ class FormListView(LoginRequiredMixin,
                 'center__code',
                 'ballot__race_type').order_by('barcode')
 
-            return render_to_csv_response(form_list)
+            pass
 
         return self.render_to_response(
             self.get_context_data(header_text=_('Form List'),
@@ -149,9 +148,9 @@ class FormNotReceivedListView(FormListView):
         language_de = get_datatables_language_de_from_locale(self.request)
 
         if format_ == 'csv':
-            form_list = ResultForm.forms_in_state(FormState.UNSUBMITTED,
+            ResultForm.forms_in_state(FormState.UNSUBMITTED,
                                                   tally_id=tally_id)
-            return render_to_csv_response(form_list)
+            pass
 
         return self.render_to_response(
             self.get_context_data(header_text=_('Forms Not Received'),

@@ -9,7 +9,7 @@ from django.forms import (
     CheckboxInput,
     CheckboxSelectMultiple,
 )
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.models.tally import Tally
