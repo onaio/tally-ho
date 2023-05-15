@@ -50,7 +50,7 @@ class VotesPerCandidateListDataView(LoginRequiredMixin,
             .values('candidate__full_name')\
             .annotate(total_votes_per_candidate=Sum('votes'))
 
-        keyword = self.request.GET.get('search[value]', None)
+        keyword = self.request.POST.get('search[value]')
 
         if keyword:
             qs = qs.filter(Q(candidate__full_name=keyword))

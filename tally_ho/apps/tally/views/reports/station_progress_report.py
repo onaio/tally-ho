@@ -41,7 +41,7 @@ class StationProgressListDataView(LoginRequiredMixin,
 
         qs = qs.filter(id__in=station_pks, tally__id=tally_id)
 
-        keyword = self.request.GET.get('search[value]', None)
+        keyword = self.request.POST.get('search[value]')
 
         if keyword:
             qs = qs.filter(Q(station_number__contains=keyword) |

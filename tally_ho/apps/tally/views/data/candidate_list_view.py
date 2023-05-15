@@ -46,7 +46,7 @@ class CandidateListDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
         office_id = self.kwargs.get('office_id')
-        keyword = self.request.GET.get('search[value]', None)
+        keyword = self.request.POST.get('search[value]')
 
         if tally_id:
             if office_id:

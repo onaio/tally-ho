@@ -55,9 +55,9 @@ class FormListDataView(LoginRequiredMixin,
             return super(FormListDataView, self).render_column(row, column)
 
     def filter_queryset(self, qs):
-        ballot_number = self.request.GET.get('ballot[value]', None)
+        ballot_number = self.request.POST.get('ballot[value]', None)
         tally_id = self.kwargs.get('tally_id')
-        keyword = self.request.GET.get('search[value]', None)
+        keyword = self.request.POST.get('search[value]')
         station_id_query =\
             Subquery(
                 Station.objects.filter(
@@ -166,7 +166,7 @@ class FormNotReceivedListView(FormListView):
 class FormNotReceivedDataView(FormListDataView):
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
-        keyword = self.request.GET.get('search[value]', None)
+        keyword = self.request.POST.get('search[value]')
         qs = ResultForm.forms_in_state(
             FormState.UNSUBMITTED,
             tally_id=tally_id)

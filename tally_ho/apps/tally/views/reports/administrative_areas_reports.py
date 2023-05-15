@@ -1484,7 +1484,7 @@ class TurnoutReportDataView(LoginRequiredMixin,
         region_id = self.kwargs.get('region_id')
         constituency_id = self.kwargs.get('constituency_id')
         data = self.request.POST.get('data')
-        keyword = self.request.GET.get('search[value]')
+        keyword = self.request.POST.get('search[value]')
 
         if data:
             qs = custom_queryset_filter(
@@ -1677,7 +1677,7 @@ class SummaryReportDataView(LoginRequiredMixin,
         region_id = self.kwargs.get('region_id')
         constituency_id = self.kwargs.get('constituency_id')
         data = self.request.POST.get('data')
-        keyword = self.request.GET.get('search[value]')
+        keyword = self.request.POST.get('search[value]')
 
         if data:
             qs = custom_queryset_filter(
@@ -1860,7 +1860,7 @@ class ProgressiveReportDataView(LoginRequiredMixin,
         region_id = self.kwargs.get('region_id')
         constituency_id = self.kwargs.get('constituency_id')
         data = self.request.POST.get('data')
-        keyword = self.request.GET.get('search[value]')
+        keyword = self.request.POST.get('search[value]')
         qs =\
             qs.filter(
                 result_form__tally__id=tally_id,
@@ -2115,7 +2115,7 @@ class DiscrepancyReportDataView(LoginRequiredMixin,
         region_id = self.kwargs.get('region_id')
         constituency_id = self.kwargs.get('constituency_id')
         data = self.request.POST.get('data')
-        keyword = self.request.GET.get('search[value]')
+        keyword = self.request.POST.get('search[value]')
         report_name = self.kwargs.get('report_name')
         stations_centers_under_process_audit =\
             report_types[3]
@@ -3130,7 +3130,7 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
         data = self.request.POST.get('data')
-        keyword = self.request.GET.get('search[value]')
+        keyword = self.request.POST.get('search[value]')
 
         qs =\
             qs.filter(
@@ -3206,7 +3206,7 @@ class DuplicateResultsListDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
         data = self.request.POST.get('data')
-        keyword = self.request.GET.get('search[value]')
+        keyword = self.request.POST.get('search[value]')
 
         qs = qs.filter(tally__id=tally_id, form_state=FormState.ARCHIVED)
 
@@ -3298,7 +3298,7 @@ class AllCandidatesVotesDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
         data = self.request.POST.get('data')
-        keyword = self.request.GET.get('search[value]')
+        keyword = self.request.POST.get('search[value]')
         qs = qs.values('ballot_number',
                        'stations',
                        'stations_completed',
@@ -3394,7 +3394,7 @@ class ActiveCandidatesVotesDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
         data = self.request.POST.get('data')
-        keyword = self.request.GET.get('search[value]')
+        keyword = self.request.POST.get('search[value]')
 
         qs = qs.values('ballot_number',
                        'stations',

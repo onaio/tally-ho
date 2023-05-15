@@ -41,7 +41,7 @@ class TallyListDataView(LoginRequiredMixin,
 
     def filter_queryset(self, qs):
         qs = qs.filter(active=True)
-        keyword = self.request.GET.get('search[value]', None)
+        keyword = self.request.POST.get('search[value]')
 
         if keyword:
             qs = qs.filter(Q(name__icontains=keyword))

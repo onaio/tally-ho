@@ -46,6 +46,7 @@ $(document).ready(function () {
     processing: true,
     serverSide,
     stateSave: true,
+    serverMethod: "post",
     ajax: LIST_JSON_URL,
     dom:
       "<'row'<'col-sm-1'B><'col-sm-6'l><'col-sm-5'f>>" +
