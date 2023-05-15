@@ -558,15 +558,18 @@ def results_queryset(
             data['select_1_ids'] if data.get('select_1_ids') else [0]
         selected_station_ids =\
             data['select_2_ids'] if data.get('select_2_ids') else [0]
-        race_type_names = data['race_type_names'] if data.get('race_type_names') else []
-        race_types = [race_type for race_type in RaceType if race_type.name in race_type_names]
+        race_type_names = data['race_type_names'] \
+            if data.get('race_type_names') else []
+        race_types = [race_type for race_type in RaceType
+                      if race_type.name in race_type_names]
         filter_in = data.get('filter_in')
         qs = qs \
             .annotate(station_ids=station_id_query)
 
         if filter_in:
             if race_types:
-                qs = qs.filter(Q(result_form__ballot__race_type__in=race_types))
+                qs = qs.filter(
+                    Q(result_form__ballot__race_type__in=race_types))
             qs_1 = qs \
                 .filter(
                 Q(result_form__center__id__in=selected_center_ids) &
@@ -583,7 +586,8 @@ def results_queryset(
 
         else:
             if race_types:
-                qs = qs.filter(~Q(result_form__ballot__race_type__in=race_types))
+                qs = qs.filter(
+                    ~Q(result_form__ballot__race_type__in=race_types))
             qs_1 = qs\
                 .filter(
                     ~Q(result_form__center__id__in=selected_center_ids) &
