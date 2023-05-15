@@ -51,15 +51,8 @@ class SubConstituency(BaseModel):
 
         :returns: The type of ballot that is used in this subconstituency.
         """
-        if self.ballot_women:
-            return _('Women')
-        elif self.ballot_general:
-            if self.ballot_component:
-                return _('General and Component')
-
-            return _('General')
-        elif self.ballot_presidential:
-            return _('Presidential')
+        if self.ballots:
+            return _(f'{self.ballots.electrol_race.type}')
         else:
             return _('Undefined')
 
@@ -68,15 +61,8 @@ class SubConstituency(BaseModel):
 
         :returns: The type of ballot that is used in this subconstituency.
         """
-        if self.ballot_women:
-            return self.ballot_women
-        elif self.ballot_general:
-            if self.ballot_component:
-                return self.ballot_component
-
-            return self.ballot_general
-        elif self.ballot_presidential:
-            return self.ballot_presidential
+        if self.ballots:
+            return self.ballots.electrol_race.type
         else:
             return None
 
