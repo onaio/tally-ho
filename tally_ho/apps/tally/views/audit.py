@@ -1,10 +1,9 @@
 import dateutil.parser
 from django.core.serializers.json import json, DjangoJSONEncoder
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
-from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.audit_form import AuditForm
@@ -175,7 +174,7 @@ class DashboardView(LoginRequiredMixin,
         form_list = forms_for_user(user_is_clerk, tally_id)
 
         if format_ == 'csv':
-            return render_to_csv_response(form_list)
+            pass
 
         forms = paging(form_list, self.request)
 

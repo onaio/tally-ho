@@ -4,7 +4,7 @@ from django.db.models import Sum, When, Case, Value as V
 from django.db.models.query import QuerySet
 from django.db.models.functions import Coalesce
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState

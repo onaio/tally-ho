@@ -3,7 +3,7 @@ import csv
 
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.user_profile import UserProfile
@@ -102,7 +102,7 @@ def create_user(first_name, last_name, username):
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy("Import staff list.")
+    help = gettext_lazy("Import staff list.")
 
     def handle(self, *args, **kwargs):
         self.import_staff_list()

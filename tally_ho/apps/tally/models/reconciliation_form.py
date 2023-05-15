@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Subquery, OuterRef, IntegerField
 from enumfields import EnumIntegerField
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import reversion
 
 from tally_ho.apps.tally.models.station import Station

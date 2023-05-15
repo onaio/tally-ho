@@ -7,7 +7,7 @@ from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from guardian.mixins import LoginRequiredMixin
 

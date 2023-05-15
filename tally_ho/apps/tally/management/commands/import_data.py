@@ -5,7 +5,7 @@ import csv
 import re
 
 from django.core.management.base import BaseCommand
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -516,7 +516,7 @@ def import_result_forms(command, tally=None, result_forms_file=None):
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy("Import polling data.")
+    help = gettext_lazy("Import polling data.")
 
     def handle(self, *args, **kwargs):
         self.stdout.write(self.style.NOTICE('creating groups'))
