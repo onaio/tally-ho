@@ -44,7 +44,7 @@ class CenterListDataView(LoginRequiredMixin,
     )
 
     def filter_queryset(self, qs):
-        keyword = self.request.POST.get('search[value]', None)
+        keyword = self.request.POST.get('search[value]')
         tally_id = self.kwargs.get('tally_id')
         region_id = self.kwargs.get('region_id')
         station_ids = self.request.session.get(

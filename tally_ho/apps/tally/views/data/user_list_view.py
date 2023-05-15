@@ -45,7 +45,7 @@ class UserListDataView(LoginRequiredMixin,
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
-        keyword = self.request.POST.get('search[value]', None)
+        keyword = self.request.POST.get('search[value]')
 
         if self.role == 'admin':
             qs = qs.filter(groups__name__exact=groups.SUPER_ADMINISTRATOR)
