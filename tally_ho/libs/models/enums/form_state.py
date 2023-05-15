@@ -30,7 +30,8 @@ class FormState(Enum):
     }
 
 
-# form state changes for happy path
+# form state progression excluding review stages form states
 form_state_shift_path = (
-    FormState.UNSUBMITTED, FormState.INTAKE, FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2, FormState.CORRECTION,
-    FormState.QUALITY_CONTROL, FormState.ARCHIVING, FormState.ARCHIVED)
+    FormState.UNSUBMITTED, FormState.INTAKE, FormState.DATA_ENTRY_1,
+    FormState.DATA_ENTRY_2,FormState.CORRECTION, FormState.QUALITY_CONTROL,
+    FormState.ARCHIVING, FormState.ARCHIVED)
