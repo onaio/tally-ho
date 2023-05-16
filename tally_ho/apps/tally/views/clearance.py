@@ -5,6 +5,7 @@ from django.views.generic import FormView, TemplateView
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -135,7 +136,7 @@ class DashboardView(LoginRequiredMixin,
             form_state=FormState.CLEARANCE, tally__id=tally_id)
 
         if format_ == 'csv':
-            pass
+            return render_to_csv_response(form_list)
 
         forms = paging(form_list, self.request)
 
