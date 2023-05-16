@@ -1,5 +1,6 @@
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from djqscsv import render_to_csv_response
 
 
 def get_edits_link(station):
@@ -121,4 +122,8 @@ def generate_csv_export(report_query_set, filename, header_map):
     returns: Generates a csv export file.
     """
 
-    pass
+    return render_to_csv_response(
+        report_query_set,
+        filename=filename,
+        append_datestamp=True,
+        field_header_map=header_map)

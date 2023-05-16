@@ -2,6 +2,7 @@ django==4.0.0
 django-datatables-view==1.20.0
 django-enumfields==2.1.1
 django-guardian==2.4.0
+django-queryset-csv==1.1.0
 django-reversion==5.0.4
 django-tracking2==0.5.1
 psycopg2-binary==2.8.6

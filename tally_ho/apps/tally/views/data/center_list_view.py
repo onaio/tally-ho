@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.views.generic import TemplateView
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.utils import timezone
@@ -126,8 +127,18 @@ class CenterListView(LoginRequiredMixin,
                 'percent_archived',
             ).order_by('center__code')
 
+            header_map = {
+                'center__office__name': 'office name',
+                'sub_constituency__code': 'subconstituency code',
+                'center__name': 'center name',
+                'center__code': 'center code',
+            }
 
-            pass
+
+            return render_to_csv_response(station_list,
+                                          filename='centers_and_station',
+                                          append_datestamp=True,
+                                          field_header_map=header_map)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('center-list-data', kwargs=kwargs),
