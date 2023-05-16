@@ -178,6 +178,8 @@ SESSION_VARS = [
     'encoded_result_form_qa_control_start_time',
 ]
 
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+
 # Quaritine trigger data
 QUARANTINE_DATA = [
     {'name': 'Trigger 1 - Guard against overvoting',
