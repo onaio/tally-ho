@@ -98,8 +98,7 @@ class FormListDataView(LoginRequiredMixin,
 
         if tally_id:
             qs = \
-                qs.filter(tally__id=tally_id) \
-                    .annotate(
+                qs.filter(tally__id=tally_id).annotate(
                     station_id=station_id_query,
                 )
 
