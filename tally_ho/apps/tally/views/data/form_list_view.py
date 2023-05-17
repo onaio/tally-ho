@@ -80,7 +80,7 @@ class FormListDataView(LoginRequiredMixin,
             if state_enum_key in FormState.__members__:
                 specified_form_state = FormState[state_enum_key]
                 # get forms whose form-states includes states that come before
-                # specified state, including the review stages
+                # specified state, including the review states
                 excluded_form_states = form_state_shift_path[
                         form_state_shift_path.index(specified_form_state):]
                 qs = qs.exclude(form_state__in=excluded_form_states)
