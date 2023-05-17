@@ -440,10 +440,11 @@ class FormProgressByFormStateView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-
+        language_de = get_datatables_language_de_from_locale(self.request)
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-progress-by-form-state-data',
                                kwargs={'tally_id': tally_id}),
+            languageDE=language_de,
             tally_id=tally_id))
 
 
@@ -710,7 +711,6 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                 processed_col, unprocessed_col = column
                 processed_count = row[processed_col]
                 unprocessed_count = row[unprocessed_col]
-                # import ipdb; ipdb.set_trace()
                 race_type = row["race_type"].name.lower()
                 # what should form state search param value be.
                 params = {race_type_query_param: race_type,
