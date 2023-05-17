@@ -12,3 +12,5 @@ pydot
 locust
 ruff
 pre-commit
+beautifulsoup4
+
