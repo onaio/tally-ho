@@ -33,7 +33,10 @@ from tally_ho.libs.tests.test_base import (
     create_station,
     create_tally,
     TestBase,
+    issue_369_result_forms_data_setup,
 )
+from bs4 import BeautifulSoup
+import json
 
 
 class TestSuperAdmin(TestBase):
@@ -1273,7 +1276,7 @@ class TestSuperAdmin(TestBase):
         result_form_2.reload()
         self.assertEqual(response.status_code, 302)
         self.assertIn(
-            "/super-administrator/duplicate-result-tracking",  response.url)
+            "/super-administrator/duplicate-result-tracking", response.url)
         self.assertTrue(result_form_1.duplicate_reviewed)
         self.assertTrue(result_form_2.duplicate_reviewed)
 
@@ -1305,7 +1308,7 @@ class TestSuperAdmin(TestBase):
         result_form.reload()
         self.assertEqual(response.status_code, 302)
         self.assertIn(
-            "/super-administrator/duplicate-result-tracking",  response.url)
+            "/super-administrator/duplicate-result-tracking", response.url)
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
         self.assertTrue(result_form.duplicate_reviewed)
 
@@ -1337,7 +1340,7 @@ class TestSuperAdmin(TestBase):
         self.assertNotEqual(result_form_2.form_state, FormState.CLEARANCE)
         self.assertEqual(result_form_2.form_state, FormState.ARCHIVED)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual("/",  response.url)
+        self.assertEqual("/", response.url)
 
     def test_duplicate_result_form_view_send_all_clearance_post(self):
         tally = create_tally()
@@ -1384,7 +1387,7 @@ class TestSuperAdmin(TestBase):
         result_form_2.reload()
         self.assertEqual(response.status_code, 302)
         self.assertIn(
-            "/super-administrator/duplicate-result-tracking",  response.url)
+            "/super-administrator/duplicate-result-tracking", response.url)
         self.assertEqual(result_form_1.form_state, FormState.CLEARANCE)
         self.assertTrue(result_form_1.duplicate_reviewed)
         self.assertEqual(result_form_2.form_state, FormState.CLEARANCE)
@@ -1452,9 +1455,9 @@ class TestSuperAdmin(TestBase):
         user_id = user.id
         request.user = self.user
         request.session = {}
-        request.META =\
+        request.META = \
             {'HTTP_REFERER':
-             f'super-admin/edit-user/{tally.id}/{user_id}/'}
+                 f'super-admin/edit-user/{tally.id}/{user_id}/'}
 
         response = view(
             request,
@@ -1476,3 +1479,100 @@ class TestSuperAdmin(TestBase):
         self.assertEquals(request.session['url_name'], 'user-list')
         self.assertEquals(request.session['url_param'], 'user')
         self.assertEquals(request.session['url_keyword'], 'role')
+
+    def test_view_result_forms_progress_by_form_state(self):
+        tally = issue_369_result_forms_data_setup(self.user)
+
+        view = views.FormProgressByFormStateView.as_view()
+        request = self.factory.get('/1/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, tally_id=tally.pk)
+
+        # check that the response template is correct.
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.template_name,
+                         ['super_admin/form_progress_by_form_state.html'])
+        self.assertEqual(response.context_data['tally_id'], tally.pk)
+
+        response = response.render()
+        doc = BeautifulSoup(response.content, "xml")
+        ths = [th.text for th in doc.findAll('th')]
+        self.assertListEqual(
+            ths,
+            ['Race Type', 'Total forms', 'Unsubmitted', 'Intake',
+             'Data Entry 1', 'Data Entry 2', 'Corrections',
+             'Quality Control', 'Archived','Clearance', 'Audit']
+        )
+
+    def test_view_result_forms_progress_by_form_state_data_view(self):
+        tally = issue_369_result_forms_data_setup(self.user)
+
+        view = views.FormProgressByFormStateDataView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, tally_id=tally.pk)
+
+        # check that the response template is correct.
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        data = content["data"]
+        first_row_first_record = data[0]
+        self.assertEqual(
+            first_row_first_record[0],
+            "<td class=\"center\">GENERAL</td>"
+        )
+        self.assertEqual(
+            first_row_first_record[1],
+            "<td class=\"center\">10</td>")
+        self.assertEqual(
+            first_row_first_record[2],
+            f"<td class=\"center\"><span>1 / "
+            f"<a href=/data/form-list/{tally.pk}/?"
+            "race_type=general&pending_in_form_state=unsubmitted>"
+            "2</a></span></td>")
+        self.assertEqual(
+            first_row_first_record[3],
+            f"<td class=\"center\"><span>1 / "
+            f"<a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_in_form_state=intake>3</a"
+            "></span></td>")
+        self.assertEqual(
+            first_row_first_record[4],
+            f"<td class=\"center\"><span>1 / "
+            f"<a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_in_form_state=data_entry_1>"
+            "4</a></span></td>")
+        self.assertEqual(
+            first_row_first_record[5],
+            f"<td class=\"center\"><span>1 / "
+            f"<a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_in_form_state=data_entry_2>"
+            "5</a></span></td>")
+        self.assertEqual(
+            first_row_first_record[6],
+            f"<td class=\"center\"><span>1 / "
+            f"<a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_in_form_state=correction>"
+            "6</a></span></td>")
+        self.assertEqual(
+            first_row_first_record[7],
+            f"<td class=\"center\"><span>1 / "
+            f"<a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_in_form_state=quality_control>"
+            "7</a></span></td>")
+        self.assertEqual(
+            first_row_first_record[8],
+            f"<td class=\"center\"><span>1 / "
+            f"<a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_in_form_state=archived>"
+            "9</a></span></td>")
+        self.assertEqual(
+            first_row_first_record[9],
+            "<td class=\"center\">1</td>")
+        self.assertEqual(
+            first_row_first_record[10],
+            "<td class=\"center\">1</td>")
