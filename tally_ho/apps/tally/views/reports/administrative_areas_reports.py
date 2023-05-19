@@ -7,8 +7,8 @@ from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.http import JsonResponse
 from guardian.mixins import LoginRequiredMixin
-from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper,\
-    IntegerField, CharField, Value as V, Subquery, OuterRef
+from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper, \
+    IntegerField, CharField, Value as V, Subquery, OuterRef, Func
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
@@ -25,10 +25,12 @@ from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.all_candidates_votes import AllCandidatesVotes
 from tally_ho.apps.tally.views.super_admin import (
     get_result_form_with_duplicate_results)
+from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale
 )
+from tally_ho.libs.utils.query_set_helpers import Round
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
@@ -68,6 +70,14 @@ def build_station_and_centers_list(tally_id):
                         'center__code'))
 
     return stations, centers
+
+def build_admin_areas_list(tally_id):
+    """
+    Create a list of regions, constituencies, and sub constituencies by tally id
+    :param tally_id: Tally-id.
+    returns: (regions, constituencies, sub_constituencies)
+    """
+
 
 
 def get_stations_and_centers_by_admin_area(
@@ -1417,6 +1427,7 @@ def get_results(request):
 
     returns: A JSON response of candidates results
     """
+    # TODO - how is this affected with the changes to turnout report.
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
     race_types = json.loads(request.GET.get('data')).get('race_types')
 
@@ -1468,163 +1479,188 @@ class TurnoutReportDataView(LoginRequiredMixin,
                             mixins.TallyAccessMixin,
                             BaseDatatableView):
     group_required = groups.TALLY_MANAGER
-    model = ReconciliationForm
-    columns = ('name',
-               'total_number_of_registrants',
-               'number_of_voters_voted',
+    model = Result
+    columns = ('admin_area',
+               'voters_voted',
+               'total_voters',
                'male_voters',
                'female_voters',
+               'unisex_voters',
                'turnout_percentage',
-               'constituencies_ids',
-               'sub_constituencies_ids',
-               'actions')
+               )
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
         region_id = self.kwargs.get('region_id')
         constituency_id = self.kwargs.get('constituency_id')
-        data = self.request.POST.get('data')
+        # data = self.request.POST.get('data')
         keyword = self.request.POST.get('search[value]')
 
-        if data:
-            qs = custom_queryset_filter(
-                        tally_id,
-                        qs,
-                        ast.literal_eval(data),
-                        report_type='turnout',
-                        region_id=region_id,
-                        constituency_id=constituency_id)
-        else:
-            qs =\
-                custom_queryset_filter(
-                    tally_id,
-                    qs,
-                    report_type='turnout',
-                    region_id=region_id,
-                    constituency_id=constituency_id)
+        admin_area_column_name = 'result_form__center__region'
 
-        if keyword:
-            qs = qs.filter(Q(name__contains=keyword) |
-                           Q(total_number_of_registrants__contains=keyword) |
-                           Q(number_of_voters_voted__contains=keyword) |
-                           Q(male_voters__contains=keyword) |
-                           Q(female_voters__contains=keyword) |
-                           Q(turnout_percentage__contains=keyword))
+        qs = qs.filter(
+            result_form__tally=tally_id,
+            result_form__form_state=FormState.ARCHIVED,
+            entry_version=EntryVersion.FINAL,
+            # result_form__center__region__in=processed_region_names
+        ).annotate(
+            admin_area=F(admin_area_column_name)
+        ).values('admin_area').annotate(
+            voters_voted=Sum('votes'),
+            total_voters=Sum(
+                Func(F('result_form__center__stations__registrants'), function='DISTINCT')
+            ),
+            male_voters=Sum(
+                Func(F('result_form__center__stations__registrants'), function='DISTINCT'),
+                filter=Q(result_form__center__stations__gender=Gender.MALE)
+            ),
+            unisex_voters=Sum(
+                Func(F('result_form__center__stations__registrants'), function='DISTINCT'),
+                filter=Q(result_form__center__stations__gender=Gender.UNISEX)
+            ),
+            female_voters=Sum(
+                Func(F('result_form__center__stations__registrants'), function='DISTINCT'),
+                filter=Q(result_form__center__stations__gender=Gender.FEMALE)
+            ),
+            turnout_percentage=Round(
+                V(100.00) * F('voters_voted') / F('total_voters'),
+                digits=2
+            )
+        )
+
+        # if keyword:
+        #     qs = qs.filter(Q(name__contains=keyword) |
+        #                    Q(total_number_of_registrants__contains=keyword) |
+        #                    Q(number_of_voters_voted__contains=keyword) |
+        #                    Q(male_voters__contains=keyword) |
+        #                    Q(female_voters__contains=keyword) |
+        #                    Q(turnout_percentage__contains=keyword))
         return qs
 
     def render_column(self, row, column):
-        tally_id = self.kwargs.get('tally_id')
-        region_id = self.kwargs.get('region_id')
-        constituency_id = self.kwargs.get('constituency_id')
-        data = self.request.POST.get('data')
-        administrative_area_child_report_name = _(u'Region Constituencies')
-        url =\
-            reverse('constituency-turnout-report',
-                    kwargs={'tally_id': tally_id,
-                            'region_id': row['region_id']})
-
-        if region_id:
-            administrative_area_child_report_name = _(u'Sub Constituencies')
-            url =\
-                reverse('sub-constituency-turnout-report',
-                        kwargs={'tally_id': tally_id,
-                                'region_id': row['region_id'],
-                                'constituency_id': row['constituency_id']})
-
-        if column == 'name':
+        if column in self.columns:
+            col_value = row[column]
+            if column == "turnout_percentage":
+                col_value = f"{col_value}%"
             return str('<td class="center">'
-                       f'{row["name"]}</td>')
-        elif column == 'total_number_of_registrants':
-            total_number_of_registrants =\
-                row["total_number_of_registrants"]\
-                if row["total_number_of_registrants"] is not None else 0
-            return str('<td class="center">'
-                       f'{total_number_of_registrants}</td>')
-        elif column == 'number_of_voters_voted':
-            return str('<td class="center">'
-                       f'{row["number_of_voters_voted"]}</td>')
-        elif column == 'male_voters':
-            return str('<td class="center">'
-                       f'{row["male_voters"]}</td>')
-        elif column == 'female_voters':
-            return str('<td class="center">'
-                       f'{row["female_voters"]}</td>')
-        elif column == 'turnout_percentage':
-            return str('<td class="center">'
-                       f'{row["turnout_percentage"]}%</td>')
-        elif column == 'constituencies_ids':
-            disabled = 'disabled' if region_id else ''
-            region_cons_ids = []
-            qs = Constituency.objects.filter(
-                tally__id=tally_id,
-                id__in=row['constituencies_ids'])\
-                .values_list('id', 'name', named=True)
-            if data:
-                region_cons_data =\
-                    [item for item in ast.literal_eval(
-                        data) if ast.literal_eval(item['region_id']) ==
-                        row["admin_area_id"]]
-                region_cons_ids = region_cons_data[0]['select_1_ids']
-            constituencies =\
-                build_select_options(qs, ids=region_cons_ids)
-            return str('<td class="center">'
-                       '<select style="min-width: 6em;"'
-                       f'{disabled}'
-                       ' id="select-1" multiple'
-                       ' data-id='f'{row["admin_area_id"]}''>'
-                       f'{constituencies}'
-                       '</select>'
-                       '</td>')
-        elif column == 'sub_constituencies_ids':
-            disabled = 'disabled' if constituency_id else ''
-            region_sub_cons_ids = []
-            qs =\
-                SubConstituency.objects.annotate(
-                    name=F('code')).filter(
-                    tally__id=tally_id,
-                    id__in=row['sub_constituencies_ids'])\
-                .values_list('id', 'name', named=True)
-            if data:
-                region_sub_cons_data =\
-                    [item for item in ast.literal_eval(
-                        data)
-                        if ast.literal_eval(item['region_id']) ==
-                        row["admin_area_id"]]
-                region_sub_cons_ids =\
-                    region_sub_cons_data[0]['select_2_ids']
-
-            sub_constituencies =\
-                build_select_options(
-                    qs, ids=region_sub_cons_ids)
-            return str('<td class="center">'
-                       '<select style="min-width: 6em;"'
-                       f'{disabled}'
-                       ' id="select-2" multiple'
-                       ' data-id='f'{row["admin_area_id"]}''>'
-                       f'{sub_constituencies}'
-                       '</select>'
-                       '</td>')
-        elif column == 'actions':
-            if constituency_id:
-                return str(
-                    '<button id="filter-report" disabled '
-                    'class="btn btn-default btn-small">Submit</button>')
-            return str('<a href='f'{url}'
-                       ' class="btn btn-default btn-small vertical-margin"> '
-                       f'{administrative_area_child_report_name}'
-                       '</a>'
-                       '<button id="filter-report" '
-                       'class="btn btn-default btn-small">Submit</button>')
+                       f'{col_value}</td>')
         else:
             return super(
                 TurnoutReportDataView, self).render_column(row, column)
+
+        # tally_id = self.kwargs.get('tally_id')
+        # region_id = self.kwargs.get('region_id')
+        # constituency_id = self.kwargs.get('constituency_id')
+        # data = self.request.POST.get('data')
+        # administrative_area_child_report_name = _(u'Region Constituencies')
+        #
+        # url =\
+        #     reverse('constituency-turnout-report',
+        #             kwargs={'tally_id': tally_id,
+        #                     'region_id': row['region_id']})
+        #
+        # if region_id:
+        #     administrative_area_child_report_name = _(u'Sub Constituencies')
+        #     url =\
+        #         reverse('sub-constituency-turnout-report',
+        #                 kwargs={'tally_id': tally_id,
+        #                         'region_id': row['region_id'],
+        #                         'constituency_id': row['constituency_id']})
+        #
+        # if column == 'name':
+        #     return str('<td class="center">'
+        #                f'{row["name"]}</td>')
+        # elif column == 'total_number_of_registrants':
+        #     total_number_of_registrants =\
+        #         row["total_number_of_registrants"]\
+        #         if row["total_number_of_registrants"] is not None else 0
+        #     return str('<td class="center">'
+        #                f'{total_number_of_registrants}</td>')
+        # elif column == 'number_of_voters_voted':
+        #     return str('<td class="center">'
+        #                f'{row["number_of_voters_voted"]}</td>')
+        # elif column == 'male_voters':
+        #     return str('<td class="center">'
+        #                f'{row["male_voters"]}</td>')
+        # elif column == 'female_voters':
+        #     return str('<td class="center">'
+        #                f'{row["female_voters"]}</td>')
+        # elif column == 'turnout_percentage':
+        #     return str('<td class="center">'
+        #                f'{row["turnout_percentage"]}%</td>')
+        # elif column == 'constituencies_ids':
+        #     disabled = 'disabled' if region_id else ''
+        #     region_cons_ids = []
+        #     qs = Constituency.objects.filter(
+        #         tally__id=tally_id,
+        #         id__in=row['constituencies_ids'])\
+        #         .values_list('id', 'name', named=True)
+        #     if data:
+        #         region_cons_data =\
+        #             [item for item in ast.literal_eval(
+        #                 data) if ast.literal_eval(item['region_id']) ==
+        #                 row["admin_area_id"]]
+        #         region_cons_ids = region_cons_data[0]['select_1_ids']
+        #     constituencies =\
+        #         build_select_options(qs, ids=region_cons_ids)
+        #     return str('<td class="center">'
+        #                '<select style="min-width: 6em;"'
+        #                f'{disabled}'
+        #                ' id="select-1" multiple'
+        #                ' data-id='f'{row["admin_area_id"]}''>'
+        #                f'{constituencies}'
+        #                '</select>'
+        #                '</td>')
+        # elif column == 'sub_constituencies_ids':
+        #     disabled = 'disabled' if constituency_id else ''
+        #     region_sub_cons_ids = []
+        #     qs =\
+        #         SubConstituency.objects.annotate(
+        #             name=F('code')).filter(
+        #             tally__id=tally_id,
+        #             id__in=row['sub_constituencies_ids'])\
+        #         .values_list('id', 'name', named=True)
+        #     if data:
+        #         region_sub_cons_data =\
+        #             [item for item in ast.literal_eval(
+        #                 data)
+        #                 if ast.literal_eval(item['region_id']) ==
+        #                 row["admin_area_id"]]
+        #         region_sub_cons_ids =\
+        #             region_sub_cons_data[0]['select_2_ids']
+        #
+        #     sub_constituencies =\
+        #         build_select_options(
+        #             qs, ids=region_sub_cons_ids)
+        #     return str('<td class="center">'
+        #                '<select style="min-width: 6em;"'
+        #                f'{disabled}'
+        #                ' id="select-2" multiple'
+        #                ' data-id='f'{row["admin_area_id"]}''>'
+        #                f'{sub_constituencies}'
+        #                '</select>'
+        #                '</td>')
+        # elif column == 'actions':
+        #     if constituency_id:
+        #         return str(
+        #             '<button id="filter-report" disabled '
+        #             'class="btn btn-default btn-small">Submit</button>')
+        #     return str('<a href='f'{url}'
+        #                ' class="btn btn-default btn-small vertical-margin"> '
+        #                f'{administrative_area_child_report_name}'
+        #                '</a>'
+        #                '<button id="filter-report" '
+        #                'class="btn btn-default btn-small">Submit</button>')
+        # else:
+        #     return super(
+        #         TurnoutReportDataView, self).render_column(row, column)
 
 
 class TurnOutReportView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
                         TemplateView):
     group_required = groups.TALLY_MANAGER
-    model = ReconciliationForm
+    model = Result
     template_name = 'reports/turnout_report.html'
 
     def get(self, request, *args, **kwargs):

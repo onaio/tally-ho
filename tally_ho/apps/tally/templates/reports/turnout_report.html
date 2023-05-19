@@ -8,6 +8,7 @@
 <link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
 {% endblock %}
 
 {% block javascript %}
@@ -32,21 +33,59 @@
 {% endif %}
 
 <table id="report" class="display datatable">
+    <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans  'Regions' %}</p>
+      <select class="selectpicker" id="regions-select" name="report-length" aria-controls="report" multiple data-actions-box="true" title="Select Region">
+        {% for region in regions %}
+          <option value={{region.name}}>{{region.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Constituencies' %}</p>
+      <select class="selectpicker" id="constituencies-select" name="constituencies-select" aria-controls="report" multiple data-actions-box="true" title="Select Constituencies">
+        {% for constituency in constituencies %}
+          <option value={{constituency.id}}>{{constituency.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Sub Constituencies' %}</p>
+      <select class="selectpicker sub_constituencies" id="sub_constituencies" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Sub Constituencies">
+        {% for sub_constituency in sub_constituencies %}
+          <option value={{sub_constituency.id}}>{{sub_constituency.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <div class="card">
+        <div class="card-body">
+             <p class="card-text" style="text-align: left;">&nbsp;</p>
+          <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">{% trans 'Reset' %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</caption>
     <thead>
         <tr>
-          {% if constituency_name %}
-            <th>{% trans 'Code' %}</th>
-          {% else %}
-            <th>{% trans 'Name' %}</th>
-          {% endif %}
+<!--          {% if constituency_name %}-->
+<!--            <th>{% trans 'Code' %}</th>-->
+<!--          {% else %}-->
+<!--            <th>{% trans 'Name' %}</th>-->
+<!--          {% endif %}-->
+            <th>{% trans 'Administrative areas' %}</th>
           <th>{% trans 'Total voters' %}</th>
           <th>{% trans 'Voters voted' %}</th>
           <th>{% trans 'Male voters' %}</th>
           <th>{% trans 'Female voters' %}</th>
+          <th>{% trans 'Unisex voters' %}</th>
           <th>{% trans 'Turnout percentage' %}</th>
-          <th class="hide-from-export">{% trans 'Constituencies' %}</th>
-          <th class="hide-from-export">{% trans 'Sub Constituencies' %}</th>
-          <th class="hide-from-export">{% trans 'Actions' %}</th>
+<!--          <th class="hide-from-export">{% trans 'Constituencies' %}</th>-->
+<!--          <th class="hide-from-export">{% trans 'Sub Constituencies' %}</th>-->
+<!--          <th class="hide-from-export">{% trans 'Actions' %}</th>-->
         </tr>
     </thead>
     <tbody></tbody>
