@@ -49,7 +49,8 @@ from tally_ho.libs.models.enums.audit_resolution import \
     AuditResolution
 from tally_ho.libs.models.enums.form_state import (
     FormState,
-    form_state_shift_path
+    states_transitions_after_result_form_state,
+    states_transitions_before_result_form_state
 )
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
@@ -666,7 +667,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     columns = (
         'race_type',
         'total_forms',
-        ('unsubmitted', 'unsubmitted_unprocessed'),
+        ('unsubmitted'),
         ('intake', 'intake_unprocessed'),
         ('data_entry_1', 'data_entry_1_unprocessed'),
         ('data_entry_2', 'data_entry_2_unprocessed'),
@@ -682,19 +683,27 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
         count_by_form_state_queries = {}
         for state in FormState:
             if isinstance(state.value, int):
-                count_by_form_state_queries[state.name.lower()] \
-                    = Count('barcode', filter=Q(form_state=state))
-        # to check unprocessed - forms that are neither in a given state nor
-        # any other state after the given state. when considering the form
-        # progression on the happy path (excludes forms that are in audits,
-        # clearance)
-        for idx, state in enumerate(form_state_shift_path):
-            unprocessed_states = form_state_shift_path[idx:]
-            count_by_form_state_queries[f"{state.name.lower()}_unprocessed"]\
-                = Count('barcode', filter=~Q(
-                            form_state__in=unprocessed_states)
-                        )
+                processed_states = states_transitions_after_result_form_state(
+                    state)
+                if state in\
+                    [
+                    FormState.ARCHIVED,
+                    FormState.UNSUBMITTED,
+                    FormState.AUDIT,
+                    FormState.CLEARANCE]:
+                    processed_states.append(state)
 
+                count_by_form_state_queries[state.name.lower()]\
+                    = Count('barcode', filter=Q(
+                                form_state__in=processed_states)
+                            )
+                unprocessed_states =\
+                    states_transitions_before_result_form_state(state)
+                count_by_form_state_queries[
+                    f"{state.name.lower()}_unprocessed"]\
+                    = Count('barcode', filter=Q(
+                                form_state__in=unprocessed_states)
+                            )
         qs = qs.filter(
             tally__id=tally_id).annotate(
             race_type=F("ballot__race_type__name")).values('race_type')\
