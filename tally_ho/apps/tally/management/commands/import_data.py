@@ -203,6 +203,51 @@ def create_electrol_races_from_ballot_file_data(
         if logger:
             logger.warning(msg)
 
+def create_ballots_from_ballot_file_data(
+        duckdb_ballots_data=None,
+        electrol_races=None,
+        tally=None,
+        command=None,
+        logger=None,
+):
+    """Create ballots from ballot file data inside duckdb.
+
+    :param duckdb_ballots_data: Ballot file data in duckdb format.
+    :param electrol_races: Tally electrol races queryset.
+    :param tally: tally queryset.
+    :param command: stdout command.
+    :param logger: logger.
+    :returns: Ballots queryset."""
+    try:
+        bulk_mgr = BulkCreateManager(
+            objs_count=len(duckdb_ballots_data.distinct().fetchall()))
+
+        for electrol_race in electrol_races:
+            str_query =\
+                f"election_level = '{electrol_race.election_level}' AND" +\
+                f" ballot_name = '{electrol_race.ballot_name}'"
+            ballot_numbers =\
+                duckdb_ballots_data.filter(
+                    str_query).project('number').fetchall()
+            for ballot_number_tuple in ballot_numbers:
+                # TODO: Some ballot numbers in string format we need to
+                # fiqure out how they should be handled here.
+                ballot_number = parse_int(ballot_number_tuple[0])
+                if ballot_number:
+                    bulk_mgr.add(Ballot(
+                                    number=ballot_number[0],
+                                    electrol_race=electrol_race,
+                                    tally=tally))
+        bulk_mgr.done()
+
+        return Ballot.objects.filter(tally=tally)
+    except Exception as e:
+        msg = 'Failed to create ballots, error: %s' % e
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
 def create_ballots_from_sub_con_data(
         duckdb_sub_con_data=None,
         sub_con_data_count=None,
