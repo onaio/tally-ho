@@ -73,7 +73,6 @@ def processed_states_at_state(form_state):
     return ret_val
 
 
-# form states that are before and in the current result form state
 def un_processed_states_at_state(form_state):
     """
     If  a form is has one of the returned states then it would be considered
