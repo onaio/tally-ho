@@ -235,7 +235,7 @@ def create_ballots_from_ballot_file_data(
                 ballot_number = parse_int(ballot_number_tuple[0])
                 if ballot_number:
                     bulk_mgr.add(Ballot(
-                                    number=ballot_number[0],
+                                    number=ballot_number,
                                     electrol_race=electrol_race,
                                     tally=tally))
         bulk_mgr.done()
