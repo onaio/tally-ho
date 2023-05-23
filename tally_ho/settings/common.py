@@ -338,6 +338,11 @@ ELECTROL_RACES = [
     },
 ]
 
+ELECTROL_RACES_COLUMNS_IN_BALLOT_FILE = [
+    'election_level',
+    'ballot_name'
+]
+
 SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
                                  'field_office',
                                  'races',
