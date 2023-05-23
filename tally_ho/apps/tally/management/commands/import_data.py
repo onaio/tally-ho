@@ -178,7 +178,7 @@ def create_electrol_races_from_ballot_file_data(
     :param tally: Electrol races tally.
     :param command: stdout command.
     :param logger: logger.
-    :returns: Electrol races queryset."""
+    :returns: None"""
     try:
         electrol_races_columns =\
             getattr(settings, 'ELECTROL_RACES_COLUMNS_IN_BALLOT_FILE')
@@ -195,7 +195,7 @@ def create_electrol_races_from_ballot_file_data(
                             tally=tally))
         bulk_mgr.done()
 
-        return ElectrolRace.objects.filter(tally=tally)
+        return
     except Exception as e:
         msg = 'Failed to create electrol races, error: %s' % e
         if command:
@@ -217,7 +217,7 @@ def create_ballots_from_ballot_file_data(
     :param tally: tally queryset.
     :param command: stdout command.
     :param logger: logger.
-    :returns: Ballots queryset."""
+    :returns: None."""
     try:
         bulk_mgr = BulkCreateManager(
             objs_count=len(duckdb_ballots_data.distinct().fetchall()))
@@ -240,7 +240,7 @@ def create_ballots_from_ballot_file_data(
                                     tally=tally))
         bulk_mgr.done()
 
-        return Ballot.objects.filter(tally=tally)
+        return
     except Exception as e:
         msg = 'Failed to create ballots, error: %s' % e
         if command:
