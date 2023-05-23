@@ -248,6 +248,43 @@ def create_ballots_from_ballot_file_data(
         if logger:
             logger.warning(msg)
 
+def import_electrol_races_and_ballots(
+        tally=None,
+        ballots_file_path=None,
+        command=None,
+        logger=None):
+    """Create electrol races and ballots from a ballots csv file.
+
+    :param tally: tally queryset.
+    :param ballots_file_path: ballots csv file path.
+    :param command: stdout command.
+    :param logger: logger.
+    :returns: Ballots count."""
+    try:
+        file_path = ballots_file_path or SUB_CONSTITUENCIES_PATH
+        ballots_data = duckdb.from_csv_auto(file_path, header=True)
+        electrol_races = create_electrol_races_from_ballot_file_data(
+            duckdb_ballots_data=ballots_data,
+            tally=tally,
+            command=command,
+            logger=logger,
+        )
+        ballots = create_ballots_from_ballot_file_data(
+            duckdb_ballots_data=ballots_data,
+            electrol_races=electrol_races,
+            tally=tally,
+            command=command,
+            logger=logger,
+        )
+
+        return ballots.count()
+    except Exception as e:
+        msg = 'Error occured while trying to create ballots: %s' % e
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
 def create_ballots_from_sub_con_data(
         duckdb_sub_con_data=None,
         sub_con_data_count=None,
