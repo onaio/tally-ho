@@ -1530,46 +1530,46 @@ class TestSuperAdmin(TestBase):
             "<td class=\"center\">10</td>")
         self.assertEqual(
             first_row_first_record[2],
-            f"<td class=\"center\"><span>1 / "
+            f"<td class=\"center\"><span>"
             f"<a href=/data/form-list/{tally.pk}/?"
-            "race_type=general&pending_in_form_state=unsubmitted>"
-            "2</a></span></td>")
+            "race_type=general&at_form_state=unsubmitted>"
+            "1</a></span></td>")
         self.assertEqual(
             first_row_first_record[3],
-            f"<td class=\"center\"><span>1 / "
+            f"<td class=\"center\"><span>5 / "
             f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_in_form_state=intake>3</a"
+            "?race_type=general&pending_at_form_state=intake>4</a"
             "></span></td>")
         self.assertEqual(
             first_row_first_record[4],
-            f"<td class=\"center\"><span>1 / "
+            f"<td class=\"center\"><span>4 / "
             f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_in_form_state=data_entry_1>"
-            "4</a></span></td>")
-        self.assertEqual(
-            first_row_first_record[5],
-            f"<td class=\"center\"><span>1 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_in_form_state=data_entry_2>"
+            "?race_type=general&pending_at_form_state=data_entry_1>"
             "5</a></span></td>")
         self.assertEqual(
-            first_row_first_record[6],
-            f"<td class=\"center\"><span>1 / "
+            first_row_first_record[5],
+            f"<td class=\"center\"><span>3 / "
             f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_in_form_state=correction>"
+            "?race_type=general&pending_at_form_state=data_entry_2>"
             "6</a></span></td>")
+        self.assertEqual(
+            first_row_first_record[6],
+            f"<td class=\"center\"><span>2 / "
+            f"<a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_at_form_state=correction>"
+            "7</a></span></td>")
         self.assertEqual(
             first_row_first_record[7],
             f"<td class=\"center\"><span>1 / "
             f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_in_form_state=quality_control>"
-            "7</a></span></td>")
+            "?race_type=general&pending_at_form_state=quality_control>"
+            "8</a></span></td>")
         self.assertEqual(
             first_row_first_record[8],
             f"<td class=\"center\"><span>1 / "
             f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_in_form_state=archived>"
-            "9</a></span></td>")
+            "?race_type=general&pending_at_form_state=archived>"
+            "8</a></span></td>")
         self.assertEqual(
             first_row_first_record[9],
             "<td class=\"center\">1</td>")

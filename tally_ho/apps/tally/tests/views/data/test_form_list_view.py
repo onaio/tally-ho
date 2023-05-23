@@ -2,7 +2,7 @@ from django.test import RequestFactory
 
 from tally_ho.apps.tally.views.constants import (
     race_type_query_param,
-    form_state_query_param
+    pending_at_state_query_param
 )
 from tally_ho.apps.tally.views.data import form_list_view as views
 from tally_ho.libs.permissions import groups
@@ -73,7 +73,7 @@ class TestFormListView(TestBase):
 
         view = views.FormListView.as_view()
         request = self.factory.get(
-            f'/1/?{race_type_query_param}=presidential&{form_state_query_param}=data_entry_1'
+            f'/1/?{pending_at_state_query_param}=data_entry_1&{race_type_query_param}=presidential'
         )
         request.user = self.user
         request.session = {}
@@ -83,5 +83,5 @@ class TestFormListView(TestBase):
         self.assertEqual(
             response.context_data['remote_url'],
             f"/data/form-list-data/{tally.pk}/?"
-            "pending_in_form_state=data_entry_1&race_type=presidential")
+            "pending_at_form_state=data_entry_1&race_type=presidential")
         self.assertListEqual(response.template_name, ['data/forms.html'])
