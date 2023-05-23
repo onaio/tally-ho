@@ -263,19 +263,22 @@ def import_electrol_races_and_ballots(
     try:
         file_path = ballots_file_path or SUB_CONSTITUENCIES_PATH
         ballots_data = duckdb.from_csv_auto(file_path, header=True)
-        electrol_races = create_electrol_races_from_ballot_file_data(
+        create_electrol_races_from_ballot_file_data(
             duckdb_ballots_data=ballots_data,
             tally=tally,
             command=command,
             logger=logger,
         )
-        ballots = create_ballots_from_ballot_file_data(
+        electrol_races = ElectrolRace.objects.filter(tally=tally)
+
+        create_ballots_from_ballot_file_data(
             duckdb_ballots_data=ballots_data,
             electrol_races=electrol_races,
             tally=tally,
             command=command,
             logger=logger,
         )
+        ballots = Ballot.objects.filter(tally=tally)
 
         return ballots.count()
     except Exception as e:
