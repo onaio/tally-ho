@@ -43,14 +43,12 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views.constants import (
     race_type_query_param,
-    form_state_query_param
+    pending_at_state_query_param, at_state_query_param
 )
 from tally_ho.libs.models.enums.audit_resolution import \
     AuditResolution
 from tally_ho.libs.models.enums.form_state import (
-    FormState,
-    states_transitions_after_result_form_state,
-    states_transitions_before_result_form_state
+    FormState, processed_states_at_state, un_processed_states_at_state
 )
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
@@ -667,7 +665,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     columns = (
         'race_type',
         'total_forms',
-        ('unsubmitted'),
+        'unsubmitted',
         ('intake', 'intake_unprocessed'),
         ('data_entry_1', 'data_entry_1_unprocessed'),
         ('data_entry_2', 'data_entry_2_unprocessed'),
@@ -681,34 +679,25 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
         count_by_form_state_queries = {}
-        for state in FormState:
-            if isinstance(state.value, int):
-                processed_states = states_transitions_after_result_form_state(
-                    state)
-                if state in\
-                    [
-                    FormState.ARCHIVED,
-                    FormState.UNSUBMITTED,
-                    FormState.AUDIT,
-                    FormState.CLEARANCE]:
-                    processed_states.append(state)
-
-                count_by_form_state_queries[state.name.lower()]\
+        # import ipdb; ipdb.set_trace()
+        for state in FormState.__publicMembers__():
+            processed_states = processed_states_at_state(state)
+            unprocessed_states = un_processed_states_at_state(state)
+            if processed_states:
+                count_by_form_state_queries[state.name.lower()] \
                     = Count('barcode', filter=Q(
-                                form_state__in=processed_states)
-                            )
-                unprocessed_states =\
-                    states_transitions_before_result_form_state(state)
+                        form_state__in=processed_states)
+                        )
+            if unprocessed_states:
                 count_by_form_state_queries[
-                    f"{state.name.lower()}_unprocessed"]\
-                    = Count('barcode', filter=Q(
-                                form_state__in=unprocessed_states)
-                            )
+                    f"{state.name.lower()}_unprocessed"] = Count(
+                    'barcode', filter=Q(form_state__in=unprocessed_states))
+
         qs = qs.filter(
             tally__id=tally_id).annotate(
-            race_type=F("ballot__race_type__name")).values('race_type')\
+            race_type=F("ballot__race_type__name")).values('race_type') \
             .annotate(
-                total_forms=Count("race_type"),
+            total_forms=Count("race_type"),
             **count_by_form_state_queries)
         return qs
 
@@ -716,13 +705,25 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         if column in self.columns:
             column_val = None
-            if isinstance(column, tuple):
+            race_type = row["race_type"].name.lower()
+            if column == "unsubmitted":
+                params = {race_type_query_param: race_type,
+                          at_state_query_param: column}
+                query_param_string = urlencode(params)
+                remote_data_url = reverse(
+                    'form-list',
+                    kwargs={'tally_id': tally_id})
+                if query_param_string:
+                    remote_data_url = f"{remote_data_url}?{query_param_string}"
+                column_val = str('<span>'
+                                 f'<a href={remote_data_url}>'
+                                 f'{row[column]}</a></span>')
+            elif isinstance(column, tuple) and len(column) == 2:
                 processed_col, unprocessed_col = column
                 processed_count = row[processed_col]
                 unprocessed_count = row[unprocessed_col]
-                race_type = row["race_type"].name.lower()
                 params = {race_type_query_param: race_type,
-                          form_state_query_param: column[0]}
+                          pending_at_state_query_param: column[0]}
                 query_param_string = urlencode(params)
                 remote_data_url = reverse(
                     'form-list',
