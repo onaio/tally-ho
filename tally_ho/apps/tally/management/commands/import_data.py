@@ -166,6 +166,43 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
         if logger:
             logger.warning(msg)
 
+def create_electrol_races_from_ballot_file_data(
+        duckdb_ballots_data=None,
+        tally=None,
+        command=None,
+        logger=None,
+):
+    """Create electrol races from ballot file data inside duckdb.
+
+    :param duckdb_ballots_data: Ballot file data in duckdb format.
+    :param tally: Electrol races tally.
+    :param command: stdout command.
+    :param logger: logger.
+    :returns: Electrol races queryset."""
+    try:
+        electrol_races_columns =\
+            getattr(settings, 'ELECTROL_RACES_COLUMNS_IN_BALLOT_FILE')
+        electrol_races_data =\
+            duckdb_ballots_data.project(
+            ','.join(electrol_races_columns)).distinct().fetchall()
+        bulk_mgr = BulkCreateManager(objs_count=len(electrol_races_data))
+
+        for electrol_race in electrol_races_data:
+            election_level, ballot_name = electrol_race
+            bulk_mgr.add(ElectrolRace(
+                            election_level=election_level,
+                            ballot_name=ballot_name,
+                            tally=tally))
+        bulk_mgr.done()
+
+        return ElectrolRace.objects.filter(tally=tally)
+    except Exception as e:
+        msg = 'Failed to create electrol races, error: %s' % e
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
 def create_ballots_from_sub_con_data(
         duckdb_sub_con_data=None,
         sub_con_data_count=None,
