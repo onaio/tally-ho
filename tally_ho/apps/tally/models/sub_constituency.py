@@ -28,7 +28,7 @@ class SubConstituency(BaseModel):
                                      blank=True,
                                      related_name='ballots')
     code = models.PositiveSmallIntegerField()  # aka SubCon number
-    field_office = models.CharField(max_length=256)
+    field_office = models.CharField(max_length=256, null=True)
     number_of_ballots = models.PositiveSmallIntegerField(null=True)
     races = models.PositiveSmallIntegerField(null=True)
     tally = models.ForeignKey(Tally,
