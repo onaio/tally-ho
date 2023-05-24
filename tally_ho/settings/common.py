@@ -338,9 +338,15 @@ ELECTROL_RACES = [
     },
 ]
 
-ELECTROL_RACES_COLUMNS_IN_BALLOT_FILE = [
-    'election_level',
-    'ballot_name'
+# Maps Electrol races columns names in ballot file to Electrol
+# race Model fields
+ELECTROL_RACE_COLS_TO_MODEL_FIELDS_MAPPING = [
+    {
+        'election_level': 'election_level',
+    },
+    {
+        'ballot_name': 'ballot_name'
+    }
 ]
 
 SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
