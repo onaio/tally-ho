@@ -349,6 +349,8 @@ ELECTROL_RACE_COLS_TO_MODEL_FIELDS_MAPPING = [
     }
 ]
 
+BALLOT_NAME_COLUMN_NAME_IN_BALLOT_FILE = 'number'
+
 SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
                                  'field_office',
                                  'races',
