@@ -203,6 +203,37 @@ def create_electrol_races_from_ballot_file_data(
         if logger:
             logger.warning(msg)
 
+def generate_duckdb_electrol_race_str_query(electrol_race=None):
+    """Generate string query for querying electrol race columns
+    in ballots file using duckdb.
+
+    :param electrol_race: electrol race queryset.
+    :returns: string query."""
+    electrol_race_cols_to_model_fields_mapping =\
+            getattr(settings,
+                    'ELECTROL_RACE_COLS_TO_MODEL_FIELDS_MAPPING')
+    str_query = None
+    for electrol_race_mapping in\
+            electrol_race_cols_to_model_fields_mapping:
+            electrol_race_column_name =\
+                list(electrol_race_mapping.keys())[0]
+            electrol_race_field_name = electrol_race_mapping.get(
+                electrol_race_column_name
+            )
+            electrol_race_field_val =\
+                getattr(electrol_race, electrol_race_field_name)
+
+            if str_query is None:
+                str_query =\
+                    f" {electrol_race_column_name}" +\
+                    f" = '{electrol_race_field_val}'"
+            else:
+                str_query +=\
+                    f" AND {electrol_race_column_name}" +\
+                    f" = '{electrol_race_field_val}'"
+
+    return str_query
+
 def create_ballots_from_ballot_file_data(
         duckdb_ballots_data=None,
         electrol_races=None,
@@ -224,8 +255,8 @@ def create_ballots_from_ballot_file_data(
 
         for electrol_race in electrol_races:
             str_query =\
-                f"election_level = '{electrol_race.election_level}' AND" +\
-                f" ballot_name = '{electrol_race.ballot_name}'"
+                generate_duckdb_electrol_race_str_query(
+                    electrol_race=electrol_race)
             ballot_numbers =\
                 duckdb_ballots_data.filter(
                     str_query).project('number').fetchall()
