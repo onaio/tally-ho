@@ -252,6 +252,9 @@ def create_ballots_from_ballot_file_data(
     try:
         bulk_mgr = BulkCreateManager(
             objs_count=len(duckdb_ballots_data.distinct().fetchall()))
+        ballot_name_column_name =\
+            getattr(settings,
+                    'BALLOT_NAME_COLUMN_NAME_IN_BALLOT_FILE')
 
         for electrol_race in electrol_races:
             str_query =\
@@ -259,7 +262,7 @@ def create_ballots_from_ballot_file_data(
                     electrol_race=electrol_race)
             ballot_numbers =\
                 duckdb_ballots_data.filter(
-                    str_query).project('number').fetchall()
+                    str_query).project(ballot_name_column_name).fetchall()
             for ballot_number_tuple in ballot_numbers:
                 # TODO: Some ballot numbers in string format we need to
                 # fiqure out how they should be handled here.
