@@ -180,8 +180,12 @@ def create_electrol_races_from_ballot_file_data(
     :param logger: logger.
     :returns: None"""
     try:
+        electrol_race_cols_to_model_fields_mapping =\
+            getattr(settings,
+                    'ELECTROL_RACE_COLS_TO_MODEL_FIELDS_MAPPING')
         electrol_races_columns =\
-            getattr(settings, 'ELECTROL_RACES_COLUMNS_IN_BALLOT_FILE')
+            [list(item.keys())[0] for item in\
+                electrol_race_cols_to_model_fields_mapping]
         electrol_races_data =\
             duckdb_ballots_data.project(
             ','.join(electrol_races_columns)).distinct().fetchall()
