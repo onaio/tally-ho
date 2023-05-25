@@ -43,7 +43,7 @@ class SubConstituency(BaseModel):
                                      on_delete=models.PROTECT)
 
     def __str__(self):
-        return u'%s - %s' % (self.code, self.field_office)
+        return u'%s - %s' % (self.code, self.tally.name)
 
     @property
     def form_type(self):
