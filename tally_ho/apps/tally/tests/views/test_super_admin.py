@@ -1520,59 +1520,62 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         data = content["data"]
-        first_row_first_record = data[0]
+        first_row = data[0]
+        race_type, total_forms, unsubmitted, intake, de1, de2, \
+            corrections, quality_control, archived, clearance,\
+            audit = first_row
         self.assertEqual(
-            first_row_first_record[0],
+            race_type,
             "<td class=\"center\">GENERAL</td>"
         )
         self.assertEqual(
-            first_row_first_record[1],
+            total_forms,
             "<td class=\"center\">10</td>")
         self.assertEqual(
-            first_row_first_record[2],
+            unsubmitted,
             f"<td class=\"center\"><span>"
             f"<a href=/data/form-list/{tally.pk}/?"
             "race_type=general&at_form_state=unsubmitted>"
             "1</a></span></td>")
         self.assertEqual(
-            first_row_first_record[3],
+            intake,
             f"<td class=\"center\"><span>5 / "
             f"<a href=/data/form-list/{tally.pk}/"
             "?race_type=general&pending_at_form_state=intake>4</a"
             "></span></td>")
         self.assertEqual(
-            first_row_first_record[4],
+            de1,
             f"<td class=\"center\"><span>4 / "
             f"<a href=/data/form-list/{tally.pk}/"
             "?race_type=general&pending_at_form_state=data_entry_1>"
             "5</a></span></td>")
         self.assertEqual(
-            first_row_first_record[5],
+            de2,
             f"<td class=\"center\"><span>3 / "
             f"<a href=/data/form-list/{tally.pk}/"
             "?race_type=general&pending_at_form_state=data_entry_2>"
             "6</a></span></td>")
         self.assertEqual(
-            first_row_first_record[6],
+            corrections,
             f"<td class=\"center\"><span>2 / "
             f"<a href=/data/form-list/{tally.pk}/"
             "?race_type=general&pending_at_form_state=correction>"
             "7</a></span></td>")
         self.assertEqual(
-            first_row_first_record[7],
+            quality_control,
             f"<td class=\"center\"><span>1 / "
             f"<a href=/data/form-list/{tally.pk}/"
             "?race_type=general&pending_at_form_state=quality_control>"
             "8</a></span></td>")
         self.assertEqual(
-            first_row_first_record[8],
+            archived,
             f"<td class=\"center\"><span>1 / "
             f"<a href=/data/form-list/{tally.pk}/"
             "?race_type=general&pending_at_form_state=archived>"
             "8</a></span></td>")
         self.assertEqual(
-            first_row_first_record[9],
+            clearance,
             "<td class=\"center\">1</td>")
         self.assertEqual(
-            first_row_first_record[10],
+            audit,
             "<td class=\"center\">1</td>")
