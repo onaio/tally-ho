@@ -267,3 +267,60 @@ class BulkCreateManager(object):
             for model_name, objs in self._create_queues.items():
                 if len(objs) > 0:
                     self._commit(apps.get_model(model_name), objs=objs)
+
+class BulkUpdateManyToManyManager(object):
+    """
+    This helper class keeps track of Model instances with many to many fields
+    to be updated and automatically updates those instances when the number of
+    instances accumulated for a given model class exceeds or equals
+    `chunk_size`.
+    Upon completion of the loop that's `add()`ing instances, the developer must
+    call `done()` to ensure the final set of instances is updated for all
+    models.
+    """
+
+    def __init__(self, instances_count):
+        self._queue = defaultdict(list)
+        self.default_chunk_size = 100
+        self.chunk_size = self._calculate_chuck_size(instances_count)
+
+    def _calculate_chuck_size(self, instances_count):
+        chunk_size =\
+            instances_count if instances_count < self.default_chunk_size\
+                else self.default_chunk_size
+        return chunk_size
+
+    def _set_many_to_many_fields_in_instances(
+            self,
+            instances_list=None):
+        with transaction.atomic():
+            for item in instances_list:
+                many_to_many_obj = item.get('many_to_many_fields')
+                for many_to_many_field_name in many_to_many_obj.keys():
+                    getattr(item.get('instance'),
+                            many_to_many_field_name).set(
+                        many_to_many_obj.get(many_to_many_field_name))
+
+    def add(self, instance_obj=None):
+        model_key = instance_obj.get('instance')._meta.label
+        self._queue[model_key].append(instance_obj)
+        if len(self._queue[model_key]) >= self.chunk_size:
+            instances_list = self._queue[model_key]
+            self._queue[model_key] = []
+            # Set many to many fields in instances
+            self._set_many_to_many_fields_in_instances(
+                instances_list=instances_list,
+            )
+
+    def done(self):
+        """
+        Always call this upon completion to make sure the final partial chunk
+        is saved.
+        """
+        for model_name, objs in self._queue.items():
+                if len(objs) > 0:
+                    # Set many to many fields in instances
+                    self._set_many_to_many_fields_in_instances(
+                        instances_list=objs,
+                    )
+                    self._queue[model_name] = []
