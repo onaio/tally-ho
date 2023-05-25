@@ -33,6 +33,7 @@ CANDIDATES_PATH = 'data/candidates.csv'
 CENTERS_PATH = 'data/centers.csv'
 RESULT_FORMS_PATH = 'data/result_forms.csv'
 STATIONS_PATH = 'data/stations.csv'
+BALLOTS_PATH = 'data/ballots.csv'
 SUB_CONSTITUENCIES_PATH = 'data/sub_constituencies.csv'
 
 SPECIAL_VOTING = 'Special Voting'
@@ -299,7 +300,7 @@ def import_electrol_races_and_ballots(
     :param logger: logger.
     :returns: Ballots count."""
     try:
-        file_path = ballots_file_path or SUB_CONSTITUENCIES_PATH
+        file_path = ballots_file_path or BALLOTS_PATH
         ballots_data = duckdb.from_csv_auto(file_path, header=True)
         create_electrol_races_from_ballot_file_data(
             duckdb_ballots_data=ballots_data,
