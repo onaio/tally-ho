@@ -24,7 +24,10 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions.groups import create_permission_groups
-from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
+from tally_ho.libs.utils.query_set_helpers import (
+    BulkCreateManager,
+    BulkUpdateManyToManyManager
+)
 from tally_ho.libs.utils.numbers import parse_int
 
 
@@ -35,6 +38,7 @@ RESULT_FORMS_PATH = 'data/result_forms.csv'
 STATIONS_PATH = 'data/stations.csv'
 BALLOTS_PATH = 'data/ballots.csv'
 SUB_CONSTITUENCIES_PATH = 'data/sub_constituencies.csv'
+SUB_CONSTITUENCIES_BALLOTS_PATH = 'data/sub_constituency_ballots.csv'
 
 SPECIAL_VOTING = 'Special Voting'
 
@@ -322,6 +326,258 @@ def import_electrol_races_and_ballots(
         return ballots.count()
     except Exception as e:
         msg = 'Error occured while trying to create ballots: %s' % e
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
+def create_constituencies_from_sub_con_file_data(
+        duckdb_sub_con_data=None,
+        tally=None,
+        command=None,
+        logger=None,
+):
+    """Create constituencies from sub constituencies file data inside duckdb.
+
+    :param duckdb_sub_con_data: sub constituencies file data in duckdb format.
+    :param tally: tally queryset.
+    :param command: stdout command.
+    :param logger: logger.
+    :returns: None."""
+    try:
+        constituency_column_name =\
+            getattr(settings,
+                    'CONSTITUENCY_COLUMN_NAME_IN_SUB_CONSTITUENCY_FILE')
+        constitiencies_names_list =\
+            duckdb_sub_con_data.project(
+            constituency_column_name).distinct().fetchall()
+        bulk_mgr = BulkCreateManager(
+            objs_count=len(constitiencies_names_list))
+
+        for constitiency_name_tuple in constitiencies_names_list:
+            constitiency_name = constitiency_name_tuple[0]
+            if constitiency_name is not None:
+                bulk_mgr.add(Constituency(
+                                name=constitiency_name,
+                                tally=tally))
+        bulk_mgr.done()
+
+        return
+    except Exception as e:
+        msg = 'Failed to create constituencies, error: %s' % e
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
+def create_sub_constituencies_from_sub_con_file_data(
+        duckdb_sub_con_data=None,
+        constituencies=None,
+        tally=None,
+        command=None,
+        logger=None,
+):
+    """Create sub constituencies from sub constituencies file data
+        inside duckdb.
+
+    :param duckdb_sub_con_data: sub constituencies file data in duckdb format.
+    :param constituencies: tally constituencies queryset.
+    :param tally: tally queryset.
+    :param command: stdout command.
+    :param logger: logger.
+    :returns: None."""
+    try:
+        sub_con_cols_names_list =\
+            getattr(settings,
+                    'SUB_CONSTITUENCY_COLUMN_NAMES')
+        sub_cons_data =\
+                    duckdb_sub_con_data.project(
+                    ','.join(sub_con_cols_names_list)).distinct().fetchall()
+        bulk_mgr = BulkCreateManager(
+            objs_count=len(sub_cons_data))
+        constituencies_by_name =\
+            {
+                constituency.name:\
+                constituency for constituency in constituencies
+            }
+
+        for sub_con_vals_tuple in sub_cons_data:
+            kwargs = {}
+            code, number_of_ballots, constituency_name =\
+                list(sub_con_vals_tuple)
+            parsed_sub_con_code = parse_int(code)
+            if parsed_sub_con_code:
+                kwargs['tally'] = tally
+                kwargs['code'] = parsed_sub_con_code
+                kwargs['number_of_ballots'] = number_of_ballots
+                constituency = constituencies_by_name.get(constituency_name)
+                kwargs['constituency'] = constituency
+
+            if len(kwargs.items()):
+                bulk_mgr.add(SubConstituency(**kwargs))
+        bulk_mgr.done()
+
+        return
+    except Exception as e:
+        msg = 'Failed to create sub constituencies, error: %s' % e
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
+def import_sub_constituencies_and_constituencies_from_sub_cons_file(
+        tally=None,
+        sub_constituencies_file_path=None,
+        command=None,
+        logger=None):
+    """Create sub constituencies and constituencies from a sub constituencies
+    csv file.
+
+    :param tally: tally queryset.
+    :param sub_constituencies_file_path: sub constituencies csv file path.
+    :param command: stdout command.
+    :param logger: logger.
+    :returns: Sub Constituencies count."""
+    try:
+        file_path = sub_constituencies_file_path or SUB_CONSTITUENCIES_PATH
+        duckdb_sub_con_data = duckdb.from_csv_auto(file_path, header=True)
+        create_constituencies_from_sub_con_file_data(
+            duckdb_sub_con_data=duckdb_sub_con_data,
+            tally=tally,
+            command=command,
+            logger=logger,
+        )
+        constituencies = Constituency.objects.filter(tally=tally)
+        create_sub_constituencies_from_sub_con_file_data(
+            duckdb_sub_con_data=duckdb_sub_con_data,
+            constituencies=constituencies,
+            tally=tally,
+            command=command,
+            logger=logger,
+        )
+        sub_constituencies = SubConstituency.objects.filter(tally=tally)
+
+        return sub_constituencies.count()
+    except Exception as e:
+        msg =\
+            'Error occured while trying to create sub cons and cons: %s' % e
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
+def set_sub_constituencies_ballots_from_sub_con_ballots_file_data(
+        duckdb_sub_con_ballots_data=None,
+        tally=None,
+        command=None,
+        logger=None,
+):
+    """Set sub constituencies ballots from sub constituencies ballots file data
+        inside duckdb.
+
+    :param duckdb_sub_con_ballots_data: sub cons ballots data in duckdb format.
+    :param tally: tally queryset.
+    :param command: stdout command.
+    :param logger: logger.
+    :returns: None."""
+    try:
+        sub_cons_instances_by_code =\
+            {
+                sub_con.code:\
+                sub_con for sub_con in
+                SubConstituency.objects.filter(tally=tally)
+            }
+        ballots_instances_by_number =\
+            {
+                ballot.number:\
+                ballot for ballot in
+                Ballot.objects.filter(tally=tally)
+            }
+        sub_con_code_col_name =\
+            getattr(settings,
+                    'SUB_CONSTITUENCY_COD_COL_NAME_IN_SUB_CON_BALLOTS_FILE')
+        sub_con_code_data =\
+                    duckdb_sub_con_ballots_data.project(
+            f"{sub_con_code_col_name}").distinct().fetchall()
+        ballot_number_col_name =\
+            getattr(settings,
+                    'BALLOT_NUMBER_COL_NAME_IN_SUB_CON_BALLOTS_FILE')
+        bulk_mgr =\
+            BulkUpdateManyToManyManager(instances_count=len(sub_con_code_data))
+
+        for sub_con_code_tuple in sub_con_code_data:
+            sub_con_code = parse_int(sub_con_code_tuple[0])
+            if sub_con_code is None:
+                continue
+            sub_con_instance = sub_cons_instances_by_code.get(sub_con_code)
+            if sub_con_instance is None:
+                continue
+            ballot_numbers =\
+                duckdb_sub_con_ballots_data.filter(
+                f"{sub_con_code_col_name} = '{sub_con_code}'").project(
+                ballot_number_col_name).fetchall()
+            many_to_many_fields = {
+                'ballots': []
+            }
+            for ballot_number_tuple in ballot_numbers:
+                ballot_number = parse_int(ballot_number_tuple[0])
+                if ballot_number is None:
+                    continue
+                ballot_instance =\
+                    ballots_instances_by_number.get(ballot_number)
+                if ballot_instance is None:
+                    continue
+                many_to_many_fields['ballots'].append(ballot_instance)
+
+            if sub_con_instance and len(many_to_many_fields.get('ballots')):
+                bulk_mgr.add({
+                    'instance': sub_con_instance,
+                    'many_to_many_fields': many_to_many_fields,
+                })
+
+        bulk_mgr.done()
+
+        return
+    except Exception as e:
+        msg = 'Failed to update sub constituencies, error: %s' % e
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+
+def import_sub_constituencies_ballots_from_sub_cons_ballots_file(
+        tally=None,
+        sub_constituencies_ballots_file_path=None,
+        command=None,
+        logger=None):
+    """Import sub constituencies ballots from a sub constituencies ballots
+    csv file.
+
+    :param tally: tally queryset.
+    :param sub_constituencies_file_path: sub constituencies csv file path.
+    :param command: stdout command.
+    :param logger: logger.
+    :returns: Sub Constituencies count."""
+    try:
+        file_path =\
+            sub_constituencies_ballots_file_path or\
+        SUB_CONSTITUENCIES_BALLOTS_PATH
+        duckdb_sub_con_ballots_data =\
+            duckdb.from_csv_auto(file_path, header=True)
+        set_sub_constituencies_ballots_from_sub_con_ballots_file_data(
+            duckdb_sub_con_ballots_data=duckdb_sub_con_ballots_data,
+            tally=tally,
+            command=command,
+            logger=logger,
+        )
+        sub_constituencies_ballots =\
+            SubConstituency.objects.filter(tally=tally).values_list(
+            'ballots__number', flat=True)
+
+        return sub_constituencies_ballots.count()
+    except Exception as e:
+        msg =\
+            'Error occured while trying to create sub cons and cons: %s' % e
         if command:
             command.stdout.write(command.style.WARNING(msg))
         if logger:
