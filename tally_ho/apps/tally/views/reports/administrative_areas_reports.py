@@ -25,7 +25,6 @@ from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.all_candidates_votes import AllCandidatesVotes
 from tally_ho.apps.tally.views.super_admin import (
     get_result_form_with_duplicate_results)
-from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale
@@ -1419,6 +1418,33 @@ def get_centers_stations(request):
     })
 
 
+def get_sub_and_constituencies(request):
+    """
+    Retrieves constituencies and sub constituencies
+    that belong to the centers available in the request.
+
+    :param request: The request object containing the list of region names.
+
+    returns: A JSON response of the constituencies and sub constituencies
+    """
+    data = ast.literal_eval(request.GET.get('data'))
+    region_names = data.get('region_names')
+    tally_id = data.get('tally_id')
+
+    filtered_constituencies = list(
+        ResultForm.objects.filter(tally=tally_id, center__region__in=region_names).values_list(
+            'center__constituency__name', flat=True).distinct())
+
+    filtered_sub_constituencies = list(
+        ResultForm.objects.filter(tally=tally_id, center__region__in=region_names).values_list(
+            'center__sub_constituency__code', flat=True).distinct())
+
+    return JsonResponse({
+        'constituency_names': filtered_constituencies,
+        'sub_constituencies_code': filtered_sub_constituencies
+    })
+
+
 def get_results(request):
     """
     Builds a json object of candidates results.
@@ -1479,7 +1505,7 @@ class TurnoutReportDataView(LoginRequiredMixin,
                             mixins.TallyAccessMixin,
                             BaseDatatableView):
     group_required = groups.TALLY_MANAGER
-    model = Result
+    model = ResultForm
     columns = ('admin_area',
                'voters_voted',
                'total_voters',
@@ -1491,50 +1517,65 @@ class TurnoutReportDataView(LoginRequiredMixin,
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
-        region_id = self.kwargs.get('region_id')
-        constituency_id = self.kwargs.get('constituency_id')
-        # data = self.request.POST.get('data')
-        keyword = self.request.POST.get('search[value]')
+        raw_post_data = self.request.POST.get('data')
+        post_data = ast.literal_eval(raw_post_data) if raw_post_data else {}
+        data = post_data
+        if isinstance(post_data, list):
+            data = post_data[0] if len(post_data) > 0 else {}
 
-        admin_area_column_name = 'result_form__center__region'
+        region_names = data.get('region_names')
+        constituencies = data.get('constituencies')
+        sub_constituencies = data.get('sub_constituencies')
 
-        qs = qs.filter(
+        qs = qs.filter(tally_id=tally_id, form_state=FormState.ARCHIVED)
+        sub_q = Result.objects.filter(
             result_form__tally=tally_id,
             result_form__form_state=FormState.ARCHIVED,
-            entry_version=EntryVersion.FINAL,
-            # result_form__center__region__in=processed_region_names
-        ).annotate(
-            admin_area=F(admin_area_column_name)
-        ).values('admin_area').annotate(
-            voters_voted=Sum('votes'),
-            total_voters=Sum(
-                Func(F('result_form__center__stations__registrants'), function='DISTINCT')
-            ),
-            male_voters=Sum(
-                Func(F('result_form__center__stations__registrants'), function='DISTINCT'),
-                filter=Q(result_form__center__stations__gender=Gender.MALE)
-            ),
-            unisex_voters=Sum(
-                Func(F('result_form__center__stations__registrants'), function='DISTINCT'),
-                filter=Q(result_form__center__stations__gender=Gender.UNISEX)
-            ),
-            female_voters=Sum(
-                Func(F('result_form__center__stations__registrants'), function='DISTINCT'),
-                filter=Q(result_form__center__stations__gender=Gender.FEMALE)
-            ),
-            turnout_percentage=Round(
-                V(100.00) * F('voters_voted') / F('total_voters'),
-                digits=2
-            )
+            entry_version=EntryVersion.FINAL
         )
 
-        # if keyword:
-        #     qs = qs.filter(Q(name__contains=keyword) |
-        #                    Q(total_number_of_registrants__contains=keyword) |
-        #                    Q(number_of_voters_voted__contains=keyword) |
-        #                    Q(male_voters__contains=keyword) |
-        #                    Q(female_voters__contains=keyword) |
-        #                    Q(turnout_percentage__contains=keyword))
+        admin_area_column_name = 'center__region'
+        if region_names:
+            qs = qs.filter(center__region__in=region_names)
+            sub_q = sub_q.filter(
+                result_form__center__region=OuterRef('center__region'),
+            )
+        if constituencies:
+            admin_area_column_name = 'center__constituency__name'
+            qs = qs.filter(center__constituency__name__in=constituencies)
+            sub_q = sub_q.filter(
+                result_form__center__constituency__name=OuterRef('center__constituency__name'),
+            )
+        if sub_constituencies:
+            admin_area_column_name = 'center__sub_constituency__code'
+            qs = qs.filter(center__sub_constituency__code__in=sub_constituencies)
+            sub_q = sub_q.filter(
+                result_form__center__sub_constituency__code=OuterRef('center__sub_constituency__code'),
+            )
+
+        qs = qs.annotate(
+            admin_area=F(admin_area_column_name)).values('admin_area').annotate(
+            voters_voted=Subquery(
+                sub_q.values(f'result_form__{admin_area_column_name}').annotate(
+                    valid_votes=Sum('votes')
+                ).values('valid_votes')[:1],
+                output_field=IntegerField()
+            ), total_voters=Sum(Func(F('center__stations__registrants'), function='DISTINCT')),
+            male_voters=Sum(Func(F('center__stations__registrants'), function='DISTINCT'),
+                            filter=Q(center__stations__gender=0)),
+            unisex_voters=Sum(Func(F('center__stations__registrants'), function='DISTINCT'),
+                              filter=Q(center__stations__gender=3)),
+            female_voters=Sum(Func(F('center__stations__registrants'), function='DISTINCT'),
+                              filter=Q(center__stations__gender=1)),
+            turnout_percentage=Round(V(100.00) * F('voters_voted') / F('total_voters'), digits=2))
+
+        keyword = self.request.POST.get('search[value]')
+        # import ipdb;
+        # ipdb.set_trace()
+
+        if keyword:
+            qs = qs.filter(Q(admin_area__contains=keyword))
+
         return qs
 
     def render_column(self, row, column):
@@ -1660,36 +1701,49 @@ class TurnOutReportView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
                         TemplateView):
     group_required = groups.TALLY_MANAGER
-    model = Result
+    model = ResultForm
     template_name = 'reports/turnout_report.html'
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        region_id = kwargs.get('region_id')
-        constituency_id = kwargs.get('constituency_id')
+        # region_id = kwargs.get('region_id')
+        # constituency_id = kwargs.get('constituency_id')
         language_de = get_datatables_language_de_from_locale(self.request)
+        region_names = list(
+            ResultForm.objects.filter(tally=tally_id).values_list('center__region', flat=True).distinct())
 
-        try:
-            region_name =\
-                region_id and Region.objects.get(
-                    id=region_id,
-                    tally__id=tally_id).name
-        except Region.DoesNotExist:
-            region_name = None
+        constituencies = list(
+            ResultForm.objects.filter(tally=tally_id).values_list(
+                'center__constituency__name', flat=True).distinct())
 
-        try:
-            constituency_name =\
-                constituency_id and Constituency.objects.get(
-                    id=constituency_id,
-                    tally__id=tally_id).name
-        except Constituency.DoesNotExist:
-            constituency_name = None
+        sub_constituencies = list(
+            ResultForm.objects.filter(tally=tally_id).values_list(
+                'center__sub_constituency__code', flat=True).distinct())
+
+        # try:
+        #     # TODO - are these needed/used.
+        #     region_name =\
+        #         region_id and Region.objects.get(
+        #             id=region_id,
+        #             tally__id=tally_id).name
+        # except Region.DoesNotExist:
+        #     region_name = None
+        #
+        # try:
+        #     constituency_name =\
+        #         constituency_id and Constituency.objects.get(
+        #             id=constituency_id,
+        #             tally__id=tally_id).name
+        # except Constituency.DoesNotExist:
+        #     constituency_name = None
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('turnout-list-data', kwargs=kwargs),
             tally_id=tally_id,
-            region_name=region_name,
-            constituency_name=constituency_name,
+            regions=region_names,
+            constituencies=constituencies,
+            sub_constituencies=sub_constituencies,
+            get_sub_and_constituencies_url=reverse('get_sub_and_constituencies'),
             languageDE=language_de,
         ))
 
@@ -2825,7 +2879,7 @@ class RegionsReportsView(LoginRequiredMixin,
                 centers_stations_under_invg=centers_stations_under_invg,
                 centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 regions_report_url='regions-discrepancy-report',
-                child_turnout_report_url='constituency-turnout-report',
+                # child_turnout_report_url='constituency-turnout-report',
                 child_summary_report_url='constituency-summary-report',
                 child_discrepancy_report_url=str(
                     'constituency-discrepancy-report'
@@ -2961,7 +3015,7 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 centers_stations_under_invg=centers_stations_under_invg,
                 centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 region_name=region_name,
-                child_turnout_report_url='sub-constituency-turnout-report',
+                # child_turnout_report_url='sub-constituency-turnout-report',
                 child_summary_report_url='sub-constituency-summary-report',
                 child_progressive_report_url=str(
                     'sub-constituency-progressive-report'
@@ -3220,6 +3274,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
             centers=centers,
             race_types=race_types,
             get_centers_stations_url='/ajax/get-centers-stations/',
+            # TODO - do we need to do this for the turn out report
             results_download_url='/ajax/download-results/',
             languageDE=language_de
         ))
