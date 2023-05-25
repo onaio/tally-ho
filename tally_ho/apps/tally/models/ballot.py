@@ -86,7 +86,7 @@ class Ballot(BaseModel):
 
     @property
     def race_type_name(self):
-        return self.electrol_race.type
+        return self.electrol_race.ballot_name
 
     @property
     def document_name(self):
