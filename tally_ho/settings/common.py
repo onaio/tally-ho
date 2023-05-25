@@ -351,14 +351,18 @@ ELECTROL_RACE_COLS_TO_MODEL_FIELDS_MAPPING = [
 
 BALLOT_NAME_COLUMN_NAME_IN_BALLOT_FILE = 'number'
 
+CONSTITUENCY_COLUMN_NAME_IN_SUB_CONSTITUENCY_FILE = 'constituency_name'
+
+SUB_CONSTITUENCY_COD_COL_NAME_IN_SUB_CON_BALLOTS_FILE = 'sub_constituency_code'
+
+BALLOT_NUMBER_COL_NAME_IN_SUB_CON_BALLOTS_FILE = 'ballot_number'
+
 SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
-                                 'field_office',
-                                 'races',
-                                 'ballot_number_presidential',
-                                 'ballot_number_general',
-                                 'ballot_number_women',
                                  'number_of_ballots',
-                                 'ballot_number_component']
+                                 'constituency_name',]
+
+SUB_CONSTITUENCY_BALLOTS_COLUMN_NAMES = ['sub_constituency_code',
+                                         'ballot_number',]
 
 CENTER_COLUMN_NAMES = ['#', 'Region/ المنطقة', 'PC Code/ رمز مركز الانتخاب',
                        'Office #/ الللجنة الانتخابية #',
