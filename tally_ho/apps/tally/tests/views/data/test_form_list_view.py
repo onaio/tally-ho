@@ -64,7 +64,7 @@ class TestFormListView(TestBase):
         self.assertContains(response, "Forms for Race %s" % ballot.number)
         self.assertNotContains(response, "New Form")
 
-    def test_form_list_view_filter_on_Search_params(self):
+    def test_form_list_view_filter_on_query_params(self):
         """
         #369 - check that filter search params are passed on
         to data view.
