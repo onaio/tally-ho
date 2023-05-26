@@ -377,24 +377,7 @@ RESULT_FORM_COLUMN_NAMES = ['ballot_number', 'center_code', 'station_number',
                             'gender', 'name', 'office_name', 'barcode',
                             'serial_number', 'region_name']
 
-CANDIDATE_COLUMN_NAMES = ['ID', 'Duplicate', 'Office_ID', 'E_Mail',
-                          'Uploaded_Date_Time', 'Main_District_ID',
-                          'Sub_District_ID', 'Voting_District', 'National_ID',
-                          'Family_Book_ID', 'Name', 'Fathers_Name',
-                          'G_Fathers_Name', 'Family_Name', 'Full_Name',
-                          'Mothers_Name', 'Phone_Mobile', 'Land_Line',
-                          'Race_Type', 'Gender_Type', 'Date_Of_Birth',
-                          'Electoral_Camp_ID', 'Check_Family_Book',
-                          'Check_ID', 'Check_IPC_Form', 'Check_Education_Cert',
-                          'Check_Clearance_From_Moi', 'Check_Supporters_List',
-                          'Check_Payment_Reset', 'Check_Bank_Account',
-                          'Check_Two_Photos', 'Check_Code_Of_Conduct',
-                          'Check_Signature', 'User_ID', 'Registration',
-                          'Candidate_Number', 'Uploaded_By', 'Gender_En',
-                          'Gender_Ar', 'Type_Of_Candidate_En',
-                          'Type_Of_Candidate_Ar', 'Main_District_Ar',
-                          'Main_District_En', 'Office_Name_Ar',
-                          'Office_Name_En', 'Sub_District_Ar',
-                          'Sub_District_En', 'Region']
+CANDIDATE_COLUMN_NAMES =\
+    ['candidate_id', 'candidate_full_name', 'ballot_number']
 
 BALLOT_ORDER_COLUMN_NAMES = ['ID', 'Ballot_Number']
