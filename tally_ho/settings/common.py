@@ -364,16 +364,10 @@ SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
 SUB_CONSTITUENCY_BALLOTS_COLUMN_NAMES = ['sub_constituency_code',
                                          'ballot_number',]
 
-CENTER_COLUMN_NAMES = ['#', 'Region/ المنطقة', 'PC Code/ رمز مركز الانتخاب',
-                       'Office #/ الللجنة الانتخابية #',
-                       'Office/ الللجنة الانتخابية ',
-                       'Main C/ الدائرة الانتخابية الرئيسية',
-                       'SubC # / رقم الدائرة الفرعية ',
-                       'SubC name / الدائرة الفرعية', 'Name PC',
-                       'Mahalla / المحلة',
-                       'Village / المدينة/القرية', 'نوع المركز / Type',
-                       'E  خط العرض   / Coordinates E',
-                       'N  خط العرض   / Coordinates N']
+CENTER_COLUMN_NAMES = ['center_id', 'name', 'center_type', 'center_lat',
+                       'center_lon', 'region_name', 'office_name', 'office_id',
+                       'constituency_name', 'subconstituency_id',
+                       'mahalla_name', 'village_name']
 
 STATION_COLUMN_NAMES = ['Centre #', 'Centre Name', 'SubCon #',
                         'Station number', 'Station Gender',
