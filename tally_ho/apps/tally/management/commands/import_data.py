@@ -291,7 +291,7 @@ def create_ballots_from_ballot_file_data(
         if logger:
             logger.warning(msg)
 
-def import_electrol_races_and_ballots(
+def import_electrol_races_and_ballots_from_ballots_file(
         tally=None,
         ballots_file_path=None,
         command=None,
