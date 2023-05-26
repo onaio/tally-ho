@@ -882,13 +882,11 @@ def process_candidate_row(
         command=None,
         logger=None
 ):
-    candidate_id = row[0]
-    ballot_number = row[7]
-    full_name = row[14]
+    candidate_id, full_name, ballot_number, _ = row
 
     try:
         ballot = Ballot.objects.get(
-            number=ballot_number, tally=tally)
+            number=parse_int(ballot_number), tally=tally)
         Candidate.objects.get_or_create(
             ballot=ballot,
             candidate_id=candidate_id,
@@ -902,7 +900,7 @@ def process_candidate_row(
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
-        pass
+        raise Ballot.DoesNotExist(msg)
 
 
 def import_candidates(tally=None,
