@@ -41,6 +41,8 @@ SUB_CONSTITUENCIES_PATH = 'data/sub_constituencies.csv'
 SUB_CONSTITUENCIES_BALLOTS_PATH = 'data/sub_constituency_ballots.csv'
 
 SPECIAL_VOTING = 'Special Voting'
+NO_CONSTITUENCY = 'No Constituency'
+NO_CONSTITUENCY_SUB_CON_NUMBER = 999
 
 
 def empty_string_to(value, default):
@@ -750,60 +752,64 @@ def import_sub_constituencies_and_ballots(
 
 def process_center_row(tally, row, command=None, logger=None):
     if not invalid_line(row):
-        try:
-            constituency_name = row[5]
-        except ValueError:
-            constituency_name = None
+        center_code, center_name, center_type, center_lat, center_lon,\
+        region_name, office_name, office_number, constituency_name, sc_code,\
+        mahalla_name, village_name = row
 
-        constituency, _ = Constituency.objects.get_or_create(
-            name=constituency_name.strip(),
-            tally=tally)
+        if constituency_name != NO_CONSTITUENCY and sc_code == SPECIAL_VOTING:
+            try:
+                constituency = Constituency.objects.get(
+                    name=constituency_name.strip(),
+                    tally=tally)
+            except (Constituency.DoesNotExist):
+                msg = 'Constituency "%s" does not exist' % constituency_name
+                if command:
+                    command.stdout.write(command.style.WARNING(msg))
+                if logger:
+                    logger.warning(msg)
+                raise Constituency.DoesNotExist(msg)
 
-        sc_code = row[6]
         sub_constituency = None
-
         if sc_code == SPECIAL_VOTING:
             center_type = CenterType.SPECIAL
         else:
-            sc_code = int(row[6])
-            sub_constituency = SubConstituency.objects.get(
-                code=sc_code,
-                tally=tally)
-            sub_constituency.constituency = constituency
-            sub_constituency.save(update_fields=['constituency'])
-            center_type = CenterType.GENERAL
+            try:
+                sc_code = parse_int(sc_code)
+                if sc_code != NO_CONSTITUENCY_SUB_CON_NUMBER:
+                    sub_constituency = SubConstituency.objects.get(
+                        code=sc_code, tally=tally)
+            except (SubConstituency.DoesNotExist):
+                sub_constituency = None
+                msg = 'SubConstituency "%s" does not exist' % sc_code
+                if command:
+                    command.stdout.write(command.style.WARNING(msg))
+                if logger:
+                    logger.warning(msg)
+                raise SubConstituency.DoesNotExist(msg)
 
-        try:
-            region_name = row[1]
-        except ValueError:
-            region_name = None
+            center_type = CenterType.GENERAL
 
         region, _ = Region.objects.get_or_create(
             name=region_name.strip(),
             tally=tally)
 
-        try:
-            office_number = int(row[3])
-        except ValueError:
-            office_number = None
-
         office, _ = Office.objects.get_or_create(
-            number=office_number,
-            name=row[4].strip(),
+            number=parse_int(office_number),
+            name=office_name.strip(),
             tally=tally,
             region=region)
 
         Center.objects.get_or_create(
             region=region_name,
-            code=row[2],
+            code=parse_int(center_code),
             office=office,
             sub_constituency=sub_constituency,
-            name=row[8],
-            mahalla=row[9],
-            village=row[10],
+            name=center_name,
+            mahalla=mahalla_name,
+            village=village_name,
             center_type=center_type,
-            longitude=strip_non_numeric(row[12]),
-            latitude=strip_non_numeric(row[13]),
+            longitude=strip_non_numeric(center_lon),
+            latitude=strip_non_numeric(center_lat),
             tally=tally,
             constituency=constituency)
 
