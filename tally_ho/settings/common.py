@@ -380,4 +380,4 @@ RESULT_FORM_COLUMN_NAMES = ['ballot_number', 'center_code', 'station_number',
 CANDIDATE_COLUMN_NAMES =\
     ['candidate_id', 'candidate_full_name', 'ballot_number']
 
-BALLOT_ORDER_COLUMN_NAMES = ['ID', 'Ballot_Number']
+BALLOT_ORDER_COLUMN_NAMES = ['candidate_id', 'order']
