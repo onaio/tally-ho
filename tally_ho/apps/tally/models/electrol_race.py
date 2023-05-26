@@ -9,7 +9,7 @@ class ElectrolRace(BaseModel):
     class Meta:
         app_label = 'tally'
         ordering = ['ballot_name']
-        unique_together = (('election_level', 'ballot_name'))
+        unique_together = (('election_level', 'ballot_name', 'tally'))
     election_level = models.CharField(max_length=256, null=True)
     ballot_name = models.CharField(max_length=256, null=True)
     tally = models.ForeignKey(Tally,
