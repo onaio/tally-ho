@@ -369,11 +369,9 @@ CENTER_COLUMN_NAMES = ['center_id', 'name', 'center_type', 'center_lat',
                        'constituency_name', 'subconstituency_id',
                        'mahalla_name', 'village_name']
 
-STATION_COLUMN_NAMES = ['Centre #', 'Centre Name', 'SubCon #',
-                        'Station number', 'Station Gender',
-                        'Number of Registrants', 'First Name',
-                        'First Name Number', 'Last Name', 'Last Name Number',
-                        'When Generated']
+STATION_COLUMN_NAMES = ['center_code', 'center_name', 'sub_constituency_code',
+                        'station_number', 'station_gender',
+                        'station_registrants']
 
 RESULT_FORM_COLUMN_NAMES = ['Ballot Number', 'PC Code/ ﺮﻣﺯ ﻡﺮﻛﺯ ﺍﻼﻨﺘﺧﺎﺑ',
                             'Station', 'Gender', 'Name PC',
