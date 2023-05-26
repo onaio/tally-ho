@@ -826,32 +826,31 @@ def import_centers(tally=None, centers_file=None):
 
 
 def process_station_row(tally, row, command=None, logger=None):
-    center_code, center_name, sc_code, station_number, gender,\
+    center_code, _, sc_code, station_number, gender,\
         registrants = row[0:6]
 
     try:
-        center = Center.objects.get(code=center_code, tally=tally)
-    except Center.DoesNotExist:
-        center, created = Center.objects.get_or_create(
-            code=center_code,
-            name=center_name,
+        center = Center.objects.get(
+            code= parse_int(center_code),
             tally=tally)
+    except Center.DoesNotExist:
+        msg = 'Center "%s" does not exist' % center_code
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+        raise Center.DoesNotExist(msg)
 
     try:
-        # attempt to convert SC to a number
-        sc_code = int(float(sc_code))
         sub_constituency = SubConstituency.objects.get(
-            code=sc_code, tally=tally)
-    except (SubConstituency.DoesNotExist, ValueError):
-        # FIXME What to do if SubConstituency does not exist
-        sub_constituency = None
+            code=parse_int(sc_code), tally=tally)
+    except (SubConstituency.DoesNotExist):
         msg = 'SubConstituency "%s" does not exist' % sc_code
         if command:
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
-        # Todo: Uncomment after cleaning initial tally files
-        # raise SubConstituency.DoesNotExist(msg)
+        raise SubConstituency.DoesNotExist(msg)
 
     gender = getattr(Gender, gender.upper())
 
