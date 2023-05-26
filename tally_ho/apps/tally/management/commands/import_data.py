@@ -935,9 +935,8 @@ def process_results_form_row(tally, row, command=None, logger=None):
     replacement_count = 0
 
     row = empty_strings_to_none(row)
-    # take first 11 values
     ballot_number, code, station_number, gender, name,\
-        office_name, _, barcode, serial_number, _, region_id = row[0:11]
+        office_name, barcode, serial_number, region_name = row
 
     gender = gender and getattr(Gender, gender.upper())
     ballot = None
@@ -959,8 +958,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-            # Todo: Uncomment after cleaning initial tally files
-            # raise Ballot.DoesNotExist(msg)
+            raise Ballot.DoesNotExist(msg)
 
     center = None
 
@@ -973,15 +971,13 @@ def process_results_form_row(tally, row, command=None, logger=None):
                     command.stdout.write(command.style.WARNING(msg))
                 if logger:
                     logger.warning(msg)
-
         except Center.DoesNotExist:
             msg = 'Center "%s" does not exist' % code
             if command:
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-            # Todo: Uncomment after cleaning initial tally files
-            # raise Center.DoesNotExist(msg)
+            raise Center.DoesNotExist(msg)
 
     if station_number and center:
         try:
@@ -994,7 +990,6 @@ def process_results_form_row(tally, row, command=None, logger=None):
                     command.stdout.write(command.style.WARNING(msg))
                 if logger:
                     logger.warning(msg)
-
         except Station.DoesNotExist:
             msg = str('Station "%s" does not exist for center "%s"') %\
                 (station_number, code)
@@ -1002,8 +997,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-            # Todo: Uncomment after cleaning initial tally files
-            # raise Station.DoesNotExist(msg)
+            raise Station.DoesNotExist(msg)
 
     if center and center.sub_constituency and \
             ballot.number != center.sub_constituency.code:
@@ -1022,15 +1016,14 @@ def process_results_form_row(tally, row, command=None, logger=None):
             office = Office.objects.get(
                 name=office_name.strip(),
                 tally=tally,
-                region__id=region_id)
+                region__name=region_name)
         except Office.DoesNotExist:
             msg = 'Office "%s" does not exist' % office_name
             if command:
                 command.stdout.write(command.style.WARNING(msg))
             if logger:
                 logger.warning(msg)
-            # Todo: Uncomment after cleaning initial tally files
-            # raise Office.DoesNotExist(msg)
+            raise Office.DoesNotExist(msg)
 
     is_replacement = center is None
 
@@ -1052,13 +1045,17 @@ def process_results_form_row(tally, row, command=None, logger=None):
     }
 
     try:
-        form = ResultForm.objects.get(barcode=barcode, tally=tally)
-    except ResultForm.DoesNotExist:
-        ResultForm.objects.create(**kwargs)
-    else:
+        form, _ = ResultForm.objects.get_or_create(**kwargs)
         if is_replacement:
             form.is_replacement = is_replacement
             form.save()
+    except Exception as e:
+        msg = 'Result form could not be created, error: %s' % e
+        if command:
+            command.stdout.write(command.style.WARNING(msg))
+        if logger:
+            logger.warning(msg)
+        raise Exception(msg)
 
     return replacement_count
 
