@@ -1,5 +1,6 @@
 import ast
 import json
+from io import BytesIO
 
 from django.views.generic import TemplateView
 from django.utils.translation import gettext_lazy as _
@@ -13,6 +14,10 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.http import HttpResponse
+from django.template.loader import get_template
+
+from xhtml2pdf import pisa
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
@@ -1407,6 +1412,46 @@ def get_centers_stations(request):
             tally__id=tally_id,
             center__id__in=center_ids).values_list('id', flat=True))
     })
+
+
+def get_export(request):
+    """
+    Generates and returns a pdf export based on the filter values provided
+    """
+    columns = ('candidate_name',
+               'total_votes',
+               'invalid_votes',
+               'valid_votes',
+               'number_registrants',
+               'race_number',)
+    data = ast.literal_eval(request.GET.get('data'))
+    tally_id = data.get('tally_id')
+    limit = int(data.get('export_number'))
+    template_src = 'reports/presentation_exporter_pdf.html'
+
+    qs = Result.objects.filter(
+        result_form__tally__id=tally_id,
+        result_form__form_state=FormState.ARCHIVED,
+        entry_version=EntryVersion.FINAL,
+        active=True)
+
+    qs = results_queryset(
+        tally_id,
+        qs,
+        data).values()[:limit]
+    context_dict = {'data': qs}
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    result = BytesIO()
+    pdf = pisa.CreatePDF(html, encoding='UTF-8', dest=result)
+    if pdf:
+        result.seek(0)
+        response = HttpResponse(result, content_type='application/pdf')
+        filename = "results_pdf.pdf"
+        content = f"attachment; filename='{filename}'"
+        response['Content-Disposition'] = content
+        return response
+    return HttpResponse("Not found")
 
 
 def get_results(request):
@@ -3184,6 +3229,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
             centers=centers,
             race_types=race_types,
             get_centers_stations_url='/ajax/get-centers-stations/',
+            get_export_url='/ajax/get-export/',
             results_download_url='/ajax/download-results/',
             languageDE=language_de
         ))
@@ -3277,6 +3323,7 @@ class DuplicateResultsListView(LoginRequiredMixin,
             stations=stations,
             centers=centers,
             get_centers_stations_url='/ajax/get-centers-stations/',
+            get_export_url='/ajax/get-export/',
             languageDE=language_de,
         ))
 
@@ -3373,6 +3420,7 @@ class AllCandidatesVotesListView(LoginRequiredMixin,
             title=_(u'All Candidates Votes'),
             export_file_name=_(u'all_candidates_votes'),
             get_centers_stations_url='/ajax/get-centers-stations/',
+            get_export_url='/ajax/get-export/',
             languageDE=language_de,
         ))
 
@@ -3471,5 +3519,6 @@ class ActiveCandidatesVotesListView(LoginRequiredMixin,
             title=_(u'Active Candidates Votes'),
             export_file_name=_(u'active_candidates_votes'),
             get_centers_stations_url='/ajax/get-centers-stations/',
+            get_export_url='/ajax/get-export/',
             languageDE=language_de,
         ))

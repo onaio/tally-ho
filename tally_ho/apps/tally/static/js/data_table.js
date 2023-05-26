@@ -151,6 +151,106 @@ $(document).ready(function () {
     });
   });
 
+  $('#report').on('click', '#exc-pdf-export-report', function () {
+    $("#exc-pdf-export-report").prop("disabled", true);
+
+    let data = [];
+    let selectOneIds = $('select#centers').val();
+    let selectTwoIds = $('select#stations').val();
+    let raceTypeNames = $('select#filter-out-race-types').val();
+    let exportNumber = $('input#exc-export-number').val();
+
+    const downloadFile = (blob, fileName) => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 7000);
+    };
+
+
+    const items = {
+      select_1_ids: selectOneIds !== null ? selectOneIds : [],
+      select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+      race_type_names: raceTypeNames !== null ? raceTypeNames : [],
+      export_number: exportNumber !== null ? exportNumber : [],
+      tally_id: tallyId,
+      exportType: "PDF",
+    };
+    data = items;
+
+
+    data = data.length
+      ? data.filter((item) =>
+          Object.values(item).every((value) => typeof value !== 'undefined')
+        )
+      : data;
+
+     $.ajax({
+        url: getExportUrl,
+        data: { data: JSON.stringify(data) },
+        traditional: true,
+        type: 'GET',
+        responseType: 'blob',
+        success: function(response) {
+           downloadFile(new Blob([response]), 'form-results.pdf');
+           $("exc-pdf-export-report").removeAttr("disabled");
+        },
+
+    });
+  });
+  $('#report').on('click', '#exc-ppt-export-report', function () {
+    $("#exc-ppt-export-report").prop("disabled", true);
+
+    let data = [];
+    let selectOneIds = $('select#centers').val();
+    let selectTwoIds = $('select#stations').val();
+    let raceTypeNames = $('select#filter-out-race-types').val();
+    let exportNumber = $('input#exc-export-number').val();
+
+    const downloadFile = (blob, fileName) => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 7000);
+    };
+
+
+    const items = {
+      select_1_ids: selectOneIds !== null ? selectOneIds : [],
+      select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+      race_type_names: raceTypeNames !== null ? raceTypeNames : [],
+      export_number: exportNumber !== null ? exportNumber : [],
+      tally_id: tallyId,
+      exportType: "PPT",
+    };
+    data = items;
+
+    data = data.length
+      ? data.filter((item) =>
+          Object.values(item).every((value) => typeof value !== 'undefined')
+        )
+      : data;
+
+     $.ajax({
+        url: getExportUrl,
+        data: { data: JSON.stringify(data) },
+        traditional: true,
+        type: 'GET',
+        responseType: 'blob',
+        success: function(response) {
+           downloadFile(new Blob([response]), 'form-results.ppt');
+           $("exc-ppt-export-report").removeAttr("disabled");
+        },
+    });
+  });
+
+
   $('#in-report').on('click', '#filter-in-report', function () {
     const table = $('.datatable').DataTable();
 
@@ -220,6 +320,109 @@ $(document).ready(function () {
       responsive: true,
     });
   });
+  $('#in-report').on('click', '#inc-pdf-export-report', function () {
+    $("#inc-pdf-export-report").prop("disabled", true);
+
+    let data = [];
+    let selectOneIds = $('select#filter-in-centers').val();
+    let selectTwoIds = $('select#filter-in-stations').val();
+    let raceTypeNames = $('select#filter-in-race-types').val();
+    let exportNumber = $('input#inc-export-number').val();
+
+    const downloadFile = (blob, fileName) => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 7000);
+    };
+
+
+    const items = {
+      select_1_ids: selectOneIds !== null ? selectOneIds : [],
+      select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+      race_type_names: raceTypeNames !== null ? raceTypeNames : [],
+      export_number: exportNumber !== null ? exportNumber : [],
+      tally_id: tallyId,
+      exportType: "PDF",
+      filter_in: "True",
+    };
+    data = items;
+
+
+    data = data.length
+      ? data.filter((item) =>
+          Object.values(item).every((value) => typeof value !== 'undefined')
+        )
+      : data;
+
+     $.ajax({
+        url: getExportUrl,
+        data: { data: JSON.stringify(data) },
+        traditional: true,
+        type: 'GET',
+        responseType: 'blob',
+        success: function(response) {
+           downloadFile(new Blob([response]), 'form-results.pdf');
+           $("inc-pdf-export-report").removeAttr("disabled");
+        },
+
+    });
+  });
+  $('#in-report').on('click', '#inc-ppt-export-report', function () {
+    $("#inc-pdf-export-report").prop("disabled", true);
+
+    let data = [];
+    let selectOneIds = $('select#filter-in-centers').val();
+    let selectTwoIds = $('select#filter-in-stations').val();
+    let raceTypeNames = $('select#filter-in-race-types').val();
+    let exportNumber = $('input#inc-export-number').val();
+
+    const downloadFile = (blob, fileName) => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 7000);
+    };
+
+
+    const items = {
+      select_1_ids: selectOneIds !== null ? selectOneIds : [],
+      select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+      race_type_names: raceTypeNames !== null ? raceTypeNames : [],
+      export_number: exportNumber !== null ? exportNumber : [],
+      tally_id: tallyId,
+      exportType: "PPT",
+      filter_in: "True",
+    };
+    data = items;
+
+
+    data = data.length
+      ? data.filter((item) =>
+          Object.values(item).every((value) => typeof value !== 'undefined')
+        )
+      : data;
+
+     $.ajax({
+        url: getExportUrl,
+        data: { data: JSON.stringify(data) },
+        traditional: true,
+        type: 'GET',
+        responseType: 'blob',
+        success: function(response) {
+           downloadFile(new Blob([response]), 'form-results.ppt');
+           $("inc-ppt-export-report").removeAttr("disabled");
+        },
+
+    });
+  });
+
   $('#race-report').on('click', '#filter-race-report', function () {
     const table = $('.datatable').DataTable();
 
