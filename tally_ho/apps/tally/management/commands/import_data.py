@@ -918,8 +918,8 @@ def import_candidates(tally=None,
         next(reader)  # ignore header
 
         for row in reader:
-            id_, ballot_number = row
-            id_to_ballot_order[id_] = ballot_number
+            candidate_id, order = row
+            id_to_ballot_order[candidate_id] = order
 
     with candidates_file_to_parse as f:
         reader = csv.reader(f)
