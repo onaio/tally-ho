@@ -3,6 +3,7 @@ from django.db.models import Q, Sum, Value as V
 from django.db.models.functions import Coalesce
 from enumfields import EnumIntegerField
 import reversion
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
@@ -19,6 +20,11 @@ class Candidate(BaseModel):
 
     ballot = models.ForeignKey(Ballot, related_name='candidates',
                                on_delete=models.PROTECT)
+    electrol_race = models.ForeignKey(ElectrolRace,
+                                      null=True,
+                                      blank=True,
+                                      related_name='candidates',
+                                      on_delete=models.PROTECT)
     candidate_id = models.PositiveIntegerField()
     full_name = models.TextField()
     order = models.PositiveSmallIntegerField()
@@ -32,7 +38,7 @@ class Candidate(BaseModel):
 
     @property
     def race_type_name(self):
-        return self.ballot.electrol_race.type
+        return self.electrol_race.ballot_name
 
     def num_votes(self, result_form=None, form_state=FormState.ARCHIVED):
         """Return the number of final active votes for this candidate in the
