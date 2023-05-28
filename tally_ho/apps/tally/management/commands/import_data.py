@@ -879,28 +879,36 @@ def process_candidate_row(
         tally,
         row,
         id_to_ballot_order,
+        electrol_races_by_ballot_name=None,
+        ballots_by_ballot_number=None,
         command=None,
         logger=None
 ):
-    candidate_id, full_name, ballot_number, _ = row
-
     try:
-        ballot = Ballot.objects.get(
-            number=parse_int(ballot_number), tally=tally)
+        candidate_id, full_name, ballot_number, ballot_name = row
+        ballot = ballots_by_ballot_number.get(parse_int(ballot_number))
+        if ballot is None:
+            raise Ballot.DoesNotExist(
+                f'Ballot {ballot_number} does not exist')
+
+        electrol_race = electrol_races_by_ballot_name.get(ballot_name)
+        if electrol_race is None:
+            raise ElectrolRace.DoesNotExist(
+                f'Electrol race {ballot_name} does not exist')
+
         Candidate.objects.get_or_create(
             ballot=ballot,
+            electrol_race=electrol_race,
             candidate_id=candidate_id,
             full_name=full_name,
             order=id_to_ballot_order[candidate_id],
             tally=tally)
-
-    except Ballot.DoesNotExist as e:
-        msg = f'Ballot {ballot_number} does not exist, error: {e}'
+    except Exception as e:
+        msg = f'error: {e}'
         if command:
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
-        raise Ballot.DoesNotExist(msg)
 
 
 def import_candidates(tally=None,
@@ -910,6 +918,17 @@ def import_candidates(tally=None,
         CANDIDATES_PATH, 'r')
     ballot_file_to_parse = ballot_file if ballot_file else open(
         BALLOT_ORDER_PATH, 'r')
+    electrol_races_by_ballot_name =\
+            {
+                electrol_race.ballot_name:\
+                electrol_race for electrol_race in\
+                    ElectrolRace.objects.filter(tally=tally)
+            }
+    ballots_by_ballot_number =\
+            {
+                ballot.number:\
+                ballot for ballot in Ballot.objects.filter(tally=tally)
+            }
 
     id_to_ballot_order = {}
 
@@ -926,7 +945,12 @@ def import_candidates(tally=None,
         next(reader)  # ignore header
 
         for row in reader:
-            process_candidate_row(tally, row, id_to_ballot_order)
+            process_candidate_row(
+                tally,
+                row,
+                id_to_ballot_order,
+                electrol_races_by_ballot_name=electrol_races_by_ballot_name,
+                ballots_by_ballot_number=ballots_by_ballot_number)
 
 
 def process_results_form_row(tally, row, command=None, logger=None):
