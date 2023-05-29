@@ -96,13 +96,13 @@ urlpatterns = [
     re_path(r'^data/summary-list/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.SummaryReportView.as_view(),
             name='summary-list'),
-    re_path(r'^data/summary-list/(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
-            administrative_areas_reports.SummaryReportView.as_view(),
-            name='constituency-summary-report'),
-    re_path(r'^data/summary-list/(?P<tally_id>(\d+))'
-            r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
-            administrative_areas_reports.SummaryReportView.as_view(),
-            name='sub-constituency-summary-report'),
+    # re_path(r'^data/summary-list/(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+    #         administrative_areas_reports.SummaryReportView.as_view(),
+    #         name='constituency-summary-report'),
+    # re_path(r'^data/summary-list/(?P<tally_id>(\d+))'
+    #         r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
+    #         administrative_areas_reports.SummaryReportView.as_view(),
+    #         name='sub-constituency-summary-report'),
 
     re_path(r'^data/stations-and-centers-under-investigation-list/'
             r'(?P<tally_id>(\d+))/(?P<report_name>'
