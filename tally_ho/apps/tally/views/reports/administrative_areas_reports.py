@@ -1753,181 +1753,142 @@ class SummaryReportDataView(LoginRequiredMixin,
                             mixins.TallyAccessMixin,
                             BaseDatatableView):
     group_required = groups.TALLY_MANAGER
-    model = ReconciliationForm
-    columns = ('name',
-               'number_valid_votes',
-               'number_invalid_votes',
-               'number_cancelled_ballots',
-               'constituencies_ids',
-               'sub_constituencies_ids',
-               'actions')
+    model = ResultForm
+    columns = ('admin_area',
+               'valid_votes',
+               'invalid_votes',
+               'cancelled_votes',)
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
-        region_id = self.kwargs.get('region_id')
-        constituency_id = self.kwargs.get('constituency_id')
-        data = self.request.POST.get('data')
+        raw_post_data = self.request.POST.get('data')
+        post_data = ast.literal_eval(raw_post_data) if raw_post_data else {}
+        data = post_data
+        if isinstance(post_data, list):
+            data = post_data[0] if len(post_data) > 0 else {}
+        # TODO - this too seems to be oftenly repeated.
+        region_names = data.get('region_names')
+        constituencies = data.get('constituencies')
+        sub_constituencies = data.get('sub_constituencies')
+
         keyword = self.request.POST.get('search[value]')
 
-        if data:
-            qs = custom_queryset_filter(
-                    tally_id,
-                    qs,
-                    ast.literal_eval(data),
-                    report_type='summary',
-                    region_id=region_id,
-                    constituency_id=constituency_id)
-        else:
-            qs =\
-                custom_queryset_filter(
-                    tally_id,
-                    qs,
-                    report_type='summary',
-                    region_id=region_id,
-                    constituency_id=constituency_id)
+        admin_area_column_name = 'center__region'
+        valid_votes_sub_q = ReconciliationForm.objects.filter(
+                    result_form__tally=tally_id,
+                    result_form__form_state=FormState.ARCHIVED,
+                    entry_version=EntryVersion.FINAL
+                    )
+        qs = qs.filter(tally=tally_id, form_state=FormState.ARCHIVED)
+
+        if region_names:
+            admin_area_column_name = 'center__region'
+            valid_votes_sub_q = valid_votes_sub_q.filter(result_form__center__region=OuterRef('center__region'))
+            qs = qs.filter(center__region__in=region_names)
+
+        if constituencies:
+            admin_area_column_name = 'center__constituency__name'
+            valid_votes_sub_q = valid_votes_sub_q.filter(result_form__center__constituency__name=OuterRef('center__constituency__name'))
+            qs = qs.filter(center__constituency__name__in=constituencies)
+
+        if sub_constituencies:
+            admin_area_column_name = 'center__sub_constituency__code'
+            valid_votes_sub_q = valid_votes_sub_q.filter(result_form__center__sub_constituency__code=OuterRef('center__sub_constituency__code'))
+            qs = qs.filter(center__sub_constituency__code__in=sub_constituencies)
+
+        # TODO - what happens when admin_area_column_name is None
+        final_admin_area_col_name = f'result_form__{admin_area_column_name}'
+        qs = qs.annotate(
+            admin_area=F(admin_area_column_name)
+            ).distinct().values('admin_area').annotate(
+            valid_votes=
+            Subquery(
+                valid_votes_sub_q.values(final_admin_area_col_name).annotate(
+                    num_valid_votes=Coalesce(Sum('number_valid_votes'), V(0))
+                    ).values('num_valid_votes')[:1],
+                output_field=IntegerField()
+                ),
+            invalid_votes=
+            Subquery(
+                valid_votes_sub_q.values(final_admin_area_col_name).annotate(
+                    num_invalid_votes=Coalesce(
+                        Sum('number_invalid_votes'), V(0)
+                        )
+                    ).values('num_invalid_votes')[:1],
+                output_field=IntegerField()
+                ),
+            cancelled_votes=
+            Subquery(
+                valid_votes_sub_q.values(final_admin_area_col_name).annotate(
+                    num_cancelled_votes=Coalesce(
+                        Sum('number_cancelled_ballots'), V(0)
+                        )
+                    ).values('num_cancelled_votes')[:1],
+                output_field=IntegerField()
+                )
+            )
 
         if keyword:
-            qs = qs.filter(Q(name__contains=keyword) |
-                           Q(total_number_of_registrants__contains=keyword) |
-                           Q(number_of_voters_voted__contains=keyword) |
-                           Q(male_voters__contains=keyword) |
-                           Q(female_voters__contains=keyword) |
-                           Q(turnout_percentage__contains=keyword))
+            qs = qs.filter(Q(admin_area__contains=keyword) |
+                           Q(valid_votes__contains=keyword) |
+                           Q(invalid_votes__contains=keyword) |
+                           Q(cancelled_votes__contains=keyword) )
+
+        # import ipdb; ipdb.set_trace()
         return qs
 
     def render_column(self, row, column):
-        tally_id = self.kwargs.get('tally_id')
-        region_id = self.kwargs.get('region_id')
-        constituency_id = self.kwargs.get('constituency_id')
-        data = self.request.POST.get('data')
-        administrative_area_child_report_name = _(u'Region Constituencies')
-        url =\
-            reverse('constituency-summary-report',
-                    kwargs={'tally_id': tally_id,
-                            'region_id': row['admin_area_id']})
-
-        if region_id:
-            administrative_area_child_report_name = _(u'Sub Constituencies')
-            url =\
-                reverse('sub-constituency-summary-report',
-                        kwargs={'tally_id': tally_id,
-                                'region_id': row['admin_area_id'],
-                                'constituency_id': row['constituency_id']})
-
-        if column == 'name':
-            return str('<td class="center">'
-                       f'{row["name"]}</td>')
-        elif column == 'number_valid_votes':
-            return str('<td class="center">'
-                       f'{row["number_valid_votes"]}</td>')
-        elif column == 'number_invalid_votes':
-            return str('<td class="center">'
-                       f'{row["number_invalid_votes"]}</td>')
-        elif column == 'number_cancelled_ballots':
-            return str('<td class="center">'
-                       f'{row["number_cancelled_ballots"]}</td>')
-        elif column == 'constituencies_ids':
-            disabled = 'disabled' if region_id else ''
-            region_cons_ids = []
-            qs = Constituency.objects.filter(
-                tally__id=tally_id,
-                id__in=row['constituencies_ids'])\
-                .values_list('id', 'name', named=True)
-            if data:
-                region_cons_data =\
-                    [item for item in ast.literal_eval(
-                        data) if ast.literal_eval(item['region_id']) ==
-                        row["admin_area_id"]]
-                region_cons_ids = region_cons_data[0]['select_1_ids']
-            constituencies =\
-                build_select_options(qs, ids=region_cons_ids)
-            return str('<td class="center">'
-                       '<select style="min-width: 6em;"'
-                       f'{disabled}'
-                       ' id="select-1" multiple'
-                       ' data-id='f'{row["admin_area_id"]}''>'
-                       f'{constituencies}'
-                       '</select>'
-                       '</td>')
-        elif column == 'sub_constituencies_ids':
-            disabled = 'disabled' if constituency_id else ''
-            region_sub_cons_ids = []
-            qs =\
-                SubConstituency.objects.annotate(
-                    name=F('code')).filter(
-                    tally__id=tally_id,
-                    id__in=row['sub_constituencies_ids'])\
-                .values_list('id', 'name', named=True)
-            if data:
-                region_sub_cons_data =\
-                    [item for item in ast.literal_eval(
-                        data)
-                        if ast.literal_eval(item['region_id']) ==
-                        row["admin_area_id"]]
-                region_sub_cons_ids =\
-                    region_sub_cons_data[0]['select_2_ids']
-
-            sub_constituencies =\
-                build_select_options(
-                    qs, ids=region_sub_cons_ids)
-            return str('<td class="center">'
-                       '<select style="min-width: 6em !important;"'
-                       f'{disabled}'
-                       ' id="select-2" multiple'
-                       ' data-id='f'{row["admin_area_id"]}''>'
-                       f'{sub_constituencies}'
-                       '</select>'
-                       '</td>')
-        elif column == 'actions':
-            if constituency_id:
-                return str(
-                    '<button id="filter-report" disabled '
-                    'class="btn btn-default btn-small">Submit</button>')
-            return str('<a href='f'{url}'
-                       ' class="btn btn-default btn-small vertical-margin"> '
-                       f'{administrative_area_child_report_name}'
-                       '</a>'
-                       '<button id="filter-report" '
-                       'class="btn btn-default btn-small">Submit</button>')
+        if column in self.columns:
+            col_value = row[column]
+            return str(
+                '<td class="center">'
+                f'{col_value}</td>'
+                )
         else:
             return super(
-                SummaryReportDataView, self).render_column(row, column)
+                SummaryReportDataView, self
+                ).render_column(row, column)
 
 
 class SummaryReportView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
                         TemplateView):
     group_required = groups.TALLY_MANAGER
-    model = ReconciliationForm
+    model = ResultForm
     template_name = 'reports/summary_report.html'
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        region_id = kwargs.get('region_id')
-        constituency_id = kwargs.get('constituency_id')
         language_de = get_datatables_language_de_from_locale(self.request)
 
-        try:
-            region_name =\
-                region_id and Region.objects.get(
-                    id=region_id,
-                    tally__id=tally_id).name
-        except Region.DoesNotExist:
-            region_name = None
+        # TODO - refactor to use helper method.
+        region_names = list(
+            ResultForm.objects.filter(tally=tally_id).values_list(
+                'center__region', flat=True
+                ).distinct()
+            )
 
-        try:
-            constituency_name =\
-                constituency_id and Constituency.objects.get(
-                    id=constituency_id,
-                    tally__id=tally_id).name
-        except Constituency.DoesNotExist:
-            constituency_name = None
+        constituencies = list(
+            ResultForm.objects.filter(tally=tally_id).values_list(
+                'center__constituency__name', flat=True
+                ).distinct()
+            )
+
+        sub_constituencies = list(
+            ResultForm.objects.filter(tally=tally_id).values_list(
+                'center__sub_constituency__code', flat=True
+                ).distinct()
+            )
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('summary-list-data', kwargs=kwargs),
             tally_id=tally_id,
-            region_name=region_name,
-            constituency_name=constituency_name,
+            regions=region_names,
+            constituencies=constituencies,
+            sub_constituencies=sub_constituencies,
+            get_sub_and_constituencies_url=reverse(
+                'get_sub_and_constituencies'
+                ),
             languageDE=language_de,
         ))
 
