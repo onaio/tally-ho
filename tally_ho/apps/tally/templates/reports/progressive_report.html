@@ -15,34 +15,28 @@
 {% endblock %}
 {% block content %}
 
-{% if not region_name %}
-<h1>{% trans ' Regions Progressive Report' %}</h1>
-<br />
-{% endif %}
+<!--{% if not region_name %}-->
+<!--<h1>{% trans ' Regions Progressive Report' %}</h1>-->
+<!--<br />-->
+<!--{% endif %}-->
 
-{% if region_name and not constituency_name %}
-<h1>{{ region_name }} {% trans ' Region Progressive Report' %}</h1>
-<br />
-{% endif %}
+<!--{% if region_name and not constituency_name %}-->
+<!--<h1>{{ region_name }} {% trans ' Region Progressive Report' %}</h1>-->
+<!--<br />-->
+<!--{% endif %}-->
 
-{% if constituency_name %}
-<h1>{{ constituency_name }} {% trans ' Constituency Progressive Report' %}</h1>
-<h2>{% trans 'Region Name: ' %}{{ region_name }}</h2>
-<br />
-{% endif %}
+<!--{% if constituency_name %}-->
+<!--<h1>{{ constituency_name }} {% trans ' Constituency Progressive Report' %}</h1>-->
+<!--<h2>{% trans 'Region Name: ' %}{{ region_name }}</h2>-->
+<!--<br />-->
+<!--{% endif %}-->
 
 <table id="report" class="display datatable">
   <thead>
     <tr>
-      {% if constituency_name %}
-        <th>{% trans 'Code' %}</th>
-      {% else %}
-        <th>{% trans 'Name' %}</th>
-      {% endif %}
-      <th>{% trans 'Number of Candidates' %}</th>
-      <th>{% trans 'Number of Votes' %}</th>
-      <th class="hide-from-export">{% trans 'Constituencies' %}</th>
-      <th class="hide-from-export">{% trans 'Sub Constituencies' %}</th>
+      <th>{% trans 'Administrative areas' %}</th>
+        <th>{% trans 'Number of candidates' %}</th>
+        <th>{% trans 'Number of votes' %}</th>
       <th class="hide-from-export">{% trans 'Actions' %}</th>
     </tr>
   </thead><tbody>
