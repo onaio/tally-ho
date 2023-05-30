@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 from django.template.loader import get_template
 
+from pptx import Presentation
 from xhtml2pdf import pisa
 
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -1427,7 +1428,7 @@ def get_export(request):
     data = ast.literal_eval(request.GET.get('data'))
     tally_id = data.get('tally_id')
     limit = int(data.get('export_number'))
-    template_src = 'reports/presentation_exporter_pdf.html'
+    export_type = data.get('exportType')
 
     qs = Result.objects.filter(
         result_form__tally__id=tally_id,
@@ -1439,19 +1440,73 @@ def get_export(request):
         tally_id,
         qs,
         data).values()[:limit]
-    context_dict = {'data': qs}
-    template = get_template(template_src)
-    html = template.render(context_dict)
-    result = BytesIO()
-    pdf = pisa.CreatePDF(html, encoding='UTF-8', dest=result)
-    if pdf:
+
+    if export_type == 'PDF':
+        result = create_pdf_export(qs)
         result.seek(0)
         response = HttpResponse(result, content_type='application/pdf')
         filename = "results_pdf.pdf"
         content = f"attachment; filename='{filename}'"
         response['Content-Disposition'] = content
         return response
+    elif export_type == 'PPT':
+        result = create_ppt_export(qs, columns)
+        result.seek(0)
+        response = HttpResponse(
+            result, content_type='application/vnd.ms-powerpoint')
+        filename = "form-results.ppt"
+        content = f"attachment; filename='{filename}'"
+        response['Content-Disposition'] = content
+        return response
     return HttpResponse("Not found")
+
+
+def create_pdf_export(qs):
+    template_src = 'reports/presentation_exporter_pdf.html'
+    context_dict = {'data': qs}
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    result = BytesIO()
+    pdf = pisa.CreatePDF(html, encoding='UTF-8', dest=result)
+    return result
+
+
+def create_ppt_export(qs, columns):
+    total = qs.count()
+    slides = (total // 10) + 1
+    rows_per_table = 11
+    rows_added = 0
+
+    ppt = Presentation()
+    for slide in range(slides):
+        if total - rows_added < rows_per_table - 1:
+            rows_per_table = total - rows_added + 1
+
+        qs = qs[(slide * 10): min(total, (slide+1) * 10)]
+        if slide == 0:
+            first_slide_layout = ppt.slide_layouts[5]
+            first_slide = ppt.slides.add_slide(first_slide_layout)
+            first_slide.shapes.title.text = "Form Results Export"
+            table = first_slide.shapes.add_table(
+                rows=rows_per_table, cols=len(columns), left=1, top=1, width=1, height=1)
+        else:
+            slide_layout = ppt.slide_layouts[6]
+            table_slide = ppt.slides.add_slide(slide_layout)
+            table = table_slide.shapes.add_table(
+                rows=rows_per_table, cols=len(columns), left=1, top=1, width=1, height=1)
+        for row in range(rows_per_table):
+            for column in range(len(columns)):
+                cell = table.table.cell(row, column)
+                if row == 0:
+                    # title row
+                    cell.text = columns[column]
+                else:
+                    cell.text = str(qs[row-1][columns[column]])
+        rows_added += (rows_per_table - 1)
+        # ppt.save("form-results.pptx")
+    results = BytesIO()
+    ppt.save(results)
+    return results
 
 
 def get_results(request):

@@ -4,9 +4,11 @@
 
 {% block styles %}
 {{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<!--<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">-->
+<link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet"/>
 <link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
-<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+<!--<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">-->
+<link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet"/>
 <link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
 {% endblock %}
@@ -138,17 +140,17 @@
         <th>{% trans 'Station Number' %}</th>
         <th>{% trans 'Gender' %}</th>
         <th>{% trans 'Barcode' %}</th>
-        <th>{% trans 'Race Type' %}</th>
-        <th>{% trans 'Sub Constituency Code' %}</th>
-        <th>{% trans 'Order' %}</th>
-        <th>{% trans 'Unstamped Ballots' %}</th>
-        <th>{% trans 'Cancelled Ballots' %}</th>
-        <th>{% trans 'Spoilt Ballots' %}</th>
-        <th>{% trans 'Unused Ballots' %}</th>
-        <th>{% trans 'Number of Signatures' %}</th>
-        <th>{% trans 'Received Ballots Papers' %}</th>
-        <th>{% trans 'Ballot' %}</th>
-        <th>{% trans 'Race Number' %}</th>
+        <th class="hide-from-export">{% trans 'Race Type' %}</th>
+        <th class="hide-from-export">{% trans 'Sub Constituency Code' %}</th>
+        <th class="hide-from-export">{% trans 'Order' %}</th>
+        <th class="hide-from-export">{% trans 'Unstamped Ballots' %}</th>
+        <th class="hide-from-export">{% trans 'Cancelled Ballots' %}</th>
+        <th class="hide-from-export">{% trans 'Spoilt Ballots' %}</th>
+        <th class="hide-from-export">{% trans 'Unused Ballots' %}</th>
+        <th class="hide-from-export">{% trans 'Number of Signatures' %}</th>
+        <th class="hide-from-export">{% trans 'Received Ballots Papers' %}</th>
+        <th class="hide-from-export">{% trans 'Ballot' %}</th>
+        <th class="hide-from-export">{% trans 'Race Number' %}</th>
       </tr>
   </thead>
   <tbody></tbody>
