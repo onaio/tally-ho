@@ -4,17 +4,15 @@
 
 {% block styles %}
 {{ block.super }}
-<!--<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">-->
-<link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet"/>
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
-<!--<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">-->
-<link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet"/>
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url get_export_url=get_export_url results_download_url=results_download_url languageDE=languageDE %}
+{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url get_export_url=get_export_url results_download_url=results_download_url languageDE=languageDE deployedSiteUrl=deployedSiteUrl %}
 {% endblock %}
 {% block content %}
 
@@ -24,11 +22,20 @@
 <table class="display datatable results">
   <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
     <div id="report" class="row">
-    <div class="col-12">
-      <button style="float: left; margin-bottom: 2em;" id="export-form-results-presidential" class="btn btn-default btn-small">{% trans 'Export Presidential Results in JSON' %}</button>
-      <button style="float: left; margin-left: 1em; margin-bottom: 2em;" id="export-form-results-parliamentary" class="btn btn-default btn-small">{% trans 'Export Parliamentary Results in JSON' %}</button>
+    <div class="col-12" style="margin-bottom: 2em;">
+      <div class="col-3" style="padding-left: 0.5em;">
+        <button id="export-form-results-presidential" class="btn btn-default btn-small">{% trans 'Export Presidential Results in JSON' %}</button>
+      </div>
+      <div class="col-3" style="padding-left: 0.5em;">
+        <button id="export-form-results-parliamentary" class="btn btn-default btn-small">{% trans 'Export Parliamentary Results in JSON' %}</button>
+      </div>
+      <div class="col-6">
+        <p style="float: left; margin-right: 1em;" class="card-text">{% trans 'Export limit:' %}</p>
+        <input style="float: left; width: 4em;" type="number" min="1" value="10" id="export-number">
+      </div>
     </div>
-    <div class="col-sm-3">
+    <div class="col-12">
+    <div class="col-sm-3" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans  'Races' %}</p>
       <select class="selectpicker" id="filter-out-race-types" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
         {% for race_type in race_types %}
@@ -36,7 +43,7 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-3" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Centers' %}</p>
       <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
         {% for center in centers %}
@@ -57,7 +64,7 @@
         <div class="card-body">
           <p class="card-text" style="text-align: left;">{% trans 'Filter Out.' %}</p>
           <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
-          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">{% trans 'Reset' %}</a>
+          <button style="float: left; margin-left: 1em;" id="reset-filters-out-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
         </div>
       </div>
     </div>
@@ -65,19 +72,19 @@
       <div class="card">
         <div class="card-body">
           <p class="card-text" style="float: left; text-align: left;">{% trans 'Export:' %}</p>
-          <input style="float: left; width: 4em; margin-left: 1em;" type="number" min="1" value="10" id="exc-export-number">
           <br/>
           <p></p>
-          <button style="float: left;" id="exc-pdf-export-report" class="btn btn-default btn-small">{% trans 'PDF' %}</button>
-          <button style="float: left; margin-left: 2em;" id="exc-ppt-export-report" class="btn btn-default btn-small">{% trans 'PPT' %}</button>
+          <button style="float: left;" id="exc-ppt-export-report" class="btn btn-default btn-small">{% trans 'PPT' %}</button>
         </div>
       </div>
     </div>
   </div>
+  </div>
 </caption>
   <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
     <div id="in-report" class="row">
-    <div class="col-sm-3">
+    <div class="col-12" style="margin-bottom: 2em;">
+    <div class="col-sm-3" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Races' %}</p>
       <select class="selectpicker" id="filter-in-race-types" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
         {% for race_type in race_types %}
@@ -85,7 +92,7 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-3" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans  'Centers' %}</p>
       <select class="selectpicker" id="filter-in-centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
         {% for center in centers %}
@@ -106,7 +113,7 @@
         <div class="card-body">
           <p class="card-text" style="text-align: left;">{% trans 'Filter In.' %}</p>
           <button style="float: left;" id="filter-in-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
-          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">{% trans 'Reset' %}</a>
+          <button style="float: left; margin-left: 1em;" id="reset-filters-in-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
         </div>
       </div>
     </div>
@@ -114,13 +121,12 @@
       <div class="card">
         <div class="card-body">
           <p class="card-text" style="float: left; text-align: left;">{% trans 'Export:' %}</p>
-          <input style="float: left; width: 4em; margin-left: 1em;" type="number" min="1" value="10" id="inc-export-number">
           <br/>
           <p></p>
-          <button style="float: left;" id="inc-pdf-export-report" class="btn btn-default btn-small">{% trans 'PDF' %}</button>
-          <button style="float: left; margin-left: 2em;" id="inc-ppt-export-report" class="btn btn-default btn-small">{% trans 'PPT' %}</button>
+          <button style="float: left;" id="inc-ppt-export-report" class="btn btn-default btn-small">{% trans 'PPT' %}</button>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </caption>
@@ -140,9 +146,9 @@
         <th>{% trans 'Station Number' %}</th>
         <th>{% trans 'Gender' %}</th>
         <th>{% trans 'Barcode' %}</th>
-        <th class="hide-from-export">{% trans 'Race Type' %}</th>
-        <th class="hide-from-export">{% trans 'Sub Constituency Code' %}</th>
-        <th class="hide-from-export">{% trans 'Order' %}</th>
+        <th>{% trans 'Race Type' %}</th>
+        <th>{% trans 'Sub Constituency Code' %}</th>
+        <th>{% trans 'Order' %}</th>
         <th class="hide-from-export">{% trans 'Unstamped Ballots' %}</th>
         <th class="hide-from-export">{% trans 'Cancelled Ballots' %}</th>
         <th class="hide-from-export">{% trans 'Spoilt Ballots' %}</th>

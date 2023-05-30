@@ -2,18 +2,13 @@
 <script src="{% static "js/jquery-1.11.0.min.js" %}"></script>
 <script src="{% static "js/popper.min.js" %}"></script>
 <script src="{% static "js/bootstrap.min.js" %}"></script>
-<!--<script src="{% static "js/jquery.dataTables.min.js" %}"></script>-->
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>-->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>-->
+<script src="{% static "js/jquery.dataTables.min.js" %}"></script>
 <script src="{% static "pdfmake/pdfmake.min.js" %}"></script>
 <script src="{% static "pdfmake/vfs_fonts.js" %}"></script>
 <script src="{% static "js/dataTables.responsive.min.js" %}"></script>
-<!--<script src="{% static "js/dataTables.buttons.min.js" %}"></script>-->
-<!--<script src="{% static "js/buttons.html5.min.js" %}"></script>-->
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.colVis.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="{% static "js/dataTables.buttons.min.js" %}"></script>
+<script src="{% static "js/buttons.colVis.min.js" %}"></script>
+<script src="{% static "js/buttons.html5.min.js" %}"></script>
 <script src="{% static "js/dataTables.select.min.js" %}"></script>
 <script src="{% static "js/data_table.js" %}"></script>
 <script src="{% static "js/bootstrap-select.min.js" %}"></script>
@@ -39,10 +34,11 @@
     const exportFileName = '{{ export_file_name }}';
     const serverSide = '{{ server_side }}' ? $.parseJSON('{{ server_side }}'.toLowerCase()) : true;
     const LIST_JSON_URL = '{{ remote_url }}';
-    const arialNormal = "http://localhost:8000/static/pdfmake/ARIAL.TTF";
-    const arialBold = "http://localhost:8000/static/pdfmake/ARIALBD.TTF";
-    const arialItalics = "http://localhost:8000/static/pdfmake/ARIALI.TTF";
-    const arialBItalics = "http://localhost:8000/static/pdfmake/ARIALBI.TTF";
+    const deployedSiteUrl = '{{ deployedSiteUrl }}';
+    const arialNormal = `${deployedSiteUrl}/static/pdfmake/ARIAL.TTF`;
+    const arialBold = `${deployedSiteUrl}/static/pdfmake/ARIALBD.TTF`;
+    const arialItalics = `${deployedSiteUrl}/static/pdfmake/ARIALI.TTF`;
+    const arialBItalics = `${deployedSiteUrl}/static/pdfmake/ARIALBI.TTF`;
     // translations for datatables
     const dt_language = {{ languageDE|safe }};;
 

@@ -33,7 +33,8 @@ from tally_ho.apps.tally.views.super_admin import (
     get_result_form_with_duplicate_results)
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
+    get_datatables_language_de_from_locale,
+    get_deployed_site_url,
 )
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
@@ -772,7 +773,7 @@ def results_queryset(
                         then=F(reconform_num_valid_votes)
                     ), default=V(0))).distinct()
 
-    return qs
+    return qs.order_by('total_votes')
 
 
 def duplicate_results_queryset(
@@ -1467,7 +1468,7 @@ def create_pdf_export(qs):
     template = get_template(template_src)
     html = template.render(context_dict)
     result = BytesIO()
-    pdf = pisa.CreatePDF(html, encoding='UTF-8', dest=result)
+    pisa.CreatePDF(html, encoding='UTF-8', dest=result)
     return result
 
 
@@ -1488,12 +1489,22 @@ def create_ppt_export(qs, columns):
             first_slide = ppt.slides.add_slide(first_slide_layout)
             first_slide.shapes.title.text = "Form Results Export"
             table = first_slide.shapes.add_table(
-                rows=rows_per_table, cols=len(columns), left=1, top=1, width=1, height=1)
+                rows=rows_per_table,
+                cols=len(columns),
+                left=1,
+                top=1,
+                width=1,
+                height=1)
         else:
             slide_layout = ppt.slide_layouts[6]
             table_slide = ppt.slides.add_slide(slide_layout)
             table = table_slide.shapes.add_table(
-                rows=rows_per_table, cols=len(columns), left=1, top=1, width=1, height=1)
+                rows=rows_per_table,
+                cols=len(columns),
+                left=1,
+                top=1,
+                width=1,
+                height=1)
         for row in range(rows_per_table):
             for column in range(len(columns)):
                 cell = table.table.cell(row, column)
@@ -3257,6 +3268,9 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
 
     def render_column(self, row, column):
         if column in self.columns:
+            if column in ['race_type', 'gender']:
+                return str('<td class="center">'
+                       f'{row[column].name}</td>')
             return str('<td class="center">'
                        f'{row[column]}</td>')
         else:
@@ -3286,7 +3300,8 @@ class ResultFormResultsListView(LoginRequiredMixin,
             get_centers_stations_url='/ajax/get-centers-stations/',
             get_export_url='/ajax/get-export/',
             results_download_url='/ajax/download-results/',
-            languageDE=language_de
+            languageDE=language_de,
+            deployedSiteUrl=get_deployed_site_url()
         ))
 
 
