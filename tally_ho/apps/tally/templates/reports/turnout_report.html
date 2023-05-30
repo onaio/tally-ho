@@ -16,21 +16,8 @@
 {% endblock %}
 {% block content %}
 
-{% if not region_name %}
 <h1>{% trans ' Regions Turn Out Report' %}</h1>
 <br/>
-{% endif %}
-
-<!--{% if region_name and not constituency_name %}-->
-<!--<h1>{{ region_name }} {% trans ' Region Turn Out Report' %}</h1>-->
-<!--<br />-->
-<!--{% endif %}-->
-
-<!--{% if constituency_name %}-->
-<!--<h1>{{ constituency_name }} {% trans ' Constituency Turn Out Report' %}</h1>-->
-<!--<h2>{% trans 'Region Name: ' %}{{ region_name }}</h2>-->
-<!--<br />-->
-<!--{% endif %}-->
 
 <table class="display datatable">
     <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
@@ -77,11 +64,6 @@
     </caption>
     <thead>
     <tr>
-        <!--          {% if constituency_name %}-->
-        <!--            <th>{% trans 'Code' %}</th>-->
-        <!--          {% else %}-->
-        <!--            <th>{% trans 'Name' %}</th>-->
-        <!--          {% endif %}-->
         <th>{% trans 'Administrative areas' %}</th>
         <th>{% trans 'Total voters' %}</th>
         <th>{% trans 'Voters voted' %}</th>
@@ -89,9 +71,6 @@
         <th>{% trans 'Female voters' %}</th>
         <th>{% trans 'Unisex voters' %}</th>
         <th>{% trans 'Turnout percentage' %}</th>
-        <!--          <th class="hide-from-export">{% trans 'Constituencies' %}</th>-->
-        <!--          <th class="hide-from-export">{% trans 'Sub Constituencies' %}</th>-->
-        <!--          <th class="hide-from-export">{% trans 'Actions' %}</th>-->
     </tr>
     </thead>
     <tbody></tbody>

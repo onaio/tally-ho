@@ -85,13 +85,6 @@ urlpatterns = [
     re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.TurnOutReportView.as_view(),
             name='turnout-list'),
-    # re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
-    #         administrative_areas_reports.TurnOutReportView.as_view(),
-    #         name='constituency-turnout-report'),
-    # re_path(r'^data/turnout-list/(?P<tally_id>(\d+))'
-    #         r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
-    #         administrative_areas_reports.TurnOutReportView.as_view(),
-    #         name='sub-constituency-turnout-report'),
 
     re_path(r'^data/summary-list/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.SummaryReportView.as_view(),
@@ -172,14 +165,6 @@ urlpatterns = [
     re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.TurnoutReportDataView.as_view(),
             name='turnout-list-data'),
-    # re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))'
-    #         r'/(?P<region_id>(\d+))/$',
-    #         administrative_areas_reports.TurnoutReportDataView.as_view(),
-    #         name='turnout-list-data'),
-    # re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))'
-    #         r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
-    #         administrative_areas_reports.TurnoutReportDataView.as_view(),
-    #         name='turnout-list-data'),
 
     re_path(r'^data/summary-list-data/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.SummaryReportDataView.as_view(),
