@@ -27,7 +27,7 @@
             <select aria-controls="report" class="selectpicker" data-actions-box="true" data-live-search="true"
                     id="regions" multiple name="regions-filter" title="Select Region">
                 {% for region in regions %}
-                <option value={{region}}>{{region}}</option>
+                <option value="{{region}}">{{region}}</option>
                 {% endfor %}
             </select>
         </div>
@@ -36,7 +36,7 @@
             <select aria-controls="report" class="selectpicker" data-actions-box="true" data-live-search="true"
                     id="constituencies" multiple name="constituencies-filter" title="Select Constituencies">
                 {% for constituency in constituencies %}
-                <option value={{constituency}}>{{constituency}}</option>
+                <option value="{{constituency}}">{{constituency}}</option>
                 {% endfor %}
             </select>
         </div>
@@ -46,7 +46,7 @@
                     data-live-search="true" id="sub_constituencies" multiple name="sub_constituencies-filter"
                     title="Select Sub Constituencies">
                 {% for sub_constituency in sub_constituencies %}
-                <option value={{sub_constituency}}>{{sub_constituency}}</option>
+                <option value="{{sub_constituency}}">{{sub_constituency}}</option>
                 {% endfor %}
             </select>
         </div>
