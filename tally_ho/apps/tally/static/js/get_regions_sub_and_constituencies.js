@@ -1,3 +1,13 @@
+function addSelectOptions(elemId, options){
+    // Append new options
+    $.each(options, function(index, option) {
+        $(`#${elemId}`).append($('<option>', {
+            value: option,
+            text: option,
+        }));
+    });
+}
+
 $(document).ready(function () {
     // TODO - WET CODE ALERT!!!!!
   const exportAction = function (e, dt, button, config) {
@@ -31,29 +41,31 @@ $(document).ready(function () {
   $('#regions').change(function () {
     const region_names = $('#regions').val();
 
-    if (region_names) {
-      $.ajax({
+    filters = {
+    tally_id: tallyId
+    }
+    if(region_names){
+        filters['region_names'] = region_names}
+    $.ajax({
         url: getSubAndConstituenciesUrl,
         data: {
-          data: JSON.stringify({
-            region_names: region_names,
-            tally_id: tallyId,
-          }),
+          data: JSON.stringify(filters),
         },
         traditional: true,
         dataType: 'json',
         success: (data) => {
-          const { constituency_names, sub_constituencies_code } = data;
-          $('#constituencies').selectpicker('val', constituency_names);
-          $('#sub_constituencies').selectpicker('val', sub_constituencies_code);
+        constSelect = $('#constituencies')
+        subConstSelect = $('#sub_constituencies')
+        constSelect.empty().selectpicker('refresh')
+        subConstSelect.empty().selectpicker('refresh')
+        const constituencies = data.constituency_names ?? []
+        const sub_constituencies_code = data.sub_constituencies_code ?? []
+        addSelectOptions('constituencies', constituencies)
+        addSelectOptions('sub_constituencies', sub_constituencies_code)
+        constSelect.selectpicker('refresh');
+        subConstSelect.selectpicker('refresh');
         },
       });
-    } else {
-       $('#constituencies').selectpicker('deselectAll');
-       $('#sub_constituencies').selectpicker('deselectAll');
-       $('#constituencies').selectpicker('refresh');
-          $('#sub_constituencies').selectpicker('refresh');
-    }
   });
     $('#report').on('click', '#filter-report', function () {
     const table = $('.datatable').DataTable();
