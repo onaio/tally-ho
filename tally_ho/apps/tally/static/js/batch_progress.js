@@ -19,7 +19,7 @@ function getCookie(name) {
 if (typeof csrftoken === "undefined") csrftoken = getCookie("csrftoken");
 
 var currentStep = 0;
-var totalSteps = 5;
+var totalSteps = 7;
 
 for (var i = 1; i <= totalSteps; i++) {
   var total = parseInt($("#total" + i).html());

@@ -6,40 +6,56 @@
 
 <h1>{% trans 'Import progress' %}</h1>
 
-<h2>{% trans 'Subconstituencies import progress' %}</h2>
+<h2>{% trans 'Ballots import progress' %}</h2>
 
 <div id="progressbar1"></div>
 
 <div class="batch">
-    <p>{% trans "Total elements" %}: <span id="offset1">0</span>/<span id="total1">{{ subconst_file_lines }}</span></p>
+    <p>{% trans "Total elements" %}: <span id="offset1">0</span>/<span id="total1">{{ ballots_file_lines }}</span></p>
 </div>
 
-<h2>{% trans 'Centers import progress' %}</h2>
+<h2>{% trans 'Subconstituencies and Constituencies import progress' %}</h2>
+
 <div id="progressbar2"></div>
 
 <div class="batch">
-    <p>{% trans "Total elements" %}: <span id="offset2">0</span>/<span id="total2">{{ centers_file_lines }}</span></p>
+    <p>{% trans "Total elements" %}: <span id="offset2">0</span>/<span id="total2">{{ subconst_file_lines }}</span></p>
 </div>
 
-<h2>{% trans 'Stations import progress' %}</h2>
+<h2>{% trans 'Subconstituencies Ballots import progress' %}</h2>
+
 <div id="progressbar3"></div>
 
 <div class="batch">
-    <p>{% trans "Total elements" %}: <span id="offset3">0</span>/<span id="total3">{{ stations_file_lines }}</span></p>
+    <p>{% trans "Total elements" %}: <span id="offset3">0</span>/<span id="total3">{{ subconst_ballots_file_lines }}</span></p>
 </div>
 
-<h2>{% trans 'Candidates import progress' %}</h2>
+<h2>{% trans 'Centers import progress' %}</h2>
 <div id="progressbar4"></div>
 
 <div class="batch">
-    <p>{% trans "Total elements" %}: <span id="offset4">0</span>/<span id="total4">{{ candidates_file_lines }}</span></p>
+    <p>{% trans "Total elements" %}: <span id="offset4">0</span>/<span id="total4">{{ centers_file_lines }}</span></p>
 </div>
 
-<h2>{% trans 'Result forms import progress' %}</h2>
+<h2>{% trans 'Stations import progress' %}</h2>
 <div id="progressbar5"></div>
 
 <div class="batch">
-    <p>{% trans "Total elements" %}: <span id="offset5">0</span>/<span id="total5">{{ result_forms_file_lines }}</span></p>
+    <p>{% trans "Total elements" %}: <span id="offset5">0</span>/<span id="total5">{{ stations_file_lines }}</span></p>
+</div>
+
+<h2>{% trans 'Candidates import progress' %}</h2>
+<div id="progressbar6"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset6">0</span>/<span id="total6">{{ candidates_file_lines }}</span></p>
+</div>
+
+<h2>{% trans 'Result forms import progress' %}</h2>
+<div id="progressbar7"></div>
+
+<div class="batch">
+    <p>{% trans "Total elements" %}: <span id="offset7">0</span>/<span id="total7">{{ result_forms_file_lines }}</span></p>
 </div>
 
 <div id="route" class="hidden" style="display:none">{{ request.path }}</div>

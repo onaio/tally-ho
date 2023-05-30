@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SETTINGS=tally_ho.settings.common
+SETTINGS=tally_ho.settings.local_settings
 ./scripts/create_database tally postgres 127.0.0.1 $SETTINGS
 if [ -n "$(ls -A data/staff_list.csv 2>/dev/null)" ]; then
     echo "importing staff list..."

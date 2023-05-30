@@ -22,10 +22,24 @@
     {% endif %}
     <table class="table table-bordered">
         <tr>
+            <td>{% trans form.ballots_file.label %}:</td>
+            <td>
+                {{ form.ballots_file.errors }}
+                {{ form.ballots_file }}
+            </td>
+        </tr>
+        <tr>
             <td>{% trans form.subconst_file.label %}:</td>
             <td>
                 {{ form.subconst_file.errors }}
                 {{ form.subconst_file }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans form.subconst_ballots_file.label %}:</td>
+            <td>
+                {{ form.subconst_ballots_file.errors }}
+                {{ form.subconst_ballots_file }}
             </td>
         </tr>
         <tr>

@@ -21,6 +21,8 @@ from django.views.generic import (
     DeleteView,
 )
 from guardian.mixins import LoginRequiredMixin
+from tally_ho.apps.tally.models.constituency import Constituency
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
@@ -31,12 +33,13 @@ from tally_ho.apps.tally.forms.site_info_form import SiteInfoForm
 from tally_ho.apps.tally.forms.tally_files_form import TallyFilesForm
 from tally_ho.apps.tally.forms.tally_form import TallyForm
 from tally_ho.apps.tally.management.commands.import_data import (
-    process_sub_constituency_row,
     process_center_row,
     process_station_row,
     process_candidate_row,
     process_results_form_row,
-    import_sub_constituencies_and_ballots,
+    import_electrol_races_and_ballots_from_ballots_file,
+    import_sub_constituencies_and_constituencies_from_sub_cons_file,
+    import_sub_constituencies_ballots_from_sub_cons_ballots_file
 )
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -55,24 +58,32 @@ from tally_ho.libs.views import mixins
 BATCH_BLOCK_SIZE = 100
 UPLOADED_FILES_PATH = 'data/uploaded/'
 STEP_TO_ARGS = {
-    1: ['subconst_file',
+    1: ['ballots_file',
+        'ballots_file_lines',
+        _],
+    2: ['subconst_file',
         'subconst_file_lines',
-        process_sub_constituency_row],
-    2: ['centers_file',
+        _],
+    3: ['subconst_ballots_file',
+        'subconst_ballots_file_lines',
+        _],
+    4: ['centers_file',
         'centers_file_lines',
         process_center_row],
-    3: ['stations_file',
+    5: ['stations_file',
         'stations_file_lines',
         process_station_row],
-    4: ['candidates_file',
+    6: ['candidates_file',
         'candidates_file_lines',
         process_candidate_row],
-    5: ['result_forms_file',
+    7: ['result_forms_file',
         'result_forms_file_lines',
         process_results_form_row]
 }
 FILE_NAMES_PREFIXS = {
+    'ballots_file': 'ballots_',
     'subconst_file': 'subcontituencies_',
+    'subconst_ballots_file': 'sub_constituency_ballots_',
     'centers_file': 'centers_',
     'stations_file': 'stations_',
     'candidates_file': 'candidates_',
@@ -94,8 +105,10 @@ def delete_all_tally_objects(tally):
         Station.objects.filter(tally=tally).delete()
         Center.objects.filter(tally=tally).delete()
         SubConstituency.objects.filter(tally=tally).delete()
+        Constituency.objects.filter(tally=tally).delete()
         Ballot.objects.filter(tally=tally).delete()
         Office.objects.filter(tally=tally).delete()
+        ElectrolRace.objects.filter(tally=tally).delete()
 
 
 def save_file(file_uploaded, file_name):
@@ -142,15 +155,43 @@ def import_rows_batch(tally,
     candidates_file_name = f'{candidates_file_name_prefix}{tally.id}.csv'
     result_forms_file_name_prefix = FILE_NAMES_PREFIXS['result_forms_file']
     result_forms_file_name = f'{result_forms_file_name_prefix}{tally.id}.csv'
+    ballots_file_name_prefix = FILE_NAMES_PREFIXS['ballots_file']
+    ballots_file_name = f'{ballots_file_name_prefix}{tally.id}.csv'
+    subconst_ballots_file_name_prefix =\
+        FILE_NAMES_PREFIXS['subconst_ballots_file']
+    subconst_ballots_file_name =\
+        f'{subconst_ballots_file_name_prefix}{tally.id}.csv'
 
-    if subconst_file_name in file_to_parse.name:
+    # Create electrol races and ballots from ballots file
+    if ballots_file_name in file_to_parse.name:
         elements_processed =\
-            import_sub_constituencies_and_ballots(
+            import_electrol_races_and_ballots_from_ballots_file(
                 tally=tally,
-                sub_con_file_path=file_to_parse.name,
+                ballots_file_path=file_to_parse.name,
                 logger=logger,
             )
         return elements_processed, None
+
+    # Create sub constituencies and constituencies from sub constituencies file
+    if subconst_file_name in file_to_parse.name:
+        elements_processed =\
+            import_sub_constituencies_and_constituencies_from_sub_cons_file(
+                tally=tally,
+                sub_constituencies_file_path=file_to_parse.name,
+                logger=logger,
+            )
+        return elements_processed, None
+
+    # Assign ballots to sub constituencies from sub constituencies ballots file
+    if subconst_ballots_file_name in file_to_parse.name:
+        elements_processed =\
+            import_sub_constituencies_ballots_from_sub_cons_ballots_file(
+                tally=tally,
+                sub_constituencies_ballots_file_path=file_to_parse.name,
+                logger=logger,
+            )
+        return elements_processed, None
+
     if ballot_file_to_parse:
         with ballot_file_to_parse as f:
             reader = csv.reader(f)
@@ -236,10 +277,28 @@ def import_rows_batch(tally,
                     if id_to_ballot_order:
                         if is_not_empty_row:
                             try:
+                                electrol_races_by_ballot_name =\
+                                    {
+                                        electrol_race.ballot_name:\
+                                        electrol_race for electrol_race in\
+                                            ElectrolRace.objects.filter(
+                                    tally=tally)
+                                    }
+                                ballots_by_ballot_number =\
+                                        {
+                                            ballot.number:\
+                                            ballot for ballot in\
+                                                Ballot.objects.filter(
+                                    tally=tally)
+                                        }
                                 function(
                                     tally,
                                     row,
                                     id_to_ballot_order,
+                                    electrol_races_by_ballot_name=
+                                    electrol_races_by_ballot_name,
+                                    ballots_by_ballot_number=
+                                    ballots_by_ballot_number,
                                     logger=logger
                                 )
                             except Exception as e:
@@ -269,7 +328,7 @@ def process_batch_step(current_step, offset, file_map, tally):
 
     file_name, file_lines, process_function = STEP_TO_ARGS[current_step]
 
-    if current_step == 4:
+    if current_step == 7:
         ballots_order_file = open(
             UPLOADED_FILES_PATH + file_map['ballots_order_file'], 'r')
 
@@ -544,9 +603,20 @@ class TallyFilesFormView(LoginRequiredMixin,
 
         delete_all_tally_objects(tally)
 
+        ballots_file_name_prefix = FILE_NAMES_PREFIXS['ballots_file']
+        ballots_file = f'{ballots_file_name_prefix}{tally_id}.csv'
+        ballots_file_lines = save_file(data['ballots_file'], ballots_file)
+
         subconst_file_name_prefix = FILE_NAMES_PREFIXS['subconst_file']
         subconst_file = f'{subconst_file_name_prefix}{tally_id}.csv'
         subconst_file_lines = save_file(data['subconst_file'], subconst_file)
+
+        subconst_ballots_file_name_prefix =\
+            FILE_NAMES_PREFIXS['subconst_ballots_file']
+        subconst_ballots_file =\
+            f'{subconst_ballots_file_name_prefix}{tally_id}.csv'
+        subconst_ballots_file_lines =\
+            save_file(data['subconst_ballots_file'], subconst_ballots_file)
 
         centers_file_name_prefix = FILE_NAMES_PREFIXS['centers_file']
         centers_file = f'{centers_file_name_prefix}{tally_id}.csv'
@@ -574,8 +644,13 @@ class TallyFilesFormView(LoginRequiredMixin,
                                             result_forms_file)
 
         url_kwargs = {'tally_id': tally_id,
+                      'ballots_file': ballots_file,
+                      'ballots_file_lines': ballots_file_lines,
                       'subconst_file': subconst_file,
                       'subconst_file_lines': subconst_file_lines,
+                      'subconst_ballots_file': subconst_ballots_file,
+                      'subconst_ballots_file_lines':
+                      subconst_ballots_file_lines,
                       'centers_file': centers_file,
                       'centers_file_lines': centers_file_lines,
                       'stations_file': stations_file,

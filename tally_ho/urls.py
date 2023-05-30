@@ -913,7 +913,10 @@ urlpatterns = [
     re_path(r'^tally-manager/remove-tally/(?P<tally_id>(\d+))/$',
             tally_manager.TallyRemoveView.as_view(), name='remove-tally'),
     re_path(r'^tally-manager/create-tally/batch-view/(?P<tally_id>.*)/'
+            r'(?P<ballots_file>.*)/(?P<ballots_file_lines>(\d+))/'
             r'(?P<subconst_file>.*)/(?P<subconst_file_lines>(\d+))/'
+            r'(?P<subconst_ballots_file>.*)/'
+            r'(?P<subconst_ballots_file_lines>(\d+))/'
             r'(?P<centers_file>.*)/(?P<centers_file_lines>(\d+))/'
             r'(?P<stations_file>.*)/(?P<stations_file_lines>(\d+))/'
             r'(?P<candidates_file>.*)/(?P<candidates_file_lines>(\d+))/'

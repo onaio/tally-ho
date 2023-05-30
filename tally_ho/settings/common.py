@@ -367,7 +367,7 @@ SUB_CONSTITUENCY_BALLOTS_COLUMN_NAMES = ['sub_constituency_code',
 CENTER_COLUMN_NAMES = ['center_id', 'name', 'center_type', 'center_lat',
                        'center_lon', 'region_name', 'office_name', 'office_id',
                        'constituency_name', 'subconstituency_id',
-                       'mahalla_name', 'village_name']
+                       'mahalla_name', 'village_name', 'reg_open']
 
 STATION_COLUMN_NAMES = ['center_code', 'center_name', 'sub_constituency_code',
                         'station_number', 'station_gender',
@@ -378,6 +378,6 @@ RESULT_FORM_COLUMN_NAMES = ['ballot_number', 'center_code', 'station_number',
                             'serial_number', 'region_name']
 
 CANDIDATE_COLUMN_NAMES =\
-    ['candidate_id', 'candidate_full_name', 'ballot_number']
+    ['candidate_id', 'candidate_full_name', 'ballot_number', 'race_type']
 
 BALLOT_ORDER_COLUMN_NAMES = ['candidate_id', 'order']

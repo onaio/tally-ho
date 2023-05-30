@@ -40,9 +40,12 @@ BALLOTS_PATH = 'data/ballots.csv'
 SUB_CONSTITUENCIES_PATH = 'data/sub_constituencies.csv'
 SUB_CONSTITUENCIES_BALLOTS_PATH = 'data/sub_constituency_ballots.csv'
 
+OCV_VOTING = 'OCV Voting'
 SPECIAL_VOTING = 'Special Voting'
 NO_CONSTITUENCY = 'No Constituency'
 NO_CONSTITUENCY_SUB_CON_NUMBER = 999
+
+NO_CENTER_NAME_AVAILABLE = '#N/A'
 
 
 def empty_string_to(value, default):
@@ -323,9 +326,8 @@ def import_electrol_races_and_ballots_from_ballots_file(
             command=command,
             logger=logger,
         )
-        ballots = Ballot.objects.filter(tally=tally)
 
-        return ballots.count()
+        return len(ballots_data.fetchall())
     except Exception as e:
         msg = 'Error occured while trying to create ballots: %s' % e
         if command:
@@ -374,7 +376,7 @@ def create_constituencies_from_sub_con_file_data(
 
 def create_sub_constituencies_from_sub_con_file_data(
         duckdb_sub_con_data=None,
-        constituencies=None,
+        constituencies_by_name=None,
         tally=None,
         command=None,
         logger=None,
@@ -383,7 +385,7 @@ def create_sub_constituencies_from_sub_con_file_data(
         inside duckdb.
 
     :param duckdb_sub_con_data: sub constituencies file data in duckdb format.
-    :param constituencies: tally constituencies queryset.
+    :param constituencies_by_name: tally constituencies_by_name queryset.
     :param tally: tally queryset.
     :param command: stdout command.
     :param logger: logger.
@@ -397,11 +399,6 @@ def create_sub_constituencies_from_sub_con_file_data(
                     ','.join(sub_con_cols_names_list)).distinct().fetchall()
         bulk_mgr = BulkCreateManager(
             objs_count=len(sub_cons_data))
-        constituencies_by_name =\
-            {
-                constituency.name:\
-                constituency for constituency in constituencies
-            }
 
         for sub_con_vals_tuple in sub_cons_data:
             kwargs = {}
@@ -412,8 +409,8 @@ def create_sub_constituencies_from_sub_con_file_data(
                 kwargs['tally'] = tally
                 kwargs['code'] = parsed_sub_con_code
                 kwargs['number_of_ballots'] = number_of_ballots
-                constituency = constituencies_by_name.get(constituency_name)
-                kwargs['constituency'] = constituency
+                kwargs['constituency'] =\
+                    constituencies_by_name.get(constituency_name)
 
             if len(kwargs.items()):
                 bulk_mgr.add(SubConstituency(**kwargs))
@@ -449,17 +446,21 @@ def import_sub_constituencies_and_constituencies_from_sub_cons_file(
             command=command,
             logger=logger,
         )
-        constituencies = Constituency.objects.filter(tally=tally)
+        constituencies_by_name =\
+                {
+                    constituency.name:\
+                    constituency for constituency in\
+                        Constituency.objects.filter(tally=tally)
+                }
         create_sub_constituencies_from_sub_con_file_data(
             duckdb_sub_con_data=duckdb_sub_con_data,
-            constituencies=constituencies,
+            constituencies_by_name=constituencies_by_name,
             tally=tally,
             command=command,
             logger=logger,
         )
-        sub_constituencies = SubConstituency.objects.filter(tally=tally)
 
-        return sub_constituencies.count()
+        return len(duckdb_sub_con_data.fetchall())
     except Exception as e:
         msg =\
             'Error occured while trying to create sub cons and cons: %s' % e
@@ -572,11 +573,8 @@ def import_sub_constituencies_ballots_from_sub_cons_ballots_file(
             command=command,
             logger=logger,
         )
-        sub_constituencies_ballots =\
-            SubConstituency.objects.filter(tally=tally).values_list(
-            'ballots__number', flat=True)
 
-        return sub_constituencies_ballots.count()
+        return len(duckdb_sub_con_ballots_data.fetchall())
     except Exception as e:
         msg =\
             'Error occured while trying to create sub cons and cons: %s' % e
@@ -754,9 +752,11 @@ def process_center_row(tally, row, command=None, logger=None):
     if not invalid_line(row):
         center_code, center_name, center_type, center_lat, center_lon,\
         region_name, office_name, office_number, constituency_name, sc_code,\
-        mahalla_name, village_name = row
+        mahalla_name, village_name, _ = row
 
-        if constituency_name != NO_CONSTITUENCY and sc_code == SPECIAL_VOTING:
+        constituency = None
+        if constituency_name != NO_CONSTITUENCY and\
+            sc_code != SPECIAL_VOTING and sc_code != OCV_VOTING:
             try:
                 constituency = Constituency.objects.get(
                     name=constituency_name.strip(),
@@ -770,7 +770,7 @@ def process_center_row(tally, row, command=None, logger=None):
                 raise Constituency.DoesNotExist(msg)
 
         sub_constituency = None
-        if sc_code == SPECIAL_VOTING:
+        if sc_code == SPECIAL_VOTING or sc_code == OCV_VOTING:
             center_type = CenterType.SPECIAL
         else:
             try:
@@ -826,8 +826,13 @@ def import_centers(tally=None, centers_file=None):
 
 
 def process_station_row(tally, row, command=None, logger=None):
-    center_code, _, sc_code, station_number, gender,\
+    center_code, center_name, sc_code, station_number, gender,\
         registrants = row[0:6]
+
+    # FIXME: For stations whose center name value is `#N/A` we skip them since
+    # the centers do not exist in the centers file.
+    if center_name == NO_CENTER_NAME_AVAILABLE:
+        return
 
     try:
         center = Center.objects.get(
@@ -841,9 +846,11 @@ def process_station_row(tally, row, command=None, logger=None):
             logger.warning(msg)
         raise Center.DoesNotExist(msg)
 
+    sub_constituency = None
     try:
-        sub_constituency = SubConstituency.objects.get(
-            code=parse_int(sc_code), tally=tally)
+        if sc_code != SPECIAL_VOTING and sc_code != OCV_VOTING:
+            sub_constituency = SubConstituency.objects.get(
+                code=parse_int(sc_code), tally=tally)
     except (SubConstituency.DoesNotExist):
         msg = 'SubConstituency "%s" does not exist' % sc_code
         if command:
@@ -911,7 +918,8 @@ def process_candidate_row(
             logger.warning(msg)
 
 
-def import_candidates(tally=None,
+def import_candidates(command,
+                      tally=None,
                       candidates_file=None,
                       ballot_file=None):
     candidates_file_to_parse = candidates_file if candidates_file else open(
@@ -950,7 +958,8 @@ def import_candidates(tally=None,
                 row,
                 id_to_ballot_order,
                 electrol_races_by_ballot_name=electrol_races_by_ballot_name,
-                ballots_by_ballot_number=ballots_by_ballot_number)
+                ballots_by_ballot_number=ballots_by_ballot_number,
+                command=command)
 
 
 def process_results_form_row(tally, row, command=None, logger=None):
@@ -1116,7 +1125,7 @@ class Command(BaseCommand):
         import_stations(self)
 
         self.stdout.write(self.style.NOTICE('import candidates'))
-        import_candidates()
+        import_candidates(self)
 
         self.stdout.write(self.style.NOTICE('import result forms'))
         import_result_forms(self)

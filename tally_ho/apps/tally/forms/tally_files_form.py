@@ -5,8 +5,18 @@ ALLOWED_FILE_EXTENTIONS = ['.csv']
 
 
 class TallyFilesForm(forms.Form):
+    ballots_file =\
+        RestrictedFileField(label='Ballots file',
+                            required=True,
+                            allowed_extensions=ALLOWED_FILE_EXTENTIONS,
+                            check_file_size=False)
     subconst_file =\
         RestrictedFileField(label='Subconstituency file',
+                            required=True,
+                            allowed_extensions=ALLOWED_FILE_EXTENTIONS,
+                            check_file_size=False)
+    subconst_ballots_file =\
+        RestrictedFileField(label='Subconstituency ballots file',
                             required=True,
                             allowed_extensions=ALLOWED_FILE_EXTENTIONS,
                             check_file_size=False)
