@@ -293,7 +293,6 @@ def create_result_form_stats(
         approved_by_supervisor=False,
         reviewed_by_supervisor=False,
         data_entry_errors=0):
-
     result_form_stats, _ = ResultFormStats.objects.get_or_create(
         processing_time=processing_time,
         user=user,
@@ -309,7 +308,6 @@ def create_result_form_stats(
 def create_site_info(
         site,
         user_idle_timeout):
-
     site_info, _ = SiteInfo.objects.get_or_create(
         site=site,
         user_idle_timeout=user_idle_timeout
@@ -319,10 +317,9 @@ def create_site_info(
 
 
 def create_region(
-    name='Region',
-    tally=None
+        name='Region',
+        tally=None
 ):
-
     region, _ = Region.objects.get_or_create(
         name=name,
         tally=tally,
@@ -332,10 +329,9 @@ def create_region(
 
 
 def create_constituency(
-    name='Region',
-    tally=None
+        name='Region',
+        tally=None
 ):
-
     constituency, _ = Constituency.objects.get_or_create(
         name=name,
         tally=tally,
@@ -376,6 +372,31 @@ def result_form_data(result_form):
     })
 
     return data
+
+
+def issue_369_result_forms_data_setup(user):
+    tally = create_tally()
+    tally.users.add(user)
+    ballot = create_ballot(tally=tally)
+    center = create_center('12345', tally=tally)
+    station = create_station(center)
+
+    # create result forms :one result form for each state.
+    for idx, enumKey in enumerate(FormState.__members__):
+        single_enum = FormState[enumKey]
+        barcode = f"11010010{idx}1"
+        if not isinstance(single_enum.value, int):
+            continue
+        create_result_form(
+            ballot=ballot,
+            serial_number=idx,
+            barcode=barcode,
+            form_state=single_enum,
+            center=center,
+            station_number=station.station_number,
+            tally=tally
+        )
+    return tally
 
 
 class TestBase(TestCase):
