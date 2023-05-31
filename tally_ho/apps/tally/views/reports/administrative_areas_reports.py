@@ -1582,7 +1582,7 @@ class TurnoutReportDataView(LoginRequiredMixin,
             sub_q = sub_q.filter(
                 result_form__center__constituency__name=OuterRef(
                     'center__constituency__name'),
-            )
+                )
         if sub_constituencies:
             admin_area_column_name = 'center__sub_constituency__code'
             qs = qs.filter(
@@ -1590,7 +1590,7 @@ class TurnoutReportDataView(LoginRequiredMixin,
             sub_q = sub_q.filter(
                 result_form__center__sub_constituency__code=OuterRef(
                     'center__sub_constituency__code'),
-            )
+                )
 
         qs = qs.annotate(
             admin_area=F(admin_area_column_name)).values(
@@ -1599,9 +1599,9 @@ class TurnoutReportDataView(LoginRequiredMixin,
                 sub_q.values(
                     f'result_form__{admin_area_column_name}').annotate(
                     valid_votes=Sum('votes')
-                ).values('valid_votes')[:1],
+                    ).values('valid_votes')[:1],
                 output_field=IntegerField()
-            ), total_voters=Sum(
+                ), total_voters=Sum(
                 Func(F('center__stations__registrants'),
                      function='DISTINCT')),
             male_voters=Sum(Func(
