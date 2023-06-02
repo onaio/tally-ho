@@ -328,6 +328,19 @@ def create_region(
     return region
 
 
+def create_sub_constituency(
+        code=1,
+        tally=None,
+        field_office='1'
+):
+    sub_constituency, _ =\
+        SubConstituency.objects.get_or_create(code=code,
+                                              field_office=field_office,
+                                              tally=tally)
+
+    return sub_constituency
+
+
 def create_constituency(
         name='Region',
         tally=None
