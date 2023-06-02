@@ -663,6 +663,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
     columns = (
+        'sub_con_code',
         'race_type',
         'total_forms',
         'unsubmitted',
@@ -678,6 +679,15 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
+        keyword = self.request.POST.get('search[value]')
+        qs = qs.filter(
+            tally__id=tally_id,
+            center__sub_constituency__code__isnull=False)
+
+        if keyword:
+            qs = qs.filter(
+                Q(center__sub_constituency__code__contains=keyword))
+
         count_by_form_state_queries = {}
         for state in FormState.__publicMembers__():
             count_by_form_state_queries[state.name.lower()] \
@@ -690,10 +700,11 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                     f"{state.name.lower()}_unprocessed"] = Count(
                     'barcode', filter=Q(form_state__in=unprocessed_states))
 
-        qs = qs.filter(
-            tally__id=tally_id).annotate(
-            race_type=F("ballot__race_type")).values('race_type') \
+        qs = qs.annotate(
+            sub_con_code=F("center__sub_constituency__code")).values(
+            'sub_con_code') \
             .annotate(
+            race_type=F("ballot__race_type"),
             total_forms=Count("race_type"),
             **count_by_form_state_queries)
         return qs
