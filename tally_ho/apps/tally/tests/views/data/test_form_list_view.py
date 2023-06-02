@@ -2,6 +2,7 @@ import json
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.views.constants import (
+    sub_con_code_query_param,
     race_type_query_param,
     pending_at_state_query_param
     )
@@ -78,6 +79,7 @@ class TestFormListView(TestBase):
         request = self.factory.get(
             f'/1/?{pending_at_state_query_param}=data_entry_1'
             f'&{race_type_query_param}=presidential'
+            f'&{sub_con_code_query_param}=12345'
             )
         request.user = self.user
         request.session = {}
@@ -91,6 +93,7 @@ class TestFormListView(TestBase):
             response.context_data['remote_url'],
             f"/data/form-list-data/{tally.pk}/?"
             "pending_at_form_state=data_entry_1&race_type=presidential"
+            "&sub_con_code=12345"
             )
         self.assertListEqual(response.template_name, ['data/forms.html'])
 
@@ -102,6 +105,7 @@ class TestFormListView(TestBase):
         request = self.factory.get(
             f'/1/?{pending_at_state_query_param}='
             f'data_entry_1&{race_type_query_param}=general'
+            f'&{sub_con_code_query_param}=12345'
             )
         request.user = self.user
         request.session = {}
@@ -113,9 +117,9 @@ class TestFormListView(TestBase):
             raw_data_response_for_general
             ).get('data')
         self.assertEqual(len(data_response_for_general), 4)
-        race_types_in_response = [form[8] for form in
+        race_types_in_response = [form[9] for form in
                                   data_response_for_general]
-        form_states_in_response = [form[9] for form in
+        form_states_in_response = [form[10] for form in
                                    data_response_for_general]
 
         self.assertListEqual(
