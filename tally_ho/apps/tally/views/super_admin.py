@@ -48,7 +48,7 @@ from tally_ho.apps.tally.views.constants import (
 from tally_ho.libs.models.enums.audit_resolution import \
     AuditResolution
 from tally_ho.libs.models.enums.form_state import (
-    FormState, processed_states_at_state, un_processed_states_at_state
+    FormState, un_processed_states_at_state
 )
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
@@ -679,15 +679,12 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
         count_by_form_state_queries = {}
-        # import ipdb; ipdb.set_trace()
         for state in FormState.__publicMembers__():
-            processed_states = processed_states_at_state(state)
+            count_by_form_state_queries[state.name.lower()] \
+                = Count('barcode', filter=Q(
+                    form_state=state)
+                    )
             unprocessed_states = un_processed_states_at_state(state)
-            if processed_states:
-                count_by_form_state_queries[state.name.lower()] \
-                    = Count('barcode', filter=Q(
-                        form_state__in=processed_states)
-                        )
             if unprocessed_states:
                 count_by_form_state_queries[
                     f"{state.name.lower()}_unprocessed"] = Count(
@@ -706,9 +703,10 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
         if column in self.columns:
             column_val = None
             race_type = row["race_type"].name.lower()
-            if column == "unsubmitted":
+            if isinstance(column, tuple) is False and row[column] != 0 and\
+                column in ["unsubmitted", "clearance", "audit"]:
                 params = {race_type_query_param: race_type,
-                          at_state_query_param: column}
+                        at_state_query_param: column}
                 query_param_string = urlencode(params)
                 remote_data_url = reverse(
                     'form-list',
@@ -716,24 +714,49 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                 if query_param_string:
                     remote_data_url = f"{remote_data_url}?{query_param_string}"
                 column_val = str('<span>'
-                                 f'<a href={remote_data_url}>'
-                                 f'{row[column]}</a></span>')
+                                f'<a href={remote_data_url} target="blank">'
+                                f'{row[column]}</a></span>')
             elif isinstance(column, tuple) and len(column) == 2:
-                processed_col, unprocessed_col = column
-                processed_count = row[processed_col]
-                unprocessed_count = row[unprocessed_col]
-                params = {race_type_query_param: race_type,
-                          pending_at_state_query_param: column[0]}
-                query_param_string = urlencode(params)
                 remote_data_url = reverse(
                     'form-list',
                     kwargs={'tally_id': tally_id})
-                if query_param_string:
-                    remote_data_url = f"{remote_data_url}?{query_param_string}"
-                column_val = str('<span>'
-                                 f'{processed_count} / '
-                                 f'<a href={remote_data_url}>'
-                                 f'{unprocessed_count}</a></span>')
+                current_state_col, unprocessed_col = column
+                current_state_form_count = row[current_state_col]
+                unprocessed_count = row[unprocessed_col]
+                current_state_column_val = f'<span>{current_state_form_count}'
+                unprocessed_column_val = f'{unprocessed_count}</span>'
+                if current_state_form_count > 0 or unprocessed_count > 0:
+                    if current_state_form_count > 0:
+                        current_state_form_url_params =\
+                            {race_type_query_param: race_type,
+                            at_state_query_param: column[0]}
+                        current_state_form_query_param_string =\
+                            urlencode(current_state_form_url_params)
+                        current_state_form_remote_data_url =\
+                                str(f"{remote_data_url}?"
+                                    f"{current_state_form_query_param_string}")
+                        current_state_column_val =\
+                            str('<span>'
+                                    f'<a href='
+                                    f'{current_state_form_remote_data_url} '
+                                    'target="blank">'
+                                    f'{current_state_form_count}</a></span>')
+                    if unprocessed_count > 0:
+                        unprocessed_forms_url_params =\
+                            {race_type_query_param: race_type,
+                            pending_at_state_query_param: column[0]}
+                        unprocessed_forms_query_param_string =\
+                            urlencode(unprocessed_forms_url_params)
+                        unprocessed_remote_data_url =\
+                                str(f'{remote_data_url}?'
+                                    f'{unprocessed_forms_query_param_string}')
+                        unprocessed_column_val =\
+                                str('<span>'
+                                    f'<a href={unprocessed_remote_data_url} '
+                                    'target="blank">'
+                                    f'{unprocessed_count}</a></span>')
+                column_val =\
+                    current_state_column_val + ' / ' + unprocessed_column_val
             else:
                 column_val = row[column]
             if column == 'race_type':
