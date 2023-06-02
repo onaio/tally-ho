@@ -16,6 +16,7 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.views.constants import (
     race_type_query_param,
+    sub_con_code_query_param,
     pending_at_state_query_param, at_state_query_param
 )
 from tally_ho.libs.models.enums.form_state import (
@@ -71,6 +72,7 @@ class FormListDataView(LoginRequiredMixin,
         pending_in_form_state = self.request.GET.get(
             pending_at_state_query_param)
         requested_race_type = self.request.GET.get(race_type_query_param)
+        requested_sub_con_code = self.request.GET.get(sub_con_code_query_param)
 
         if requested_form_state:
             state_enum_key = requested_form_state.upper()
@@ -87,6 +89,11 @@ class FormListDataView(LoginRequiredMixin,
                 qs = qs.filter(
                     ballot__race_type=specified_race_type
                 )
+
+        if requested_sub_con_code:
+            qs = qs.filter(
+                center__sub_constituency__code=requested_sub_con_code
+            )
 
         if pending_in_form_state:
             state_enum_key = pending_in_form_state.upper()
