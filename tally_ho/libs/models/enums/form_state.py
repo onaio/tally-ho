@@ -92,6 +92,6 @@ def un_processed_states_at_state(form_state):
         if form_state == FormState.ARCHIVED:
             ret_val = ret_val + past_form_states
         else:
-            ret_val = ret_val + (form_state,) + past_form_states
+            ret_val = ret_val + past_form_states
 
     return ret_val
