@@ -1627,3 +1627,39 @@ class TestSuperAdmin(TestBase):
             "?race_type=general&at_form_state=audit"
             " target=\"blank\">"
             "1</a></span></td>")
+
+    def test_search_returns_data_result_form_progress_by_form_state_view(self):
+        tally = issue_369_result_forms_data_setup(self.user)
+
+        view = views.FormProgressByFormStateDataView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        request.POST = {}
+        request.POST['search[value]'] = 12345
+
+        response = view(request, tally_id=tally.pk)
+
+        # check that the response template is correct.
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        data = content["data"]
+        self.assertEqual(1, len(data))
+
+    def test_search_returns_no_data_result_form_progress_by_form_state(self):
+        tally = issue_369_result_forms_data_setup(self.user)
+
+        view = views.FormProgressByFormStateDataView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        request.POST = {}
+        request.POST['search[value]'] = 890
+
+        response = view(request, tally_id=tally.pk)
+
+        # check that the response template is correct.
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        data = content["data"]
+        self.assertEqual(0, len(data))
