@@ -1535,47 +1535,91 @@ class TestSuperAdmin(TestBase):
             unsubmitted,
             f"<td class=\"center\"><span>"
             f"<a href=/data/form-list/{tally.pk}/?"
-            "race_type=general&at_form_state=unsubmitted>"
+            "race_type=general&at_form_state=unsubmitted target=\"blank\">"
             "1</a></span></td>")
         self.assertEqual(
             intake,
-            f"<td class=\"center\"><span>5 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=intake>4</a"
-            "></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&at_form_state=intake"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_at_form_state=intake"
+            " target=\"blank\">"
+            "3</a></span></td>")
         self.assertEqual(
             de1,
-            f"<td class=\"center\"><span>4 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=data_entry_1>"
-            "5</a></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&at_form_state=data_entry_1"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_at_form_state=data_entry_1"
+            " target=\"blank\">"
+            "4</a></span></td>")
         self.assertEqual(
             de2,
-            f"<td class=\"center\"><span>3 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=data_entry_2>"
-            "6</a></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&at_form_state=data_entry_2"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_at_form_state=data_entry_2"
+            " target=\"blank\">"
+            "5</a></span></td>")
         self.assertEqual(
             corrections,
-            f"<td class=\"center\"><span>2 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=correction>"
-            "7</a></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&at_form_state=correction"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_at_form_state=correction"
+            " target=\"blank\">"
+            "6</a></span></td>")
         self.assertEqual(
             quality_control,
-            f"<td class=\"center\"><span>1 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=quality_control>"
-            "8</a></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&at_form_state=quality_control"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_at_form_state=quality_control"
+            " target=\"blank\">"
+            "7</a></span></td>")
         self.assertEqual(
             archived,
-            f"<td class=\"center\"><span>1 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=archived>"
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&at_form_state=archived"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&pending_at_form_state=archived"
+            " target=\"blank\">"
             "8</a></span></td>")
         self.assertEqual(
             clearance,
-            "<td class=\"center\">1</td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&at_form_state=clearance"
+            " target=\"blank\">"
+            "1</a></span></td>")
         self.assertEqual(
             audit,
-            "<td class=\"center\">1</td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{tally.pk}/"
+            "?race_type=general&at_form_state=audit"
+            " target=\"blank\">"
+            "1</a></span></td>")
