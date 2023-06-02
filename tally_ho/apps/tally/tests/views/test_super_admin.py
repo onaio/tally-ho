@@ -1521,9 +1521,13 @@ class TestSuperAdmin(TestBase):
         content = json.loads(response.content)
         data = content["data"]
         first_row = data[0]
-        race_type, total_forms, unsubmitted, intake, de1, de2, \
+        sub_con_code, race_type, total_forms, unsubmitted, intake, de1, de2, \
             corrections, quality_control, archived, clearance,\
             audit = first_row
+        self.assertEqual(
+            sub_con_code,
+            f"<td class=\"center\">{12345}</td>"
+        )
         self.assertEqual(
             race_type,
             "<td class=\"center\">GENERAL</td>"
