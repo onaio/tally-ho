@@ -43,6 +43,7 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views.constants import (
     race_type_query_param,
+    sub_con_code_query_param,
     pending_at_state_query_param, at_state_query_param
 )
 from tally_ho.libs.models.enums.audit_resolution import \
@@ -711,12 +712,14 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
 
     def render_column(self, row, column):
         tally_id = self.kwargs.get('tally_id')
+        sub_con_code = row["sub_con_code"]
         if column in self.columns:
             column_val = None
             race_type = row["race_type"].name.lower()
             if isinstance(column, tuple) is False and row[column] != 0 and\
                 column in ["unsubmitted", "clearance", "audit"]:
                 params = {race_type_query_param: race_type,
+                         sub_con_code_query_param: sub_con_code,
                         at_state_query_param: column}
                 query_param_string = urlencode(params)
                 remote_data_url = reverse(
@@ -740,6 +743,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                     if current_state_form_count > 0:
                         current_state_form_url_params =\
                             {race_type_query_param: race_type,
+                             sub_con_code_query_param: sub_con_code,
                             at_state_query_param: column[0]}
                         current_state_form_query_param_string =\
                             urlencode(current_state_form_url_params)
@@ -755,6 +759,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                     if unprocessed_count > 0:
                         unprocessed_forms_url_params =\
                             {race_type_query_param: race_type,
+                             sub_con_code_query_param: sub_con_code,
                             pending_at_state_query_param: column[0]}
                         unprocessed_forms_query_param_string =\
                             urlencode(unprocessed_forms_url_params)
