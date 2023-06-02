@@ -1501,7 +1501,7 @@ class TestSuperAdmin(TestBase):
         ths = [th.text for th in doc.findAll('th')]
         self.assertListEqual(
             ths,
-            ['Race Type', 'Total forms', 'Unsubmitted', 'Intake',
+            ['Sub Con', 'Race Type', 'Total forms', 'Unsubmitted', 'Intake',
              'Data Entry 1', 'Data Entry 2', 'Corrections',
              'Quality Control', 'Archived','Clearance', 'Audit']
         )
