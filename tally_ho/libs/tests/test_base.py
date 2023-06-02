@@ -391,7 +391,8 @@ def issue_369_result_forms_data_setup(user):
     tally = create_tally()
     tally.users.add(user)
     ballot = create_ballot(tally=tally)
-    center = create_center('12345', tally=tally)
+    sub_con = create_sub_constituency(code=12345,tally=tally)
+    center = create_center('12345', tally=tally, sub_constituency=sub_con)
     station = create_station(center)
 
     # create result forms :one result form for each state.
