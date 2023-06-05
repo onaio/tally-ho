@@ -1,9 +1,10 @@
 from collections import defaultdict
+from urllib.parse import urlencode
 
 from django.db.models.deletion import ProtectedError
 from django.core.exceptions import SuspiciousOperation
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count, Func
+from django.db.models import Count, Func, Q, F
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.views.generic import FormView, TemplateView
@@ -40,9 +41,15 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
-from tally_ho.libs.models.enums.audit_resolution import\
+from tally_ho.apps.tally.views.constants import (
+    race_type_query_param,
+    pending_at_state_query_param, at_state_query_param
+)
+from tally_ho.libs.models.enums.audit_resolution import \
     AuditResolution
-from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.form_state import (
+    FormState, processed_states_at_state, un_processed_states_at_state
+)
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.active_status import (
@@ -73,10 +80,10 @@ def duplicates(qs, tally_id=None):
     dupes = ResultForm.objects.values(
         'center', 'ballot', 'station_number', 'tally__id').annotate(
         Count('id')).order_by().filter(id__count__gt=1).filter(
-            center__isnull=False,
-            ballot__isnull=False,
-            station_number__isnull=False,
-            tally__id=tally_id,
+        center__isnull=False,
+        ballot__isnull=False,
+        station_number__isnull=False,
+        tally__id=tally_id,
     ).exclude(form_state=FormState.UNSUBMITTED)
 
     pks = flatten([map(lambda x: x['id'], ResultForm.objects.filter(
@@ -123,7 +130,7 @@ def get_results_duplicates(tally_id):
         if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
             complete_barcodes.extend([r.barcode for r in final_forms])
 
-    result_forms = ResultForm.objects\
+    result_forms = ResultForm.objects \
         .select_related().filter(barcode__in=complete_barcodes,
                                  tally__id=tally_id)
 
@@ -179,16 +186,16 @@ def get_result_form_with_duplicate_results(
     result_form_ids = qs.exclude(results=None).values(
         'ballot',
         'results__votes',
-        'results__candidate')\
-        .annotate(ids=ArrayAgg('id'))\
-        .annotate(duplicate_count=Count('id'))\
-        .annotate(ids=Func('ids', function='unnest'))\
+        'results__candidate') \
+        .annotate(ids=ArrayAgg('id')) \
+        .annotate(duplicate_count=Count('id')) \
+        .annotate(ids=Func('ids', function='unnest')) \
         .filter(
-            duplicate_count__gt=1,
-            duplicate_reviewed=False
+        duplicate_count__gt=1,
+        duplicate_reviewed=False
     ).values_list('ids', flat=True).distinct()
 
-    results_form_duplicates =\
+    results_form_duplicates = \
         qs.filter(id__in=result_form_ids).order_by('ballot')
 
     if ballot:
@@ -230,7 +237,7 @@ class DashboardView(LoginRequiredMixin,
         kwargs['data_entry_2_clerk'] = groups.DATA_ENTRY_2_CLERK
         kwargs['corrections_clerk'] = groups.CORRECTIONS_CLERK
         kwargs['quality_control_clerk'] = groups.QUALITY_CONTROL_CLERK
-        kwargs['quality_control_supervisor'] =\
+        kwargs['quality_control_supervisor'] = \
             groups.QUALITY_CONTROL_SUPERVISOR
         kwargs['audit_clerk'] = groups.AUDIT_CLERK
         kwargs['audit_supervisor'] = groups.AUDIT_SUPERVISOR
@@ -297,7 +304,7 @@ class CreateResultFormView(LoginRequiredMixin,
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = ResultForm.objects.get(pk=pk)
 
-        if result_form.center or result_form.station_number\
+        if result_form.center or result_form.station_number \
                 or result_form.ballot or result_form.office:
             # We are writing a form we should not be, bail out.
             del self.request.session['result_form']
@@ -393,7 +400,7 @@ class RemoveResultFormConfirmationView(LoginRequiredMixin,
                     self).post(request, *args, **kwargs)
             except ProtectedError:
                 barcode = self.get_object().barcode
-                request.session['error_message'] =\
+                request.session['error_message'] = \
                     f"Form {barcode} is tied to 1 or more object in the system"
                 return redirect(
                     next_url,
@@ -418,6 +425,23 @@ class FormProgressView(LoginRequiredMixin,
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-progress-data',
+                               kwargs={'tally_id': tally_id}),
+            languageDE=language_de,
+            tally_id=tally_id))
+
+
+class FormProgressByFormStateView(LoginRequiredMixin,
+                                  mixins.GroupRequiredMixin,
+                                  mixins.TallyAccessMixin,
+                                  TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/form_progress_by_form_state.html"
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
+        return self.render_to_response(self.get_context_data(
+            remote_url=reverse('form-progress-by-form-state-data',
                                kwargs={'tally_id': tally_id}),
             languageDE=language_de,
             tally_id=tally_id))
@@ -494,7 +518,7 @@ class DuplicateResultFormView(LoginRequiredMixin,
                 result_form.form_state = FormState.CLEARANCE
                 result_form.save()
 
-                self.success_message =\
+                self.success_message = \
                     _(u"Form successfully sent to clearance")
 
                 messages.add_message(
@@ -630,6 +654,97 @@ class FormProgressDataView(LoginRequiredMixin,
 
         qs = qs.filter(tally__id=tally_id)
         return qs.exclude(form_state=FormState.UNSUBMITTED)
+
+
+class FormProgressByFormStateDataView(LoginRequiredMixin,
+                                      mixins.GroupRequiredMixin,
+                                      mixins.TallyAccessMixin,
+                                      BaseDatatableView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    model = ResultForm
+    columns = (
+        'race_type',
+        'total_forms',
+        'unsubmitted',
+        ('intake', 'intake_unprocessed'),
+        ('data_entry_1', 'data_entry_1_unprocessed'),
+        ('data_entry_2', 'data_entry_2_unprocessed'),
+        ('correction', 'correction_unprocessed'),
+        ('quality_control', 'quality_control_unprocessed'),
+        ('archived', 'archived_unprocessed'),
+        'clearance',
+        'audit'
+    )
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs['tally_id']
+        count_by_form_state_queries = {}
+        # import ipdb; ipdb.set_trace()
+        for state in FormState.__publicMembers__():
+            processed_states = processed_states_at_state(state)
+            unprocessed_states = un_processed_states_at_state(state)
+            if processed_states:
+                count_by_form_state_queries[state.name.lower()] \
+                    = Count('barcode', filter=Q(
+                        form_state__in=processed_states)
+                        )
+            if unprocessed_states:
+                count_by_form_state_queries[
+                    f"{state.name.lower()}_unprocessed"] = Count(
+                    'barcode', filter=Q(form_state__in=unprocessed_states))
+
+        qs = qs.filter(
+            tally__id=tally_id).annotate(
+            race_type=F("ballot__race_type__name")).values('race_type') \
+            .annotate(
+            total_forms=Count("race_type"),
+            **count_by_form_state_queries)
+        return qs
+
+    def render_column(self, row, column):
+        tally_id = self.kwargs.get('tally_id')
+        if column in self.columns:
+            column_val = None
+            race_type = row["race_type"].name.lower()
+            if column == "unsubmitted":
+                params = {race_type_query_param: race_type,
+                          at_state_query_param: column}
+                query_param_string = urlencode(params)
+                remote_data_url = reverse(
+                    'form-list',
+                    kwargs={'tally_id': tally_id})
+                if query_param_string:
+                    remote_data_url = f"{remote_data_url}?{query_param_string}"
+                column_val = str('<span>'
+                                 f'<a href={remote_data_url}>'
+                                 f'{row[column]}</a></span>')
+            elif isinstance(column, tuple) and len(column) == 2:
+                processed_col, unprocessed_col = column
+                processed_count = row[processed_col]
+                unprocessed_count = row[unprocessed_col]
+                params = {race_type_query_param: race_type,
+                          pending_at_state_query_param: column[0]}
+                query_param_string = urlencode(params)
+                remote_data_url = reverse(
+                    'form-list',
+                    kwargs={'tally_id': tally_id})
+                if query_param_string:
+                    remote_data_url = f"{remote_data_url}?{query_param_string}"
+                column_val = str('<span>'
+                                 f'{processed_count} / '
+                                 f'<a href={remote_data_url}>'
+                                 f'{unprocessed_count}</a></span>')
+            else:
+                column_val = row[column]
+            if column == 'race_type':
+                column_val = row[column].name
+            return str('<td class="center">'
+                       f'{column_val}</td>')
+
+        else:
+            return super(
+                FormProgressByFormStateDataView, self).render_column(
+                row, column)
 
 
 class FormAuditDataView(FormProgressDataView):
@@ -855,7 +970,7 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
                                                                       *args,
                                                                       **kwargs)
             except ProtectedError:
-                request.session['error_message'] =\
+                request.session['error_message'] = \
                     str(_(u"This center is tied to 1 or more stations"))
                 return redirect(
                     next_url,
@@ -1223,7 +1338,7 @@ class QuarantineChecksListView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
 
     def get_context_data(self, **kwargs):
-        context =\
+        context = \
             super(QuarantineChecksListView, self).get_context_data(**kwargs)
         context['tally_id'] = self.kwargs.get('tally_id')
 
@@ -1249,7 +1364,7 @@ class QuarantineChecksConfigView(LoginRequiredMixin,
     form_class = QuarantineCheckForm
 
     def get_context_data(self, **kwargs):
-        context =\
+        context = \
             super(QuarantineChecksConfigView, self).get_context_data(**kwargs)
         context['tally_id'] = self.kwargs.get('tally_id')
 

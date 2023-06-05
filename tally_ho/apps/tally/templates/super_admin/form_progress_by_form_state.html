@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with remote_url=remote_url %}
+{% endblock %}
+
+{% block content %}
+
+<h1>{% trans 'Form Progress by Form States List' %}</h1>
+
+<table class="datatable">
+    <thead>
+        <tr>
+            <th>{% trans 'Race Type' %}</th>
+            <th>{% trans 'Total forms' %}</th>
+            <th>{% trans 'Unsubmitted' %}</th>
+            <th>{% trans 'Intake' %}</th>
+            <th>{% trans 'Data Entry 1' %}</th>
+            <th>{% trans 'Data Entry 2' %}</th>
+            <th>{% trans 'Corrections' %}</th>
+            <th>{% trans 'Quality Control' %}</th>
+            <th>{% trans 'Archived' %}</th>
+            <th>{% trans 'Clearance' %}</th>
+            <th>{% trans 'Audit' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}

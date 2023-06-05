@@ -16,72 +16,13 @@
 {% endblock %}
 {% block content %}
 
-{% if not region_name %}
 <h1>{% trans ' Regions Turn Out Report' %}</h1>
 <br/>
-{% endif %}
-
-<!--{% if region_name and not constituency_name %}-->
-<!--<h1>{{ region_name }} {% trans ' Region Turn Out Report' %}</h1>-->
-<!--<br />-->
-<!--{% endif %}-->
-
-<!--{% if constituency_name %}-->
-<!--<h1>{{ constituency_name }} {% trans ' Constituency Turn Out Report' %}</h1>-->
-<!--<h2>{% trans 'Region Name: ' %}{{ region_name }}</h2>-->
-<!--<br />-->
-<!--{% endif %}-->
 
 <table class="display datatable">
-    <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
-        <div id="report" class="row">
-        <div class="col-sm-3">
-            <p style="text-align: left; margin-left: .5em;">{% trans 'Regions' %}</p>
-            <select aria-controls="report" class="selectpicker" data-actions-box="true" data-live-search="true"
-                    id="regions" multiple name="regions-filter" title="Select Region">
-                {% for region in regions %}
-                <option value={{region}}>{{region}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-sm-3">
-            <p style="text-align: left; margin-left: .5em;">{% trans 'Constituencies' %}</p>
-            <select aria-controls="report" class="selectpicker" data-actions-box="true" data-live-search="true"
-                    id="constituencies" multiple name="constituencies-filter" title="Select Constituencies">
-                {% for constituency in constituencies %}
-                <option value={{constituency}}>{{constituency}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-sm-3">
-            <p style="text-align: left; margin-left: .5em;">{% trans 'Sub Constituencies' %}</p>
-            <select aria-controls="report" class="selectpicker sub_constituencies" data-actions-box="true"
-                    data-live-search="true" id="sub_constituencies" multiple name="sub_constituencies-filter"
-                    title="Select Sub Constituencies">
-                {% for sub_constituency in sub_constituencies %}
-                <option value={{sub_constituency}}>{{sub_constituency}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-sm-3">
-            <div class="card">
-                <div class="card-body">
-                    <p class="card-text" style="text-align: left;">&nbsp;</p>
-                    <button class="btn btn-default btn-small" id="filter-report" style="float: left;">{% trans 'Apply' %}
-                    </button>
-                    <a class="btn btn-default btn-small" href='.' style="float: left; margin-left: 1em;">{% trans 'Reset' %}</a>
-                </div>
-            </div>
-        </div>
-        </div>
-    </caption>
+    {% include "reports/admin_area_filters.html" %}
     <thead>
     <tr>
-        <!--          {% if constituency_name %}-->
-        <!--            <th>{% trans 'Code' %}</th>-->
-        <!--          {% else %}-->
-        <!--            <th>{% trans 'Name' %}</th>-->
-        <!--          {% endif %}-->
         <th>{% trans 'Administrative areas' %}</th>
         <th>{% trans 'Total voters' %}</th>
         <th>{% trans 'Voters voted' %}</th>
@@ -89,9 +30,6 @@
         <th>{% trans 'Female voters' %}</th>
         <th>{% trans 'Unisex voters' %}</th>
         <th>{% trans 'Turnout percentage' %}</th>
-        <!--          <th class="hide-from-export">{% trans 'Constituencies' %}</th>-->
-        <!--          <th class="hide-from-export">{% trans 'Sub Constituencies' %}</th>-->
-        <!--          <th class="hide-from-export">{% trans 'Actions' %}</th>-->
     </tr>
     </thead>
     <tbody></tbody>
