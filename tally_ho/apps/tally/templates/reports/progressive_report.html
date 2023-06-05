@@ -8,17 +8,18 @@
 <link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with export_file_name='progressive_report' server_side=True languageDE=languageDE  %}
+{% include "data/table.html" with export_file_name='progressive_report' server_side=True languageDE=languageDE get_sub_and_constituencies_url=get_sub_and_constituencies_url %}
 {% endblock %}
 {% block content %}
 
-<!--{% if not region_name %}-->
-<!--<h1>{% trans ' Regions Progressive Report' %}</h1>-->
-<!--<br />-->
-<!--{% endif %}-->
+{% if not region_name %}
+<h1>{% trans ' Regions Progressive Report' %}</h1>
+<br />
+{% endif %}
 
 <!--{% if region_name and not constituency_name %}-->
 <!--<h1>{{ region_name }} {% trans ' Region Progressive Report' %}</h1>-->
@@ -32,6 +33,7 @@
 <!--{% endif %}-->
 
 <table id="report" class="display datatable">
+  {% include "reports/admin_area_filters.html" %}
   <thead>
     <tr>
       <th>{% trans 'Administrative areas' %}</th>

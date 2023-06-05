@@ -1,5 +1,6 @@
 import ast
 import json
+import urllib.parse
 
 from django.views.generic import TemplateView
 from django.utils.translation import ugettext_lazy as _
@@ -1855,9 +1856,9 @@ class ProgressiveReportDataView(LoginRequiredMixin,
                                 BaseDatatableView):
     group_required = groups.TALLY_MANAGER
     model = Result
-    columns = ('admin_area_name',
-               'total_candidates',
-               'total_votes',
+    columns = ('admin_area',
+               'num_candidates',
+               'num_votes',
                'actions')
 
     def filter_queryset(self, qs):
@@ -1875,7 +1876,7 @@ class ProgressiveReportDataView(LoginRequiredMixin,
         admin_area_column_name = 'result_form__center__region'
 
         qs = qs.filter(
-            tally_id=tally_id, form_state=FormState.ARCHIVED,
+            result_form__tally=tally_id, result_form__form_state=FormState.ARCHIVED,
             entry_version=EntryVersion.FINAL
             )
 
@@ -1899,180 +1900,217 @@ class ProgressiveReportDataView(LoginRequiredMixin,
 
         keyword = self.request.POST.get('search[value]')
         if keyword:
-            qs = qs.filter(Q(admin_area_name__contains=keyword) |
+            qs = qs.filter(Q(admin_area__contains=keyword) |
                            Q(total_candidates=keyword) |
                            Q(total_votes=keyword))
         return qs
 
     def render_column(self, row, column):
         tally_id = self.kwargs.get('tally_id')
-        region_id = self.kwargs.get('region_id')
-        constituency_id = self.kwargs.get('constituency_id')
-        data = self.request.POST.get('data')
-        child_report_button_text = None
-        child_report_url = None
-        votes_per_candidate_url = None
-        votes_per_candidate_button_text = None
+        # TODO - duplicate logic
+        raw_post_data = self.request.POST.get('data')
+        post_data = ast.literal_eval(raw_post_data) if raw_post_data else {}
+        data = post_data
+        if isinstance(post_data, list):
+            data = post_data[0] if len(post_data) > 0 else {}
 
-        if region_id and not constituency_id:
-            reverse_url =\
-                'sub-cons-progressive-report-list'
-            child_report_button_text =\
-                _(u'Sub Constituencies votes per candidate')
-            child_report_url =\
-                reverse(
-                    reverse_url,
-                    kwargs={'tally_id': tally_id,
-                            'region_id': row['region_id'],
-                            'constituency_id': row['constituency_id']})
+        region_names = data.get('region_names')
+        constituencies = data.get('constituencies')
+        sub_constituencies = data.get('sub_constituencies')
 
-            reverse_url =\
-                'constituency-votes-per-candidate'
-            votes_per_candidate_button_text =\
-                _(u'Constituency votes per candidate')
-            votes_per_candidate_url =\
-                reverse(
-                    reverse_url,
-                    kwargs={'tally_id': tally_id,
-                            'region_id': row['region_id'],
-                            'constituency_id': row['constituency_id'],
-                            'report_type': 'votes-per-candidate-report'})
-        elif region_id and constituency_id:
-            reverse_url =\
-                'sub-constituency-votes-per-candidate'
-            child_report_button_text =\
-                _(u'Sub Constituency votes per candidate')
-            child_report_url =\
-                reverse(
-                    reverse_url,
-                    kwargs={'tally_id': tally_id,
-                            'region_id': row['region_id'],
-                            'constituency_id': row['constituency_id'],
-                            'sub_constituency_id': row['sub_constituency_id'],
-                            'report_type': 'votes-per-candidate-report'})
+        child_report_button_text = _(u'Region votes per candidate')
+        params = {}
+        if region_names:
+            params['region'] = row['admin_area']
+        if constituencies:
+            params['constituency'] = row['admin_area']
+            child_report_button_text = _(u'Constituency votes per candidate')
+        if sub_constituencies:
+            params['sub_constituency'] = row['admin_area']
+            child_report_button_text = _(u'Sub Constituency votes per candidate')
 
-            reverse_url =\
-                'sub-constituency-votes-per-candidate'
-            votes_per_candidate_button_text =\
-                _(u'Sub Constituency candidates list by ballot order')
-            votes_per_candidate_url =\
-                reverse(
-                    reverse_url,
-                    kwargs={'tally_id':
-                            tally_id,
-                            'region_id':
-                            row['region_id'],
-                            'constituency_id':
-                            row['constituency_id'],
-                            'sub_constituency_id':
-                            row['sub_constituency_id'],
-                            'report_type':
-                            'candidate-list-sorted-by-ballots-number'})
-        else:
-            reverse_url =\
-                'cons-progressive-report-list'
-            child_report_button_text =\
-                _(u'Region Constituencies Progressive Report')
-            child_report_url =\
-                reverse(
-                    reverse_url,
-                    kwargs={'tally_id': tally_id,
-                            'region_id': row['region_id']})
+        votes_per_candidate_url = reverse('votes_per_candidate', kwargs={"tally_id": tally_id})
+        query_params = urllib.parse.urlencode(params)
 
-            reverse_url =\
-                'region-votes-per-candidate'
-            votes_per_candidate_button_text =\
-                _(u'Region votes per candidate')
-            votes_per_candidate_url =\
-                reverse(
-                    reverse_url,
-                    kwargs={'tally_id': tally_id,
-                            'region_id': row['region_id'],
-                            'report_type': 'votes-per-candidate-report'})
+        if query_params:
+            votes_per_candidate_url = f'{votes_per_candidate_url}?{query_params}'
 
-        if column == 'admin_area_name':
-            return str('<td class="center">'
-                       f'{row["admin_area_name"]}</td>')
-        elif column == 'total_candidates':
-            return str('<td class="center">'
-                       f'{row["total_candidates"]}</td>')
-        elif column == 'total_votes':
-            return str('<td class="center">'
-                       f'{row["total_votes"]}</td>')
-        elif column == 'constituencies_ids':
-            disabled = 'disabled' if region_id else ''
-            region_cons_ids = []
-            qs = Constituency.objects.filter(
-                tally__id=tally_id,
-                id__in=row['constituencies_ids'])\
-                .values_list('id', 'name', named=True)
-            if data:
-                region_cons_data =\
-                    [item for item in ast.literal_eval(
-                        data) if ast.literal_eval(item['region_id']) ==
-                        row["admin_area_id"]]
-                region_cons_ids = region_cons_data[0]['select_1_ids']
-            constituencies =\
-                build_select_options(qs, ids=region_cons_ids)
-            return str('<td class="center">'
-                       '<select style="min-width: 6em;"'
-                       f'{disabled}'
-                       ' id="select-1" multiple'
-                       ' data-id='f'{row["admin_area_id"]}''>'
-                       f'{constituencies}'
-                       '</select>'
-                       '</td>')
-        elif column == 'sub_constituencies_ids':
-            disabled = 'disabled' if constituency_id else ''
-            region_sub_cons_ids = []
-            qs =\
-                SubConstituency.objects.annotate(
-                    name=F('code')).filter(
-                    tally__id=tally_id,
-                    id__in=row['sub_constituencies_ids'])\
-                .values_list('id', 'name', named=True)
-            if data:
-                region_sub_cons_data =\
-                    [item for item in ast.literal_eval(
-                        data)
-                        if ast.literal_eval(item['region_id']) ==
-                        row["admin_area_id"]]
-                region_sub_cons_ids =\
-                    region_sub_cons_data[0]['select_2_ids']
-
-            sub_constituencies =\
-                build_select_options(
-                    qs, ids=region_sub_cons_ids)
-            return str('<td class="center">'
-                       '<select style="min-width: 6em;"'
-                       f'{disabled}'
-                       ' id="select-2" multiple'
-                       ' data-id='f'{row["admin_area_id"]}''>'
-                       f'{sub_constituencies}'
-                       '</select>'
-                       '</td>')
-        elif column == 'actions':
-            child_report_link =\
-                str('<a href='f'{child_report_url}'
+        if column in self.columns:
+            column_val = None
+            if column == 'actions':
+                column_val = str('<a href='f'{votes_per_candidate_url}'
                     ' class="btn btn-default btn-small vertical-margin"> '
                     f'{child_report_button_text}'
                     '</a>')
-            votes_per_candidate_link =\
-                str('<a href='f'{votes_per_candidate_url}'
-                    ' class="btn btn-default btn-small vertical-margin"> '
-                    f'{votes_per_candidate_button_text}'
-                    '</a>')
-            filter_button =\
-                str('<button id="filter-report" '
-                    'class="btn btn-default btn-small">Submit</button>')
-            return (
-                child_report_link +
-                votes_per_candidate_link +
-                filter_button
-            )
+            else:
+                column_val = row[column]
+            return str('<td class="center">'
+                       f'{column_val}</td>')
         else:
             return super(
-                ProgressiveReportDataView, self).render_column(row, column)
+                ProgressiveReportDataView, self
+                ).render_column(
+                row, column
+                )
+        # if region_id and not constituency_id:
+        #     reverse_url =\
+        #         'sub-cons-progressive-report-list'
+        #     child_report_button_text =\
+        #         _(u'Sub Constituencies votes per candidate')
+        #     child_report_url =\
+        #         reverse(
+        #             reverse_url,
+        #             kwargs={'tally_id': tally_id,
+        #                     'region_id': row['region_id'],
+        #                     'constituency_id': row['constituency_id']})
+        #
+        #     reverse_url =\
+        #         'constituency-votes-per-candidate'
+        #     votes_per_candidate_button_text =\
+        #         _(u'Constituency votes per candidate')
+        #     votes_per_candidate_url =\
+        #         reverse(
+        #             reverse_url,
+        #             kwargs={'tally_id': tally_id,
+        #                     'region_id': row['region_id'],
+        #                     'constituency_id': row['constituency_id'],
+        #                     'report_type': 'votes-per-candidate-report'})
+        # elif region_id and constituency_id:
+        #     reverse_url =\
+        #         'sub-constituency-votes-per-candidate'
+        #     child_report_button_text =\
+        #         _(u'Sub Constituency votes per candidate')
+        #     child_report_url =\
+        #         reverse(
+        #             reverse_url,
+        #             kwargs={'tally_id': tally_id,
+        #                     'region_id': row['region_id'],
+        #                     'constituency_id': row['constituency_id'],
+        #                     'sub_constituency_id': row['sub_constituency_id'],
+        #                     'report_type': 'votes-per-candidate-report'})
+        #
+        #     reverse_url =\
+        #         'sub-constituency-votes-per-candidate'
+        #     votes_per_candidate_button_text =\
+        #         _(u'Sub Constituency candidates list by ballot order')
+        #     votes_per_candidate_url =\
+        #         reverse(
+        #             reverse_url,
+        #             kwargs={'tally_id':
+        #                     tally_id,
+        #                     'region_id':
+        #                     row['region_id'],
+        #                     'constituency_id':
+        #                     row['constituency_id'],
+        #                     'sub_constituency_id':
+        #                     row['sub_constituency_id'],
+        #                     'report_type':
+        #                     'candidate-list-sorted-by-ballots-number'})
+        # else:
+        #     reverse_url =\
+        #         'cons-progressive-report-list'
+        #     child_report_button_text =\
+        #         _(u'Region Constituencies Progressive Report')
+        #     child_report_url =\
+        #         reverse(
+        #             reverse_url,
+        #             kwargs={'tally_id': tally_id,
+        #                     'region_id': row['region_id']})
+        #
+        #     reverse_url =\
+        #         'region-votes-per-candidate'
+        #     votes_per_candidate_button_text =\
+        #         _(u'Region votes per candidate')
+        #     votes_per_candidate_url =\
+        #         reverse(
+        #             reverse_url,
+        #             kwargs={'tally_id': tally_id,
+        #                     'region_id': row['region_id'],
+        #                     'report_type': 'votes-per-candidate-report'})
+        #
+        # if column == 'admin_area_name':
+        #     return str('<td class="center">'
+        #                f'{row["admin_area_name"]}</td>')
+        # elif column == 'total_candidates':
+        #     return str('<td class="center">'
+        #                f'{row["total_candidates"]}</td>')
+        # elif column == 'total_votes':
+        #     return str('<td class="center">'
+        #                f'{row["total_votes"]}</td>')
+        # elif column == 'constituencies_ids':
+        #     disabled = 'disabled' if region_id else ''
+        #     region_cons_ids = []
+        #     qs = Constituency.objects.filter(
+        #         tally__id=tally_id,
+        #         id__in=row['constituencies_ids'])\
+        #         .values_list('id', 'name', named=True)
+        #     if data:
+        #         region_cons_data =\
+        #             [item for item in ast.literal_eval(
+        #                 data) if ast.literal_eval(item['region_id']) ==
+        #                 row["admin_area_id"]]
+        #         region_cons_ids = region_cons_data[0]['select_1_ids']
+        #     constituencies =\
+        #         build_select_options(qs, ids=region_cons_ids)
+        #     return str('<td class="center">'
+        #                '<select style="min-width: 6em;"'
+        #                f'{disabled}'
+        #                ' id="select-1" multiple'
+        #                ' data-id='f'{row["admin_area_id"]}''>'
+        #                f'{constituencies}'
+        #                '</select>'
+        #                '</td>')
+        # elif column == 'sub_constituencies_ids':
+        #     disabled = 'disabled' if constituency_id else ''
+        #     region_sub_cons_ids = []
+        #     qs =\
+        #         SubConstituency.objects.annotate(
+        #             name=F('code')).filter(
+        #             tally__id=tally_id,
+        #             id__in=row['sub_constituencies_ids'])\
+        #         .values_list('id', 'name', named=True)
+        #     if data:
+        #         region_sub_cons_data =\
+        #             [item for item in ast.literal_eval(
+        #                 data)
+        #                 if ast.literal_eval(item['region_id']) ==
+        #                 row["admin_area_id"]]
+        #         region_sub_cons_ids =\
+        #             region_sub_cons_data[0]['select_2_ids']
+        #
+        #     sub_constituencies =\
+        #         build_select_options(
+        #             qs, ids=region_sub_cons_ids)
+        #     return str('<td class="center">'
+        #                '<select style="min-width: 6em;"'
+        #                f'{disabled}'
+        #                ' id="select-2" multiple'
+        #                ' data-id='f'{row["admin_area_id"]}''>'
+        #                f'{sub_constituencies}'
+        #                '</select>'
+        #                '</td>')
+        # elif column == 'actions':
+        #     child_report_link =\
+        #         str('<a href='f'{child_report_url}'
+        #             ' class="btn btn-default btn-small vertical-margin"> '
+        #             f'{child_report_button_text}'
+        #             '</a>')
+        #     votes_per_candidate_link =\
+        #         str('<a href='f'{votes_per_candidate_url}'
+        #             ' class="btn btn-default btn-small vertical-margin"> '
+        #             f'{votes_per_candidate_button_text}'
+        #             '</a>')
+        #     filter_button =\
+        #         str('<button id="filter-report" '
+        #             'class="btn btn-default btn-small">Submit</button>')
+        #     return (
+        #         child_report_link +
+        #         votes_per_candidate_link +
+        #         filter_button
+        #     )
+        # else:
+        #     return super(
+        #         ProgressiveReportDataView, self).render_column(row, column)
 
 
 class ProgressiveReportView(LoginRequiredMixin,
@@ -2084,33 +2122,114 @@ class ProgressiveReportView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        # region_id = kwargs.get('region_id')
-        # constituency_id = kwargs.get('constituency_id')
         language_de = get_datatables_language_de_from_locale(self.request)
 
-        # try:
-        #     region_name =\
-        #         region_id and Region.objects.get(
-        #             id=region_id,
-        #             tally__id=tally_id).name
-        # except Region.DoesNotExist:
-        #     region_name = None
-        #
-        # try:
-        #     constituency_name =\
-        #         constituency_id and Constituency.objects.get(
-        #             id=constituency_id,
-        #             tally__id=tally_id).name
-        # except Constituency.DoesNotExist:
-        #     constituency_name = None
+        region_names, \
+            constituencies, \
+            sub_constituencies = build_admin_areas_list(tally_id=tally_id)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('progressive-report-list-data', kwargs=kwargs),
             tally_id=tally_id,
-            # region_name=region_name,
-            # constituency_name=constituency_name,
+            regions=region_names,
+            constituencies=constituencies,
+            sub_constituencies=sub_constituencies,
+            get_sub_and_constituencies_url=reverse(
+                'get_sub_and_constituencies'
+                ),
             languageDE=language_de,
         ))
+
+
+class VotesPerCandidateDataView(
+    LoginRequiredMixin,
+    mixins.GroupRequiredMixin,
+    mixins.TallyAccessMixin,
+    BaseDatatableView
+    ):
+    group_required = groups.TALLY_MANAGER
+    model = Result
+    columns = ('candidate_name',
+               'candidate_votes',)
+
+    def filter_queryset(self, qs):
+        tally_id = self.kwargs.get('tally_id')
+        region = self.request.GET.get('region')
+        constituency = self.request.GET.get('constituency')
+        sub_constituency = self.request.GET.get('sub_constituency')
+
+        qs = qs.filter(
+            result_form__tally=tally_id,
+            result_form__form_state=FormState.ARCHIVED,
+            entry_version=EntryVersion.FINAL, votes__gt=0,
+            )
+
+        if region:
+            qs = qs.filter(result_form__center__region=region)
+
+        if constituency:
+
+            qs = qs.filter(
+                result_form__center__constituency__name=constituency
+                )
+
+        if sub_constituency:
+
+            qs = qs.filter(
+                result_form__center__sub_constituency__code=sub_constituency
+                ).order_by('candidate__order')
+
+        qs = qs.annotate(
+            candidate_name=F('candidate__full_name'),
+            candidate_votes=F('votes')
+            ).values('candidate_name', 'candidate_votes')
+
+        keyword = self.request.POST.get('search[value]')
+        if keyword:
+            qs = qs.filter(
+                Q(candidate_name__contains=keyword) |
+                Q(candidate_votes=keyword)
+                )
+        return qs
+
+    def render_column(self, row, column):
+
+        if column in self.columns:
+            column_val = row[column]
+            return str(
+                '<td class="center">'
+                f'{column_val}</td>'
+                )
+        else:
+            return super(
+                VotesPerCandidateDataView, self
+                ).render_column(
+                row, column
+                )
+
+
+class VotesPerCandidateView(
+    LoginRequiredMixin,
+    mixins.GroupRequiredMixin,
+    TemplateView
+    ):
+    group_required = groups.TALLY_MANAGER
+    model = Result
+    template_name = 'reports/votes_per_candidate.html'
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
+
+        return self.render_to_response(
+            self.get_context_data(
+                remote_url=reverse(
+                    'votes_per_candidate_data', kwargs=kwargs
+                    ),
+                tally_id=tally_id,
+                languageDE=language_de,
+                )
+            )
 
 
 class DiscrepancyReportDataView(LoginRequiredMixin,
@@ -2817,6 +2936,7 @@ class RegionsReportsView(LoginRequiredMixin,
                 )))
 
 
+# TODO - is this still used
 class ConstituencyReportsView(LoginRequiredMixin,
                               mixins.GroupRequiredMixin,
                               TemplateView):
@@ -2961,6 +3081,7 @@ class ConstituencyReportsView(LoginRequiredMixin,
                 )))
 
 
+# TODO - is this still used?
 class SubConstituencyReportsView(LoginRequiredMixin,
                                  mixins.GroupRequiredMixin,
                                  TemplateView):

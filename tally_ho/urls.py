@@ -134,6 +134,15 @@ urlpatterns = [
     re_path(r'^data/progressive-report-list/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.ProgressiveReportView.as_view(),
             name='progressive-report-list'),
+    # re_path(r'^data/cons-progressive-report-list/'
+    #         r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
+    #         administrative_areas_reports.ProgressiveReportView.as_view(),
+    #         name='cons-progressive-report-list'),
+    # re_path(r'^data/sub-cons-progressive-report-list/'
+    #         r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/'
+    #         r'(?P<constituency_id>(\d+))/$',
+    #         administrative_areas_reports.ProgressiveReportView.as_view(),
+    #         name='sub-cons-progressive-report-list'),
     re_path(r'^data/cons-progressive-report-list/'
             r'(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
             administrative_areas_reports.ProgressiveReportView.as_view(),
@@ -800,6 +809,19 @@ urlpatterns = [
             r'(?P<report_type>(candidate-list-sorted-by-ballots-number))/$',
             administrative_areas_reports.SubConstituencyReportsView.as_view(),
             name='sub-constituency-votes-per-candidate'),
+
+    re_path(
+        r'^reports/internal/'
+        r'votes-per-candidate/(?P<tally_id>(\d+))/',
+        administrative_areas_reports.VotesPerCandidateView.as_view(),
+        name='votes_per_candidate'
+        ),
+    re_path(
+        r'^reports/internal/'
+        r'votes-per-candidate-data/(?P<tally_id>(\d+))/',
+        administrative_areas_reports.VotesPerCandidateDataView.as_view(),
+        name='votes_per_candidate_data'
+        ),
 
     re_path(r'^reports/internal/offices/(?P<tally_id>(\d+))/$',
             offices.OfficesReportView.as_view(),
