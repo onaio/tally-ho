@@ -1,4 +1,4 @@
-django==4.0.0
+django==4.2.2
 django-datatables-view==1.20.0
 django-enumfields==2.1.1
 django-guardian==2.4.0
