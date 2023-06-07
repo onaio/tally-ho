@@ -255,11 +255,11 @@ def process_batch_step(current_step, offset, file_map, tally):
 
     if current_step == 4:
         ballots_order_file = open(
-            UPLOADED_FILES_PATH + file_map['ballots_order_file'], 'rU')
+            UPLOADED_FILES_PATH + file_map['ballots_order_file'], 'r')
 
     return import_rows_batch(
         tally,
-        open(UPLOADED_FILES_PATH + file_map[file_name], 'rU'),
+        open(UPLOADED_FILES_PATH + file_map[file_name], 'r'),
         int(file_map[file_lines]),
         offset,
         process_function,

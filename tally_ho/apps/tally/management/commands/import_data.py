@@ -163,7 +163,7 @@ def process_sub_constituency_row(tally, row, command=None, logger=None):
 
 def import_sub_constituencies_and_ballots(tally=None, subconst_file=None):
     file_to_parse = subconst_file if subconst_file else open(
-        SUB_CONSTITUENCIES_PATH, 'rU')
+        SUB_CONSTITUENCIES_PATH, 'r')
     elements_processed = 0
 
     with file_to_parse as f:
@@ -238,7 +238,7 @@ def process_center_row(tally, row, command=None, logger=None):
 
 
 def import_centers(tally=None, centers_file=None):
-    file_to_parse = centers_file if centers_file else open(CENTERS_PATH, 'rU')
+    file_to_parse = centers_file if centers_file else open(CENTERS_PATH, 'r')
 
     with file_to_parse as f:
         reader = csv.reader(f)
@@ -289,7 +289,7 @@ def process_station_row(tally, row, command=None, logger=None):
 
 def import_stations(command, tally=None, stations_file=None):
     file_to_parse = stations_file if stations_file else open(
-        STATIONS_PATH, 'rU')
+        STATIONS_PATH, 'r')
 
     with file_to_parse as f:
         reader = csv.reader(f)
@@ -344,9 +344,9 @@ def import_candidates(tally=None,
                       candidates_file=None,
                       ballot_file=None):
     candidates_file_to_parse = candidates_file if candidates_file else open(
-        CANDIDATES_PATH, 'rU')
+        CANDIDATES_PATH, 'r')
     ballot_file_to_parse = ballot_file if ballot_file else open(
-        BALLOT_ORDER_PATH, 'rU')
+        BALLOT_ORDER_PATH, 'r')
 
     id_to_ballot_order = {}
 
@@ -500,7 +500,7 @@ def process_results_form_row(tally, row, command=None, logger=None):
 
 def import_result_forms(command, tally=None, result_forms_file=None):
     file_to_parse = result_forms_file if result_forms_file else open(
-        RESULT_FORMS_PATH, 'rU')
+        RESULT_FORMS_PATH, 'r')
     replacement_count = 0
 
     with file_to_parse as f:

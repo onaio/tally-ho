@@ -22,7 +22,7 @@ class Command(BaseCommand):
         self.check_result_forms()
 
     def check_result_forms(self):
-        with open(RESULT_FORMS_PATH, 'rU') as f:
+        with open(RESULT_FORMS_PATH, 'r') as f:
             reader = csv.reader(f)
             next(reader)  # ignore header
 
