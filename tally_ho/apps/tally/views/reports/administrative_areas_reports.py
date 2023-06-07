@@ -1,6 +1,7 @@
 import ast
 import json
 from io import BytesIO
+from datetime import date
 
 from django.views.generic import TemplateView
 from django.utils.translation import gettext_lazy as _
@@ -9,16 +10,15 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.http import JsonResponse
 from guardian.mixins import LoginRequiredMixin
 from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper,\
-    IntegerField, CharField, Value as V, Subquery, OuterRef
+    IntegerField, CharField, Value as V, Subquery, OuterRef, Func
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.http import HttpResponse
-from django.template.loader import get_template
-
+from pptx.util import Inches, Pt
+from pptx.enum.text import PP_ALIGN
 from pptx import Presentation
-from xhtml2pdf import pisa
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
@@ -36,6 +36,7 @@ from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale,
     get_deployed_site_url,
 )
+from tally_ho.libs.utils.query_set_helpers import Round
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
@@ -773,7 +774,7 @@ def results_queryset(
                         then=F(reconform_num_valid_votes)
                     ), default=V(0))).distinct()
 
-    return qs.order_by('total_votes')
+    return qs
 
 
 def duplicate_results_queryset(
@@ -1420,16 +1421,21 @@ def get_export(request):
     """
     Generates and returns a pdf export based on the filter values provided
     """
-    columns = ('candidate_name',
-               'total_votes',
-               'invalid_votes',
-               'valid_votes',
-               'number_registrants',
-               'race_number',)
     data = ast.literal_eval(request.GET.get('data'))
     tally_id = data.get('tally_id')
     limit = int(data.get('export_number'))
     export_type = data.get('exportType')
+    center_ids = data.get('select_1_ids')
+    station_ids = data.get('select_2_ids')
+    race_type_names = data.get('race_type_names') \
+        if data.get('race_type_names') else []
+    no_filter_applied =\
+         len(center_ids) == 0 and\
+         len(station_ids) == 0 and\
+         len(race_type_names) == 0
+
+    if no_filter_applied:
+        data = None
 
     qs = Result.objects.filter(
         result_form__tally__id=tally_id,
@@ -1440,84 +1446,345 @@ def get_export(request):
     qs = results_queryset(
         tally_id,
         qs,
-        data).values()[:limit]
+        data).values()
 
-    if export_type == 'PDF':
-        result = create_pdf_export(qs)
-        result.seek(0)
-        response = HttpResponse(result, content_type='application/pdf')
-        filename = "results_pdf.pdf"
-        content = f"attachment; filename='{filename}'"
-        response['Content-Disposition'] = content
-        return response
-    elif export_type == 'PPT':
-        result = create_ppt_export(qs, columns)
-        result.seek(0)
-        response = HttpResponse(
-            result, content_type='application/vnd.ms-powerpoint')
-        filename = "form-results.ppt"
-        content = f"attachment; filename='{filename}'"
-        response['Content-Disposition'] = content
-        return response
+    if export_type == 'PPT' and qs.count() != 0:
+        result = create_ppt_export(qs, race_type_names, tally_id, limit)
+        return result
     return HttpResponse("Not found")
 
+def create_ppt_export(qs, race_type_names, tally_id, limit):
+    race_types = [race_type for race_type in RaceType
+                    if race_type.name in race_type_names]
+    headers =\
+        create_results_power_point_headers(
+            tally_id, race_type_names, race_types)
 
-def create_pdf_export(qs):
-    template_src = 'reports/presentation_exporter_pdf.html'
-    context_dict = {'data': qs}
-    template = get_template(template_src)
-    html = template.render(context_dict)
-    result = BytesIO()
-    pisa.CreatePDF(html, encoding='UTF-8', dest=result)
-    return result
+    # Use all races if no race types were selected
+    if len(race_type_names) == 0:
+        race_types = RaceType
 
+    powerpoint_data = []
+    race_bg_img_path =\
+        'tally_ho/apps/tally/static/images/white-bg.jpeg'
+    for race in race_types:
+        data = qs.filter(race_type=race).order_by('-votes')
+        if data.count():
+            body = [item for item in data.values(
+                'candidate_name', 'total_votes', 'valid_votes')[:limit]]
+            header = headers.get(race.name)
+            # TODO Make race background image unique per race types
+            powerpoint_data.append(
+                {
+                    'header': header,
+                    'body': body,
+                    'background_image': race_bg_img_path
+                }
+            )
 
-def create_ppt_export(qs, columns):
-    total = qs.count()
-    slides = (total // 10) + 1
-    rows_per_table = 11
-    rows_added = 0
+    # Create a new PowerPoint presentation
+    prs = Presentation()
 
-    ppt = Presentation()
-    for slide in range(slides):
-        if total - rows_added < rows_per_table - 1:
-            rows_per_table = total - rows_added + 1
+    # Set the cover page
+    create_results_power_point_cover_page(prs)
 
-        qs = qs[(slide * 10): min(total, (slide+1) * 10)]
-        if slide == 0:
-            first_slide_layout = ppt.slide_layouts[5]
-            first_slide = ppt.slides.add_slide(first_slide_layout)
-            first_slide.shapes.title.text = "Form Results Export"
-            table = first_slide.shapes.add_table(
-                rows=rows_per_table,
-                cols=len(columns),
-                left=1,
-                top=1,
-                width=1,
-                height=1)
-        else:
-            slide_layout = ppt.slide_layouts[6]
-            table_slide = ppt.slides.add_slide(slide_layout)
-            table = table_slide.shapes.add_table(
-                rows=rows_per_table,
-                cols=len(columns),
-                left=1,
-                top=1,
-                width=1,
-                height=1)
-        for row in range(rows_per_table):
-            for column in range(len(columns)):
-                cell = table.table.cell(row, column)
-                if row == 0:
-                    # title row
-                    cell.text = columns[column]
-                else:
-                    cell.text = str(qs[row-1][columns[column]])
-        rows_added += (rows_per_table - 1)
-        # ppt.save("form-results.pptx")
-    results = BytesIO()
-    ppt.save(results)
-    return results
+    for data in powerpoint_data:
+        # Create the summary slide
+        create_results_power_point_summary_slide(
+            prs, power_point_race_data=data)
+
+        # Create the candidates slides
+        create_results_power_point_candidates_results_slide(
+            prs, power_point_race_data=data, limit=limit
+        )
+
+    # Save the presentation to a file
+    response = save_ppt_presentation_to_file(prs, 'election_results.pptx')
+
+    return response
+
+def save_ppt_presentation_to_file(prs, file_name):
+    pptx_stream = BytesIO()
+    prs.save(pptx_stream)
+    pptx_stream.seek(0)
+
+    # Create an HTTP response with the PowerPoint file
+    content_type=\
+        str('application/vnd.openxmlformats-officedocument.presentationml',
+            '.presentation')
+    response = HttpResponse(
+        pptx_stream.getvalue(),
+        content_type=content_type)
+    response['Content-Disposition'] = f'attachment; filename={file_name}'
+
+    return response
+
+def create_results_power_point_cover_page(prs):
+    # Set the cover page
+    slide_layout = prs.slide_layouts[0]
+    slide = prs.slides.add_slide(slide_layout)
+    background_image = 'tally_ho/apps/tally/static/images/HNEC.jpg'
+
+    # Set background image if provided
+    if background_image:
+        slide.shapes.add_picture(
+            background_image,
+            Inches(0), Inches(0),
+            prs.slide_width, prs.slide_height)
+
+    # Add election name
+    election_name = 'Election 2023'
+    election_shape =\
+        slide.shapes.add_textbox(
+        Inches(0.5), Inches(3), Inches(8), Inches(1)).text_frame
+    election_shape.text = "Name of Election: " + election_name
+    election_shape.paragraphs[0].alignment = PP_ALIGN.CENTER
+    election_shape.paragraphs[0].runs[0].font.bold = True
+
+    # Add date of creation
+    date_of_creation =  date.today().strftime("%B %d, %Y")
+    date_shape =\
+        slide.shapes.add_textbox(
+        Inches(0.5), Inches(0.5), Inches(8), Inches(0.5)).text_frame
+    date_shape.text = "Date: " + date_of_creation
+    date_shape.paragraphs[0].alignment = PP_ALIGN.CENTER
+    date_shape.paragraphs[0].runs[0].font.bold = True
+
+    return
+
+def create_results_power_point_summary_slide(prs, power_point_race_data):
+    # Create the summary slide
+    slide_layout = prs.slide_layouts[1]
+    slide = prs.slides.add_slide(slide_layout)
+    background_image = power_point_race_data['background_image']
+
+    summary_slide_title = "Summary Results"
+    # Set background image if provided
+    if background_image:
+        slide.shapes.add_picture(
+            background_image,
+            Inches(0),
+            Inches(0),
+            prs.slide_width,
+            prs.slide_height)
+
+    # Add title text box for the summary slide
+    title_text_box =\
+        slide.shapes.add_textbox(
+        Inches(0.5),
+        Inches(0.5),
+        prs.slide_width - Inches(1),
+        Inches(0.5))
+    title_text_frame = title_text_box.text_frame
+
+    # Set title properties
+    title_text_frame.text = summary_slide_title
+    title_text_frame.word_wrap = True
+    title_text_frame.margin_left = 0
+    title_text_frame.margin_right = 0
+    title_text_frame.margin_top = 0
+    title_text_frame.margin_bottom = 0
+
+    # Set title font properties
+    title_text_frame.clear()  # Clear existing paragraphs
+    p = title_text_frame.add_paragraph()
+    p.text = summary_slide_title
+    p.font.bold = True
+    p.font.size = Pt(24)
+    p.alignment = PP_ALIGN.CENTER
+
+    # Create a table shape for the summary data
+    summary_table =\
+        slide.shapes.add_table(
+        rows=8, cols=2, left=Inches(0.5), top=Inches(1.7),
+        width=Inches(9), height=Inches(2)).table
+
+    # Set the column widths for the summary table
+    column_widths = [Inches(6), Inches(3)]
+    for i, width in enumerate(column_widths):
+        summary_table.columns[i].width = width
+
+    # Populate the summary table with data
+    summary_table.cell(0, 0).text = 'Name of Race'
+    summary_table.cell(0, 1).text =\
+        str(power_point_race_data['header']['race_type'].name)
+    summary_table.cell(1, 0).text = 'Stations Expected'
+    summary_table.cell(1, 1).text =\
+        str(power_point_race_data['header']['stations_expected'])
+    summary_table.cell(2, 0).text = 'Stations Processed'
+    summary_table.cell(2, 1).text =\
+        str(power_point_race_data['header']['stations_processed'])
+    summary_table.cell(3, 0).text = 'Percentage of Stations Processed'
+    percentage_of_stations_processed =\
+        power_point_race_data['header']['percentage_of_stations_processed']
+    summary_table.cell(3, 1).text =\
+        f"{percentage_of_stations_processed}%"
+    summary_table.cell(4, 0).text = 'Results Status'
+    summary_table.cell(4, 1).text =\
+        power_point_race_data['header']['results_status']
+    summary_table.cell(5, 0).text = 'Registrants'
+    summary_table.cell(5, 1).text =\
+        str(power_point_race_data['header']['registrants'])
+    summary_table.cell(6, 0).text = 'Ballots Cast'
+    summary_table.cell(6, 1).text =\
+        str(power_point_race_data['header']['ballots_cast'])
+    summary_table.cell(7, 0).text = 'Turnout'
+    summary_table.cell(7, 1).text =\
+        f"{power_point_race_data['header']['turnout']}%"
+
+    return
+
+def create_results_power_point_candidates_results_slide(
+        prs, power_point_race_data, limit):
+    background_image = power_point_race_data['background_image']
+    candidates = power_point_race_data['body']
+    num_candidates = len(candidates)
+    max_candidates_per_slide = 10
+    num_slides = (num_candidates - 1) // max_candidates_per_slide + 1
+    candidate_rank = 0
+
+    for slide_num in range(num_slides):
+            # Create a new candidates slide
+        slide_layout = prs.slide_layouts[1]
+        slide = prs.slides.add_slide(slide_layout)
+
+        candidates_result_slide_title =\
+            f"Top {limit} Leading Candidates Results"
+        # Set background image if provided
+        if background_image:
+            slide.shapes.add_picture(
+                background_image,
+                Inches(0),
+                Inches(0),
+                prs.slide_width,
+                prs.slide_height)
+
+        # Add title text box for the candidates slide
+        title_text_box = slide.shapes.add_textbox(
+            Inches(0.5), Inches(0.5),
+            prs.slide_width - Inches(1), Inches(0.5))
+        title_text_frame = title_text_box.text_frame
+        title_text_frame.text = candidates_result_slide_title
+        title_text_frame.word_wrap = True
+
+        # Set title properties
+        title_text_frame.text = candidates_result_slide_title
+        title_text_frame.word_wrap = True
+        title_text_frame.margin_left = 0
+        title_text_frame.margin_right = 0
+        title_text_frame.margin_top = 0
+        title_text_frame.margin_bottom = 0
+
+        # Set title font properties
+        title_text_frame.clear()  # Clear existing paragraphs
+        p = title_text_frame.add_paragraph()
+        p.text = candidates_result_slide_title
+        p.font.bold = True
+        p.font.size = Pt(24)
+        p.alignment = PP_ALIGN.CENTER
+
+        # Calculate the number of candidates for the current slide
+        start_index = slide_num * max_candidates_per_slide
+        end_index = start_index + max_candidates_per_slide
+        candidates_slice = candidates[start_index:end_index]
+
+        # Create a table shape for the candidates data
+        candidates_table =\
+            slide.shapes.add_table(
+            rows=len(candidates_slice) + 1, cols=5, left=Inches(0.5),
+            top=Inches(1.7), width=Inches(9), height=Inches(2)).table
+
+        # Set the column widths for the candidates table
+        column_widths =\
+            [Inches(1), Inches(3), Inches(1.5), Inches(1.5), Inches(2)]
+        for i, width in enumerate(column_widths):
+            candidates_table.columns[i].width = width
+
+        # Populate the candidates table with data
+        candidates_table.cell(0, 0).text = 'Rank'
+        candidates_table.cell(0, 1).text = 'Name'
+        candidates_table.cell(0, 2).text = 'Votes'
+        candidates_table.cell(0, 3).text = 'Total Votes'
+        candidates_table.cell(0, 4).text = '% Valid Votes'
+
+        for i, candidate in enumerate(candidates_slice):
+            candidate_rank = candidate_rank + 1
+            candidates_table.cell(i + 1, 0).text =\
+                str(candidate_rank)
+            candidates_table.cell(i + 1, 1).text =\
+                candidate['candidate_name']
+            candidates_table.cell(i + 1, 2).text =\
+                str(candidate['total_votes'])
+            candidates_table.cell(i + 1, 3).text =\
+                str(candidate['valid_votes'])
+            candidates_table.cell(i + 1, 4).text =\
+                str(
+                round(
+                100 * candidate['total_votes'] / candidate['valid_votes'], 2))
+
+    return
+
+def create_results_power_point_headers(tally_id, race_type_names, race_types):
+    template = '%(function)s(%(expressions)s AS FLOAT)'
+    total_ballots_suq =\
+        Result.objects.filter(
+        result_form__tally__id=tally_id,
+        votes__gt=0,
+        result_form__form_state=FormState.ARCHIVED,
+        result_form__ballot__race_type=OuterRef('ballot__race_type'),
+        entry_version=EntryVersion.FINAL)
+    header_qs =\
+        ResultForm.objects.filter(
+            tally__id=tally_id,
+            center__stations__id__isnull=False,
+            barcode__isnull=False)
+
+    if len(race_type_names):
+        header_qs = header_qs.filter(
+            ballot__race_type__in=race_types)
+        total_ballots_suq = total_ballots_suq.filter(
+            result_form__ballot__race_type__in=race_types)
+
+    total_ballots_suq =\
+        total_ballots_suq.annotate(
+        race_type=F('result_form__ballot__race_type')
+        ).values('race_type').annotate(
+        total_votes=Sum('votes')).values('total_votes')[:1]
+
+    header_qs =\
+        header_qs.annotate(
+            race_type=F('ballot__race_type')).values('race_type').annotate(
+            stations_expected=Count(
+                'center__stations__id',
+                distinct=True,
+                filter=Q(barcode__isnull=False)),
+            stations_processed=Count(
+                'center__stations__id',
+                distinct=True,
+                filter=Q(
+        barcode__isnull=False, form_state=FormState.ARCHIVED)),
+            percentage_of_stations_processed=Round(
+                100 * Func(
+            F('stations_processed'), function='CAST', template=template)/Func(
+            F('stations_expected'), function='CAST', template=template),
+            digits=3),
+            results_status=Case(
+                                When(
+                                    percentage_of_stations_processed=100,
+                                    then=V('Final')
+                                ), default=V('Partial'),
+                            output_field=CharField()),
+            registrants=Sum('center__stations__registrants',distinct=True),
+            ballots_cast=Coalesce(
+            Subquery(total_ballots_suq, output_field=IntegerField()),  V(0)),
+            turnout=Round(
+            100 * Func(
+            F('ballots_cast'), function='CAST', template=template)/Func(
+            F('registrants'), function='CAST', template=template),
+            digits=3))
+    headers = { item.get('race_type').name: item for item in header_qs }
+
+    return headers
 
 
 def get_results(request):
