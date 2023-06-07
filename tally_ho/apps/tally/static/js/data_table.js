@@ -327,6 +327,7 @@ $(document).ready(function () {
   });
 
   $('#report').on('click', '#exc-ppt-export-report', function () {
+    $("#exc-ppt-export-report").html("Exporting...");
     $("#exc-ppt-export-report").prop("disabled", true);
 
     let data = [];
@@ -367,11 +368,19 @@ $(document).ready(function () {
         data: { data: JSON.stringify(data) },
         traditional: true,
         type: 'GET',
-        responseType: 'blob',
-        success: function(response) {
-           downloadFile(new Blob([response]), 'form-results.ppt');
-           $("exc-ppt-export-report").removeAttr("disabled");
+        xhrFields: {
+          responseType: 'blob'
         },
+        success: function(data) {
+          downloadFile(data, 'election_results.pptx');
+          $("#exc-ppt-export-report").html("Export");
+          $("#exc-ppt-export-report").prop("disabled", false);
+        },
+        error: function(xhr, status, error) {
+          console.log('Error:', error);
+          $("#exc-ppt-export-report").html("Export");
+          $("#exc-ppt-export-report").prop("disabled", false);
+        }
     });
   });
 
@@ -447,13 +456,14 @@ $(document).ready(function () {
       });
   });
   $('#in-report').on('click', '#inc-ppt-export-report', function () {
+    $("#inc-ppt-export-report").html("Exporting...");
     $("#inc-ppt-export-report").prop("disabled", true);
 
     let data = [];
     let selectOneIds = $('select#filter-in-centers').val();
     let selectTwoIds = $('select#filter-in-stations').val();
     let raceTypeNames = $('select#filter-in-race-types').val();
-    let exportNumber = $('input#inc-export-number').val();
+    let exportNumber = $('input#export-number').val();
 
     const downloadFile = (blob, fileName) => {
       const link = document.createElement('a');
@@ -489,12 +499,19 @@ $(document).ready(function () {
         data: { data: JSON.stringify(data) },
         traditional: true,
         type: 'GET',
-        responseType: 'blob',
-        success: function(response) {
-           downloadFile(new Blob([response]), 'form-results.ppt');
-           $("inc-ppt-export-report").removeAttr("disabled");
+        xhrFields: {
+          responseType: 'blob'
         },
-
+        success: function(data) {
+          downloadFile(data, 'election_results.pptx');
+          $("#inc-ppt-export-report").html("Export");
+          $("#inc-ppt-export-report").prop("disabled", false);
+        },
+        error: function(xhr, status, error) {
+          console.log('Error:', error);
+          $("#inc-ppt-export-report").html("Export");
+          $("#inc-ppt-export-report").prop("disabled", false);
+        }
     });
   });
 
