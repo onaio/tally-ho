@@ -1,7 +1,8 @@
 -r common.pip
 coverage
 coveralls
-django-debug-toolbar==4.0.0
+django-debug-toolbar==4.1.0
+mock==5.0.2
 django_extensions
 ipython
 ipdb
