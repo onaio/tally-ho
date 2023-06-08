@@ -16,7 +16,6 @@ from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale
 )
 from tally_ho.libs.views import mixins
-from tally_ho.libs.models.enums.race_type import RaceType
 
 
 class CandidateListDataView(LoginRequiredMixin,
@@ -102,18 +101,19 @@ def get_candidates_list(request):
     """
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
     candidates_list = Candidate.objects.filter(tally__id=tally_id)\
-        .annotate(ballot_number=F('ballot__number'),)\
+        .annotate(
+        ballot_number=F('ballot__number'),
+        election_level=F('ballot__electrol_race__election_level'),\
+        sub_race_type=F('ballot__electrol_race__ballot_name'))\
         .values(
             'candidate_id',
             'full_name',
             'active',
             'order',
             'ballot_number',
-            'race_type',
+            'election_level',
+            'sub_race_type',
     )
-    for candidate in candidates_list:
-        if isinstance(candidate['race_type'], RaceType):
-            candidate['race_type'] = candidate['race_type'].name
 
     return JsonResponse(
         data={'data': list(candidates_list), 'created_at': timezone.now()},
