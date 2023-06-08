@@ -38,7 +38,7 @@ class Candidate(BaseModel):
 
     @property
     def race_type_name(self):
-        return self.electrol_race.ballot_name
+        return self.electrol_race.election_level
 
     def num_votes(self, result_form=None, form_state=FormState.ARCHIVED):
         """Return the number of final active votes for this candidate in the
