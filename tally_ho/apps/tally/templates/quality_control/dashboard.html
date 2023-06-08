@@ -14,21 +14,8 @@
 {% include 'quality_control/reconciliation.html' with form=reconciliation_form %}
 {% endif %}
 
-{% if results_presidential %}
-{% include 'quality_control/results.html' with results=results_presidential header_text='Presidential' %}
-{% endif %}
+{% include 'quality_control/results.html' with results=results header_text=header_text %}
 
-{% if results_general %}
-{% include 'quality_control/results.html' with results=results_general header_text='General' %}
-{% endif %}
-
-{% if results_women %}
-{% include 'quality_control/results.html' with results=results_women header_text='Women' %}
-{% endif %}
-
-{% if results_component %}
-{% include 'quality_control/results.html' with results=results_component header_text='Component' %}
-{% endif %}
 
 <form name="form_correct" method="post" action="">
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">

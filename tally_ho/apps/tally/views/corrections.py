@@ -21,14 +21,13 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views.session import session_matches_post_result_form
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.corrections import get_matched_forms,\
-    candidate_results_for_race_type, save_component_results,\
-    save_final_results, save_general_results, save_women_results,\
-    update_result_form_entries_with_de_errors, save_presidential_results
+    result_form_candidate_results,\
+    save_final_results, save_form_results,\
+    update_result_form_entries_with_de_errors
 from tally_ho.libs.views.form_state import form_in_state,\
     safe_form_in_state
 
@@ -109,27 +108,13 @@ def get_corrections_forms(result_form):
 
     :param result_form: The result form to fetch results for.
 
-    :returns: A list of corrections forms suffixed by the type of component
-        race if there is one.
+    :returns: A list of corrections forms.
     """
     recon = get_recon_form(result_form) if result_form.has_recon else None
-    presidential = candidate_results_for_race_type(result_form,
-                                                   RaceType.PRESIDENTIAL,
-                                                   num_results=2)
-    general = candidate_results_for_race_type(result_form,
-                                              RaceType.GENERAL,
-                                              num_results=2)
-    women = candidate_results_for_race_type(result_form,
-                                            RaceType.WOMEN,
-                                            num_results=2)
-    component = candidate_results_for_race_type(result_form,
-                                                None,
-                                                num_results=2)
+    candidate_results =\
+        result_form_candidate_results(result_form, num_results=2)
 
-    # get name of component race type
-    c_name = component[0][0].race_type_name if len(component) else None
-
-    return [recon, presidential, general, women, component, c_name]
+    return [recon, candidate_results]
 
 
 def get_recon_form(result_form):
@@ -345,19 +330,17 @@ class CorrectionRequiredView(LoginRequiredMixin,
 
     def corrections_response(self, result_form, errors=None):
         tally_id = self.kwargs.get('tally_id')
-        recon, results_presidential, results_general,\
-            results_women, results_component, c_name =\
+        recon, candidate_results =\
             get_corrections_forms(result_form)
+        election_level = result_form.ballot.electrol_race.election_level
 
         return self.render_to_response(
             self.get_context_data(errors=errors,
                                   result_form=result_form,
                                   reconciliation_form=recon,
-                                  candidates_presidential=results_presidential,
-                                  candidates_general=results_general,
-                                  candidates_component=results_component,
-                                  candidates_women=results_women,
-                                  component_name=c_name,
+                                  candidate_results=candidate_results,
+                                  header=election_level,
+                                  prefix=election_level.lower(),
                                   tally_id=tally_id))
 
     def get(self, *args, **kwargs):
@@ -384,11 +367,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
                 with transaction.atomic():
                     if result_form.reconciliationform_exists:
                         save_recon(post_data, user, result_form)
-
-                    save_component_results(result_form, post_data, user)
-                    save_presidential_results(result_form, post_data, user)
-                    save_general_results(result_form, post_data, user)
-                    save_women_results(result_form, post_data, user)
+                    save_form_results(result_form, post_data, user)
             except ValidationError as e:
                 return self.corrections_response(result_form, u"%s" % e)
             except SuspiciousOperation as e:

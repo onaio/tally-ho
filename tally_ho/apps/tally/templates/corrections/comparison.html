@@ -9,7 +9,7 @@
         <th>{% trans 'Candidate' %}</th>
         <th>{% trans 'No.' %}</th>
     </tr>
-{% for candidate, result1, result2 in candidates %}
+{% for candidate, result1, result2 in candidate_results %}
     <tr>
         <td>
             {% if result1.votes == result2.votes %}

@@ -91,7 +91,7 @@ def build_result_and_recon_output(result_form):
         'station': result_form.station_number,
         'gender': result_form.gender_name,
         'barcode': result_form.barcode,
-        'race type': result_form.ballot_race_type_name,
+        'race type': result_form.ballot__electrol_race__election_level,
         'voting district': result_form.ballot.sub_constituency.code,
         'number registrants': result_form.station.registrants
     }

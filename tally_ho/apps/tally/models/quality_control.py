@@ -30,10 +30,8 @@ class QualityControl(BaseModel):
         rf = self.result_form
 
         return (
-            (not rf.has_presidential_results or self.passed_presidential) and
-            (not rf.has_general_results or self.passed_general) and
-            (not rf.reconciliationform or self.passed_reconciliation) and
-            (not rf.has_women_results or self.passed_women))
+            (not rf.has_results or self.passed_qc) and
+            (not rf.reconciliationform or self.passed_reconciliation))
 
     @property
     def reviews_required_text(self):
