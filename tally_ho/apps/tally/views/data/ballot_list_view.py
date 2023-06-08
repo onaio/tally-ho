@@ -22,17 +22,14 @@ class BallotListDataView(LoginRequiredMixin,
     columns = (
         'number',
         'active',
-        'electrol_race.type',
+        'electrol_race.election_level',
+        'electrol_race.ballot_name',
         'modified_date_formatted',
         'available_for_release',
-        'disable_reason',
-        'document',
         'action',
     )
 
     def render_column(self, row, column):
-        if column == 'disable_reason' and row.active:
-            return  str('<td class="center">''</td>')
         if column == 'action':
             return row.get_action_button
         else:
@@ -50,7 +47,7 @@ class BallotListDataView(LoginRequiredMixin,
 
         if keyword:
             qs = qs.filter(Q(number__contains=keyword)|
-                           Q(electrol_race__type__contains=keyword))
+                           Q(electrol_race__election_level__contains=keyword))
 
         return qs
 
