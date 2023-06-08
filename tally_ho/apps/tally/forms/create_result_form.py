@@ -87,9 +87,12 @@ class CreateResultForm(ModelForm):
         except ResultForm.DoesNotExist:
             pass
 
-        if center.sub_constituency and \
-                ballot.number != center.sub_constituency.code:
-            raise ValidationError(
-                _('Ballot number do not match for center and station'))
+        center_sub = center.sub_constituency
+        if center_sub:
+            center_sub_ballots = center_sub.get_ballots()
+            if ballot.electrol_race not in\
+                [ballot.electrol_race for ballot in center_sub_ballots]:
+                raise ValidationError(
+                    _('Ballot number do not match for center and station'))
 
         return cleaned_data
