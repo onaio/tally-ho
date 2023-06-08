@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 import reversion
 
 from tally_ho.apps.tally.models.tally import Tally
@@ -45,24 +44,13 @@ class SubConstituency(BaseModel):
     def __str__(self):
         return u'%s - %s' % (self.code, self.tally.name)
 
-    @property
-    def form_type(self):
-        """Return the form type of ballots used in this subconstituency.
+    def get_ballots(self):
+        """Return the ballots used in this subconstituency.
 
-        :returns: The type of ballot that is used in this subconstituency.
+        :returns: The ballots used in this subconstituency.
         """
         if self.ballots:
-            return _(f'{self.ballots.electrol_race.type}')
-        else:
-            return _('Undefined')
-
-    def get_ballot(self):
-        """Return the form type of ballots used in this subconstituency.
-
-        :returns: The type of ballot that is used in this subconstituency.
-        """
-        if self.ballots:
-            return self.ballots.electrol_race.type
+            return self.ballots.all()
         else:
             return None
 
