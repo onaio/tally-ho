@@ -478,22 +478,11 @@ class ResultForm(BaseModel):
 
     @property
     def candidates(self):
-        """Get the candidates for this result form.
-
-        If the result form is a component ballot the candidates from the
-        general ballot must be augmented with the candidates from the component
-        ballot.
+        """Get the candidates for this result form ordered by ballot order.
 
         :returns: A list of candidates that appear on this result form.
         """
-        ballot = self.ballot
-        candidates = list(ballot.candidates.order_by('race_type', 'order'))
-        component_ballot = ballot.component_ballot
-
-        if component_ballot:
-            candidates += list(component_ballot.candidates.order_by('order'))
-
-        return candidates
+        return list(self.ballot.candidates.order_by('order'))
 
     @property
     def get_action_button(self):
