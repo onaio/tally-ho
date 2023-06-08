@@ -44,12 +44,13 @@ class FormListDataView(LoginRequiredMixin,
         'center.code',
         'station_id',
         'station_number',
-        'center.office.name',
-        'center.office.number',
-        'center.office.region.name',
-        'center.sub_constituency.code',
+        'office.name',
+        'office.number',
         'ballot.number',
-        'ballot.race_type',
+        'center.sub_constituency.code',
+        'ballot.electrol_race.election_level',
+        'ballot.electrol_race.ballot_name',
+        'center.office.region.name',
         'form_state',
         'modified_date',
         'action'
@@ -136,7 +137,11 @@ class FormListDataView(LoginRequiredMixin,
                            Q(center__office__name__contains=keyword) |
                            Q(center__office__number__contains=keyword) |
                            Q(station_number__contains=keyword) |
-                           Q(ballot__number__contains=keyword))
+                           Q(ballot__number__contains=keyword) |
+                           Q(
+                ballot__electrol_race__election_level__contains=keyword) |
+                           Q(
+                ballot__electrol_race__ballot_name__contains=keyword))
 
         return qs
 
@@ -171,7 +176,7 @@ class FormListView(LoginRequiredMixin,
                 'barcode', 'form_state', 'gender', 'station_number',
                 'center__sub_constituency__code',
                 'center__code',
-                'ballot__race_type').order_by('barcode')
+                'ballot__electrol_race___election_level').order_by('barcode')
 
             return render_to_csv_response(form_list)
 
@@ -273,7 +278,7 @@ def get_result_forms(request):
 
     form_list = ResultForm.objects.filter(
         tally__id=tally_id,
-        ballot__race_type__in=race_types) \
+        ballot__electrol_race__election_level__in=race_types)\
         .annotate(
         center_code=F('center__code'),
         office_name=F('center__office__name'),
