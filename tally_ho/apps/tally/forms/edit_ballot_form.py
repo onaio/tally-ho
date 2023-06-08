@@ -35,9 +35,9 @@ class EditBallotForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(EditBallotForm, self).__init__(*args, **kwargs)
-
+        tally_id = self.initial.get('tally_id')
         self.fields['electrol_race'] = ModelChoiceField(
-                queryset=ElectrolRace.objects.all())
+                queryset=ElectrolRace.objects.filter(tally__id=tally_id))
 
         if self.instance.active:
             self.fields.pop('disable_reason')
