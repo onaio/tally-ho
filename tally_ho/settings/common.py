@@ -345,7 +345,7 @@ ELECTROL_RACE_COLS_TO_MODEL_FIELDS_MAPPING = [
         'election_level': 'election_level',
     },
     {
-        'ballot_name': 'ballot_name'
+        'sub_type': 'ballot_name'
     }
 ]
 
