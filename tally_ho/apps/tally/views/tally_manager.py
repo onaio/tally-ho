@@ -328,7 +328,7 @@ def process_batch_step(current_step, offset, file_map, tally):
 
     file_name, file_lines, process_function = STEP_TO_ARGS[current_step]
 
-    if current_step == 7:
+    if file_name == 'candidates_file':
         ballots_order_file = open(
             UPLOADED_FILES_PATH + file_map['ballots_order_file'], 'r')
 
