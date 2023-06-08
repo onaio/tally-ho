@@ -7,5 +7,4 @@ django-reversion==5.0.4
 django-tracking2==0.5.1
 psycopg2-binary==2.8.6
 six==1.16.0
-mock==5.0.2
 python-dateutil==2.8.1
