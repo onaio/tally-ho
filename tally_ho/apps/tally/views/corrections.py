@@ -333,13 +333,14 @@ class CorrectionRequiredView(LoginRequiredMixin,
         recon, candidate_results =\
             get_corrections_forms(result_form)
         election_level = result_form.ballot.electrol_race.election_level
+        sub_race_type = result_form.ballot.electrol_race.ballot_name
 
         return self.render_to_response(
             self.get_context_data(errors=errors,
                                   result_form=result_form,
                                   reconciliation_form=recon,
                                   candidate_results=candidate_results,
-                                  header=election_level,
+                                  header=f"{election_level}-{sub_race_type}",
                                   prefix=election_level.lower(),
                                   tally_id=tally_id))
 
