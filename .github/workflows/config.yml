@@ -10,7 +10,7 @@ jobs:
       # Label used to access the service container
       postgres:
         # Docker Hub postgres image
-        image: postgres:9.6.2-alpine
+        image: postgres:15-alpine
         env:
           POSTGRES_USER: tally
           POSTGRES_DB: tally
