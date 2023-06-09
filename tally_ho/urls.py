@@ -20,6 +20,7 @@ from tally_ho.apps.tally.views import (
     tally_manager
 )
 from tally_ho.apps.tally.views.data import (
+    electrol_race_list_view,
     ballot_list_view,
     center_list_view,
     form_list_view,
@@ -506,6 +507,27 @@ urlpatterns = [
             r'(?P<id>(\d+))$',
             super_admin.EditBallotView.as_view(),
             name='edit-ballot'),
+    re_path(r'^data/electrol-race-list-data/(?P<tally_id>(\d+))/$',
+            electrol_race_list_view.ElectrolRaceListDataView.as_view(),
+            name='electrol-race-list-data'),
+    re_path(r'^data/electrol-race-list/(?P<tally_id>(\d+))/$',
+            electrol_race_list_view.ElectrolRaceListView.as_view(),
+            name='electrol-race-list'),
+    re_path(r'^super-administrator/create-electrol-race/(?P<tally_id>(\d+))/$',
+            super_admin.CreateElectrolRaceView.as_view(),
+            name='create-electrol-race'),
+    re_path(r'^super-administrator/edit-electrol-race/(?P<tally_id>(\d+))/'
+            r'(?P<id>(\d+))$',
+            super_admin.EditElectrolRaceView.as_view(),
+            name='edit-electrol-race'),
+    re_path(r'^super-administrator/disable-electrol-race/(?P<tally_id>(\d+))/'
+            r'(?P<electrol_race_id>(\d+))$',
+            super_admin.DisableElectrolRaceView.as_view(),
+            name='disable-electrol-race'),
+    re_path(r'^super-administrator/enable-electrol-race/(?P<tally_id>(\d+))/'
+            r'(?P<electrol_race_id>(\d+))$',
+            super_admin.EnableElectrolRaceView.as_view(),
+            name='enable-electrol-race'),
     re_path(r'^super-administrator/disable-ballot/(?P<tally_id>(\d+))/'
             r'(?P<ballot_id>(\d+))$',
             super_admin.DisableBallotView.as_view(),

@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.comment import Comment
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.ballot import Ballot
 
@@ -82,6 +83,33 @@ def disable_enable_ballot(ballot_id,
 
         ballot.save()
         return ballot
+
+
+def disable_enable_electrol_race(electrol_race_id,
+                                 disable_reason=None,
+                                 comment=None,
+                                 tally_id=None,):
+    electrol_race = None
+    try:
+        electrol_race =\
+            ElectrolRace.objects.get(tally__id=tally_id, id=electrol_race_id)
+    except ElectrolRace.DoesNotExist:
+        raise forms.ValidationError(_('Electrol Race does not exist'))
+    else:
+        if comment:
+            Comment(
+                text=comment,
+                electrol_race=electrol_race,
+                tally_id=tally_id).save()
+
+        electrol_race.active = not electrol_race.active
+        electrol_race.disable_reason = 0
+
+        if disable_reason is not None:
+            electrol_race.disable_reason = disable_reason
+
+        electrol_race.save()
+        return electrol_race
 
 
 def disable_enable_candidate(candidate_id):

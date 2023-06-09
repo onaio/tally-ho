@@ -18,6 +18,12 @@ from django.urls import reverse
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.disable_entity_form import DisableEntityForm
+from tally_ho.apps.tally.forms.create_electrol_race_form import (
+    CreateElectrolRaceForm
+)
+from tally_ho.apps.tally.forms.edit_electrol_race_form import (
+    EditElectrolRaceForm
+)
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
@@ -35,6 +41,7 @@ from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
@@ -54,6 +61,7 @@ from tally_ho.libs.models.enums.form_state import (
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.active_status import (
+    disable_enable_electrol_race,
     disable_enable_entity,
     disable_enable_ballot,
     disable_enable_candidate,
@@ -1222,6 +1230,167 @@ class EditBallotView(LoginRequiredMixin,
         return super(EditBallotView, self).get(*args, **kwargs)
 
 
+class CreateElectrolRaceView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
+                     mixins.ReverseSuccessURLMixin,
+                     SuccessMessageMixin,
+                     CreateView):
+    model = ElectrolRace
+    form_class = CreateElectrolRaceForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/form.html'
+    success_message = _(u'Electrol Race Successfully Created')
+
+    def get_initial(self):
+        initial = super(CreateElectrolRaceView, self).get_initial()
+        initial['tally'] = int(self.kwargs.get('tally_id'))
+
+        return initial
+
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id')
+        context =\
+            super(CreateElectrolRaceView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['title'] = _(u'New Electrol Race')
+        context['route_name'] = 'electrol-race-list'
+
+        return context
+
+    def form_valid(self, form):
+        form = CreateElectrolRaceForm(self.request.POST)
+        form.save()
+
+        return super(CreateElectrolRaceView, self).form_valid(form)
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id')
+
+        return reverse('electrol-race-list', kwargs={'tally_id': tally_id})
+
+
+class EditElectrolRaceView(LoginRequiredMixin,
+                   mixins.GroupRequiredMixin,
+                   mixins.TallyAccessMixin,
+                   mixins.ReverseSuccessURLMixin,
+                   SuccessMessageMixin,
+                   UpdateView):
+    model = ElectrolRace
+    form_class = EditElectrolRaceForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/edit_electrol_race.html'
+    success_message = _(u'Electrol Race Successfully Updated')
+
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id')
+        context = super(EditElectrolRaceView, self).get_context_data(**kwargs)
+        context['id'] = self.kwargs.get('id')
+        context['tally_id'] = tally_id
+        context['is_active'] = self.object.active
+        context['comments'] = self.object.comments.filter(tally__id=tally_id)
+
+        return context
+
+    def get_object(self):
+        tally_id = self.kwargs.get('tally_id')
+        id = self.kwargs.get('id')
+
+        return get_object_or_404(ElectrolRace, tally__id=tally_id, id=id)
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id')
+        id = self.kwargs.get('id')
+
+        return reverse('edit-electrol-race', kwargs={
+            'tally_id': tally_id,
+            'id': id
+        })
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        self.initial = {
+            'tally_id': tally_id,
+        }
+
+        return super(EditElectrolRaceView, self).get(*args, **kwargs)
+
+
+class DisableElectrolRaceView(LoginRequiredMixin,
+                      mixins.GroupRequiredMixin,
+                      mixins.TallyAccessMixin,
+                      mixins.ReverseSuccessURLMixin,
+                      SuccessMessageMixin,
+                      FormView):
+    form_class = DisableEntityForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    tally_id = None
+    template_name = "super_admin/disable_entity.html"
+    success_url = 'electrol-race-list'
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        electrol_race_id = kwargs.get('electrol_race_id')
+        electrol_race = ElectrolRace.objects.get(pk=electrol_race_id)
+        election_level = electrol_race.election_level
+        sub_race_type = electrol_race.ballot_name
+        entity_name =\
+            f'Electrol Race: {election_level} - {sub_race_type}'
+
+        self.initial = {
+            'tally_id': tally_id,
+            'center_code_input': None,
+            'station_number_input': None,
+            'ballot_id_input': None,
+            'electrol_race_id_input': electrol_race_id,
+        }
+
+        self.success_message = _(u"Electrol Race Successfully Disabled.")
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  entityName=entity_name,
+                                  tally_id=tally_id))
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        self.tally_id = self.kwargs['tally_id']
+
+        if form.is_valid():
+            form.save()
+
+            self.success_message = _(u"Electrol Race Successfully disabled")
+
+            return self.form_valid(form)
+
+        return self.render_to_response(self.get_context_data(
+            form=form, tally_id=self.tally_id))
+
+
+class EnableElectrolRaceView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
+                     mixins.ReverseSuccessURLMixin,
+                     TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    success_url = 'electrol-race-list'
+
+    def get(self, *args, **kwargs):
+        electrol_race_id = kwargs.get('electrol_race_id')
+        tally_id = self.kwargs['tally_id']
+        disable_enable_electrol_race(electrol_race_id, tally_id=tally_id)
+
+        messages.add_message(self.request,
+                             messages.INFO,
+                             _(u"Electrol Race Successfully enabled."))
+
+        return redirect(self.success_url, tally_id=tally_id)
+
+
 class DisableBallotView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
                       mixins.TallyAccessMixin,
@@ -1238,7 +1407,10 @@ class DisableBallotView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         ballot_id = kwargs.get('ballot_id')
         ballot = Ballot.objects.get(pk=ballot_id)
-        entity_name = f'Ballot {ballot.number} - {ballot.electrol_race.type}'
+        election_level = ballot.electrol_race.election_level
+        sub_race_type = ballot.electrol_race.ballot_name
+        entity_name =\
+            f'Ballot {ballot.number} - {election_level} - {sub_race_type}'
 
         self.initial = {
             'tally_id': tally_id,
