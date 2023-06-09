@@ -191,10 +191,15 @@
             <th width="60%">{% trans 'Candidate' %}</th>
             <th width="30%">{% trans 'Votes' %}</th>
         </tr>
-    {% for race_type_name, form, candidate in forms_and_candidates %}
-        {% if race_type_name %}
+    {% for election_level, sub_race_type, form, candidate in forms_and_candidates %}
+        {% if election_level %}
         <tr>
-            <td colspan="3"><h3>{{ race_type_name }}</h3></td>
+            <td colspan="3"><h3>{{ election_level }}</h3></td>
+        </tr>
+        {% endif %}
+        {% if sub_race_type %}
+        <tr>
+            <td colspan="3"><h3>{{ sub_race_type }}</h3></td>
         </tr>
         {% endif %}
         <tr>
