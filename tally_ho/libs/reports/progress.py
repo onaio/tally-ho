@@ -136,12 +136,13 @@ class ProgressReport(object):
 
         if query_valid_votes:
             filtered_queryset =\
-                filtered_queryset\
-                .values('reconciliationform__number_valid_votes')\
-                .annotate(
+                filtered_queryset.values(
+                    'reconciliationform__number_valid_votes'
+                    ).annotate(
                     valid_votes=Coalesce(
-                        Sum('reconciliationform__number_valid_votes'), V(0)))\
-                .first()
+                        Sum('reconciliationform__number_valid_votes'), V(0)
+                        )
+                    ).order_by('pk').first()
 
             count =\
                 filtered_queryset['valid_votes'] if filtered_queryset else 0
