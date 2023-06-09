@@ -25,7 +25,7 @@ class SubConstituency(BaseModel):
                                      related_name='sc_women')
     ballots = models.ManyToManyField(Ballot,
                                      blank=True,
-                                     related_name='ballots')
+                                     related_name='sc_ballots')
     code = models.PositiveSmallIntegerField()  # aka SubCon number
     field_office = models.CharField(max_length=256, null=True)
     number_of_ballots = models.PositiveSmallIntegerField(null=True)
