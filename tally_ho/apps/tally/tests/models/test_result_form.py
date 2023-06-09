@@ -60,7 +60,7 @@ class TestResultForm(TestBase):
             value=1)
         audit = create_audit(result_form, self.user)
         audit.quarantine_checks.add(quarantine_check)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             result_form.audit_quaritine_checks,
-            map(repr, audit.quarantine_checks.all().values('name'))
+             audit.quarantine_checks.all().values('name')
         )
