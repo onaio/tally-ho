@@ -374,6 +374,34 @@ def create_constituencies_from_sub_con_file_data(
         if logger:
             logger.warning(msg)
 
+def build_generic_model_key_values_from_duckdb_row_tuple_data(
+        duckdb_row_tuple_data,
+        col_name_to_model_field_mapping,
+        file_col_names_list
+    ):
+    """
+    Build a key,value list of dictionaries, the key as the model name and
+    respective fied value. This kwargs are for generic model fields
+    that do not include many to many fields or foreign fields.
+
+    param: duckdb_row_tuple_data: duckdb row tuple data
+    param: col_name_to_model_field_mapping: column name to model field mapping
+    param: file_col_names_list: file column names list
+    :returns: kwargs.
+    """
+    kwargs = {}
+    tuple_data_by_index =\
+        { item[0]: item[1] for item in enumerate(
+        list(duckdb_row_tuple_data))}
+    for index, col_name in enumerate(file_col_names_list):
+        field_name = col_name_to_model_field_mapping.get(col_name)
+        field_val = tuple_data_by_index.get(index)
+        if field_val:
+            kwargs[field_name] =\
+                parse_int(field_val)\
+                    if parse_int(field_val) else field_val
+    return kwargs
+
 def create_sub_constituencies_from_sub_con_file_data(
         duckdb_sub_con_data=None,
         constituencies_by_name=None,
