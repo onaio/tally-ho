@@ -21,7 +21,7 @@
 
 <table class="display datatable results">
   <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
-    <div id="report" class="row">
+    <div id="in-report" class="row">
     <div class="col-12" style="margin-bottom: 2em;">
       <div class="col-3" style="padding-left: 0.5em;">
         <button id="export-form-results-presidential" class="btn btn-default btn-small">{% trans 'Export Presidential Results in JSON' %}</button>
@@ -34,55 +34,6 @@
         <input style="float: left; width: 4em;" type="number" min="1" value="10" id="export-number">
       </div>
     </div>
-    <div class="col-12">
-    <div class="col-sm-3" style="padding-left: 0.5em;">
-      <p style="text-align: left; margin-left: .5em;">{% trans  'Races' %}</p>
-      <select class="selectpicker" id="filter-out-race-types" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
-        {% for race_type in race_types %}
-          <option value={{race_type.name}}>{{race_type.name}}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-sm-3" style="padding-left: 0.5em;">
-      <p style="text-align: left; margin-left: .5em;">{% trans 'Centers' %}</p>
-      <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
-        {% for center in centers %}
-          <option value={{center.id}}>{{center.name}}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-sm-2">
-      <p style="text-align: left; margin-left: .5em;">{% trans 'Stations' %}</p>
-      <select class="selectpicker center-stations" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
-        {% for station in stations %}
-          <option value={{station.id}}>{{station.id}}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-sm-2">
-      <div class="card">
-        <div class="card-body">
-          <p class="card-text" style="text-align: left;">{% trans 'Filter Out.' %}</p>
-          <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
-          <button style="float: left; margin-left: 1em;" id="reset-filters-out-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
-        </div>
-      </div>
-    </div>
-      <div class="col-sm-2">
-      <div class="card">
-        <div class="card-body">
-          <p class="card-text" style="float: left; text-align: left;">{% trans 'Export PPT:' %}</p>
-          <br/>
-          <p></p>
-          <button style="float: left;" id="exc-ppt-export-report" class="btn btn-default btn-small">{% trans 'Export' %}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div>
-</caption>
-  <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
-    <div id="in-report" class="row">
     <div class="col-12" style="margin-bottom: 2em;">
     <div class="col-sm-3" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Races' %}</p>
@@ -111,7 +62,7 @@
     <div class="col-sm-2">
       <div class="card">
         <div class="card-body">
-          <p class="card-text" style="text-align: left;">{% trans 'Filter In.' %}</p>
+          <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
           <button style="float: left;" id="filter-in-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
           <button style="float: left; margin-left: 1em;" id="reset-filters-in-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
         </div>
@@ -120,7 +71,7 @@
       <div class="col-sm-2">
       <div class="card">
         <div class="card-body">
-          <p class="card-text" style="float: left; text-align: left;">{% trans 'Export PPT:' %}</p>
+          <p class="card-text" style="float: left; text-align: left;">{% trans 'PowerPoint' %}</p>
           <br/>
           <p></p>
           <button style="float: left;" id="inc-ppt-export-report" class="btn btn-default btn-small">{% trans 'Export' %}</button>

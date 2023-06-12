@@ -570,45 +570,33 @@ def results_queryset(
             if data.get('race_type_names') else []
         race_types = [race_type for race_type in RaceType
                       if race_type.name in race_type_names]
-        filter_in = data.get('filter_in')
         qs = qs \
             .annotate(station_ids=station_id_query)
 
-        if filter_in:
-            if race_types:
-                qs = qs.filter(
-                    Q(result_form__ballot__race_type__in=race_types))
+        if race_types:
+            qs = qs.filter(
+                Q(result_form__ballot__race_type__in=race_types))
+        if selected_station_ids:
+            qs_1 = qs.filter(
+                Q(result_form__ballot__race_type__in=race_types))\
+                .annotate(candidate_name=F('candidate__full_name')) \
+                .filter(candidate_name__isnull=False)
+            qs_2 = qs.filter(
+                Q(result_form__ballot__race_type__in=race_types))\
+                .annotate(candidate_name=F(ballot_comp_candidate_name)) \
+                .filter(candidate_name__isnull=False)
+        else:
             qs_1 = qs \
                 .filter(
-                Q(result_form__center__id__in=selected_center_ids) &
-                Q(station_ids__in=selected_station_ids)) \
+                Q(result_form__center__id__in=selected_center_ids)) \
                 .annotate(candidate_name=F('candidate__full_name')) \
                 .filter(candidate_name__isnull=False)
 
             qs_2 = qs \
                 .filter(
-                Q(result_form__center__id__in=selected_center_ids) &
-                Q(station_ids__in=selected_station_ids)) \
+                Q(result_form__center__id__in=selected_center_ids)) \
                 .annotate(candidate_name=F(ballot_comp_candidate_name)) \
-                .filter(candidate_name__isnull=False)
-
-        else:
-            if race_types:
-                qs = qs.filter(
-                    ~Q(result_form__ballot__race_type__in=race_types))
-            qs_1 = qs\
-                .filter(
-                    ~Q(result_form__center__id__in=selected_center_ids) &
-                    ~Q(station_ids__in=selected_station_ids))\
-                .annotate(candidate_name=F('candidate__full_name'))\
-                .filter(candidate_name__isnull=False)
-
-            qs_2 = qs\
-                .filter(
-                    ~Q(result_form__center__id__in=selected_center_ids) &
-                    ~Q(station_ids__in=selected_station_ids))\
-                .annotate(candidate_name=F(ballot_comp_candidate_name))\
-                .filter(candidate_name__isnull=False)
+                    .filter(candidate_name__isnull=False)
 
         qs = qs_1.union(qs_2) if len(qs_2) else qs_1
 
@@ -1453,6 +1441,7 @@ def get_export(request):
         return result
     return HttpResponse("Not found")
 
+
 def create_ppt_export(qs, race_type_names, tally_id, limit):
     race_types = [race_type for race_type in RaceType
                     if race_type.name in race_type_names]
@@ -1503,6 +1492,7 @@ def create_ppt_export(qs, race_type_names, tally_id, limit):
 
     return response
 
+
 def save_ppt_presentation_to_file(prs, file_name):
     pptx_stream = BytesIO()
     prs.save(pptx_stream)
@@ -1510,14 +1500,14 @@ def save_ppt_presentation_to_file(prs, file_name):
 
     # Create an HTTP response with the PowerPoint file
     content_type=\
-        str('application/vnd.openxmlformats-officedocument.presentationml',
-            '.presentation')
+        str('application/vnd.openxmlformats-officedocument.presentationml.presentation')
     response = HttpResponse(
         pptx_stream.getvalue(),
         content_type=content_type)
     response['Content-Disposition'] = f'attachment; filename={file_name}'
 
     return response
+
 
 def create_results_power_point_cover_page(prs):
     # Set the cover page
@@ -1551,6 +1541,7 @@ def create_results_power_point_cover_page(prs):
     date_shape.paragraphs[0].runs[0].font.bold = True
 
     return
+
 
 def create_results_power_point_summary_slide(prs, power_point_race_data):
     # Create the summary slide
