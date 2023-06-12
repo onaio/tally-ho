@@ -339,12 +339,10 @@ ELECTROL_RACES = [
 ]
 
 # Maps ballot file columns names in to Electrol race Model fields
-BALLOT_COLS_TO_ELECTROL_RACE_MODEL_FIELDS_MAPPING = [
-    {
-        'election_level': 'election_level',
-        'sub_type': 'ballot_name'
-    }
-]
+BALLOT_COLS_TO_ELECTROL_RACE_MODEL_FIELDS_MAPPING = {
+    'election_level': 'election_level',
+    'sub_type': 'ballot_name'
+}
 
 BALLOT_NAME_COLUMN_NAME_IN_BALLOT_FILE = 'number'
 
