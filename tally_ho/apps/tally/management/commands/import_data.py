@@ -419,9 +419,11 @@ def create_sub_constituencies_from_sub_con_file_data(
     :param logger: logger.
     :returns: None."""
     try:
-        sub_con_cols_names_list =\
+        col_names_to_model_field_map =\
             getattr(settings,
-                    'SUB_CONSTITUENCY_COLUMN_NAMES')
+                        'SUB_CON_FILE_COLS_NAMES_TO_SUB_CON_MODEL_FIELDS')
+        sub_con_cols_names_list =\
+            [list(obj.keys())[0] for obj in col_names_to_model_field_map]
         sub_cons_data =\
                     duckdb_sub_con_data.project(
                     ','.join(sub_con_cols_names_list)).distinct().fetchall()
@@ -429,19 +431,24 @@ def create_sub_constituencies_from_sub_con_file_data(
             objs_count=len(sub_cons_data))
 
         for sub_con_vals_tuple in sub_cons_data:
-            kwargs = {}
-            code, number_of_ballots, constituency_name, sub_con_name =\
-                list(sub_con_vals_tuple)
-            parsed_sub_con_code = parse_int(code)
-            if parsed_sub_con_code:
-                kwargs['tally'] = tally
-                kwargs['code'] = parsed_sub_con_code
-                kwargs['name'] = sub_con_name
-                kwargs['number_of_ballots'] = number_of_ballots
-                kwargs['constituency'] =\
-                    constituencies_by_name.get(constituency_name)
+            kwargs =\
+                build_generic_model_key_values_from_duckdb_row_tuple_data(
+                    duckdb_row_tuple_data=sub_con_vals_tuple,
+                    col_name_to_model_field_map=col_names_to_model_field_map,
+                    file_col_names_list=sub_con_cols_names_list,
+                )
+            sub_con_data_by_index =\
+                { item[0]: item[1] for item in enumerate(
+                list(sub_con_vals_tuple))}
+            for index, col_name in enumerate(sub_con_cols_names_list):
+                field_name = col_names_to_model_field_map.get(col_name)
+                field_val = sub_con_data_by_index.get(index)
+                if field_name == 'constituency':
+                    kwargs['constituency'] =\
+                        constituencies_by_name.get(field_val)
 
             if len(kwargs.items()):
+                kwargs['tally'] = tally
                 bulk_mgr.add(SubConstituency(**kwargs))
         bulk_mgr.done()
 
