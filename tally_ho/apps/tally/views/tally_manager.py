@@ -190,35 +190,15 @@ def import_rows_batch(tally,
     subconst_ballots_file_name =\
         f'{subconst_ballots_file_name_prefix}{tally.id}.csv'
 
-    # Create electrol races and ballots from ballots file
-    if ballots_file_name == file_to_parse_name:
-        elements_processed =\
-            import_electrol_races_and_ballots_from_ballots_file(
-                tally=tally,
-                ballots_file_path=file_to_parse.name,
-                logger=logger,
-            )
-        return elements_processed, None
-
-    # Create sub constituencies and constituencies from sub constituencies file
-    if subconst_file_name == file_to_parse_name:
-        elements_processed =\
-            import_sub_constituencies_and_constituencies_from_sub_cons_file(
-                tally=tally,
-                sub_constituencies_file_path=file_to_parse.name,
-                logger=logger,
-            )
-        return elements_processed, None
-
-    # Assign ballots to sub constituencies from sub constituencies ballots file
-    if subconst_ballots_file_name == file_to_parse_name:
-        elements_processed =\
-            import_sub_constituencies_ballots_from_sub_cons_ballots_file(
-                tally=tally,
-                sub_constituencies_ballots_file_path=file_to_parse.name,
-                logger=logger,
-            )
-        return elements_processed, None
+    duckdb_processable_file_names =\
+        [ballots_file_name, subconst_file_name, subconst_ballots_file_name]
+    if file_to_parse_name in duckdb_processable_file_names:
+        return exec_csv_file_import_func(
+            tally=tally,
+            csv_file_path=file_to_parse.name,
+            function=function,
+            logger=logger,
+        )
 
     if ballot_file_to_parse:
         with ballot_file_to_parse as f:
