@@ -126,14 +126,7 @@ TEMPLATES = [
     },
 ]
 
-# TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
 SITE_ID = 1
-
-# NOSE_ARGS = [
-#     '--logging-level=INFO',
-#     '--exclude=performance-tests',
-# ]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
