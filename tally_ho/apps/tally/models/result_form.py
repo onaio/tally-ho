@@ -12,7 +12,6 @@ from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
-from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
@@ -405,8 +404,12 @@ class ResultForm(BaseModel):
     @property
     def clearance_recommendation(self):
         if self.clearance:
-            recomendation_index = self.clearance.resolution_recommendation
-            return ClearanceResolution.choices()[recomendation_index.value][1]
+            return self.clearance.resolution_recommendation_name()
+
+    @property
+    def clearance_action_prior(self):
+        if self.clearance:
+            return self.clearance.action_prior_name()
 
     @property
     def clearance_team_reviewed(self):
