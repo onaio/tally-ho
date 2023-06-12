@@ -362,6 +362,22 @@ SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
                                  'sub_constituency_name',
                                  'constituency_name',]
 
+# Maps Sub Constituency Model fields to columns names in sub constituency file
+SUB_CON_FILE_COLS_NAMES_TO_SUB_CON_MODEL_FIELDS = [
+    {
+       'sub_constituency_code' : 'code',
+    },
+    {
+        'number_of_ballots': 'number_of_ballots'
+    },
+    {
+        'sub_constituency_name': 'name'
+    },
+    {
+        'constituency_name': 'constituency'
+    }
+]
+
 SUB_CONSTITUENCY_BALLOTS_COLUMN_NAMES = ['sub_constituency_code',
                                          'ballot_number',]
 
