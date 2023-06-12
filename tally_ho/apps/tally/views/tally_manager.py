@@ -131,6 +131,34 @@ def save_file(file_uploaded, file_name):
 
     return num_lines
 
+def exec_csv_file_import_func(
+        tally=None,
+        csv_file_path=None,
+        function=None,
+        logger=None,
+    ):
+    """
+    Generic function for importing csv file data that just executes the actual
+    function for importing the data.
+
+    :param tally: tally queryset.
+    :param csv_file_path: path to csv file to be imported.
+    :param function: import function.
+    :param logger: logger.
+    :returns: elements_processed, None.
+    """
+    try:
+        elements_processed = function(
+            tally=tally,
+            csv_file_path=csv_file_path,
+            logger=logger
+        )
+        return elements_processed, None
+    except Exception as e:
+        delete_all_tally_objects(tally)
+        error_message = _(u'{}'.format(str(e)))
+        return elements_processed, error_message
+
 
 def import_rows_batch(tally,
                       file_to_parse,
