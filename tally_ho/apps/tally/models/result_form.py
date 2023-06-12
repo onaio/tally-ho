@@ -271,8 +271,12 @@ class ResultForm(BaseModel):
     @property
     def audit_recommendation(self):
         if self.audit:
-            recomendation_index = self.audit.resolution_recommendation
-            return ClearanceResolution.choices()[recomendation_index.value][1]
+            return self.audit.resolution_recommendation_name()
+
+    @property
+    def audit_action_prior(self):
+        if self.audit:
+            return self.audit.action_prior_name()
 
     @property
     def audit_quaritine_checks(self):
