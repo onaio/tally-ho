@@ -359,6 +359,7 @@ BALLOT_NUMBER_COL_NAME_IN_SUB_CON_BALLOTS_FILE = 'ballot_number'
 
 SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
                                  'number_of_ballots',
+                                 'sub_constituency_name',
                                  'constituency_name',]
 
 SUB_CONSTITUENCY_BALLOTS_COLUMN_NAMES = ['sub_constituency_code',

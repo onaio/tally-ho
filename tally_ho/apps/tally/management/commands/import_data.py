@@ -402,12 +402,13 @@ def create_sub_constituencies_from_sub_con_file_data(
 
         for sub_con_vals_tuple in sub_cons_data:
             kwargs = {}
-            code, number_of_ballots, constituency_name =\
+            code, number_of_ballots, constituency_name, sub_con_name =\
                 list(sub_con_vals_tuple)
             parsed_sub_con_code = parse_int(code)
             if parsed_sub_con_code:
                 kwargs['tally'] = tally
                 kwargs['code'] = parsed_sub_con_code
+                kwargs['name'] = sub_con_name
                 kwargs['number_of_ballots'] = number_of_ballots
                 kwargs['constituency'] =\
                     constituencies_by_name.get(constituency_name)
