@@ -799,15 +799,16 @@ class FormAuditDataView(FormProgressDataView):
         'barcode',
         'center.code',
         'station_number',
-        'ballot.number',
-        'center.office.name',
-        'center.office.number',
+        'audit_action_prior',
+        'audit_recommendation',
         'ballot.electrol_race.election_level',
         'ballot.electrol_race.ballot_name',
         'form_state',
+        'ballot.number',
+        'center.office.name',
+        'center.office.number',
         'rejected_count',
         'modified_date_formatted',
-        'audit_recommendation',
     )
 
     def filter_queryset(self, qs):
