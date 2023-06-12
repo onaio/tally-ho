@@ -570,12 +570,23 @@ def results_queryset(
             if data.get('race_type_names') else []
         race_types = [race_type for race_type in RaceType
                       if race_type.name in race_type_names]
+        ballot_status = data['ballot_status'] \
+            if data.get('ballot_status') else []
         qs = qs \
             .annotate(station_ids=station_id_query)
 
         if race_types:
             qs = qs.filter(
                 Q(result_form__ballot__race_type__in=race_types))
+        if ballot_status:
+            if len(ballot_status) == 1:
+                ballot_status = ballot_status[0]
+                if ballot_status == 'available_for_release':
+                    available_for_release = True
+                else:
+                    available_for_release = False
+                qs = qs.filter(
+                    Q(result_form__ballot__available_for_release=available_for_release))
         if selected_station_ids:
             qs_1 = qs.filter(
                 Q(result_form__ballot__race_type__in=race_types))\
@@ -3547,6 +3558,16 @@ class ResultFormResultsListView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         stations, centers = build_station_and_centers_list(tally_id)
         race_types = list(RaceType)
+        ballot_status = [
+            {
+                'name': 'Available For Release',
+                'value': 'available_for_release'
+            },
+            {
+                'name': 'Not Available For Release',
+                'value': 'not_available_for_release'
+            }
+        ]
         language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
@@ -3555,6 +3576,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
             stations=stations,
             centers=centers,
             race_types=race_types,
+            ballot_status = ballot_status,
             get_centers_stations_url='/ajax/get-centers-stations/',
             get_export_url='/ajax/get-export/',
             results_download_url='/ajax/download-results/',

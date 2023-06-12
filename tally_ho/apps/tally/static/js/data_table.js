@@ -56,6 +56,7 @@ $(document).ready(function () {
       stations: $("button[data-id='filter-in-stations']").attr('title'),
       centers: $("button[data-id='filter-in-centers']").attr('title'),
       races: $("button[data-id='filter-in-race-types']").attr('title'),
+      centers: $("button[data-id='ballot-status']").attr('title'),
     });
     const filtersExcluded = exportFiltersApplied({
       stations: $("button[data-id='stations']").attr('title'),
@@ -385,7 +386,7 @@ $(document).ready(function () {
   });
 
   $('#in-report').on('click', '#reset-filters-in-report', function () {
-    const attributesList = ['select#filter-in-race-types', 'select#filter-in-centers', 'select#filter-in-stations'];
+    const attributesList = ['select#filter-in-race-types', 'select#filter-in-centers', 'select#filter-in-stations', 'select#ballot-status'];
     resetFilters(attributesList);
     destroyTable();
     createTable();
@@ -408,12 +409,14 @@ $(document).ready(function () {
     let selectOneIds = $('select#filter-in-centers').val();
     let selectTwoIds = $('select#filter-in-stations').val();
     let raceTypeNames = $('select#filter-in-race-types').val();
+    let ballotStatus = $('select#ballot-status').val();
 
     if (selectOneIds || selectTwoIds) {
       const items = {
         select_1_ids: selectOneIds !== null ? selectOneIds : [],
         select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
         race_type_names: raceTypeNames !== null ? raceTypeNames : [],
+        ballot_status: ballotStatus !== null ? ballotStatus : [],
         filter_in: "True"
       };
 
@@ -464,6 +467,7 @@ $(document).ready(function () {
     let selectTwoIds = $('select#filter-in-stations').val();
     let raceTypeNames = $('select#filter-in-race-types').val();
     let exportNumber = $('input#export-number').val();
+    let ballotStatus = $('select#ballot-status').val();
 
     const downloadFile = (blob, fileName) => {
       const link = document.createElement('a');
@@ -481,6 +485,7 @@ $(document).ready(function () {
       select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
       race_type_names: raceTypeNames !== null ? raceTypeNames : [],
       export_number: exportNumber !== null ? exportNumber : [],
+      ballot_status: ballotStatus !== null ? ballotStatus : [],
       tally_id: tallyId,
       exportType: "PPT",
       filter_in: "True",
@@ -504,12 +509,12 @@ $(document).ready(function () {
         },
         success: function(data) {
           downloadFile(data, 'election_results.pptx');
-          $("#inc-ppt-export-report").html("Export");
+          $("#inc-ppt-export-report").html("PowerPoint Export");
           $("#inc-ppt-export-report").prop("disabled", false);
         },
         error: function(xhr, status, error) {
           console.log('Error:', error);
-          $("#inc-ppt-export-report").html("Export");
+          $("#inc-ppt-export-report").html("PowerPoint Export");
           $("#inc-ppt-export-report").prop("disabled", false);
         }
     });

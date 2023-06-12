@@ -29,13 +29,20 @@
       <div class="col-3" style="padding-left: 0.5em;">
         <button id="export-form-results-parliamentary" class="btn btn-default btn-small">{% trans 'Export Parliamentary Results in JSON' %}</button>
       </div>
-      <div class="col-6">
+      <div class="col-3">
         <p style="float: left; margin-right: 1em;" class="card-text">{% trans 'Export limit:' %}</p>
         <input style="float: left; width: 4em;" type="number" min="1" value="10" id="export-number">
       </div>
+      <div class="col-3">
+      <div class="card">
+        <div class="card-body">
+          <button style="float: left;" id="inc-ppt-export-report" class="btn btn-default btn-small">{% trans 'PowerPoint Export' %}</button>
+        </div>
+      </div>
+    </div>
     </div>
     <div class="col-12" style="margin-bottom: 2em;">
-    <div class="col-sm-3" style="padding-left: 0.5em;">
+    <div class="col-sm-2" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Races' %}</p>
       <select class="selectpicker" id="filter-in-race-types" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
         {% for race_type in race_types %}
@@ -43,7 +50,7 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3" style="padding-left: 0.5em;">
+    <div class="col-sm-2" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans  'Centers' %}</p>
       <select class="selectpicker" id="filter-in-centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
         {% for center in centers %}
@@ -60,6 +67,14 @@
       </select>
     </div>
     <div class="col-sm-2">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Ballot Status' %}</p>
+      <select class="selectpicker ballot-status" id="ballot-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Status">
+        {% for status in ballot_status %}
+          <option value={{status.value}}>{{status.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-2">
       <div class="card">
         <div class="card-body">
           <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
@@ -68,16 +83,7 @@
         </div>
       </div>
     </div>
-      <div class="col-sm-2">
-      <div class="card">
-        <div class="card-body">
-          <p class="card-text" style="float: left; text-align: left;">{% trans 'PowerPoint' %}</p>
-          <br/>
-          <p></p>
-          <button style="float: left;" id="inc-ppt-export-report" class="btn btn-default btn-small">{% trans 'Export' %}</button>
-        </div>
-      </div>
-    </div>
+
     </div>
   </div>
 </caption>
