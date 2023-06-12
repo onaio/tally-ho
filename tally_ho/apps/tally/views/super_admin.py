@@ -827,15 +827,16 @@ class FormClearanceDataView(FormProgressDataView):
         'barcode',
         'center.code',
         'station_number',
-        'ballot.number',
-        'center.office.name',
-        'center.office.number',
+        'clearance_action_prior',
+        'clearance_recommendation',
         'ballot.electrol_race.election_level',
         'ballot.electrol_race.ballot_name',
         'form_state',
+        'ballot.number',
+        'center.office.name',
+        'center.office.number',
         'rejected_count',
         'modified_date_formatted',
-        'clearance_recommendation'
     )
 
     def filter_queryset(self, qs):
