@@ -190,23 +190,26 @@ def create_electrol_races_from_ballot_file_data(
     :param logger: logger.
     :returns: None"""
     try:
-        electrol_race_cols_to_model_fields_mapping =\
+        col_names_to_model_field_map =\
             getattr(settings,
-                    'ELECTROL_RACE_COLS_TO_MODEL_FIELDS_MAPPING')
-        electrol_races_columns =\
-            [list(item.keys())[0] for item in\
-                electrol_race_cols_to_model_fields_mapping]
+                    'BALLOT_COLS_TO_ELECTROL_RACE_MODEL_FIELDS_MAPPING')
+        electrol_races_cols_list =\
+            list(col_names_to_model_field_map.keys())
         electrol_races_data =\
             duckdb_ballots_data.project(
-            ','.join(electrol_races_columns)).distinct().fetchall()
+            ','.join(electrol_races_cols_list)).distinct().fetchall()
         bulk_mgr = BulkCreateManager(objs_count=len(electrol_races_data))
 
-        for electrol_race in electrol_races_data:
-            election_level, ballot_name = electrol_race
-            bulk_mgr.add(ElectrolRace(
-                            election_level=election_level,
-                            ballot_name=ballot_name,
-                            tally=tally))
+        for electrol_race_row_tuple in electrol_races_data:
+            kwargs =\
+                build_generic_model_key_values_from_duckdb_row_tuple_data(
+                    electrol_race_row_tuple,
+                    col_names_to_model_field_map,
+                    electrol_races_cols_list,
+                )
+            if len(kwargs.items()):
+                kwargs['tally'] = tally
+                bulk_mgr.add(ElectrolRace(**kwargs))
         bulk_mgr.done()
 
         return
@@ -223,27 +226,26 @@ def generate_duckdb_electrol_race_str_query(electrol_race=None):
 
     :param electrol_race: electrol race queryset.
     :returns: string query."""
-    electrol_race_cols_to_model_fields_mapping =\
+    col_names_to_model_field_map =\
             getattr(settings,
-                    'ELECTROL_RACE_COLS_TO_MODEL_FIELDS_MAPPING')
+                    'BALLOT_COLS_TO_ELECTROL_RACE_MODEL_FIELDS_MAPPING')
     str_query = None
-    for electrol_race_mapping in\
-            electrol_race_cols_to_model_fields_mapping:
-            electrol_race_column_name =\
-                list(electrol_race_mapping.keys())[0]
-            electrol_race_field_name = electrol_race_mapping.get(
-                electrol_race_column_name
+    for column_name in\
+            list(col_names_to_model_field_map.keys()):
+            electrol_race_field_name =\
+                col_names_to_model_field_map.get(
+                column_name
             )
             electrol_race_field_val =\
                 getattr(electrol_race, electrol_race_field_name)
 
             if str_query is None:
                 str_query =\
-                    f" {electrol_race_column_name}" +\
+                    f" {column_name}" +\
                     f" = '{electrol_race_field_val}'"
             else:
                 str_query +=\
-                    f" AND {electrol_race_column_name}" +\
+                    f" AND {column_name}" +\
                     f" = '{electrol_race_field_val}'"
 
     return str_query
@@ -422,8 +424,7 @@ def create_sub_constituencies_from_sub_con_file_data(
         col_names_to_model_field_map =\
             getattr(settings,
                         'SUB_CON_FILE_COLS_NAMES_TO_SUB_CON_MODEL_FIELDS')
-        sub_con_cols_names_list =\
-            [list(obj.keys())[0] for obj in col_names_to_model_field_map]
+        sub_con_cols_names_list = list(col_names_to_model_field_map.keys())
         sub_cons_data =\
                     duckdb_sub_con_data.project(
                     ','.join(sub_con_cols_names_list)).distinct().fetchall()
@@ -433,9 +434,9 @@ def create_sub_constituencies_from_sub_con_file_data(
         for sub_con_vals_tuple in sub_cons_data:
             kwargs =\
                 build_generic_model_key_values_from_duckdb_row_tuple_data(
-                    duckdb_row_tuple_data=sub_con_vals_tuple,
-                    col_name_to_model_field_map=col_names_to_model_field_map,
-                    file_col_names_list=sub_con_cols_names_list,
+                    sub_con_vals_tuple,
+                    col_names_to_model_field_map,
+                    sub_con_cols_names_list,
                 )
             sub_con_data_by_index =\
                 { item[0]: item[1] for item in enumerate(
