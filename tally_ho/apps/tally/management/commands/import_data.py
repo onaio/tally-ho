@@ -619,171 +619,6 @@ def import_sub_constituencies_ballots_from_sub_cons_ballots_file(
         if logger:
             logger.warning(msg)
 
-def create_ballots_from_sub_con_data(
-        duckdb_sub_con_data=None,
-        sub_con_data_count=None,
-        electrol_races=None,
-        tally=None,
-        command=None,
-        logger=None,
-):
-    try:
-        bulk_mgr = BulkCreateManager(objs_count=sub_con_data_count)
-        electrol_races_by_ballot_name =\
-            {
-                electrol_race.ballot_name:\
-                electrol_race for electrol_race in electrol_races
-            }
-        ballot_names =\
-            list(set([electrol_race.ballot_name
-                        for electrol_race in electrol_races]))
-        for ballot_name in ballot_names:
-            distinct_ballot_numbers =\
-                duckdb_sub_con_data.project(
-                str(ballot_name)).filter(
-                '{column} IS NOT NULL'.format(
-                column=str(ballot_name))).distinct().fetchall()
-            if len(distinct_ballot_numbers):
-                for ballot_number_tuple in distinct_ballot_numbers:
-                    ballot_number = parse_int(ballot_number_tuple[0])
-                    if ballot_number:
-                        electrol_race = None
-                        if ballot_name == 'ballot_number_component':
-                            electrol_race =\
-                                    electrol_races.filter(
-                                    component_ballot_numbers__contains=[
-                                        ballot_number])
-                        else:
-                            electrol_race =\
-                                electrol_races_by_ballot_name.get(
-                                        ballot_name)
-                        bulk_mgr.add(Ballot(
-                                    number=ballot_number,
-                                    electrol_race=electrol_race,
-                                    tally=tally))
-        bulk_mgr.done()
-
-        return Ballot.objects.filter(tally=tally)
-    except Exception as e:
-        msg = 'Failed to create ballots, error: %s' % e
-        if command:
-            command.stdout.write(command.style.WARNING(msg))
-        if logger:
-            logger.warning(msg)
-
-def create_sub_constituencies_with_ballots(
-        duckdb_sub_con_data=None,
-        sub_con_data_count=None,
-        electrol_races=None,
-        ballots=None,
-        tally=None,
-        command=None,
-        logger=None
-):
-    try:
-        sub_constituency_model_unique_field = 'code'
-        sub_constituency_code_column_name_in_duckdb_data =\
-            'sub_constituency_code'
-        bulk_mgr = BulkCreateManager(objs_count=sub_con_data_count)
-        electrol_races_by_ballot_name =\
-            {
-                electrol_race.ballot_name:\
-                electrol_race for electrol_race in electrol_races
-            }
-        ballots_by_ballot_number =\
-            {
-                ballot.number:\
-                ballot for ballot in ballots
-            }
-        sub_con_columns =\
-            getattr(settings, 'SUB_CONSTITUENCY_COLUMN_NAMES')
-        sub_constituency_data =\
-                    duckdb_sub_con_data.project(
-            ','.join(sub_con_columns)).fetchall()
-
-        for row in sub_constituency_data:
-            kwargs = {}
-            many_to_many_fields = {
-                'ballots': []
-            }
-
-            for i, value in enumerate(row):
-                # Check if row value is a ballot
-                row_value_column_name = sub_con_columns[i]
-                if row_value_column_name ==\
-                        sub_constituency_code_column_name_in_duckdb_data:
-                        if parse_int(value):
-                            kwargs[sub_constituency_model_unique_field] =\
-                                parse_int(value)
-                        else:
-                            break
-                elif electrol_races_by_ballot_name.get(
-                    row_value_column_name):
-                    ballot_number = parse_int(value)
-                    ballot = ballots_by_ballot_number.get(ballot_number)\
-                        if ballot_number else None
-                    if ballot:
-                        many_to_many_fields['ballots'].append(ballot)
-                else:
-                    kwargs[row_value_column_name] = value
-
-            if len(kwargs.items()):
-                kwargs['tally'] = tally
-                bulk_mgr.add(
-                    SubConstituency(**kwargs),
-                    model_unique_field=sub_constituency_model_unique_field,
-                    many_to_many_fields=many_to_many_fields)
-        bulk_mgr.done(
-            model_class=SubConstituency,
-            model_unique_field=sub_constituency_model_unique_field
-        )
-    except Exception as e:
-        msg = 'Failed to create sub constituencies, error: %s' % e
-        if command:
-            command.stdout.write(command.style.WARNING(msg))
-        if logger:
-            logger.warning(msg)
-
-
-def import_sub_constituencies_and_ballots(
-        tally=None,
-        sub_con_file_path=None,
-        command=None,
-        logger=None):
-    try:
-        electrol_races = ElectrolRace.objects.all()
-        file_path = sub_con_file_path or SUB_CONSTITUENCIES_PATH
-        sub_con_data = duckdb.from_csv_auto(file_path)
-        records_count = len(sub_con_data.fetchall())
-        ballots = create_ballots_from_sub_con_data(
-            duckdb_sub_con_data=sub_con_data,
-            sub_con_data_count=records_count,
-            electrol_races=electrol_races,
-            tally=tally,
-            command=command,
-            logger=logger,
-        )
-        create_sub_constituencies_with_ballots(
-            duckdb_sub_con_data=sub_con_data,
-            sub_con_data_count=records_count,
-            electrol_races=electrol_races,
-            ballots=ballots,
-            tally=tally,
-            command=command,
-            logger=logger,
-        )
-        elements_processed =\
-            SubConstituency.objects.filter(tally=tally).count()
-        return records_count if elements_processed else None
-    except Exception as e:
-        msg = 'Error occured: %s' % e
-        if command:
-            command.stdout.write(command.style.WARNING(msg))
-        if logger:
-            logger.warning(msg)
-
-
-
 def process_center_row(tally, row, command=None, logger=None):
     if not invalid_line(row):
         center_code, center_name, center_type, center_lat, center_lon,\
@@ -1151,8 +986,17 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE('creating groups'))
         create_permission_groups()
 
-        self.stdout.write(self.style.NOTICE('import sub constituencies'))
-        import_sub_constituencies_and_ballots()
+        self.stdout.write(self.style.NOTICE(
+            'import electrol races and ballots'))
+        import_electrol_races_and_ballots_from_ballots_file()
+
+        self.stdout.write(self.style.NOTICE(
+            'import sub constituencies and constituencies'))
+        import_sub_constituencies_and_constituencies_from_sub_cons_file()
+
+        self.stdout.write(self.style.NOTICE(
+            'import sub constituencies ballots'))
+        import_sub_constituencies_ballots_from_sub_cons_ballots_file()
 
         self.stdout.write(self.style.NOTICE('import centers'))
         import_centers()
