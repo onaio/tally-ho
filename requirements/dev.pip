@@ -2,7 +2,7 @@
 coverage
 coveralls
 django-debug-toolbar==4.1.0
-mock==5.0.2
+mock
 django_extensions
 ipython
 ipdb
