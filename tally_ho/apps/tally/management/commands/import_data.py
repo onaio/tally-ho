@@ -219,6 +219,7 @@ def create_electrol_races_from_ballot_file_data(
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Exception(msg)
 
 def generate_duckdb_electrol_race_str_query(electrol_race=None):
     """Generate string query for querying electrol race columns
@@ -297,21 +298,22 @@ def create_ballots_from_ballot_file_data(
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Exception(msg)
 
 def import_electrol_races_and_ballots_from_ballots_file(
         tally=None,
-        ballots_file_path=None,
+        csv_file_path=None,
         command=None,
         logger=None):
     """Create electrol races and ballots from a ballots csv file.
 
     :param tally: tally queryset.
-    :param ballots_file_path: ballots csv file path.
+    :param csv_file_path: ballots csv file path.
     :param command: stdout command.
     :param logger: logger.
     :returns: Ballots count."""
     try:
-        file_path = ballots_file_path or BALLOTS_PATH
+        file_path = csv_file_path or BALLOTS_PATH
         ballots_data = duckdb.from_csv_auto(file_path, header=True)
         create_electrol_races_from_ballot_file_data(
             duckdb_ballots_data=ballots_data,
@@ -336,6 +338,7 @@ def import_electrol_races_and_ballots_from_ballots_file(
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Exception(msg)
 
 def create_constituencies_from_sub_con_file_data(
         duckdb_sub_con_data=None,
@@ -375,6 +378,7 @@ def create_constituencies_from_sub_con_file_data(
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Exception(msg)
 
 def build_generic_model_key_values_from_duckdb_row_tuple_data(
         duckdb_row_tuple_data,
@@ -460,22 +464,23 @@ def create_sub_constituencies_from_sub_con_file_data(
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Exception(msg)
 
 def import_sub_constituencies_and_constituencies_from_sub_cons_file(
         tally=None,
-        sub_constituencies_file_path=None,
+        csv_file_path=None,
         command=None,
         logger=None):
     """Create sub constituencies and constituencies from a sub constituencies
     csv file.
 
     :param tally: tally queryset.
-    :param sub_constituencies_file_path: sub constituencies csv file path.
+    :param csv_file_path: sub constituencies csv file path.
     :param command: stdout command.
     :param logger: logger.
     :returns: Sub Constituencies count."""
     try:
-        file_path = sub_constituencies_file_path or SUB_CONSTITUENCIES_PATH
+        file_path = csv_file_path or SUB_CONSTITUENCIES_PATH
         duckdb_sub_con_data = duckdb.from_csv_auto(file_path, header=True)
         create_constituencies_from_sub_con_file_data(
             duckdb_sub_con_data=duckdb_sub_con_data,
@@ -505,6 +510,7 @@ def import_sub_constituencies_and_constituencies_from_sub_cons_file(
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Exception(msg)
 
 def set_sub_constituencies_ballots_from_sub_con_ballots_file_data(
         duckdb_sub_con_ballots_data=None,
@@ -584,23 +590,24 @@ def set_sub_constituencies_ballots_from_sub_con_ballots_file_data(
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Exception(msg)
 
 def import_sub_constituencies_ballots_from_sub_cons_ballots_file(
-        tally=None,
-        sub_constituencies_ballots_file_path=None,
+        tally,
+        csv_file_path,
         command=None,
         logger=None):
     """Import sub constituencies ballots from a sub constituencies ballots
     csv file.
 
     :param tally: tally queryset.
-    :param sub_constituencies_file_path: sub constituencies csv file path.
+    :param csv_file_path: sub constituencies csv file path.
     :param command: stdout command.
     :param logger: logger.
     :returns: Sub Constituencies count."""
     try:
         file_path =\
-            sub_constituencies_ballots_file_path or\
+            csv_file_path or\
         SUB_CONSTITUENCIES_BALLOTS_PATH
         duckdb_sub_con_ballots_data =\
             duckdb.from_csv_auto(file_path, header=True)
@@ -619,6 +626,7 @@ def import_sub_constituencies_ballots_from_sub_cons_ballots_file(
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Exception(msg)
 
 def process_center_row(tally, row, command=None, logger=None):
     if not invalid_line(row):
@@ -783,11 +791,12 @@ def process_candidate_row(
             order=id_to_ballot_order[candidate_id],
             tally=tally)
     except Exception as e:
-        msg = f'error: {e}'
+        msg = f'Error: {e}'
         if command:
             command.stdout.write(command.style.WARNING(msg))
         if logger:
             logger.warning(msg)
+        raise Exception(msg)
 
 
 def import_candidates(command,
