@@ -6,5 +6,4 @@ django-queryset-csv==1.1.0
 django-reversion==5.0.4
 django-tracking2==0.5.1
 psycopg2-binary==2.8.6
-six==1.16.0
-python-dateutil==2.8.1
+python-dateutil==2.8.2
