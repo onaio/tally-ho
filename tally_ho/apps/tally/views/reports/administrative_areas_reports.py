@@ -630,7 +630,8 @@ def results_queryset(
                     filter=Q(center__resultform__form_state=FormState.ARCHIVED)
                 ),
                 processed_percentage=Round(
-                    100 * F('total_result_forms_archived') / F('total_result_forms'),
+                    100 * F('total_result_forms_archived') / F(
+                'total_result_forms'),
                     digits=2
                 )).filter(
                 processed_percentage__gte=stations_processed_percentage)
@@ -646,7 +647,8 @@ def results_queryset(
                     available_for_release = True
                 else:
                     available_for_release = False
-                query_args['result_form__ballot__available_for_release'] = available_for_release
+                query_args['result_form__ballot__available_for_release'] =\
+                    available_for_release
 
         if candidate_status:
             if len(candidate_status) == 1:
@@ -1542,8 +1544,11 @@ def create_ppt_export(qs, race_type_names, tally_id, limit):
     for race in race_types:
         data = qs.filter(race_type=race).order_by('-votes')
         if data.count():
-            body = [item for item in data.values(
-                'candidate_name', 'total_votes', 'valid_votes')[:limit]]
+            body_data = data.values(
+                'candidate_name', 'total_votes', 'valid_votes')
+            if limit != 0:
+                body_data = body_data[:limit]
+            body = [item for item in body_data]
             header = headers.get(race.name)
             # TODO Make race background image unique per race types
             powerpoint_data.append(
@@ -1582,7 +1587,8 @@ def save_ppt_presentation_to_file(prs, file_name):
     pptx_stream.seek(0)
 
     # Create an HTTP response with the PowerPoint file
-    content_type = str('application/vnd.openxmlformats-officedocument.presentationml.presentation')
+    content_type = str('application/vnd.openxmlformats-officedocument'
+                       '.presentationml.presentation')
     response = HttpResponse(
         pptx_stream.getvalue(),
         content_type=content_type)
@@ -1722,8 +1728,10 @@ def create_results_power_point_candidates_results_slide(
         slide_layout = prs.slide_layouts[1]
         slide = prs.slides.add_slide(slide_layout)
 
-        candidates_result_slide_title =\
-            f"Top {limit} Leading Candidates Results"
+        candidates_result_slide_title = "Candidates Results"
+        if limit != 0:
+            candidates_result_slide_title =\
+                f"Top {limit} Leading Candidates Results"
         # Set background image if provided
         if background_image:
             slide.shapes.add_picture(
