@@ -1582,8 +1582,7 @@ def save_ppt_presentation_to_file(prs, file_name):
     pptx_stream.seek(0)
 
     # Create an HTTP response with the PowerPoint file
-    content_type=\
-        str('application/vnd.openxmlformats-officedocument.presentationml.presentation')
+    content_type = str('application/vnd.openxmlformats-officedocument.presentationml.presentation')
     response = HttpResponse(
         pptx_stream.getvalue(),
         content_type=content_type)
@@ -1684,7 +1683,7 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
         str(power_point_race_data['header']['race_type'].name)
     summary_table.cell(1, 0).text = 'Stations Expected'
     summary_table.cell(1, 1).text =\
-        str(power_point_race_data['header']['stations_expected'])
+        f"{power_point_race_data['header']['stations_expected']:,.0f}"
     summary_table.cell(2, 0).text = 'Stations Processed'
     summary_table.cell(2, 1).text =\
         str(power_point_race_data['header']['stations_processed'])
@@ -1698,7 +1697,7 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
         power_point_race_data['header']['results_status']
     summary_table.cell(5, 0).text = 'Registrants'
     summary_table.cell(5, 1).text =\
-        str(power_point_race_data['header']['registrants'])
+        f"{power_point_race_data['header']['registrants']:,.0f}"
     summary_table.cell(6, 0).text = 'Ballots Cast'
     summary_table.cell(6, 1).text =\
         str(power_point_race_data['header']['ballots_cast'])
@@ -1707,6 +1706,7 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
         f"{power_point_race_data['header']['turnout']}%"
 
     return
+
 
 def create_results_power_point_candidates_results_slide(
         prs, power_point_race_data, limit):
@@ -1798,15 +1798,16 @@ def create_results_power_point_candidates_results_slide(
 
     return
 
+
 def create_results_power_point_headers(tally_id, race_type_names, race_types):
     template = '%(function)s(%(expressions)s AS FLOAT)'
     total_ballots_suq =\
         Result.objects.filter(
-        result_form__tally__id=tally_id,
-        votes__gt=0,
-        result_form__form_state=FormState.ARCHIVED,
-        result_form__ballot__race_type=OuterRef('ballot__race_type'),
-        entry_version=EntryVersion.FINAL)
+            result_form__tally__id=tally_id,
+            votes__gt=0,
+            result_form__form_state=FormState.ARCHIVED,
+            result_form__ballot__race_type=OuterRef('ballot__race_type'),
+            entry_version=EntryVersion.FINAL)
     header_qs =\
         ResultForm.objects.filter(
             tally__id=tally_id,
@@ -1819,11 +1820,12 @@ def create_results_power_point_headers(tally_id, race_type_names, race_types):
         total_ballots_suq = total_ballots_suq.filter(
             result_form__ballot__race_type__in=race_types)
 
-    total_ballots_suq =\
+    total_ballots_suq = \
         total_ballots_suq.annotate(
-        race_type=F('result_form__ballot__race_type')
-        ).values('race_type').annotate(
-        total_votes=Sum('votes')).values('total_votes')[:1]
+            station_id=F('result_form__center__stations__id')
+        ).values('station_id').annotate(
+            station_votes=Sum('votes')).order_by(
+            '-station_votes').values('station_votes')[:1]
 
     header_qs =\
         header_qs.annotate(
