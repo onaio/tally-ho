@@ -36,13 +36,13 @@
       <div class="col-3">
       <div class="card">
         <div class="card-body">
-          <button style="float: left;" id="inc-ppt-export-report" class="btn btn-default btn-small">{% trans 'PowerPoint Export' %}</button>
+          <button style="float: right;" id="inc-ppt-export-report" class="btn btn-default btn-small">{% trans 'PowerPoint Export' %}</button>
         </div>
       </div>
     </div>
     </div>
     <div class="col-12" style="margin-bottom: 2em;">
-    <div class="col-sm-2" style="padding-left: 0.5em;">
+    <div class="col-sm-3" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Races' %}</p>
       <select class="selectpicker" id="filter-in-race-types" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
         {% for race_type in race_types %}
@@ -50,7 +50,7 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-2" style="padding-left: 0.5em;">
+    <div class="col-sm-3" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans  'Centers' %}</p>
       <select class="selectpicker" id="filter-in-centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
         {% for center in centers %}
@@ -58,7 +58,7 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-2">
+    <div class="col-sm-3">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Stations' %}</p>
       <select class="selectpicker filter-in-center-stations" id="filter-in-stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
         {% for station in stations %}
@@ -66,15 +66,35 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-2">
+    <div class="col-sm-3">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Ballot Status' %}</p>
-      <select class="selectpicker ballot-status" id="ballot-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Status">
+      <select class="selectpicker ballot-status" id="ballot-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Ballot Status">
         {% for status in ballot_status %}
           <option value={{status.value}}>{{status.name}}</option>
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-2">
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Station Status' %}</p>
+      <select class="selectpicker station-status" id="station-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Station Status">
+        {% for status in station_status %}
+          <option value={{status.value}}>{{status.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Candidate Status' %}</p>
+      <select class="selectpicker candidate-status" id="candidate-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Candidate Status">
+        {% for status in candidate_status %}
+          <option value={{status.value}}>{{status.name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3">
+      <p style="text-align: center; margin-left: .5em;">{% trans '% Station Processed' %}</p>
+      <input style="float: center; width: 7em; margin-left: 1em;" type="number" min="0" max="100" value="0" id="percentage-processed">
+    </div>
+    <div class="col-sm-3">
       <div class="card">
         <div class="card-body">
           <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>

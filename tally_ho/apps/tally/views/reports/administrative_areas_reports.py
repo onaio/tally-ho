@@ -572,12 +572,73 @@ def results_queryset(
                       if race_type.name in race_type_names]
         ballot_status = data['ballot_status'] \
             if data.get('ballot_status') else []
+        station_status = data['station_status'] \
+            if data.get('station_status') else []
+        candidate_status = data['candidate_status'] \
+            if data.get('candidate_status') else []
+        percentage_processed = data['percentage_processed'] \
+            if data.get('percentage_processed') else 0
+        stations_processed_percentage = min(int(percentage_processed), 100)
+        query_args = {}
         qs = qs \
             .annotate(station_ids=station_id_query)
 
+        if station_status:
+            if len(station_status) == 1:
+                station_status = station_status[0]
+                if station_status == 'active':
+                    active = True
+                else:
+                    active = False
+                active_station_id_query = \
+                    Subquery(
+                        Station.objects.filter(
+                            tally__id=tally_id,
+                            center__code=OuterRef(
+                                'result_form__center__code'),
+                            station_number=OuterRef(
+                                'result_form__station_number'),
+                            active=active
+                        )
+                        .values('id')[:1],
+                        output_field=IntegerField())
+                qs = qs \
+                    .annotate(station_ids=active_station_id_query)
+
+        if stations_processed_percentage:
+            if selected_station_ids:
+                stations_qs = Station.objects.filter(
+                    id__in=selected_station_ids,
+                    tally__id=tally_id,
+                    center__resultform__isnull=False,
+                )
+            else:
+                stations_qs = Station.objects.filter(
+                    center__id__in=selected_center_ids,
+                    tally__id=tally_id,
+                    center__resultform__isnull=False,
+                )
+
+            stations_qs = stations_qs.values('id').annotate(
+                total_result_forms=Count(
+                    'center__resultform__barcode',
+                    distinct=True
+                ),
+                total_result_forms_archived=Count(
+                    'center__resultform__barcode',
+                    distinct=True,
+                    filter=Q(center__resultform__form_state=FormState.ARCHIVED)
+                ),
+                processed_percentage=Round(
+                    100 * F('total_result_forms_archived') / F('total_result_forms'),
+                    digits=2
+                )).filter(
+                processed_percentage__gte=stations_processed_percentage)
+            selected_station_ids = [item.get('id') for item in stations_qs]
+
         if race_types:
-            qs = qs.filter(
-                Q(result_form__ballot__race_type__in=race_types))
+            query_args['result_form__ballot__race_type__in'] = race_types
+
         if ballot_status:
             if len(ballot_status) == 1:
                 ballot_status = ballot_status[0]
@@ -585,15 +646,26 @@ def results_queryset(
                     available_for_release = True
                 else:
                     available_for_release = False
-                qs = qs.filter(
-                    Q(result_form__ballot__available_for_release=available_for_release))
-        if selected_station_ids:
+                query_args['result_form__ballot__available_for_release'] = available_for_release
+
+        if candidate_status:
+            if len(candidate_status) == 1:
+                candidate_status = candidate_status[0]
+                if candidate_status == 'active':
+                    active = True
+                else:
+                    active = False
+                query_args['candidate__active'] = active
+
+        qs = qs.filter(**query_args)
+
+        if selected_station_ids or stations_processed_percentage:
             qs_1 = qs.filter(
-                Q(result_form__ballot__race_type__in=race_types))\
+                Q(station_ids__in=selected_station_ids))\
                 .annotate(candidate_name=F('candidate__full_name')) \
                 .filter(candidate_name__isnull=False)
             qs_2 = qs.filter(
-                Q(result_form__ballot__race_type__in=race_types))\
+                Q(station_ids__in=selected_station_ids))\
                 .annotate(candidate_name=F(ballot_comp_candidate_name)) \
                 .filter(candidate_name__isnull=False)
         else:
@@ -3568,6 +3640,26 @@ class ResultFormResultsListView(LoginRequiredMixin,
                 'value': 'not_available_for_release'
             }
         ]
+        station_status = [
+            {
+                'name': 'Active',
+                'value': 'active'
+            },
+            {
+                'name': 'In Active',
+                'value': 'inactive'
+            }
+        ]
+        candidate_status = [
+            {
+                'name': 'Active',
+                'value': 'active'
+            },
+            {
+                'name': 'In Active',
+                'value': 'inactive'
+            }
+        ]
         language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
@@ -3576,7 +3668,9 @@ class ResultFormResultsListView(LoginRequiredMixin,
             stations=stations,
             centers=centers,
             race_types=race_types,
-            ballot_status = ballot_status,
+            ballot_status=ballot_status,
+            station_status=station_status,
+            candidate_status=candidate_status,
             get_centers_stations_url='/ajax/get-centers-stations/',
             get_export_url='/ajax/get-export/',
             results_download_url='/ajax/download-results/',

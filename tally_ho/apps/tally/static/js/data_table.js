@@ -56,7 +56,10 @@ $(document).ready(function () {
       stations: $("button[data-id='filter-in-stations']").attr('title'),
       centers: $("button[data-id='filter-in-centers']").attr('title'),
       races: $("button[data-id='filter-in-race-types']").attr('title'),
-      centers: $("button[data-id='ballot-status']").attr('title'),
+      ballot_status: $("button[data-id='ballot-status']").attr('title'),
+      station_status: $("button[data-id='station-status']").attr('title'),
+      candidate_status: $("button[data-id='candidate-status']").attr('title'),
+      percentage_processed: $("input[data-id='percentage-processed']").attr('title'),
     });
     const filtersExcluded = exportFiltersApplied({
       stations: $("button[data-id='stations']").attr('title'),
@@ -327,66 +330,9 @@ $(document).ready(function () {
     });
   });
 
-  $('#report').on('click', '#exc-ppt-export-report', function () {
-    $("#exc-ppt-export-report").html("Exporting...");
-    $("#exc-ppt-export-report").prop("disabled", true);
-
-    let data = [];
-    let selectOneIds = $('select#centers').val();
-    let selectTwoIds = $('select#stations').val();
-    let raceTypeNames = $('select#filter-out-race-types').val();
-    let exportNumber = $('input#export-number').val();
-
-    const downloadFile = (blob, fileName) => {
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      document.body.append(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(link.href), 7000);
-    };
-
-
-    const items = {
-      select_1_ids: selectOneIds !== null ? selectOneIds : [],
-      select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
-      race_type_names: raceTypeNames !== null ? raceTypeNames : [],
-      export_number: exportNumber !== null ? exportNumber : [],
-      tally_id: tallyId,
-      exportType: "PPT",
-    };
-    data = items;
-
-    data = data.length
-      ? data.filter((item) =>
-          Object.values(item).every((value) => typeof value !== 'undefined')
-        )
-      : data;
-
-     $.ajax({
-        url: getExportUrl,
-        data: { data: JSON.stringify(data) },
-        traditional: true,
-        type: 'GET',
-        xhrFields: {
-          responseType: 'blob'
-        },
-        success: function(data) {
-          downloadFile(data, 'election_results.pptx');
-          $("#exc-ppt-export-report").html("Export");
-          $("#exc-ppt-export-report").prop("disabled", false);
-        },
-        error: function(xhr, status, error) {
-          console.log('Error:', error);
-          $("#exc-ppt-export-report").html("Export");
-          $("#exc-ppt-export-report").prop("disabled", false);
-        }
-    });
-  });
 
   $('#in-report').on('click', '#reset-filters-in-report', function () {
-    const attributesList = ['select#filter-in-race-types', 'select#filter-in-centers', 'select#filter-in-stations', 'select#ballot-status'];
+    const attributesList = ['select#filter-in-race-types', 'select#filter-in-centers', 'select#filter-in-stations', 'select#ballot-status', 'select#station-status', 'select#candidate-status', 'input#percentage-processed'];
     resetFilters(attributesList);
     destroyTable();
     createTable();
@@ -408,15 +354,23 @@ $(document).ready(function () {
     let data = [];
     let selectOneIds = $('select#filter-in-centers').val();
     let selectTwoIds = $('select#filter-in-stations').val();
+    let exportNumber = $('input#export-number').val();
     let raceTypeNames = $('select#filter-in-race-types').val();
     let ballotStatus = $('select#ballot-status').val();
+    let stationStatus = $('select#station-status').val();
+    let candidateStatus = $('select#candidate-status').val();
+    let percentageProcessed = $('input#percentage-processed').val();
 
     if (selectOneIds || selectTwoIds) {
       const items = {
         select_1_ids: selectOneIds !== null ? selectOneIds : [],
         select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+        export_number: exportNumber !== null ? exportNumber : [],
         race_type_names: raceTypeNames !== null ? raceTypeNames : [],
         ballot_status: ballotStatus !== null ? ballotStatus : [],
+        station_status: stationStatus !== null ? stationStatus : [],
+        candidate_status: candidateStatus !== null ? candidateStatus : [],
+        percentage_processed: percentageProcessed !== null ? percentageProcessed : [],
         filter_in: "True"
       };
 
@@ -468,6 +422,8 @@ $(document).ready(function () {
     let raceTypeNames = $('select#filter-in-race-types').val();
     let exportNumber = $('input#export-number').val();
     let ballotStatus = $('select#ballot-status').val();
+    let stationStatus = $('select#station-status').val();
+    let candidateStatus = $('select#candidate-status').val();
 
     const downloadFile = (blob, fileName) => {
       const link = document.createElement('a');
@@ -486,6 +442,8 @@ $(document).ready(function () {
       race_type_names: raceTypeNames !== null ? raceTypeNames : [],
       export_number: exportNumber !== null ? exportNumber : [],
       ballot_status: ballotStatus !== null ? ballotStatus : [],
+      station_status: stationStatus !== null ? stationStatus : [],
+      candidate_status: candidateStatus !== null ? candidateStatus : [],
       tally_id: tallyId,
       exportType: "PPT",
       filter_in: "True",
