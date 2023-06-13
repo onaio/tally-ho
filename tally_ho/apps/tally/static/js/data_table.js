@@ -232,22 +232,24 @@ $(document).ready(function () {
             columns: ':visible :not(.hide-from-export)',
           },
         },
-        {
-          text: 'PDF',
-          extend: 'pdfHtml5',
-          filename: 'form_results_export',
-          orientation: 'landscape', //portrait
-          pageSize: 'A4', //A3 , A5 , A6 , legal , letter
-          exportOptions: {
-              columns: ':visible :not(.hide-from-export)',
-              modifier: {
-                selected: null,
-              }
-          },
-          customize: (doc) => {
-            exportPdfHtml5(doc);
-          },
-              },
+        // Commented out since it's being replaced by PPT export
+        // Will need to be made generic incase it's need in future
+        // {
+        //   text: 'PDF',
+        //   extend: 'pdfHtml5',
+        //   filename: 'form_results_export',
+        //   orientation: 'landscape', //portrait
+        //   pageSize: 'A4', //A3 , A5 , A6 , legal , letter
+        //   exportOptions: {
+        //       columns: ':visible :not(.hide-from-export)',
+        //       modifier: {
+        //         selected: null,
+        //       }
+        //   },
+        //   customize: (doc) => {
+        //     exportPdfHtml5(doc);
+        //   },
+        //       },
       ],
       responsive: true,
     });
