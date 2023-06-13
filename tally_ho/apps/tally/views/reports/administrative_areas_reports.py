@@ -37,6 +37,7 @@ from tally_ho.libs.utils.context_processors import (
     get_deployed_site_url,
 )
 from tally_ho.libs.utils.query_set_helpers import Round
+from tally_ho.libs.utils.strings import capitalize_first_letter
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
@@ -1643,8 +1644,11 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
     slide_layout = prs.slide_layouts[1]
     slide = prs.slides.add_slide(slide_layout)
     background_image = power_point_race_data['background_image']
+    race_name = capitalize_first_letter(
+        power_point_race_data['header']['race_type'].name)
 
-    summary_slide_title = "Summary Results"
+    summary_slide_title =\
+        f"{race_name} Election Summary Results"
     # Set background image if provided
     if background_image:
         slide.shapes.add_picture(
@@ -1729,16 +1733,19 @@ def create_results_power_point_candidates_results_slide(
     max_candidates_per_slide = 10
     num_slides = (num_candidates - 1) // max_candidates_per_slide + 1
     candidate_rank = 0
+    race_type_name = capitalize_first_letter(
+        power_point_race_data['header']['race_type'].name)
 
     for slide_num in range(num_slides):
             # Create a new candidates slide
         slide_layout = prs.slide_layouts[1]
         slide = prs.slides.add_slide(slide_layout)
 
-        candidates_result_slide_title = "Candidates Results"
+        candidates_result_slide_title =\
+            f"Showing all {race_type_name} Election Results"
         if limit != 0:
             candidates_result_slide_title =\
-                f"Top {limit} Leading Candidates Results"
+                f"Top {limit} Leading {race_type_name} Election Results"
         # Set background image if provided
         if background_image:
             slide.shapes.add_picture(
