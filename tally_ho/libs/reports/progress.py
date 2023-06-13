@@ -142,7 +142,7 @@ class ProgressReport(object):
                     valid_votes=Coalesce(
                         Sum('reconciliationform__number_valid_votes'), V(0)
                         )
-                    ).order_by('pk').first()
+                    ).order_by('valid_votes').first()
 
             count =\
                 filtered_queryset['valid_votes'] if filtered_queryset else 0
