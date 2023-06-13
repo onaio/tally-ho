@@ -695,7 +695,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
 
         qs = qs.filter(
             tally__id=tally_id).annotate(
-            race_type=F("ballot__race_type__name")).values('race_type') \
+            race_type=F("ballot__race_type")).values('race_type') \
             .annotate(
             total_forms=Count("race_type"),
             **count_by_form_state_queries)
