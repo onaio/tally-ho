@@ -8,7 +8,8 @@ ipython
 ipdb
 sphinx
 autopep8
-psycopg2-binary==2.8.6
+psycopg2-binary
+psycopg2
 pydot
 locust
 ruff
