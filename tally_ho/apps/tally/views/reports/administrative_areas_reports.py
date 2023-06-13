@@ -551,7 +551,7 @@ def results_queryset(
     reconform_num_valid_votes =\
         'result_form__reconciliationform__number_valid_votes'
     ballot_comp_candidate_name =\
-        'result_form__ballot__sc_general__ballot_component__full_name'
+        'result_form__ballot__sc_general__ballot_component__candidates__full_name'
 
     if data:
         selected_center_ids =\
@@ -625,9 +625,9 @@ def results_queryset(
                 center_code=F('result_form__center__code'),
                 station_id=station_id_query,
                 station_number=F('result_form__station_number'),
-                gender=F('result_form__gender__name'),
+                gender=F('result_form__gender'),
                 barcode=F('result_form__barcode'),
-                race_type=F('result_form__ballot__race_type__name'),
+                race_type=F('result_form__ballot__race_type'),
                 sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
@@ -712,9 +712,9 @@ def results_queryset(
                 center_code=F('result_form__center__code'),
                 station_id=station_id_query,
                 station_number=F('result_form__station_number'),
-                gender=F('result_form__gender__name'),
+                gender=F('result_form__gender'),
                 barcode=F('result_form__barcode'),
-                race_type=F('result_form__ballot__race_type__name'),
+                race_type=F('result_form__ballot__race_type'),
                 sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
