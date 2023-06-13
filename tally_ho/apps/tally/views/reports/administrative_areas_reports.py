@@ -1500,12 +1500,19 @@ def get_export(request):
     export_type = data.get('exportType')
     center_ids = data.get('select_1_ids')
     station_ids = data.get('select_2_ids')
-    race_type_names = data.get('race_type_names') \
-        if data.get('race_type_names') else []
+    race_type_names = data.get('race_type_names')
+    ballot_status = data.get('ballot_status')
+    station_status = data.get('station_status')
+    candidate_status = data.get('candidate_status')
+    percentage_processed = data.get('percentage_processed')
     no_filter_applied =\
-         len(center_ids) == 0 and\
-         len(station_ids) == 0 and\
-         len(race_type_names) == 0
+         not center_ids and\
+         not station_ids and\
+         not race_type_names and\
+         not ballot_status and\
+         not station_status and\
+         not candidate_status and\
+         not percentage_processed
 
     if no_filter_applied:
         data = None
