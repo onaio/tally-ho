@@ -31,6 +31,7 @@ from tally_ho.apps.tally.views.data import (
     office_list_view,
 )
 from tally_ho.apps.tally.views.reports import administrative_areas_reports
+from tally_ho.apps.tally.views.reports import progress_by_sub_races_reports
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 from tally_ho.apps.tally.views.reports import staff_performance_metrics
@@ -972,6 +973,15 @@ urlpatterns = [
     re_path(r'^ajax/download-regions-list/$',
             region_list_view.get_regions_list,
             name='download-regions-list'),
+    re_path(r'^data/progress-report-list/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.progress_report,
+            name='progress-report-list'),
+    re_path(r'^data/regions_progress-report/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.regions_progress_report_view,
+            name='regions_progress-report'),
+    re_path(r'^data/offices-progress-report/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.offices_progress_report_view,
+            name='offices-progress-report'),
 
     path('operation-not-allowed',
          home.suspicious_error,
