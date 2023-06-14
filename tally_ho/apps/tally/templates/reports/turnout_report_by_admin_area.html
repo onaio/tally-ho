@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% load i18n staticfiles %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with server_side=True languageDE=languageDE %}
+<script>
+$(document).ready(() => {
+    // DataTable initialization for Table 2
+    const dt_language = {{ languageDE|safe }}
+    const offices_turnout_report_url = '{{ offices_remote_url }}'
+    const regions_turnout_report_url = '{{ regions_turnout_report_url }}'
+    const exportAction = function (e, dt, button, config) {
+    const self = this;
+    const oldStart = dt.settings()[0]._iDisplayStart;
+    dt.one('preXhr', function (e, s, data) {
+        // Just this once, load all data from the server...
+        data.start = 0;
+        data.length = -1;;
+        dt.one('preDraw', function (e, settings) {
+            if (button[0].className.indexOf('buttons-csv') >= 0) {
+                $.fn.dataTable.ext.buttons.csvHtml5.available(dt, config) ?
+                    $.fn.dataTable.ext.buttons.csvHtml5.action.call(self, e, dt, button, config) :
+                    $.fn.dataTable.ext.buttons.csvFlash.action.call(self, e, dt, button, config);
+            }
+            dt.one('preXhr', function (e, s, data) {
+                // DataTables thinks the first item displayed is index 0, but we're not drawing that.
+                // Set the property to what it was before exporting.
+                settings._iDisplayStart = oldStart;
+                data.start = oldStart;
+            });
+            // Reload the grid with the original page. Otherwise, API functions like table.cell(this) don't work properly.
+            setTimeout(dt.ajax.reload, 0);
+            // Prevent rendering of the full data to the DOM
+            return false;
+        });
+    });
+    // Requery the server with the new one-time export settings
+    dt.ajax.reload();
+  };
+
+    $('#regions-turnout-report').DataTable({
+      language: dt_language, // global variable defined in html
+      order: [[0, "desc"]],
+      lengthMenu: [
+        [10, 25, 50, 100, 500, -1],
+        [10, 25, 50, 100, 500, 'Show all'],
+      ],
+      columnDefs: [
+        {
+          orderable: true,
+          searchable: true,
+          className: "center",
+          targets: [0, 1],
+        },
+      ],
+      searching: false,
+      processing: true,
+      serverSide: true,
+      stateSave: true,
+      ajax: {
+        url: regions_turnout_report_url,
+        dataSrc: (json) => {
+          return json.data.slice(0, 10)
+        },
+        dataType: 'json',
+        data: (d) => {
+          for (let i = 0; i < d.columns.length - 1; i++) {
+            d[`columns[${i}][data]`] = d.columns[i].data
+            d[`columns[${i}][name]`] = d.columns[i].name
+            d[`columns[${i}][searchable]`] = d.columns[i].searchable
+            d[`columns[${i}][search][value]`] = d.columns[i].search.value
+            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
+            d[`columns[${i}][data]`] = d.columns[i].data
+          }
+          d['order[0][column]'] = d.columns[d.order[0].column].data;
+          d['order[0][dir]'] = d.order[0].dir;
+          d['search[value]'] = d.search.value;
+          d['search[regex]'] = d.search.regex;
+          d['columns'] = d.columns;
+          d['order'] = d.order;
+          d['draw'] = d.draw;
+          d['start'] = d.start;
+          d['length'] = d.length;
+          d.data = JSON.stringify([])
+        },
+      },
+      columns: [
+            { "data": "region_name" },
+            { "data": "stations_expected" },
+            { "data": "stations_processed" },
+            { "data": "percentage_progress" },
+            { "data": "registrants_in_processed_stations" },
+            { "data": "voters_in_counted_stations" },
+            { "data": "percentage_turnout" }
+      ],
+      dom:
+        "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+      buttons: [
+        {
+          extend: "csv",
+          filename: 'regions_turnout_report.csv',
+          action: exportAction,
+          exportOptions: {
+            columns: ':visible :not(.hide-from-export)',
+          },
+        },
+      ],
+      responsive: true,
+      });
+
+    $('#offices-turnout-report').DataTable({
+      language: dt_language, // global variable defined in html
+      order: [[0, "desc"]],
+      lengthMenu: [
+        [10, 25, 50, 100, 500, -1],
+        [10, 25, 50, 100, 500, 'Show all'],
+      ],
+      columnDefs: [
+        {
+          orderable: true,
+          searchable: true,
+          className: "center",
+          targets: [0, 1],
+        },
+      ],
+      searching: false,
+      processing: true,
+      serverSide: true,
+      stateSave: true,
+      ajax: {
+        url: offices_turnout_report_url,
+        dataSrc: (json) => {
+          return json.data.slice(0, 10)
+        },
+        dataType: 'json',
+        data: (d) => {
+          for (let i = 0; i < d.columns.length - 1; i++) {
+            d[`columns[${i}][data]`] = d.columns[i].data
+            d[`columns[${i}][name]`] = d.columns[i].name
+            d[`columns[${i}][searchable]`] = d.columns[i].searchable
+            d[`columns[${i}][search][value]`] = d.columns[i].search.value
+            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
+            d[`columns[${i}][data]`] = d.columns[i].data
+          }
+          d['order[0][column]'] = d.columns[d.order[0].column].data;
+          d['order[0][dir]'] = d.order[0].dir;
+          d['search[value]'] = d.search.value;
+          d['search[regex]'] = d.search.regex;
+          d['columns'] = d.columns;
+          d['order'] = d.order;
+          d['draw'] = d.draw;
+          d['start'] = d.start;
+          d['length'] = d.length;
+          d.data = JSON.stringify([])
+        },
+      },
+      columns: [
+            { "data": "office_name" },
+            { "data": "stations_expected" },
+            { "data": "stations_processed" },
+            { "data": "percentage_progress" },
+            { "data": "registrants_in_processed_stations" },
+            { "data": "voters_in_counted_stations" },
+            { "data": "percentage_turnout" }
+      ],
+      dom:
+        "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+      buttons: [
+        {
+          extend: "csv",
+          filename: 'offices_turnout_report.csv',
+          action: exportAction,
+          exportOptions: {
+            columns: ':visible :not(.hide-from-export)',
+          },
+        },
+      ],
+      responsive: true,
+      });
+});
+</script>
+{% endblock %}
+{% block content %}
+
+<h1>{% trans 'Turnout Report' %}</h1>
+<br>
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#table1">Regions Turn Out Report</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#table2">Offices Progress Report</a>
+    </li>
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content" style="margin-top: 1em;">
+    <div id="table1" class="tab-pane show active">
+        <table id="regions-turnout-report" class="display" style="width:100%">
+            <thead>
+              <tr>
+                  <th>{% trans 'Regions' %}</th>
+                  <th>{% trans 'Stations Expected' %}</th>
+                  <th>{% trans 'Stations Included' %}</th>
+                  <th>{% trans '% Progress' %}</th>
+                  <th>{% trans 'Registrants in Counted Stations' %}</th>
+                  <th>{% trans 'Voters in Counted Stations' %}</th>
+                  <th>{% trans 'Turnout percentage' %}</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div id="table2" class="tab-pane">
+        <table id="offices-turnout-report" class="display" style="width:100%">
+          <thead>
+              <tr>
+                  <th>{% trans 'Office' %}</th>
+                  <th>{% trans 'Stations Expected' %}</th>
+                  <th>{% trans 'Stations Processed' %}</th>
+                  <th>{% trans '% Progress' %}</th>
+                  <th>{% trans 'Registrants in Counted Stations' %}</th>
+                  <th>{% trans 'Voters in Counted Stations' %}</th>
+                  <th>{% trans 'Turnout percentage' %}</th>
+              </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+    </div>
+</div>
+
+</div>
+{% endblock %}
