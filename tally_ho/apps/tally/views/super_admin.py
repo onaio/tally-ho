@@ -8,7 +8,7 @@ from django.db.models import Count, Func, Q, F
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.views.generic import FormView, TemplateView
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib import messages
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -695,7 +695,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
 
         qs = qs.filter(
             tally__id=tally_id).annotate(
-            race_type=F("ballot__race_type__name")).values('race_type') \
+            race_type=F("ballot__race_type")).values('race_type') \
             .annotate(
             total_forms=Count("race_type"),
             **count_by_form_state_queries)

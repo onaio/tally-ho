@@ -1497,7 +1497,7 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(response.context_data['tally_id'], tally.pk)
 
         response = response.render()
-        doc = BeautifulSoup(response.content, "xml")
+        doc = BeautifulSoup(response.content, "html.parser")
         ths = [th.text for th in doc.findAll('th')]
         self.assertListEqual(
             ths,

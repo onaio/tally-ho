@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -15,10 +15,10 @@ class QualityControl(BaseModel):
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
-    passed_presidential = models.NullBooleanField()
-    passed_general = models.NullBooleanField()
-    passed_reconciliation = models.NullBooleanField()
-    passed_women = models.NullBooleanField()
+    passed_presidential = models.BooleanField(null=True)
+    passed_general = models.BooleanField(null=True)
+    passed_reconciliation = models.BooleanField(null=True)
+    passed_women = models.BooleanField(null=True)
 
     @property
     def reviews_passed(self):

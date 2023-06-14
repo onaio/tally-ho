@@ -1,5 +1,5 @@
 from django.core.exceptions import SuspiciousOperation
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 
 from tally_ho.libs.utils.collections import listify
 from tally_ho.libs.models.enums.form_state import FormState

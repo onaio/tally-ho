@@ -1,12 +1,9 @@
-django==2.1.1
-django-datatables-view==1.17.0
-django-enumfields==2.1.1
-django-guardian==1.4.9
-django_nose==1.4.5
-django-queryset-csv==1.0.1
-django-reversion==3.0.0
--e git+https://github.com/onaio/django-tracking2.git@e745e060d9f72eab36f4e7051b062afce04b6cb7#egg=django-tracking2
+django==4.2.2
+django-datatables-view==1.20.0
+django-enumfields2==3.0.2
+django-guardian==2.4.0
+django-queryset-csv==1.1.0
+django-reversion==5.0.4
+django-tracking2==0.5.1
 psycopg2-binary==2.8.6
-six==1.11.0
-mock==2.0.0
-python-dateutil==2.8.1
+python-dateutil==2.8.2

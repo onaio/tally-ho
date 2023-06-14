@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 

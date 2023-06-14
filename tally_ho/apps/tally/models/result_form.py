@@ -2,7 +2,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.db import models
 from django.db.models import Q, Sum
 from django.forms.models import model_to_dict
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
 import reversion
 
@@ -159,7 +159,7 @@ class ResultForm(BaseModel):
     barcode = models.CharField(max_length=255)
     date_seen = models.DateTimeField(null=True)
     duplicate_reviewed = models.BooleanField(default=False)
-    form_stamped = models.NullBooleanField()
+    form_stamped = models.BooleanField(null=True)
     form_state = EnumIntegerField(FormState)
     previous_form_state = EnumIntegerField(FormState, blank=True, null=True)
     gender = EnumIntegerField(Gender, null=True)

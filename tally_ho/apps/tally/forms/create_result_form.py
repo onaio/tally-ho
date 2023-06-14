@@ -5,7 +5,7 @@ from django.forms import (
     ValidationError,
     ModelChoiceField,
 )
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models import ResultForm
 from tally_ho.apps.tally.models.station import Station
