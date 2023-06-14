@@ -37,7 +37,6 @@ from tally_ho.libs.utils.context_processors import (
     get_deployed_site_url,
 )
 from tally_ho.libs.utils.query_set_helpers import Round
-from tally_ho.libs.utils.strings import capitalize_first_letter
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
@@ -1493,7 +1492,7 @@ def get_centers_stations(request):
 
 def get_export(request):
     """
-    Generates and returns a pdf export based on the filter values provided
+    Generates and returns a PowerPoint export based on the filter values provided
     """
     data = ast.literal_eval(request.GET.get('data'))
     tally_id = data.get('tally_id')
@@ -1644,8 +1643,7 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
     slide_layout = prs.slide_layouts[1]
     slide = prs.slides.add_slide(slide_layout)
     background_image = power_point_race_data['background_image']
-    race_name = capitalize_first_letter(
-        power_point_race_data['header']['race_type'].name)
+    race_name = power_point_race_data['header']['race_type'].name.capitalize()
 
     summary_slide_title =\
         f"{race_name} Election Summary Results"
@@ -1733,8 +1731,7 @@ def create_results_power_point_candidates_results_slide(
     max_candidates_per_slide = 10
     num_slides = (num_candidates - 1) // max_candidates_per_slide + 1
     candidate_rank = 0
-    race_type_name = capitalize_first_letter(
-        power_point_race_data['header']['race_type'].name)
+    race_type_name = power_point_race_data['header']['race_type'].name.capitalize()
 
     for slide_num in range(num_slides):
             # Create a new candidates slide
