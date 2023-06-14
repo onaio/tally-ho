@@ -11,7 +11,7 @@ from django.db.models import When, Case, Count, Q, Sum, F, ExpressionWrapper, \
     IntegerField, CharField, Value as V, Subquery, OuterRef, Func
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models.functions import Coalesce
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -1634,6 +1634,209 @@ class TurnoutReportDataView(LoginRequiredMixin,
             return super(
                 TurnoutReportDataView, self).render_column(row, column)
 
+def regions_turnout_report_view(request, **kwargs):
+    tally_id = kwargs.get('tally_id')
+    template = '%(function)s(%(expressions)s AS FLOAT)'
+    regions_report =\
+        Station.objects.filter(
+            tally_id=tally_id,
+            center__region__isnull=False,
+            center__resultform__barcode__isnull=False
+        ).annotate(
+            region_name=F('center__region')
+        ).values('region_name').annotate(
+            stations_expected=Count('id', distinct=True),
+            stations_processed=Count(
+        'id', distinct=True,
+        filter=Q(center__resultform__form_state=FormState.ARCHIVED)),
+            percentage_progress=Round(
+                100 * Func(
+                    F(
+            'stations_processed'), function='CAST', template=template) / Func(
+                    F(
+            'stations_expected'), function='CAST', template=template
+                ),
+                digits=3
+            ),
+            registrants_in_processed_stations=Coalesce(
+                Sum('registrants',
+                    distinct=True,
+                    filter=Q(
+                center__resultform__form_state=FormState.ARCHIVED)),
+                V(0)
+            )
+        ).order_by('-stations_processed')
+
+    # Convert queryset to list
+    regions_report = list(regions_report)
+
+    # Calculate voters in counted stations and turnout percentage
+    for region_report in regions_report:
+        region_name = region_report.get('region_name')
+        registrants_in_processed_stations =\
+            region_report.get('registrants_in_processed_stations')
+        if registrants_in_processed_stations == 0:
+            region_report['voters_in_counted_stations'] = 0
+            region_report['percentage_turnout'] = 0
+            continue
+
+        # Calculate voters in counted stations
+        region_station_ids_by_races = Station.objects.filter(
+            tally_id=tally_id,
+            center__region__isnull=False,
+            center__resultform__form_state=FormState.ARCHIVED,
+            center__region=region_name,
+        ).annotate(
+            race=F('center__resultform__ballot__race_type')
+        ).values('id').annotate(
+            races=ArrayAgg('race', distinct=True),
+            number=F('station_number')
+        )
+        voters = 0
+        for station in region_station_ids_by_races:
+            votes =\
+                Result.objects.filter(
+                    result_form__tally__id=tally_id,
+                    result_form__center__region=region_name,
+                    result_form__center__stations__id=station.get('id'),
+                    result_form__station_number=station.get('number'),
+                    result_form__ballot__race_type__in=station.get('races'),
+                    entry_version=EntryVersion.FINAL,
+                    active=True,
+                    ).annotate(
+                        race=F('result_form__ballot__race_type')
+                    ).values('race').annotate(
+                        race_voters=Sum('votes')
+                    ).order_by(
+                        '-race_voters'
+                    ).values(
+                        'race_voters'
+                    )
+            if votes.count() != 0:
+                voters += votes[0].get('race_voters')
+
+        # Calculate turnout percentage
+        region_report['voters_in_counted_stations'] = voters
+        region_report['percentage_turnout'] =\
+            round(100 * voters / registrants_in_processed_stations, 2)
+
+    return JsonResponse({
+        'data': regions_report,
+        'draw': 1,
+        'recordsFiltered': len(regions_report),
+        'recordsTotal': len(regions_report),
+        'results': 'ok'})
+
+def offices_turnout_report_view(request, **kwargs):
+    tally_id = kwargs.get('tally_id')
+    template = '%(function)s(%(expressions)s AS FLOAT)'
+    offices_report =\
+        Station.objects.filter(
+            tally_id=tally_id,
+            center__office__isnull=False,
+            center__resultform__barcode__isnull=False
+        ).annotate(
+            office=F('center__office__id')
+        ).values('office').annotate(
+            office_name=F('center__office__name'),
+            stations_expected=Count('id', distinct=True),
+            stations_processed=Count(
+        'id', distinct=True,
+        filter=Q(center__resultform__form_state=FormState.ARCHIVED)),
+            percentage_progress=Round(
+                100 * Func(
+                    F(
+        'stations_processed'), function='CAST', template=template) / Func(
+                    F(
+        'stations_expected'), function='CAST', template=template
+                ),
+                digits=3
+            ),
+            registrants_in_processed_stations=Coalesce(
+                Sum('registrants',
+                    distinct=True,
+                    filter=Q(
+                center__resultform__form_state=FormState.ARCHIVED)),
+                V(0)
+            )
+        ).order_by('-stations_processed')
+
+    # Convert queryset to list
+    offices_report = list(offices_report)
+
+    # Calculate voters in counted stations and turnout percentage
+    for office_report in offices_report:
+        office_id = office_report.get('office')
+        registrants_in_processed_stations =\
+            office_report.get('registrants_in_processed_stations')
+        if registrants_in_processed_stations == 0:
+            office_report['voters_in_counted_stations'] = 0
+            office_report['percentage_turnout'] = 0
+            # delete office id since it's not used in the html template
+            del office_report['office']
+            continue
+
+        # Calculate voters in counted stations
+        office_station_ids_by_races = Station.objects.filter(
+            tally_id=tally_id,
+            center__resultform__form_state=FormState.ARCHIVED,
+            center__office__id=office_id
+        ).annotate(
+            race=F('center__resultform__ballot__race_type')
+        ).values('id').annotate(
+            races=ArrayAgg('race', distinct=True),
+            number=F('station_number')
+        )
+        voters = 0
+        for station in office_station_ids_by_races:
+            votes =\
+                Result.objects.filter(
+                    result_form__tally__id=tally_id,
+                    result_form__center__office__id=office_id,
+                    result_form__center__stations__id=station.get('id'),
+                    result_form__station_number=station.get('number'),
+                    result_form__ballot__race_type__in=station.get('races'),
+                    entry_version=EntryVersion.FINAL,
+                    active=True,
+                    ).annotate(
+                        race=F('result_form__ballot__race_type')
+                    ).values('race').annotate(
+                        race_voters=Sum('votes')
+                    ).order_by(
+                        '-race_voters'
+                    ).values(
+                        'race_voters'
+                    )
+            if votes.count() != 0:
+                voters += votes[0].get('race_voters')
+
+        # Calculate turnout percentage
+        office_report['voters_in_counted_stations'] = voters
+        office_report['percentage_turnout'] =\
+            round(100 * voters / registrants_in_processed_stations, 2)
+        # delete office id since it's not used in the html template
+        del office_report['office']
+
+    return JsonResponse({
+        'data': offices_report,
+        'draw': 1,
+        'recordsFiltered': len(offices_report),
+        'recordsTotal': len(offices_report),
+        'results': 'ok'})
+
+def turn_out_report(request, **kwargs):
+    tally_id = kwargs.get('tally_id')
+    language_de = get_datatables_language_de_from_locale(request)
+    context = {
+        'tally_id': tally_id,
+        'offices_remote_url': reverse(
+        'offices-turnout-report', kwargs=kwargs),
+        'regions_turnout_report_url': reverse(
+        'regions-turout-report', kwargs=kwargs),
+        'languageDE': language_de,
+    }
+    return render(
+        request, 'reports/turnout_report_by_admin_area.html', context)
 
 class TurnOutReportView(LoginRequiredMixin,
                         mixins.GroupRequiredMixin,
