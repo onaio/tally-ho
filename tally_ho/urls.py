@@ -61,10 +61,10 @@ accounts_urls = [
          name='logout'),
 ]
 
-# handler403 = 'tally_ho.apps.tally.views.home.permission_denied'
-# handler404 = 'tally_ho.apps.tally.views.home.not_found'
-# handler400 = 'tally_ho.apps.tally.views.home.bad_request'
-# handler500 = 'tally_ho.apps.tally.views.home.server_error'
+handler403 = 'tally_ho.apps.tally.views.home.permission_denied'
+handler404 = 'tally_ho.apps.tally.views.home.not_found'
+handler400 = 'tally_ho.apps.tally.views.home.bad_request'
+handler500 = 'tally_ho.apps.tally.views.home.server_error'
 
 urlpatterns = [
     path('', home.HomeView.as_view(), name='home'),
