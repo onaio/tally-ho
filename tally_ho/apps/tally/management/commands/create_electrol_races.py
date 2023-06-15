@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import IntegrityError
 from django.db import transaction
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
@@ -47,7 +47,7 @@ def create_electrol_races(command, electrol_races):
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy("Create electrol races.")
+    help = _("Create electrol races.")
 
     def handle(self, *args, **kwargs):
         create_electrol_races(self, getattr(settings, 'ELECTROL_RACES'))
