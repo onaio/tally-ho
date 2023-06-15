@@ -607,7 +607,9 @@ def results_queryset(
                 stations_qs = stations_qs.filter(
                     active=active
                 )
-                selected_station_ids = [item.get('id') for item in stations_qs.values('id')] if stations_qs.values('id') else [0]
+                selected_station_ids = \
+                    [item.get('id') for item in stations_qs.values('id')
+                     ] if stations_qs.values('id') else [0]
 
         if stations_processed_percentage:
             if selected_station_ids:
@@ -630,11 +632,14 @@ def results_queryset(
                     filter=Q(center__resultform__form_state=FormState.ARCHIVED)
                 ),
                 processed_percentage=Round(
-                    100 * F('total_result_forms_archived') / F('total_result_forms'),
+                    100 * F('total_result_forms_archived') / F(
+                        'total_result_forms'),
                     digits=2
                 )).filter(
                 processed_percentage__gte=stations_processed_percentage)
-            selected_station_ids = [item.get('id') for item in stations_qs] if stations_qs else [0]
+            selected_station_ids = \
+                [item.get('id') for item in stations_qs
+                 ] if stations_qs else [0]
 
         if race_types:
             query_args['result_form__ballot__race_type__in'] = race_types
@@ -1482,7 +1487,8 @@ def get_centers_stations(request):
 
 def get_export(request):
     """
-    Generates and returns a PowerPoint export based on the filter values provided
+    Generates and returns a PowerPoint export based on the filter
+    values provided
     """
     data = ast.literal_eval(request.GET.get('data'))
     tally_id = data.get('tally_id')
@@ -1611,16 +1617,16 @@ def create_results_power_point_cover_page(prs):
     election_name = 'Election 2023'
     election_shape =\
         slide.shapes.add_textbox(
-        Inches(0.5), Inches(3), Inches(8), Inches(1)).text_frame
+            Inches(0.5), Inches(3), Inches(8), Inches(1)).text_frame
     election_shape.text = "Name of Election: " + election_name
     election_shape.paragraphs[0].alignment = PP_ALIGN.CENTER
     election_shape.paragraphs[0].runs[0].font.bold = True
 
     # Add date of creation
-    date_of_creation =  date.today().strftime("%B %d, %Y")
+    date_of_creation = date.today().strftime("%B %d, %Y")
     date_shape =\
         slide.shapes.add_textbox(
-        Inches(0.5), Inches(0.5), Inches(8), Inches(0.5)).text_frame
+            Inches(0.5), Inches(0.5), Inches(8), Inches(0.5)).text_frame
     date_shape.text = "Date: " + date_of_creation
     date_shape.paragraphs[0].alignment = PP_ALIGN.CENTER
     date_shape.paragraphs[0].runs[0].font.bold = True
@@ -1649,10 +1655,10 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
     # Add title text box for the summary slide
     title_text_box =\
         slide.shapes.add_textbox(
-        Inches(0.5),
-        Inches(0.5),
-        prs.slide_width - Inches(1),
-        Inches(0.5))
+            Inches(0.5),
+            Inches(0.5),
+            prs.slide_width - Inches(1),
+            Inches(0.5))
     title_text_frame = title_text_box.text_frame
 
     # Set title properties
@@ -1674,8 +1680,8 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
     # Create a table shape for the summary data
     summary_table =\
         slide.shapes.add_table(
-        rows=8, cols=2, left=Inches(0.5), top=Inches(1.7),
-        width=Inches(9), height=Inches(2)).table
+            rows=8, cols=2, left=Inches(0.5), top=Inches(1.7),
+            width=Inches(9), height=Inches(2)).table
 
     # Set the column widths for the summary table
     column_widths = [Inches(6), Inches(3)]
@@ -1721,10 +1727,11 @@ def create_results_power_point_candidates_results_slide(
     max_candidates_per_slide = 10
     num_slides = (num_candidates - 1) // max_candidates_per_slide + 1
     candidate_rank = 0
-    race_type_name = power_point_race_data['header']['race_type'].name.capitalize()
+    race_type_name = \
+        power_point_race_data['header']['race_type'].name.capitalize()
 
     for slide_num in range(num_slides):
-            # Create a new candidates slide
+        # Create a new candidates slide
         slide_layout = prs.slide_layouts[1]
         slide = prs.slides.add_slide(slide_layout)
 
@@ -1774,8 +1781,8 @@ def create_results_power_point_candidates_results_slide(
         # Create a table shape for the candidates data
         candidates_table =\
             slide.shapes.add_table(
-            rows=len(candidates_slice) + 1, cols=5, left=Inches(0.5),
-            top=Inches(1.7), width=Inches(9), height=Inches(2)).table
+                rows=len(candidates_slice) + 1, cols=5, left=Inches(0.5),
+                top=Inches(1.7), width=Inches(9), height=Inches(2)).table
 
         # Set the column widths for the candidates table
         column_widths =\

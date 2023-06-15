@@ -177,59 +177,72 @@ class TestAdministrativeAreasReports(TestBase):
         """
         Test ResultFormResultsListDataView filters
         """
-        view = admin_reports.ResultFormResultsListDataView.as_view()
-
         # test race type filter
         data = {'data': '{"race_type_names": ["PRESIDENTIAL"]}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 0)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
         ballot = create_ballot()
         ballot.race_type = RaceType.PRESIDENTIAL
         ballot.save()
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 2)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
 
         # test center filter
-        data = {'data': '{"select_1_ids": ["-1"]}'} #non existent id
+        data = {'data': '{"select_1_ids": ["-1"]}'}  # non existent id
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 0)
-        data = {'data': '{"select_1_ids": ["1"]}'}  # existing id
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
+        center_id = self.station.center.id
+        data = {'data': '{"select_1_ids": ' + f'["{center_id}"]' + '}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 2)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
 
         # test stations filter
         data = {'data': '{"select_2_ids": ["-1"]}'}  # non existent id
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 0)
-        data = {'data': '{"select_2_ids": ["1"]}'}  # existing id
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
+        station_id = self.station.id
+        data = {'data': '{"select_2_ids": ' + f'["{station_id}"]' + '}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 2)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
 
         # test ballot status filter
         data = {'data': '{"ballot_status": ["not_available_for_release"]}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 2)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
         data = {'data': '{"ballot_status": ["available_for_release"]}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 0)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
 
         # test station filter
         data = {'data': '{"station_status": ["active"]}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 2)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
         data = {'data': '{"station_status": ["inactive"]}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 0)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
 
         # test candidate status
         data = {'data': '{"candidate_status": ["active"]}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 2)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
         data = {'data': '{"candidate_status": ["inactive"]}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 0)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
 
         # test station percentage processed
         data = {'data': '{"percentage_processed": "10"}'}
         response = self.apply_filter(data)
-        self.assertEquals(len(json.loads(response.content.decode())['data']), 2)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
