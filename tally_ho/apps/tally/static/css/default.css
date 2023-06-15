@@ -216,15 +216,6 @@ table#report tbody tr.parent td:first-child {
   margin-top: 0.7em;
 }
 
-/* table.results tbody tr td[style=""] {
-	display: none;
-} */
-
-/* table.collapsed tbody tr.dt-hasChild td[style=""] {
-	display: block !important;
-}
-*/
-
 table.collapsed tbody tr[class=""] td[style=""] {
 	display: none;
 }
