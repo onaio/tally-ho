@@ -41,7 +41,6 @@ from tally_ho.libs.utils.query_set_helpers import Round
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.race_type import RaceType
 
 report_types = {1: "turnout",
                 2: "summary",
@@ -559,18 +558,16 @@ def results_queryset(
         'result_form__reconciliationform__number_ballots_received'
     reconform_num_valid_votes =\
         'result_form__reconciliationform__number_valid_votes'
-    ballot_comp_candidate_name =\
-        'result_form__ballot__sc_general__ballot_component__candidates__full_name'
 
     if data:
         selected_center_ids =\
             data['select_1_ids'] if data.get('select_1_ids') else []
         selected_station_ids =\
             data['select_2_ids'] if data.get('select_2_ids') else []
-        race_type_names = data['race_type_names'] \
-            if data.get('race_type_names') else []
-        race_types = [race_type for race_type in RaceType
-                      if race_type.name in race_type_names]
+        election_level_names = data['election_level_names'] \
+            if data.get('election_level_names') else []
+        sub_race_type_names = data['sub_race_type_names'] \
+            if data.get('sub_race_type_names') else []
         ballot_status = data['ballot_status'] \
             if data.get('ballot_status') else []
         station_status = data['station_status'] \
@@ -642,8 +639,17 @@ def results_queryset(
                 [item.get('id') for item in stations_qs
                  ] if stations_qs else [0]
 
-        if race_types:
-            query_args['result_form__ballot__race_type__in'] = race_types
+        if sub_race_type_names:
+            sub_race_type_field =\
+                'result_form__ballot__electrol_race__ballot_name__in'
+            query_args[sub_race_type_field] =\
+                sub_race_type_names
+
+        if election_level_names:
+            election_level_field =\
+                'result_form__ballot__electrol_race__election_level__in'
+            query_args[election_level_field] =\
+                election_level_names
 
         if ballot_status:
             if len(ballot_status) == 1:
@@ -673,14 +679,6 @@ def results_queryset(
             qs = qs.filter(
                 Q(result_form__center__id__in=selected_center_ids))
 
-        qs_1 = qs.annotate(candidate_name=F('candidate__full_name')) \
-            .filter(candidate_name__isnull=False)
-
-        qs_2 = qs.annotate(candidate_name=F(ballot_comp_candidate_name)) \
-            .filter(candidate_name__isnull=False)
-
-        qs = qs_1.union(qs_2) if len(qs_2) else qs_1
-
         station_registrants_query =\
             Subquery(
                 Station.objects.filter(
@@ -689,7 +687,8 @@ def results_queryset(
                 .values('registrants')[:1],
                 output_field=IntegerField())
 
-        qs = qs\
+        qs = qs.annotate(candidate_name=F('candidate__full_name')) \
+            .filter(candidate_name__isnull=False)\
             .values('result_form__barcode')\
             .annotate(
                 candidate_name=F('candidate_name'),
@@ -704,7 +703,10 @@ def results_queryset(
                 station_number=F('result_form__station_number'),
                 gender=F('result_form__gender'),
                 barcode=F('result_form__barcode'),
-                race_type=F('result_form__ballot__race_type'),
+                election_level=F(
+                    'result_form__ballot__electrol_race__election_level'),
+                sub_race_type=F(
+                    'result_form__ballot__electrol_race__ballot_name'),
                 sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
@@ -757,17 +759,6 @@ def results_queryset(
                     ), default=V(0))).distinct()
 
     else:
-        qs_1 = qs\
-            .annotate(candidate_name=F('candidate__full_name'))\
-            .filter(candidate_name__isnull=False)
-        qs_2 = qs\
-            .annotate(
-                candidate_name=F(ballot_comp_candidate_name)
-            )\
-            .filter(candidate_name__isnull=False)
-
-        qs = qs_1.union(qs_2) if len(qs_2) else qs_1
-
         station_registrants_query =\
             Subquery(
                 Station.objects.filter(
@@ -777,6 +768,8 @@ def results_queryset(
                 output_field=IntegerField())
 
         qs = qs\
+            .annotate(candidate_name=F('candidate__full_name'))\
+            .filter(candidate_name__isnull=False)\
             .values('result_form__barcode')\
             .annotate(
                 candidate_name=F('candidate_name'),
@@ -791,7 +784,10 @@ def results_queryset(
                 station_number=F('result_form__station_number'),
                 gender=F('result_form__gender'),
                 barcode=F('result_form__barcode'),
-                race_type=F('result_form__ballot__race_type'),
+                election_level=F(
+                    'result_form__ballot__electrol_race__election_level'),
+                sub_race_type=F(
+                    'result_form__ballot__electrol_race__ballot_name'),
                 sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
@@ -1682,7 +1678,8 @@ def get_export(request):
     export_type = data.get('exportType')
     center_ids = data.get('select_1_ids')
     station_ids = data.get('select_2_ids')
-    race_type_names = data.get('race_type_names')
+    election_level_names = data.get('election_level_names')
+    sub_race_type_names = data.get('sub_race_type_names')
     ballot_status = data.get('ballot_status')
     station_status = data.get('station_status')
     candidate_status = data.get('candidate_status')
@@ -1690,7 +1687,8 @@ def get_export(request):
     no_filter_applied =\
          not center_ids and\
          not station_ids and\
-         not race_type_names and\
+         not election_level_names and\
+         not sub_race_type_names and\
          not ballot_status and\
          not station_status and\
          not candidate_status and\
@@ -1705,40 +1703,63 @@ def get_export(request):
         entry_version=EntryVersion.FINAL,
         active=True)
 
-    qs = results_queryset(
+    qs = export_results_queryset(
         tally_id,
         qs,
         data).values()
 
     if export_type == 'PPT' and qs.count() != 0:
-        result = create_ppt_export(qs, race_type_names, tally_id, limit)
+        result = create_ppt_export(
+            qs,
+            election_level_names=election_level_names,
+            sub_race_type_names=sub_race_type_names,
+            tally_id=tally_id,
+            limit=limit)
         return result
     return HttpResponse("Not found")
 
+def electrol_race_has_results(results_qs, electrol_race):
+    results_qs = results_qs.filter(
+            election_level=electrol_race.election_level,
+            sub_race_type=electrol_race.ballot_name).order_by('-votes')
+    return results_qs.count() != 0
 
-def create_ppt_export(qs, race_type_names, tally_id, limit):
-    race_types = [race_type for race_type in RaceType
-                    if race_type.name in race_type_names]
+def create_ppt_export(
+        qs,
+        election_level_names=None,
+        sub_race_type_names=None,
+        tally_id=None,
+        limit=None):
+    filtered_electrol_races = ElectrolRace.objects.filter(tally__id=tally_id)
+
+    if election_level_names:
+        filtered_electrol_races =\
+            filtered_electrol_races.filter(
+                election_level__in=election_level_names)
+    if sub_race_type_names:
+        filtered_electrol_races =\
+            filtered_electrol_races.filter(
+                ballot_name__in=sub_race_type_names)
+
     headers =\
         create_results_power_point_headers(
-            tally_id, race_types)
-
-    # Use all races if no race types were selected
-    if len(race_type_names) == 0:
-        race_types = RaceType
+            tally_id, filtered_electrol_races, qs)
 
     powerpoint_data = []
     race_bg_img_path =\
         'tally_ho/apps/tally/static/images/white-bg.jpeg'
-    for race in race_types:
-        data = qs.filter(race_type=race).order_by('-votes')
-        if data.count():
+    for electrol_race in filtered_electrol_races:
+        if electrol_race_has_results(qs, electrol_race):
+            data = qs.filter(
+                election_level=electrol_race.election_level,
+                sub_race_type=electrol_race.ballot_name).order_by('-votes')
+            # if data.count():
             body_data = data.values(
                 'candidate_name', 'total_votes', 'valid_votes')
             if limit != 0:
                 body_data = body_data[:limit]
             body = [item for item in body_data]
-            header = headers.get(race.name)
+            header = headers.get(electrol_race.election_level)
             # TODO Make race background image unique per race types
             powerpoint_data.append(
                 {
@@ -1825,10 +1846,11 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
     slide_layout = prs.slide_layouts[1]
     slide = prs.slides.add_slide(slide_layout)
     background_image = power_point_race_data['background_image']
-    race_name = power_point_race_data['header']['race_type'].name.capitalize()
+    election_level_name =\
+        power_point_race_data['header']['election_level'].capitalize()
 
     summary_slide_title =\
-        f"{race_name} Election Summary Results"
+        f"{election_level_name} Election Summary Results"
     # Set background image if provided
     if background_image:
         slide.shapes.add_picture(
@@ -1866,42 +1888,45 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
     # Create a table shape for the summary data
     summary_table =\
         slide.shapes.add_table(
-            rows=8, cols=2, left=Inches(0.5), top=Inches(1.7),
+            rows=9, cols=2, left=Inches(0.5), top=Inches(1.7),
             width=Inches(9), height=Inches(2)).table
 
     # Set the column widths for the summary table
-    column_widths = [Inches(6), Inches(3)]
+    column_widths = [Inches(4.5), Inches(4.5)]
     for i, width in enumerate(column_widths):
         summary_table.columns[i].width = width
 
     # Populate the summary table with data
-    summary_table.cell(0, 0).text = 'Name of Race'
+    summary_table.cell(0, 0).text = 'Election Level'
     summary_table.cell(0, 1).text =\
-        str(power_point_race_data['header']['race_type'].name)
-    summary_table.cell(1, 0).text = 'Stations Expected'
+        str(power_point_race_data['header']['election_level'])
+    summary_table.cell(1, 0).text = 'Name of Race'
     summary_table.cell(1, 1).text =\
-        f"{power_point_race_data['header']['stations_expected']:,.0f}"
-    summary_table.cell(2, 0).text = 'Stations Processed'
+        str(power_point_race_data['header']['sub_race_type'])
+    summary_table.cell(2, 0).text = 'Stations Expected'
     summary_table.cell(2, 1).text =\
+        f"{power_point_race_data['header']['stations_expected']:,.0f}"
+    summary_table.cell(3, 0).text = 'Stations Processed'
+    summary_table.cell(3, 1).text =\
         str(power_point_race_data['header']['stations_processed'])
-    summary_table.cell(3, 0).text = 'Percentage of Stations Processed'
+    summary_table.cell(4, 0).text = 'Percentage of Stations Processed'
     percentage_of_stations_processed =\
         power_point_race_data['header']['percentage_of_stations_processed']
-    summary_table.cell(3, 1).text =\
-        f"{percentage_of_stations_processed}%"
-    summary_table.cell(4, 0).text = 'Results Status'
     summary_table.cell(4, 1).text =\
+        f"{percentage_of_stations_processed}%"
+    summary_table.cell(5, 0).text = 'Results Status'
+    summary_table.cell(5, 1).text =\
         power_point_race_data['header']['results_status']
-    summary_table.cell(5, 0).text = 'Registrants'
+    summary_table.cell(6, 0).text = 'Registrants'
     registrants_in_processed_stations =\
         power_point_race_data['header']['registrants_in_processed_stations']
-    summary_table.cell(5, 1).text =\
-        f"{registrants_in_processed_stations:,.0f}"
-    summary_table.cell(6, 0).text = 'Ballots Cast'
     summary_table.cell(6, 1).text =\
-        str(power_point_race_data['header']['voters_in_counted_stations'])
-    summary_table.cell(7, 0).text = 'Turnout'
+        f"{registrants_in_processed_stations:,.0f}"
+    summary_table.cell(7, 0).text = 'Ballots Cast'
     summary_table.cell(7, 1).text =\
+        str(power_point_race_data['header']['voters_in_counted_stations'])
+    summary_table.cell(8, 0).text = 'Turnout'
+    summary_table.cell(8, 1).text =\
         f"{power_point_race_data['header']['percentage_turnout']}%"
 
     return
@@ -1915,8 +1940,8 @@ def create_results_power_point_candidates_results_slide(
     max_candidates_per_slide = 10
     num_slides = (num_candidates - 1) // max_candidates_per_slide + 1
     candidate_rank = 0
-    race_type_name = \
-        power_point_race_data['header']['race_type'].name.capitalize()
+    election_level_name = \
+        power_point_race_data['header']['election_level'].capitalize()
 
     for slide_num in range(num_slides):
         # Create a new candidates slide
@@ -1924,10 +1949,10 @@ def create_results_power_point_candidates_results_slide(
         slide = prs.slides.add_slide(slide_layout)
 
         candidates_result_slide_title =\
-            f"Showing all {race_type_name} Election Results"
+            f"Showing all {election_level_name} Election Results"
         if limit != 0:
             candidates_result_slide_title =\
-                f"Top {limit} Leading {race_type_name} Election Results"
+                f"Top {limit} Leading {election_level_name} Election Results"
         # Set background image if provided
         if background_image:
             slide.shapes.add_picture(
@@ -2002,20 +2027,27 @@ def create_results_power_point_candidates_results_slide(
 
     return
 
-def create_results_power_point_headers(tally_id, race_types):
-    default_race_types = [race_type for race_type in RaceType]
-    race_data_by_race_names =\
-        {race_type.name: {'race_type': race_type}\
-            for race_type in race_types or default_race_types}
+def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
+    race_data_by_election_level_names =\
+        {electrol_race.election_level:
+         {'election_level': electrol_race.election_level,
+          'sub_race_type': electrol_race.ballot_name}\
+            for electrol_race in filtered_electrol_races\
+                if electrol_race_has_results(qs, electrol_race)}
+
     # Calculate voters in counted stations and turnout percentage
-    for race_name in race_data_by_race_names.keys():
-        race_type_obj = race_data_by_race_names.get(race_name)
-        race_type = race_type_obj.get('race_type')
+    for election_level_name in race_data_by_election_level_names.keys():
+        race_type_obj =\
+            race_data_by_election_level_names.get(election_level_name)
+        sub_race_type = race_type_obj.get('sub_race_type')
         # Calculate voters in counted stations
         qs =\
             Station.objects.filter(
                 tally_id=tally_id,
-                center__resultform__ballot__race_type=race_type,
+                center__resultform__ballot__electrol_race__election_level=\
+                    election_level_name,
+                center__resultform__ballot__electrol_race__ballot_name=\
+                    sub_race_type,
             )
         race_type_obj['stations_expected'] =\
             qs.distinct('station_number', 'center', 'tally').count()
@@ -2023,7 +2055,7 @@ def create_results_power_point_headers(tally_id, race_types):
         station_ids_by_races = qs.filter(
             center__resultform__form_state=FormState.ARCHIVED,
         ).annotate(
-            race=F('center__resultform__ballot__race_type')
+            race=F('center__resultform__ballot__electrol_race__election_level')
         ).values('id').annotate(
             races=ArrayAgg('race', distinct=True),
             number=F('station_number'),
@@ -2037,28 +2069,45 @@ def create_results_power_point_headers(tally_id, race_types):
             form_states =\
                 ResultForm.objects.filter(
                     tally__id=tally_id,
-                    center__resultform__ballot__race_type=race_type,
+                    center__resultform__ballot__electrol_race__election_level=\
+                    election_level_name,
+                    center__resultform__ballot__electrol_race__ballot_name=\
+                    sub_race_type,
                     center__stations__id=station.get('id'),
                     station_number=station.get('number'),
                     ).values_list('form_state', flat=True).distinct()
-            if form_states.count() == 1 and\
-                form_states[0] == FormState.ARCHIVED:
-                stations_processed += 1
-                registrants_in_processed_stations +=\
-                    station.get('num_registrants')
+
+            station_is_processed =\
+                form_states.count() == 1 and\
+                form_states[0] == FormState.ARCHIVED
+            if station_is_processed is False:
+                race_type_obj['voters_in_counted_stations'] = 0
+                race_type_obj['stations_processed'] = 0
+                race_type_obj['registrants_in_processed_stations'] = 0
+                race_type_obj['percentage_of_stations_processed'] = 0
+                race_type_obj['percentage_turnout'] = 0
+                race_type_obj['results_status'] = 'Partial'
+                continue
+
+            stations_processed += 1
+            registrants_in_processed_stations +=\
+                station.get('num_registrants')
 
             # Calculate voters voted in processed stations
             votes =\
                 Result.objects.filter(
                     result_form__tally__id=tally_id,
-                    result_form__ballot__race_type=race_type,
+                    result_form__ballot__electrol_race__election_level=\
+                        election_level_name,
+                    result_form__ballot__electrol_race__ballot_name=\
+                        sub_race_type,
                     result_form__center__stations__id=station.get('id'),
                     result_form__station_number=station.get('number'),
-                    result_form__ballot__race_type__in=station.get('races'),
                     entry_version=EntryVersion.FINAL,
                     active=True,
                     ).annotate(
-                        race=F('result_form__ballot__race_type')
+                        race=F(
+                        'result_form__ballot__electrol_race__election_level')
                     ).values('race').annotate(
                         race_voters=Sum('votes')
                     ).order_by(
@@ -2070,25 +2119,22 @@ def create_results_power_point_headers(tally_id, race_types):
                 voters += votes[0].get('race_voters')
 
         # Calculate turnout percentage
-        race_type_obj['voters_in_counted_stations'] = voters
-        race_type_obj['stations_processed'] = stations_processed
-        race_type_obj['registrants_in_processed_stations'] =\
-            registrants_in_processed_stations
-        if stations_processed == 0:
-            race_type_obj['percentage_progress'] = 0
-            race_type_obj['percentage_turnout'] = 0
-            continue
+        if stations_processed != 0:
+            race_type_obj['voters_in_counted_stations'] = voters
+            race_type_obj['stations_processed'] = stations_processed
+            race_type_obj['registrants_in_processed_stations'] =\
+                registrants_in_processed_stations
+            race_type_obj['percentage_of_stations_processed'] =\
+                round(
+                100 * stations_processed / race_type_obj['stations_expected'],
+                2)
+            race_type_obj['results_status'] =\
+                'Final' if race_type_obj['percentage_of_stations_processed']\
+                    >= 100.0 else 'Partial'
+            race_type_obj['percentage_turnout'] =\
+                round(100 * voters / registrants_in_processed_stations, 2)
 
-        race_type_obj['percentage_of_stations_processed'] =\
-            round(
-            100 * stations_processed / race_type_obj['stations_expected'], 2)
-        race_type_obj['results_status'] =\
-            'Final' if race_type_obj['percentage_of_stations_processed']\
-                >= 100.0 else 'Partial'
-        race_type_obj['percentage_turnout'] =\
-            round(100 * voters / registrants_in_processed_stations, 2)
-
-    return race_data_by_race_names
+    return race_data_by_election_level_names
 
 
 def get_results(request):
@@ -2105,7 +2151,8 @@ def get_results(request):
     qs = Result.objects.filter(
                 result_form__tally__id=tally_id,
                 result_form__form_state=FormState.ARCHIVED,
-                result_form__ballot__race_type__in=race_types,
+                result_form__ballot__electrol_race__election_level__in=\
+                    race_types,
                 entry_version=EntryVersion.FINAL,
                 active=True)
 
@@ -2134,11 +2181,9 @@ def get_results(request):
                 'number_of_signatures',
                 'ballots_received',
                 'valid_votes',
-                'race_type',
+                'election_level',
+                'sub_race_type',
             )
-    for result in data:
-        if isinstance(result['race_type'], RaceType):
-            result['race_type'] = result['race_type'].name
 
     return JsonResponse(
         data={'data': list(data), 'created_at': timezone.now()},
@@ -3797,7 +3842,8 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                'station_number',
                'gender',
                'barcode',
-               'race_type',
+               'election_level',
+               'sub_race_type',
                'sub_con_code',
                'order',
                'unstamped_ballots',
@@ -3839,7 +3885,7 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
 
     def render_column(self, row, column):
         if column in self.columns:
-            if column in ['race_type', 'gender']:
+            if column == 'gender':
                 return str('<td class="center">'
                        f'{row[column].name}</td>')
             return str('<td class="center">'
