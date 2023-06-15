@@ -23,17 +23,17 @@
   <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
     <div id="in-report" class="row">
     <div class="col-12" style="margin-bottom: 2em;">
-      <div class="col-3" style="padding-left: 0.5em;">
+      <div class="col-3" style="padding-left: 0.5em; display: none">
         <button id="export-form-results-presidential" class="btn btn-default btn-small">{% trans 'Export Presidential Results in JSON' %}</button>
       </div>
-      <div class="col-3" style="padding-left: 0.5em;">
+      <div class="col-3" style="padding-left: 0.5em; display: none">
         <button id="export-form-results-parliamentary" class="btn btn-default btn-small">{% trans 'Export Parliamentary Results in JSON' %}</button>
       </div>
-      <div class="col-4">
+      <div class="col-6">
         <p style="float: left; margin-right: 1em;" class="card-text">{% trans 'Number of leading candidates:' %}</p>
         <input style="float: left; width: 4em;" type="number" min="1" value="0" id="export-number">
       </div>
-      <div class="col-2">
+      <div class="col-6">
       <div class="card">
         <div class="card-body">
           <button style="float: right;" id="inc-ppt-export-report" class="btn btn-default btn-small">{% trans 'PowerPoint Export' %}</button>
