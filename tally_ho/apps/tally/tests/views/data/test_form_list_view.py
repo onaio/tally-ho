@@ -116,17 +116,26 @@ class TestFormListView(TestBase):
         data_response_for_general = json.loads(
             raw_data_response_for_general
             ).get('data')
-        self.assertEqual(len(data_response_for_general), 4)
-        race_types_in_response = [form[9] for form in
-                                  data_response_for_general]
+
+        self.assertEqual(len(data_response_for_general), 10)
+        sub_cons_code_in_response =\
+            set([form[1] for form in data_response_for_general]).pop()
+        race_types_in_response =\
+            set([form[9] for form in data_response_for_general]).pop()
         form_states_in_response = [form[10] for form in
                                    data_response_for_general]
 
-        self.assertListEqual(
+        self.assertEqual(
+            sub_cons_code_in_response,
+            '12345'
+            )
+        self.assertEqual(
             race_types_in_response,
-            ['GENERAL', 'GENERAL', 'GENERAL', 'GENERAL']
+            'GENERAL',
             )
         self.assertListEqual(
             form_states_in_response,
-            ['Audit', 'Clearance', 'Intake', 'Unsubmitted']
-            )
+            ['Archived', 'Archiving', 'Audit', 'Clearance', 'Correction',
+             'Data Entry 1', 'Data Entry 2', 'Intake', 'Quality Control',
+             'Unsubmitted'])
+
