@@ -739,38 +739,37 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                 unprocessed_count = row[unprocessed_col]
                 current_state_column_val = f'<span>{current_state_form_count}'
                 unprocessed_column_val = f'{unprocessed_count}</span>'
-                if current_state_form_count > 0 or unprocessed_count > 0:
-                    if current_state_form_count > 0:
-                        current_state_form_url_params =\
-                            {race_type_query_param: race_type,
-                             sub_con_code_query_param: sub_con_code,
-                            at_state_query_param: column[0]}
-                        current_state_form_query_param_string =\
-                            urlencode(current_state_form_url_params)
-                        current_state_form_remote_data_url =\
-                                str(f"{remote_data_url}?"
-                                    f"{current_state_form_query_param_string}")
-                        current_state_column_val =\
+                if current_state_form_count > 0:
+                    current_state_form_url_params =\
+                        {race_type_query_param: race_type,
+                            sub_con_code_query_param: sub_con_code,
+                        at_state_query_param: column[0]}
+                    current_state_form_query_param_string =\
+                        urlencode(current_state_form_url_params)
+                    current_state_form_remote_data_url =\
+                            str(f"{remote_data_url}?"
+                                f"{current_state_form_query_param_string}")
+                    current_state_column_val =\
+                        str('<span>'
+                                f'<a href='
+                                f'{current_state_form_remote_data_url} '
+                                'target="blank">'
+                                f'{current_state_form_count}</a></span>')
+                if unprocessed_count > 0:
+                    unprocessed_forms_url_params =\
+                        {race_type_query_param: race_type,
+                            sub_con_code_query_param: sub_con_code,
+                        pending_at_state_query_param: column[0]}
+                    unprocessed_forms_query_param_string =\
+                        urlencode(unprocessed_forms_url_params)
+                    unprocessed_remote_data_url =\
+                            str(f'{remote_data_url}?'
+                                f'{unprocessed_forms_query_param_string}')
+                    unprocessed_column_val =\
                             str('<span>'
-                                    f'<a href='
-                                    f'{current_state_form_remote_data_url} '
-                                    'target="blank">'
-                                    f'{current_state_form_count}</a></span>')
-                    if unprocessed_count > 0:
-                        unprocessed_forms_url_params =\
-                            {race_type_query_param: race_type,
-                             sub_con_code_query_param: sub_con_code,
-                            pending_at_state_query_param: column[0]}
-                        unprocessed_forms_query_param_string =\
-                            urlencode(unprocessed_forms_url_params)
-                        unprocessed_remote_data_url =\
-                                str(f'{remote_data_url}?'
-                                    f'{unprocessed_forms_query_param_string}')
-                        unprocessed_column_val =\
-                                str('<span>'
-                                    f'<a href={unprocessed_remote_data_url} '
-                                    'target="blank">'
-                                    f'{unprocessed_count}</a></span>')
+                                f'<a href={unprocessed_remote_data_url} '
+                                'target="blank">'
+                                f'{unprocessed_count}</a></span>')
                 column_val =\
                     current_state_column_val + ' / ' + unprocessed_column_val
             else:
