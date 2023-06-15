@@ -563,9 +563,9 @@ def results_queryset(
 
     if data:
         selected_center_ids =\
-            data['select_1_ids'] if data.get('select_1_ids') else [0]
+            data['select_1_ids'] if data.get('select_1_ids') else []
         selected_station_ids =\
-            data['select_2_ids'] if data.get('select_2_ids') else [0]
+            data['select_2_ids'] if data.get('select_2_ids') else []
         race_type_names = data['race_type_names'] \
             if data.get('race_type_names') else []
         race_types = [race_type for race_type in RaceType
@@ -583,6 +583,10 @@ def results_queryset(
         qs = qs \
             .annotate(station_ids=station_id_query)
 
+        stations_qs = Station.objects.filter(
+                        tally__id=tally_id,
+                        center__resultform__isnull=False,
+                    )
         if station_status:
             if len(station_status) == 1:
                 station_status = station_status[0]
@@ -590,33 +594,29 @@ def results_queryset(
                     active = True
                 else:
                     active = False
-                active_station_id_query = \
-                    Subquery(
-                        Station.objects.filter(
-                            tally__id=tally_id,
-                            center__code=OuterRef(
-                                'result_form__center__code'),
-                            station_number=OuterRef(
-                                'result_form__station_number'),
-                            active=active
-                        )
-                        .values('id')[:1],
-                        output_field=IntegerField())
-                qs = qs \
-                    .annotate(station_ids=active_station_id_query)
+                if selected_station_ids:
+                    stations_qs = stations_qs.filter(
+                        id__in=selected_station_ids,
+                        active=active
+                    )
+                elif selected_center_ids:
+                    stations_qs = stations_qs.filter(
+                        center__id__in=selected_center_ids,
+                        active=active
+                    )
+                stations_qs = stations_qs.filter(
+                    active=active
+                )
+                selected_station_ids = [item.get('id') for item in stations_qs.values('id')] if stations_qs.values('id') else [0]
 
         if stations_processed_percentage:
             if selected_station_ids:
-                stations_qs = Station.objects.filter(
+                stations_qs = stations_qs.filter(
                     id__in=selected_station_ids,
-                    tally__id=tally_id,
-                    center__resultform__isnull=False,
                 )
-            else:
-                stations_qs = Station.objects.filter(
+            elif selected_center_ids:
+                stations_qs = stations_qs.filter(
                     center__id__in=selected_center_ids,
-                    tally__id=tally_id,
-                    center__resultform__isnull=False,
                 )
 
             stations_qs = stations_qs.values('id').annotate(
@@ -630,12 +630,11 @@ def results_queryset(
                     filter=Q(center__resultform__form_state=FormState.ARCHIVED)
                 ),
                 processed_percentage=Round(
-                    100 * F('total_result_forms_archived') / F(
-                'total_result_forms'),
+                    100 * F('total_result_forms_archived') / F('total_result_forms'),
                     digits=2
                 )).filter(
                 processed_percentage__gte=stations_processed_percentage)
-            selected_station_ids = [item.get('id') for item in stations_qs]
+            selected_station_ids = [item.get('id') for item in stations_qs] if stations_qs else [0]
 
         if race_types:
             query_args['result_form__ballot__race_type__in'] = race_types
@@ -660,28 +659,19 @@ def results_queryset(
                 query_args['candidate__active'] = active
 
         qs = qs.filter(**query_args)
-
         if selected_station_ids or stations_processed_percentage:
-            qs_1 = qs.filter(
-                Q(station_ids__in=selected_station_ids))\
-                .annotate(candidate_name=F('candidate__full_name')) \
-                .filter(candidate_name__isnull=False)
-            qs_2 = qs.filter(
-                Q(station_ids__in=selected_station_ids))\
-                .annotate(candidate_name=F(ballot_comp_candidate_name)) \
-                .filter(candidate_name__isnull=False)
-        else:
-            qs_1 = qs \
-                .filter(
-                Q(result_form__center__id__in=selected_center_ids)) \
-                .annotate(candidate_name=F('candidate__full_name')) \
-                .filter(candidate_name__isnull=False)
+            qs = qs.filter(
+                Q(station_ids__in=selected_station_ids))
 
-            qs_2 = qs \
-                .filter(
-                Q(result_form__center__id__in=selected_center_ids)) \
-                .annotate(candidate_name=F(ballot_comp_candidate_name)) \
-                    .filter(candidate_name__isnull=False)
+        elif selected_center_ids:
+            qs = qs.filter(
+                Q(result_form__center__id__in=selected_center_ids))
+
+        qs_1 = qs.annotate(candidate_name=F('candidate__full_name')) \
+            .filter(candidate_name__isnull=False)
+
+        qs_2 = qs.annotate(candidate_name=F(ballot_comp_candidate_name)) \
+            .filter(candidate_name__isnull=False)
 
         qs = qs_1.union(qs_2) if len(qs_2) else qs_1
 

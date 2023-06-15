@@ -679,7 +679,6 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
         count_by_form_state_queries = {}
-        # import ipdb; ipdb.set_trace()
         for state in FormState.__publicMembers__():
             processed_states = processed_states_at_state(state)
             unprocessed_states = un_processed_states_at_state(state)
