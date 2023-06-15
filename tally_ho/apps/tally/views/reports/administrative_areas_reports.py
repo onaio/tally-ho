@@ -845,6 +845,191 @@ def results_queryset(
     return qs
 
 
+def export_results_queryset(
+        tally_id,
+        qs,
+        data=None):
+    """
+    Genarate votes per candidate results for export.
+
+    :param tally_id: The tally id.
+    :param qs: The result parent queryset.
+    :param data: An array of dicts containing centers and stations
+        id's to filter out from the queryset.
+
+    returns: The votes per candidate queryset.
+    """
+    station_id_query =\
+        Subquery(
+            Station.objects.filter(
+                tally__id=tally_id,
+                center__code=OuterRef(
+                    'result_form__center__code'),
+                station_number=OuterRef(
+                    'result_form__station_number'))
+            .values('id')[:1],
+            output_field=IntegerField())
+
+    reconform_num_valid_votes =\
+        'result_form__reconciliationform__number_valid_votes'
+
+    if data:
+        selected_center_ids =\
+            data['select_1_ids'] if data.get('select_1_ids') else []
+        selected_station_ids =\
+            data['select_2_ids'] if data.get('select_2_ids') else []
+        election_level_names = data['election_level_names'] \
+            if data.get('election_level_names') else []
+        sub_race_type_names = data['sub_race_type_names'] \
+            if data.get('sub_race_type_names') else []
+        ballot_status = data['ballot_status'] \
+            if data.get('ballot_status') else []
+        station_status = data['station_status'] \
+            if data.get('station_status') else []
+        candidate_status = data['candidate_status'] \
+            if data.get('candidate_status') else []
+        percentage_processed = data['percentage_processed'] \
+            if data.get('percentage_processed') else 0
+        stations_processed_percentage = min(int(percentage_processed), 100)
+        query_args = {}
+        qs = qs \
+            .annotate(station_ids=station_id_query)
+
+        stations_qs = Station.objects.filter(
+                        tally__id=tally_id,
+                        center__resultform__isnull=False,
+                    )
+        if station_status:
+            if len(station_status) == 1:
+                station_status = station_status[0]
+                if station_status == 'active':
+                    active = True
+                else:
+                    active = False
+                if selected_station_ids:
+                    stations_qs = stations_qs.filter(
+                        id__in=selected_station_ids,
+                        active=active
+                    )
+                elif selected_center_ids:
+                    stations_qs = stations_qs.filter(
+                        center__id__in=selected_center_ids,
+                        active=active
+                    )
+                stations_qs = stations_qs.filter(
+                    active=active
+                )
+                selected_station_ids = \
+                    [item.get('id') for item in stations_qs.values('id')
+                     ] if stations_qs.values('id') else [0]
+
+        if stations_processed_percentage:
+            if selected_station_ids:
+                stations_qs = stations_qs.filter(
+                    id__in=selected_station_ids,
+                )
+            elif selected_center_ids:
+                stations_qs = stations_qs.filter(
+                    center__id__in=selected_center_ids,
+                )
+
+            stations_qs = stations_qs.values('id').annotate(
+                total_result_forms=Count(
+                    'center__resultform__barcode',
+                    distinct=True
+                ),
+                total_result_forms_archived=Count(
+                    'center__resultform__barcode',
+                    distinct=True,
+                    filter=Q(center__resultform__form_state=FormState.ARCHIVED)
+                ),
+                processed_percentage=Round(
+                    100 * F('total_result_forms_archived') / F(
+                        'total_result_forms'),
+                    digits=2
+                )).filter(
+                processed_percentage__gte=stations_processed_percentage)
+            selected_station_ids = \
+                [item.get('id') for item in stations_qs
+                 ] if stations_qs else [0]
+
+        if sub_race_type_names:
+            sub_race_type_field =\
+                'result_form__ballot__electrol_race__ballot_name__in'
+            query_args[sub_race_type_field] =\
+                sub_race_type_names
+
+        if election_level_names:
+            election_level_field =\
+                'result_form__ballot__electrol_race__election_level__in'
+            query_args[election_level_field] =\
+                election_level_names
+
+        if ballot_status:
+            if len(ballot_status) == 1:
+                ballot_status = ballot_status[0]
+                if ballot_status == 'available_for_release':
+                    available_for_release = True
+                else:
+                    available_for_release = False
+                query_args['result_form__ballot__available_for_release'] =\
+                    available_for_release
+
+        if candidate_status:
+            if len(candidate_status) == 1:
+                candidate_status = candidate_status[0]
+                if candidate_status == 'active':
+                    active = True
+                else:
+                    active = False
+                query_args['candidate__active'] = active
+
+        qs = qs.filter(**query_args)
+        if selected_station_ids or stations_processed_percentage:
+            qs = qs.filter(
+                Q(station_ids__in=selected_station_ids))
+
+        elif selected_center_ids:
+            qs = qs.filter(
+                Q(result_form__center__id__in=selected_center_ids))
+
+        qs = qs.annotate(candidate_name=F('candidate__full_name')) \
+            .filter(candidate_name__isnull=False)\
+            .values('result_form__barcode')\
+            .annotate(
+                election_level=F(
+                    'result_form__ballot__electrol_race__election_level'),
+                sub_race_type=F(
+                    'result_form__ballot__electrol_race__ballot_name'),
+                candidate_name=F('candidate_name'),
+                total_votes=F('votes'),
+                valid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(reconform_num_valid_votes)
+                    ), default=V(0))).distinct()
+
+    else:
+        qs = qs\
+            .annotate(candidate_name=F('candidate__full_name'))\
+            .filter(candidate_name__isnull=False)\
+            .values('result_form__barcode')\
+            .annotate(
+                election_level=F(
+                    'result_form__ballot__electrol_race__election_level'),
+                sub_race_type=F(
+                    'result_form__ballot__electrol_race__ballot_name'),
+                candidate_name=F('candidate_name'),
+                total_votes=F('votes'),
+                valid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=False,
+                        then=F(reconform_num_valid_votes)
+                    ), default=V(0))).distinct()
+
+    return qs
+
+
 def duplicate_results_queryset(
         tally_id,
         qs,
