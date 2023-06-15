@@ -19,6 +19,7 @@ from django.http import HttpResponse
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
 from pptx import Presentation
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
@@ -3858,7 +3859,9 @@ class ResultFormResultsListView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         stations, centers = build_station_and_centers_list(tally_id)
-        race_types = list(RaceType)
+        electrol_races =\
+            ElectrolRace.objects.filter(tally__id=tally_id)
+
         ballot_status = [
             {
                 'name': 'Available For Release',
@@ -3896,7 +3899,10 @@ class ResultFormResultsListView(LoginRequiredMixin,
             tally_id=tally_id,
             stations=stations,
             centers=centers,
-            race_types=race_types,
+            election_level_names=set(electrol_races.values_list(
+            'election_level', flat=True)),
+            sub_race_type_names=set(electrol_races.values_list(
+            'ballot_name', flat=True)),
             ballot_status=ballot_status,
             station_status=station_status,
             candidate_status=candidate_status,

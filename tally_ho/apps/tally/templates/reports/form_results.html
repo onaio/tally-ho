@@ -43,10 +43,18 @@
     </div>
     <div class="col-12" style="margin-bottom: 2em;">
     <div class="col-sm-3" style="padding-left: 0.5em;">
-      <p style="text-align: left; margin-left: .5em;">{% trans 'Races' %}</p>
-      <select class="selectpicker" id="filter-in-race-types" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
-        {% for race_type in race_types %}
-          <option value={{race_type.name}}>{{race_type.name}}</option>
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Election Levels' %}</p>
+      <select class="selectpicker" id="election-level-names" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
+        {% for name in election_level_names %}
+          <option value={{name}}>{{name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3" style="padding-left: 0.5em;">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Sub Races' %}</p>
+      <select class="selectpicker" id="sub-race-names" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
+        {% for name in sub_race_type_names %}
+          <option value={{name}}>{{name}}</option>
         {% endfor %}
       </select>
     </div>
@@ -66,7 +74,9 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3">
+    </div>
+    <div class="col-12" style="margin-bottom: 2em;">
+    <div class="col-sm-3" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Ballot Status' %}</p>
       <select class="selectpicker ballot-status" id="ballot-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Ballot Status">
         {% for status in ballot_status %}
@@ -74,9 +84,7 @@
         {% endfor %}
       </select>
     </div>
-    </div>
-    <div class="col-12" style="margin-bottom: 2em;">
-    <div class="col-sm-3" style="padding-left: 0.5em;">
+    <div class="col-sm-3">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Station Status' %}</p>
       <select class="selectpicker station-status" id="station-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Station Status">
         {% for status in station_status %}
@@ -98,16 +106,17 @@
        <input style="width: 100%;" type="number" min="0" max="100" value="0" id="percentage-processed">
       </div>
     </div>
-    <div class="col-sm-3">
-      <div class="card">
-        <div class="card-body">
-          <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
-          <button style="float: left;" id="filter-in-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
-          <button style="float: left; margin-left: 1em;" id="reset-filters-in-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
-        </div>
-      </div>
     </div>
-
+    <div class="col-12" style="margin-bottom: 2em;">
+      <div class="col-sm-3" style="float: right">
+        <div class="card">
+          <div class="card-body">
+            <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
+            <button style="float: left;" id="filter-in-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+            <button style="float: left; margin-left: 1em;" id="reset-filters-in-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
+          </div>
+        </div>
+    </div>
     </div>
   </div>
 </caption>
@@ -127,17 +136,18 @@
         <th>{% trans 'Station Number' %}</th>
         <th>{% trans 'Gender' %}</th>
         <th>{% trans 'Barcode' %}</th>
-        <th>{% trans 'Race Type' %}</th>
+        <th>{% trans 'Election Level' %}</th>
+        <th>{% trans 'Sub Race Type' %}</th>
         <th>{% trans 'Sub Constituency Code' %}</th>
         <th>{% trans 'Order' %}</th>
-        <th class="hide-from-export">{% trans 'Unstamped Ballots' %}</th>
-        <th class="hide-from-export">{% trans 'Cancelled Ballots' %}</th>
-        <th class="hide-from-export">{% trans 'Spoilt Ballots' %}</th>
-        <th class="hide-from-export">{% trans 'Unused Ballots' %}</th>
-        <th class="hide-from-export">{% trans 'Number of Signatures' %}</th>
-        <th class="hide-from-export">{% trans 'Received Ballots Papers' %}</th>
-        <th class="hide-from-export">{% trans 'Ballot' %}</th>
-        <th class="hide-from-export">{% trans 'Race Number' %}</th>
+        <th>{% trans 'Unstamped Ballots' %}</th>
+        <th>{% trans 'Cancelled Ballots' %}</th>
+        <th>{% trans 'Spoilt Ballots' %}</th>
+        <th>{% trans 'Unused Ballots' %}</th>
+        <th>{% trans 'Number of Signatures' %}</th>
+        <th>{% trans 'Received Ballots Papers' %}</th>
+        <th>{% trans 'Ballot' %}</th>
+        <th>{% trans 'Race Number' %}</th>
       </tr>
   </thead>
   <tbody></tbody>

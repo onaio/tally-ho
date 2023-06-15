@@ -334,14 +334,7 @@ $(document).ready(function () {
 
 
   $('#in-report').on('click', '#reset-filters-in-report', function () {
-    const attributesList = ['select#filter-in-race-types', 'select#filter-in-centers', 'select#filter-in-stations', 'select#ballot-status', 'select#station-status', 'select#candidate-status', 'input#percentage-processed'];
-    resetFilters(attributesList);
-    destroyTable();
-    createTable();
-  });
-
-  $('#report').on('click', '#reset-filters-out-report', function () {
-    const attributesList = ['select#filter-out-race-types', 'select#centers', 'select#stations'];
+    const attributesList = ['select#election-level-names', 'select#sub-race-names', 'select#filter-in-centers', 'select#filter-in-stations', 'select#ballot-status', 'select#station-status', 'select#candidate-status', 'input#percentage-processed'];
     resetFilters(attributesList);
     destroyTable();
     createTable();
@@ -357,7 +350,8 @@ $(document).ready(function () {
     let selectOneIds = $('select#filter-in-centers').val();
     let selectTwoIds = $('select#filter-in-stations').val();
     let exportNumber = $('input#export-number').val();
-    let raceTypeNames = $('select#filter-in-race-types').val();
+    let electionLevelNames = $('select#election-level-names').val();
+    let subRaceTypeNames = $('select#sub-race-names').val();
     let ballotStatus = $('select#ballot-status').val();
     let stationStatus = $('select#station-status').val();
     let candidateStatus = $('select#candidate-status').val();
@@ -368,7 +362,8 @@ $(document).ready(function () {
         select_1_ids: selectOneIds !== null ? selectOneIds : [],
         select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
         export_number: exportNumber !== null ? exportNumber : [],
-        race_type_names: raceTypeNames !== null ? raceTypeNames : [],
+        election_level_names: electionLevelNames !== null ? electionLevelNames : [],
+        sub_race_type_names: subRaceTypeNames !== null ? subRaceTypeNames : [],
         ballot_status: ballotStatus !== null ? ballotStatus : [],
         station_status: stationStatus !== null ? stationStatus : [],
         candidate_status: candidateStatus !== null ? candidateStatus : [],
@@ -421,7 +416,8 @@ $(document).ready(function () {
     let data = [];
     let selectOneIds = $('select#filter-in-centers').val();
     let selectTwoIds = $('select#filter-in-stations').val();
-    let raceTypeNames = $('select#filter-in-race-types').val();
+    let electionLevelNames = $('select#election-level-names').val();
+    let subRaceTypeNames = $('select#sub-race-names').val();
     let exportNumber = $('input#export-number').val();
     let ballotStatus = $('select#ballot-status').val();
     let stationStatus = $('select#station-status').val();
@@ -441,7 +437,8 @@ $(document).ready(function () {
     const items = {
       select_1_ids: selectOneIds !== null ? selectOneIds : [],
       select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
-      race_type_names: raceTypeNames !== null ? raceTypeNames : [],
+      election_level_names: electionLevelNames !== null ? electionLevelNames : [],
+      sub_race_type_names: subRaceTypeNames !== null ? subRaceTypeNames : [],
       export_number: exportNumber !== null ? exportNumber : [],
       ballot_status: ballotStatus !== null ? ballotStatus : [],
       station_status: stationStatus !== null ? stationStatus : [],
