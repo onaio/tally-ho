@@ -67,12 +67,17 @@ class FormListDataView(LoginRequiredMixin,
         ballot_number = self.request.POST.get('ballot[value]', None)
         tally_id = self.kwargs.get('tally_id')
         keyword = self.request.POST.get('search[value]')
-
-        requested_form_state = self.request.GET.get(at_state_query_param)
+        requested_form_state =\
+            self.request.GET.get(f"amp;{at_state_query_param}")
         pending_in_form_state = self.request.GET.get(
-            pending_at_state_query_param)
+            f"amp;{pending_at_state_query_param}")
         requested_race_type = self.request.GET.get(race_type_query_param)
-        requested_sub_con_code = self.request.GET.get(sub_con_code_query_param)
+        requested_sub_con_code =\
+            self.request.GET.get(f"amp;{sub_con_code_query_param}")
+
+        if tally_id:
+            qs = \
+                qs.filter(tally__id=tally_id)
 
         if requested_form_state:
             state_enum_key = requested_form_state.upper()
@@ -115,12 +120,7 @@ class FormListDataView(LoginRequiredMixin,
                         'station_number'))
                 .values('id')[:1],
                 output_field=IntegerField())
-
-        if tally_id:
-            qs = \
-                qs.filter(tally__id=tally_id).annotate(
-                    station_id=station_id_query,
-                )
+        qs = qs.annotate(station_id=station_id_query)
 
         if ballot_number:
             ballot = Ballot.objects.get(number=ballot_number,
