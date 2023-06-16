@@ -21,6 +21,7 @@ DEBUG = False
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 INTERNAL_IPS = ["127.0.0.1"]
 
+DEPLOYED_SITE_NAME = "127.0.0.1"
 
 # Application definition
 
