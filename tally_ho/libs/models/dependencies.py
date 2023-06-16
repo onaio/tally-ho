@@ -1,6 +1,6 @@
 from django import forms
 from django.db.models import Count
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 def check_results_for_forms(resultforms):

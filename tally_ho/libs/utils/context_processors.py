@@ -62,6 +62,14 @@ def get_datatables_language_de_from_locale(request):
     return language_de
 
 
+def get_deployed_site_url():
+    debug = getattr(settings, "DEBUG", None)
+    deployed_site_name = getattr(settings, "DEPLOYED_SITE_NAME", None)
+    deployed_site_url = f"http://{deployed_site_name}:8000" if debug is True\
+        else f"https://{deployed_site_name}"
+    return deployed_site_url
+
+
 def site_name(request):
     site_name = getattr(settings, "SITE_NAME", None)
     site_id = getattr(settings, "SITE_ID", None)

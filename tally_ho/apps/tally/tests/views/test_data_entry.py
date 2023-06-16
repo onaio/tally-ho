@@ -105,7 +105,7 @@ class TestDataEntry(TestBase):
                                          station_number=station_number)
         self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
         view = views.CenterDetailsView.as_view()
-        data = center_data('12345', '12346')
+        data = center_data('12345', '12346', tally_id=tally.pk)
         session = {'result_form': result_form.pk}
         data.update(session)
         request = self.factory.post('/', data=data)
@@ -128,7 +128,7 @@ class TestDataEntry(TestBase):
                                          tally=tally,
                                          station_number=station_number)
         view = views.CenterDetailsView.as_view()
-        data = center_data('12345', '12346')
+        data = center_data('12345', '12346', tally_id=tally.pk)
         data['center_number'] = 'abcde'
         data['center_number_copy'] = 'abcde'
         session = {'result_form': result_form.pk}
@@ -238,7 +238,9 @@ class TestDataEntry(TestBase):
                                          station_number=station_number)
         view = views.CenterDetailsView.as_view()
         result_form_data = {'result_form': result_form.pk}
-        data = center_data(code, station_number=station_number)
+        data = center_data(
+            code, station_number=station_number, tally_id=tally.pk
+            )
         data.update(result_form_data)
         request = self.factory.post('/', data=data)
         request.user = self.user
@@ -263,7 +265,7 @@ class TestDataEntry(TestBase):
         create_candidate(ballot, candidate_name)
 
         view = views.EnterResultsView.as_view()
-        data = center_data(code)
+        data = center_data(code, tally_id=tally.pk)
         request = self.factory.get('/', data=data)
         request.user = self.user
         request.session = {'result_form': result_form.pk}

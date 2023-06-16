@@ -1,8 +1,10 @@
 import ast
 import json
+from io import BytesIO
+from datetime import date
 
 from django.views.generic import TemplateView
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.http import JsonResponse
@@ -14,6 +16,10 @@ from django.db.models.functions import Coalesce
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from tally_ho.apps.tally.models.office import Office
+from django.http import HttpResponse
+from pptx.util import Inches, Pt
+from pptx.enum.text import PP_ALIGN
+from pptx import Presentation
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
@@ -29,7 +35,8 @@ from tally_ho.apps.tally.views.super_admin import (
     )
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
+    get_datatables_language_de_from_locale,
+    get_deployed_site_url,
 )
 from tally_ho.libs.utils.query_set_helpers import Round
 from tally_ho.libs.views import mixins
@@ -600,56 +607,124 @@ def results_queryset(
     reconform_num_valid_votes =\
         'result_form__reconciliationform__number_valid_votes'
     ballot_comp_candidate_name =\
-        'result_form__ballot__sc_general__ballot_component__full_name'
+        'result_form__ballot__sc_general__ballot_component__candidates__full_name'
 
     if data:
         selected_center_ids =\
-            data['select_1_ids'] if data.get('select_1_ids') else [0]
+            data['select_1_ids'] if data.get('select_1_ids') else []
         selected_station_ids =\
-            data['select_2_ids'] if data.get('select_2_ids') else [0]
+            data['select_2_ids'] if data.get('select_2_ids') else []
         race_type_names = data['race_type_names'] \
             if data.get('race_type_names') else []
         race_types = [race_type for race_type in RaceType
                       if race_type.name in race_type_names]
-        filter_in = data.get('filter_in')
+        ballot_status = data['ballot_status'] \
+            if data.get('ballot_status') else []
+        station_status = data['station_status'] \
+            if data.get('station_status') else []
+        candidate_status = data['candidate_status'] \
+            if data.get('candidate_status') else []
+        percentage_processed = data['percentage_processed'] \
+            if data.get('percentage_processed') else 0
+        stations_processed_percentage = min(int(percentage_processed), 100)
+        query_args = {}
         qs = qs \
             .annotate(station_ids=station_id_query)
 
-        if filter_in:
-            if race_types:
-                qs = qs.filter(
-                    Q(result_form__ballot__race_type__in=race_types))
-            qs_1 = qs \
-                .filter(
-                Q(result_form__center__id__in=selected_center_ids) &
-                Q(station_ids__in=selected_station_ids)) \
-                .annotate(candidate_name=F('candidate__full_name')) \
-                .filter(candidate_name__isnull=False)
+        stations_qs = Station.objects.filter(
+                        tally__id=tally_id,
+                        center__resultform__isnull=False,
+                    )
+        if station_status:
+            if len(station_status) == 1:
+                station_status = station_status[0]
+                if station_status == 'active':
+                    active = True
+                else:
+                    active = False
+                if selected_station_ids:
+                    stations_qs = stations_qs.filter(
+                        id__in=selected_station_ids,
+                        active=active
+                    )
+                elif selected_center_ids:
+                    stations_qs = stations_qs.filter(
+                        center__id__in=selected_center_ids,
+                        active=active
+                    )
+                stations_qs = stations_qs.filter(
+                    active=active
+                )
+                selected_station_ids = \
+                    [item.get('id') for item in stations_qs.values('id')
+                     ] if stations_qs.values('id') else [0]
 
-            qs_2 = qs \
-                .filter(
-                Q(result_form__center__id__in=selected_center_ids) &
-                Q(station_ids__in=selected_station_ids)) \
-                .annotate(candidate_name=F(ballot_comp_candidate_name)) \
-                .filter(candidate_name__isnull=False)
+        if stations_processed_percentage:
+            if selected_station_ids:
+                stations_qs = stations_qs.filter(
+                    id__in=selected_station_ids,
+                )
+            elif selected_center_ids:
+                stations_qs = stations_qs.filter(
+                    center__id__in=selected_center_ids,
+                )
 
-        else:
-            if race_types:
-                qs = qs.filter(
-                    ~Q(result_form__ballot__race_type__in=race_types))
-            qs_1 = qs\
-                .filter(
-                    ~Q(result_form__center__id__in=selected_center_ids) &
-                    ~Q(station_ids__in=selected_station_ids))\
-                .annotate(candidate_name=F('candidate__full_name'))\
-                .filter(candidate_name__isnull=False)
+            stations_qs = stations_qs.values('id').annotate(
+                total_result_forms=Count(
+                    'center__resultform__barcode',
+                    distinct=True
+                ),
+                total_result_forms_archived=Count(
+                    'center__resultform__barcode',
+                    distinct=True,
+                    filter=Q(center__resultform__form_state=FormState.ARCHIVED)
+                ),
+                processed_percentage=Round(
+                    100 * F('total_result_forms_archived') / F(
+                        'total_result_forms'),
+                    digits=2
+                )).filter(
+                processed_percentage__gte=stations_processed_percentage)
+            selected_station_ids = \
+                [item.get('id') for item in stations_qs
+                 ] if stations_qs else [0]
 
-            qs_2 = qs\
-                .filter(
-                    ~Q(result_form__center__id__in=selected_center_ids) &
-                    ~Q(station_ids__in=selected_station_ids))\
-                .annotate(candidate_name=F(ballot_comp_candidate_name))\
-                .filter(candidate_name__isnull=False)
+        if race_types:
+            query_args['result_form__ballot__race_type__in'] = race_types
+
+        if ballot_status:
+            if len(ballot_status) == 1:
+                ballot_status = ballot_status[0]
+                if ballot_status == 'available_for_release':
+                    available_for_release = True
+                else:
+                    available_for_release = False
+                query_args['result_form__ballot__available_for_release'] =\
+                    available_for_release
+
+        if candidate_status:
+            if len(candidate_status) == 1:
+                candidate_status = candidate_status[0]
+                if candidate_status == 'active':
+                    active = True
+                else:
+                    active = False
+                query_args['candidate__active'] = active
+
+        qs = qs.filter(**query_args)
+        if selected_station_ids or stations_processed_percentage:
+            qs = qs.filter(
+                Q(station_ids__in=selected_station_ids))
+
+        elif selected_center_ids:
+            qs = qs.filter(
+                Q(result_form__center__id__in=selected_center_ids))
+
+        qs_1 = qs.annotate(candidate_name=F('candidate__full_name')) \
+            .filter(candidate_name__isnull=False)
+
+        qs_2 = qs.annotate(candidate_name=F(ballot_comp_candidate_name)) \
+            .filter(candidate_name__isnull=False)
 
         qs = qs_1.union(qs_2) if len(qs_2) else qs_1
 
@@ -674,9 +749,9 @@ def results_queryset(
                 center_code=F('result_form__center__code'),
                 station_id=station_id_query,
                 station_number=F('result_form__station_number'),
-                gender=F('result_form__gender__name'),
+                gender=F('result_form__gender'),
                 barcode=F('result_form__barcode'),
-                race_type=F('result_form__ballot__race_type__name'),
+                race_type=F('result_form__ballot__race_type'),
                 sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
@@ -761,9 +836,9 @@ def results_queryset(
                 center_code=F('result_form__center__code'),
                 station_id=station_id_query,
                 station_number=F('result_form__station_number'),
-                gender=F('result_form__gender__name'),
+                gender=F('result_form__gender'),
                 barcode=F('result_form__barcode'),
-                race_type=F('result_form__ballot__race_type__name'),
+                race_type=F('result_form__ballot__race_type'),
                 sub_con_code=F(
                     'result_form__center__sub_constituency__code'),
                 number_registrants=station_registrants_query,
@@ -1457,7 +1532,6 @@ def get_centers_stations(request):
             center__id__in=center_ids).values_list('id', flat=True))
     })
 
-
 def get_sub_and_constituencies(request):
     """
     Retrieves constituencies and sub constituencies
@@ -1480,6 +1554,425 @@ def get_sub_and_constituencies(request):
             'sub_constituencies_code': sub_constituencies
             }
         )
+
+def get_export(request):
+    """
+    Generates and returns a PowerPoint export based on the filter
+    values provided
+    """
+    data = ast.literal_eval(request.GET.get('data'))
+    tally_id = data.get('tally_id')
+    limit = int(data.get('export_number'))
+    export_type = data.get('exportType')
+    center_ids = data.get('select_1_ids')
+    station_ids = data.get('select_2_ids')
+    race_type_names = data.get('race_type_names')
+    ballot_status = data.get('ballot_status')
+    station_status = data.get('station_status')
+    candidate_status = data.get('candidate_status')
+    percentage_processed = data.get('percentage_processed')
+    no_filter_applied =\
+         not center_ids and\
+         not station_ids and\
+         not race_type_names and\
+         not ballot_status and\
+         not station_status and\
+         not candidate_status and\
+         not percentage_processed
+
+    if no_filter_applied:
+        data = None
+
+    qs = Result.objects.filter(
+        result_form__tally__id=tally_id,
+        result_form__form_state=FormState.ARCHIVED,
+        entry_version=EntryVersion.FINAL,
+        active=True)
+
+    qs = results_queryset(
+        tally_id,
+        qs,
+        data).values()
+
+    if export_type == 'PPT' and qs.count() != 0:
+        result = create_ppt_export(qs, race_type_names, tally_id, limit)
+        return result
+    return HttpResponse("Not found")
+
+
+def create_ppt_export(qs, race_type_names, tally_id, limit):
+    race_types = [race_type for race_type in RaceType
+                    if race_type.name in race_type_names]
+    headers =\
+        create_results_power_point_headers(
+            tally_id, race_types)
+
+    # Use all races if no race types were selected
+    if len(race_type_names) == 0:
+        race_types = RaceType
+
+    powerpoint_data = []
+    race_bg_img_path =\
+        'tally_ho/apps/tally/static/images/white-bg.jpeg'
+    for race in race_types:
+        data = qs.filter(race_type=race).order_by('-votes')
+        if data.count():
+            body_data = data.values(
+                'candidate_name', 'total_votes', 'valid_votes')
+            if limit != 0:
+                body_data = body_data[:limit]
+            body = [item for item in body_data]
+            header = headers.get(race.name)
+            # TODO Make race background image unique per race types
+            powerpoint_data.append(
+                {
+                    'header': header,
+                    'body': body,
+                    'background_image': race_bg_img_path
+                }
+            )
+
+    # Create a new PowerPoint presentation
+    prs = Presentation()
+
+    # Set the cover page
+    create_results_power_point_cover_page(prs)
+
+    for data in powerpoint_data:
+        # Create the summary slide
+        create_results_power_point_summary_slide(
+            prs, power_point_race_data=data)
+
+        # Create the candidates slides
+        create_results_power_point_candidates_results_slide(
+            prs, power_point_race_data=data, limit=limit
+        )
+
+    # Save the presentation to a file
+    response = save_ppt_presentation_to_file(prs, 'election_results.pptx')
+
+    return response
+
+
+def save_ppt_presentation_to_file(prs, file_name):
+    pptx_stream = BytesIO()
+    prs.save(pptx_stream)
+    pptx_stream.seek(0)
+
+    # Create an HTTP response with the PowerPoint file
+    content_type = str('application/vnd.openxmlformats-officedocument'
+                       '.presentationml.presentation')
+    response = HttpResponse(
+        pptx_stream.getvalue(),
+        content_type=content_type)
+    response['Content-Disposition'] = f'attachment; filename={file_name}'
+
+    return response
+
+
+def create_results_power_point_cover_page(prs):
+    # Set the cover page
+    slide_layout = prs.slide_layouts[0]
+    slide = prs.slides.add_slide(slide_layout)
+    background_image = 'tally_ho/apps/tally/static/images/HNEC.jpg'
+
+    # Set background image if provided
+    if background_image:
+        slide.shapes.add_picture(
+            background_image,
+            Inches(0), Inches(0),
+            prs.slide_width, prs.slide_height)
+
+    # Add election name
+    election_name = 'Election 2023'
+    election_shape =\
+        slide.shapes.add_textbox(
+            Inches(0.5), Inches(3), Inches(8), Inches(1)).text_frame
+    election_shape.text = "Name of Election: " + election_name
+    election_shape.paragraphs[0].alignment = PP_ALIGN.CENTER
+    election_shape.paragraphs[0].runs[0].font.bold = True
+
+    # Add date of creation
+    date_of_creation = date.today().strftime("%B %d, %Y")
+    date_shape =\
+        slide.shapes.add_textbox(
+            Inches(0.5), Inches(0.5), Inches(8), Inches(0.5)).text_frame
+    date_shape.text = "Date: " + date_of_creation
+    date_shape.paragraphs[0].alignment = PP_ALIGN.CENTER
+    date_shape.paragraphs[0].runs[0].font.bold = True
+
+    return
+
+
+def create_results_power_point_summary_slide(prs, power_point_race_data):
+    # Create the summary slide
+    slide_layout = prs.slide_layouts[1]
+    slide = prs.slides.add_slide(slide_layout)
+    background_image = power_point_race_data['background_image']
+    race_name = power_point_race_data['header']['race_type'].name.capitalize()
+
+    summary_slide_title =\
+        f"{race_name} Election Summary Results"
+    # Set background image if provided
+    if background_image:
+        slide.shapes.add_picture(
+            background_image,
+            Inches(0),
+            Inches(0),
+            prs.slide_width,
+            prs.slide_height)
+
+    # Add title text box for the summary slide
+    title_text_box =\
+        slide.shapes.add_textbox(
+            Inches(0.5),
+            Inches(0.5),
+            prs.slide_width - Inches(1),
+            Inches(0.5))
+    title_text_frame = title_text_box.text_frame
+
+    # Set title properties
+    title_text_frame.text = summary_slide_title
+    title_text_frame.word_wrap = True
+    title_text_frame.margin_left = 0
+    title_text_frame.margin_right = 0
+    title_text_frame.margin_top = 0
+    title_text_frame.margin_bottom = 0
+
+    # Set title font properties
+    title_text_frame.clear()  # Clear existing paragraphs
+    p = title_text_frame.add_paragraph()
+    p.text = summary_slide_title
+    p.font.bold = True
+    p.font.size = Pt(24)
+    p.alignment = PP_ALIGN.CENTER
+
+    # Create a table shape for the summary data
+    summary_table =\
+        slide.shapes.add_table(
+            rows=8, cols=2, left=Inches(0.5), top=Inches(1.7),
+            width=Inches(9), height=Inches(2)).table
+
+    # Set the column widths for the summary table
+    column_widths = [Inches(6), Inches(3)]
+    for i, width in enumerate(column_widths):
+        summary_table.columns[i].width = width
+
+    # Populate the summary table with data
+    summary_table.cell(0, 0).text = 'Name of Race'
+    summary_table.cell(0, 1).text =\
+        str(power_point_race_data['header']['race_type'].name)
+    summary_table.cell(1, 0).text = 'Stations Expected'
+    summary_table.cell(1, 1).text =\
+        f"{power_point_race_data['header']['stations_expected']:,.0f}"
+    summary_table.cell(2, 0).text = 'Stations Processed'
+    summary_table.cell(2, 1).text =\
+        str(power_point_race_data['header']['stations_processed'])
+    summary_table.cell(3, 0).text = 'Percentage of Stations Processed'
+    percentage_of_stations_processed =\
+        power_point_race_data['header']['percentage_of_stations_processed']
+    summary_table.cell(3, 1).text =\
+        f"{percentage_of_stations_processed}%"
+    summary_table.cell(4, 0).text = 'Results Status'
+    summary_table.cell(4, 1).text =\
+        power_point_race_data['header']['results_status']
+    summary_table.cell(5, 0).text = 'Registrants'
+    registrants_in_processed_stations =\
+        power_point_race_data['header']['registrants_in_processed_stations']
+    summary_table.cell(5, 1).text =\
+        f"{registrants_in_processed_stations:,.0f}"
+    summary_table.cell(6, 0).text = 'Ballots Cast'
+    summary_table.cell(6, 1).text =\
+        str(power_point_race_data['header']['voters_in_counted_stations'])
+    summary_table.cell(7, 0).text = 'Turnout'
+    summary_table.cell(7, 1).text =\
+        f"{power_point_race_data['header']['percentage_turnout']}%"
+
+    return
+
+
+def create_results_power_point_candidates_results_slide(
+        prs, power_point_race_data, limit):
+    background_image = power_point_race_data['background_image']
+    candidates = power_point_race_data['body']
+    num_candidates = len(candidates)
+    max_candidates_per_slide = 10
+    num_slides = (num_candidates - 1) // max_candidates_per_slide + 1
+    candidate_rank = 0
+    race_type_name = \
+        power_point_race_data['header']['race_type'].name.capitalize()
+
+    for slide_num in range(num_slides):
+        # Create a new candidates slide
+        slide_layout = prs.slide_layouts[1]
+        slide = prs.slides.add_slide(slide_layout)
+
+        candidates_result_slide_title =\
+            f"Showing all {race_type_name} Election Results"
+        if limit != 0:
+            candidates_result_slide_title =\
+                f"Top {limit} Leading {race_type_name} Election Results"
+        # Set background image if provided
+        if background_image:
+            slide.shapes.add_picture(
+                background_image,
+                Inches(0),
+                Inches(0),
+                prs.slide_width,
+                prs.slide_height)
+
+        # Add title text box for the candidates slide
+        title_text_box = slide.shapes.add_textbox(
+            Inches(0.5), Inches(0.5),
+            prs.slide_width - Inches(1), Inches(0.5))
+        title_text_frame = title_text_box.text_frame
+        title_text_frame.text = candidates_result_slide_title
+        title_text_frame.word_wrap = True
+
+        # Set title properties
+        title_text_frame.text = candidates_result_slide_title
+        title_text_frame.word_wrap = True
+        title_text_frame.margin_left = 0
+        title_text_frame.margin_right = 0
+        title_text_frame.margin_top = 0
+        title_text_frame.margin_bottom = 0
+
+        # Set title font properties
+        title_text_frame.clear()  # Clear existing paragraphs
+        p = title_text_frame.add_paragraph()
+        p.text = candidates_result_slide_title
+        p.font.bold = True
+        p.font.size = Pt(24)
+        p.alignment = PP_ALIGN.CENTER
+
+        # Calculate the number of candidates for the current slide
+        start_index = slide_num * max_candidates_per_slide
+        end_index = start_index + max_candidates_per_slide
+        candidates_slice = candidates[start_index:end_index]
+
+        # Create a table shape for the candidates data
+        candidates_table =\
+            slide.shapes.add_table(
+                rows=len(candidates_slice) + 1, cols=5, left=Inches(0.5),
+                top=Inches(1.7), width=Inches(9), height=Inches(2)).table
+
+        # Set the column widths for the candidates table
+        column_widths =\
+            [Inches(1), Inches(3), Inches(1.5), Inches(1.5), Inches(2)]
+        for i, width in enumerate(column_widths):
+            candidates_table.columns[i].width = width
+
+        # Populate the candidates table with data
+        candidates_table.cell(0, 0).text = 'Rank'
+        candidates_table.cell(0, 1).text = 'Name'
+        candidates_table.cell(0, 2).text = 'Votes'
+        candidates_table.cell(0, 3).text = 'Total Votes'
+        candidates_table.cell(0, 4).text = '% Valid Votes'
+
+        for i, candidate in enumerate(candidates_slice):
+            candidate_rank = candidate_rank + 1
+            candidates_table.cell(i + 1, 0).text =\
+                str(candidate_rank)
+            candidates_table.cell(i + 1, 1).text =\
+                candidate['candidate_name']
+            candidates_table.cell(i + 1, 2).text =\
+                str(candidate['total_votes'])
+            candidates_table.cell(i + 1, 3).text =\
+                str(candidate['valid_votes'])
+            candidates_table.cell(i + 1, 4).text =\
+                str(
+                round(
+                100 * candidate['total_votes'] / candidate['valid_votes'], 2))
+
+    return
+
+def create_results_power_point_headers(tally_id, race_types):
+    default_race_types = [race_type for race_type in RaceType]
+    race_data_by_race_names =\
+        {race_type.name: {'race_type': race_type}\
+            for race_type in race_types or default_race_types}
+    # Calculate voters in counted stations and turnout percentage
+    for race_name in race_data_by_race_names.keys():
+        race_type_obj = race_data_by_race_names.get(race_name)
+        race_type = race_type_obj.get('race_type')
+        # Calculate voters in counted stations
+        qs =\
+            Station.objects.filter(
+                tally_id=tally_id,
+                center__resultform__ballot__race_type=race_type,
+            )
+        race_type_obj['stations_expected'] =\
+            qs.distinct('station_number', 'center', 'tally').count()
+
+        station_ids_by_races = qs.filter(
+            center__resultform__form_state=FormState.ARCHIVED,
+        ).annotate(
+            race=F('center__resultform__ballot__race_type')
+        ).values('id').annotate(
+            races=ArrayAgg('race', distinct=True),
+            number=F('station_number'),
+            num_registrants=F('registrants')
+        )
+        voters = 0
+        stations_processed = 0
+        registrants_in_processed_stations = 0
+        for station in station_ids_by_races:
+            # Calculate stations processed and total registrants
+            form_states =\
+                ResultForm.objects.filter(
+                    tally__id=tally_id,
+                    center__resultform__ballot__race_type=race_type,
+                    center__stations__id=station.get('id'),
+                    station_number=station.get('number'),
+                    ).values_list('form_state', flat=True).distinct()
+            if form_states.count() == 1 and\
+                form_states[0] == FormState.ARCHIVED:
+                stations_processed += 1
+                registrants_in_processed_stations +=\
+                    station.get('num_registrants')
+
+            # Calculate voters voted in processed stations
+            votes =\
+                Result.objects.filter(
+                    result_form__tally__id=tally_id,
+                    result_form__ballot__race_type=race_type,
+                    result_form__center__stations__id=station.get('id'),
+                    result_form__station_number=station.get('number'),
+                    result_form__ballot__race_type__in=station.get('races'),
+                    entry_version=EntryVersion.FINAL,
+                    active=True,
+                    ).annotate(
+                        race=F('result_form__ballot__race_type')
+                    ).values('race').annotate(
+                        race_voters=Sum('votes')
+                    ).order_by(
+                        '-race_voters'
+                    ).values(
+                        'race_voters'
+                    )
+            if votes.count() != 0:
+                voters += votes[0].get('race_voters')
+
+        # Calculate turnout percentage
+        race_type_obj['voters_in_counted_stations'] = voters
+        race_type_obj['stations_processed'] = stations_processed
+        race_type_obj['registrants_in_processed_stations'] =\
+            registrants_in_processed_stations
+        if stations_processed == 0:
+            race_type_obj['percentage_progress'] = 0
+            race_type_obj['percentage_turnout'] = 0
+            continue
+
+        race_type_obj['percentage_of_stations_processed'] =\
+            round(
+            100 * stations_processed / race_type_obj['stations_expected'], 2)
+        race_type_obj['results_status'] =\
+            'Final' if race_type_obj['percentage_of_stations_processed']\
+                >= 100.0 else 'Partial'
+        race_type_obj['percentage_turnout'] =\
+            round(100 * voters / registrants_in_processed_stations, 2)
+
+    return race_data_by_race_names
 
 
 def get_results(request):
@@ -3367,6 +3860,9 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
 
     def render_column(self, row, column):
         if column in self.columns:
+            if column in ['race_type', 'gender']:
+                return str('<td class="center">'
+                       f'{row[column].name}</td>')
             return str('<td class="center">'
                        f'{row[column]}</td>')
         else:
@@ -3385,6 +3881,36 @@ class ResultFormResultsListView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         stations, centers = build_station_and_centers_list(tally_id)
         race_types = list(RaceType)
+        ballot_status = [
+            {
+                'name': 'Available For Release',
+                'value': 'available_for_release'
+            },
+            {
+                'name': 'Not Available For Release',
+                'value': 'not_available_for_release'
+            }
+        ]
+        station_status = [
+            {
+                'name': 'Active',
+                'value': 'active'
+            },
+            {
+                'name': 'In Active',
+                'value': 'inactive'
+            }
+        ]
+        candidate_status = [
+            {
+                'name': 'Active',
+                'value': 'active'
+            },
+            {
+                'name': 'In Active',
+                'value': 'inactive'
+            }
+        ]
         language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
@@ -3393,10 +3919,14 @@ class ResultFormResultsListView(LoginRequiredMixin,
             stations=stations,
             centers=centers,
             race_types=race_types,
+            ballot_status=ballot_status,
+            station_status=station_status,
+            candidate_status=candidate_status,
             get_centers_stations_url='/ajax/get-centers-stations/',
-            # TODO - do we need to do this for the turn out report
+            get_export_url='/ajax/get-export/',
             results_download_url='/ajax/download-results/',
-            languageDE=language_de
+            languageDE=language_de,
+            deployedSiteUrl=get_deployed_site_url()
         ))
 
 
@@ -3488,6 +4018,7 @@ class DuplicateResultsListView(LoginRequiredMixin,
             stations=stations,
             centers=centers,
             get_centers_stations_url='/ajax/get-centers-stations/',
+            get_export_url='/ajax/get-export/',
             languageDE=language_de,
         ))
 
@@ -3584,6 +4115,7 @@ class AllCandidatesVotesListView(LoginRequiredMixin,
             title=_(u'All Candidates Votes'),
             export_file_name=_(u'all_candidates_votes'),
             get_centers_stations_url='/ajax/get-centers-stations/',
+            get_export_url='/ajax/get-export/',
             languageDE=language_de,
         ))
 
@@ -3682,5 +4214,6 @@ class ActiveCandidatesVotesListView(LoginRequiredMixin,
             title=_(u'Active Candidates Votes'),
             export_file_name=_(u'active_candidates_votes'),
             get_centers_stations_url='/ajax/get-centers-stations/',
+            get_export_url='/ajax/get-export/',
             languageDE=language_de,
         ))

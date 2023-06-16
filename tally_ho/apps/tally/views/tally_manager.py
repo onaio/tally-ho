@@ -9,7 +9,7 @@ from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ngettext
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -255,11 +255,11 @@ def process_batch_step(current_step, offset, file_map, tally):
 
     if current_step == 4:
         ballots_order_file = open(
-            UPLOADED_FILES_PATH + file_map['ballots_order_file'], 'rU')
+            UPLOADED_FILES_PATH + file_map['ballots_order_file'], 'r')
 
     return import_rows_batch(
         tally,
-        open(UPLOADED_FILES_PATH + file_map[file_name], 'rU'),
+        open(UPLOADED_FILES_PATH + file_map[file_name], 'r'),
         int(file_map[file_lines]),
         offset,
         process_function,

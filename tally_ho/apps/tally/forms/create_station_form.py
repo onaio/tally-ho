@@ -5,7 +5,7 @@ from django.forms import (
     ModelChoiceField,
     ValidationError
 )
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency

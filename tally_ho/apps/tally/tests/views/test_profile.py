@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.test import RequestFactory
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.serializers.json import json, DjangoJSONEncoder
@@ -43,7 +44,7 @@ class TestProfile(TestBase):
         request = self.factory.get(data_entry_url)
         request.user = self.user
         # Adding session
-        middleware = SessionMiddleware()
+        middleware = SessionMiddleware(HttpResponse)
         middleware.process_request(request)
         request.session.save()
         request.session['encoded_result_form_data_entry_start_time'] =\

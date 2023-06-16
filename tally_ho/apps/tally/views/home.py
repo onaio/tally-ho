@@ -25,15 +25,15 @@ GROUP_URLS = {
 }
 
 
-def permission_denied(request):
+def permission_denied(request, exception):
     return render(request, 'errors/403.html')
 
 
-def not_found(request):
+def not_found(request, exception):
     return render(request, 'errors/404.html')
 
 
-def bad_request(request):
+def bad_request(request, exception):
     return render(request, 'errors/400.html')
 
 

@@ -13,12 +13,12 @@ from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.apps.tally.views.reports import (
     administrative_areas_reports as admin_reports,
     )
-from tally_ho.libs.tests.test_base import (
-    create_result_form,
-    create_station, create_reconciliation_form, create_tally,
-    create_region, create_constituency, create_office, create_result,
-    create_candidates, TestBase
-    )
+from tally_ho.libs.tests.test_base import create_result_form,\
+    create_station, create_reconciliation_form, create_tally,\
+    create_region, create_constituency, create_office, create_result,\
+    create_candidates, TestBase, create_ballot
+from tally_ho.libs.models.enums.race_type import RaceType
+
 
 
 class TestAdministrativeAreasReports(TestBase):
@@ -238,3 +238,87 @@ class TestAdministrativeAreasReports(TestBase):
             num_candidates,
             '<td class="center">{}</td>'.format(
                 candidates_count))
+
+    def apply_filter(self, data):
+        view = admin_reports.ResultFormResultsListDataView.as_view()
+        request = self.factory.post('/form-results', data=data)
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+        )
+        return response
+
+    def test_result_form_result_list_data_view_filters(self):
+        """
+        Test ResultFormResultsListDataView filters
+        """
+        # test race type filter
+        data = {'data': '{"race_type_names": ["PRESIDENTIAL"]}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
+        ballot = create_ballot()
+        ballot.race_type = RaceType.PRESIDENTIAL
+        ballot.save()
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
+
+        # test center filter
+        data = {'data': '{"select_1_ids": ["-1"]}'}  # non existent id
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
+        center_id = self.station.center.id
+        data = {'data': '{"select_1_ids": ' + f'["{center_id}"]' + '}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
+
+        # test stations filter
+        data = {'data': '{"select_2_ids": ["-1"]}'}  # non existent id
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
+        station_id = self.station.id
+        data = {'data': '{"select_2_ids": ' + f'["{station_id}"]' + '}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
+
+        # test ballot status filter
+        data = {'data': '{"ballot_status": ["not_available_for_release"]}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
+        data = {'data': '{"ballot_status": ["available_for_release"]}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
+
+        # test station filter
+        data = {'data': '{"station_status": ["active"]}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
+        data = {'data': '{"station_status": ["inactive"]}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
+
+        # test candidate status
+        data = {'data': '{"candidate_status": ["active"]}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)
+        data = {'data': '{"candidate_status": ["inactive"]}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 0)
+
+        # test station percentage processed
+        data = {'data': '{"percentage_processed": "10"}'}
+        response = self.apply_filter(data)
+        self.assertEquals(
+            len(json.loads(response.content.decode())['data']), 2)

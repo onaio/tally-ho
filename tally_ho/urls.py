@@ -449,9 +449,15 @@ urlpatterns = [
     re_path(r'^ajax/get-centers-stations/$',
             administrative_areas_reports.get_centers_stations,
             name='get-centers-stations'),
+
     re_path(r'^ajax/get_sub_and_constituencies/$',
             administrative_areas_reports.get_sub_and_constituencies,
             name='get_sub_and_constituencies'),
+
+    re_path(r'^ajax/get-export/$',
+            administrative_areas_reports.get_export,
+            name='get-export'),
+
     re_path(r'^ajax/download-results/$',
             administrative_areas_reports.get_results,
             name='download-results'),
@@ -946,8 +952,4 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    import debug_toolbar
-
-    urlpatterns += [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ]
+    urlpatterns += [path("__debug__/", include("debug_toolbar.urls"))]

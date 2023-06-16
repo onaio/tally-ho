@@ -3,9 +3,11 @@ from tally_ho.apps.tally.models.result_form import \
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.entry_version import EntryVersion
-from tally_ho.libs.tests.test_base import create_reconciliation_form,\
-    create_result_form, create_result, create_candidates, create_audit,\
+from tally_ho.libs.tests.test_base import (
+    create_reconciliation_form,
+    create_result_form, create_result, create_candidates, create_audit,
     TestBase
+    )
 
 
 class TestResultForm(TestBase):
@@ -17,11 +19,13 @@ class TestResultForm(TestBase):
         result_form = create_result_form()
         quality_control = QualityControl.objects.create(
             result_form=result_form,
-            user=self.user)
+            user=self.user
+            )
         QualityControl.objects.create(
             result_form=result_form,
             user=self.user,
-            active=False)
+            active=False
+            )
 
         self.assertEqual(result_form.qualitycontrol, quality_control)
 
@@ -39,8 +43,10 @@ class TestResultForm(TestBase):
         """Test sanity checks for final results"""
         votes = 12
         result_form = create_result_form()
-        create_candidates(result_form, votes=votes, user=self.user,
-                          num_results=1)
+        create_candidates(
+            result_form, votes=votes, user=self.user,
+            num_results=1
+            )
         for result in result_form.results.all():
             result.entry_version = EntryVersion.FINAL
             result.save()
@@ -57,10 +63,11 @@ class TestResultForm(TestBase):
             user=self.user,
             name='1',
             method='1',
-            value=1)
+            value=1
+            )
         audit = create_audit(result_form, self.user)
         audit.quarantine_checks.add(quarantine_check)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             result_form.audit_quaritine_checks,
-            map(repr, audit.quarantine_checks.all().values('name'))
-        )
+            audit.quarantine_checks.all().values('name')
+            )

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <style type="text/css">
+        .table {
+                width: 100%;
+                margin-bottom: 1rem;
+                background-color: transparent;
+                border-collapse: collapse;
+            }
+        table {
+            border-collapse: collapse;
+            text-indent: initial;
+            border-spacing: 2px;
+        }
+        thead {
+            display: table-header-group;
+            vertical-align: middle;
+            border-color: inherit;
+        }
+        tr {
+            display: table-row;
+            vertical-align: inherit;
+            border-color: inherit;
+        }
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .table td, .table th {
+            padding: 0.75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+        tbody {
+            display: table-row-group;
+            vertical-align: middle;
+            border-color: inherit;
+        }
+        .table td, .table th {
+            padding: 0.75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+        .header {
+            font-size: 20px;
+            font-weight: 100;
+            text-align: center;
+            color: #007cae;
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 100;
+            /* text-align: right;*/
+            padding: 10px 20px 0px 20px;
+        }
+
+        .title span {
+            color: #007cae;
+        }
+
+        .details {
+            padding: 10px 20px 0px 20px;
+            text-align: right !important;
+            /*margin-left: 40%;*/
+        }
+
+        .hrItem {
+            border: none;
+            height: 1px;
+            /* Set the hr color */
+            color: #333;
+            /* old IE */
+            background-color: #fff;
+            /* Modern Browsers */
+        }
+        @font-face {font-family: RTLFont; src: url('C:/home/lincoln/Downloads/Markazi_Text/MarkaziText-VariableFont_wght.ttf')}
+
+        body {
+            font-weight: 200;
+            font-size: 14px;
+            font-family: RTLFont;
+        }
+        </style>
+    </head>
+<body>
+<pdf:language name="arabic"/>
+<h1>Form Results Export</h1>
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">{{ 'Candidate Name' }}</th>
+        <th scope="col">{{ 'Total Votes' }}</th>
+        <th scope="col">{{ 'Invalid Ballots' }}</th>
+        <th scope="col">{{ 'Valid Votes' }}</th>
+        <th scope="col">{{ 'Registrants' }}</th>
+        <th scope="col">{{ 'Race Number' }}</th>
+      </tr>
+  </thead>
+    <tbody>
+    {% for item in data %}
+    <tr>
+        <pdf:language name="arabic"/>
+      <td scope="row">{{ item.candidate_name }}</td>
+      <td scope="row">{{ item.total_votes }}</td>
+      <td scope="row">{{ item.invalid_votes }}</td>
+      <td scope="row">{{ item.valid_votes }}</td>
+      <td scope="row">{{ item.number_registrants }}</td>
+      <td scope="row">{{ item.race_number }}</td>
+    </tr>
+{% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

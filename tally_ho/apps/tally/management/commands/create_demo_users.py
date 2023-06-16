@@ -2,7 +2,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import IntegrityError
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions.groups import GROUPS
@@ -50,7 +50,7 @@ def create_demo_users_with_groups(force=False, password='data'):
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy("Create demo users with roles/groups.")
+    help = gettext_lazy("Create demo users with roles/groups.")
 
     def add_arguments(self, parser):
         parser.add_argument(

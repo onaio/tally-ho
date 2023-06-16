@@ -134,6 +134,7 @@ class CenterListView(LoginRequiredMixin,
                 'center__code': 'center code',
             }
 
+
             return render_to_csv_response(station_list,
                                           filename='centers_and_station',
                                           append_datestamp=True,

@@ -21,6 +21,7 @@ DEBUG = False
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 INTERNAL_IPS = ["127.0.0.1"]
 
+DEPLOYED_SITE_NAME = "127.0.0.1"
 
 # Application definition
 
@@ -32,7 +33,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'django_nose',
     'guardian',
     'reversion',
     'tally_ho.apps.tally',
@@ -68,7 +68,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'tally',
         'USER': 'postgres',
-        'PASSWORD': 'tally',
+        'PASSWORD': 'postgres',
         'HOST': '127.0.0.1',
     }
 }
@@ -127,14 +127,7 @@ TEMPLATES = [
     },
 ]
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
 SITE_ID = 1
-
-NOSE_ARGS = [
-    '--logging-level=INFO',
-    '--exclude=performance-tests',
-]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -178,6 +171,8 @@ SESSION_VARS = [
     'encoded_result_form_audit_start_time',
     'encoded_result_form_qa_control_start_time',
 ]
+
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 # Quaritine trigger data
 QUARANTINE_DATA = [

@@ -1,7 +1,7 @@
 import json
 
 from django.db.models import Q, Subquery, OuterRef, IntegerField, F
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from django.urls import reverse
 from django.http import JsonResponse

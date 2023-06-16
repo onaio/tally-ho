@@ -1,4 +1,3 @@
-import six
 import json
 
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
@@ -38,7 +37,7 @@ class GroupRequiredMixin(object):
     group_required = None
 
     def get_group_required(self):
-        required_types = (list, tuple) + six.string_types
+        required_types = (list, tuple, str)
 
         if self.group_required is None or not isinstance(
                 self.group_required, required_types):

@@ -2,7 +2,7 @@ from random import randint
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -11,7 +11,7 @@ from tally_ho.libs.models.enums.form_state import FormState
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy("Create fake results for each result form.")
+    help = gettext_lazy("Create fake results for each result form.")
 
     def handle(self, *args, **kwargs):
         self.fill_all_results()

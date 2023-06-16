@@ -1,5 +1,5 @@
 from django import forms
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.tally import Tally

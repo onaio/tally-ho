@@ -5,7 +5,7 @@ from django.db import transaction
 from django.forms import ValidationError
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.views.generic import FormView, TemplateView
 from guardian.mixins import LoginRequiredMixin

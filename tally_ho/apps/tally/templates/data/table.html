@@ -1,10 +1,13 @@
-{% load i18n staticfiles %}
-<script src="{% static "js/jquery-1.11.0.min.js" %}"></script>
+{% load i18n static %}
+<script src="{% static "js/jquery-3.6.0.min.js" %}"></script>
 <script src="{% static "js/popper.min.js" %}"></script>
 <script src="{% static "js/bootstrap.min.js" %}"></script>
 <script src="{% static "js/jquery.dataTables.min.js" %}"></script>
+<script src="{% static "pdfmake/pdfmake.min.js" %}"></script>
+<script src="{% static "pdfmake/vfs_fonts.js" %}"></script>
 <script src="{% static "js/dataTables.responsive.min.js" %}"></script>
 <script src="{% static "js/dataTables.buttons.min.js" %}"></script>
+<script src="{% static "js/buttons.colVis.min.js" %}"></script>
 <script src="{% static "js/buttons.html5.min.js" %}"></script>
 <script src="{% static "js/dataTables.select.min.js" %}"></script>
 <script src="{% static "js/data_table.js" %}"></script>
@@ -25,6 +28,8 @@
     const officesDownloadUrl = '{{ offices_list_download_url }}';
     const getCentersStationsUrl = '{{ get_centers_stations_url }}';
     const getSubAndConstituenciesUrl = '{{get_sub_and_constituencies_url}}';
+    const getExportUrl = '{{ get_export_url }}';
+    const getSubAndConstituenciesUrl = '{{get_sub_and_constituencies_url}}';
     const resultsDownloadUrl = '{{ results_download_url }}';
     const resultFormsDownloadUrl = '{{ result_forms_download_url }}';
     const centersAndStationsDownloadUrl = '{{ centers_and_stations_list_download_url }}';
@@ -32,6 +37,11 @@
     const exportFileName = '{{ export_file_name }}';
     const serverSide = '{{ server_side }}' ? $.parseJSON('{{ server_side }}'.toLowerCase()) : true;
     const LIST_JSON_URL = '{{ remote_url }}';
+    const deployedSiteUrl = '{{ deployedSiteUrl }}';
+    const arialNormal = `${deployedSiteUrl}/static/pdfmake/ARIAL.TTF`;
+    const arialBold = `${deployedSiteUrl}/static/pdfmake/ARIALBD.TTF`;
+    const arialItalics = `${deployedSiteUrl}/static/pdfmake/ARIALI.TTF`;
+    const arialBItalics = `${deployedSiteUrl}/static/pdfmake/ARIALBI.TTF`;
     // translations for datatables
     const dt_language = {{ languageDE|safe }};;
 
