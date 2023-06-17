@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load i18n staticfiles %}
+{% load i18n static %}
 
 {% block styles %}
 {{ block.super }}
@@ -8,7 +8,6 @@
 <link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
-<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
 {% endblock %}
 
 {% block javascript %}
@@ -48,7 +47,7 @@ $(document).ready(() => {
     dt.ajax.reload();
   };
 
-    $('#regions-turnout-report').DataTable({
+    $('#turnout-report-table').DataTable({
       language: dt_language, // global variable defined in html
       order: [[0, "desc"]],
       lengthMenu: [
@@ -67,42 +66,43 @@ $(document).ready(() => {
       processing: true,
       serverSide: true,
       stateSave: true,
-      ajax: {
-        url: regions_turnout_report_url,
-        dataSrc: (json) => {
-          return json.data.slice(0, 10)
-        },
-        dataType: 'json',
-        data: (d) => {
-          for (let i = 0; i < d.columns.length - 1; i++) {
-            d[`columns[${i}][data]`] = d.columns[i].data
-            d[`columns[${i}][name]`] = d.columns[i].name
-            d[`columns[${i}][searchable]`] = d.columns[i].searchable
-            d[`columns[${i}][search][value]`] = d.columns[i].search.value
-            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
-            d[`columns[${i}][data]`] = d.columns[i].data
-          }
-          d['order[0][column]'] = d.columns[d.order[0].column].data;
-          d['order[0][dir]'] = d.order[0].dir;
-          d['search[value]'] = d.search.value;
-          d['search[regex]'] = d.search.regex;
-          d['columns'] = d.columns;
-          d['order'] = d.order;
-          d['draw'] = d.draw;
-          d['start'] = d.start;
-          d['length'] = d.length;
-          d.data = JSON.stringify([])
-        },
-      },
-      columns: [
-            { "data": "region_name" },
-            { "data": "stations_expected" },
-            { "data": "stations_processed" },
-            { "data": "percentage_progress" },
-            { "data": "registrants_in_processed_stations" },
-            { "data": "voters_in_counted_stations" },
-            { "data": "percentage_turnout" }
-      ],
+      ajax: '{{ remote_url }}',
+<!--      ajax: {-->
+<!--        url: LIST_JSON_URL,-->
+<!--        dataSrc: (json) => {-->
+<!--          return json.data.slice(0, 10)-->
+<!--        },-->
+<!--        dataType: 'json',-->
+<!--        data: (d) => {-->
+<!--          for (let i = 0; i < d.columns.length - 1; i++) {-->
+<!--            d[`columns[${i}][data]`] = d.columns[i].data-->
+<!--            d[`columns[${i}][name]`] = d.columns[i].name-->
+<!--            d[`columns[${i}][searchable]`] = d.columns[i].searchable-->
+<!--            d[`columns[${i}][search][value]`] = d.columns[i].search.value-->
+<!--            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex-->
+<!--            d[`columns[${i}][data]`] = d.columns[i].data-->
+<!--          }-->
+<!--          d['order[0][column]'] = d.columns[d.order[0].column].data;-->
+<!--          d['order[0][dir]'] = d.order[0].dir;-->
+<!--          d['search[value]'] = d.search.value;-->
+<!--          d['search[regex]'] = d.search.regex;-->
+<!--          d['columns'] = d.columns;-->
+<!--          d['order'] = d.order;-->
+<!--          d['draw'] = d.draw;-->
+<!--          d['start'] = d.start;-->
+<!--          d['length'] = d.length;-->
+<!--          d.data = JSON.stringify([])-->
+<!--        },-->
+<!--      },-->
+<!--      columns: [-->
+<!--            { "data": "region_name" },-->
+<!--            { "data": "stations_expected" },-->
+<!--            { "data": "stations_processed" },-->
+<!--            { "data": "percentage_progress" },-->
+<!--            { "data": "registrants_in_processed_stations" },-->
+<!--            { "data": "voters_in_counted_stations" },-->
+<!--            { "data": "percentage_turnout" }-->
+<!--      ],-->
       dom:
         "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
         "<'row'<'col-sm-12'tr>>" +
@@ -120,128 +120,59 @@ $(document).ready(() => {
       responsive: true,
       });
 
-    $('#offices-turnout-report').DataTable({
-      language: dt_language, // global variable defined in html
-      order: [[0, "desc"]],
-      lengthMenu: [
-        [10, 25, 50, 100, 500, -1],
-        [10, 25, 50, 100, 500, 'Show all'],
-      ],
-      columnDefs: [
-        {
-          orderable: true,
-          searchable: true,
-          className: "center",
-          targets: [0, 1],
-        },
-      ],
-      searching: false,
-      processing: true,
-      serverSide: true,
-      stateSave: true,
-      ajax: {
-        url: offices_turnout_report_url,
-        dataSrc: (json) => {
-          return json.data.slice(0, 10)
-        },
-        dataType: 'json',
-        data: (d) => {
-          for (let i = 0; i < d.columns.length - 1; i++) {
-            d[`columns[${i}][data]`] = d.columns[i].data
-            d[`columns[${i}][name]`] = d.columns[i].name
-            d[`columns[${i}][searchable]`] = d.columns[i].searchable
-            d[`columns[${i}][search][value]`] = d.columns[i].search.value
-            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
-            d[`columns[${i}][data]`] = d.columns[i].data
-          }
-          d['order[0][column]'] = d.columns[d.order[0].column].data;
-          d['order[0][dir]'] = d.order[0].dir;
-          d['search[value]'] = d.search.value;
-          d['search[regex]'] = d.search.regex;
-          d['columns'] = d.columns;
-          d['order'] = d.order;
-          d['draw'] = d.draw;
-          d['start'] = d.start;
-          d['length'] = d.length;
-          d.data = JSON.stringify([])
-        },
-      },
-      columns: [
-            { "data": "office_name" },
-            { "data": "stations_expected" },
-            { "data": "stations_processed" },
-            { "data": "percentage_progress" },
-            { "data": "registrants_in_processed_stations" },
-            { "data": "voters_in_counted_stations" },
-            { "data": "percentage_turnout" }
-      ],
-      dom:
-        "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
-        "<'row'<'col-sm-12'tr>>" +
-        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
-      buttons: [
-        {
-          extend: "csv",
-          filename: 'offices_turnout_report.csv',
-          action: exportAction,
-          exportOptions: {
-            columns: ':visible :not(.hide-from-export)',
-          },
-        },
-      ],
-      responsive: true,
-      });
 });
+
+
+
 </script>
 {% endblock %}
 {% block content %}
 
 <h1>{% trans 'Turnout Report' %}</h1>
 <br>
-<ul class="nav nav-tabs" role="tablist">
-    <li class="nav-item">
-        <a class="nav-link active" data-toggle="tab" href="#table1">Regions Turn Out Report</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#table2">Offices Progress Report</a>
-    </li>
+
+
+<!-- TODO mark strings as translateable-->
+<ul class="nav nav-tabs">
+    <li role="presentation" class="{% if admin_level == 'region' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'region' %}">Regions</a></li>
+    <li role="presentation" class="{% if admin_level == 'office' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'office' %}">Offices</a></li>
+    <li role="presentation" class="{% if admin_level == 'constituency' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'constituency' %}">Constituencies</a></li>
+    <li role="presentation" class="{% if admin_level == 'sub_constituency' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'sub_constituency' %}">Sub Constituencies</a></li>
 </ul>
 
-<!-- Tab panes -->
-<div class="tab-content" style="margin-top: 1em;">
-    <div id="table1" class="tab-pane show active">
-        <table id="regions-turnout-report" class="display" style="width:100%">
-            <thead>
-              <tr>
-                  <th>{% trans 'Regions' %}</th>
-                  <th>{% trans 'Stations Expected' %}</th>
-                  <th>{% trans 'Stations Included' %}</th>
-                  <th>{% trans '% Progress' %}</th>
-                  <th>{% trans 'Registrants in Counted Stations' %}</th>
-                  <th>{% trans 'Voters in Counted Stations' %}</th>
-                  <th>{% trans 'Turnout percentage' %}</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-    <div id="table2" class="tab-pane">
-        <table id="offices-turnout-report" class="display" style="width:100%">
-          <thead>
-              <tr>
-                  <th>{% trans 'Office' %}</th>
-                  <th>{% trans 'Stations Expected' %}</th>
-                  <th>{% trans 'Stations Processed' %}</th>
-                  <th>{% trans '% Progress' %}</th>
-                  <th>{% trans 'Registrants in Counted Stations' %}</th>
-                  <th>{% trans 'Voters in Counted Stations' %}</th>
-                  <th>{% trans 'Turnout percentage' %}</th>
-              </tr>
-          </thead>
-          <tbody></tbody>
-      </table>
-    </div>
+<style>
+    .py-2{
+        padding: 16px 0;
+    }
+
+</style>
+
+<div class="py-2">
+    <table class="display" id="turnout-report-table">
+        <!--    {% include "reports/admin_area_filters.html" %}-->
+        <thead>
+        <tr>
+            {% if admin_level == "region" %}
+            <th>{% trans 'Regions' %}</th>
+            {% elif admin_level == "office" %}
+            <th>{% trans 'Regions' %}</th>
+            {% elif admin_level == "constituency" %}
+            <th>{% trans 'Constituency' %}</th>
+            {% elif admin_level == "sub_constituency" %}
+            <th>{% trans 'Sub constituency' %}</th>
+            {% endif %}
+            <th>{% trans 'Stations Expected' %}</th>
+            <th>{% trans 'Stations Included' %}</th>
+            <th>{% trans '% Progress' %}</th>
+            <th>{% trans 'Registrants in Counted Stations' %}</th>
+            <th>{% trans 'Voters in Counted Stations' %}</th>
+            <th>{% trans 'Turnout percentage' %}</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+    </table>
 </div>
 
-</div>
+
 {% endblock %}
