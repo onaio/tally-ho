@@ -37,6 +37,10 @@ from tally_ho.apps.tally.views.reports import station_progress_report
 from tally_ho.apps.tally.views.reports import candidate_list_by_votes
 from tally_ho.apps.tally.views.reports import overall_votes
 from tally_ho.apps.tally.views.reports import votes_per_candidate
+from tally_ho.apps.tally.views.reports.turnout_reports_by_admin_areas import (
+    turn_out_report_by_admin_levels_data,
+    turn_out_report_by_admin_levels
+    )
 
 admin.autodiscover()
 
@@ -85,9 +89,14 @@ urlpatterns = [
 #     re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/$',
 #             administrative_areas_reports.TurnOutReportView.as_view(),
 #             name='turnout-list'),
-    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/$',
-            administrative_areas_reports.turn_out_report,
+    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/(?:(?P<admin_level>\w+)/)?$',
+            turn_out_report_by_admin_levels,
             name='turnout-list'),
+    re_path(
+        r'^data/turnout-list-data/(?P<tally_id>(\d+))/(?:(?P<admin_level>\w+)/)?$',
+        turn_out_report_by_admin_levels_data,
+        name='turnout-list-data'
+        ),
 
     re_path(r'^data/summary-list/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.SummaryReportView.as_view(),
@@ -923,12 +932,7 @@ urlpatterns = [
 #     re_path(r'^data/office-list-data/(?P<tally_id>(\d+))/$',
 #             office_list_view.OfficeListDataView.as_view(),
 #             name='office-list-data'),
-    re_path(r'^data/offices-turnout-report/(?P<tally_id>(\d+))/$',
-            administrative_areas_reports.offices_turnout_report_view,
-            name='offices-turnout-report'),
-    re_path(r'^data/regions-turout-report/(?P<tally_id>(\d+))/$',
-            administrative_areas_reports.regions_turnout_report_view,
-            name='regions-turout-report'),
+
     re_path(r'^ajax/download-offices-list/$',
             office_list_view.get_offices_list,
             name='download-offices-list'),
