@@ -111,7 +111,7 @@ def turn_out_report_by_admin_levels_data(request, **kwargs):
     tally_id = kwargs.get('tally_id')
     admin_level = kwargs.get('admin_level')
 
-    # TODO - dealing with unrecognizable admin area.
+    # TODO - dealing with unknown admin_levels as an edgecase.
 
     # get administrative areas # TODO - can search for the admin area here.
     admin_areas_qs = get_regions(tally_id)
