@@ -86,9 +86,6 @@ urlpatterns = [
             center_list_view.get_centers_stations_list,
             name='download-centers-and-stations-list'),
 
-#     re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/$',
-#             administrative_areas_reports.TurnOutReportView.as_view(),
-#             name='turnout-list'),
     re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/(?:(?P<admin_level>\w+)/)?$',
             turn_out_report_by_admin_levels,
             name='turnout-list'),
@@ -458,10 +455,6 @@ urlpatterns = [
     re_path(r'^ajax/get-centers-stations/$',
             administrative_areas_reports.get_centers_stations,
             name='get-centers-stations'),
-
-    re_path(r'^ajax/get_sub_and_constituencies/$',
-            administrative_areas_reports.get_sub_and_constituencies,
-            name='get_sub_and_constituencies'),
 
     re_path(r'^ajax/get-export/$',
             administrative_areas_reports.get_export,
@@ -929,9 +922,9 @@ urlpatterns = [
     re_path(r'^data/office-list/(?P<tally_id>(\d+))/$',
             office_list_view.OfficeListView.as_view(),
             name='office-list'),
-#     re_path(r'^data/office-list-data/(?P<tally_id>(\d+))/$',
-#             office_list_view.OfficeListDataView.as_view(),
-#             name='office-list-data'),
+    re_path(r'^data/office-list-data/(?P<tally_id>(\d+))/$',
+            office_list_view.OfficeListDataView.as_view(),
+            name='office-list-data'),
 
     re_path(r'^ajax/download-offices-list/$',
             office_list_view.get_offices_list,
