@@ -521,6 +521,7 @@ def build_recon_form_sub_query(ballots_column, tally_id):
         Subquery(
             ReconciliationForm.objects.filter(
                 result_form__tally__id=tally_id,
+                active=True,
                 result_form__ballot__candidates__id=OuterRef(
                     'candidate_id'),
                 entry_version=EntryVersion.FINAL,
