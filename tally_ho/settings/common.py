@@ -174,6 +174,24 @@ SESSION_VARS = [
 
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
+
+# Celery settings
+## use True for testing and False when you use rabbitMQ and celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_CACHE_BACKEND = 'memcached'
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 2
+CELERY_RESULT_BACKEND = "cache+memcached://127.0.0.1:11211/"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = 'Africa/Nairobi'
+CELERY_ROUTES = {
+    'tally_ho.apps.tally.management.commands.import_data.*': {
+        'queue': 'tally_data_import',
+    }
+}
+
 # Quaritine trigger data
 QUARANTINE_DATA = [
     {'name': 'Trigger 1 - Guard against overvoting',
