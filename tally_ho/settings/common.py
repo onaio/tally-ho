@@ -370,12 +370,14 @@ SUB_CONSTITUENCY_COD_COL_NAME_IN_SUB_CON_BALLOTS_FILE = 'sub_constituency_code'
 
 BALLOT_NUMBER_COL_NAME_IN_SUB_CON_BALLOTS_FILE = 'ballot_number'
 
+BALLOT_COLUMN_NAMES = ['election_level', 'sub_type', 'number']
+
 SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
                                  'number_of_ballots',
                                  'sub_constituency_name',
-                                 'constituency_name',]
+                                 'constituency_name']
 
-# Maps sub constituency file columns names to Sub Constituency Model fields
+# Maps sub constituency file columns names to SubConstituency Model fields
 SUB_CON_FILE_COLS_NAMES_TO_SUB_CON_MODEL_FIELDS =\
 {
     'sub_constituency_code' : 'code',
@@ -384,13 +386,63 @@ SUB_CON_FILE_COLS_NAMES_TO_SUB_CON_MODEL_FIELDS =\
     'constituency_name': 'constituency'
 }
 
+# Maps result form file columns to ResultForm Model fields
+RESULT_FORM_FILE_COLS_NAMES_TO_RESULT_FORM_MODEL_FIELDS =\
+{
+    'station_number': 'station_number',
+    'name': 'name',
+    'barcode': 'barcode',
+    'serial_number': 'serial_number',
+    'gender': 'gender',
+    'center_code': 'center',
+    'office_name': 'office',
+    'ballot_number' : 'ballot',
+    'region_name': 'region'
+}
+# Maps stations file columns to Station Model fields
+STATIONS_FILE_COLS_NAMES_TO_STATION_MODEL_FIELDS =\
+{
+    'center_code': 'center',
+    'center_name': 'center_name',
+    'sub_constituency_code': 'sub_constituency',
+    'station_number': 'station_number',
+    'station_gender': 'gender',
+    'station_registrants': 'registrants',
+}
+
 SUB_CONSTITUENCY_BALLOTS_COLUMN_NAMES = ['sub_constituency_code',
                                          'ballot_number',]
 
 CENTER_COLUMN_NAMES = ['center_id', 'name', 'center_type', 'center_lat',
-                       'center_lon', 'region_name', 'office_name', 'office_id',
+                       'center_lon', 'office_name', 'office_id', 'region_name',
                        'constituency_name', 'subconstituency_id',
-                       'mahalla_name', 'village_name', 'reg_open']
+                       'mahalla_name', 'village_name']
+
+# Maps centers file columns to Center Model fields
+CENTERS_FILE_COLS_NAMES_TO_CENTER_MODEL_FIELDS =\
+{
+    'center_id': 'code',
+    'name': 'name',
+    'center_type': 'center_type',
+    'center_lat': 'latitude',
+    'center_lon': 'longitude',
+    'office_name': 'office',
+    'region_name': 'region',
+    'constituency_name': 'constituency',
+    'subconstituency_id': 'sub_constituency',
+    'mahalla_name': 'mahalla',
+    'village_name': 'village',
+}
+
+# Maps centers file columns to Office Model fields
+CENTERS_FILE_COLS_NAMES_TO_OFFICE_MODEL_FIELDS =\
+{
+    'office_name': 'name',
+    'office_id': 'number',
+    'region_name': 'region',
+}
+
+REGION_COL_NAME_IN_CENTERS_CSV_FILE = 'region_name'
 
 STATION_COLUMN_NAMES = ['center_code', 'center_name', 'sub_constituency_code',
                         'station_number', 'station_gender',
@@ -403,4 +455,13 @@ RESULT_FORM_COLUMN_NAMES = ['ballot_number', 'center_code', 'station_number',
 CANDIDATE_COLUMN_NAMES =\
     ['candidate_id', 'candidate_full_name', 'ballot_number', 'race_type']
 
-BALLOT_ORDER_COLUMN_NAMES = ['candidate_id', 'order']
+# Maps candidates file columns to Candidate Model fields
+CANDIDATE_FILE_COLS_NAMES_TO_CANDIDATE_MODEL_FIELDS =\
+{
+    'candidate_full_name': 'full_name',
+    'candidate_id': 'candidate_id',
+    'ballot_number': 'ballot',
+    'race_type': 'electrol_race',
+}
+
+BALLOT_ORDER_COLUMN_NAMES = ['candidate_id', 'ballot_order']
