@@ -58,6 +58,7 @@
     <p>{% trans "Total elements" %}: <span id="offset7">0</span>/<span id="total7">{{ result_forms_file_lines }}</span></p>
 </div>
 
+<div id="import-progress-url" class="hidden" style="display:none">{{ import_progress_url }}</div>
 <div id="route" class="hidden" style="display:none">{{ request.path }}</div>
 <div id="route_destination" style="display:none">{% url 'tally-manager' %}</div>
 <div id="tally_files_route" style="display:none">{% url 'tally-files-form' tally_id=tally_id %}</div>
