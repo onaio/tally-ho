@@ -556,6 +556,34 @@ def results_queryset(
             .values('id')[:1],
             output_field=IntegerField())
 
+    station_total_result_forms_sub_query =\
+        Subquery(
+            ResultForm.objects.filter(
+                tally__id=tally_id,
+                center__code=OuterRef('center__code'),
+                station_number=OuterRef('station_number')
+            ).values('center__code', 'station_number').annotate(
+                total_result_forms=Count(
+                    'barcode',
+                    distinct=True
+                ),
+            ).values('total_result_forms')[:1], output_field=IntegerField())
+
+    station_total_result_forms_archived_sub_query =\
+        Subquery(
+            ResultForm.objects.filter(
+                tally__id=tally_id,
+                center__code=OuterRef('center__code'),
+                station_number=OuterRef('station_number')
+            ).values('center__code', 'station_number').annotate(
+                total_result_forms_archived=Count(
+                    'barcode',
+                    distinct=True,
+                    filter=Q(form_state=FormState.ARCHIVED)
+                ),
+            ).values('total_result_forms_archived')[:1],
+            output_field=IntegerField())
+
     if data:
         selected_center_ids =\
             data['select_1_ids'] if data.get('select_1_ids') else []
@@ -617,15 +645,9 @@ def results_queryset(
                 )
 
             stations_qs = stations_qs.values('id').annotate(
-                total_result_forms=Count(
-                    'center__resultform__barcode',
-                    distinct=True
-                ),
-                total_result_forms_archived=Count(
-                    'center__resultform__barcode',
-                    distinct=True,
-                    filter=Q(center__resultform__form_state=FormState.ARCHIVED)
-                ),
+                total_result_forms=station_total_result_forms_sub_query,
+                total_result_forms_archived=
+                station_total_result_forms_archived_sub_query,
                 processed_percentage=Round(
                     100 * F('total_result_forms_archived') / F(
                         'total_result_forms'),
@@ -780,6 +802,34 @@ def export_results_queryset(
             .values('id')[:1],
             output_field=IntegerField())
 
+    station_total_result_forms_sub_query =\
+        Subquery(
+            ResultForm.objects.filter(
+                tally__id=tally_id,
+                center__code=OuterRef('center__code'),
+                station_number=OuterRef('station_number')
+            ).values('center__code', 'station_number').annotate(
+                total_result_forms=Count(
+                    'barcode',
+                    distinct=True
+                ),
+            ).values('total_result_forms')[:1], output_field=IntegerField())
+
+    station_total_result_forms_archived_sub_query =\
+        Subquery(
+            ResultForm.objects.filter(
+                tally__id=tally_id,
+                center__code=OuterRef('center__code'),
+                station_number=OuterRef('station_number')
+            ).values('center__code', 'station_number').annotate(
+                total_result_forms_archived=Count(
+                    'barcode',
+                    distinct=True,
+                    filter=Q(form_state=FormState.ARCHIVED)
+                ),
+            ).values('total_result_forms_archived')[:1],
+            output_field=IntegerField())
+
     if data:
         selected_center_ids =\
             data['select_1_ids'] if data.get('select_1_ids') else []
@@ -841,15 +891,9 @@ def export_results_queryset(
                 )
 
             stations_qs = stations_qs.values('id').annotate(
-                total_result_forms=Count(
-                    'center__resultform__barcode',
-                    distinct=True
-                ),
-                total_result_forms_archived=Count(
-                    'center__resultform__barcode',
-                    distinct=True,
-                    filter=Q(center__resultform__form_state=FormState.ARCHIVED)
-                ),
+                total_result_forms=station_total_result_forms_sub_query,
+                total_result_forms_archived=
+                station_total_result_forms_archived_sub_query,
                 processed_percentage=Round(
                     100 * F('total_result_forms_archived') / F(
                         'total_result_forms'),
