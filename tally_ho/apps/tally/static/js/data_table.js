@@ -422,6 +422,7 @@ $(document).ready(function () {
     let ballotStatus = $('select#ballot-status').val();
     let stationStatus = $('select#station-status').val();
     let candidateStatus = $('select#candidate-status').val();
+    let percentageProcessed = $('input#percentage-processed').val();
 
     const downloadFile = (blob, fileName) => {
       const link = document.createElement('a');
@@ -443,6 +444,7 @@ $(document).ready(function () {
       ballot_status: ballotStatus !== null ? ballotStatus : [],
       station_status: stationStatus !== null ? stationStatus : [],
       candidate_status: candidateStatus !== null ? candidateStatus : [],
+      percentage_processed: percentageProcessed !== null ? percentageProcessed : [],
       tally_id: tallyId,
       exportType: "PPT",
       filter_in: "True",
@@ -464,8 +466,12 @@ $(document).ready(function () {
         xhrFields: {
           responseType: 'blob'
         },
-        success: function(data) {
-          downloadFile(data, 'election_results.pptx');
+        success: (data) => {
+          if (data?.size === undefined) {
+            alert('No Data')
+          } else {
+            downloadFile(data, 'election_results.pptx');
+          }
           $("#inc-ppt-export-report").html("PowerPoint Export");
           $("#inc-ppt-export-report").prop("disabled", false);
         },
