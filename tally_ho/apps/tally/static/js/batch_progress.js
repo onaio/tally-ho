@@ -32,7 +32,7 @@ for (var i = 1; i <= totalSteps; i++) {
 
 $(document).ready(function () {
   currentStep = 1;
-  doRequest();
+  asyncDataImport();
 });
 
 function csrfSafeMethod(method) {
@@ -48,46 +48,79 @@ $.ajaxSetup({
   },
 });
 
-function doRequest() {
-  var elementsProcessed = parseInt($("#offset" + currentStep).html());
-  var total = parseInt($("#total" + currentStep).html());
-  if (elementsProcessed < total) {
-    $.ajax({
-      url: $("#route").html(),
-      //    timeout: 30000,
-      type: "POST",
-      data: {
-        offset: $("#offset" + currentStep).html(),
-        step: currentStep,
-      },
-      success(data) {
-        if (data.status === "OK") {
-          // If elements_processed is the same as offset, we didn"t
-          // process any new lines. Assume we are done and set the
-          // length to elements_processed.
-          if (data.elements_processed === 0) {
-            $("#total" + currentStep).html(elementsProcessed);
-          }
-          elementsProcessed += data.elements_processed;
-          $("#offset" + currentStep).html(elementsProcessed);
-          $("#progressbar" + currentStep).progressbar(
-            "option",
-            "value",
-            elementsProcessed
-          );
-          doRequest();
-        } else if (data.status === "Error") {
-          alert(data.error_message);
-          location.href = $("#tally_files_route").html();
-        }
-      },
-    });
-  } else {
-    if (currentStep < totalSteps) {
-      currentStep += 1;
-      doRequest();
-    } else {
-      location.href = $("#route_destination").html();
-    }
+const updateDomWithElementsProcessed = (elementsProcessed, uploadDone) => {
+  if (uploadDone) {
+    $("#total" + currentStep).html(elementsProcessed);
   }
+  $("#offset" + currentStep).html(elementsProcessed);
+  $("#progressbar" + currentStep).progressbar(
+    "option",
+    "value",
+    elementsProcessed
+  );
+};
+
+const handleUploadError = (error) => {
+  alert(error);
+  location.href = $("#tally_files_route").html();
+}
+
+const handleProceedToNextStep = () => {
+  if (currentStep < totalSteps) {
+    currentStep += 1;
+    asyncDataImport();
+  } else {
+    location.href = $("#route_destination").html();
+  }
+}
+
+const checkImportProgress = (taskId) => {
+  $.ajax({
+    url: $("#import-progress-url").html(),
+    type: "POST",
+    data: {
+      step: currentStep,
+      task_id: taskId
+    },
+    success(data) {
+      if (data?.status === "OK") {
+        if (data.elements_processed !== 0) {
+          updateDomWithElementsProcessed(data?.elements_processed, data?.done);
+        }
+        if (data?.done === false) {
+          checkImportProgress(taskId);
+        } else {
+          handleProceedToNextStep();
+        }
+      } else if (data?.status === "Error") {
+        handleUploadError(data?.error_message);
+      }
+    }
+  });
+}
+
+const asyncDataImport = () => {
+  console.log({ currentStep });
+  $.ajax({
+    url: $("#route").html(),
+    type: "POST",
+    data: {
+      offset: $("#offset" + currentStep).html(),
+      step: currentStep,
+    },
+    success(data) {
+      if (data?.status === "OK") {
+        if (data?.elements_processed?.status === 'SUCCESS') {
+          updateDomWithElementsProcessed(data?.elements_processed?.result, true);
+          handleProceedToNextStep();
+        } else if (data?.elements_processed?.status === 'FAILURE') {
+          handleUploadError(data?.elements_processed?.result);
+        } else if (data?.elements_processed?.status === 'PENDING') {
+          setTimeout(checkImportProgress(data?.elements_processed?.task_id), 30000);
+        }
+      } else if (data?.status === "Error") {
+        handleUploadError(data?.error_message);
+      }
+    },
+  });
 }
