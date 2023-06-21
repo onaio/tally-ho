@@ -1,14 +1,13 @@
-import csv
-from io import StringIO
 import json
 import logging
+import time
+import duckdb
 
 from django.contrib.messages.views import SuccessMessageMixin
 from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.translation import ngettext
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -21,9 +20,11 @@ from django.views.generic import (
     DeleteView,
 )
 from guardian.mixins import LoginRequiredMixin
+from celery.result import AsyncResult
+
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
-
+from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
     EditAdminProfileForm,
@@ -32,14 +33,33 @@ from tally_ho.apps.tally.forms.edit_user_profile_form import (
 from tally_ho.apps.tally.forms.site_info_form import SiteInfoForm
 from tally_ho.apps.tally.forms.tally_files_form import TallyFilesForm
 from tally_ho.apps.tally.forms.tally_form import TallyForm
-from tally_ho.apps.tally.management.commands.import_data import (
-    process_center_row,
-    process_station_row,
-    process_candidate_row,
-    process_results_form_row,
-    import_electrol_races_and_ballots_from_ballots_file,
-    import_sub_constituencies_and_constituencies_from_sub_cons_file,
-    import_sub_constituencies_ballots_from_sub_cons_ballots_file
+from tally_ho.apps.tally.management.commands.import_electrol_races_and_ballots\
+    import (
+    async_import_electrol_races_and_ballots_from_ballots_file,
+)
+from tally_ho.apps.tally.management.commands.import_sub_cons_and_cons\
+    import (
+    async_import_sub_constituencies_and_constituencies_from_sub_cons_file,
+)
+from tally_ho.apps.tally.management.commands.asign_ballots_to_sub_cons\
+    import (
+    async_asign_ballots_to_sub_cons_from_ballots_file,
+)
+from tally_ho.apps.tally.management.commands.import_centers\
+    import (
+    async_import_centers_from_centers_file,
+)
+from tally_ho.apps.tally.management.commands.import_stations\
+    import (
+    async_import_stations_from_stations_file,
+)
+from tally_ho.apps.tally.management.commands.import_candidates\
+    import (
+    async_import_candidates_from_candidates_file,
+)
+from tally_ho.apps.tally.management.commands.import_result_forms\
+    import (
+    async_import_results_forms_from_result_forms_file,
 )
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -52,6 +72,8 @@ from tally_ho.apps.tally.models.tally import Tally
 from django.contrib.sites.models import Site
 from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.memcache import MemCache
+from tally_ho.libs.utils.numbers import parse_int
 from tally_ho.libs.views import mixins
 
 
@@ -60,25 +82,25 @@ UPLOADED_FILES_PATH = 'data/uploaded/'
 STEP_TO_ARGS = {
     1: ['ballots_file',
         'ballots_file_lines',
-        import_electrol_races_and_ballots_from_ballots_file],
+        async_import_electrol_races_and_ballots_from_ballots_file],
     2: ['subconst_file',
         'subconst_file_lines',
-        import_sub_constituencies_and_constituencies_from_sub_cons_file],
+        async_import_sub_constituencies_and_constituencies_from_sub_cons_file],
     3: ['subconst_ballots_file',
         'subconst_ballots_file_lines',
-        import_sub_constituencies_ballots_from_sub_cons_ballots_file],
+        async_asign_ballots_to_sub_cons_from_ballots_file],
     4: ['centers_file',
         'centers_file_lines',
-        process_center_row],
+        async_import_centers_from_centers_file],
     5: ['stations_file',
         'stations_file_lines',
-        process_station_row],
+        async_import_stations_from_stations_file],
     6: ['candidates_file',
         'candidates_file_lines',
-        process_candidate_row],
+        async_import_candidates_from_candidates_file],
     7: ['result_forms_file',
         'result_forms_file_lines',
-        process_results_form_row]
+        async_import_results_forms_from_result_forms_file]
 }
 FILE_NAMES_PREFIXS = {
     'ballots_file': 'ballots_',
@@ -108,26 +130,25 @@ def delete_all_tally_objects(tally):
         Constituency.objects.filter(tally=tally).delete()
         Ballot.objects.filter(tally=tally).delete()
         Office.objects.filter(tally=tally).delete()
+        Region.objects.filter(tally=tally).delete()
         ElectrolRace.objects.filter(tally=tally).delete()
 
 
 def save_file(file_uploaded, file_name):
     num_lines = 0
-
-    with open(UPLOADED_FILES_PATH + file_name, 'wb+') as destination:
-        for chunk in file_uploaded.chunks():
-            destination.write(chunk)
-
-        file_uploaded.seek(0)
-        fp = StringIO(file_uploaded.read().decode('utf-8'), newline=None)
-        try:
-            reader = csv.reader(fp, dialect=csv.excel_tab)
-            next(reader) # Ignore header
-            num_lines = sum(1 for _ in reader)
-        except csv.Error:
-            reader = csv.reader(fp, delimiter='\t', quoting=csv.QUOTE_NONE)
-            next(reader) # Ignore header
-            num_lines = sum(1 for _ in reader)
+    file_path = UPLOADED_FILES_PATH + file_name
+    try:
+        with open(file_path, 'wb+') as destination:
+            for chunk in file_uploaded.chunks():
+                destination.write(chunk)
+        data =\
+            duckdb.from_csv_auto(file_path, header=True).distinct()
+        num_lines = data.shape[0]
+    except Exception as e:
+        msg = f'Failed to read file, error: {e}'
+        if logger:
+            logger.warning(msg)
+        raise Exception(msg)
 
     return num_lines
 
@@ -135,7 +156,7 @@ def exec_csv_file_import_func(
         tally=None,
         csv_file_path=None,
         function=None,
-        logger=None,
+        **kwargs
     ):
     """
     Generic function for importing csv file data that just executes the actual
@@ -144,15 +165,22 @@ def exec_csv_file_import_func(
     :param tally: tally queryset.
     :param csv_file_path: path to csv file to be imported.
     :param function: import function.
-    :param logger: logger.
     :returns: elements_processed, None.
     """
     try:
-        elements_processed = function(
-            tally=tally,
+        step_number = kwargs.get('step_number')
+        celery_results = function.delay(
+            tally_id=tally.id,
             csv_file_path=csv_file_path,
-            logger=logger
+            step_name=STEP_TO_ARGS[step_number][0],
+            step_number=step_number,
+            ballot_order_file_path=kwargs.get('ballot_order_file_path'),
         )
+        elements_processed = {
+            'task_id': celery_results.task_id,
+            'status': celery_results.status,
+            'result': celery_results.result
+        }
         return elements_processed, None
     except Exception as e:
         delete_all_tally_objects(tally)
@@ -162,191 +190,37 @@ def exec_csv_file_import_func(
 
 def import_rows_batch(tally,
                       file_to_parse,
-                      file_lines,
-                      offset,
                       function,
-                      **kwargs):
+                      current_step):
     """Import rows for the specific file.
     """
-    elements_processed = 0
-    id_to_ballot_order = {}
-    ballot_file_to_parse = kwargs.get('ballots_order_file', False)
-    file_to_parse_name = file_to_parse.name.split(UPLOADED_FILES_PATH)[1]
 
-    subconst_file_name_prefix = FILE_NAMES_PREFIXS['subconst_file']
-    subconst_file_name = f'{subconst_file_name_prefix}{tally.id}.csv'
-    centers_file_name_prefix = FILE_NAMES_PREFIXS['centers_file']
-    centers_file_name = f'{centers_file_name_prefix}{tally.id}.csv'
-    stations_file_name_prefix = FILE_NAMES_PREFIXS['stations_file']
-    stations_file_name = f'{stations_file_name_prefix}{tally.id}.csv'
-    candidates_file_name_prefix = FILE_NAMES_PREFIXS['candidates_file']
-    candidates_file_name = f'{candidates_file_name_prefix}{tally.id}.csv'
-    result_forms_file_name_prefix = FILE_NAMES_PREFIXS['result_forms_file']
-    result_forms_file_name = f'{result_forms_file_name_prefix}{tally.id}.csv'
-    ballots_file_name_prefix = FILE_NAMES_PREFIXS['ballots_file']
-    ballots_file_name = f'{ballots_file_name_prefix}{tally.id}.csv'
-    subconst_ballots_file_name_prefix =\
-        FILE_NAMES_PREFIXS['subconst_ballots_file']
-    subconst_ballots_file_name =\
-        f'{subconst_ballots_file_name_prefix}{tally.id}.csv'
+    ballots_order_file_name_prefix =\
+            FILE_NAMES_PREFIXS['ballots_order_file']
+    ballots_order_file_name =\
+        f'{ballots_order_file_name_prefix}{tally.id}.csv'
 
-    duckdb_processable_file_names =\
-        [ballots_file_name, subconst_file_name, subconst_ballots_file_name]
-    if file_to_parse_name in duckdb_processable_file_names:
-        return exec_csv_file_import_func(
-            tally=tally,
-            csv_file_path=file_to_parse.name,
-            function=function,
-            logger=logger,
-        )
-
-    if ballot_file_to_parse:
-        with ballot_file_to_parse as f:
-            reader = csv.reader(f)
-
-            for line, row in enumerate(reader):
-                if line == 0 and settings.BALLOT_ORDER_COLUMN_NAMES != row:
-                    delete_all_tally_objects(tally)
-                    error_message = _(u'Invalid ballot order file')
-                    return elements_processed, error_message
-                if line != 0:
-                    id_, ballot_number = row
-                    id_to_ballot_order[id_] = ballot_number
-
-    with file_to_parse as f:
-        reader = csv.reader(f)
-        count = 0
-        check_file_column_names = True
-        for line, row in enumerate(reader):
-            if line == 0 and check_file_column_names:
-                if file_to_parse_name == subconst_file_name and\
-                        row != settings.SUB_CONSTITUENCY_COLUMN_NAMES:
-                    missing_columns = list(
-                        set(settings.SUB_CONSTITUENCY_COLUMN_NAMES) - set(row))
-                    delete_all_tally_objects(tally)
-                    error_message = ngettext(
-                        'Column %(cols)s is missing' +\
-                        ' in the sub constituency file',
-                        'Columns %(cols)s are missing' +\
-                        ' in the sub constituency file',
-                        len(missing_columns)
-                    ) % {"cols": ', '.join(missing_columns),}
-                    return elements_processed, error_message
-                elif file_to_parse_name == centers_file_name and\
-                        row != settings.CENTER_COLUMN_NAMES:
-                    missing_columns = list(
-                        set(settings.CENTER_COLUMN_NAMES) - set(row))
-                    delete_all_tally_objects(tally)
-                    error_message = ngettext(
-                        'Column %(cols)s is missing in the centers file',
-                        'Columns %(cols)s are missing in the centers file',
-                        len(missing_columns)
-                    ) % {"cols": ', '.join(missing_columns),}
-                    return elements_processed, error_message
-                elif file_to_parse_name == stations_file_name and\
-                        row != settings.STATION_COLUMN_NAMES:
-                    missing_columns = list(
-                        set(settings.STATION_COLUMN_NAMES) - set(row))
-                    delete_all_tally_objects(tally)
-                    error_message = ngettext(
-                        'Column %(cols)s is missing in the stations file',
-                        'Columns %(cols)s are missing in the stations file',
-                        len(missing_columns)
-                    ) % {"cols": ', '.join(missing_columns),}
-                    return elements_processed, error_message
-                elif file_to_parse_name == candidates_file_name and\
-                        row != settings.CANDIDATE_COLUMN_NAMES:
-                    missing_columns = list(
-                        set(settings.CANDIDATE_COLUMN_NAMES) - set(row))
-                    delete_all_tally_objects(tally)
-                    error_message = ngettext(
-                        'Column %(cols)s is missing in the candidates file',
-                        'Columns %(cols)s are missing in the candidates file',
-                        len(missing_columns)
-                    ) % {"cols": ', '.join(missing_columns),}
-                    return elements_processed, error_message
-                elif file_to_parse_name == result_forms_file_name and\
-                        row != settings.RESULT_FORM_COLUMN_NAMES:
-                    missing_columns = list(
-                        set(settings.RESULT_FORM_COLUMN_NAMES) - set(row))
-                    delete_all_tally_objects(tally)
-                    error_message = ngettext(
-                        'Column %(cols)s is missing in the result form file',
-                        'Columns %(cols)s are missing in the result form file',
-                        len(missing_columns)
-                    ) % {"cols": ', '.join(missing_columns),}
-                    return elements_processed, error_message
-                else:
-                    check_file_column_names = False
-            if count >= offset and count < (offset + BATCH_BLOCK_SIZE):
-                if line != 0:
-                    is_not_empty_row =\
-                        any(field.strip() for field in row)
-                    if id_to_ballot_order:
-                        if is_not_empty_row:
-                            try:
-                                electrol_races_by_ballot_name =\
-                                    {
-                                        electrol_race.ballot_name:\
-                                        electrol_race for electrol_race in\
-                                            ElectrolRace.objects.filter(
-                                    tally=tally)
-                                    }
-                                ballots_by_ballot_number =\
-                                        {
-                                            ballot.number:\
-                                            ballot for ballot in\
-                                                Ballot.objects.filter(
-                                    tally=tally)
-                                        }
-                                function(
-                                    tally,
-                                    row,
-                                    id_to_ballot_order,
-                                    electrol_races_by_ballot_name=
-                                    electrol_races_by_ballot_name,
-                                    ballots_by_ballot_number=
-                                    ballots_by_ballot_number,
-                                    logger=logger
-                                )
-                            except Exception as e:
-                                delete_all_tally_objects(tally)
-                                error_message = _(u'{}'.format(str(e)))
-                                return elements_processed, error_message
-                    else:
-                        if is_not_empty_row:
-                            try:
-                                function(tally, row, logger=logger)
-                            except Exception as e:
-                                delete_all_tally_objects(tally)
-                                error_message = _(u'{}'.format(str(e)))
-                                return elements_processed, error_message
-
-                elements_processed += 1
-            count += 1
-
-    return elements_processed, None
+    return exec_csv_file_import_func(
+        tally=tally,
+        csv_file_path=file_to_parse.name,
+        function=function,
+        step_number=current_step,
+        ballot_order_file_path=
+        f"{UPLOADED_FILES_PATH}{ballots_order_file_name}"
+    )
 
 
-def process_batch_step(current_step, offset, file_map, tally):
+def process_batch_step(current_step, file_map, tally):
     """Interpret step and map to build arguments for batch
     processing of data.
     """
-    ballots_order_file = None
-
-    file_name, file_lines, process_function = STEP_TO_ARGS[current_step]
-
-    if file_name == 'candidates_file':
-        ballots_order_file = open(
-            UPLOADED_FILES_PATH + file_map['ballots_order_file'], 'r')
+    file_name, _, process_function = STEP_TO_ARGS[current_step]
 
     return import_rows_batch(
         tally,
         open(UPLOADED_FILES_PATH + file_map[file_name], 'r'),
-        int(file_map[file_lines]),
-        offset,
         process_function,
-        ballots_order_file=ballots_order_file)
+        current_step)
 
 
 class DashboardView(LoginRequiredMixin,
@@ -681,23 +555,24 @@ class BatchView(LoginRequiredMixin,
     group_required = groups.TALLY_MANAGER
     template_name = "tally_manager/batch_progress.html"
 
-    def get_initial(self):
-        initial = super(TallyFilesFormView, self).get_initial()
-        initial['tally_id'] = self.kwargs['tally_id']
+    def get(self, *args, **kwargs):
+        context_data = self.kwargs
+        tally_id = self.kwargs.get('tally_id')
+        context_data['import_progress_url'] =\
+            reverse('get-import-progress', kwargs={ 'tally_id': tally_id })
 
-        return initial
+        return self.render_to_response(self.get_context_data(**context_data))
 
     @method_decorator(ensure_csrf_cookie)
     def post(self, request, *args, **kwargs):
         tally = Tally.objects.get(id=kwargs['tally_id'])
-
-        offset = int(request.POST.get('offset', 0))
         current_step = int(request.POST.get('step', 1))
 
         elements_processed, error_message = process_batch_step(
-            current_step, offset, kwargs, tally)
+            current_step, kwargs, tally)
 
         if error_message:
+            delete_all_tally_objects(tally)
             return HttpResponse(json.dumps({
                 'status': 'Error',
                 'error_message': str(error_message)}),
@@ -708,6 +583,91 @@ class BatchView(LoginRequiredMixin,
             'elements_processed': elements_processed}),
             content_type='application/json')
 
+def get_job_status_from_memcache(memcache_key, memcache_client):
+    """
+    Get incremental count of elements processed from memcache.
+
+    :param memcache_key: memcache key.
+    :param memcache_client: memcache client.
+    :returns: elements processed, done state and error message.
+    """
+    error_message = None
+    elements_processed = 0
+    done = False
+
+    cached_data, error_message =\
+        memcache_client.get(memcache_key)
+    if cached_data:
+        json_data = json.loads(cached_data)
+        elements_processed = parse_int(json_data.get('elements_processed'))
+        done = json_data.get('done')
+
+    if done:
+        _, error_message =\
+        memcache_client.delete(memcache_key)
+
+    return elements_processed, done, error_message
+
+
+def get_import_progress(request, **kwargs):
+    """
+    Get file import job progress from celery task and if the job is still in
+    PENDING status, get incremental count of elements processed from memcache.
+
+    :param request: request dictionary.
+    :param kwargs: kwargs.
+    :returns: Json response of elements processed or error message.
+    """
+    tally_id = kwargs.get('tally_id')
+    task_id = request.POST.get('task_id')
+    current_step = parse_int(request.POST.get('step'))
+    instances_count_memcache_key =\
+            f"{tally_id}_{STEP_TO_ARGS[current_step][0]}_{current_step}"
+    result_form_upload_step = list(STEP_TO_ARGS.keys())[-1]
+    result_form_upload_step_timeout_in_seconds = 5
+    default_upload_timeout_in_seconds = 1
+    error_message = None
+    elements_processed = 0
+    done = False
+    memcache_client = MemCache()
+    celery_results = AsyncResult(task_id)
+    job_status = celery_results.status
+    job_data = celery_results.result
+
+    if job_status == 'SUCCESS':
+        elements_processed = job_data
+        done = True
+        _, error_message =\
+            memcache_client.delete(instances_count_memcache_key)
+
+    if job_status == 'FAILURE':
+        error_message = job_data
+        done = False
+        memcache_client.delete(instances_count_memcache_key)
+
+    if job_status == 'PENDING':
+        elements_processed, done, error_message =\
+            get_job_status_from_memcache(
+                instances_count_memcache_key,
+                memcache_client
+            )
+        if elements_processed == 0:
+            if current_step == result_form_upload_step:
+                time.sleep(result_form_upload_step_timeout_in_seconds)
+        else:
+            time.sleep(default_upload_timeout_in_seconds)
+
+    if error_message:
+        return HttpResponse(json.dumps({
+            'status': 'Error',
+            'error_message': str(error_message)}),
+            content_type='application/json')
+
+    return HttpResponse(json.dumps({
+        'status': 'OK',
+        'elements_processed': elements_processed,
+        'done': done}),
+        content_type='application/json')
 
 class SetUserTimeOutView(LoginRequiredMixin,
                          mixins.GroupRequiredMixin,
