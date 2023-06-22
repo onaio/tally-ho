@@ -1,5 +1,7 @@
 import ast
 import json
+import os
+
 from io import BytesIO
 from datetime import date
 from django.conf import settings
@@ -1697,8 +1699,8 @@ def create_ppt_export(
             tally_id, filtered_electrol_races, qs)
 
     powerpoint_data = []
-    race_bg_img_path =\
-        'tally_ho/apps/tally/static/images/'
+    race_bg_img_root_path =\
+        getattr(settings, 'MEDIA_ROOT')
     for electrol_race in filtered_electrol_races:
         if electrol_race_has_results(qs, electrol_race):
             data = qs.filter(
@@ -1712,13 +1714,14 @@ def create_ppt_export(
             header =\
                 headers.get(
                 f"{electrol_race.election_level}_{electrol_race.ballot_name}")
-            # TODO Make race background image unique per race types
+            file_path =\
+                f"{race_bg_img_root_path}/{electrol_race.background_image}"
             powerpoint_data.append(
                 {
                     'header': header,
                     'body': body,
                     'background_image':
-                    f"{race_bg_img_path}{electrol_race.election_level}.JPG"
+                    file_path if os.path.isfile(file_path) else None
                 }
             )
 
