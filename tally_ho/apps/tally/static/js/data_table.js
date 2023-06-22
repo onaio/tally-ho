@@ -193,12 +193,8 @@ $(document).ready(function () {
     dt.ajax.reload();
   };
 
-  const createTable = ({
-    ajax
-  } = {
-    ajax: LIST_JSON_URL
-  }) => {
-    $('.datatable').dataTable({
+  const createTable = () => {
+    const table = $('.datatable').DataTable({
       language: dt_language, // global variable defined in html
       order: [[0, "desc"]],
       lengthMenu: [
@@ -218,7 +214,31 @@ $(document).ready(function () {
       serverSide,
       stateSave: true,
       serverMethod: "post",
-      ajax,
+      ajax: {
+        url: LIST_JSON_URL,
+        type: 'POST',
+        data: (d) => {
+          for (let i = 0; i < d.columns.length - 1; i++) {
+            d[`columns[${i}][data]`] = d.columns[i].data
+            d[`columns[${i}][name]`] = d.columns[i].name
+            d[`columns[${i}][searchable]`] = d.columns[i].searchable
+            d[`columns[${i}][search][value]`] = d.columns[i].search.value
+            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
+            d[`columns[${i}][data]`] = d.columns[i].data
+          }
+          d['order[0][column]'] = d.columns[d.order[0].column].data;
+          d['order[0][dir]'] = d.order[0].dir;
+          d['search[value]'] = d.search.value;
+          d['search[regex]'] = d.search.regex;
+          d['columns'] = d.columns;
+          d['order'] = d.order;
+          d['draw'] = d.draw;
+          d['start'] = d.start;
+          d['length'] = d.length;
+        },
+        traditional: true,
+        dataType: 'json',
+      },
       dom:
         "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
         "<'row'<'col-sm-12'tr>>" +
@@ -253,99 +273,24 @@ $(document).ready(function () {
       ],
       responsive: true,
     });
+    return table;
   }
 
-  // Build initial table
-  createTable();
-
-  const destroyTable = () => {
-    const table = $('.datatable').DataTable();
-    table.destroy();
-  };
-
-  $('#report').on('click', '#filter-report', function () {
-    destroyTable();
-    const attributesList = ['select#filter-in-race-types', 'select#filter-in-centers', 'select#filter-in-stations'];
-    resetFilters(attributesList);
-    let data = [];
-    let selectOneIds = $('select#centers').val();
-    let selectTwoIds = $('select#stations').val();
-    let raceTypeNames = $('select#filter-out-race-types').val();
-
-    if (selectOneIds || selectTwoIds) {
-      const items = {
-        select_1_ids: selectOneIds !== null ? selectOneIds : [],
-        select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
-        race_type_names: raceTypeNames !== null ? raceTypeNames : [],
-      };
-
-      data = items;
-    } else {
-      $('tbody tr').each(function (i, row) {
-        const selectOneElement = $(row).find('select#select-1');
-        const selectTwoElement = $(row).find('select#select-2');
-
-        const items = {
-          select_1_ids:
-            selectOneElement.val() !== null ? selectOneElement.val() : [],
-          select_2_ids:
-            selectTwoElement.val() !== null ? selectTwoElement.val() : [],
-          region_id: selectOneElement.attr('data-id'),
-        };
-        data.push(items);
-      });
-    }
-
-    data = data.length
-      ? data.filter((item) =>
-          Object.values(item).every((value) => typeof value !== 'undefined')
-        )
-      : data;
-
-    createTable({
-      ajax: {
-        url: LIST_JSON_URL,
-        type: 'POST',
-        data: (d) => {
-          for (let i = 0; i < d.columns.length - 1; i++) {
-            d[`columns[${i}][data]`] = d.columns[i].data
-            d[`columns[${i}][name]`] = d.columns[i].name
-            d[`columns[${i}][searchable]`] = d.columns[i].searchable
-            d[`columns[${i}][search][value]`] = d.columns[i].search.value
-            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
-            d[`columns[${i}][data]`] = d.columns[i].data
-          }
-          d['order[0][column]'] = d.columns[d.order[0].column].data;
-          d['order[0][dir]'] = d.order[0].dir;
-          d['search[value]'] = d.search.value;
-          d['search[regex]'] = d.search.regex;
-          d['columns'] = d.columns;
-          d['order'] = d.order;
-          d['draw'] = d.draw;
-          d['start'] = d.start;
-          d['length'] = d.length;
-          d.data = JSON.stringify([])
-        },
-        traditional: true,
-        dataType: 'json',
-      }
-    });
-  });
+  // Initialize table
+  const table = createTable();
 
 
   $('#in-report').on('click', '#reset-filters-in-report', function () {
     const attributesList = ['select#election-level-names', 'select#sub-race-names', 'select#filter-in-centers', 'select#filter-in-stations', 'select#ballot-status', 'select#station-status', 'select#candidate-status', 'input#percentage-processed'];
     resetFilters(attributesList);
-    destroyTable();
-    createTable();
+    table.settings()[0].ajax.data = function(d) {
+      d.data = JSON.stringify([]);
+    };
+    table.ajax.reload();
   });
 
 
   $('#in-report').on('click', '#filter-in-report', function () {
-    destroyTable();
-    const attributesList = ['select#filter-out-race-types', 'select#centers', 'select#stations'];
-    resetFilters(attributesList);
-
     let data = [];
     let selectOneIds = $('select#filter-in-centers').val();
     let selectTwoIds = $('select#filter-in-stations').val();
@@ -380,35 +325,13 @@ $(document).ready(function () {
         )
       : data;
 
-      createTable({
-        ajax: {
-          url: LIST_JSON_URL,
-          type: 'POST',
-          data: (d) => {
-            for (let i = 0; i < d.columns.length - 1; i++) {
-              d[`columns[${i}][data]`] = d.columns[i].data
-              d[`columns[${i}][name]`] = d.columns[i].name
-              d[`columns[${i}][searchable]`] = d.columns[i].searchable
-              d[`columns[${i}][search][value]`] = d.columns[i].search.value
-              d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
-              d[`columns[${i}][data]`] = d.columns[i].data
-            }
-            d['order[0][column]'] = d.columns[d.order[0].column].data;
-            d['order[0][dir]'] = d.order[0].dir;
-            d['search[value]'] = d.search.value;
-            d['search[regex]'] = d.search.regex;
-            d['columns'] = d.columns;
-            d['order'] = d.order;
-            d['draw'] = d.draw;
-            d['start'] = d.start;
-            d['length'] = d.length;
-            d.data = JSON.stringify(data)
-          },
-          traditional: true,
-          dataType: 'json',
-        }
-      });
+    table.settings()[0].ajax.data = function(d) {
+      d.data = JSON.stringify(data);
+    };
+
+    table.ajax.reload();
   });
+
   $('#in-report').on('click', '#inc-ppt-export-report', function () {
     $("#inc-ppt-export-report").html("Exporting...");
     $("#inc-ppt-export-report").prop("disabled", true);
@@ -480,86 +403,6 @@ $(document).ready(function () {
           $("#inc-ppt-export-report").html("PowerPoint Export");
           $("#inc-ppt-export-report").prop("disabled", false);
         }
-    });
-  });
-
-  $('#race-report').on('click', '#filter-race-report', function () {
-    destroyTable();
-    let data = [];
-    let raceTypeNames = $('select#filter-in-race-types').val();
-
-    if (raceTypeNames ) {
-      const items = {
-        race_type_names: raceTypeNames !== null ? raceTypeNames : [],
-      };
-
-      data = items;
-    }
-
-    data = data.length
-      ? data.filter((item) =>
-          Object.values(item).every((value) => typeof value !== 'undefined')
-        )
-      : data;
-    createTable({
-      ajax: {
-        url: LIST_JSON_URL,
-        type: 'POST',
-        data: (d) => {
-          for (let i = 0; i < d.columns.length - 1; i++) {
-            d[`columns[${i}][data]`] = d.columns[i].data
-            d[`columns[${i}][name]`] = d.columns[i].name
-            d[`columns[${i}][searchable]`] = d.columns[i].searchable
-            d[`columns[${i}][search][value]`] = d.columns[i].search.value
-            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
-            d[`columns[${i}][data]`] = d.columns[i].data
-          }
-          d['order[0][column]'] = d.columns[d.order[0].column].data;
-          d['order[0][dir]'] = d.order[0].dir;
-          d['search[value]'] = d.search.value;
-          d['search[regex]'] = d.search.regex;
-          d['columns'] = d.columns;
-          d['order'] = d.order;
-          d['draw'] = d.draw;
-          d['start'] = d.start;
-          d['length'] = d.length;
-          d.data = JSON.stringify(data)
-        },
-        traditional: true,
-        dataType: 'json',
-      }
-    });
-  });
-
-  $('#report').on('click', '#reset', function () {
-    destroyTable();
-    createTable({
-      ajax: {
-        url: LIST_JSON_URL,
-        type: 'POST',
-        data: (d) => {
-          for (let i = 0; i < d.columns.length - 1; i++) {
-            d[`columns[${i}][data]`] = d.columns[i].data
-            d[`columns[${i}][name]`] = d.columns[i].name
-            d[`columns[${i}][searchable]`] = d.columns[i].searchable
-            d[`columns[${i}][search][value]`] = d.columns[i].search.value
-            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
-            d[`columns[${i}][data]`] = d.columns[i].data
-          }
-          d['order[0][column]'] = d.columns[d.order[0].column].data;
-          d['order[0][dir]'] = d.order[0].dir;
-          d['search[value]'] = d.search.value;
-          d['search[regex]'] = d.search.regex;
-          d['columns'] = d.columns;
-          d['order'] = d.order;
-          d['draw'] = d.draw;
-          d['start'] = d.start;
-          d['length'] = d.length;
-          d.data = JSON.stringify([])
-        },
-        traditional: true,
-        dataType: 'json',
-      }
     });
   });
 });
