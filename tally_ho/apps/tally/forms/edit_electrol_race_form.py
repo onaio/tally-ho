@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
+from tally_ho.apps.tally.forms.fields import RestrictedFileField
 from tally_ho.apps.tally.models.comment import Comment
 
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
@@ -15,7 +16,10 @@ class EditElectrolRaceForm(ModelForm):
             'active',
             'disable_reason',
             'tally',
+            'background_image',
         ]
+
+    background_image = RestrictedFileField(required=False)
 
     tally_id = forms.CharField(
         required=False,
