@@ -283,8 +283,25 @@ $(document).ready(function () {
   $('#in-report').on('click', '#reset-filters-in-report', function () {
     const attributesList = ['select#election-level-names', 'select#sub-race-names', 'select#filter-in-centers', 'select#filter-in-stations', 'select#ballot-status', 'select#station-status', 'select#candidate-status', 'input#percentage-processed'];
     resetFilters(attributesList);
-    table.settings()[0].ajax.data = function(d) {
-      d.data = JSON.stringify([]);
+    table.settings()[0].ajax.data = (d) => {
+      for (let i = 0; i < d.columns.length - 1; i++) {
+        d[`columns[${i}][data]`] = d.columns[i].data
+        d[`columns[${i}][name]`] = d.columns[i].name
+        d[`columns[${i}][searchable]`] = d.columns[i].searchable
+        d[`columns[${i}][search][value]`] = d.columns[i].search.value
+        d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
+        d[`columns[${i}][data]`] = d.columns[i].data
+      }
+      d['order[0][column]'] = d.columns[d.order[0].column].data;
+      d['order[0][dir]'] = d.order[0].dir;
+      d['search[value]'] = d.search.value;
+      d['search[regex]'] = d.search.regex;
+      d['columns'] = d.columns;
+      d['order'] = d.order;
+      d['draw'] = d.draw;
+      d['start'] = d.start;
+      d['length'] = d.length;
+      d['data'] = JSON.stringify([]);
     };
     table.ajax.reload();
   });
@@ -325,8 +342,25 @@ $(document).ready(function () {
         )
       : data;
 
-    table.settings()[0].ajax.data = function(d) {
-      d.data = JSON.stringify(data);
+    table.settings()[0].ajax.data = (d) => {
+      for (let i = 0; i < d.columns.length - 1; i++) {
+        d[`columns[${i}][data]`] = d.columns[i].data
+        d[`columns[${i}][name]`] = d.columns[i].name
+        d[`columns[${i}][searchable]`] = d.columns[i].searchable
+        d[`columns[${i}][search][value]`] = d.columns[i].search.value
+        d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
+        d[`columns[${i}][data]`] = d.columns[i].data
+      }
+      d['order[0][column]'] = d.columns[d.order[0].column].data;
+      d['order[0][dir]'] = d.order[0].dir;
+      d['search[value]'] = d.search.value;
+      d['search[regex]'] = d.search.regex;
+      d['columns'] = d.columns;
+      d['order'] = d.order;
+      d['draw'] = d.draw;
+      d['start'] = d.start;
+      d['length'] = d.length;
+      d['data'] = JSON.stringify(data);
     };
 
     table.ajax.reload();
