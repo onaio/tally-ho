@@ -193,6 +193,35 @@ $(document).ready(function () {
     dt.ajax.reload();
   };
 
+  const buildTablePayload = (d, customPayloadObj=undefined) => {
+    let payload = d;
+    if (customPayloadObj) {
+      payload = {
+        ...payload,
+        ...customPayloadObj,
+      }
+    }
+    for (let i = 0; i < payload.columns.length - 1; i++) {
+      payload[`columns[${i}][data]`] = payload.columns[i].data
+      payload[`columns[${i}][name]`] = payload.columns[i].name
+      payload[`columns[${i}][searchable]`] = payload.columns[i].searchable
+      payload[`columns[${i}][search][value]`] = payload.columns[i].search.value
+      payload[`columns[${i}][search][regex]`] = payload.columns[i].search.regex
+      payload[`columns[${i}][data]`] = payload.columns[i].data
+    }
+    payload['order[0][column]'] = payload.columns[payload.order[0].column].data;
+    payload['order[0][dir]'] = payload.order[0].dir;
+    payload['search[value]'] = payload.search.value;
+    payload['search[regex]'] = payload.search.regex;
+    payload['columns'] = payload.columns;
+    payload['order'] = payload.order;
+    payload['draw'] = payload.draw;
+    payload['start'] = payload.start;
+    payload['length'] = payload.length;
+
+    return payload
+  }
+
   const createTable = () => {
     const table = $('.datatable').DataTable({
       language: dt_language, // global variable defined in html
@@ -218,23 +247,7 @@ $(document).ready(function () {
         url: LIST_JSON_URL,
         type: 'POST',
         data: (d) => {
-          for (let i = 0; i < d.columns.length - 1; i++) {
-            d[`columns[${i}][data]`] = d.columns[i].data
-            d[`columns[${i}][name]`] = d.columns[i].name
-            d[`columns[${i}][searchable]`] = d.columns[i].searchable
-            d[`columns[${i}][search][value]`] = d.columns[i].search.value
-            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
-            d[`columns[${i}][data]`] = d.columns[i].data
-          }
-          d['order[0][column]'] = d.columns[d.order[0].column].data;
-          d['order[0][dir]'] = d.order[0].dir;
-          d['search[value]'] = d.search.value;
-          d['search[regex]'] = d.search.regex;
-          d['columns'] = d.columns;
-          d['order'] = d.order;
-          d['draw'] = d.draw;
-          d['start'] = d.start;
-          d['length'] = d.length;
+          return buildTablePayload(d);
         },
         traditional: true,
         dataType: 'json',
@@ -284,27 +297,52 @@ $(document).ready(function () {
     const attributesList = ['select#election-level-names', 'select#sub-race-names', 'select#filter-in-centers', 'select#filter-in-stations', 'select#ballot-status', 'select#station-status', 'select#candidate-status', 'input#percentage-processed'];
     resetFilters(attributesList);
     table.settings()[0].ajax.data = (d) => {
-      for (let i = 0; i < d.columns.length - 1; i++) {
-        d[`columns[${i}][data]`] = d.columns[i].data
-        d[`columns[${i}][name]`] = d.columns[i].name
-        d[`columns[${i}][searchable]`] = d.columns[i].searchable
-        d[`columns[${i}][search][value]`] = d.columns[i].search.value
-        d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
-        d[`columns[${i}][data]`] = d.columns[i].data
-      }
-      d['order[0][column]'] = d.columns[d.order[0].column].data;
-      d['order[0][dir]'] = d.order[0].dir;
-      d['search[value]'] = d.search.value;
-      d['search[regex]'] = d.search.regex;
-      d['columns'] = d.columns;
-      d['order'] = d.order;
-      d['draw'] = d.draw;
-      d['start'] = d.start;
-      d['length'] = d.length;
-      d['data'] = JSON.stringify([]);
+      return buildTablePayload(d, { data: JSON.stringify([]) });
     };
     table.ajax.reload();
   });
+
+  $('#report').on('click', '#filter-report', () => {
+    let data = [];
+    let selectOneIds = $('select#centers').val();
+    let selectTwoIds = $('select#stations').val();
+
+    if (selectOneIds || selectTwoIds) {
+      const items = {
+        select_1_ids: selectOneIds !== null ? selectOneIds : [],
+        select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+      };
+
+      data = items;
+    } else {
+      $('tbody tr').each(function (i, row) {
+        const selectOneElement = $(row).find('select#select-1');
+        const selectTwoElement = $(row).find('select#select-2');
+
+        const items = {
+          select_1_ids:
+            selectOneElement.val() !== null ? selectOneElement.val() : [],
+          select_2_ids:
+            selectTwoElement.val() !== null ? selectTwoElement.val() : [],
+          region_id: selectOneElement.attr('data-id'),
+        };
+        data.push(items);
+      });
+    }
+
+    data = data.length
+      ? data.filter((item) =>
+          Object.values(item).every((value) => typeof value !== 'undefined')
+        )
+      : data;
+
+    table.settings()[0].ajax.data = (d) => {
+      return buildTablePayload(d, { data: JSON.stringify(data) });
+    };
+
+    table.ajax.reload();
+  });
+
 
 
   $('#in-report').on('click', '#filter-in-report', function () {
@@ -343,24 +381,7 @@ $(document).ready(function () {
       : data;
 
     table.settings()[0].ajax.data = (d) => {
-      for (let i = 0; i < d.columns.length - 1; i++) {
-        d[`columns[${i}][data]`] = d.columns[i].data
-        d[`columns[${i}][name]`] = d.columns[i].name
-        d[`columns[${i}][searchable]`] = d.columns[i].searchable
-        d[`columns[${i}][search][value]`] = d.columns[i].search.value
-        d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
-        d[`columns[${i}][data]`] = d.columns[i].data
-      }
-      d['order[0][column]'] = d.columns[d.order[0].column].data;
-      d['order[0][dir]'] = d.order[0].dir;
-      d['search[value]'] = d.search.value;
-      d['search[regex]'] = d.search.regex;
-      d['columns'] = d.columns;
-      d['order'] = d.order;
-      d['draw'] = d.draw;
-      d['start'] = d.start;
-      d['length'] = d.length;
-      d['data'] = JSON.stringify(data);
+      return buildTablePayload(d, { data: JSON.stringify(data) });
     };
 
     table.ajax.reload();
