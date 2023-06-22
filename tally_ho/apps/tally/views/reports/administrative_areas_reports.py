@@ -1697,7 +1697,7 @@ def create_ppt_export(
 
     powerpoint_data = []
     race_bg_img_path =\
-        'tally_ho/apps/tally/static/images/white-bg.jpeg'
+        'tally_ho/apps/tally/static/images/'
     for electrol_race in filtered_electrol_races:
         if electrol_race_has_results(qs, electrol_race):
             data = qs.filter(
@@ -1716,7 +1716,8 @@ def create_ppt_export(
                 {
                     'header': header,
                     'body': body,
-                    'background_image': race_bg_img_path
+                    'background_image':
+                    f"{race_bg_img_path}{electrol_race.election_level}.JPG"
                 }
             )
 
@@ -1815,7 +1816,7 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
     title_text_box =\
         slide.shapes.add_textbox(
             Inches(0.5),
-            Inches(0.5),
+            Inches(0.7),
             prs.slide_width - Inches(1),
             Inches(0.5))
     title_text_frame = title_text_box.text_frame
@@ -1915,7 +1916,7 @@ def create_results_power_point_candidates_results_slide(
 
         # Add title text box for the candidates slide
         title_text_box = slide.shapes.add_textbox(
-            Inches(0.5), Inches(0.5),
+            Inches(0.5), Inches(0.7),
             prs.slide_width - Inches(1), Inches(0.5))
         title_text_frame = title_text_box.text_frame
         title_text_frame.text = candidates_result_slide_title
