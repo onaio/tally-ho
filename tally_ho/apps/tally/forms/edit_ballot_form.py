@@ -1,11 +1,10 @@
 from django import forms
-from django.forms import ModelChoiceField, ModelForm
+from django.forms import ModelForm
 from tally_ho.apps.tally.forms.fields import RestrictedFileField
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.comment import Comment
-from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
 
 class EditBallotForm(ModelForm):
@@ -35,9 +34,6 @@ class EditBallotForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(EditBallotForm, self).__init__(*args, **kwargs)
-        tally_id = self.initial.get('tally_id')
-        self.fields['electrol_race'] = ModelChoiceField(
-                queryset=ElectrolRace.objects.filter(tally__id=tally_id))
 
         if self.instance.active:
             self.fields.pop('disable_reason')
