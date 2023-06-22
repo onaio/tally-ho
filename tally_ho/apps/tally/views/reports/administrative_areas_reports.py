@@ -1775,15 +1775,6 @@ def create_results_power_point_cover_page(prs):
             Inches(0), Inches(0),
             prs.slide_width, prs.slide_height)
 
-    # Add election name
-    election_name = 'Election 2023'
-    election_shape =\
-        slide.shapes.add_textbox(
-            Inches(0.5), Inches(3), Inches(8), Inches(1)).text_frame
-    election_shape.text = "Name of Election: " + election_name
-    election_shape.paragraphs[0].alignment = PP_ALIGN.CENTER
-    election_shape.paragraphs[0].runs[0].font.bold = True
-
     # Add date of creation
     date_of_creation = date.today().strftime("%B %d, %Y")
     date_shape =\
