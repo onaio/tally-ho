@@ -1951,7 +1951,7 @@ def create_results_power_point_candidates_results_slide(
 
         # Set the column widths for the candidates table
         column_widths =\
-            [Inches(1), Inches(3), Inches(1.5), Inches(1.5), Inches(2)]
+            [Inches(1), Inches(5), Inches(1), Inches(1), Inches(1)]
         for i, width in enumerate(column_widths):
             candidates_table.columns[i].width = width
 
