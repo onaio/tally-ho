@@ -2,6 +2,7 @@ import ast
 import json
 from io import BytesIO
 from datetime import date
+from django.conf import settings
 
 from django.views.generic import TemplateView
 from django.utils.translation import gettext_lazy as _
@@ -1763,7 +1764,9 @@ def create_results_power_point_cover_page(prs):
     # Set the cover page
     slide_layout = prs.slide_layouts[0]
     slide = prs.slides.add_slide(slide_layout)
-    background_image = 'tally_ho/apps/tally/static/images/HNEC.jpg'
+    background_image =\
+        getattr(settings,
+                'CANDIDATE_RESULTS_PPT_COVER_PAGE_BCK_IMG_PATH')
 
     # Set background image if provided
     if background_image:
