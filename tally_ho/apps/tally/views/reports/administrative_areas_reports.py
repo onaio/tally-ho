@@ -525,10 +525,14 @@ def build_recon_form_sub_query(ballots_column, tally_id):
             ReconciliationForm.objects.filter(
                 result_form__tally__id=tally_id,
                 active=True,
-                result_form__ballot__candidates__id=OuterRef(
-                    'candidate_id'),
+                result_form__ballot__electrol_race__election_level=OuterRef(
+                    'election_level'),
+                result_form__ballot__electrol_race__ballot_name=OuterRef(
+                    'sub_race_type'),
                 entry_version=EntryVersion.FINAL,
-            ).values('result_form__ballot__candidates__id').annotate(
+            ).values(
+                'result_form__ballot__electrol_race__election_level',
+                'result_form__ballot__electrol_race__ballot_name').annotate(
                 total=Sum(ballots_column)
             ).values('total'),
             output_field=IntegerField())
@@ -585,6 +589,24 @@ def results_queryset(
                     filter=Q(form_state=FormState.ARCHIVED)
                 ),
             ).values('total_result_forms_archived')[:1],
+            output_field=IntegerField())
+
+    no_recon_form_total_votes_per_election_and_sub_race_sub_q =\
+        Subquery(
+            Result.objects.filter(
+                result_form__tally__id=tally_id,
+                result_form__reconciliationform__isnull=True,
+                result_form__form_state=FormState.ARCHIVED,
+                result_form__ballot__electrol_race__election_level=OuterRef(
+                    'election_level'),
+                result_form__ballot__electrol_race__ballot_name=OuterRef(
+                    'sub_race_type'),
+                entry_version=EntryVersion.FINAL,
+            ).values(
+                'result_form__ballot__electrol_race__election_level',
+                'result_form__ballot__electrol_race__ballot_name').annotate(
+                total_votes=Sum('votes'),
+            ).values('total_votes')[:1],
             output_field=IntegerField())
 
     if data:
@@ -707,36 +729,24 @@ def results_queryset(
             .annotate(
                 candidate_id=F('candidate__id'),
                 total_votes=Sum('votes'),
-                ballot_number=F('result_form__ballot__number'),
                 gender=F('result_form__gender'),
                 election_level=F(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
                 order=F('candidate__order'),
-                race_number=F('candidate__ballot__number'),
+                ballot_number=F('candidate__ballot__number'),
                 candidate_status=Case(
                     When(
                         candidate__active=True,
                         then=V('enabled')
                     ), default=V('disabled'), output_field=CharField()),
-                invalid_votes=Coalesce(build_recon_form_sub_query(
-                                'number_invalid_votes', tally_id), V(0)),
-                unstamped_ballots=Coalesce(build_recon_form_sub_query(
-                                'number_unstamped_ballots', tally_id), V(0)),
-                cancelled_ballots=Coalesce(build_recon_form_sub_query(
-                                'number_cancelled_ballots', tally_id), V(0)),
-                spoilt_ballots=Coalesce(build_recon_form_sub_query(
-                                'number_spoiled_ballots', tally_id), V(0)),
-                unused_ballots=Coalesce(build_recon_form_sub_query(
-                                'number_unused_ballots', tally_id), V(0)),
-                number_of_signatures=Coalesce(build_recon_form_sub_query(
-                                'number_signatures_in_vr', tally_id), V(0)),
-                ballots_received=Coalesce(build_recon_form_sub_query(
-                                'number_ballots_received', tally_id), V(0)),
-                valid_votes=Coalesce(build_recon_form_sub_query(
+                recon_valid_votes=Coalesce(build_recon_form_sub_query(
                                 'number_valid_votes', tally_id), V(0)),
-                )
+                no_recon_valid_votes=
+                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
+            )
 
     else:
         qs = qs\
@@ -746,36 +756,24 @@ def results_queryset(
             .annotate(
                 candidate_id=F('candidate__id'),
                 total_votes=Sum('votes'),
-                ballot_number=F('result_form__ballot__number'),
                 gender=F('result_form__gender'),
                 election_level=F(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
                 order=F('candidate__order'),
-                race_number=F('candidate__ballot__number'),
+                ballot_number=F('candidate__ballot__number'),
                 candidate_status=Case(
                     When(
                         candidate__active=True,
                         then=V('enabled')
                     ), default=V('disabled'), output_field=CharField()),
-                invalid_votes=Coalesce(build_recon_form_sub_query(
-                                'number_invalid_votes', tally_id), V(0)),
-                unstamped_ballots=Coalesce(build_recon_form_sub_query(
-                                'number_unstamped_ballots', tally_id), V(0)),
-                cancelled_ballots=Coalesce(build_recon_form_sub_query(
-                                'number_cancelled_ballots', tally_id), V(0)),
-                spoilt_ballots=Coalesce(build_recon_form_sub_query(
-                                'number_spoiled_ballots', tally_id), V(0)),
-                unused_ballots=Coalesce(build_recon_form_sub_query(
-                                'number_unused_ballots', tally_id), V(0)),
-                number_of_signatures=Coalesce(build_recon_form_sub_query(
-                                'number_signatures_in_vr', tally_id), V(0)),
-                ballots_received=Coalesce(build_recon_form_sub_query(
-                                'number_ballots_received', tally_id), V(0)),
-                valid_votes=Coalesce(build_recon_form_sub_query(
+                recon_valid_votes=Coalesce(build_recon_form_sub_query(
                                 'number_valid_votes', tally_id), V(0)),
-                )
+                no_recon_valid_votes=
+                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
+            )
 
     return qs
 
@@ -831,6 +829,24 @@ def export_results_queryset(
                     filter=Q(form_state=FormState.ARCHIVED)
                 ),
             ).values('total_result_forms_archived')[:1],
+            output_field=IntegerField())
+
+    no_recon_form_total_votes_per_election_and_sub_race_sub_q =\
+        Subquery(
+            Result.objects.filter(
+                result_form__tally__id=tally_id,
+                result_form__reconciliationform__isnull=True,
+                result_form__form_state=FormState.ARCHIVED,
+                result_form__ballot__electrol_race__election_level=OuterRef(
+                    'election_level'),
+                result_form__ballot__electrol_race__ballot_name=OuterRef(
+                    'sub_race_type'),
+                entry_version=EntryVersion.FINAL,
+            ).values(
+                'result_form__ballot__electrol_race__election_level',
+                'result_form__ballot__electrol_race__ballot_name').annotate(
+                total_votes=Sum('votes'),
+            ).values('total_votes')[:1],
             output_field=IntegerField())
 
     if data:
@@ -957,9 +973,12 @@ def export_results_queryset(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
-                valid_votes=Coalesce(build_recon_form_sub_query(
+                recon_valid_votes=Coalesce(build_recon_form_sub_query(
                                 'number_valid_votes', tally_id), V(0)),
-                )
+                no_recon_valid_votes=
+                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
+            )
 
     else:
         qs = qs\
@@ -973,9 +992,12 @@ def export_results_queryset(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
-                valid_votes=Coalesce(build_recon_form_sub_query(
+                recon_valid_votes=Coalesce(build_recon_form_sub_query(
                                 'number_valid_votes', tally_id), V(0)),
-                )
+                no_recon_valid_votes=
+                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
+            )
 
     return qs
 
@@ -2115,15 +2137,7 @@ def get_results(request):
                 'total_votes',
                 'ballot_number',
                 'order',
-                'race_number',
                 'candidate_status',
-                'invalid_votes',
-                'unstamped_ballots',
-                'cancelled_ballots',
-                'spoilt_ballots',
-                'unused_ballots',
-                'number_of_signatures',
-                'ballots_received',
                 'valid_votes',
                 'election_level',
                 'sub_race_type',
@@ -3775,21 +3789,14 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
     model = Result
     columns = ('candidate_name',
                'total_votes',
-               'invalid_votes',
                'valid_votes',
                'candidate_status',
                'gender',
                'election_level',
                'sub_race_type',
                'order',
-               'unstamped_ballots',
-               'cancelled_ballots',
-               'spoilt_ballots',
-               'unused_ballots',
-               'number_of_signatures',
-               'ballots_received',
                'ballot_number',
-               'race_number',)
+            )
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs.get('tally_id')
