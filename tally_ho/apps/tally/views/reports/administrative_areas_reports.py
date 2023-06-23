@@ -743,8 +743,13 @@ def results_queryset(
                     ), default=V('disabled'), output_field=CharField()),
                 recon_valid_votes=Coalesce(build_recon_form_sub_query(
                                 'number_valid_votes', tally_id), V(0)),
-                no_recon_valid_votes=
-                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                no_recon_valid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=True,
+                        then=Coalesce(
+                    no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                    V(0))
+                    ), default=V(0), output_field=IntegerField()),
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
@@ -770,8 +775,13 @@ def results_queryset(
                     ), default=V('disabled'), output_field=CharField()),
                 recon_valid_votes=Coalesce(build_recon_form_sub_query(
                                 'number_valid_votes', tally_id), V(0)),
-                no_recon_valid_votes=
-                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                no_recon_valid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=True,
+                        then=Coalesce(
+                    no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                    V(0))
+                    ), default=V(0), output_field=IntegerField()),
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
@@ -975,8 +985,13 @@ def export_results_queryset(
                     'result_form__ballot__electrol_race__ballot_name'),
                 recon_valid_votes=Coalesce(build_recon_form_sub_query(
                                 'number_valid_votes', tally_id), V(0)),
-                no_recon_valid_votes=
-                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                no_recon_valid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=True,
+                        then=Coalesce(
+                    no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                    V(0))
+                    ), default=V(0), output_field=IntegerField()),
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
@@ -994,8 +1009,13 @@ def export_results_queryset(
                     'result_form__ballot__electrol_race__ballot_name'),
                 recon_valid_votes=Coalesce(build_recon_form_sub_query(
                                 'number_valid_votes', tally_id), V(0)),
-                no_recon_valid_votes=
-                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                no_recon_valid_votes=Case(
+                    When(
+                        result_form__reconciliationform__isnull=True,
+                        then=Coalesce(
+                    no_recon_form_total_votes_per_election_and_sub_race_sub_q,
+                    V(0))
+                    ), default=V(0), output_field=IntegerField()),
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
