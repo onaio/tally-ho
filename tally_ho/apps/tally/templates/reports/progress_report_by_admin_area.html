@@ -24,12 +24,6 @@ $(document).ready(() => {
     const exportAction = function (e, dt, button, config) {
     const self = this;
     const oldStart = dt.settings()[0]._iDisplayStart;
-    const dt_offices_columns = {{ dt_offices_columns|safe }}
-    console.log({ dt_offices_columns })
-    //const dt_regions_columns = '{{ dt_regions_columns|safe }}'
-    //const dt_offices_columns = [{'data': 'office_name'}, {'data': 'general'}, {'data': 'GENERAL_percentage'}, {'data': 'women'}, {'data': 'WOMEN_percentage'}, {'data': 'presidential'}, {'data': 'PRESIDENTIAL_percentage'}, {'data': 'overall'}, {'data': 'overall_percentage'}]
-    //const dt_regions_columns = [{'data': 'region_name'}, {'data': 'general'}, {'data': 'GENERAL_percentage'}, {'data': 'women'}, {'data': 'WOMEN_percentage'}, {'data': 'presidential'}, {'data': 'PRESIDENTIAL_percentage'}, {'data': 'overall'}, {'data': 'overall_percentage'}]
-    debugger;
     dt.one('preXhr', function (e, s, data) {
         // Just this once, load all data from the server...
         data.start = 0;
@@ -77,9 +71,6 @@ $(document).ready(() => {
       stateSave: true,
       ajax: {
         url: regions_progress_report_url,
-        dataSrc: (json) => {
-          return json.data.slice(0, 10)
-        },
         dataType: 'json',
         data: (d) => {
           for (let i = 0; i < d.columns.length - 1; i++) {
@@ -141,9 +132,6 @@ $(document).ready(() => {
       stateSave: true,
       ajax: {
         url: offices_progress_report_url,
-        dataSrc: (json) => {
-          return json.data.slice(0, 10)
-        },
         dataType: 'json',
         data: (d) => {
           for (let i = 0; i < d.columns.length - 1; i++) {
@@ -205,9 +193,6 @@ $(document).ready(() => {
       stateSave: true,
       ajax: {
         url: constituencies_progress_report_url,
-        dataSrc: (json) => {
-          return json.data.slice(0, 10)
-        },
         dataType: 'json',
         data: (d) => {
           for (let i = 0; i < d.columns.length - 1; i++) {
@@ -236,7 +221,14 @@ $(document).ready(() => {
         "<'row'<'col-sm-12'tr>>" +
         "<'row'<'col-sm-5'i><'col-sm-7'p>>",
       buttons: [
-        'csvHtml5'
+        {
+          extend: "csv",
+          filename: 'constituencies_progress_report.csv',
+          action: exportAction,
+          exportOptions: {
+            columns: ':visible :not(.hide-from-export)',
+          },
+        },
       ],
       responsive: true,
       });
@@ -262,9 +254,6 @@ $(document).ready(() => {
       stateSave: true,
       ajax: {
         url: sub_constituencies_progress_report_url,
-        dataSrc: (json) => {
-          return json.data.slice(0, 10)
-        },
         dataType: 'json',
         data: (d) => {
           for (let i = 0; i < d.columns.length - 1; i++) {
@@ -293,7 +282,14 @@ $(document).ready(() => {
         "<'row'<'col-sm-12'tr>>" +
         "<'row'<'col-sm-5'i><'col-sm-7'p>>",
       buttons: [
-        'csvHtml5'
+        {
+          extend: "csv",
+          filename: 'sub_constituencies_progress_report.csv',
+          action: exportAction,
+          exportOptions: {
+            columns: ':visible :not(.hide-from-export)',
+          },
+        },
       ],
       responsive: true,
       });
