@@ -605,8 +605,8 @@ def results_queryset(
             ).values(
                 'result_form__ballot__electrol_race__election_level',
                 'result_form__ballot__electrol_race__ballot_name').annotate(
-                total_votes=Sum('votes'),
-            ).values('total_votes')[:1],
+                no_recon_valid_votes=Sum('votes'),
+            ).values('no_recon_valid_votes')[:1],
             output_field=IntegerField())
 
     if data:
@@ -855,8 +855,8 @@ def export_results_queryset(
             ).values(
                 'result_form__ballot__electrol_race__election_level',
                 'result_form__ballot__electrol_race__ballot_name').annotate(
-                total_votes=Sum('votes'),
-            ).values('total_votes')[:1],
+                no_recon_valid_votes=Sum('votes'),
+            ).values('no_recon_valid_votes')[:1],
             output_field=IntegerField())
 
     if data:
