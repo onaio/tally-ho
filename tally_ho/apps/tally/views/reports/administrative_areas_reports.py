@@ -521,7 +521,7 @@ def stations_and_centers_queryset(
 
 def build_recon_form_sub_query(ballots_column, tally_id):
     sub_query =\
-        Subquery(
+        Coalesce(Subquery(
             ReconciliationForm.objects.filter(
                 result_form__tally__id=tally_id,
                 active=True,
@@ -535,7 +535,7 @@ def build_recon_form_sub_query(ballots_column, tally_id):
                 'result_form__ballot__electrol_race__ballot_name').annotate(
                 total=Sum(ballots_column)
             ).values('total'),
-            output_field=IntegerField())
+            output_field=IntegerField()), V(0))
     return sub_query
 
 def results_queryset(
@@ -592,11 +592,10 @@ def results_queryset(
             output_field=IntegerField())
 
     no_recon_form_total_votes_per_election_and_sub_race_sub_q =\
-        Subquery(
+        Coalesce(Subquery(
             Result.objects.filter(
                 result_form__tally__id=tally_id,
                 result_form__reconciliationform__isnull=True,
-                result_form__form_state=FormState.ARCHIVED,
                 result_form__ballot__electrol_race__election_level=OuterRef(
                     'election_level'),
                 result_form__ballot__electrol_race__ballot_name=OuterRef(
@@ -605,9 +604,9 @@ def results_queryset(
             ).values(
                 'result_form__ballot__electrol_race__election_level',
                 'result_form__ballot__electrol_race__ballot_name').annotate(
-                no_recon_valid_votes=Sum('votes'),
-            ).values('no_recon_valid_votes')[:1],
-            output_field=IntegerField())
+                total_no_recon_valid_votes=Sum('votes'),
+            ).values('total_no_recon_valid_votes')[:1],
+            output_field=IntegerField()), V(0))
 
     if data:
         selected_center_ids =\
@@ -723,11 +722,10 @@ def results_queryset(
             qs = qs.filter(
                 Q(result_form__center__id__in=selected_center_ids))
 
-        qs = qs.annotate(candidate_name=F('candidate__full_name')) \
-            .filter(candidate_name__isnull=False)\
-            .values('candidate_name')\
+        qs = qs.filter(candidate__full_name__isnull=False)\
+            .values('candidate_id')\
             .annotate(
-                candidate_id=F('candidate__id'),
+                candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 gender=F('result_form__gender'),
                 election_level=F(
@@ -741,25 +739,18 @@ def results_queryset(
                         candidate__active=True,
                         then=V('enabled')
                     ), default=V('disabled'), output_field=CharField()),
-                recon_valid_votes=Coalesce(build_recon_form_sub_query(
-                                'number_valid_votes', tally_id), V(0)),
-                no_recon_valid_votes=Case(
-                    When(
-                        result_form__reconciliationform__isnull=True,
-                        then=Coalesce(
-                    no_recon_form_total_votes_per_election_and_sub_race_sub_q,
-                    V(0))
-                    ), default=V(0), output_field=IntegerField()),
+                recon_valid_votes=build_recon_form_sub_query(
+                                'number_valid_votes', tally_id),
+                no_recon_valid_votes=
+                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
     else:
-        qs = qs\
-            .annotate(candidate_name=F('candidate__full_name'))\
-            .filter(candidate_name__isnull=False)\
-            .values('candidate_name')\
+        qs = qs.filter(candidate__full_name__isnull=False)\
+            .values('candidate_id')\
             .annotate(
-                candidate_id=F('candidate__id'),
+                candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 gender=F('result_form__gender'),
                 election_level=F(
@@ -773,15 +764,10 @@ def results_queryset(
                         candidate__active=True,
                         then=V('enabled')
                     ), default=V('disabled'), output_field=CharField()),
-                recon_valid_votes=Coalesce(build_recon_form_sub_query(
-                                'number_valid_votes', tally_id), V(0)),
-                no_recon_valid_votes=Case(
-                    When(
-                        result_form__reconciliationform__isnull=True,
-                        then=Coalesce(
-                    no_recon_form_total_votes_per_election_and_sub_race_sub_q,
-                    V(0))
-                    ), default=V(0), output_field=IntegerField()),
+                recon_valid_votes=build_recon_form_sub_query(
+                                'number_valid_votes', tally_id),
+                no_recon_valid_votes=
+                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
@@ -842,11 +828,10 @@ def export_results_queryset(
             output_field=IntegerField())
 
     no_recon_form_total_votes_per_election_and_sub_race_sub_q =\
-        Subquery(
+        Coalesce(Subquery(
             Result.objects.filter(
                 result_form__tally__id=tally_id,
                 result_form__reconciliationform__isnull=True,
-                result_form__form_state=FormState.ARCHIVED,
                 result_form__ballot__electrol_race__election_level=OuterRef(
                     'election_level'),
                 result_form__ballot__electrol_race__ballot_name=OuterRef(
@@ -855,9 +840,9 @@ def export_results_queryset(
             ).values(
                 'result_form__ballot__electrol_race__election_level',
                 'result_form__ballot__electrol_race__ballot_name').annotate(
-                no_recon_valid_votes=Sum('votes'),
-            ).values('no_recon_valid_votes')[:1],
-            output_field=IntegerField())
+                total_no_recon_valid_votes=Sum('votes'),
+            ).values('total_no_recon_valid_votes')[:1],
+            output_field=IntegerField()), V(0))
 
     if data:
         selected_center_ids =\
@@ -973,49 +958,36 @@ def export_results_queryset(
             qs = qs.filter(
                 Q(result_form__center__id__in=selected_center_ids))
 
-        qs = qs.annotate(candidate_name=F('candidate__full_name'))\
-            .filter(candidate_name__isnull=False)\
-            .values('candidate_name')\
+        qs = qs.filter(candidate__full_name__isnull=False)\
+            .values('candidate_id')\
             .annotate(
-                candidate_id=F('candidate__id'),
+                candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 election_level=F(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
-                recon_valid_votes=Coalesce(build_recon_form_sub_query(
-                                'number_valid_votes', tally_id), V(0)),
-                no_recon_valid_votes=Case(
-                    When(
-                        result_form__reconciliationform__isnull=True,
-                        then=Coalesce(
-                    no_recon_form_total_votes_per_election_and_sub_race_sub_q,
-                    V(0))
-                    ), default=V(0), output_field=IntegerField()),
+                recon_valid_votes=build_recon_form_sub_query(
+                                'number_valid_votes', tally_id),
+                no_recon_valid_votes=
+                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
     else:
-        qs = qs\
-            .annotate(candidate_name=F('candidate__full_name'))\
-            .filter(candidate_name__isnull=False)\
-            .values('candidate_name')\
+        qs = qs.filter(candidate__full_name__isnull=False)\
+            .values('candidate_id')\
             .annotate(
-                candidate_id=F('candidate__id'),
+                candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 election_level=F(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
-                recon_valid_votes=Coalesce(build_recon_form_sub_query(
-                                'number_valid_votes', tally_id), V(0)),
-                no_recon_valid_votes=Case(
-                    When(
-                        result_form__reconciliationform__isnull=True,
-                        then=Coalesce(
-                    no_recon_form_total_votes_per_election_and_sub_race_sub_q,
-                    V(0))
-                    ), default=V(0), output_field=IntegerField()),
+                recon_valid_votes=build_recon_form_sub_query(
+                                'number_valid_votes', tally_id),
+                no_recon_valid_votes=
+                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
