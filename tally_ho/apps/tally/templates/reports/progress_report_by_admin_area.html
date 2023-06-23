@@ -19,6 +19,8 @@ $(document).ready(() => {
     const dt_language = {{ languageDE|safe }}
     const offices_progress_report_url = '{{ offices_progress_report_url }}'
     const regions_progress_report_url = '{{ regions_progress_report_url }}'
+    const constituencies_progress_report_url = '{{ constituencies_progress_report_url }}'
+    const sub_constituencies_progress_report_url = '{{ sub_constituencies_progress_report_url }}'
     const exportAction = function (e, dt, button, config) {
     const self = this;
     const oldStart = dt.settings()[0]._iDisplayStart;
@@ -181,6 +183,120 @@ $(document).ready(() => {
       ],
       responsive: true,
       });
+
+    $('#constituencies-progress-report').DataTable({
+      language: dt_language, // global variable defined in html
+      order: [[0, "desc"]],
+      lengthMenu: [
+        [10, 25, 50, 100, 500, -1],
+        [10, 25, 50, 100, 500, 'Show all'],
+      ],
+      columnDefs: [
+        {
+          orderable: true,
+          searchable: true,
+          className: "center",
+          targets: [0, 1],
+        },
+      ],
+      searching: false,
+      processing: true,
+      serverSide: true,
+      stateSave: true,
+      ajax: {
+        url: constituencies_progress_report_url,
+        dataSrc: (json) => {
+          return json.data.slice(0, 10)
+        },
+        dataType: 'json',
+        data: (d) => {
+          for (let i = 0; i < d.columns.length - 1; i++) {
+            d[`columns[${i}][data]`] = d.columns[i].data
+            d[`columns[${i}][name]`] = d.columns[i].name
+            d[`columns[${i}][searchable]`] = d.columns[i].searchable
+            d[`columns[${i}][search][value]`] = d.columns[i].search.value
+            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
+            d[`columns[${i}][data]`] = d.columns[i].data
+          }
+          d['order[0][column]'] = d.columns[d.order[0].column].data;
+          d['order[0][dir]'] = d.order[0].dir;
+          d['search[value]'] = d.search.value;
+          d['search[regex]'] = d.search.regex;
+          d['columns'] = d.columns;
+          d['order'] = d.order;
+          d['draw'] = d.draw;
+          d['start'] = d.start;
+          d['length'] = d.length;
+          d.data = JSON.stringify([])
+        },
+      },
+      columns: {{ dt_constituencies_columns|safe }},
+      dom:
+        "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+      buttons: [
+        'csvHtml5'
+      ],
+      responsive: true,
+      });
+
+    $('#sub-constituencies-progress-report').DataTable({
+      language: dt_language, // global variable defined in html
+      order: [[0, "desc"]],
+      lengthMenu: [
+        [10, 25, 50, 100, 500, -1],
+        [10, 25, 50, 100, 500, 'Show all'],
+      ],
+      columnDefs: [
+        {
+          orderable: true,
+          searchable: true,
+          className: "center",
+          targets: [0, 1],
+        },
+      ],
+      searching: false,
+      processing: true,
+      serverSide: true,
+      stateSave: true,
+      ajax: {
+        url: sub_constituencies_progress_report_url,
+        dataSrc: (json) => {
+          return json.data.slice(0, 10)
+        },
+        dataType: 'json',
+        data: (d) => {
+          for (let i = 0; i < d.columns.length - 1; i++) {
+            d[`columns[${i}][data]`] = d.columns[i].data
+            d[`columns[${i}][name]`] = d.columns[i].name
+            d[`columns[${i}][searchable]`] = d.columns[i].searchable
+            d[`columns[${i}][search][value]`] = d.columns[i].search.value
+            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
+            d[`columns[${i}][data]`] = d.columns[i].data
+          }
+          d['order[0][column]'] = d.columns[d.order[0].column].data;
+          d['order[0][dir]'] = d.order[0].dir;
+          d['search[value]'] = d.search.value;
+          d['search[regex]'] = d.search.regex;
+          d['columns'] = d.columns;
+          d['order'] = d.order;
+          d['draw'] = d.draw;
+          d['start'] = d.start;
+          d['length'] = d.length;
+          d.data = JSON.stringify([])
+        },
+      },
+      columns: {{ dt_sub_constituencies_columns|safe }},
+      dom:
+        "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+      buttons: [
+        'csvHtml5'
+      ],
+      responsive: true,
+      });
 });
 </script>
 {% endblock %}
@@ -194,6 +310,12 @@ $(document).ready(() => {
     </li>
     <li class="nav-item">
         <a class="nav-link" data-toggle="tab" href="#table2">Offices Progress Report</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#table3">Constituencies Progress Report</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#table4">Sub-Constituencies Progress Report</a>
     </li>
 </ul>
 
@@ -216,6 +338,30 @@ $(document).ready(() => {
           <thead>
               <tr>
                   {% for name in html_table_offices_columns %}
+                    <th>{{ name }}</th>
+                  {% endfor %}
+              </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+    </div>
+    <div id="table3" class="tab-pane">
+        <table id="constituencies-progress-report" class="display" style="width:100%">
+          <thead>
+              <tr>
+                  {% for name in html_table_constituencies_columns %}
+                    <th>{{ name }}</th>
+                  {% endfor %}
+              </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+    </div>
+    <div id="table4" class="tab-pane">
+        <table id="sub-constituencies-progress-report" class="display" style="width:100%">
+          <thead>
+              <tr>
+                  {% for name in html_table_sub_constituencies_columns %}
                     <th>{{ name }}</th>
                   {% endfor %}
               </tr>

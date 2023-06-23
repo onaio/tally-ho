@@ -982,6 +982,12 @@ urlpatterns = [
     re_path(r'^data/offices-progress-report/(?P<tally_id>(\d+))/$',
             progress_by_sub_races_reports.offices_progress_report_view,
             name='offices-progress-report'),
+    re_path(r'^data/constituencies-progress-report/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.constituencies_progress_report_view,
+            name='constituencies-progress-report'),
+    re_path(r'^data/sub-constituencies-progress-report/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.sub_constituencies_progress_report_view,
+            name='sub-constituencies-progress-report'),
 
     path('operation-not-allowed',
          home.suspicious_error,
