@@ -519,21 +519,36 @@ def stations_and_centers_queryset(
 
     return qs
 
-def build_recon_form_sub_query(tally_id):
-    sub_query =\
-        Coalesce(Subquery(
-            ReconciliationForm.objects.filter(
+def total_valid_votes_with_recon_forms_per_electrol_race(
+        tally_id,
+        electral_race_id,
+    ):
+    total_valid_votes =\
+        ReconciliationForm.objects.filter(
+            result_form__tally__id=tally_id,
+            active=True,
+            result_form__ballot__electrol_race__id=electral_race_id,
+            entry_version=EntryVersion.FINAL,
+        ).values('result_form__ballot__electrol_race__id').aggregate(
+            total_valid_votes=Sum('number_valid_votes')
+        ).get('total_valid_votes')
+    return total_valid_votes or 0
+
+def total_valid_votes_with_no_recon_forms_per_electrol_race(
+        tally_id,
+        electral_race_id,
+    ):
+    total_valid_votes =\
+        Result.objects.filter(
                 result_form__tally__id=tally_id,
                 active=True,
-                result_form__ballot__electrol_race__id=OuterRef(
-                    'result_form__ballot__electrol_race__id'
-                ),
+                result_form__reconciliationform__isnull=True,
+                result_form__ballot__electrol_race__id=electral_race_id,
                 entry_version=EntryVersion.FINAL,
-            ).values('result_form__ballot__electrol_race__id').annotate(
-                total=Sum('number_valid_votes')
-            ).values('total'),
-            output_field=IntegerField()), V(0))
-    return sub_query
+            ).values('result_form__ballot__electrol_race__id').aggregate(
+                total_valid_votes=Sum('votes'),
+            ).get('total_valid_votes')
+    return total_valid_votes or 0
 
 def results_queryset(
         tally_id,
@@ -587,20 +602,6 @@ def results_queryset(
                 ),
             ).values('total_result_forms_archived')[:1],
             output_field=IntegerField())
-
-    no_recon_form_total_votes_per_election_and_sub_race_sub_q =\
-        Coalesce(Subquery(
-            Result.objects.filter(
-                result_form__tally__id=tally_id,
-                active=True,
-                result_form__reconciliationform__isnull=True,
-                result_form__ballot__electrol_race__id=OuterRef(
-                    'result_form__ballot__electrol_race__id'),
-                entry_version=EntryVersion.FINAL,
-            ).values('result_form__ballot__electrol_race__id').annotate(
-                total_no_recon_valid_votes=Sum('votes'),
-            ).values('total_no_recon_valid_votes')[:1],
-            output_field=IntegerField()), V(0))
 
     if data:
         selected_center_ids =\
@@ -722,6 +723,8 @@ def results_queryset(
                 candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 gender=F('result_form__gender'),
+                electrol_race_id=F(
+                    'result_form__ballot__electrol_race__id'),
                 election_level=F(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
@@ -733,10 +736,6 @@ def results_queryset(
                         candidate__active=True,
                         then=V('enabled')
                     ), default=V('disabled'), output_field=CharField()),
-                recon_valid_votes=build_recon_form_sub_query(tally_id),
-                no_recon_valid_votes=
-                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
-                valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
     else:
@@ -746,6 +745,8 @@ def results_queryset(
                 candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 gender=F('result_form__gender'),
+                electrol_race_id=F(
+                    'result_form__ballot__electrol_race__id'),
                 election_level=F(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
@@ -757,10 +758,6 @@ def results_queryset(
                         candidate__active=True,
                         then=V('enabled')
                     ), default=V('disabled'), output_field=CharField()),
-                recon_valid_votes=build_recon_form_sub_query(tally_id),
-                no_recon_valid_votes=
-                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
-                valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
     return qs
@@ -819,20 +816,6 @@ def export_results_queryset(
             ).values('total_result_forms_archived')[:1],
             output_field=IntegerField())
 
-    no_recon_form_total_votes_per_election_and_sub_race_sub_q =\
-        Coalesce(Subquery(
-            Result.objects.filter(
-                result_form__tally__id=tally_id,
-                active=True,
-                result_form__reconciliationform__isnull=True,
-                result_form__ballot__electrol_race__id=OuterRef(
-                    'result_form__ballot__electrol_race__id'),
-                entry_version=EntryVersion.FINAL,
-            ).values('result_form__ballot__electrol_race__id').annotate(
-                total_no_recon_valid_votes=Sum('votes'),
-            ).values('total_no_recon_valid_votes')[:1],
-            output_field=IntegerField()), V(0))
-
     if data:
         selected_center_ids =\
             data['select_1_ids'] if data.get('select_1_ids') else []
@@ -952,14 +935,12 @@ def export_results_queryset(
             .annotate(
                 candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
+                electrol_race_id=F(
+                    'result_form__ballot__electrol_race__id'),
                 election_level=F(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
-                recon_valid_votes=build_recon_form_sub_query(tally_id),
-                no_recon_valid_votes=
-                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
-                valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
     else:
@@ -968,14 +949,12 @@ def export_results_queryset(
             .annotate(
                 candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
+                electrol_race_id=F(
+                    'result_form__ballot__electrol_race__id'),
                 election_level=F(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
-                recon_valid_votes=build_recon_form_sub_query(tally_id),
-                no_recon_valid_votes=
-                no_recon_form_total_votes_per_election_and_sub_race_sub_q,
-                valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
             )
 
     return qs
@@ -1638,18 +1617,15 @@ def get_export(request):
     station_status = data.get('station_status')
     candidate_status = data.get('candidate_status')
     percentage_processed = data.get('percentage_processed')
-    no_filter_applied =\
-         not center_ids and\
-         not station_ids and\
-         not election_level_names and\
-         not sub_race_type_names and\
-         not ballot_status and\
-         not station_status and\
-         not candidate_status and\
-         not percentage_processed
-
-    if no_filter_applied:
-        data = None
+    filters_applied =\
+        center_ids or\
+        station_ids or\
+        election_level_names or\
+        sub_race_type_names or\
+        ballot_status or\
+        station_status or\
+        candidate_status or\
+        percentage_processed
 
     qs = Result.objects.filter(
         result_form__tally__id=tally_id,
@@ -1658,17 +1634,16 @@ def get_export(request):
         active=True)
 
     qs = export_results_queryset(
-        tally_id,
-        qs,
-        data).values()
+            tally_id,
+            qs,
+            data=data if filters_applied else None
+        )
 
     if export_type == 'PPT' and qs.count() != 0:
         result = create_ppt_export(
-            qs,
-            election_level_names=election_level_names,
-            sub_race_type_names=sub_race_type_names,
-            tally_id=tally_id,
-            limit=limit)
+                    qs,
+                    tally_id=tally_id,
+                    limit=limit)
         return result
     return HttpResponse("Not found")
 
@@ -1680,20 +1655,15 @@ def electrol_race_has_results(results_qs, electrol_race):
 
 def create_ppt_export(
         qs,
-        election_level_names=None,
-        sub_race_type_names=None,
         tally_id=None,
         limit=None):
-    filtered_electrol_races = ElectrolRace.objects.filter(tally__id=tally_id)
-
-    if election_level_names:
-        filtered_electrol_races =\
-            filtered_electrol_races.filter(
-                election_level__in=election_level_names)
-    if sub_race_type_names:
-        filtered_electrol_races =\
-            filtered_electrol_races.filter(
-                ballot_name__in=sub_race_type_names)
+    electrol_race_ids =\
+            list(set([result.get('electrol_race_id') for result in qs]))
+    filtered_electrol_races =\
+        ElectrolRace.objects.filter(
+            tally__id=tally_id,
+            id__in=electrol_race_ids
+        )
 
     headers =\
         create_results_power_point_headers(
@@ -1702,16 +1672,37 @@ def create_ppt_export(
     powerpoint_data = []
     race_bg_img_root_path =\
         getattr(settings, 'MEDIA_ROOT')
+
+    valid_votes_per_electrol_race_id =\
+        {
+            id: total_valid_votes_with_recon_forms_per_electrol_race(
+                tally_id,
+                id
+            ) +
+            total_valid_votes_with_no_recon_forms_per_electrol_race(
+                tally_id,
+                id
+            ) for id in electrol_race_ids
+        }
     for electrol_race in filtered_electrol_races:
         if electrol_race_has_results(qs, electrol_race):
             data = qs.filter(
                 election_level=electrol_race.election_level,
                 sub_race_type=electrol_race.ballot_name).order_by('-votes')
             body_data = data.values(
-                'candidate_name', 'total_votes', 'valid_votes')
+                'candidate_name', 'total_votes', 'electrol_race_id')
             if limit != 0:
                 body_data = body_data[:limit]
-            body = [item for item in body_data]
+            body =\
+                [
+                    {
+                        'candidate_name': item.get('candidate_name'),
+                        'total_votes': item.get('total_votes'),
+                        'valid_votes':
+                        valid_votes_per_electrol_race_id.get(
+                            item.get('electrol_race_id'))
+                    } for item in body_data
+                ]
             header =\
                 headers.get(
                 f"{electrol_race.election_level}_{electrol_race.ballot_name}")
@@ -3777,43 +3768,85 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                'ballot_number',
             )
 
-    def filter_queryset(self, qs):
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_initial_queryset()
+
+        total_records = len(queryset)
+        page = self.request.POST.get('start', 0)
+        page_size = self.request.POST.get('length', 10)
+
+        if page_size == '-1':
+            page_records = queryset
+        else:
+            page_records = queryset[int(page):int(page) + int(page_size)]
+
+        response_data = JsonResponse({
+            'draw': int(self.request.POST.get('draw', 0)),
+            'recordsTotal': total_records,
+            'recordsFiltered': total_records,
+            'data': page_records,
+        })
+
+        return response_data
+
+    def get_initial_queryset(self):
+        """
+        Return the initial queryset for the data table.
+        You can modify this method to return a custom list.
+        Custom logic to get the data as a list
+        """
         tally_id = self.kwargs.get('tally_id')
         data = self.request.POST.get('data')
         keyword = self.request.POST.get('search[value]')
 
         qs =\
-            qs.filter(
+            self.model.objects.filter(
                 result_form__tally__id=tally_id,
                 result_form__form_state=FormState.ARCHIVED,
                 entry_version=EntryVersion.FINAL,
                 active=True)
 
-        if data:
-            qs = results_queryset(
+        qs = results_queryset(
                 tally_id,
                 qs,
-                ast.literal_eval(data))
-        else:
-            qs = results_queryset(tally_id, qs)
+                data= ast.literal_eval(data) if data else None
+            )
 
         if keyword:
             qs = qs.filter(Q(candidate_name__contains=keyword) |
-                           Q(barcode__contains=keyword) |
-                           Q(total_votes__contains=keyword) |
-                           Q(center_code__contains=keyword))
-        return qs
+                           Q(total_votes__contains=keyword))
+        electrol_race_ids =\
+            list(set([result.get('electrol_race_id') for result in qs]))
+        valid_votes_per_electrol_race_id =\
+            {
+                id: total_valid_votes_with_recon_forms_per_electrol_race(
+                    tally_id,
+                    id
+                ) +
+                total_valid_votes_with_no_recon_forms_per_electrol_race(
+                    tally_id,
+                    id
+                ) for id in electrol_race_ids
+            }
+        results =\
+            [{
+                'candidate_name': result.get('candidate_name'),
+                'total_votes': result.get('total_votes'),
+                'gender': result.get('gender').name,
+                'election_level': result.get('election_level'),
+                'sub_race_type': result.get('sub_race_type'),
+                'order': result.get('order'),
+                'ballot_number': result.get('ballot_number'),
+                'candidate_status': result.get('candidate_status'),
+                'valid_votes':
+                valid_votes_per_electrol_race_id.get(
+                result.get('electrol_race_id')),
+            } for result in qs]
 
-    def render_column(self, row, column):
-        if column in self.columns:
-            if column == 'gender':
-                return str('<td class="center">'
-                       f'{row[column].name}</td>')
-            return str('<td class="center">'
-                       f'{row[column]}</td>')
-        else:
-            return super(
-                ResultFormResultsListDataView, self).render_column(row, column)
+        sorted_results_report = \
+            sorted(results, key=lambda x: -x['total_votes'])
+
+        return sorted_results_report
 
 
 class ResultFormResultsListView(LoginRequiredMixin,
@@ -3828,6 +3861,18 @@ class ResultFormResultsListView(LoginRequiredMixin,
         stations, centers = build_station_and_centers_list(tally_id)
         electrol_races =\
             ElectrolRace.objects.filter(tally__id=tally_id)
+        columns = (
+                    'candidate_name',
+                    'total_votes',
+                    'valid_votes',
+                    'candidate_status',
+                    'gender',
+                    'election_level',
+                    'sub_race_type',
+                    'order',
+                    'ballot_number',
+                )
+        dt_columns = [{ 'data': column } for column in columns]
 
         ballot_status = [
             {
@@ -3874,10 +3919,11 @@ class ResultFormResultsListView(LoginRequiredMixin,
             station_status=station_status,
             candidate_status=candidate_status,
             get_centers_stations_url='/ajax/get-centers-stations/',
-            get_export_url='/ajax/get-export/',
+            export_url='/ajax/get-export/',
             results_download_url='/ajax/download-results/',
             languageDE=language_de,
-            deployedSiteUrl=get_deployed_site_url()
+            deployedSiteUrl=get_deployed_site_url(),
+            dt_columns=dt_columns,
         ))
 
 
