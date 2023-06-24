@@ -519,21 +519,18 @@ def stations_and_centers_queryset(
 
     return qs
 
-def build_recon_form_sub_query(ballots_column, tally_id):
+def build_recon_form_sub_query(tally_id):
     sub_query =\
         Coalesce(Subquery(
             ReconciliationForm.objects.filter(
                 result_form__tally__id=tally_id,
                 active=True,
-                result_form__ballot__electrol_race__election_level=OuterRef(
-                    'election_level'),
-                result_form__ballot__electrol_race__ballot_name=OuterRef(
-                    'sub_race_type'),
+                result_form__ballot__electrol_race__id=OuterRef(
+                    'result_form__ballot__electrol_race__id'
+                ),
                 entry_version=EntryVersion.FINAL,
-            ).values(
-                'result_form__ballot__electrol_race__election_level',
-                'result_form__ballot__electrol_race__ballot_name').annotate(
-                total=Sum(ballots_column)
+            ).values('result_form__ballot__electrol_race__id').annotate(
+                total=Sum('number_valid_votes')
             ).values('total'),
             output_field=IntegerField()), V(0))
     return sub_query
@@ -595,15 +592,12 @@ def results_queryset(
         Coalesce(Subquery(
             Result.objects.filter(
                 result_form__tally__id=tally_id,
+                active=True,
                 result_form__reconciliationform__isnull=True,
-                result_form__ballot__electrol_race__election_level=OuterRef(
-                    'election_level'),
-                result_form__ballot__electrol_race__ballot_name=OuterRef(
-                    'sub_race_type'),
+                result_form__ballot__electrol_race__id=OuterRef(
+                    'result_form__ballot__electrol_race__id'),
                 entry_version=EntryVersion.FINAL,
-            ).values(
-                'result_form__ballot__electrol_race__election_level',
-                'result_form__ballot__electrol_race__ballot_name').annotate(
+            ).values('result_form__ballot__electrol_race__id').annotate(
                 total_no_recon_valid_votes=Sum('votes'),
             ).values('total_no_recon_valid_votes')[:1],
             output_field=IntegerField()), V(0))
@@ -739,8 +733,7 @@ def results_queryset(
                         candidate__active=True,
                         then=V('enabled')
                     ), default=V('disabled'), output_field=CharField()),
-                recon_valid_votes=build_recon_form_sub_query(
-                                'number_valid_votes', tally_id),
+                recon_valid_votes=build_recon_form_sub_query(tally_id),
                 no_recon_valid_votes=
                 no_recon_form_total_votes_per_election_and_sub_race_sub_q,
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
@@ -764,8 +757,7 @@ def results_queryset(
                         candidate__active=True,
                         then=V('enabled')
                     ), default=V('disabled'), output_field=CharField()),
-                recon_valid_votes=build_recon_form_sub_query(
-                                'number_valid_votes', tally_id),
+                recon_valid_votes=build_recon_form_sub_query(tally_id),
                 no_recon_valid_votes=
                 no_recon_form_total_votes_per_election_and_sub_race_sub_q,
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
@@ -831,15 +823,12 @@ def export_results_queryset(
         Coalesce(Subquery(
             Result.objects.filter(
                 result_form__tally__id=tally_id,
+                active=True,
                 result_form__reconciliationform__isnull=True,
-                result_form__ballot__electrol_race__election_level=OuterRef(
-                    'election_level'),
-                result_form__ballot__electrol_race__ballot_name=OuterRef(
-                    'sub_race_type'),
+                result_form__ballot__electrol_race__id=OuterRef(
+                    'result_form__ballot__electrol_race__id'),
                 entry_version=EntryVersion.FINAL,
-            ).values(
-                'result_form__ballot__electrol_race__election_level',
-                'result_form__ballot__electrol_race__ballot_name').annotate(
+            ).values('result_form__ballot__electrol_race__id').annotate(
                 total_no_recon_valid_votes=Sum('votes'),
             ).values('total_no_recon_valid_votes')[:1],
             output_field=IntegerField()), V(0))
@@ -967,8 +956,7 @@ def export_results_queryset(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
-                recon_valid_votes=build_recon_form_sub_query(
-                                'number_valid_votes', tally_id),
+                recon_valid_votes=build_recon_form_sub_query(tally_id),
                 no_recon_valid_votes=
                 no_recon_form_total_votes_per_election_and_sub_race_sub_q,
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
@@ -984,8 +972,7 @@ def export_results_queryset(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
-                recon_valid_votes=build_recon_form_sub_query(
-                                'number_valid_votes', tally_id),
+                recon_valid_votes=build_recon_form_sub_query(tally_id),
                 no_recon_valid_votes=
                 no_recon_form_total_votes_per_election_and_sub_race_sub_q,
                 valid_votes=F('recon_valid_votes') + F('no_recon_valid_votes'),
