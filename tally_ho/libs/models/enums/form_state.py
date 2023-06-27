@@ -75,7 +75,7 @@ def processed_states_at_state(form_state):
 
 def un_processed_states_at_state(form_state):
     """
-    If  a form is has one of the returned states then it would be considered
+    If a form has one of the returned states then it would be considered
     unprocessed relative to the given state.
     Note: some states do not have valid un-processed states e.g. review states
     and un-submitted.
@@ -92,6 +92,6 @@ def un_processed_states_at_state(form_state):
         if form_state == FormState.ARCHIVED:
             ret_val = ret_val + past_form_states
         else:
-            ret_val = ret_val + (form_state,) + past_form_states
+            ret_val = ret_val + past_form_states
 
     return ret_val

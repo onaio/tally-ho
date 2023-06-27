@@ -328,6 +328,19 @@ def create_region(
     return region
 
 
+def create_sub_constituency(
+        code=1,
+        tally=None,
+        field_office='1'
+):
+    sub_constituency, _ =\
+        SubConstituency.objects.get_or_create(code=code,
+                                              field_office=field_office,
+                                              tally=tally)
+
+    return sub_constituency
+
+
 def create_constituency(
         name='Region',
         tally=None
@@ -378,7 +391,8 @@ def issue_369_result_forms_data_setup(user):
     tally = create_tally()
     tally.users.add(user)
     ballot = create_ballot(tally=tally)
-    center = create_center('12345', tally=tally)
+    sub_con = create_sub_constituency(code=12345,tally=tally)
+    center = create_center('12345', tally=tally, sub_constituency=sub_con)
     station = create_station(center)
 
     # create result forms :one result form for each state.
