@@ -334,6 +334,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
             get_corrections_forms(result_form)
         election_level = result_form.ballot.electrol_race.election_level
         sub_race_type = result_form.ballot.electrol_race.ballot_name
+        prefix = f"{election_level.lower()}_{sub_race_type.lower()}"
 
         return self.render_to_response(
             self.get_context_data(errors=errors,
@@ -341,7 +342,7 @@ class CorrectionRequiredView(LoginRequiredMixin,
                                   reconciliation_form=recon,
                                   candidate_results=candidate_results,
                                   header=f"{election_level}-{sub_race_type}",
-                                  prefix=election_level.lower(),
+                                  prefix=prefix,
                                   tally_id=tally_id))
 
     def get(self, *args, **kwargs):

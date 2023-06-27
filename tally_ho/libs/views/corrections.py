@@ -206,5 +206,7 @@ def save_result(candidate, result_form, entry_version, votes, user):
 
 def save_form_results(result_form, post_data, user):
     election_level = result_form.ballot.electrol_race.election_level
+    sub_race_type = result_form.ballot.electrol_race.ballot_name
+    prefix = f"{election_level.lower()}_{sub_race_type.lower()}"
     save_candidate_results_by_prefix(
-        election_level.lower(), result_form, post_data, user)
+        prefix, result_form, post_data, user)
