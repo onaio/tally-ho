@@ -49,7 +49,8 @@ from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views.constants import (
-    race_type_query_param,
+    election_level_query_param,
+    sub_race_query_param,
     sub_con_code_query_param,
     pending_at_state_query_param, at_state_query_param
 )
@@ -674,7 +675,8 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     model = ResultForm
     columns = (
         'sub_con_code',
-        'race_type',
+        'election_level',
+        'sub_race',
         'total_forms',
         'unsubmitted',
         ('intake', 'intake_unprocessed'),
@@ -714,9 +716,11 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
             sub_con_code=F("center__sub_constituency__code")).values(
             'sub_con_code') \
             .annotate(
-            race_type=F("ballot__race_type"),
-            total_forms=Count("race_type"),
-            **count_by_form_state_queries)
+                election_level=F("ballot__electrol_race__election_level"),
+                sub_race=F("ballot__electrol_race__ballot_name"),
+                total_forms=Count("barcode"),
+                **count_by_form_state_queries
+            )
         return qs
 
     def render_column(self, row, column):
@@ -724,12 +728,15 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
         sub_con_code = row["sub_con_code"]
         if column in self.columns:
             column_val = None
-            race_type = row["race_type"].name.lower()
+            election_level = row["election_level"]
+            sub_race = row["sub_race"]
             if isinstance(column, tuple) is False and row[column] != 0 and\
                 column in ["unsubmitted", "clearance", "audit"]:
-                params = {race_type_query_param: race_type,
-                         sub_con_code_query_param: sub_con_code,
-                        at_state_query_param: column}
+                params =\
+                    {election_level_query_param: election_level,
+                     sub_race_query_param: sub_race,
+                     sub_con_code_query_param: sub_con_code,
+                     at_state_query_param: column}
                 query_param_string = urlencode(params)
                 remote_data_url = reverse(
                     'form-list',
@@ -750,9 +757,12 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                 unprocessed_column_val = f'{unprocessed_count}</span>'
                 if current_state_form_count > 0:
                     current_state_form_url_params =\
-                        {race_type_query_param: race_type,
+                        {
+                            election_level_query_param: election_level,
+                            sub_race_query_param: sub_race,
                             sub_con_code_query_param: sub_con_code,
-                        at_state_query_param: column[0]}
+                            at_state_query_param: column[0]
+                        }
                     current_state_form_query_param_string =\
                         urlencode(current_state_form_url_params)
                     current_state_form_remote_data_url =\
@@ -766,9 +776,12 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                                 f'{current_state_form_count}</a></span>')
                 if unprocessed_count > 0:
                     unprocessed_forms_url_params =\
-                        {race_type_query_param: race_type,
+                        {
+                            election_level_query_param: election_level,
+                            sub_race_query_param: sub_race,
                             sub_con_code_query_param: sub_con_code,
-                        pending_at_state_query_param: column[0]}
+                            pending_at_state_query_param: column[0]
+                        }
                     unprocessed_forms_query_param_string =\
                         urlencode(unprocessed_forms_url_params)
                     unprocessed_remote_data_url =\
@@ -783,8 +796,6 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                     current_state_column_val + ' / ' + unprocessed_column_val
             else:
                 column_val = row[column]
-            if column == 'race_type':
-                column_val = row[column].name
             return str('<td class="center">'
                        f'{column_val}</td>')
 
@@ -1222,11 +1233,11 @@ class EditBallotView(LoginRequiredMixin,
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        race_id = kwargs.get('id')
+        ballot_id = kwargs.get('id')
 
         self.initial = {
             'tally_id': tally_id,
-            'race_id': race_id,
+            'race_id': ballot_id,
         }
 
         return super(EditBallotView, self).get(*args, **kwargs)

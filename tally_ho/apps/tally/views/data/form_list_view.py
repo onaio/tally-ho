@@ -15,7 +15,8 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.views.constants import (
-    race_type_query_param,
+    election_level_query_param,
+    sub_race_query_param,
     sub_con_code_query_param,
     pending_at_state_query_param, at_state_query_param
 )
@@ -23,7 +24,6 @@ from tally_ho.libs.models.enums.form_state import (
     FormState,
     un_processed_states_at_state
 )
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale
@@ -72,7 +72,10 @@ class FormListDataView(LoginRequiredMixin,
         requested_form_state = self.request.GET.get(at_state_query_param)
         pending_in_form_state = self.request.GET.get(
             pending_at_state_query_param)
-        requested_race_type = self.request.GET.get(race_type_query_param)
+        requested_election_level =\
+            self.request.GET.get(election_level_query_param)
+        requested_sub_race =\
+            self.request.GET.get(sub_race_query_param)
         requested_sub_con_code = self.request.GET.get(sub_con_code_query_param)
 
         if requested_form_state:
@@ -81,14 +84,13 @@ class FormListDataView(LoginRequiredMixin,
                 requested_state = FormState[state_enum_key]
                 qs = qs.filter(form_state=requested_state)
 
-        if requested_race_type:
-            race_enum_key = requested_race_type.upper()
-            if race_enum_key in RaceType.__members__:
-                specified_race_type = RaceType[
-                    race_enum_key
-                ]
-                qs = qs.filter(
-                    ballot__race_type=specified_race_type
+        if requested_election_level and requested_sub_race:
+            qs =\
+                qs.filter(
+                    ballot__electrol_race__election_level=
+                    requested_election_level,
+                    ballot__electrol_race__ballot_name=
+                    requested_sub_race
                 )
 
         if requested_sub_con_code:
