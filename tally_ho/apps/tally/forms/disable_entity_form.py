@@ -108,7 +108,7 @@ class DisableEntityForm(forms.Form):
 
             result = None
 
-            if center_code and station_number:
+            if center_code or station_number:
                 result = disable_enable_entity(center_code,
                                                station_number,
                                                disable_reason,
