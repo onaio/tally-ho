@@ -175,7 +175,8 @@ def create_centers_from_centers_file_data(
             center_cols_names_list)).distinct().fetchall()
         bulk_mgr = BulkCreateManager(
             cache_instances_count=True,
-            cache_key=instances_count_memcache_key
+            cache_key=instances_count_memcache_key,
+            memcache_client=client,
         )
 
         for center_vals_tuple in centers_data:

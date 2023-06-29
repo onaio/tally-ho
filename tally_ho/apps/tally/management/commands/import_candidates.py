@@ -60,7 +60,8 @@ def create_candidates_from_candidates_file_data(
         bulk_mgr = BulkCreateManager(
             chunk_size=1000,
             cache_instances_count=True,
-            cache_key=instances_count_memcache_key
+            cache_key=instances_count_memcache_key,
+            memcache_client=client,
         )
 
         for candidate_vals_tuple in candidates_data:

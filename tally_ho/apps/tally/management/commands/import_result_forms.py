@@ -99,7 +99,8 @@ def create_result_forms_result_form_file_data(
         bulk_mgr = BulkCreateManager(
             chunk_size=1000,
             cache_instances_count=True,
-            cache_key=instances_count_memcache_key
+            cache_key=instances_count_memcache_key,
+            memcache_client=client,
         )
 
         for result_form_vals_tuple in result_forms_data:

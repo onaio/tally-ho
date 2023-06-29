@@ -62,7 +62,8 @@ def set_sub_constituencies_ballots_from_sub_con_ballots_file_data(
             BulkUpdateManyToManyManager(
                 instances_count=len(sub_con_code_data),
                 cache_instances_count=True,
-                cache_key=instances_count_memcache_key)
+                cache_key=instances_count_memcache_key,
+                memcache_client=client)
 
         for sub_con_code_tuple in sub_con_code_data:
             sub_con_code = parse_int(sub_con_code_tuple[0])

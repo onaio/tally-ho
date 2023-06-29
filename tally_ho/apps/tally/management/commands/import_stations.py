@@ -68,7 +68,8 @@ def create_stations_from_stations_file_data(
         bulk_mgr = BulkCreateManager(
             chunk_size=1000,
             cache_instances_count=True,
-            cache_key=instances_count_memcache_key
+            cache_key=instances_count_memcache_key,
+            memcache_client=client,
         )
 
         for station_vals_tuple in stations_data:

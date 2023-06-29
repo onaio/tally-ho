@@ -87,7 +87,8 @@ def create_ballots_from_ballot_file_data(
         bulk_mgr = BulkCreateManager(
             objs_count=len(duckdb_ballots_data.distinct().fetchall()),
             cache_instances_count=True,
-            cache_key=instances_count_memcache_key)
+            cache_key=instances_count_memcache_key,
+            memcache_client=client,)
         ballot_name_column_name =\
             getattr(settings,
                     'BALLOT_NAME_COLUMN_NAME_IN_BALLOT_FILE')

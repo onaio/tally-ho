@@ -49,7 +49,8 @@ def create_sub_constituencies_from_sub_con_file_data(
         bulk_mgr = BulkCreateManager(
             objs_count=len(sub_cons_data),
             cache_instances_count=True,
-            cache_key=instances_count_memcache_key)
+            cache_key=instances_count_memcache_key,
+            memcache_client=client,)
 
         for sub_con_vals_tuple in sub_cons_data:
             kwargs =\
