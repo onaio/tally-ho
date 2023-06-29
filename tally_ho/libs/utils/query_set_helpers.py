@@ -164,11 +164,14 @@ class BulkCreateManager(object):
         self.memcache_client = memcache_client
         self.cache_key = cache_key
         self.default_chunk_size = 500
-        self.chunk_size = chunk_size or self._calculate_chuck_size(objs_count)
+        self.objs_count = objs_count
+        self.chunk_size = chunk_size or self._calculate_chuck_size()
 
-    def _calculate_chuck_size(self, objs_count):
+    def _calculate_chuck_size(self):
         chunk_size =\
-            objs_count if objs_count and objs_count < self.default_chunk_size\
+            self.objs_count\
+                if self.objs_count and\
+                   self.objs_count < self.default_chunk_size\
                 else self.default_chunk_size
         return chunk_size
 
@@ -177,7 +180,7 @@ class BulkCreateManager(object):
         if self.cache_instances_count:
             cache_model_instances_count_to_memcache(
                 self.cache_key, len(instances),
-                done=last_chunk,
+                done=last_chunk or self.objs_count is not None,
                 memcache_client=self.memcache_client)
         return instances
 
@@ -226,15 +229,16 @@ class BulkUpdateManyToManyManager(object):
         self._queue = defaultdict(list)
         self.default_chunk_size = 100
         self.cache_instances_count = cache_instances_count
+        self.instances_count = instances_count
         self.memcache_client = memcache_client
         self.cache_key = cache_key
         self.chunk_size =\
-            chunk_size or self._calculate_chuck_size(instances_count)
+            chunk_size or self._calculate_chuck_size()
 
-    def _calculate_chuck_size(self, instances_count):
+    def _calculate_chuck_size(self):
         chunk_size =\
-            instances_count if instances_count and\
-                instances_count < self.default_chunk_size\
+            self.instances_count if self.instances_count and\
+                self.instances_count < self.default_chunk_size\
                 else self.default_chunk_size
         return chunk_size
 
@@ -253,7 +257,7 @@ class BulkUpdateManyToManyManager(object):
                 cache_model_instances_count_to_memcache(
                     self.cache_key,
                     len(instances_list),
-                    done=last_chunk,
+                    done=last_chunk or self.instances_count is not None,
                     memcache_client=self.memcache_client)
 
     def add(self, instance_obj=None):
