@@ -9,7 +9,7 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.utils.memcache import (
+from tally_ho.libs.utils.cache_model_instances_count_to_memcache import (
     cache_model_instances_count_to_memcache
 )
 
@@ -156,11 +156,12 @@ class BulkCreateManager(object):
             objs_count=None,
             chunk_size=None,
             cache_instances_count=False,
-            cache_key=None
+            cache_key=None,
+            memcache_client=None,
         ):
-        self._create_queues = defaultdict(list)
-        self._create_many_to_many_queues = defaultdict(list)
+        self.create_queues = defaultdict(list)
         self.cache_instances_count = cache_instances_count
+        self.memcache_client = memcache_client
         self.cache_key = cache_key
         self.default_chunk_size = 500
         self.chunk_size = chunk_size or self._calculate_chuck_size(objs_count)
@@ -175,118 +176,34 @@ class BulkCreateManager(object):
         instances = model_class.objects.bulk_create(objs)
         if self.cache_instances_count:
             cache_model_instances_count_to_memcache(
-                self.cache_key, len(instances), done=last_chunk)
+                self.cache_key, len(instances),
+                done=last_chunk,
+                memcache_client=self.memcache_client)
         return instances
 
-    def _set_many_to_many_fields_in_instances(
-            self,
-            instances=None,
-            many_to_many_fields=None,
-            instance_unique_field=None):
-        for instance in instances:
-                for field_name, field_value in many_to_many_fields.get(
-                    getattr(instance, instance_unique_field)).items():
-                    getattr(instance, field_name).set(field_value)
-
-    def _add_obj_with_many_to_many_relationship(self,
-                                                obj=None,
-                                                model_unique_field=None,
-                                                many_to_many_fields=None):
-        model_class = type(obj)
-        model_key = model_class._meta.label
-        self._create_many_to_many_queues[model_key].append(
-            { 'obj': obj, 'many_to_many_fields': many_to_many_fields })
-        if len(self._create_many_to_many_queues[model_key]) >= self.chunk_size:
-            many_to_many_queue = self._create_many_to_many_queues[model_key]
-            self._create_many_to_many_queues[model_key] = []
-            objs =\
-                [item.get('obj')\
-                 for item in many_to_many_queue]
-            many_to_many_fields_by_model_unique_field =\
-                {
-                    getattr(item.get('obj'), model_unique_field):
-                    item.get('many_to_many_fields')\
-                 for item in many_to_many_queue}
-            # Do bulk creation
-            instances = self._commit(model_class, objs)
-            # Set many to many fields in instances
-            self._set_many_to_many_fields_in_instances(
-                instances=instances,
-                many_to_many_fields=many_to_many_fields_by_model_unique_field,
-                instance_unique_field=model_unique_field
-            )
-
-    def _save_partial_chunk_for_many_to_many_obj(
-            self, model_unique_field=None):
-        """
-        Always call this upon completion to make sure the final partial chunk
-        is saved.
-        """
-        for model_name, objs in self._create_many_to_many_queues.items():
-            if len(objs) > 0:
-                objs_list =\
-                    [item.get('obj')\
-                    for item in objs]
-                many_to_many_fields =\
-                {
-                    getattr(item.get('obj'), model_unique_field):
-                    item.get('many_to_many_fields')\
-                 for item in objs}
-                instances =\
-                    self._commit(
-                    apps.get_model(model_name),
-                    objs=objs_list,
-                    last_chunk=True)
-                # Add the many to many fields
-                self._set_many_to_many_fields_in_instances(
-                    instances=instances,
-                    many_to_many_fields=many_to_many_fields,
-                    instance_unique_field=model_unique_field
-                )
-
-    def add(self, obj, **kwargs):
+    def add(self, obj):
         """
         Add an object to the queue to be created, and call bulk_create if we
         have enough objs.
         """
         model_class = type(obj)
         model_key = model_class._meta.label
-        model_unique_field = kwargs.get('model_unique_field')
-        many_to_many_fields = kwargs.get('many_to_many_fields')
-        if len(model_class._meta.many_to_many) and\
-            many_to_many_fields and\
-            model_unique_field:
-            self._add_obj_with_many_to_many_relationship(
-                obj=obj,
-                model_unique_field=model_unique_field,
-                many_to_many_fields=many_to_many_fields,
-            )
-        else:
-            self._create_queues[model_key].append(obj)
-            if len(self._create_queues[model_key]) >= self.chunk_size:
-                self._commit(model_class, self._create_queues[model_key])
-                self._create_queues[model_key] = []
+        self.create_queues[model_key].append(obj)
+        if len(self.create_queues[model_key]) >= self.chunk_size:
+            self._commit(model_class, self.create_queues[model_key])
+            self.create_queues[model_key] = []
 
-    def done(self, **kwargs):
+    def done(self):
         """
         Always call this upon completion to make sure the final partial chunk
         is saved.
         """
-        model_class = kwargs.get('model_class')
-        model_unique_field = kwargs.get('model_unique_field')
-        if model_class and\
-            len(model_class._meta.many_to_many) and\
-                model_unique_field:
-            self._save_partial_chunk_for_many_to_many_obj(
-                model_unique_field=model_unique_field
-            )
-        else:
-            for model_name, objs in self._create_queues.items():
-                if len(objs) > 0:
-                    self._commit(
-                        apps.get_model(model_name),
-                        objs=objs,
-                        last_chunk=True)
+        for model_name, objs in self.create_queues.items():
+            if len(objs) > 0:
+                self._commit(
+                    apps.get_model(model_name),
+                    objs=objs,
+                    last_chunk=True)
 
 class BulkUpdateManyToManyManager(object):
     """
@@ -304,10 +221,12 @@ class BulkUpdateManyToManyManager(object):
             instances_count=None,
             chunk_size=None,
             cache_instances_count=False,
+            memcache_client=None,
             cache_key=None):
         self._queue = defaultdict(list)
         self.default_chunk_size = 100
         self.cache_instances_count = cache_instances_count
+        self.memcache_client = memcache_client
         self.cache_key = cache_key
         self.chunk_size =\
             chunk_size or self._calculate_chuck_size(instances_count)
@@ -332,7 +251,10 @@ class BulkUpdateManyToManyManager(object):
                         many_to_many_obj.get(many_to_many_field_name))
             if self.cache_instances_count:
                 cache_model_instances_count_to_memcache(
-                    self.cache_key, len(instances_list), done=last_chunk)
+                    self.cache_key,
+                    len(instances_list),
+                    done=last_chunk,
+                    memcache_client=self.memcache_client)
 
     def add(self, instance_obj=None):
         model_key = instance_obj.get('instance')._meta.label
