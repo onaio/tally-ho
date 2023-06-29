@@ -15,7 +15,6 @@ from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.utils.templates import get_result_form_edit_delete_links
 
 male_local = _('Male')
@@ -206,42 +205,12 @@ class ResultForm(BaseModel):
         return None
 
     @property
-    def general_results(self):
-        return self.results.filter(
-            active=True,
-            candidate__race_type=RaceType.GENERAL)
-
-    @property
     def form_results(self):
         election_level =\
             self.ballot.electrol_race.election_level
         return self.results.filter(
             active=True,
             candidate__ballot__electrol_race__election_level=election_level)
-
-    @property
-    def presidential_results(self):
-        return self.results.filter(
-            active=True,
-            candidate__race_type=RaceType.PRESIDENTIAL)
-
-    @property
-    def women_results(self):
-        return self.results.filter(
-            active=True,
-            candidate__race_type=RaceType.WOMEN)
-
-    @property
-    def has_general_results(self):
-        return self.general_results.count() > 0
-
-    @property
-    def has_women_results(self):
-        return self.women_results.count() > 0
-
-    @property
-    def has_presidential_results(self):
-        return self.presidential_results.count() > 0
 
     @property
     def has_results(self):
@@ -299,21 +268,6 @@ class ResultForm(BaseModel):
     @property
     def corrections_required_text(self):
         return _(u"Corrections Required!")
-
-    @property
-    def general_match(self):
-        return match_results(self, self.general_results) \
-            if self.general_results else False
-
-    @property
-    def women_match(self):
-        return match_results(self, self.women_results) \
-            if self.women_results else True
-
-    @property
-    def presidential_match(self):
-        return match_results(self, self.presidential_results) \
-            if self.presidential_results else False
 
     @property
     def results_match(self):
