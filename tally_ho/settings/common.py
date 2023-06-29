@@ -189,7 +189,7 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = 'Africa/Nairobi'
 CELERY_ROUTES = {
-    'tally_ho.apps.tally.management.commands.import_data.*': {
+    'tally_ho.apps.tally.management.commands.*': {
         'queue': 'tally_data_import',
     }
 }
