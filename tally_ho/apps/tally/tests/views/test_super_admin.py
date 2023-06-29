@@ -34,9 +34,10 @@ from tally_ho.libs.tests.test_base import (
     create_result,
     create_center,
     create_station,
+    create_sub_constituency,
     create_tally,
     TestBase,
-    issue_369_result_forms_data_setup,
+    create_result_forms_per_form_state,
 )
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
     electrol_races
@@ -799,7 +800,7 @@ class TestSuperAdmin(TestBase):
                      'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
-        self.assertIn("Race for ballot is disabled", form.errors['__all__'])
+        self.assertIn("Ballot is disabled", form.errors['__all__'])
         self.assertFalse(form.is_valid())
 
     def test_create_result_form_center_not_active_error(self):
@@ -889,7 +890,12 @@ class TestSuperAdmin(TestBase):
         code = '12345'
         barcode = '12345'
         ballot = create_ballot(tally=tally)
-        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
+        sc = create_sub_constituency(
+            code=1,
+            tally=tally,
+            field_office='1',
+            ballots=[ballot]
+        )
         center = create_center(code,
                                tally=tally,
                                sub_constituency=sc)
@@ -952,7 +958,7 @@ class TestSuperAdmin(TestBase):
                      'barcode': 12345,
                      'gender': 1}
         form = EditResultForm(form_data)
-        self.assertIn("Race for ballot is disabled", form.errors['__all__'])
+        self.assertIn("Ballot is disabled", form.errors['__all__'])
         self.assertFalse(form.is_valid())
 
     def test_edit_result_form_center_not_active_error(self):
@@ -1004,7 +1010,12 @@ class TestSuperAdmin(TestBase):
         tally.users.add(self.user)
         code = '12345'
         ballot = create_ballot(tally=tally)
-        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
+        sc = create_sub_constituency(
+            code=1,
+            tally=tally,
+            field_office='1',
+            ballots=[ballot]
+        )
         center = create_center(code,
                                tally=tally,
                                sub_constituency=sc)
@@ -1465,56 +1476,66 @@ class TestSuperAdmin(TestBase):
         self.assertEquals(request.session['url_keyword'], 'role')
 
     def test_view_result_forms_progress_by_form_state(self):
-        tally = issue_369_result_forms_data_setup(self.user)
-
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
         view = views.FormProgressByFormStateView.as_view()
         request = self.factory.get('/1/')
         request.user = self.user
         request.session = {}
 
-        response = view(request, tally_id=tally.pk)
+        response = view(request, tally_id=self.tally.pk)
 
         # check that the response template is correct.
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template_name,
                          ['super_admin/form_progress_by_form_state.html'])
-        self.assertEqual(response.context_data['tally_id'], tally.pk)
+        self.assertEqual(response.context_data['tally_id'], self.tally.pk)
 
         response = response.render()
         doc = BeautifulSoup(response.content, "html.parser")
         ths = [th.text for th in doc.findAll('th')]
         self.assertListEqual(
             ths,
-            ['Sub Con', 'Race Type', 'Total forms', 'Unsubmitted', 'Intake',
-             'Data Entry 1', 'Data Entry 2', 'Corrections',
-             'Quality Control', 'Archived','Clearance', 'Audit']
+            ['Sub Con', 'Election Level', 'Sub Race', 'Total forms',
+             'Unsubmitted', 'Intake', 'Data Entry 1', 'Data Entry 2',
+             'Corrections', 'Quality Control', 'Archived','Clearance',
+             'Audit']
         )
 
     def test_view_result_forms_progress_by_form_state_data_view(self):
-        tally = issue_369_result_forms_data_setup(self.user)
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
 
         view = views.FormProgressByFormStateDataView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {}
 
-        response = view(request, tally_id=tally.pk)
+        response = view(request, tally_id=self.tally.pk)
 
         # check that the response template is correct.
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         data = content["data"]
         first_row = data[0]
-        sub_con_code, race_type, total_forms, unsubmitted, intake, de1, de2, \
-            corrections, quality_control, archived, clearance,\
-            audit = first_row
+        sub_con_code, election_level, sub_race, total_forms, unsubmitted,\
+        intake, de1, de2, corrections, quality_control, archived, clearance,\
+        audit = first_row
         self.assertEqual(
             sub_con_code,
             f"<td class=\"center\">{12345}</td>"
         )
         self.assertEqual(
-            race_type,
-            "<td class=\"center\">GENERAL</td>"
+            election_level,
+            "<td class=\"center\">Presidential</td>"
+        )
+        self.assertEqual(
+            sub_race,
+            "<td class=\"center\">ballot_number_presidential</td>"
         )
         self.assertEqual(
             total_forms,
@@ -1522,106 +1543,124 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(
             unsubmitted,
             f"<td class=\"center\"><span>"
-            f"<a href=/data/form-list/{tally.pk}/?"
-            "race_type=general&sub_con_code=12345"
+            f"<a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
             "&at_form_state=unsubmitted target=\"blank\">"
             "1</a></span></td>")
         self.assertEqual(
             intake,
             "<td class=\"center\">"
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345&at_form_state=intake"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=intake"
             " target=\"blank\">"
             "1</a></span>"
             " / "
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
             "&pending_at_form_state=intake"
             " target=\"blank\">"
             "3</a></span></td>")
         self.assertEqual(
             de1,
             "<td class=\"center\">"
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345&at_form_state=data_entry_1"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=data_entry_1"
             " target=\"blank\">"
             "1</a></span>"
             " / "
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
             "&pending_at_form_state=data_entry_1"
             " target=\"blank\">"
             "4</a></span></td>")
         self.assertEqual(
             de2,
             "<td class=\"center\">"
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345&at_form_state=data_entry_2"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=data_entry_2"
             " target=\"blank\">"
             "1</a></span>"
             " / "
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
             "&pending_at_form_state=data_entry_2"
             " target=\"blank\">"
             "5</a></span></td>")
         self.assertEqual(
             corrections,
             "<td class=\"center\">"
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345&at_form_state=correction"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=correction"
             " target=\"blank\">"
             "1</a></span>"
             " / "
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
             "&pending_at_form_state=correction"
             " target=\"blank\">"
             "6</a></span></td>")
         self.assertEqual(
             quality_control,
             "<td class=\"center\">"
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
             "&at_form_state=quality_control"
             " target=\"blank\">"
             "1</a></span>"
             " / "
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
             "&pending_at_form_state=quality_control"
             " target=\"blank\">"
             "7</a></span></td>")
         self.assertEqual(
             archived,
             "<td class=\"center\">"
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345&at_form_state=archived"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=archived"
             " target=\"blank\">"
             "1</a></span>"
             " / "
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
             "&pending_at_form_state=archived"
             " target=\"blank\">"
             "8</a></span></td>")
         self.assertEqual(
             clearance,
             "<td class=\"center\">"
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345&at_form_state=clearance"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=clearance"
             " target=\"blank\">"
             "1</a></span></td>")
         self.assertEqual(
             audit,
             "<td class=\"center\">"
-            f"<span><a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&sub_con_code=12345&at_form_state=audit"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=audit"
             " target=\"blank\">"
             "1</a></span></td>")
 
     def test_search_returns_data_result_form_progress_by_form_state_view(self):
-        tally = issue_369_result_forms_data_setup(self.user)
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
 
         view = views.FormProgressByFormStateDataView.as_view()
         request = self.factory.get('/')
@@ -1630,7 +1669,7 @@ class TestSuperAdmin(TestBase):
         request.POST = {}
         request.POST['search[value]'] = 12345
 
-        response = view(request, tally_id=tally.pk)
+        response = view(request, tally_id=self.tally.pk)
 
         # check that the response template is correct.
         self.assertEqual(response.status_code, 200)
@@ -1639,7 +1678,10 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(1, len(data))
 
     def test_search_returns_no_data_result_form_progress_by_form_state(self):
-        tally = issue_369_result_forms_data_setup(self.user)
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
 
         view = views.FormProgressByFormStateDataView.as_view()
         request = self.factory.get('/')
@@ -1648,7 +1690,7 @@ class TestSuperAdmin(TestBase):
         request.POST = {}
         request.POST['search[value]'] = 890
 
-        response = view(request, tally_id=tally.pk)
+        response = view(request, tally_id=self.tally.pk)
 
         # check that the response template is correct.
         self.assertEqual(response.status_code, 200)

@@ -353,12 +353,15 @@ def create_region(
 def create_sub_constituency(
         code=1,
         tally=None,
-        field_office='1'
+        field_office='1',
+        ballots=[]
 ):
     sub_constituency, _ =\
         SubConstituency.objects.get_or_create(code=code,
                                               field_office=field_office,
                                               tally=tally)
+    if len(ballots):
+        sub_constituency.ballots.set(ballots)
 
     return sub_constituency
 
@@ -409,14 +412,10 @@ def result_form_data(result_form):
     return data
 
 
-def issue_369_result_forms_data_setup(user):
-    tally = create_tally()
-    tally.users.add(user)
-    electrol_race_data = electrol_races[0]
-    electrol_race = create_electrol_race(
+def create_result_forms_per_form_state(
         tally,
-        **electrol_race_data
-    )
+        electrol_race
+    ):
     ballot = create_ballot(tally, electrol_race)
     sub_con = create_sub_constituency(code=12345,tally=tally)
     center = create_center('12345', tally=tally, sub_constituency=sub_con)

@@ -1576,8 +1576,8 @@ def build_select_options(qs, ids=None):
     select = str('selected=''\"selected"')
 
     return [str(
-        '<option 'f'{select if str(item.id) in ids else ""}'
-        ' value='f'{item.id}''>'f'{item.name}''</option>') for item in
+        '<option 'f'{select if str(item[0]) in ids else ""}'
+        ' value='f'{item[0]}''>'f'{item[1]}''</option>') for item in
         list(qs)]
 
 
@@ -2235,10 +2235,11 @@ class TurnoutReportDataView(LoginRequiredMixin,
             region_sub_cons_ids = []
             qs =\
                 SubConstituency.objects.annotate(
-                    name=F('code')).filter(
+                    sc_code=F('code')).filter(
                     tally__id=tally_id,
                     id__in=row['sub_constituencies_ids'])\
-                .values_list('id', 'name', named=True)
+                .values_list('id', 'sc_code', named=True)
+            qs = [(item.id, item.sc_code) for item in qs]
             if data:
                 region_sub_cons_data =\
                     [item for item in ast.literal_eval(
@@ -2419,10 +2420,11 @@ class SummaryReportDataView(LoginRequiredMixin,
             region_sub_cons_ids = []
             qs =\
                 SubConstituency.objects.annotate(
-                    name=F('code')).filter(
+                    sc_code=F('code')).filter(
                     tally__id=tally_id,
                     id__in=row['sub_constituencies_ids'])\
-                .values_list('id', 'name', named=True)
+                .values_list('id', 'sc_code', named=True)
+            qs = [(item.id, item.sc_code) for item in qs]
             if data:
                 region_sub_cons_data =\
                     [item for item in ast.literal_eval(
@@ -2666,10 +2668,11 @@ class ProgressiveReportDataView(LoginRequiredMixin,
             region_sub_cons_ids = []
             qs =\
                 SubConstituency.objects.annotate(
-                    name=F('code')).filter(
+                    sc_code=F('code')).filter(
                     tally__id=tally_id,
                     id__in=row['sub_constituencies_ids'])\
-                .values_list('id', 'name', named=True)
+                .values_list('id', 'sc_code', named=True)
+            qs = [(item.id, item.sc_code) for item in qs]
             if data:
                 region_sub_cons_data =\
                     [item for item in ast.literal_eval(

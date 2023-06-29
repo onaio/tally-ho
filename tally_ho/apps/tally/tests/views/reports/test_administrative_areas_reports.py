@@ -2,7 +2,6 @@ import json
 from django.test import RequestFactory
 
 from tally_ho.libs.permissions import groups
-from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.models.enums.form_state import FormState
@@ -11,11 +10,15 @@ from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.apps.tally.views.reports import (
     administrative_areas_reports as admin_reports,
 )
-from tally_ho.libs.tests.test_base import create_result_form,\
-    create_station, create_reconciliation_form, create_tally,\
+from tally_ho.libs.tests.test_base import (
+    create_electrol_race, create_result_form, create_station,\
+    create_reconciliation_form, create_sub_constituency, create_tally,\
     create_region, create_constituency, create_office, create_result,\
     create_candidates, TestBase, create_ballot
-from tally_ho.libs.models.enums.race_type import RaceType
+)
+from tally_ho.libs.tests.fixtures.electrol_race_data import (
+    electrol_races
+)
 
 
 class TestAdministrativeAreasReports(TestBase):
@@ -26,12 +29,16 @@ class TestAdministrativeAreasReports(TestBase):
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)
         self.tally = create_tally()
         self.tally.users.add(self.user)
-
+        self.electrol_race = create_electrol_race(
+            self.tally,
+            **electrol_races[0]
+        )
+        ballot = create_ballot(self.tally, electrol_race=self.electrol_race)
         self.region = create_region(tally=self.tally)
         office = create_office(tally=self.tally, region=self.region)
         self.constituency = create_constituency(tally=self.tally)
-        self.sc, _ =\
-            SubConstituency.objects.get_or_create(code=1, field_office='1')
+        self.sc =\
+            create_sub_constituency(code=1, field_office='1', ballots=[ballot])
         center, _ = Center.objects.get_or_create(
             code='1',
             mahalla='1',
@@ -51,7 +58,8 @@ class TestAdministrativeAreasReports(TestBase):
             form_state=FormState.ARCHIVED,
             office=office,
             center=center,
-            station_number=self.station.station_number)
+            station_number=self.station.station_number,
+            ballot=ballot)
         self.recon_form = create_reconciliation_form(
             result_form=self.result_form,
             user=self.user,
@@ -178,13 +186,27 @@ class TestAdministrativeAreasReports(TestBase):
         Test ResultFormResultsListDataView filters
         """
         # test race type filter
-        data = {'data': '{"race_type_names": ["PRESIDENTIAL"]}'}
+        data = {
+            "data": str(
+                {
+                        "election_level_names":
+                        ["Presidential"],
+                        "sub_race_type_names":
+                        ["ballot_number_presidential_runoff"]
+                    }
+                )
+            }
         response = self.apply_filter(data)
         self.assertEquals(
             len(json.loads(response.content.decode())['data']), 0)
-        ballot = create_ballot()
-        ballot.race_type = RaceType.PRESIDENTIAL
-        ballot.save()
+        data = {
+            "data": str(
+                {
+                        "election_level_names": ["Presidential"],
+                        "sub_race_type_names": ["ballot_number_presidential"]
+                    }
+                )
+            }
         response = self.apply_filter(data)
         self.assertEquals(
             len(json.loads(response.content.decode())['data']), 2)
