@@ -36,7 +36,9 @@ class TestBulkCreateManager(TestCase):
             manager.add(obj)
 
         # Ensure all objects are created
-        self.assertEqual(ElectrolRace.objects.count(), len(electrol_races))
+        self.assertEqual(
+            ElectrolRace.objects.filter(tally=self.tally).count(),
+            len(electrol_races))
 
         # Ensure cache is updated with the correct count
         memcache_data, _ = self.memcache_client.get(self.cache_key)
@@ -56,7 +58,9 @@ class TestBulkCreateManager(TestCase):
         manager.done()
 
         # Ensure all objects are created
-        self.assertEqual(ElectrolRace.objects.count(), len(electrol_races))
+        self.assertEqual(
+            ElectrolRace.objects.filter(tally=self.tally).count(),
+            len(electrol_races))
 
     def test_chunk_size(self):
         manager = BulkCreateManager(chunk_size=5)
@@ -69,4 +73,6 @@ class TestBulkCreateManager(TestCase):
         manager.done()
 
         # Ensure all objects are created
-        self.assertEqual(ElectrolRace.objects.count(), len(electrol_races))
+        self.assertEqual(
+            ElectrolRace.objects.filter(tally=self.tally).count(),
+            len(electrol_races))
