@@ -1,4 +1,3 @@
-import json
 from django.conf import settings
 from pymemcache.client.base import PooledClient
 
@@ -46,22 +45,3 @@ class MemCache(object):
         except Exception as e:
             msg = f'Error deleting cache for key {key}, error: {e}'
             return None, msg
-
-def cache_model_instances_count_to_memcache(
-        cache_key, instances_count, done=False):
-    try:
-        memcache_client = MemCache()
-        cached_data = memcache_client.get(cache_key)[0]
-        data = { 'elements_processed': instances_count, 'done': done }
-        if cached_data:
-            current_elements_processed =\
-                json.loads(cached_data).get('elements_processed')
-            data['elements_processed'] =\
-                instances_count + current_elements_processed
-            memcache_client.set(cache_key, json.dumps(data))
-        else:
-            memcache_client.set(cache_key, json.dumps(data))
-        return
-    except Exception as e:
-        msg = 'Error caching instances count, error: %s' % e
-        raise Exception(msg)
