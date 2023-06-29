@@ -1,4 +1,5 @@
 import json
+from django.conf import settings
 from pymemcache.client.base import PooledClient
 
 class MemCache(object):
@@ -6,8 +7,8 @@ class MemCache(object):
     This helper class is used to create a memcache.
     """
 
-    def __init__(self, client_url='localhost'):
-        self.client_url = client_url
+    def __init__(self):
+        self.client_url = getattr(settings, 'CLIENT_URL')
         self.client = self._set_client()
 
     def _set_client(self):
