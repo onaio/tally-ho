@@ -174,6 +174,8 @@ SESSION_VARS = [
 
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
+# Memcache settings
+CLIENT_URL = '127.0.0.1:11211'
 
 # Celery settings
 ## use True for testing and False when you use rabbitMQ and celery
