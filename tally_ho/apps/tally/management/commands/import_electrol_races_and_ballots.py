@@ -66,29 +66,24 @@ def create_ballots_from_ballot_file_data(
         electrol_races=None,
         tally=None,
         command=None,
-        step_name=None,
-        step_number=1,
+        instances_count_memcache_key=None,
+        memcache_client=None,
 ):
     """Create ballots from ballot file data inside duckdb.
 
     :param duckdb_ballots_data: Ballot file data in duckdb format.
     :param electrol_races: Tally electrol races queryset.
     :param tally: tally queryset.
-    :param step_name: step name.
-    :param step_number: step number.
+    :param instances_count_memcache_key: instances count memcache key.
+    :param memcache_client: memcache client.
     :param command: stdout command.
     :returns: None."""
     try:
-        instances_count_memcache_key =\
-            f"{tally.id}_{step_name}_{step_number}"
-        # reset instances count in memcache if exists already
-        client = MemCache()
-        client.delete(instances_count_memcache_key)
         bulk_mgr = BulkCreateManager(
             objs_count=len(duckdb_ballots_data.distinct().fetchall()),
             cache_instances_count=True,
             cache_key=instances_count_memcache_key,
-            memcache_client=client,)
+            memcache_client=memcache_client,)
         ballot_name_column_name =\
             getattr(settings,
                     'BALLOT_NAME_COLUMN_NAME_IN_BALLOT_FILE')
@@ -101,8 +96,8 @@ def create_ballots_from_ballot_file_data(
                 duckdb_ballots_data.filter(
                     str_query).project(ballot_name_column_name).fetchall()
             for ballot_number_tuple in ballot_numbers:
-                # TODO: Some ballot numbers in string format we need to
-                # fiqure out how they should be handled here.
+                # TODO: Some ballot numbers are in string format we need to
+                # figure out how they should be handled here.
                 ballot_number = parse_int(ballot_number_tuple[0])
                 if ballot_number:
                     bulk_mgr.add(Ballot(
@@ -135,8 +130,15 @@ def async_import_electrol_races_and_ballots_from_ballots_file(
     :returns: Ballots count."""
     try:
         tally = Tally.objects.get(id=tally_id)
-        file_path = csv_file_path
-        ballots_data = duckdb.from_csv_auto(file_path, header=True)
+        step_number = kwargs.get('step_number')
+        step_name=kwargs.get('step_name')
+        instances_count_memcache_key =\
+            f"{tally.id}_{step_name}_{step_number}"
+        # reset instances count in memcache if exists already
+        memcache_client = MemCache()
+        memcache_client.delete(instances_count_memcache_key)
+
+        ballots_data = duckdb.from_csv_auto(csv_file_path, header=True)
         ballots_col_names =\
             getattr(settings,
                     'BALLOT_COLUMN_NAMES')
@@ -157,8 +159,8 @@ def async_import_electrol_races_and_ballots_from_ballots_file(
             electrol_races=electrol_races,
             tally=tally,
             command=command,
-            step_name=kwargs.get('step_name'),
-            step_number=kwargs.get('step_number'),
+            instances_count_memcache_key=instances_count_memcache_key,
+            memcache_client=memcache_client
         )
 
         return len(ballots_data.fetchall())
