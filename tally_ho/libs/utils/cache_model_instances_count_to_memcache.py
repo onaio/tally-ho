@@ -3,11 +3,11 @@ import json
 def cache_model_instances_count_to_memcache(
         cache_key, instances_count, done=False, memcache_client=None):
     try:
-        cached_data = memcache_client.get(cache_key)
+        cached_data, _ = memcache_client.get(cache_key)
         data = { 'elements_processed': instances_count, 'done': done }
-        if cached_data[0]:
+        if cached_data:
             current_elements_processed =\
-                json.loads(cached_data[0]).get('elements_processed')
+                json.loads(cached_data).get('elements_processed')
             data['elements_processed'] =\
                 instances_count + current_elements_processed
             memcache_client.set(cache_key, json.dumps(data))
