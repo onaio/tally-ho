@@ -20,8 +20,8 @@ def create_sub_constituencies_from_sub_con_file_data(
         constituencies_by_name=None,
         tally=None,
         command=None,
-        step_name=None,
-        step_number=1,
+        instances_count_memcache_key=None,
+        memcache_client=None,
 ):
     """Create sub constituencies from sub constituencies file data
         inside duckdb.
@@ -29,16 +29,11 @@ def create_sub_constituencies_from_sub_con_file_data(
     :param duckdb_sub_con_data: sub constituencies file data in duckdb format.
     :param constituencies_by_name: tally constituencies_by_name queryset.
     :param tally: tally queryset.
-    :param step_name: step name.
-    :param step_number: step number.
+    :param instances_count_memcache_key: instances count memcache key.
+    :param memcache_client: memcache client.
     :param command: stdout command.
     :returns: None."""
     try:
-        instances_count_memcache_key =\
-            f"{tally.id}_{step_name}_{step_number}"
-        # reset instances count in memcache if exists already
-        client = MemCache()
-        client.delete(instances_count_memcache_key)
         col_names_to_model_field_map =\
             getattr(settings,
                         'SUB_CON_FILE_COLS_NAMES_TO_SUB_CON_MODEL_FIELDS')
@@ -50,7 +45,7 @@ def create_sub_constituencies_from_sub_con_file_data(
             objs_count=len(sub_cons_data),
             cache_instances_count=True,
             cache_key=instances_count_memcache_key,
-            memcache_client=client,)
+            memcache_client=memcache_client,)
 
         for sub_con_vals_tuple in sub_cons_data:
             kwargs =\
@@ -136,8 +131,14 @@ def async_import_sub_constituencies_and_constituencies_from_sub_cons_file(
     :returns: Sub Constituencies count."""
     try:
         tally = Tally.objects.get(id=tally_id)
-        file_path = csv_file_path
-        duckdb_sub_con_data = duckdb.from_csv_auto(file_path, header=True)
+        step_number = kwargs.get('step_number')
+        step_name=kwargs.get('step_name')
+        instances_count_memcache_key =\
+            f"{tally.id}_{step_name}_{step_number}"
+        # reset instances count in memcache if exists already
+        memcache_client = MemCache()
+        memcache_client.delete(instances_count_memcache_key)
+        duckdb_sub_con_data = duckdb.from_csv_auto(csv_file_path, header=True)
         sub_cons_col_names =\
             getattr(settings,
                     'SUB_CONSTITUENCY_COLUMN_NAMES')
@@ -162,8 +163,8 @@ def async_import_sub_constituencies_and_constituencies_from_sub_cons_file(
             constituencies_by_name=constituencies_by_name,
             tally=tally,
             command=command,
-            step_name=kwargs.get('step_name'),
-            step_number=kwargs.get('step_number'),
+            instances_count_memcache_key=instances_count_memcache_key,
+            memcache_client=memcache_client
         )
 
         return len(duckdb_sub_con_data.fetchall())
