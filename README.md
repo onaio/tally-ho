@@ -29,6 +29,16 @@ for building 3rd-party applications for `PostgreSQL`_.
 sudo apt-get install libpq-dev
 ```
 
+Install memcache
+```bash
+sudo apt-get update && sudo apt-get install -y memcached
+```
+
+Install redis
+```bash
+sudo apt-get install -y redis-server
+```
+
 Make sure you have the latest versions of pip, wheel, and setuptools installed, run
 ```bash
 python -m pip install -U pip wheel setuptools
@@ -39,6 +49,11 @@ To Enable [pre-commit hook checks](https://pre-commit.com/#3-install-the-git-hoo
 pre-commit install
 ```
 
+### Running celery
+
+```bash
+celery -A tally_ho.celeryapp worker --loglevel=info
+```
 ### Quick start with user demo data
 
 > This will remove all data in the database.
