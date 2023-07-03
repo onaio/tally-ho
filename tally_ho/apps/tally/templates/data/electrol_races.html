@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% load i18n static %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with remote_url=remote_url languageDE=languageDE %}
+{% endblock %}
+
+{% block content %}
+
+<h1>{{ report_title }}</h1>
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<div class="pull-right">
+    <form method="get" action="{% url 'create-electrol-race' tally_id%}">
+        <button type="submit" class="btn btn-primary btn-small">
+            {% trans 'New Electrol Race' %}
+        </button>
+    </form>
+</div>
+
+<table class="datatable">
+    <thead>
+        <tr>
+            <th>{% trans 'Election Level' %}</th>
+            <th>{% trans 'Sub Race Type' %}</th>
+            <th>{% trans 'Active' %}</th>
+            <th>{% trans 'Last Modification' %}</th>
+            <th>{% trans 'Actions' %}</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}

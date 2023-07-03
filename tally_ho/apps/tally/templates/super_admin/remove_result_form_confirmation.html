@@ -33,8 +33,12 @@
             <td>{{ object.ballot.number }}</td>
         </tr>
         <tr>
-            <th>{% trans 'Race Type:' %}</th>
-            <td>{{ object.ballot.race_type.name }}</td>
+            <th>{% trans 'Election Level:' %}</th>
+            <td>{{ object.ballot.electrol_race.election_level }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Sub Race Type:' %}</th>
+            <td>{{ object.ballot.electrol_race.ballot_name }}</td>
         </tr>
         <tr>
             <th>{% trans 'Form State:' %}</th>

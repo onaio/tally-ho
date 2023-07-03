@@ -9,6 +9,7 @@ from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
+from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
@@ -499,7 +500,7 @@ class TestAudit(TestBase):
         request.session = data
         response = view(request, tally_id=tally.pk)
 
-        # save as supervisor
+        # save as supervisor and request copy from field
         self._create_and_login_user(username='alice')
         self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
         tally.users.add(self.user)
@@ -525,7 +526,7 @@ class TestAudit(TestBase):
         self.assertEqual(audit.supervisor, self.user)
         self.assertTrue(audit.reviewed_supervisor)
         self.assertTrue(audit.reviewed_team)
-        self.assertFalse(audit.active)
+        self.assertTrue(audit.active)
         self.assertEqual(audit.result_form.form_state,
                          FormState.AUDIT)
         self.assertEqual(len(audit.result_form.results.all()), 20)
@@ -550,6 +551,62 @@ class TestAudit(TestBase):
 
         self.assertEqual(audit.action_prior_to_recommendation,
                          ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
+
+        # save as supervisor and return to data entry 1
+        self._create_and_login_user(username='johndoe')
+        self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
+        tally.users.add(self.user)
+
+        view = views.ReviewView.as_view()
+        data = {
+            'result_form': result_form.pk,
+            'action_prior_to_recommendation': 3,
+            'resolution_recommendation': 1,
+            'implement': 1,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        data['encoded_result_form_audit_start_time'] =\
+            self.encoded_result_form_audit_start_time
+        request.session = data
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 302)
+
+        audit = Audit.objects.get(result_form=result_form)
+        self.assertEqual(audit.supervisor, self.user)
+        self.assertTrue(audit.reviewed_supervisor)
+        self.assertTrue(audit.reviewed_team)
+        self.assertFalse(audit.active)
+        self.assertEqual(audit.result_form.form_state,
+                         FormState.DATA_ENTRY_1)
+        self.assertEqual(len(audit.result_form.results.all()), 20)
+        self.assertEqual(len(audit.result_form.reconciliationform_set.all()),
+                         2)
+
+        result_form_stat =\
+            ResultFormStats.objects.filter(result_form=result_form).last()
+        approved_by_supervisor =\
+            audit.for_superadmin and audit.active
+        self.assertEqual(result_form_stat.approved_by_supervisor,
+                         approved_by_supervisor)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor,
+                         audit.reviewed_supervisor)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
+
+        for result in audit.result_form.results.all():
+            self.assertFalse(result.active)
+
+        for result in audit.result_form.reconciliationform_set.all():
+            self.assertFalse(result.active)
+
+        self.assertEqual(audit.resolution_recommendation,
+                         AuditResolution.NO_PROBLEM_TO_DE_1)
+        self.assertEqual(audit.action_prior_to_recommendation,
+                         ActionsPrior.NONE_REQUIRED)
+
 
     def test_create_audit_get(self):
         self._create_and_login_user()

@@ -16,14 +16,10 @@ class TestQualityControl(TestBase):
 
         self.assertFalse(quality_control.reviews_passed)
 
-        quality_control.passed_general = True
-        quality_control.save()
-        self.assertFalse(quality_control.reviews_passed)
-
         quality_control.passed_reconciliation = True
         quality_control.save()
         self.assertFalse(quality_control.reviews_passed)
 
-        quality_control.passed_women = True
+        quality_control.passed_qc = True
         quality_control.save()
         self.assertTrue(quality_control.reviews_passed)

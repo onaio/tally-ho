@@ -53,17 +53,24 @@ def get_formset_and_candidates(result_form, post_data=None):
         CandidateForm, extra=len(candidates), formset=BaseCandidateFormSet)
     formset = CandidateFormSet(post_data) if post_data else CandidateFormSet()
     forms_and_candidates = []
-    last_race_type = None
+    last_election_level = None
+    last_sub_race_type = None
     tabindex = 200
 
     for i, f in enumerate(formset):
         candidate = candidates[i]
-        race_type = candidate.race_type_name if\
-            candidate.race_type != last_race_type else None
-        last_race_type = candidate.race_type
+        election_level = candidate.ballot.electrol_race.election_level if\
+            candidate.ballot.electrol_race.election_level !=\
+                last_election_level else None
+        sub_race_type = candidate.ballot.electrol_race.ballot_name if\
+            candidate.ballot.electrol_race.ballot_name !=\
+                last_sub_race_type else None
+        last_election_level = candidate.ballot.electrol_race.election_level
+        last_sub_race_type = candidate.ballot.electrol_race.ballot_name
         f.fields['votes'].widget.attrs['tabindex'] = tabindex
         tabindex += 10
-        forms_and_candidates.append([race_type, f, candidate])
+        forms_and_candidates.append(
+            [election_level, sub_race_type, f, candidate])
 
     return [formset, forms_and_candidates]
 

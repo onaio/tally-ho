@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Edit Ballot' %}</h1>
+
+<br/>
+
+{% if messages %}
+<ul class="text-info">
+    {% for message in messages %}
+    <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form name="form" method="post" action="" enctype="multipart/form-data">
+    <table class="table table-bordered">
+        {{ form.as_table }}
+        <tr>
+            <td>{% trans 'Status:' %}</td>
+            {% if is_active %}
+            <td>{% trans 'Enabled' %}</td>
+            {% else %}
+            <td>{% trans 'Disabled' %}</td>
+            {% endif %}
+        </tr>
+        <tr>
+            <td>{% trans 'Comments:' %}</td>
+            <td>
+                <ul>
+                {% for comment in comments%}
+                    <li>{{ comment.text }}</li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
+    </table>
+    <button class="btn btn-small btn-success" type="submit" name="save_submit">
+        {% trans "Save" %}
+    </button>
+    <a class="btn btn-small btn-danger" href="{% url 'ballot-list' tally_id %}" role"button">
+        {% trans "Cancel" %}
+    </a>
+    {% if is_active %}
+    <a class="btn btn-small btn-default" href="{% url 'disable-ballot' tally_id id %}" role="button">
+        {% trans "Disable" %}
+    </a>
+    {% else %}
+    <a class="btn btn-small btn-default" href="{% url 'enable-ballot' tally_id id %}" role="button">
+        {% trans "Enable" %}
+    </a>
+    {% endif %}
+    {% csrf_token %}
+</form>
+
+{% endblock %}

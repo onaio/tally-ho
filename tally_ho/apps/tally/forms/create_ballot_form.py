@@ -5,12 +5,12 @@ from tally_ho.apps.tally.forms.fields import RestrictedFileField
 from tally_ho.apps.tally.models.ballot import Ballot
 
 
-class CreateRaceForm(ModelForm):
+class CreateBallotForm(ModelForm):
     class Meta:
         model = Ballot
         fields = localized_fields = [
             'number',
-            'race_type',
+            'electrol_race',
             'active',
             'tally',
             'available_for_release',

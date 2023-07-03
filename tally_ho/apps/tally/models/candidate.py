@@ -1,9 +1,9 @@
 from django.db import models
 from django.db.models import Q, Sum, Value as V
 from django.db.models.functions import Coalesce
-from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
 import reversion
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
@@ -20,11 +20,15 @@ class Candidate(BaseModel):
 
     ballot = models.ForeignKey(Ballot, related_name='candidates',
                                on_delete=models.PROTECT)
-
+    electrol_race = models.ForeignKey(ElectrolRace,
+                                      null=True,
+                                      blank=True,
+                                      related_name='candidates',
+                                      on_delete=models.PROTECT)
     candidate_id = models.PositiveIntegerField()
     full_name = models.TextField()
     order = models.PositiveSmallIntegerField()
-    race_type = EnumIntegerField(RaceType)
+    race_type = EnumIntegerField(RaceType, null=True)
     active = models.BooleanField(default=True)
     tally = models.ForeignKey(Tally,
                               null=True,
@@ -34,14 +38,7 @@ class Candidate(BaseModel):
 
     @property
     def race_type_name(self):
-        return {
-            RaceType.GENERAL: _('General'),
-            RaceType.WOMEN: _('Women'),
-            RaceType.COMPONENT_AMAZIGH: _('Component Amazigh'),
-            RaceType.COMPONENT_TWARAG: _('Component Twarag'),
-            RaceType.COMPONENT_TEBU: _('Component Tebu'),
-            RaceType.PRESIDENTIAL: _('Presidential'),
-        }[self.race_type]
+        return self.electrol_race.election_level
 
     def num_votes(self, result_form=None, form_state=FormState.ARCHIVED):
         """Return the number of final active votes for this candidate in the

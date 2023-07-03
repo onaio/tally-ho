@@ -6,11 +6,13 @@ import reversion
 import os
 import uuid
 import pathlib
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.models.enums.disable_reason import DisableReason
+from tally_ho.libs.utils.templates import get_ballot_link
 
 
 COMPONENT_TO_BALLOTS = {
@@ -56,7 +58,7 @@ class Ballot(BaseModel):
             models.Index(fields=['number']),
         ]
         ordering = ['number']
-        unique_together = ('number', 'tally')
+        unique_together = ('number', 'tally', 'electrol_race')
 
     unique_uuid = models.UUIDField(default=uuid.uuid4,
                                    unique=True,
@@ -70,7 +72,12 @@ class Ballot(BaseModel):
                                 blank=True,
                                 default="")
     number = models.PositiveSmallIntegerField()
-    race_type = EnumIntegerField(RaceType)
+    race_type = EnumIntegerField(RaceType, null=True)
+    electrol_race = models.ForeignKey(ElectrolRace,
+                                      null=True,
+                                      blank=True,
+                                      related_name='ballots',
+                                      on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
                               null=True,
                               blank=True,
@@ -79,7 +86,7 @@ class Ballot(BaseModel):
 
     @property
     def race_type_name(self):
-        return race_type_name(self.race_type, self.sc_general.first())
+        return self.electrol_race.election_level
 
     @property
     def document_name(self):
@@ -108,7 +115,11 @@ class Ballot(BaseModel):
 
     @property
     def is_component(self):
-        return is_component(self.number)
+        return True if self.electrol_race.component_ballot_numbers else False
+
+    @property
+    def get_action_button(self):
+        return get_ballot_link(self) if self else None
 
     def __str__(self):
         return u'%s - %s' % (self.number, self.race_type_name)

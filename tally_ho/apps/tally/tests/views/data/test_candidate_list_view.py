@@ -7,6 +7,7 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import\
     create_tally, create_office, create_ballot, create_result_form,\
     create_candidate, TestBase
+from tally_ho.libs.utils.numbers import parse_int
 
 
 class TestCandidateListView(TestBase):
@@ -68,16 +69,18 @@ class TestCandidateListView(TestBase):
         response = view(request, tally_id=tally.pk)
 
         candidate_id, candidate_full_name, active, order, ballot_number,\
-            race_type, modified_date_formatted, action_btn = json.loads(
-                response.content.decode())['data'][0]
+        election_level, sub_race, modified_date_formatted, action_btn =\
+                json.loads(response.content.decode())['data'][0]
 
-        self.assertEquals(candidate_id, str(candidate.candidate_id))
-        self.assertEquals(candidate_full_name,
-                          str(candidate.full_name))
+        self.assertEquals(parse_int(candidate_id), candidate.candidate_id)
+        self.assertEquals(candidate_full_name, candidate.full_name)
         self.assertEquals(active, str(candidate.active))
-        self.assertEquals(order, str(candidate.order))
-        self.assertEquals(ballot_number, str(candidate.ballot.number))
-        self.assertEquals(race_type, str(candidate.race_type.name))
+        self.assertEquals(parse_int(order), candidate.order)
+        self.assertEquals(parse_int(ballot_number), candidate.ballot.number)
+        self.assertEquals(election_level,
+                          candidate.ballot.electrol_race.election_level)
+        self.assertEquals(sub_race,
+                          candidate.ballot.electrol_race.ballot_name)
         self.assertEquals(
             modified_date_formatted,
             candidate.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
@@ -109,16 +112,18 @@ class TestCandidateListView(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk, office_id=office.pk)
         candidate_id, candidate_full_name, active, order, ballot_number,\
-            race_type, modified_date_formatted, action_btn = json.loads(
-                response.content.decode())['data'][0]
+        election_level, sub_race, modified_date_formatted, action_btn =\
+                json.loads(response.content.decode())['data'][0]
 
-        self.assertEquals(candidate_id, str(candidate.candidate_id))
-        self.assertEquals(candidate_full_name,
-                          str(candidate.full_name))
+        self.assertEquals(parse_int(candidate_id), candidate.candidate_id)
+        self.assertEquals(candidate_full_name, candidate.full_name)
         self.assertEquals(active, str(candidate.active))
-        self.assertEquals(order, str(candidate.order))
-        self.assertEquals(ballot_number, str(candidate.ballot.number))
-        self.assertEquals(race_type, str(candidate.race_type.name))
+        self.assertEquals(parse_int(order), candidate.order)
+        self.assertEquals(parse_int(ballot_number), candidate.ballot.number)
+        self.assertEquals(election_level,
+                          candidate.ballot.electrol_race.election_level)
+        self.assertEquals(sub_race,
+                          candidate.ballot.electrol_race.ballot_name)
         self.assertEquals(
             modified_date_formatted,
             candidate.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))

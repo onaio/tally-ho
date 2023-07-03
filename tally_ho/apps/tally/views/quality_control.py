@@ -19,7 +19,6 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.verify.quarantine_checks import check_quarantine
@@ -57,23 +56,19 @@ def save_result_form_processing_stats(
         result_form=result_form)
 
 
-def results_for_race(result_form, race_type):
-    """Return the results from this form for this specific race type.
+def result_form_results(result_form):
+    """Return the results from this form.
 
     :param result_form: The result form to return results for.
-    :param race_type: The type of results to return, component results of None.
 
-    :returns: A queryset of results for this form and race type.
+    :returns: A queryset of results for this form.
     """
+    election_level = result_form.ballot.electrol_race.election_level
     results = result_form.results.filter(
         active=True,
-        entry_version=EntryVersion.FINAL).order_by('candidate__order')
-
-    if race_type is None:
-        results = results.filter(
-            candidate__race_type__gt=RaceType.PRESIDENTIAL)
-    else:
-        results = results.filter(candidate__race_type=race_type)
+        entry_version=EntryVersion.FINAL,
+        candidate__ballot__electrol_race__election_level=election_level
+    ).order_by('candidate__order')
 
     return results
 
@@ -153,19 +148,14 @@ class QualityControlDashboardView(LoginRequiredMixin,
         reconciliation_form = ReconForm(data=model_to_dict(
             result_form.reconciliationform
         )) if result_form.reconciliationform else None
-        results_component = results_for_race(result_form, None)
-        results_general = results_for_race(result_form, RaceType.GENERAL)
-        results_women = results_for_race(result_form, RaceType.WOMEN)
-        results_presidential =\
-            results_for_race(result_form, RaceType.PRESIDENTIAL)
+        election_level = result_form.ballot.electrol_race.election_level
+        results = result_form_results(result_form)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   reconciliation_form=reconciliation_form,
-                                  results_component=results_component,
-                                  results_women=results_women,
-                                  results_general=results_general,
-                                  results_presidential=results_presidential,
+                                  results=results,
+                                  header_text=election_level,
                                   tally_id=tally_id))
 
     def post(self, *args, **kwargs):
@@ -180,10 +170,8 @@ class QualityControlDashboardView(LoginRequiredMixin,
 
         if 'correct' in post_data:
             # send to dashboard
-            quality_control.passed_presidential = True
-            quality_control.passed_general = True
+            quality_control.passed_qc = True
             quality_control.passed_reconciliation = True
-            quality_control.passed_women = True
             result_form.save()
 
             # run quarantine checks
@@ -194,10 +182,8 @@ class QualityControlDashboardView(LoginRequiredMixin,
                 url = 'quality-control-confirm-reject'
             # send to reject page
             else:
-                quality_control.passed_presidential = False
-                quality_control.passed_general = False
+                quality_control.passed_qc = False
                 quality_control.passed_reconciliation = False
-                quality_control.passed_women = False
                 quality_control.active = False
                 result_form.reject()
 
@@ -316,10 +302,8 @@ class ConfirmFormResetView(LoginRequiredMixin,
             result_form_pk = self.request.session.get('result_form')
             result_form = ResultForm.objects.get(id=result_form_pk)
             quality_control = result_form.qualitycontrol
-            quality_control.passed_presidential = False
-            quality_control.passed_general = False
+            quality_control.passed_qc = False
             quality_control.passed_reconciliation = False
-            quality_control.passed_women = False
             quality_control.active = False
             result_form.reject(reject_reason=reject_reason)
             quality_control.save()

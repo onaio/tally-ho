@@ -1,16 +1,17 @@
 #!/bin/bash
 
-SETTINGS=tally_ho.settings.common
+SETTINGS=tally_ho.settings.local_settings
 ./scripts/create_database tally postgres 127.0.0.1 $SETTINGS
 if [ -n "$(ls -A data/staff_list.csv 2>/dev/null)" ]; then
     echo "importing staff list..."
     python manage.py import_staff_list --settings=$SETTINGS
 else
     echo "creating groups..."
-    python manage.py create_groups
+    python manage.py create_groups --settings=$SETTINGS
 fi
 echo "creating demo users..."
-python manage.py create_demo_users
+python manage.py create_demo_users --settings=$SETTINGS
 echo "creating quarantine checks..."
-python manage.py create_quarantine_checks
-python manage.py runserver --settings=tally_ho.settings.dev
+python manage.py create_electrol_races --settings=$SETTINGS
+python manage.py create_quarantine_checks --settings=$SETTINGS
+python manage.py runserver --settings=$SETTINGS
