@@ -1221,9 +1221,9 @@ class EditBallotView(LoginRequiredMixin,
 
     def get_object(self):
         tally_id = self.kwargs.get('tally_id')
-        id = self.kwargs.get('id')
+        ballot_id = self.kwargs.get('id')
 
-        return get_object_or_404(Ballot, tally__id=tally_id, id=id)
+        return get_object_or_404(Ballot, tally__id=tally_id, id=ballot_id)
 
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id')
@@ -1305,19 +1305,21 @@ class EditElectrolRaceView(LoginRequiredMixin,
 
         return context
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         tally_id = self.kwargs.get('tally_id')
-        id = self.kwargs.get('id')
+        electrol_race_id = self.kwargs.get('id')
 
-        return get_object_or_404(ElectrolRace, tally__id=tally_id, id=id)
+        return get_object_or_404(ElectrolRace,
+                                 tally__id=tally_id,
+                                 id=electrol_race_id)
 
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id')
-        id = self.kwargs.get('id')
+        electrol_race_id = self.kwargs.get('id')
 
         return reverse('edit-electrol-race', kwargs={
             'tally_id': tally_id,
-            'id': id
+            'id': electrol_race_id
         })
 
     def get(self, *args, **kwargs):
