@@ -39,6 +39,7 @@ from tally_ho.apps.tally.views.reports import station_progress_report
 from tally_ho.apps.tally.views.reports import candidate_list_by_votes
 from tally_ho.apps.tally.views.reports import overall_votes
 from tally_ho.apps.tally.views.reports import votes_per_candidate
+from tally_ho.apps.tally.views.reports import election_statistics_report
 from tally_ho.apps.tally.views.reports.turnout_reports_by_admin_areas import (
     TurnoutReportByAdminAreasDataView,
     TurnoutReportByAdminAreasView
@@ -885,6 +886,16 @@ urlpatterns = [
     re_path(r'^reports/internal/station-overall-votes/(?P<tally_id>(\d+))/$',
             overall_votes.OverallVotes.as_view(),
             name='station-overall-votes'),
+
+    re_path(r'^reports/internal/election-statistics-report/'
+            r'(?P<tally_id>(\d+))/(?P<election_level>[\w\-]+)/$',
+            election_statistics_report.ElectionStatisticsReportView.as_view(),
+            name='election-statistics-report'),
+
+    re_path(r'^reports/internal/election-statistics-data/'
+             r'(?P<tally_id>(\d+))/(?P<election_level>[\w\-]+)/$',
+            election_statistics_report.ElectionStatisticsDataView.as_view(),
+            name='election-statistics-data'),
 
     re_path(r'^reports/internal/center-overall-votes/(?P<tally_id>(\d+))/$',
             overall_votes.OverallVotes.as_view(),
