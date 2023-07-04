@@ -100,7 +100,8 @@ class RegionsReportView(BaseDatatableView):
     def get_columns(self):
         """
         Dynamically generate the columns for the data table.
-        You can modify this method to generate columns based on your requirements.
+        You can modify this method to generate columns based on your
+        requirements.
         """
         dt_regions_columns = ["region_name"]
         electoral_races = ElectrolRace.objects.filter(
@@ -171,7 +172,8 @@ class OfficesReportView(BaseDatatableView):
 
                 if forms_expected == 0:
                     office_report[race.ballot_name.lower()] = "0/0"
-                    office_report[f'{race.ballot_name.lower()}_percentage'] = "0"
+                    office_report[
+                        f'{race.ballot_name.lower()}_percentage'] = "0"
                     office_report['overall'] = "0/0"
                     office_report['overall_percentage'] = "0"
                     continue
@@ -199,7 +201,8 @@ class OfficesReportView(BaseDatatableView):
     def get_columns(self):
         """
         Dynamically generate the columns for the data table.
-        You can modify this method to generate columns based on your requirements.
+        You can modify this method to generate columns based on your
+        requirements.
         """
         dt_offices_columns = ["office_name"]
         electoral_races = ElectrolRace.objects.filter(
@@ -282,7 +285,8 @@ class ConstituenciesReportView(BaseDatatableView):
 
                 constituency_report[race.ballot_name.lower()] = \
                     f"{forms_processed}/{forms_expected}"
-                constituency_report[f'{race.ballot_name.lower()}_percentage'] = \
+                constituency_report[
+                    f'{race.ballot_name.lower()}_percentage'] = \
                     round(100 * forms_processed / forms_expected,
                           2) if forms_expected else 0.0
             constituency_report['overall'] = \
@@ -300,7 +304,8 @@ class ConstituenciesReportView(BaseDatatableView):
     def get_columns(self):
         """
         Dynamically generate the columns for the data table.
-        You can modify this method to generate columns based on your requirements.
+        You can modify this method to generate columns based on your
+        requirements.
         """
         dt_constituencies_columns = ["constituency_name"]
         electoral_races = ElectrolRace.objects.filter(
@@ -385,7 +390,8 @@ class SubConstituenciesReportView(BaseDatatableView):
 
                 sub_constituency_report[race.ballot_name.lower()] = \
                     f"{forms_processed}/{forms_expected}"
-                sub_constituency_report[f'{race.ballot_name.lower()}_percentage'] = \
+                sub_constituency_report[
+                    f'{race.ballot_name.lower()}_percentage'] = \
                     round(100 * forms_processed / forms_expected,
                           2) if forms_expected else 0.0
             sub_constituency_report['overall'] = \
@@ -403,7 +409,8 @@ class SubConstituenciesReportView(BaseDatatableView):
     def get_columns(self):
         """
         Dynamically generate the columns for the data table.
-        You can modify this method to generate columns based on your requirements.
+        You can modify this method to generate columns based on your
+        requirements.
         """
         dt_sub_constituencies_columns = ["sub_constituency_code"]
         electoral_races = ElectrolRace.objects.filter(
