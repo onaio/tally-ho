@@ -60,7 +60,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                     center__resultform__ballot__electrol_race__election_level=\
                     election_level,
                     center__resultform__ballot=ballot,
-                    center__stations__id=station.id,
+                    center=station.center,
                     station_number=station.station_number,
                     ).values_list('form_state', flat=True).distinct()
 
@@ -89,7 +89,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                     result_form__ballot__electrol_race__election_level=\
                         election_level,
                     result_form__ballot=ballot,
-                    result_form__center__stations__id=station.id,
+                    result_form__center=station.center,
                     result_form__station_number=station.station_number,
                     entry_version=EntryVersion.FINAL,
                     active=True,
@@ -115,12 +115,6 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             ballot_election_statistics[
                 'percentage_turnout_in_stations_counted'] =\
                 round(
-                    100 * stations_counted / election_statistics[
-                        'stations_expected'],
-                    2)
-            ballot_election_statistics[
-                'percentage_turnout_in_stations_counted'] =\
-                    round(
                     100 * stations_counted / election_statistics[
                         'stations_expected'],
                     2)
