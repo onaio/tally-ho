@@ -27,7 +27,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
     election_level_ballots =\
         Ballot.objects.filter(
             tally_id=tally_id,
-            electrol_race__election_level=election_level,)
+            electrol_race__election_level=election_level,).distinct()
 
     voters_in_counted_stations = 0
     stations_counted = 0
@@ -88,6 +88,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                     result_form__tally__id=tally_id,
                     result_form__ballot__electrol_race__election_level=\
                         election_level,
+                    result_form__ballot=ballot,
                     result_form__center__stations__id=station.id,
                     result_form__station_number=station.station_number,
                     entry_version=EntryVersion.FINAL,
