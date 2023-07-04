@@ -1,0 +1,225 @@
+{% extends 'base.html' %} 
+
+{% load i18n static %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" %}
+<script>
+$(document).ready(() => {
+  const dt_language = {{ languageDE|safe }}
+  const electionStatisticsReportUrl = '{{ remote_url }}'
+  const buildTablePayload = (d, customPayloadObj=undefined) => {
+    let payload = d;
+    if (customPayloadObj) {
+      payload = {
+        ...payload,
+        ...customPayloadObj,
+      }
+    }
+    for (let i = 0; i < payload.columns.length - 1; i++) {
+      payload[`columns[${i}][data]`] = payload.columns[i].data
+      payload[`columns[${i}][name]`] = payload.columns[i].name
+      payload[`columns[${i}][searchable]`] = payload.columns[i].searchable
+      payload[`columns[${i}][search][value]`] = payload.columns[i].search.value
+      payload[`columns[${i}][search][regex]`] = payload.columns[i].search.regex
+      payload[`columns[${i}][data]`] = payload.columns[i].data
+    }
+    payload['order[0][column]'] = payload.columns[payload.order[0].column].data;
+    payload['order[0][dir]'] = payload.order[0].dir;
+    payload['search[value]'] = payload.search.value;
+    payload['search[regex]'] = payload.search.regex;
+    payload['columns'] = payload.columns;
+    payload['order'] = payload.order;
+    payload['draw'] = payload.draw;
+    payload['start'] = payload.start;
+    payload['length'] = payload.length;
+
+    return payload
+  };
+
+  const resetFilters = (attributesList) => {
+    for (let i = 0; i < attributesList.length; i++) {
+        $(attributesList[i]).val(null);
+        $(attributesList[i]).change();
+    }
+  };
+
+  const table = $('#election-statistics-report').DataTable({
+        language: dt_language, // global variable defined in html
+        order: [[0, "desc"]],
+        lengthMenu: [
+          [10, 25, 50, 100, 500, -1],
+          [10, 25, 50, 100, 500, 'Show all'],
+        ],
+        columnDefs: [
+          {
+            orderable: true,
+            searchable: true,
+            className: "center",
+            targets: [0, 1],
+          },
+        ],
+        searching: true,
+        processing: true,
+        serverSide: true,
+        stateSave: true,
+        ajax: {
+          url: electionStatisticsReportUrl,
+          type: 'POST',
+          data: (d) => {
+            return buildTablePayload(d);
+          },
+          traditional: true,
+          dataType: 'json',
+        },
+        columns: {{ dt_columns|safe }},
+        dom:
+          "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
+          "<'row'<'col-sm-12'tr>>" +
+          "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+        buttons: ['csv'],
+        responsive: true,
+    });
+  
+  $('#election-statistics-overview-section').on('click', '#filter-report', function () {
+    const gender_value = $('select#station-gender').val();
+
+    table.settings()[0].ajax.data = (d) => {
+      return buildTablePayload(d, { data: JSON.stringify({
+        gender_value: gender_value
+      }) });
+    };
+
+    table.ajax.reload();
+  });
+
+  $('#election-statistics-overview-section').on('click', '#reset-filters-report', function () {
+    const attributesList = [
+      'select#station-gender',
+    ];
+    resetFilters(attributesList);
+    table.settings()[0].ajax.data = (d) => {
+      return buildTablePayload(d, { data: JSON.stringify([]) });
+    };
+    table.ajax.reload();
+  });
+});
+</script>
+{% endblock %}
+{% block content %}
+
+<h1>{{ election_level }} {% trans 'Election Statistics ' %}</h1>
+<br>
+
+<table class="display" id="election-statistics-report">
+  <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
+    <div id="election-statistics-overview-section" class="row">
+        <div class="col-12" style="margin-bottom: 2em; text-align: left; margin-left:.5em;">
+          <div class="col-sm-6" style="text-align: left;">
+              <div class="row">
+                <label><b>Forms Expected</b></label>
+                <span>{{election_statistics_report.forms_expected}}</span>
+              </div>
+              <div class="row">
+                <label><b>Forms Counted</b></label>
+                <span>{{election_statistics_report.forms_counted}}</span>
+              </div>
+              <div class="row">
+                <label><b>Completion (%)</b></label>
+                <span>{{election_statistics_report.completion_percentage}}</span>
+              </div>
+          </div>
+          <div class="col-sm-6" style="text-align: left;">
+              <div class="row">
+                <label><b>Total Voters in Counted Stations</b></label>
+                <span>{{election_statistics_report.voters_in_counted_stations}}</span>
+              </div>
+              <div class="row">
+                <label><b>Total Registrants in Counted Stations</b></label>
+                <span>{{election_statistics_report.total_registrants_in_counted_stations}}</span>
+              </div>
+              <div class="row">
+                <label><b>Projected Turnout (%)</b></label>
+                <span>{{election_statistics_report.projected_turnout_percentage}}</span>
+              </div>
+          </div>
+        </div>
+        <div class="col-12" style="margin-bottom: 2em; margin-left:.5em;">
+          <div class="col-sm-6" style="text-align: left;">
+              <div class="row">
+                <label><b>Total Female Voters in Counted Stations</b></label>
+                <span>{{election_statistics_report.female_voters_in_counted_stations}}</span>
+              </div>
+              <div class="row">
+                <label><b>Total Female Registrants in Counted Stations</b></label>
+                <span>{{election_statistics_report.female_total_registrants_in_counted_stations}}</span>
+              </div>
+              <div class="row">
+                <label><b>Projected Female Turnout (%)</b></label>
+                <span>{{election_statistics_report.female_projected_turnout_percentage}}</span>
+              </div>
+          </div>
+          <div class="col-sm-6" style="text-align: left;">
+              <div class="row">
+                <label><b>Total Male Voters in Counted Stations</b></label>
+                <span>{{election_statistics_report.male_voters_in_counted_stations}}</span>
+              </div>
+              <div class="row">
+                <label><b>Total Male Registrants in Counted Stations</b></label>
+                <span>{{election_statistics_report.male_total_registrants_in_counted_stations}}</span>
+              </div>
+              <div class="row">
+                <label><b>Projected Male Turnout (%)</b></label>
+                <span>{{election_statistics_report.male_projected_turnout_percentage}}</span>
+              </div>
+          </div>
+        </div>
+        <div class="col-12" style="margin-bottom: 2em;">
+            <div class="col-sm-3"  style="float: right">
+                <p style="text-align: left; margin-left: .5em;">{% trans 'Station Gender' %}</p>
+                <select class="selectpicker" id="station-gender" name="report_length" aria-controls="report" data-actions-box="true" title="Station Gender">
+                    {% for gender in genders %}
+                    <option value={{gender.value}}>{{gender.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    <div class="col-12" style="margin-bottom: 2em;">
+      <div class="col-sm-3" style="float: right">
+        <div class="card">
+          <div class="card-body">
+            <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
+            <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+            <button style="float: left; margin-left: 1em;" id="reset-filters-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
+          </div>
+        </div>
+    </div>
+    </div>
+  </div>
+</caption>
+<br>
+  <thead>
+      <tr>
+        <th>{% trans 'Ballot Number' %}</th>
+        <th>{% trans 'Stations Expected' %}</th>
+        <th>{% trans 'Stations Counted' %}</th>
+        <th>{% trans '(%) of Stations Counted' %}</th>
+        <th>{% trans 'Registrants in Counted Stations' %}</th>
+        <th>{% trans 'Voters in Counted Stations' %}</th>
+        <th>{% trans '(%) Turnout in Counted Stations' %}</th>
+      </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+
+{% endblock %}
