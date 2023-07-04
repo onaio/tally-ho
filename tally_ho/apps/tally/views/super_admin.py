@@ -251,6 +251,12 @@ class DashboardView(LoginRequiredMixin,
             groups.QUALITY_CONTROL_SUPERVISOR
         kwargs['audit_clerk'] = groups.AUDIT_CLERK
         kwargs['audit_supervisor'] = groups.AUDIT_SUPERVISOR
+        tally_id = kwargs.get('tally_id')
+        kwargs['election_levels'] =\
+            set(ElectrolRace.objects.filter(tally_id=tally_id).values_list(
+                'election_level',
+                flat=True
+            ))
 
         return self.render_to_response(self.get_context_data(**kwargs))
 
