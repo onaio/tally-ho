@@ -54,6 +54,7 @@ class RegionsReportView(BaseDatatableView):
         regions_report = list(regions_report)
         electoral_races = ElectrolRace.objects.filter(
             tally__id=tally_id)
+        aggregate = {'region_name': 'Total'}
 
         for region_report in regions_report:
             region_name = region_report.get('region_name')
@@ -70,14 +71,6 @@ class RegionsReportView(BaseDatatableView):
                 forms_expected = qs.count()
                 total_forms_expected += forms_expected
 
-                if forms_expected == 0:
-                    region_report[race.ballot_name.lower()] = "0/0"
-                    region_report[
-                        f'{race.ballot_name.lower()}_percentage'] = "0"
-                    region_report['overall'] = "0/0"
-                    region_report['overall_percentage'] = "0"
-                    continue
-
                 forms_processed = \
                     qs.filter(form_state=FormState.ARCHIVED).count()
                 total_forms_processed += forms_processed
@@ -86,11 +79,19 @@ class RegionsReportView(BaseDatatableView):
                 region_report[f'{race.ballot_name.lower()}_percentage'] = \
                     round(100 * forms_processed / forms_expected,
                           2) if forms_expected else 0.0
+                aggregate = add_aggregate(
+                    aggregate, race.ballot_name.lower(),
+                    f"{forms_processed}/{forms_expected}")
             region_report['overall'] = \
                 f"{total_forms_processed}/{total_forms_expected}"
             region_report['overall_percentage'] = \
                 round(100 * total_forms_processed / total_forms_expected,
                       2) if total_forms_expected else 0.0
+            aggregate = add_aggregate(
+                aggregate, 'overall', f"{total_forms_processed}/\
+{total_forms_expected}")
+
+        regions_report.append(aggregate)
 
         sorted_regions_report = \
             sorted(regions_report, key=lambda x: -x['overall_percentage'])
@@ -154,6 +155,7 @@ class OfficesReportView(BaseDatatableView):
         offices_report = list(offices_report)
         electoral_races = ElectrolRace.objects.filter(
             tally__id=tally_id)
+        aggregate = {'office_name': 'Total'}
 
         for office_report in offices_report:
             office_name = office_report.get('office_name')
@@ -170,14 +172,6 @@ class OfficesReportView(BaseDatatableView):
                 forms_expected = qs.count()
                 total_forms_expected += forms_expected
 
-                if forms_expected == 0:
-                    office_report[race.ballot_name.lower()] = "0/0"
-                    office_report[
-                        f'{race.ballot_name.lower()}_percentage'] = "0"
-                    office_report['overall'] = "0/0"
-                    office_report['overall_percentage'] = "0"
-                    continue
-
                 forms_processed = \
                     qs.filter(form_state=FormState.ARCHIVED).count()
                 total_forms_processed += forms_processed
@@ -187,11 +181,19 @@ class OfficesReportView(BaseDatatableView):
                 office_report[f'{race.ballot_name.lower()}_percentage'] = \
                     round(100 * forms_processed / forms_expected,
                           2) if forms_expected else 0.0
+                aggregate = add_aggregate(
+                    aggregate, race.ballot_name.lower(),
+                    f"{forms_processed}/{forms_expected}")
             office_report['overall'] = \
                 f"{total_forms_processed}/{total_forms_expected}"
             office_report['overall_percentage'] = \
                 round(100 * total_forms_processed / total_forms_expected,
                       2) if total_forms_expected else 0.0
+            aggregate = add_aggregate(
+                aggregate, 'overall', f"{total_forms_processed}/\
+{total_forms_expected}")
+
+        offices_report.append(aggregate)
 
         sorted_offices_report = \
             sorted(offices_report, key=lambda x: -x['overall_percentage'])
@@ -255,6 +257,7 @@ class ConstituenciesReportView(BaseDatatableView):
         constituencies_report = list(constituencies_report)
         electoral_races = ElectrolRace.objects.filter(
             tally__id=tally_id)
+        aggregate = {'constituency_name': 'Total'}
 
         for constituency_report in constituencies_report:
             constituency_name = constituency_report.get('constituency_name')
@@ -271,14 +274,6 @@ class ConstituenciesReportView(BaseDatatableView):
                 forms_expected = qs.count()
                 total_forms_expected += forms_expected
 
-                if forms_expected == 0:
-                    constituency_report[race.ballot_name.lower()] = "0/0"
-                    constituency_report[
-                        f'{race.ballot_name.lower()}_percentage'] = "0"
-                    constituency_report['overall'] = "0/0"
-                    constituency_report['overall_percentage'] = "0"
-                    continue
-
                 forms_processed = \
                     qs.filter(form_state=FormState.ARCHIVED).count()
                 total_forms_processed += forms_processed
@@ -289,12 +284,19 @@ class ConstituenciesReportView(BaseDatatableView):
                     f'{race.ballot_name.lower()}_percentage'] = \
                     round(100 * forms_processed / forms_expected,
                           2) if forms_expected else 0.0
+                aggregate = add_aggregate(
+                    aggregate, race.ballot_name.lower(),
+                    f"{forms_processed}/{forms_expected}")
             constituency_report['overall'] = \
                 f"{total_forms_processed}/{total_forms_expected}"
             constituency_report['overall_percentage'] = \
                 round(100 * total_forms_processed / total_forms_expected,
-                      2) if total_forms_expected else 0.0
+                      2) if total_forms_expected else 0
+            aggregate = add_aggregate(
+                aggregate, 'overall', f"{total_forms_processed}/\
+{total_forms_expected}")
 
+        constituencies_report.append(aggregate)
         sorted_constituencies_report = \
             sorted(constituencies_report,
                    key=lambda x: -x['overall_percentage'])
@@ -359,6 +361,7 @@ class SubConstituenciesReportView(BaseDatatableView):
         sub_constituencies_report = list(sub_constituencies_report)
         electoral_races = ElectrolRace.objects.filter(
             tally__id=tally_id)
+        aggregate = {'sub_constituency_code': 'Total'}
 
         for sub_constituency_report in sub_constituencies_report:
             sub_constituency_code = sub_constituency_report.get(
@@ -376,14 +379,6 @@ class SubConstituenciesReportView(BaseDatatableView):
                 forms_expected = qs.count()
                 total_forms_expected += forms_expected
 
-                if forms_expected == 0:
-                    sub_constituency_report[race.ballot_name.lower()] = "0/0"
-                    sub_constituency_report[
-                        f'{race.ballot_name.lower()}_percentage'] = "0"
-                    sub_constituency_report['overall'] = "0/0"
-                    sub_constituency_report['overall_percentage'] = "0"
-                    continue
-
                 forms_processed = \
                     qs.filter(form_state=FormState.ARCHIVED).count()
                 total_forms_processed += forms_processed
@@ -394,11 +389,19 @@ class SubConstituenciesReportView(BaseDatatableView):
                     f'{race.ballot_name.lower()}_percentage'] = \
                     round(100 * forms_processed / forms_expected,
                           2) if forms_expected else 0.0
+                aggregate = add_aggregate(
+                    aggregate, race.ballot_name.lower(),
+                    f"{forms_processed}/{forms_expected}")
             sub_constituency_report['overall'] = \
                 f"{total_forms_processed}/{total_forms_expected}"
             sub_constituency_report['overall_percentage'] = \
                 round(100 * total_forms_processed / total_forms_expected,
                       2) if total_forms_expected else 0.0
+            aggregate = add_aggregate(
+                aggregate, 'overall', f"{total_forms_processed}/\
+{total_forms_expected}")
+
+        sub_constituencies_report.append(aggregate)
 
         sorted_sub_constituencies_report = \
             sorted(sub_constituencies_report,
@@ -518,3 +521,18 @@ def progress_report(request, **kwargs):
     return render(
         request, 'reports/progress_report_by_admin_area.html', context)
 
+
+def add_aggregate(agg, key, val):
+    if key in agg:
+        curr_total_processed, curr_total_expected = agg[key].split('/')
+        inc_total_processed, inc_total_expected = val.split('/')
+        agg[key] = f"{int(curr_total_processed) + int(inc_total_processed)}/\
+{int(curr_total_expected) + int(inc_total_expected)}"
+    else:
+        agg[key] = val
+    curr_total_processed, curr_total_expected = agg[key].split('/')
+    agg[f"{key}_percentage"] = \
+        round(100 * int(
+            curr_total_processed) / int(curr_total_expected),
+              2) if int(curr_total_expected) else 0.0
+    return agg
