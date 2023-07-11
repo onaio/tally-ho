@@ -50,7 +50,7 @@ $(document).ready(() => {
     dt.ajax.reload();
   };
 
-    $('#regions-progress-report').DataTable({
+    const regionsTable = $('#regions-progress-report').DataTable({
       language: dt_language, // global variable defined in html
       order: [[0, "desc"]],
       lengthMenu: [
@@ -111,7 +111,7 @@ $(document).ready(() => {
       responsive: true,
       });
 
-    $('#offices-progress-report').DataTable({
+    const officesTable = $('#offices-progress-report').DataTable({
       language: dt_language, // global variable defined in html
       order: [[0, "desc"]],
       lengthMenu: [
@@ -172,7 +172,7 @@ $(document).ready(() => {
       responsive: true,
       });
 
-    $('#constituencies-progress-report').DataTable({
+    const constituenciesTable = $('#constituencies-progress-report').DataTable({
       language: dt_language, // global variable defined in html
       order: [[0, "desc"]],
       lengthMenu: [
@@ -233,7 +233,7 @@ $(document).ready(() => {
       responsive: true,
       });
 
-    $('#sub-constituencies-progress-report').DataTable({
+    const subConstituenciesTable = $('#sub-constituencies-progress-report').DataTable({
       language: dt_language, // global variable defined in html
       order: [[0, "desc"]],
       lengthMenu: [
@@ -293,6 +293,18 @@ $(document).ready(() => {
       ],
       responsive: true,
       });
+  $('nav-link').on('click', '#regions-progress-report', () => {
+    regionsTable.ajax.reload();
+  });
+  $('nav-link').on('click', '#offices-progress-report', () => {
+    officesTable.ajax.reload();
+  });
+  $('nav-link').on('click', '#constituencies-progress-report', () => {
+    constituenciesTable.ajax.reload();
+  });
+  $('nav-link').on('click', '#sub-constituencies-progress-report', () => {
+    subConstituenciesTable.ajax.reload();
+  });
 });
 </script>
 {% endblock %}
