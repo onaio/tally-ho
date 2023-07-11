@@ -3,20 +3,27 @@ from django.http import JsonResponse
 
 from django.shortcuts import render
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
+from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale
 )
+from tally_ho.libs.views import mixins
 from django.db.models import F
 from tally_ho.libs.models.enums.form_state import FormState
 
 
-class RegionsReportView(BaseDatatableView):
+class RegionsReportView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
+                        BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
     model = ResultForm
 
     def get(self, request, *args, **kwargs):
@@ -91,12 +98,12 @@ class RegionsReportView(BaseDatatableView):
                 aggregate, 'overall', f"{total_forms_processed}/\
 {total_forms_expected}")
 
-        regions_report.append(aggregate)
+        if regions_report:
+            regions_report = \
+                sorted(regions_report, key=lambda x: -x['overall_percentage'])
+            regions_report.append(aggregate)
 
-        sorted_regions_report = \
-            sorted(regions_report, key=lambda x: -x['overall_percentage'])
-
-        return sorted_regions_report
+        return regions_report
 
     def get_columns(self):
         """
@@ -117,7 +124,11 @@ class RegionsReportView(BaseDatatableView):
         return dt_regions_columns
 
 
-class OfficesReportView(BaseDatatableView):
+class OfficesReportView(LoginRequiredMixin,
+                        mixins.GroupRequiredMixin,
+                        mixins.TallyAccessMixin,
+                        BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
     model = ResultForm
 
     def get(self, request, *args, **kwargs):
@@ -193,12 +204,12 @@ class OfficesReportView(BaseDatatableView):
                 aggregate, 'overall', f"{total_forms_processed}/\
 {total_forms_expected}")
 
-        offices_report.append(aggregate)
+        if offices_report:
+            offices_report = \
+                sorted(offices_report, key=lambda x: -x['overall_percentage'])
+            offices_report.append(aggregate)
 
-        sorted_offices_report = \
-            sorted(offices_report, key=lambda x: -x['overall_percentage'])
-
-        return sorted_offices_report
+        return offices_report
 
     def get_columns(self):
         """
@@ -219,7 +230,11 @@ class OfficesReportView(BaseDatatableView):
         return dt_offices_columns
 
 
-class ConstituenciesReportView(BaseDatatableView):
+class ConstituenciesReportView(LoginRequiredMixin,
+                               mixins.GroupRequiredMixin,
+                               mixins.TallyAccessMixin,
+                               BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
     model = ResultForm
 
     def get(self, request, *args, **kwargs):
@@ -296,12 +311,13 @@ class ConstituenciesReportView(BaseDatatableView):
                 aggregate, 'overall', f"{total_forms_processed}/\
 {total_forms_expected}")
 
-        constituencies_report.append(aggregate)
-        sorted_constituencies_report = \
-            sorted(constituencies_report,
-                   key=lambda x: -x['overall_percentage'])
+        if constituencies_report:
+            constituencies_report = \
+                sorted(constituencies_report,
+                       key=lambda x: -x['overall_percentage'])
+            constituencies_report.append(aggregate)
 
-        return sorted_constituencies_report
+        return constituencies_report
 
     def get_columns(self):
         """
@@ -323,7 +339,11 @@ class ConstituenciesReportView(BaseDatatableView):
         return dt_constituencies_columns
 
 
-class SubConstituenciesReportView(BaseDatatableView):
+class SubConstituenciesReportView(LoginRequiredMixin,
+                                  mixins.GroupRequiredMixin,
+                                  mixins.TallyAccessMixin,
+                                  BaseDatatableView):
+    group_required = groups.TALLY_MANAGER
     model = ResultForm
 
     def get(self, request, *args, **kwargs):
@@ -401,12 +421,13 @@ class SubConstituenciesReportView(BaseDatatableView):
                 aggregate, 'overall', f"{total_forms_processed}/\
 {total_forms_expected}")
 
-        sub_constituencies_report.append(aggregate)
-        sorted_sub_constituencies_report = \
-            sorted(sub_constituencies_report,
-                   key=lambda x: -x['overall_percentage'])
+        if sub_constituencies_report:
+            sub_constituencies_report = \
+                sorted(sub_constituencies_report,
+                       key=lambda x: -x['overall_percentage'])
+            sub_constituencies_report.append(aggregate)
 
-        return sorted_sub_constituencies_report
+        return sub_constituencies_report
 
     def get_columns(self):
         """
