@@ -402,7 +402,6 @@ class SubConstituenciesReportView(BaseDatatableView):
 {total_forms_expected}")
 
         sub_constituencies_report.append(aggregate)
-
         sorted_sub_constituencies_report = \
             sorted(sub_constituencies_report,
                    key=lambda x: -x['overall_percentage'])
