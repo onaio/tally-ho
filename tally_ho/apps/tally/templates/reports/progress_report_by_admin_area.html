@@ -293,16 +293,16 @@ $(document).ready(() => {
       ],
       responsive: true,
       });
-  $('nav-link').on('click', '#regions-progress-report', () => {
+  $('#progress-reports-nav').on('click', '#regions-pr', () => {
     regionsTable.ajax.reload();
   });
-  $('nav-link').on('click', '#offices-progress-report', () => {
+  $('#progress-reports-nav').on('click', '#offices-pr', () => {
     officesTable.ajax.reload();
   });
-  $('nav-link').on('click', '#constituencies-progress-report', () => {
+  $('#progress-reports-nav').on('click', '#constituencies-pr', () => {
     constituenciesTable.ajax.reload();
   });
-  $('nav-link').on('click', '#sub-constituencies-progress-report', () => {
+  $('#progress-reports-nav').on('click', '#sub-constituencies-pr', () => {
     subConstituenciesTable.ajax.reload();
   });
 });
@@ -312,18 +312,18 @@ $(document).ready(() => {
 
 <h1>{% trans 'Progress Report' %}</h1>
 <br>
-<ul class="nav nav-tabs" role="tablist">
+<ul id="progress-reports-nav" class="nav nav-tabs" role="tablist">
     <li class="nav-item">
-        <a class="nav-link active" data-toggle="tab" href="#table1">Regions Progress Report</a>
+        <a id="regions-pr" class="nav-link active" data-toggle="tab" href="#table1">Regions Progress Report</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#table2">Offices Progress Report</a>
+        <a id="offices-pr" class="nav-link" data-toggle="tab" href="#table2">Offices Progress Report</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#table3">Constituencies Progress Report</a>
+        <a id="constituencies-pr" class="nav-link" data-toggle="tab" href="#table3">Constituencies Progress Report</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#table4">Sub-Constituencies Progress Report</a>
+        <a id="sub-constituencies-pr" class="nav-link" data-toggle="tab" href="#table4">Sub-Constituencies Progress Report</a>
     </li>
 </ul>
 
