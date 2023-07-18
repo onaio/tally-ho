@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.comment import Comment
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.ballot import Ballot
 
@@ -59,29 +60,56 @@ def disable_enable_entity(center_code,
         return entity_to_return
 
 
-def disable_enable_race(race_id,
-                        disable_reason=None,
-                        comment=None,
-                        tally_id=None):
-    race = None
+def disable_enable_ballot(ballot_id,
+                          disable_reason=None,
+                          comment=None,
+                          tally_id=None):
+    ballot = None
 
     try:
-        race = Ballot.objects.get(id=race_id)
+        ballot = Ballot.objects.get(id=ballot_id)
 
     except Ballot.DoesNotExist:
-        raise forms.ValidationError(_('Race does not exist'))
+        raise forms.ValidationError(_('Ballot does not exist'))
     else:
         if comment:
-            Comment(text=comment, ballot=race, tally_id=tally_id).save()
+            Comment(text=comment, ballot=ballot, tally_id=tally_id).save()
 
-        race.active = not race.active
-        race.disable_reason = 0
+        ballot.active = not ballot.active
+        ballot.disable_reason = 0
 
         if disable_reason is not None:
-            race.disable_reason = disable_reason
+            ballot.disable_reason = disable_reason
 
-        race.save()
-        return race
+        ballot.save()
+        return ballot
+
+
+def disable_enable_electrol_race(electrol_race_id,
+                                 disable_reason=None,
+                                 comment=None,
+                                 tally_id=None,):
+    electrol_race = None
+    try:
+        electrol_race =\
+            ElectrolRace.objects.get(tally__id=tally_id, id=electrol_race_id)
+    except ElectrolRace.DoesNotExist:
+        raise forms.ValidationError(_('Electrol Race does not exist'))
+    else:
+        if comment:
+            Comment(
+                text=comment,
+                electrol_race=electrol_race,
+                tally_id=tally_id).save()
+
+        electrol_race.active = not electrol_race.active
+        electrol_race.disable_reason = 0
+
+        if disable_reason is not None:
+            electrol_race.disable_reason = disable_reason
+
+        electrol_race.save()
+        return electrol_race
 
 
 def disable_enable_candidate(candidate_id):

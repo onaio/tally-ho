@@ -60,19 +60,13 @@ def valid_ballots(tally_id=None):
 
 
 def distinct_forms(ballot, tally_id):
-    """Return the distinct forms for a ballot based on its type.
-
-    If there are no forms for a ballot assume that it is a component ballot and
-    return forms for the associated general ballots.
+    """Return the distinct forms for a ballot.
 
     :param ballot: The ballot to return distinct forms for.
 
     :returns: The list of result forms.
     """
     forms = ResultForm.distinct_filter(ballot.resultform_set, tally_id)
-
-    if not forms:
-        forms = ResultForm.distinct_for_component(ballot, tally_id)
 
     return forms
 
@@ -91,7 +85,8 @@ def build_result_and_recon_output(result_form):
         'station': result_form.station_number,
         'gender': result_form.gender_name,
         'barcode': result_form.barcode,
-        'race type': result_form.ballot_race_type_name,
+        'election level': result_form.ballot__electrol_race__election_level,
+        'sub race type': result_form.ballot__electrol_race__ballot_name,
         'voting district': result_form.ballot.sub_constituency.code,
         'number registrants': result_form.station.registrants
     }
@@ -141,7 +136,8 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'station',
             'gender',
             'barcode',
-            'race type',
+            'election level',
+            'sub race type',
             'voting district',
             'order',
             'name', 'votes',

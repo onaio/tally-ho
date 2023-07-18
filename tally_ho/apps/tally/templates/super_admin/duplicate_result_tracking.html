@@ -21,7 +21,8 @@
             <th>{% trans 'Center Number' %}</th>
             <th>{% trans 'Station Number' %}</th>
             <th>{% trans 'Ballot Number' %}</th>
-            <th>{% trans 'Race Type' %}</th>
+            <th>{% trans 'Election Level' %}</th>
+            <th>{% trans 'Sub Race Type' %}</th>
             <th>{% trans 'Form State' %}</th>
             <th>{% trans 'Modified' %}</th>
         </tr>
@@ -34,7 +35,8 @@
                 <td>{{ duplicate_result.center.code }}</td>
                 <td>{{ duplicate_result.station_number }}</td>
                 <td>{{ duplicate_result.ballot.number }}</td>
-                <td>{{ duplicate_result.ballot_race_type_name }}</td>
+                <td>{{ duplicate_result.ballot.electrol_race.election_level }}</td>
+                <td>{{ duplicate_result.ballot.electrol_race.ballot_name }}</td>
                 <td>{{ duplicate_result.form_state_name }}</td>
                 <td>{{ duplicate_result.modified_date }}</td>
                 <td>

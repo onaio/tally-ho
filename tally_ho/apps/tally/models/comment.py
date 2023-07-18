@@ -3,6 +3,7 @@ import reversion
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
@@ -15,9 +16,14 @@ class Comment(BaseModel):
             models.Index(fields=['ballot', 'tally']),
             models.Index(fields=['center', 'tally']),
             models.Index(fields=['station', 'tally']),
+            models.Index(fields=['electrol_race', 'tally']),
         ]
 
     text = models.TextField()
+    electrol_race = models.ForeignKey(ElectrolRace,
+                                      on_delete=models.PROTECT,
+                                      related_name='comments',
+                                      null=True)
     ballot = models.ForeignKey(Ballot,
                                on_delete=models.PROTECT,
                                related_name='comments',

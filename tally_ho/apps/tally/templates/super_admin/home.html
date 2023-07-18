@@ -14,11 +14,12 @@
 {% endif %}
 <h3>{% trans 'Data views' %}</h3>
 <ul>
+    <li><a href="{% url 'electrol-race-list' tally_id=tally_id %}">{% trans 'Electrol Races List' %}</a></li>
     <li><a href="{% url 'user-tally-list' tally_id %}">{% trans 'Users List' %}</a></li>
     <li><a href="{% url 'region-list' tally_id=tally_id %}">{% trans 'Region List' %}</a></li>
     <li><a href="{% url 'office-list' tally_id=tally_id %}">{% trans 'Office List' %}</a></li>
     <li><a href="{% url 'center-list' tally_id=tally_id %}">{% trans 'Center List' %}</a></li>
-    <li><a href="{% url 'races-list' tally_id=tally_id %}">{% trans 'Races List' %}</a></li>
+    <li><a href="{% url 'ballot-list' tally_id=tally_id %}">{% trans 'Ballot List' %}</a></li>
     <li><a href="{% url 'form-list' tally_id=tally_id %}">{% trans 'Form List' %}</a></li>
     <li><a href="{% url 'candidate-list' tally_id=tally_id %}">{% trans 'Candidate List' %}</a></li>
     <li><a href="{% url 'form-not-received-view' tally_id=tally_id %}">{% trans 'Forms Not Received' %}</a></li>
@@ -41,8 +42,8 @@
             <li><a href="{% url 'stations-and-centers-excluded-after-investigation-list' tally_id=tally_id report_name='stations-and-centers-excluded-after-investigation-list' %}">{% trans 'Stations and Centers excluded after investigation' %}</a></li>
         </ul>
     </li>
-    <li><a href="{% url 'reports-races' tally_id=tally_id %}">{% trans 'Reports Races' %}</a></li>
     <li><a href="{% url 'form-progress' tally_id=tally_id %}">{% trans 'Form Progress' %}</a></li>
+    <li><a href="{% url 'progress-report-list' tally_id=tally_id %}">{% trans 'Progress by Sub Races Report' %}</a></li>
     <li><a href="{% url 'form-progress-by-form-state' tally_id=tally_id %}">{% trans 'Form Progress by Form State' %}</a></li>
     <li><a href="{% url 'station-overall-votes' tally_id=tally_id %}">{% trans 'Station Overall Votes' %}</a></li>
     <li><a href="{% url 'center-overall-votes' tally_id=tally_id %}">{% trans 'Center Overall Votes' %}</a></li>

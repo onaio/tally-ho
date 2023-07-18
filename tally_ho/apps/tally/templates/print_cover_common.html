@@ -1,14 +1,17 @@
 {% load i18n %}
 
     <tr>
-        <td>{% trans 'Center Name:' %}</td><td>{{ result_form.center.name }}</td><td></td>
+        <td>{% trans 'Center Name:' %}</td><td>{{ result_form.center.name }}</td>
     </tr>
     <tr>
-        <td>{% trans 'Center Number:' %} </td><td>{{ result_form.center.code }}</td><td></td>
+        <td>{% trans 'Center Number:' %} </td><td>{{ result_form.center.code }}</td>
     </tr>
     <tr>
-        <td>{% trans 'Station Number:' %}</td><td> {{ result_form.station_number }}</td><td></td>
+        <td>{% trans 'Station Number:' %}</td><td> {{ result_form.station_number }}</td>
     </tr>
     <tr>
-        <td>{% trans 'Form Type:' %} </td><td>{{ result_form.ballot_race_type_name }}</td><td></td>
+        <td>{% trans 'Election Level:' %}</td><td>{{ result_form.ballot.electrol_race.election_level }}</td>
+    </tr>
+    <tr>
+        <td>{% trans 'Sub Race Type:' %}</td><td>{{ result_form.ballot.electrol_race.ballot_name }}</td>
     </tr>

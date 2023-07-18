@@ -19,3 +19,4 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.constituency import Constituency
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace

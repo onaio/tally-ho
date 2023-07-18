@@ -17,7 +17,9 @@ class TallyFilesFormTest(TestCase):
 
     def test_file_extension_error(self):
         file_dict = {
+            'ballots_file': self.image_file,
             'subconst_file': self.image_file,
+            'subconst_ballots_file': self.image_file,
             'centers_file': self.csv_file,
             'stations_file': self.csv_file,
             'candidates_file': self.csv_file,
@@ -34,7 +36,9 @@ class TallyFilesFormTest(TestCase):
 
     def test_correct_file_extension(self):
         file_dict = {
+            'ballots_file': self.csv_file,
             'subconst_file': self.csv_file,
+            'subconst_ballots_file': self.csv_file,
             'centers_file': self.csv_file,
             'stations_file': self.csv_file,
             'candidates_file': self.csv_file,

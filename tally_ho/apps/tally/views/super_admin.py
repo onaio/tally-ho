@@ -18,14 +18,20 @@ from django.urls import reverse
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.disable_entity_form import DisableEntityForm
+from tally_ho.apps.tally.forms.create_electrol_race_form import (
+    CreateElectrolRaceForm
+)
+from tally_ho.apps.tally.forms.edit_electrol_race_form import (
+    EditElectrolRaceForm
+)
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
 from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
 from tally_ho.apps.tally.forms.create_station_form import CreateStationForm
-from tally_ho.apps.tally.forms.create_race_form import CreateRaceForm
-from tally_ho.apps.tally.forms.edit_race_form import EditRaceForm
+from tally_ho.apps.tally.forms.create_ballot_form import CreateBallotForm
+from tally_ho.apps.tally.forms.edit_ballot_form import EditBallotForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
     EditUserProfileForm,
@@ -35,6 +41,7 @@ from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
@@ -42,19 +49,22 @@ from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views.constants import (
-    race_type_query_param,
+    election_level_query_param,
+    sub_race_query_param,
+    sub_con_code_query_param,
     pending_at_state_query_param, at_state_query_param
 )
 from tally_ho.libs.models.enums.audit_resolution import \
     AuditResolution
 from tally_ho.libs.models.enums.form_state import (
-    FormState, processed_states_at_state, un_processed_states_at_state
+    FormState, un_processed_states_at_state
 )
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.active_status import (
+    disable_enable_electrol_race,
     disable_enable_entity,
-    disable_enable_race,
+    disable_enable_ballot,
     disable_enable_candidate,
 )
 from tally_ho.libs.utils.context_processors import (
@@ -642,9 +652,10 @@ class FormProgressDataView(LoginRequiredMixin,
         'station_number',
         'ballot.number',
         'center.office.name',
-        'center.office.number',
-        'ballot.race_type',
         'form_state',
+        'ballot.electrol_race.election_level',
+        'ballot.electrol_race.ballot_name',
+        'center.office.number',
         'rejected_count',
         'modified_date_formatted',
     )
@@ -663,7 +674,9 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
     columns = (
-        'race_type',
+        'sub_con_code',
+        'election_level',
+        'sub_race',
         'total_forms',
         'unsubmitted',
         ('intake', 'intake_unprocessed'),
@@ -678,36 +691,52 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
+        keyword = self.request.POST.get('search[value]')
+        qs = qs.filter(
+            tally__id=tally_id,
+            center__sub_constituency__code__isnull=False)
+
+        if keyword:
+            qs = qs.filter(
+                Q(center__sub_constituency__code__contains=keyword))
+
         count_by_form_state_queries = {}
         for state in FormState.__publicMembers__():
-            processed_states = processed_states_at_state(state)
+            count_by_form_state_queries[state.name.lower()] \
+                = Count('barcode', filter=Q(
+                    form_state=state)
+                    )
             unprocessed_states = un_processed_states_at_state(state)
-            if processed_states:
-                count_by_form_state_queries[state.name.lower()] \
-                    = Count('barcode', filter=Q(
-                        form_state__in=processed_states)
-                        )
             if unprocessed_states:
                 count_by_form_state_queries[
                     f"{state.name.lower()}_unprocessed"] = Count(
                     'barcode', filter=Q(form_state__in=unprocessed_states))
 
-        qs = qs.filter(
-            tally__id=tally_id).annotate(
-            race_type=F("ballot__race_type")).values('race_type') \
+        qs = qs.annotate(
+            sub_con_code=F("center__sub_constituency__code")).values(
+            'sub_con_code') \
             .annotate(
-            total_forms=Count("race_type"),
-            **count_by_form_state_queries)
+                election_level=F("ballot__electrol_race__election_level"),
+                sub_race=F("ballot__electrol_race__ballot_name"),
+                total_forms=Count("barcode"),
+                **count_by_form_state_queries
+            )
         return qs
 
     def render_column(self, row, column):
         tally_id = self.kwargs.get('tally_id')
+        sub_con_code = row["sub_con_code"]
         if column in self.columns:
             column_val = None
-            race_type = row["race_type"].name.lower()
-            if column == "unsubmitted":
-                params = {race_type_query_param: race_type,
-                          at_state_query_param: column}
+            election_level = row["election_level"]
+            sub_race = row["sub_race"]
+            if isinstance(column, tuple) is False and row[column] != 0 and\
+                column in ["unsubmitted", "clearance", "audit"]:
+                params =\
+                    {election_level_query_param: election_level,
+                     sub_race_query_param: sub_race,
+                     sub_con_code_query_param: sub_con_code,
+                     at_state_query_param: column}
                 query_param_string = urlencode(params)
                 remote_data_url = reverse(
                     'form-list',
@@ -715,28 +744,58 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                 if query_param_string:
                     remote_data_url = f"{remote_data_url}?{query_param_string}"
                 column_val = str('<span>'
-                                 f'<a href={remote_data_url}>'
-                                 f'{row[column]}</a></span>')
+                                f'<a href={remote_data_url} target="blank">'
+                                f'{row[column]}</a></span>')
             elif isinstance(column, tuple) and len(column) == 2:
-                processed_col, unprocessed_col = column
-                processed_count = row[processed_col]
-                unprocessed_count = row[unprocessed_col]
-                params = {race_type_query_param: race_type,
-                          pending_at_state_query_param: column[0]}
-                query_param_string = urlencode(params)
                 remote_data_url = reverse(
                     'form-list',
                     kwargs={'tally_id': tally_id})
-                if query_param_string:
-                    remote_data_url = f"{remote_data_url}?{query_param_string}"
-                column_val = str('<span>'
-                                 f'{processed_count} / '
-                                 f'<a href={remote_data_url}>'
-                                 f'{unprocessed_count}</a></span>')
+                current_state_col, unprocessed_col = column
+                current_state_form_count = row[current_state_col]
+                unprocessed_count = row[unprocessed_col]
+                current_state_column_val = f'<span>{current_state_form_count}'
+                unprocessed_column_val = f'{unprocessed_count}</span>'
+                if current_state_form_count > 0:
+                    current_state_form_url_params =\
+                        {
+                            election_level_query_param: election_level,
+                            sub_race_query_param: sub_race,
+                            sub_con_code_query_param: sub_con_code,
+                            at_state_query_param: column[0]
+                        }
+                    current_state_form_query_param_string =\
+                        urlencode(current_state_form_url_params)
+                    current_state_form_remote_data_url =\
+                            str(f"{remote_data_url}?"
+                                f"{current_state_form_query_param_string}")
+                    current_state_column_val =\
+                        str('<span>'
+                                f'<a href='
+                                f'{current_state_form_remote_data_url} '
+                                'target="blank">'
+                                f'{current_state_form_count}</a></span>')
+                if unprocessed_count > 0:
+                    unprocessed_forms_url_params =\
+                        {
+                            election_level_query_param: election_level,
+                            sub_race_query_param: sub_race,
+                            sub_con_code_query_param: sub_con_code,
+                            pending_at_state_query_param: column[0]
+                        }
+                    unprocessed_forms_query_param_string =\
+                        urlencode(unprocessed_forms_url_params)
+                    unprocessed_remote_data_url =\
+                            str(f'{remote_data_url}?'
+                                f'{unprocessed_forms_query_param_string}')
+                    unprocessed_column_val =\
+                            str('<span>'
+                                f'<a href={unprocessed_remote_data_url} '
+                                'target="blank">'
+                                f'{unprocessed_count}</a></span>')
+                column_val =\
+                    current_state_column_val + ' / ' + unprocessed_column_val
             else:
                 column_val = row[column]
-            if column == 'race_type':
-                column_val = row[column].name
             return str('<td class="center">'
                        f'{column_val}</td>')
 
@@ -751,14 +810,16 @@ class FormAuditDataView(FormProgressDataView):
         'barcode',
         'center.code',
         'station_number',
+        'audit_action_prior',
+        'audit_recommendation',
+        'ballot.electrol_race.election_level',
+        'ballot.electrol_race.ballot_name',
+        'form_state',
         'ballot.number',
         'center.office.name',
         'center.office.number',
-        'ballot.race_type',
-        'form_state',
         'rejected_count',
         'modified_date_formatted',
-        'audit_recommendation',
     )
 
     def filter_queryset(self, qs):
@@ -777,14 +838,16 @@ class FormClearanceDataView(FormProgressDataView):
         'barcode',
         'center.code',
         'station_number',
+        'clearance_action_prior',
+        'clearance_recommendation',
+        'ballot.electrol_race.election_level',
+        'ballot.electrol_race.ballot_name',
+        'form_state',
         'ballot.number',
         'center.office.name',
         'center.office.number',
-        'ballot.race_type',
-        'form_state',
         'rejected_count',
         'modified_date_formatted',
-        'clearance_recommendation'
     )
 
     def filter_queryset(self, qs):
@@ -1095,60 +1158,60 @@ class EnableEntityView(LoginRequiredMixin,
         return redirect(self.success_url, tally_id=tally_id)
 
 
-class CreateRaceView(LoginRequiredMixin,
+class CreateBallotView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      mixins.TallyAccessMixin,
                      mixins.ReverseSuccessURLMixin,
                      SuccessMessageMixin,
                      CreateView):
     model = Ballot
-    form_class = CreateRaceForm
+    form_class = CreateBallotForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/form.html'
-    success_message = _(u'Race Successfully Created')
+    success_message = _(u'Ballot Successfully Created')
 
     def get_initial(self):
-        initial = super(CreateRaceView, self).get_initial()
+        initial = super(CreateBallotView, self).get_initial()
         initial['tally'] = int(self.kwargs.get('tally_id'))
 
         return initial
 
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id')
-        context = super(CreateRaceView, self).get_context_data(**kwargs)
+        context = super(CreateBallotView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
-        context['title'] = _(u'New Race')
-        context['route_name'] = 'races-list'
+        context['title'] = _(u'New Ballot')
+        context['route_name'] = 'ballot-list'
 
         return context
 
     def form_valid(self, form):
-        form = CreateRaceForm(self.request.POST, self.request.FILES)
+        form = CreateBallotForm(self.request.POST, self.request.FILES)
         form.save()
 
-        return super(CreateRaceView, self).form_valid(form)
+        return super(CreateBallotView, self).form_valid(form)
 
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id')
 
-        return reverse('races-list', kwargs={'tally_id': tally_id})
+        return reverse('ballot-list', kwargs={'tally_id': tally_id})
 
 
-class EditRaceView(LoginRequiredMixin,
+class EditBallotView(LoginRequiredMixin,
                    mixins.GroupRequiredMixin,
                    mixins.TallyAccessMixin,
                    mixins.ReverseSuccessURLMixin,
                    SuccessMessageMixin,
                    UpdateView):
     model = Ballot
-    form_class = EditRaceForm
+    form_class = EditBallotForm
     group_required = groups.SUPER_ADMINISTRATOR
-    template_name = 'super_admin/edit_race.html'
-    success_message = _(u'Race Successfully Updated')
+    template_name = 'super_admin/edit_ballot.html'
+    success_message = _(u'Ballot Successfully Updated')
 
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id')
-        context = super(EditRaceView, self).get_context_data(**kwargs)
+        context = super(EditBallotView, self).get_context_data(**kwargs)
         context['id'] = self.kwargs.get('id')
         context['tally_id'] = tally_id
         context['is_active'] = self.object.active
@@ -1158,29 +1221,118 @@ class EditRaceView(LoginRequiredMixin,
 
     def get_object(self):
         tally_id = self.kwargs.get('tally_id')
-        id = self.kwargs.get('id')
+        ballot_id = self.kwargs.get('id')
 
-        return get_object_or_404(Ballot, tally__id=tally_id, id=id)
+        return get_object_or_404(Ballot, tally__id=tally_id, id=ballot_id)
 
     def get_success_url(self):
         tally_id = self.kwargs.get('tally_id')
         id = self.kwargs.get('id')
 
-        return reverse('edit-race', kwargs={'tally_id': tally_id, 'id': id})
+        return reverse('edit-ballot', kwargs={'tally_id': tally_id, 'id': id})
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        race_id = kwargs.get('id')
+        ballot_id = kwargs.get('id')
 
         self.initial = {
             'tally_id': tally_id,
-            'race_id': race_id,
+            'race_id': ballot_id,
         }
 
-        return super(EditRaceView, self).get(*args, **kwargs)
+        return super(EditBallotView, self).get(*args, **kwargs)
 
 
-class DisableRaceView(LoginRequiredMixin,
+class CreateElectrolRaceView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
+                     mixins.ReverseSuccessURLMixin,
+                     SuccessMessageMixin,
+                     CreateView):
+    model = ElectrolRace
+    form_class = CreateElectrolRaceForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/form.html'
+    success_message = _(u'Electrol Race Successfully Created')
+
+    def get_initial(self):
+        initial = super(CreateElectrolRaceView, self).get_initial()
+        initial['tally'] = int(self.kwargs.get('tally_id'))
+
+        return initial
+
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id')
+        context =\
+            super(CreateElectrolRaceView, self).get_context_data(**kwargs)
+        context['tally_id'] = tally_id
+        context['title'] = _(u'New Electrol Race')
+        context['route_name'] = 'electrol-race-list'
+
+        return context
+
+    def form_valid(self, form):
+        form = CreateElectrolRaceForm(self.request.POST)
+        form.save()
+
+        return super(CreateElectrolRaceView, self).form_valid(form)
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id')
+
+        return reverse('electrol-race-list', kwargs={'tally_id': tally_id})
+
+
+class EditElectrolRaceView(LoginRequiredMixin,
+                   mixins.GroupRequiredMixin,
+                   mixins.TallyAccessMixin,
+                   mixins.ReverseSuccessURLMixin,
+                   SuccessMessageMixin,
+                   UpdateView):
+    model = ElectrolRace
+    form_class = EditElectrolRaceForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = 'super_admin/edit_electrol_race.html'
+    success_message = _(u'Electrol Race Successfully Updated')
+
+    def get_context_data(self, **kwargs):
+        tally_id = self.kwargs.get('tally_id')
+        context = super(EditElectrolRaceView, self).get_context_data(**kwargs)
+        context['id'] = self.kwargs.get('id')
+        context['tally_id'] = tally_id
+        context['is_active'] = self.object.active
+        context['comments'] = self.object.comments.filter(tally__id=tally_id)
+
+        return context
+
+    def get_object(self, queryset=None):
+        tally_id = self.kwargs.get('tally_id')
+        electrol_race_id = self.kwargs.get('id')
+
+        return get_object_or_404(ElectrolRace,
+                                 tally__id=tally_id,
+                                 id=electrol_race_id)
+
+    def get_success_url(self):
+        tally_id = self.kwargs.get('tally_id')
+        electrol_race_id = self.kwargs.get('id')
+
+        return reverse('edit-electrol-race', kwargs={
+            'tally_id': tally_id,
+            'id': electrol_race_id
+        })
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+
+        self.initial = {
+            'tally_id': tally_id,
+        }
+
+        return super(EditElectrolRaceView, self).get(*args, **kwargs)
+
+
+class DisableElectrolRaceView(LoginRequiredMixin,
                       mixins.GroupRequiredMixin,
                       mixins.TallyAccessMixin,
                       mixins.ReverseSuccessURLMixin,
@@ -1190,25 +1342,32 @@ class DisableRaceView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     tally_id = None
     template_name = "super_admin/disable_entity.html"
-    success_url = 'races-list'
+    success_url = 'electrol-race-list'
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        race_id = kwargs.get('race_id')
+        electrol_race_id = kwargs.get('electrol_race_id')
+        electrol_race = ElectrolRace.objects.get(pk=electrol_race_id)
+        election_level = electrol_race.election_level
+        sub_race_type = electrol_race.ballot_name
+        entity_name =\
+            f'Electrol Race: {election_level} - {sub_race_type}'
 
         self.initial = {
             'tally_id': tally_id,
             'center_code_input': None,
             'station_number_input': None,
-            'race_id_input': race_id,
+            'ballot_id_input': None,
+            'electrol_race_id_input': electrol_race_id,
         }
 
-        self.success_message = _(u"Race Successfully Disabled.")
+        self.success_message = _(u"Electrol Race Successfully Disabled.")
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
         return self.render_to_response(
             self.get_context_data(form=form,
+                                  entityName=entity_name,
                                   tally_id=tally_id))
 
     def post(self, *args, **kwargs):
@@ -1219,7 +1378,7 @@ class DisableRaceView(LoginRequiredMixin,
         if form.is_valid():
             form.save()
 
-            self.success_message = _(u"Race Successfully disabled")
+            self.success_message = _(u"Electrol Race Successfully disabled")
 
             return self.form_valid(form)
 
@@ -1227,23 +1386,96 @@ class DisableRaceView(LoginRequiredMixin,
             form=form, tally_id=self.tally_id))
 
 
-class EnableRaceView(LoginRequiredMixin,
+class EnableElectrolRaceView(LoginRequiredMixin,
                      mixins.GroupRequiredMixin,
                      mixins.TallyAccessMixin,
                      mixins.ReverseSuccessURLMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
-    success_url = 'races-list'
+    success_url = 'electrol-race-list'
 
     def get(self, *args, **kwargs):
-        race_id = kwargs.get('race_id')
+        electrol_race_id = kwargs.get('electrol_race_id')
         tally_id = self.kwargs['tally_id']
-
-        disable_enable_race(race_id)
+        disable_enable_electrol_race(electrol_race_id, tally_id=tally_id)
 
         messages.add_message(self.request,
                              messages.INFO,
-                             _(u"Race Successfully enabled."))
+                             _(u"Electrol Race Successfully enabled."))
+
+        return redirect(self.success_url, tally_id=tally_id)
+
+
+class DisableBallotView(LoginRequiredMixin,
+                      mixins.GroupRequiredMixin,
+                      mixins.TallyAccessMixin,
+                      mixins.ReverseSuccessURLMixin,
+                      SuccessMessageMixin,
+                      FormView):
+    form_class = DisableEntityForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    tally_id = None
+    template_name = "super_admin/disable_entity.html"
+    success_url = 'ballot-list'
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        ballot_id = kwargs.get('ballot_id')
+        ballot = Ballot.objects.get(pk=ballot_id)
+        election_level = ballot.electrol_race.election_level
+        sub_race_type = ballot.electrol_race.ballot_name
+        entity_name =\
+            f'Ballot {ballot.number} - {election_level} - {sub_race_type}'
+
+        self.initial = {
+            'tally_id': tally_id,
+            'center_code_input': None,
+            'station_number_input': None,
+            'ballot_id_input': ballot_id,
+        }
+
+        self.success_message = _(u"Ballot Successfully Disabled.")
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  entityName=entity_name,
+                                  tally_id=tally_id))
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        self.tally_id = self.kwargs['tally_id']
+
+        if form.is_valid():
+            form.save()
+
+            self.success_message = _(u"Ballot Successfully disabled")
+
+            return self.form_valid(form)
+
+        return self.render_to_response(self.get_context_data(
+            form=form, tally_id=self.tally_id))
+
+
+class EnableBallotView(LoginRequiredMixin,
+                     mixins.GroupRequiredMixin,
+                     mixins.TallyAccessMixin,
+                     mixins.ReverseSuccessURLMixin,
+                     TemplateView):
+    group_required = groups.SUPER_ADMINISTRATOR
+    success_url = 'ballot-list'
+
+    def get(self, *args, **kwargs):
+        ballot_id = kwargs.get('ballot_id')
+        tally_id = self.kwargs['tally_id']
+
+        disable_enable_ballot(ballot_id)
+
+        messages.add_message(self.request,
+                             messages.INFO,
+                             _(u"Ballot Successfully enabled."))
 
         return redirect(self.success_url, tally_id=tally_id)
 

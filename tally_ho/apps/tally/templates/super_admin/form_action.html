@@ -12,7 +12,8 @@
             <th>{% trans 'Barcode' %}</th>
             <th>{% trans 'Center Number' %}</th>
             <th>{% trans 'Station Number' %}</th>
-            <th>{% trans 'Race Type' %}</th>
+            <th>{% trans 'Election Level' %}</th>
+            <th>{% trans 'Sub Race Type' %}</th>
             <th>{% trans 'Form State' %}</th>
             <th>{% trans 'Action Required Prior' %}</th>
             <th>{% trans 'Last Modified' %}</th>
@@ -26,7 +27,8 @@
         <td>{{ audit.result_form.barcode }}</td>
         <td>{{ audit.result_form.center.code }}</td>
         <td>{{ audit.result_form.station_number }}</td>
-        <td>{{ audit.result_form.ballot_race_type_name }}</td>
+        <td>{{ audit.result_form.ballot.electrol_race.election_level }}</td>
+        <td>{{ audit.result_form.ballot.electrol_race.ballot_name }}</td>
         <td>{{ audit.result_form.form_state_name }}</td>
         <td>{{ audit.action_prior_name }}</td>
         <td>{{ audit.result_form.modified_date }}</td>

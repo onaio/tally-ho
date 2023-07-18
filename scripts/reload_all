@@ -1,5 +1,6 @@
 ./scripts/create_database tally $1 $2 $3
-python manage.py import_data --settings=$3
+# TODO Create commands for importing tally data, import_data is outdated
+# python manage.py import_data --settings=$3
 python manage.py import_staff_list --settings=$3
 python manage.py create_quarantine_checks --settings=$3
 python manage.py loaddata tally_ho/apps/tally/fixtures/sites.json --settings=$3

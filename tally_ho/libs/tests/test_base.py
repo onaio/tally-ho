@@ -5,6 +5,7 @@ from django.test import RequestFactory
 from django.utils import timezone
 
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -33,7 +34,9 @@ from tally_ho.libs.permissions.groups import (
     create_permission_groups,
     add_user_to_group,
 )
-from tally_ho.libs.models.enums.race_type import RaceType
+from tally_ho.libs.tests.fixtures.electrol_race_data import (
+    electrol_races
+)
 
 
 def configure_messages(request):
@@ -50,19 +53,41 @@ def create_audit(result_form, user, reviewed_team=False):
                                 resolution_recommendation=1)
 
 
-def create_ballot(tally=None,
+def create_ballot(tally,
+                  electrol_race=None,
                   active=True,
                   number=1,
                   available_for_release=False,
                   document=""):
+    if electrol_race is None:
+        electrol_race_data = electrol_races[0]
+        electrol_race = create_electrol_race(
+            tally,
+            **electrol_race_data
+        )
     ballot, _ = Ballot.objects.get_or_create(
         active=active,
         number=number,
         tally=tally,
         available_for_release=available_for_release,
-        race_type=RaceType.GENERAL,
+        electrol_race=electrol_race,
         document=document)
     return ballot
+
+
+def create_electrol_race(tally,
+                         election_level,
+                         ballot_name,
+                         active=True,
+                         disable_reason=None,
+                        ):
+    electrol_race, _ = ElectrolRace.objects.get_or_create(
+                            tally=tally,
+                            election_level=election_level,
+                            ballot_name=ballot_name,
+                            active=active,
+                            disable_reason=disable_reason,)
+    return electrol_race
 
 
 def create_clearance(result_form, user, reviewed_team=False):
@@ -94,13 +119,11 @@ def create_candidates(result_form,
                                              candidate_id=1,
                                              full_name=name,
                                              order=0,
-                                             race_type=RaceType.GENERAL,
                                              tally=tally)
         candidate_f = Candidate.objects.create(ballot=result_form.ballot,
                                                candidate_id=1,
                                                full_name=women_name,
                                                order=0,
-                                               race_type=RaceType.WOMEN,
                                                tally=tally)
         create_result(result_form, candidate, user, votes)
         create_result(result_form, candidate_f, user, votes)
@@ -118,9 +141,10 @@ def create_result_form(barcode='123456789',
                        user=None,
                        is_replacement=False,
                        tally=None,
-                       office=None):
+                       office=None,
+                       electrol_race=None,):
     if force_ballot and not ballot:
-        ballot = create_ballot()
+        ballot = create_ballot(tally, electrol_race=electrol_race)
 
     result_form, _ = ResultForm.objects.get_or_create(
         ballot=ballot,
@@ -163,13 +187,11 @@ def center_data(code1, code2=None, station_number=1, tally_id=None):
 
 def create_candidate(ballot,
                      candidate_name,
-                     race_type=RaceType.GENERAL,
                      tally=None):
     return Candidate.objects.create(ballot=ballot,
                                     full_name=candidate_name,
                                     candidate_id=1,
                                     order=1,
-                                    race_type=race_type,
                                     tally=tally)
 
 
@@ -328,6 +350,22 @@ def create_region(
     return region
 
 
+def create_sub_constituency(
+        code=1,
+        tally=None,
+        field_office='1',
+        ballots=[]
+):
+    sub_constituency, _ =\
+        SubConstituency.objects.get_or_create(code=code,
+                                              field_office=field_office,
+                                              tally=tally)
+    if len(ballots):
+        sub_constituency.ballots.set(ballots)
+
+    return sub_constituency
+
+
 def create_constituency(
         name='Region',
         tally=None
@@ -374,11 +412,13 @@ def result_form_data(result_form):
     return data
 
 
-def issue_369_result_forms_data_setup(user):
-    tally = create_tally()
-    tally.users.add(user)
-    ballot = create_ballot(tally=tally)
-    center = create_center('12345', tally=tally)
+def create_result_forms_per_form_state(
+        tally,
+        electrol_race
+    ):
+    ballot = create_ballot(tally, electrol_race)
+    sub_con = create_sub_constituency(code=12345,tally=tally)
+    center = create_center('12345', tally=tally, sub_constituency=sub_con)
     station = create_station(center)
 
     # create result forms :one result form for each state.

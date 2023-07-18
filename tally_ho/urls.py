@@ -20,16 +20,18 @@ from tally_ho.apps.tally.views import (
     tally_manager
 )
 from tally_ho.apps.tally.views.data import (
+    electrol_race_list_view,
+    ballot_list_view,
     center_list_view,
     form_list_view,
     candidate_list_view,
-    race_list_view,
     user_list_view,
     tally_list_view,
     region_list_view,
     office_list_view,
 )
 from tally_ho.apps.tally.views.reports import administrative_areas_reports
+from tally_ho.apps.tally.views.reports import progress_by_sub_races_reports
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
 from tally_ho.apps.tally.views.reports import staff_performance_metrics
@@ -283,9 +285,12 @@ urlpatterns = [
             r'(?P<sub_constituency_id>(\d+))/$',
             center_list_view.CenterListDataView.as_view(),
             name='center-list-data'),
-    re_path(r'^data/races-list/(?P<tally_id>(\d+))/$',
-            race_list_view.RaceListView.as_view(),
-            name='races-list'),
+    re_path(r'^data/ballot-list-data/(?P<tally_id>(\d+))/$',
+            ballot_list_view.BallotListDataView.as_view(),
+            name='ballot-list-data'),
+    re_path(r'^data/ballot-list/(?P<tally_id>(\d+))/$',
+            ballot_list_view.BallotListView.as_view(),
+            name='ballot-list'),
     re_path(r'^data/candidate-list/(?P<tally_id>(\d+))/$',
             candidate_list_view.CandidateListView.as_view(),
             name='candidate-list'),
@@ -492,21 +497,42 @@ urlpatterns = [
             r'(?P<center_code>(\d+))/(?P<station_number>(\d+))?$',
             super_admin.EnableEntityView.as_view(),
             name='enable'),
-    re_path(r'^super-administrator/create-race/(?P<tally_id>(\d+))/$',
-            super_admin.CreateRaceView.as_view(),
-            name='create-race'),
-    re_path(r'^super-administrator/edit-race/(?P<tally_id>(\d+))/'
+    re_path(r'^super-administrator/create-ballot/(?P<tally_id>(\d+))/$',
+            super_admin.CreateBallotView.as_view(),
+            name='create-ballot'),
+    re_path(r'^super-administrator/edit-ballot/(?P<tally_id>(\d+))/'
             r'(?P<id>(\d+))$',
-            super_admin.EditRaceView.as_view(),
-            name='edit-race'),
-    re_path(r'^super-administrator/disable-race/(?P<tally_id>(\d+))/'
-            r'(?P<race_id>(\d+))$',
-            super_admin.DisableRaceView.as_view(),
-            name='disable-race'),
-    re_path(r'^super-administrator/enable-race/(?P<tally_id>(\d+))/'
-            r'(?P<race_id>(\d+))$',
-            super_admin.EnableRaceView.as_view(),
-            name='enable-race'),
+            super_admin.EditBallotView.as_view(),
+            name='edit-ballot'),
+    re_path(r'^data/electrol-race-list-data/(?P<tally_id>(\d+))/$',
+            electrol_race_list_view.ElectrolRaceListDataView.as_view(),
+            name='electrol-race-list-data'),
+    re_path(r'^data/electrol-race-list/(?P<tally_id>(\d+))/$',
+            electrol_race_list_view.ElectrolRaceListView.as_view(),
+            name='electrol-race-list'),
+    re_path(r'^super-administrator/create-electrol-race/(?P<tally_id>(\d+))/$',
+            super_admin.CreateElectrolRaceView.as_view(),
+            name='create-electrol-race'),
+    re_path(r'^super-administrator/edit-electrol-race/(?P<tally_id>(\d+))/'
+            r'(?P<id>(\d+))$',
+            super_admin.EditElectrolRaceView.as_view(),
+            name='edit-electrol-race'),
+    re_path(r'^super-administrator/disable-electrol-race/(?P<tally_id>(\d+))/'
+            r'(?P<electrol_race_id>(\d+))$',
+            super_admin.DisableElectrolRaceView.as_view(),
+            name='disable-electrol-race'),
+    re_path(r'^super-administrator/enable-electrol-race/(?P<tally_id>(\d+))/'
+            r'(?P<electrol_race_id>(\d+))$',
+            super_admin.EnableElectrolRaceView.as_view(),
+            name='enable-electrol-race'),
+    re_path(r'^super-administrator/disable-ballot/(?P<tally_id>(\d+))/'
+            r'(?P<ballot_id>(\d+))$',
+            super_admin.DisableBallotView.as_view(),
+            name='disable-ballot'),
+    re_path(r'^super-administrator/enable-ballot/(?P<tally_id>(\d+))/'
+            r'(?P<ballot_id>(\d+))$',
+            super_admin.EnableBallotView.as_view(),
+            name='enable-ballot'),
     re_path(r'^super-administrator/candidate-disable/(?P<tally_id>(\d+))/'
             r'(?P<candidateId>(\d+))$',
             super_admin.DisableCandidateView.as_view(),
@@ -906,7 +932,10 @@ urlpatterns = [
     re_path(r'^tally-manager/remove-tally/(?P<tally_id>(\d+))/$',
             tally_manager.TallyRemoveView.as_view(), name='remove-tally'),
     re_path(r'^tally-manager/create-tally/batch-view/(?P<tally_id>.*)/'
+            r'(?P<ballots_file>.*)/(?P<ballots_file_lines>(\d+))/'
             r'(?P<subconst_file>.*)/(?P<subconst_file_lines>(\d+))/'
+            r'(?P<subconst_ballots_file>.*)/'
+            r'(?P<subconst_ballots_file_lines>(\d+))/'
             r'(?P<centers_file>.*)/(?P<centers_file_lines>(\d+))/'
             r'(?P<stations_file>.*)/(?P<stations_file_lines>(\d+))/'
             r'(?P<candidates_file>.*)/(?P<candidates_file_lines>(\d+))/'
@@ -916,6 +945,9 @@ urlpatterns = [
     re_path(r'^tally-manager/data/tally-list$',
             tally_list_view.TallyListView.as_view(),
             name='tally-list'),
+    re_path(r'^ajax/get-import-progress/(?P<tally_id>(\d+))/$',
+            tally_manager.get_import_progress,
+            name='get-import-progress'),
     re_path(r'^tally-manager/data/tally-list-data$',
             tally_list_view.TallyListDataView.as_view(),
             name='tally-list-data'),
@@ -938,6 +970,21 @@ urlpatterns = [
     re_path(r'^ajax/download-regions-list/$',
             region_list_view.get_regions_list,
             name='download-regions-list'),
+    re_path(r'^data/progress-report-list/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.progress_report,
+            name='progress-report-list'),
+    re_path(r'^data/regions_progress-report/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.RegionsReportView.as_view(),
+            name='regions_progress-report'),
+    re_path(r'^data/offices-progress-report/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.OfficesReportView.as_view(),
+            name='offices-progress-report'),
+    re_path(r'^data/constituencies-progress-report/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.ConstituenciesReportView.as_view(),
+            name='constituencies-progress-report'),
+    re_path(r'^data/sub-constituencies-progress-report/(?P<tally_id>(\d+))/$',
+            progress_by_sub_races_reports.SubConstituenciesReportView.as_view(),
+            name='sub-constituencies-progress-report'),
 
     path('operation-not-allowed',
          home.suspicious_error,

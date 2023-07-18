@@ -407,7 +407,7 @@ class TestIntake(TestBase):
         tally.users.add(self.user)
         center = create_center(code='11111', tally=tally)
         station = create_station(center)
-        ballot = create_ballot()
+        ballot = create_ballot(tally=tally)
         barcode = '123456789'
         replacement_barcode = '012345678'
         create_result_form(

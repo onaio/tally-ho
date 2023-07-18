@@ -14,7 +14,6 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
 from tally_ho.libs.views.session import session_matches_post_result_form
@@ -198,23 +197,11 @@ class EnterCenterView(LoginRequiredMixin,
             is_error = False
             center_sub = center.sub_constituency
             if center_sub:
-                is_presidential = result_form.ballot.race_type == \
-                        RaceType.PRESIDENTIAL
-                if is_presidential and (
-                    not center_sub.ballot_presidential.number ==
-                    result_form.ballot_number
-                ):
+                result_form_electrol_race = result_form.ballot.electrol_race
+                center_sub_ballots = center_sub.get_ballots()
+                if result_form_electrol_race not in\
+                    [ballot.electrol_race for ballot in center_sub_ballots]:
                     is_error = True
-                if not is_presidential:
-                    is_general = result_form.ballot.number == \
-                                center.sub_constituency.code
-                    if not is_general:
-                        is_women = center_sub.ballot_women is not None
-                        if not is_women or (
-                                is_women and
-                                result_form.ballot.number !=
-                                center_sub.ballot_women.number):
-                            is_error = True
 
             if is_error:
                 form = add_generic_error(center_form,

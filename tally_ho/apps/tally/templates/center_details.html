@@ -26,8 +26,12 @@
 			<td>{{ result_form.center.name }}</td>
 		</tr>
 		<tr>
-            <td>{% trans 'Form Race Type:' %}</td>
-            <td>{{ result_form.ballot_race_type_name }}</td>
+            <td>{% trans 'Election Level:' %}</td>
+            <td>{{ result_form.ballot.electrol_race.election_level }}</td>
+		</tr>
+		<tr>
+            <td>{% trans 'Sub Race Type:' %}</td>
+            <td>{{ result_form.ballot.electrol_race.ballot_name }}</td>
 		</tr>
 		</table>
 		<table class="table table-bordered pull-right infotable">

@@ -12,28 +12,242 @@
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url get_export_url=get_export_url results_download_url=results_download_url languageDE=languageDE deployedSiteUrl=deployedSiteUrl %}
+{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url results_download_url=results_download_url languageDE=languageDE deployedSiteUrl=deployedSiteUrl %}
+<script>
+$(document).ready(() => {
+  const dt_language = {{ languageDE|safe }}
+  const candidatesResultsReportUrl = '{{ remote_url }}'
+  const candidatesResultsExportReportUrl = '{{ export_url }}'
+  const buildTablePayload = (d, customPayloadObj=undefined) => {
+    let payload = d;
+    if (customPayloadObj) {
+      payload = {
+        ...payload,
+        ...customPayloadObj,
+      }
+    }
+    for (let i = 0; i < payload.columns.length - 1; i++) {
+      payload[`columns[${i}][data]`] = payload.columns[i].data
+      payload[`columns[${i}][name]`] = payload.columns[i].name
+      payload[`columns[${i}][searchable]`] = payload.columns[i].searchable
+      payload[`columns[${i}][search][value]`] = payload.columns[i].search.value
+      payload[`columns[${i}][search][regex]`] = payload.columns[i].search.regex
+      payload[`columns[${i}][data]`] = payload.columns[i].data
+    }
+    payload['order[0][column]'] = payload.columns[payload.order[0].column].data;
+    payload['order[0][dir]'] = payload.order[0].dir;
+    payload['search[value]'] = payload.search.value;
+    payload['search[regex]'] = payload.search.regex;
+    payload['columns'] = payload.columns;
+    payload['order'] = payload.order;
+    payload['draw'] = payload.draw;
+    payload['start'] = payload.start;
+    payload['length'] = payload.length;
+
+    return payload
+  };
+
+  const resetFilters = (attributesList) => {
+    for (let i = 0; i < attributesList.length; i++) {
+        $(attributesList[i]).val(null);
+        $(attributesList[i]).change();
+    }
+  };
+
+  const table = $('#candidate-results-report').DataTable({
+        language: dt_language, // global variable defined in html
+        order: [[0, "desc"]],
+        lengthMenu: [
+          [10, 25, 50, 100, 500, -1],
+          [10, 25, 50, 100, 500, 'Show all'],
+        ],
+        columnDefs: [
+          {
+            orderable: true,
+            searchable: true,
+            className: "center",
+            targets: [0, 1],
+          },
+        ],
+        searching: true,
+        processing: true,
+        serverSide: true,
+        stateSave: true,
+        ajax: {
+          url: candidatesResultsReportUrl,
+          type: 'POST',
+          data: (d) => {
+            return buildTablePayload(d);
+          },
+          traditional: true,
+          dataType: 'json',
+        },
+        columns: {{ dt_columns|safe }},
+        dom:
+          "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
+          "<'row'<'col-sm-12'tr>>" +
+          "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+        buttons: ['csv'],
+        responsive: true,
+    });
+  
+  $('#in-report').on('click', '#filter-in-report', function () {
+    let data = [];
+    let selectOneIds = $('select#filter-in-centers').val();
+    let selectTwoIds = $('select#filter-in-stations').val();
+    let exportNumber = $('input#export-number').val();
+    let electionLevelNames = $('select#election-level-names').val();
+    let subRaceTypeNames = $('select#sub-race-names').val();
+    let ballotStatus = $('select#ballot-status').val();
+    let stationStatus = $('select#station-status').val();
+    let candidateStatus = $('select#candidate-status').val();
+    let percentageProcessed = $('input#percentage-processed').val();
+
+    if (selectOneIds || selectTwoIds) {
+      const items = {
+        select_1_ids: selectOneIds !== null ? selectOneIds : [],
+        select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+        export_number: exportNumber !== null ? exportNumber : [],
+        election_level_names: electionLevelNames !== null ? electionLevelNames : [],
+        sub_race_type_names: subRaceTypeNames !== null ? subRaceTypeNames : [],
+        ballot_status: ballotStatus !== null ? ballotStatus : [],
+        station_status: stationStatus !== null ? stationStatus : [],
+        candidate_status: candidateStatus !== null ? candidateStatus : [],
+        percentage_processed: percentageProcessed !== null ? percentageProcessed : [],
+        filter_in: "True"
+      };
+
+      data = items;
+    }
+
+    data = data.length
+      ? data.filter((item) =>
+          Object.values(item).every((value) => typeof value !== 'undefined')
+        )
+      : data;
+
+    table.settings()[0].ajax.data = (d) => {
+      return buildTablePayload(d, { data: JSON.stringify(data) });
+    };
+
+    table.ajax.reload();
+  });
+
+  $('#in-report').on('click', '#inc-ppt-export-report', function () {
+    $("#inc-ppt-export-report").html("Exporting...");
+    $("#inc-ppt-export-report").prop("disabled", true);
+
+    let data = [];
+    let selectOneIds = $('select#filter-in-centers').val();
+    let selectTwoIds = $('select#filter-in-stations').val();
+    let electionLevelNames = $('select#election-level-names').val();
+    let subRaceTypeNames = $('select#sub-race-names').val();
+    let exportNumber = $('input#export-number').val();
+    let ballotStatus = $('select#ballot-status').val();
+    let stationStatus = $('select#station-status').val();
+    let candidateStatus = $('select#candidate-status').val();
+    let percentageProcessed = $('input#percentage-processed').val();
+    const exportFileName = 'election_results.pptx'
+
+    const downloadFile = (blob, fileName) => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 7000);
+    };
+
+
+    const items = {
+      select_1_ids: selectOneIds !== null ? selectOneIds : [],
+      select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+      election_level_names: electionLevelNames !== null ? electionLevelNames : [],
+      sub_race_type_names: subRaceTypeNames !== null ? subRaceTypeNames : [],
+      export_number: exportNumber !== null ? exportNumber : [],
+      ballot_status: ballotStatus !== null ? ballotStatus : [],
+      station_status: stationStatus !== null ? stationStatus : [],
+      candidate_status: candidateStatus !== null ? candidateStatus : [],
+      percentage_processed: percentageProcessed !== null ? percentageProcessed : [],
+      tally_id: tallyId,
+      exportType: "PPT",
+      filter_in: "True",
+    };
+    data = items;
+
+
+    data = data.length
+      ? data.filter((item) =>
+          Object.values(item).every((value) => typeof value !== 'undefined')
+        )
+      : data;
+
+     $.ajax({
+        url: candidatesResultsExportReportUrl,
+        data: { data: JSON.stringify(data) },
+        traditional: true,
+        type: 'GET',
+        xhrFields: {
+          responseType: 'blob'
+        },
+        success: (data) => {
+          if (data?.size === undefined) {
+            alert('No Data')
+          } else {
+            downloadFile(data, exportFileName);
+          }
+          $("#inc-ppt-export-report").html("PowerPoint Export");
+          $("#inc-ppt-export-report").prop("disabled", false);
+        },
+        error: function(xhr, status, error) {
+          console.log('Error:', error);
+          $("#inc-ppt-export-report").html("PowerPoint Export");
+          $("#inc-ppt-export-report").prop("disabled", false);
+        }
+    });
+  });
+
+  $('#in-report').on('click', '#reset-filters-in-report', function () {
+    const attributesList = [
+      'select#election-level-names',
+      'select#sub-race-names',
+      'select#filter-in-centers',
+      'select#filter-in-stations',
+      'select#ballot-status',
+      'select#station-status',
+      'select#candidate-status',
+      'input#percentage-processed'
+    ];
+    resetFilters(attributesList);
+    table.settings()[0].ajax.data = (d) => {
+      return buildTablePayload(d, { data: JSON.stringify([]) });
+    };
+    table.ajax.reload();
+  });
+});
+</script>
 {% endblock %}
 {% block content %}
-reports/form_results.html
-<h1>{% trans 'Form Results' %}</h1>
+
+<h1>{% trans 'Candidate Results' %}</h1>
 <br>
 
-<table class="display datatable results">
+<table class="display" id="candidate-results-report">
   <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
     <div id="in-report" class="row">
     <div class="col-12" style="margin-bottom: 2em;">
-      <div class="col-3" style="padding-left: 0.5em;">
+      <div class="col-3" style="padding-left: 0.5em; display: none">
         <button id="export-form-results-presidential" class="btn btn-default btn-small">{% trans 'Export Presidential Results in JSON' %}</button>
       </div>
-      <div class="col-3" style="padding-left: 0.5em;">
+      <div class="col-3" style="padding-left: 0.5em; display: none">
         <button id="export-form-results-parliamentary" class="btn btn-default btn-small">{% trans 'Export Parliamentary Results in JSON' %}</button>
       </div>
-      <div class="col-4">
+      <div class="col-6">
         <p style="float: left; margin-right: 1em;" class="card-text">{% trans 'Number of leading candidates:' %}</p>
         <input style="float: left; width: 4em;" type="number" min="1" value="0" id="export-number">
       </div>
-      <div class="col-2">
+      <div class="col-6">
       <div class="card">
         <div class="card-body">
           <button style="float: right;" id="inc-ppt-export-report" class="btn btn-default btn-small">{% trans 'PowerPoint Export' %}</button>
@@ -43,10 +257,18 @@ reports/form_results.html
     </div>
     <div class="col-12" style="margin-bottom: 2em;">
     <div class="col-sm-3" style="padding-left: 0.5em;">
-      <p style="text-align: left; margin-left: .5em;">{% trans 'Races' %}</p>
-      <select class="selectpicker" id="filter-in-race-types" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
-        {% for race_type in race_types %}
-          <option value={{race_type.name}}>{{race_type.name}}</option>
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Election Levels' %}</p>
+      <select class="selectpicker" id="election-level-names" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
+        {% for name in election_level_names %}
+          <option value={{name}}>{{name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3" style="padding-left: 0.5em;">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Sub Races' %}</p>
+      <select class="selectpicker" id="sub-race-names" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
+        {% for name in sub_race_type_names %}
+          <option value={{name}}>{{name}}</option>
         {% endfor %}
       </select>
     </div>
@@ -66,7 +288,9 @@ reports/form_results.html
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3">
+    </div>
+    <div class="col-12" style="margin-bottom: 2em;">
+    <div class="col-sm-3" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Ballot Status' %}</p>
       <select class="selectpicker ballot-status" id="ballot-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Ballot Status">
         {% for status in ballot_status %}
@@ -74,9 +298,7 @@ reports/form_results.html
         {% endfor %}
       </select>
     </div>
-    </div>
-    <div class="col-12" style="margin-bottom: 2em;">
-    <div class="col-sm-3" style="padding-left: 0.5em;">
+    <div class="col-sm-3">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Station Status' %}</p>
       <select class="selectpicker station-status" id="station-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Station Status">
         {% for status in station_status %}
@@ -98,46 +320,32 @@ reports/form_results.html
        <input style="width: 100%;" type="number" min="0" max="100" value="0" id="percentage-processed">
       </div>
     </div>
-    <div class="col-sm-3">
-      <div class="card">
-        <div class="card-body">
-          <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
-          <button style="float: left;" id="filter-in-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
-          <button style="float: left; margin-left: 1em;" id="reset-filters-in-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
-        </div>
-      </div>
     </div>
-
+    <div class="col-12" style="margin-bottom: 2em;">
+      <div class="col-sm-3" style="float: right">
+        <div class="card">
+          <div class="card-body">
+            <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
+            <button style="float: left;" id="filter-in-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+            <button style="float: left; margin-left: 1em;" id="reset-filters-in-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
+          </div>
+        </div>
+    </div>
     </div>
   </div>
 </caption>
 <br>
   <thead>
       <tr>
-        <th>{% trans 'Candidate Name' %}</th>
+        <th>{% trans 'Name' %}</th>
+        <th>{% trans 'Votes' %}</th>
         <th>{% trans 'Total Votes' %}</th>
-        <th>{% trans 'Invalid Ballots' %}</th>
-        <th>{% trans 'Valid Votes' %}</th>
-        <th>{% trans 'Registrants' %}</th>
-        <th>{% trans 'Candidate Status' %}</th>
-        <th>{% trans 'Region' %}</th>
-        <th>{% trans 'Office' %}</th>
-        <th>{% trans 'Center' %}</th>
-        <th>{% trans 'Station ID' %}</th>
-        <th>{% trans 'Station Number' %}</th>
+        <th>{% trans 'Status' %}</th>
         <th>{% trans 'Gender' %}</th>
-        <th>{% trans 'Barcode' %}</th>
-        <th>{% trans 'Race Type' %}</th>
-        <th>{% trans 'Sub Constituency Code' %}</th>
+        <th>{% trans 'Election Level' %}</th>
+        <th>{% trans 'Sub Race' %}</th>
         <th>{% trans 'Order' %}</th>
-        <th class="hide-from-export">{% trans 'Unstamped Ballots' %}</th>
-        <th class="hide-from-export">{% trans 'Cancelled Ballots' %}</th>
-        <th class="hide-from-export">{% trans 'Spoilt Ballots' %}</th>
-        <th class="hide-from-export">{% trans 'Unused Ballots' %}</th>
-        <th class="hide-from-export">{% trans 'Number of Signatures' %}</th>
-        <th class="hide-from-export">{% trans 'Received Ballots Papers' %}</th>
-        <th class="hide-from-export">{% trans 'Ballot' %}</th>
-        <th class="hide-from-export">{% trans 'Race Number' %}</th>
+        <th>{% trans 'Ballot Number' %}</th>
       </tr>
   </thead>
   <tbody></tbody>

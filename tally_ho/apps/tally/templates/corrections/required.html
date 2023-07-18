@@ -62,19 +62,7 @@
     </table>
     {% endif %}
 
-{% if candidates_presidential %}
-    {% include "corrections/comparison.html" with candidates=candidates_presidential  header="Presidential" prefix="presidential" %}
-{% endif %}
-
-{% if candidates_general %}
-    {% include "corrections/comparison.html" with candidates=candidates_general  header="General" prefix="general" %}
-{% endif %}
-{% if candidates_component %}
-    {% include "corrections/comparison.html" with candidates=candidates_component header=component_name prefix="component" %}
-{% endif %}
-{% if candidates_women %}
-    {% include "corrections/comparison.html" with candidates=candidates_women  header="Women" prefix="women" de_1_suffix=de_1_suffix de_2_suffix=de_2_suffix %}
-{% endif %}
+{% include "corrections/comparison.html" with candidate_results=candidate_results  header=header prefix=prefix %}
 
     <input type="hidden" name="result_form" value="{{ result_form.pk }}">
     <button class="btn btn-success" name="submit_corrections" type="submit" value="submit corrections">{% trans 'Submit Corrections' %}</button>

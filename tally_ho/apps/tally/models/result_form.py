@@ -12,11 +12,9 @@ from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
-from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.utils.templates import get_result_form_edit_delete_links
 
 male_local = _('Male')
@@ -207,34 +205,16 @@ class ResultForm(BaseModel):
         return None
 
     @property
-    def general_results(self):
+    def form_results(self):
+        election_level =\
+            self.ballot.electrol_race.election_level
         return self.results.filter(
             active=True,
-            candidate__race_type=RaceType.GENERAL)
+            candidate__ballot__electrol_race__election_level=election_level)
 
     @property
-    def presidential_results(self):
-        return self.results.filter(
-            active=True,
-            candidate__race_type=RaceType.PRESIDENTIAL)
-
-    @property
-    def women_results(self):
-        return self.results.filter(
-            active=True,
-            candidate__race_type=RaceType.WOMEN)
-
-    @property
-    def has_general_results(self):
-        return self.general_results.count() > 0
-
-    @property
-    def has_women_results(self):
-        return self.women_results.count() > 0
-
-    @property
-    def has_presidential_results(self):
-        return self.presidential_results.count() > 0
+    def has_results(self):
+        return self.form_results.count() > 0
 
     @property
     def qualitycontrol(self):
@@ -259,8 +239,12 @@ class ResultForm(BaseModel):
     @property
     def audit_recommendation(self):
         if self.audit:
-            recomendation_index = self.audit.resolution_recommendation
-            return ClearanceResolution.choices()[recomendation_index.value][1]
+            return self.audit.resolution_recommendation_name()
+
+    @property
+    def audit_action_prior(self):
+        if self.audit:
+            return self.audit.action_prior_name()
 
     @property
     def audit_quaritine_checks(self):
@@ -286,19 +270,9 @@ class ResultForm(BaseModel):
         return _(u"Corrections Required!")
 
     @property
-    def general_match(self):
-        return match_results(self, self.general_results) \
-            if self.general_results else False
-
-    @property
-    def women_match(self):
-        return match_results(self, self.women_results) \
-            if self.women_results else True
-
-    @property
-    def presidential_match(self):
-        return match_results(self, self.presidential_results) \
-            if self.presidential_results else False
+    def results_match(self):
+        return match_results(self, self.form_results) \
+            if self.has_results else False
 
     @property
     def corrections_reconciliationforms(self):
@@ -384,8 +358,12 @@ class ResultForm(BaseModel):
     @property
     def clearance_recommendation(self):
         if self.clearance:
-            recomendation_index = self.clearance.resolution_recommendation
-            return ClearanceResolution.choices()[recomendation_index.value][1]
+            return self.clearance.resolution_recommendation_name()
+
+    @property
+    def clearance_action_prior(self):
+        if self.clearance:
+            return self.clearance.action_prior_name()
 
     @property
     def clearance_team_reviewed(self):
@@ -407,11 +385,9 @@ class ResultForm(BaseModel):
             returns False.
         """
         return (
-            (not self.has_presidential_results or self.presidential_match) and
-            (not self.has_general_results or self.general_match) and
+            (not self.has_results or self.results_match) and
             (not self.reconciliationform_exists or
-             self.reconciliation_match) and
-            (not self.has_women_results or self.women_match))
+             self.reconciliation_match))
 
     def reject(self, new_state=FormState.DATA_ENTRY_1, reject_reason=None):
         """Deactivate existing results and reconciliation forms for this result
@@ -453,12 +429,7 @@ class ResultForm(BaseModel):
 
     @property
     def ballot_race_type_name(self):
-        if self.ballot:
-            return self.ballot.race_type_name
-        elif self.center and self.center.sub_constituency:
-            return self.center.sub_constituency.form_type
-
-        return _('Special')
+        return self.ballot.race_type_name
 
     @property
     def has_recon(self):
@@ -478,22 +449,11 @@ class ResultForm(BaseModel):
 
     @property
     def candidates(self):
-        """Get the candidates for this result form.
-
-        If the result form is a component ballot the candidates from the
-        general ballot must be augmented with the candidates from the component
-        ballot.
+        """Get the candidates for this result form ordered by ballot order.
 
         :returns: A list of candidates that appear on this result form.
         """
-        ballot = self.ballot
-        candidates = list(ballot.candidates.order_by('race_type', 'order'))
-        component_ballot = ballot.component_ballot
-
-        if component_ballot:
-            candidates += list(component_ballot.candidates.order_by('order'))
-
-        return candidates
+        return list(self.ballot.candidates.order_by('order'))
 
     @property
     def get_action_button(self):

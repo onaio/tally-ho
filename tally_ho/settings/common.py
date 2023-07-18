@@ -174,6 +174,26 @@ SESSION_VARS = [
 
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
+# Memcache settings
+CLIENT_URL = '127.0.0.1:11211'
+
+# Celery settings
+## use True for testing and False when you use rabbitMQ and celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_CACHE_BACKEND = 'memcached'
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 2
+CELERY_RESULT_BACKEND = "cache+memcached://127.0.0.1:11211/"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = 'Africa/Nairobi'
+CELERY_ROUTES = {
+    'tally_ho.apps.tally.management.commands.*': {
+        'queue': 'tally_data_import',
+    }
+}
+
 # Quaritine trigger data
 QUARANTINE_DATA = [
     {'name': 'Trigger 1 - Guard against overvoting',
@@ -302,63 +322,151 @@ QUARANTINE_DATA = [
      'percentage': 20},
 ]
 
-SUB_CONSTITUENCY_COLUMN_NAMES = ['SubCon #', 'Field Office', 'Races',
-                                 'Ballot Number – Presidential',
-                                 'Ballot Number - General',
-                                 'Ballot Number - Women', 'Number of Ballots',
-                                 'Component Ballot', 'A4 Ballot', 'A3 Ballot',
-                                 'A3 Folded Ballot', 'Ballot Size for General',
-                                 'Ballot Size for Women',
-                                 'Ballot Size for Consultation',
-                                 'R&R Form Size - General',
-                                 'R&R Form Size - Women',
-                                 'R&R Form Size - Consultation',
-                                 'R&R Form A3 Size', 'R&R Form A3 folded Size',
-                                 'Screens Per Station',
-                                 'Ballot Boxes Per Station']
+ELECTROL_RACES = [
+    {
+        'type': 'GENERAL',
+        'code': 0,
+        'ballot_name': 'ballot_number_general'
+    },
+    {
+        'type': 'WOMEN',
+        'code': 1,
+        'ballot_name': 'ballot_number_women'
+    },
+    {
+        'type': 'COMPONENT_AMAZIGH',
+        'code': 2,
+        'ballot_name': 'ballot_number_component',
+        'component_ballot_numbers': ['54'],
+    },
+    {
+        'type': 'COMPONENT_TWARAG',
+        'code': 3,
+        'ballot_name': 'ballot_number_component',
+        'component_ballot_numbers': ['55', '57'],
+    },
+    {
+        'type': 'COMPONENT_TEBU',
+        'code': 4,
+        'ballot_name': 'ballot_number_component',
+        'component_ballot_numbers': ['56', '58'],
+    },
+    {
+        'type': 'PRESIDENTIAL',
+        'code': 5,
+        'ballot_name': 'ballot_number_presidential',
+    },
+]
 
-CENTER_COLUMN_NAMES = ['#', 'Region/ المنطقة', 'PC Code/ رمز مركز الانتخاب',
-                       'Office #/ الللجنة الانتخابية #',
-                       'Office/ الللجنة الانتخابية ',
-                       'Main C/ الدائرة الانتخابية الرئيسية',
-                       'SubC # / رقم الدائرة الفرعية ',
-                       'SubC name / الدائرة الفرعية', 'Name PC',
-                       'Mahalla / المحلة',
-                       'Village / المدينة/القرية', 'نوع المركز / Type',
-                       'E  خط العرض   / Coordinates E',
-                       'N  خط العرض   / Coordinates N']
+# Maps ballot file columns names in to Electrol race Model fields
+BALLOT_COLS_TO_ELECTROL_RACE_MODEL_FIELDS_MAPPING = {
+    'election_level': 'election_level',
+    'sub_type': 'ballot_name'
+}
 
-STATION_COLUMN_NAMES = ['Centre #', 'Centre Name', 'SubCon #',
-                        'Station number', 'Station Gender',
-                        'Number of Registrants', 'First Name',
-                        'First Name Number', 'Last Name', 'Last Name Number',
-                        'When Generated']
+BALLOT_NAME_COLUMN_NAME_IN_BALLOT_FILE = 'number'
 
-RESULT_FORM_COLUMN_NAMES = ['Ballot Number', 'PC Code/ ﺮﻣﺯ ﻡﺮﻛﺯ ﺍﻼﻨﺘﺧﺎﺑ',
-                            'Station', 'Gender', 'Name PC',
-                            'Office/ ﺎﻠﻠﻠﺠﻧﺓ ﺍﻼﻨﺘﺧﺎﺒﻳﺓ',
-                            'Office #/ ﺎﻠﻠﻠﺠﻧﺓ ﺍﻼﻨﺘﺧﺎﺒﻳﺓ #',
-                            'Barcode Number', 'Serial Number',
-                            'ﺎﻠﻤﻨﻄﻗﺓ Region', '#ﺎﻠﻤﻨﻄﻗﺓ /# Region']
+CONSTITUENCY_COLUMN_NAME_IN_SUB_CONSTITUENCY_FILE = 'constituency_name'
 
-CANDIDATE_COLUMN_NAMES = ['ID', 'Duplicate', 'Office_ID', 'E_Mail',
-                          'Uploaded_Date_Time', 'Main_District_ID',
-                          'Sub_District_ID', 'Voting_District', 'National_ID',
-                          'Family_Book_ID', 'Name', 'Fathers_Name',
-                          'G_Fathers_Name', 'Family_Name', 'Full_Name',
-                          'Mothers_Name', 'Phone_Mobile', 'Land_Line',
-                          'Race_Type', 'Gender_Type', 'Date_Of_Birth',
-                          'Electoral_Camp_ID', 'Check_Family_Book',
-                          'Check_ID', 'Check_IPC_Form', 'Check_Education_Cert',
-                          'Check_Clearance_From_Moi', 'Check_Supporters_List',
-                          'Check_Payment_Reset', 'Check_Bank_Account',
-                          'Check_Two_Photos', 'Check_Code_Of_Conduct',
-                          'Check_Signature', 'User_ID', 'Registration',
-                          'Candidate_Number', 'Uploaded_By', 'Gender_En',
-                          'Gender_Ar', 'Type_Of_Candidate_En',
-                          'Type_Of_Candidate_Ar', 'Main_District_Ar',
-                          'Main_District_En', 'Office_Name_Ar',
-                          'Office_Name_En', 'Sub_District_Ar',
-                          'Sub_District_En', 'Region']
+SUB_CONSTITUENCY_COD_COL_NAME_IN_SUB_CON_BALLOTS_FILE = 'sub_constituency_code'
 
-BALLOT_ORDER_COLUMN_NAMES = ['ID', 'Ballot_Number']
+BALLOT_NUMBER_COL_NAME_IN_SUB_CON_BALLOTS_FILE = 'ballot_number'
+
+BALLOT_COLUMN_NAMES = ['election_level', 'sub_type', 'number']
+
+SUB_CONSTITUENCY_COLUMN_NAMES = ['sub_constituency_code',
+                                 'number_of_ballots',
+                                 'sub_constituency_name',
+                                 'constituency_name']
+
+# Maps sub constituency file columns names to SubConstituency Model fields
+SUB_CON_FILE_COLS_NAMES_TO_SUB_CON_MODEL_FIELDS =\
+{
+    'sub_constituency_code' : 'code',
+    'number_of_ballots': 'number_of_ballots',
+    'sub_constituency_name': 'name',
+    'constituency_name': 'constituency'
+}
+
+# Maps result form file columns to ResultForm Model fields
+RESULT_FORM_FILE_COLS_NAMES_TO_RESULT_FORM_MODEL_FIELDS =\
+{
+    'station_number': 'station_number',
+    'name': 'name',
+    'barcode': 'barcode',
+    'serial_number': 'serial_number',
+    'gender': 'gender',
+    'center_code': 'center',
+    'office_name': 'office',
+    'ballot_number' : 'ballot',
+    'region_name': 'region'
+}
+# Maps stations file columns to Station Model fields
+STATIONS_FILE_COLS_NAMES_TO_STATION_MODEL_FIELDS =\
+{
+    'center_code': 'center',
+    'center_name': 'center_name',
+    'sub_constituency_code': 'sub_constituency',
+    'station_number': 'station_number',
+    'station_gender': 'gender',
+    'station_registrants': 'registrants',
+}
+
+SUB_CONSTITUENCY_BALLOTS_COLUMN_NAMES = ['sub_constituency_code',
+                                         'ballot_number',]
+
+CENTER_COLUMN_NAMES = ['center_id', 'name', 'center_type', 'center_lat',
+                       'center_lon', 'office_name', 'office_id', 'region_name',
+                       'constituency_name', 'subconstituency_id',
+                       'mahalla_name', 'village_name']
+
+# Maps centers file columns to Center Model fields
+CENTERS_FILE_COLS_NAMES_TO_CENTER_MODEL_FIELDS =\
+{
+    'center_id': 'code',
+    'name': 'name',
+    'center_type': 'center_type',
+    'center_lat': 'latitude',
+    'center_lon': 'longitude',
+    'office_name': 'office',
+    'region_name': 'region',
+    'constituency_name': 'constituency',
+    'subconstituency_id': 'sub_constituency',
+    'mahalla_name': 'mahalla',
+    'village_name': 'village',
+}
+
+# Maps centers file columns to Office Model fields
+CENTERS_FILE_COLS_NAMES_TO_OFFICE_MODEL_FIELDS =\
+{
+    'office_name': 'name',
+    'office_id': 'number',
+    'region_name': 'region',
+}
+
+REGION_COL_NAME_IN_CENTERS_CSV_FILE = 'region_name'
+
+STATION_COLUMN_NAMES = ['center_code', 'center_name', 'sub_constituency_code',
+                        'station_number', 'station_gender',
+                        'station_registrants']
+
+RESULT_FORM_COLUMN_NAMES = ['ballot_number', 'center_code', 'station_number',
+                            'gender', 'name', 'office_name', 'barcode',
+                            'serial_number', 'region_name']
+
+CANDIDATE_COLUMN_NAMES =\
+    ['candidate_id', 'candidate_full_name', 'ballot_number', 'race_type']
+
+# Maps candidates file columns to Candidate Model fields
+CANDIDATE_FILE_COLS_NAMES_TO_CANDIDATE_MODEL_FIELDS =\
+{
+    'candidate_full_name': 'full_name',
+    'candidate_id': 'candidate_id',
+    'ballot_number': 'ballot',
+    'race_type': 'electrol_race',
+}
+
+BALLOT_ORDER_COLUMN_NAMES = ['candidate_id', 'ballot_order']
+
+CANDIDATE_RESULTS_PPT_COVER_PAGE_BCK_IMG_PATH =\
+    'tally_ho/apps/tally/static/images/HNEC.jpg'

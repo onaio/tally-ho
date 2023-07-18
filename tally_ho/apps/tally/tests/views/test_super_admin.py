@@ -1,10 +1,13 @@
+import json
 import os
 import shutil
+
 from django.core.exceptions import SuspiciousOperation
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages.storage import default_storage
 from django.conf import settings
 from django.test import RequestFactory
+from bs4 import BeautifulSoup
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
@@ -18,7 +21,6 @@ from tally_ho.apps.tally.views import super_admin as views
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
@@ -26,17 +28,20 @@ from tally_ho.libs.tests.test_base import (
     create_audit,
     create_ballot,
     create_candidates,
+    create_electrol_race,
     create_reconciliation_form,
     create_result_form,
     create_result,
     create_center,
     create_station,
+    create_sub_constituency,
     create_tally,
     TestBase,
-    issue_369_result_forms_data_setup,
+    create_result_forms_per_form_state,
 )
-from bs4 import BeautifulSoup
-import json
+from tally_ho.libs.tests.fixtures.electrol_race_data import (
+    electrol_races
+)
 
 
 class TestSuperAdmin(TestBase):
@@ -45,6 +50,12 @@ class TestSuperAdmin(TestBase):
         self._create_permission_groups()
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
+        self.tally = create_tally()
+        self.tally.users.add(self.user)
+        self.electrol_race = create_electrol_race(
+            self.tally,
+            **electrol_races[0]
+        )
 
     def test_form_action_view_post_invalid_audit(self):
         tally = create_tally()
@@ -588,9 +599,10 @@ class TestSuperAdmin(TestBase):
         tally.users.add(self.user)
         ballot = create_ballot(tally=tally)
         comment_text = 'example comment text'
-        view = views.DisableRaceView.as_view()
+        view = views.DisableBallotView.as_view()
         data = {
-            'race_id_input': ballot.pk,
+            'ballot_id_input': ballot.pk,
+            'electrol_race_id_input': ballot.electrol_race.pk,
             'comment_input': comment_text,
             'tally_id': tally.pk,
             'disable_reason': '2',
@@ -602,22 +614,20 @@ class TestSuperAdmin(TestBase):
             request,
             tally_id=tally.pk)
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/data/races-list/%s/' % tally.pk, response['Location'])
+        self.assertIn('/data/ballot-list/%s/' % tally.pk, response['Location'])
         ballot.reload()
         self.assertEqual(ballot.disable_reason.value, 2)
         self.assertEqual(ballot.comments.all()[0].text, comment_text)
 
     def test_create_race_invalid_document_extension_error(self):
-        tally = create_tally()
-        tally.users.add(self.user)
-        view = views.CreateRaceView.as_view()
+        view = views.CreateBallotView.as_view()
         file_size = settings.MAX_FILE_UPLOAD_SIZE
         video = SimpleUploadedFile(
             "file.mp4", bytes(file_size), content_type="video/mp4")
         data = {
             'number': 1,
-            'race_type': 0,
-            'tally_id': tally.pk,
+            'electrol_race_id': self.electrol_race.pk,
+            'tally_id': self.tally.pk,
             'available_for_release': True,
             'document': video,
         }
@@ -627,7 +637,7 @@ class TestSuperAdmin(TestBase):
         configure_messages(request)
         response = view(
             request,
-            tally_id=tally.pk)
+            tally_id=self.tally.pk)
         self.assertFalse(response.context_data['form'].is_valid())
         self.assertEqual(
             response.context_data['form'].errors['document'][0],
@@ -636,16 +646,14 @@ class TestSuperAdmin(TestBase):
         video.close()
 
     def test_create_race_invalid_document_size_error(self):
-        tally = create_tally()
-        tally.users.add(self.user)
-        view = views.CreateRaceView.as_view()
+        view = views.CreateBallotView.as_view()
         file_size = settings.MAX_FILE_UPLOAD_SIZE * 2
         image = SimpleUploadedFile(
             "image.jpg", bytes(file_size), content_type="image/jpeg")
         data = {
             'number': 1,
-            'race_type': 0,
-            'tally_id': tally.pk,
+            'electrol_race_id': self.electrol_race.pk,
+            'tally_id': self.tally.pk,
             'available_for_release': True,
             'document': image,
         }
@@ -655,7 +663,7 @@ class TestSuperAdmin(TestBase):
         configure_messages(request)
         response = view(
             request,
-            tally_id=tally.pk)
+            tally_id=self.tally.pk)
         self.assertFalse(response.context_data['form'].is_valid())
         self.assertEqual(
             response.context_data['form'].errors['document'][0],
@@ -664,17 +672,15 @@ class TestSuperAdmin(TestBase):
         image.close()
 
     def test_create_race_view(self):
-        tally = create_tally()
-        tally.users.add(self.user)
-        view = views.CreateRaceView.as_view()
+        view = views.CreateBallotView.as_view()
         file_size = settings.MAX_FILE_UPLOAD_SIZE
         image_file_name = "image.jpg"
         image_file = SimpleUploadedFile(
             image_file_name, bytes(file_size), content_type="image/jpeg")
         data = {
             'number': 2,
-            'race_type': 0,
-            'tally_id': tally.pk,
+            'electrol_race_id': self.electrol_race.pk,
+            'tally_id': self.tally.pk,
             'available_for_release': True,
             'document': image_file,
         }
@@ -684,7 +690,7 @@ class TestSuperAdmin(TestBase):
         configure_messages(request)
         response = view(
             request,
-            tally_id=tally.pk)
+            tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 302)
         ballot = Ballot.objects.get(document__isnull=False)
         self.assertIn(image_file_name, ballot.document.path)
@@ -692,23 +698,19 @@ class TestSuperAdmin(TestBase):
         image_file.close()
 
     def test_edit_race_view_get(self):
-        tally = create_tally()
-        tally.users.add(self.user)
-        ballot = create_ballot(tally)
-        view = views.EditRaceView.as_view()
+        ballot = create_ballot(self.tally, electrol_race=self.electrol_race)
+        view = views.EditBallotView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {}
         response = view(
             request,
             id=ballot.pk,
-            tally_id=tally.pk)
-        self.assertContains(response, 'Edit Race')
+            tally_id=self.tally.pk)
+        self.assertContains(response, 'Edit Ballot')
         self.assertContains(response, 'value="%s"' % ballot.number)
 
     def test_edit_race_view_post(self):
-        tally = create_tally()
-        tally.users.add(self.user)
         file_size = settings.MAX_FILE_UPLOAD_SIZE
         pdf_file_name = "file.pdf"
         image_file_name = "image.jpg"
@@ -716,16 +718,15 @@ class TestSuperAdmin(TestBase):
             pdf_file_name, bytes(file_size), content_type="application/pdf")
         image_file = SimpleUploadedFile(
             image_file_name, bytes(file_size), content_type="image/jpeg")
-        ballot = create_ballot(tally, document=pdf_file)
+        ballot = create_ballot(self.tally, document=pdf_file)
         comment_text = 'jndfjs fsgfd'
-        view = views.EditRaceView.as_view()
+        view = views.EditBallotView.as_view()
         data = {
             'comment_input': comment_text,
             'number': ballot.number,
-            'race_type': ballot.race_type.value,
             'available_for_release': True,
-            'race_id': ballot.pk,
-            'tally_id': tally.pk,
+            'electrol_race_id': ballot.electrol_race.pk,
+            'tally_id': self.tally.pk,
             'document': image_file,
         }
         request = self.factory.post('/', data)
@@ -734,7 +735,7 @@ class TestSuperAdmin(TestBase):
         response = view(
             request,
             id=ballot.pk,
-            tally_id=tally.pk)
+            tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 302)
         ballot.reload()
         ballot.refresh_from_db()
@@ -744,9 +745,6 @@ class TestSuperAdmin(TestBase):
         self.assertIn(image_file_name, ballot.document.path)
         self.assertEqual(ballot.available_for_release, True)
         self.assertEqual(ballot.comments.first().text, comment_text)
-        shutil.rmtree(os.path.dirname(ballot.document.path))
-        image_file.close()
-        pdf_file.close()
 
     def test_form_duplicates_view_get(self):
         tally = create_tally()
@@ -802,7 +800,7 @@ class TestSuperAdmin(TestBase):
                      'created_user': self.request.user.userprofile,
                      'gender': 1}
         form = CreateResultForm(form_data)
-        self.assertIn("Race for ballot is disabled", form.errors['__all__'])
+        self.assertIn("Ballot is disabled", form.errors['__all__'])
         self.assertFalse(form.is_valid())
 
     def test_create_result_form_center_not_active_error(self):
@@ -892,7 +890,12 @@ class TestSuperAdmin(TestBase):
         code = '12345'
         barcode = '12345'
         ballot = create_ballot(tally=tally)
-        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
+        sc = create_sub_constituency(
+            code=1,
+            tally=tally,
+            field_office='1',
+            ballots=[ballot]
+        )
         center = create_center(code,
                                tally=tally,
                                sub_constituency=sc)
@@ -955,7 +958,7 @@ class TestSuperAdmin(TestBase):
                      'barcode': 12345,
                      'gender': 1}
         form = EditResultForm(form_data)
-        self.assertIn("Race for ballot is disabled", form.errors['__all__'])
+        self.assertIn("Ballot is disabled", form.errors['__all__'])
         self.assertFalse(form.is_valid())
 
     def test_edit_result_form_center_not_active_error(self):
@@ -1007,7 +1010,12 @@ class TestSuperAdmin(TestBase):
         tally.users.add(self.user)
         code = '12345'
         ballot = create_ballot(tally=tally)
-        sc, _ = SubConstituency.objects.get_or_create(code=1, field_office='1')
+        sc = create_sub_constituency(
+            code=1,
+            tally=tally,
+            field_office='1',
+            ballots=[ballot]
+        )
         center = create_center(code,
                                tally=tally,
                                sub_constituency=sc)
@@ -1078,8 +1086,7 @@ class TestSuperAdmin(TestBase):
             ballot=ballot_1,
             center=center,
             station_number=station.station_number)
-        result_form_2, _ = ResultForm.objects.get_or_create(
-            id=2,
+        result_form_2 = create_result_form(
             ballot=ballot_1,
             barcode=barcode,
             serial_number=2,
@@ -1089,8 +1096,7 @@ class TestSuperAdmin(TestBase):
             center=center,
             gender=Gender.MALE,
             is_replacement=False,
-            tally=tally,
-        )
+            tally=tally,)
         votes = 12
         create_candidates(result_form_1, votes=votes, user=self.user,
                           num_results=1)
@@ -1105,17 +1111,19 @@ class TestSuperAdmin(TestBase):
         self.assertIn(result_form_1, duplicate_results)
         self.assertIn(result_form_2, duplicate_results)
 
+        electrol_race = create_electrol_race(
+            tally,
+            **electrol_races[1]
+        )
         # test filtering duplicate result forms by ballot
-        ballot_2, _ = Ballot.objects.get_or_create(
-            id=2,
-            active=True,
-            number=2,
-            tally=tally,
-            available_for_release=False,
-            race_type=RaceType.GENERAL,
-            document="")
-        result_form_3, _ = ResultForm.objects.get_or_create(
-            id=3,
+        ballot_2 =\
+            create_ballot(
+                tally,
+                active=True,
+                number=2,
+                available_for_release=False,
+                electrol_race=electrol_race)
+        result_form_3 = create_result_form(
             ballot=ballot_2,
             barcode="12345",
             serial_number=3,
@@ -1125,10 +1133,8 @@ class TestSuperAdmin(TestBase):
             center=center,
             gender=Gender.MALE,
             is_replacement=False,
-            tally=tally,
-        )
-        result_form_4, _ = ResultForm.objects.get_or_create(
-            id=4,
+            tally=tally,)
+        result_form_4 = create_result_form(
             ballot=ballot_2,
             barcode="123456",
             serial_number=4,
@@ -1138,8 +1144,7 @@ class TestSuperAdmin(TestBase):
             center=center,
             gender=Gender.MALE,
             is_replacement=False,
-            tally=tally,
-        )
+            tally=tally,)
         create_candidates(result_form_3, votes=votes, user=self.user,
                           num_results=1)
 
@@ -1190,8 +1195,7 @@ class TestSuperAdmin(TestBase):
             ballot=ballot,
             center=center,
             station_number=station.station_number)
-        result_form_2, _ = ResultForm.objects.get_or_create(
-            id=2,
+        result_form_2 = create_result_form(
             ballot=ballot,
             barcode=barcode,
             serial_number=2,
@@ -1201,8 +1205,7 @@ class TestSuperAdmin(TestBase):
             center=center,
             gender=Gender.MALE,
             is_replacement=False,
-            tally=tally,
-        )
+            tally=tally,)
         votes = 12
         create_candidates(result_form_1, votes=votes, user=self.user,
                           num_results=1)
@@ -1243,8 +1246,7 @@ class TestSuperAdmin(TestBase):
             ballot=ballot,
             center=center,
             station_number=station.station_number)
-        result_form_2, _ = ResultForm.objects.get_or_create(
-            id=2,
+        result_form_2 = create_result_form(
             ballot=ballot,
             barcode=barcode,
             serial_number=2,
@@ -1254,8 +1256,7 @@ class TestSuperAdmin(TestBase):
             center=center,
             gender=Gender.MALE,
             is_replacement=False,
-            tally=tally,
-        )
+            tally=tally,)
         votes = 12
         create_candidates(result_form_1, votes=votes, user=self.user,
                           num_results=1)
@@ -1313,8 +1314,7 @@ class TestSuperAdmin(TestBase):
         self.assertTrue(result_form.duplicate_reviewed)
 
         # check archived form is not sent to clearance
-        result_form_2, _ = ResultForm.objects.get_or_create(
-            id=2,
+        result_form_2 = create_result_form(
             ballot=ballot,
             barcode="1234",
             serial_number=2,
@@ -1324,8 +1324,7 @@ class TestSuperAdmin(TestBase):
             center=center,
             gender=Gender.MALE,
             is_replacement=False,
-            tally=tally,
-        )
+            tally=tally,)
         create_candidates(result_form_2, votes=votes, user=self.user,
                           num_results=1)
         data = {'result_form': result_form_2.pk,
@@ -1354,8 +1353,7 @@ class TestSuperAdmin(TestBase):
             ballot=ballot,
             center=center,
             station_number=station.station_number)
-        result_form_2, _ = ResultForm.objects.get_or_create(
-            id=2,
+        result_form_2 = create_result_form(
             ballot=ballot,
             barcode=barcode,
             serial_number=2,
@@ -1365,8 +1363,7 @@ class TestSuperAdmin(TestBase):
             center=center,
             gender=Gender.MALE,
             is_replacement=False,
-            tally=tally,
-        )
+            tally=tally,)
         votes = 12
         create_candidates(result_form_1, votes=votes, user=self.user,
                           num_results=1)
@@ -1405,8 +1402,7 @@ class TestSuperAdmin(TestBase):
             ballot=ballot,
             center=center,
             station_number=station.station_number)
-        result_form_2, _ = ResultForm.objects.get_or_create(
-            id=2,
+        result_form_2 = create_result_form(
             ballot=ballot,
             barcode=barcode,
             serial_number=2,
@@ -1416,8 +1412,7 @@ class TestSuperAdmin(TestBase):
             center=center,
             gender=Gender.MALE,
             is_replacement=False,
-            tally=tally,
-        )
+            tally=tally,)
         votes = 12
         create_candidates(result_form_1, votes=votes, user=self.user,
                           num_results=1)
@@ -1481,52 +1476,66 @@ class TestSuperAdmin(TestBase):
         self.assertEquals(request.session['url_keyword'], 'role')
 
     def test_view_result_forms_progress_by_form_state(self):
-        tally = issue_369_result_forms_data_setup(self.user)
-
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
         view = views.FormProgressByFormStateView.as_view()
         request = self.factory.get('/1/')
         request.user = self.user
         request.session = {}
 
-        response = view(request, tally_id=tally.pk)
+        response = view(request, tally_id=self.tally.pk)
 
         # check that the response template is correct.
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.template_name,
                          ['super_admin/form_progress_by_form_state.html'])
-        self.assertEqual(response.context_data['tally_id'], tally.pk)
+        self.assertEqual(response.context_data['tally_id'], self.tally.pk)
 
         response = response.render()
         doc = BeautifulSoup(response.content, "html.parser")
         ths = [th.text for th in doc.findAll('th')]
         self.assertListEqual(
             ths,
-            ['Race Type', 'Total forms', 'Unsubmitted', 'Intake',
-             'Data Entry 1', 'Data Entry 2', 'Corrections',
-             'Quality Control', 'Archived','Clearance', 'Audit']
+            ['Sub Con', 'Election Level', 'Sub Race', 'Total forms',
+             'Unsubmitted', 'Intake', 'Data Entry 1', 'Data Entry 2',
+             'Corrections', 'Quality Control', 'Archived','Clearance',
+             'Audit']
         )
 
     def test_view_result_forms_progress_by_form_state_data_view(self):
-        tally = issue_369_result_forms_data_setup(self.user)
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
 
         view = views.FormProgressByFormStateDataView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         request.session = {}
 
-        response = view(request, tally_id=tally.pk)
+        response = view(request, tally_id=self.tally.pk)
 
         # check that the response template is correct.
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         data = content["data"]
         first_row = data[0]
-        race_type, total_forms, unsubmitted, intake, de1, de2, \
-            corrections, quality_control, archived, clearance,\
-            audit = first_row
+        sub_con_code, election_level, sub_race, total_forms, unsubmitted,\
+        intake, de1, de2, corrections, quality_control, archived, clearance,\
+        audit = first_row
         self.assertEqual(
-            race_type,
-            "<td class=\"center\">GENERAL</td>"
+            sub_con_code,
+            f"<td class=\"center\">{12345}</td>"
+        )
+        self.assertEqual(
+            election_level,
+            "<td class=\"center\">Presidential</td>"
+        )
+        self.assertEqual(
+            sub_race,
+            "<td class=\"center\">ballot_number_presidential</td>"
         )
         self.assertEqual(
             total_forms,
@@ -1534,48 +1543,157 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(
             unsubmitted,
             f"<td class=\"center\"><span>"
-            f"<a href=/data/form-list/{tally.pk}/?"
-            "race_type=general&at_form_state=unsubmitted>"
+            f"<a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
+            "&at_form_state=unsubmitted target=\"blank\">"
             "1</a></span></td>")
         self.assertEqual(
             intake,
-            f"<td class=\"center\"><span>5 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=intake>4</a"
-            "></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=intake"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
+            "&pending_at_form_state=intake"
+            " target=\"blank\">"
+            "3</a></span></td>")
         self.assertEqual(
             de1,
-            f"<td class=\"center\"><span>4 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=data_entry_1>"
-            "5</a></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=data_entry_1"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
+            "&pending_at_form_state=data_entry_1"
+            " target=\"blank\">"
+            "4</a></span></td>")
         self.assertEqual(
             de2,
-            f"<td class=\"center\"><span>3 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=data_entry_2>"
-            "6</a></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=data_entry_2"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
+            "&pending_at_form_state=data_entry_2"
+            " target=\"blank\">"
+            "5</a></span></td>")
         self.assertEqual(
             corrections,
-            f"<td class=\"center\"><span>2 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=correction>"
-            "7</a></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=correction"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
+            "&pending_at_form_state=correction"
+            " target=\"blank\">"
+            "6</a></span></td>")
         self.assertEqual(
             quality_control,
-            f"<td class=\"center\"><span>1 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=quality_control>"
-            "8</a></span></td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
+            "&at_form_state=quality_control"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
+            "&pending_at_form_state=quality_control"
+            " target=\"blank\">"
+            "7</a></span></td>")
         self.assertEqual(
             archived,
-            f"<td class=\"center\"><span>1 / "
-            f"<a href=/data/form-list/{tally.pk}/"
-            "?race_type=general&pending_at_form_state=archived>"
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=archived"
+            " target=\"blank\">"
+            "1</a></span>"
+            " / "
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345"
+            "&pending_at_form_state=archived"
+            " target=\"blank\">"
             "8</a></span></td>")
         self.assertEqual(
             clearance,
-            "<td class=\"center\">1</td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=clearance"
+            " target=\"blank\">"
+            "1</a></span></td>")
         self.assertEqual(
             audit,
-            "<td class=\"center\">1</td>")
+            "<td class=\"center\">"
+            f"<span><a href=/data/form-list/{self.tally.pk}/?"
+            "election_level=Presidential&sub_race=ballot_number_presidential"
+            "&sub_con_code=12345&at_form_state=audit"
+            " target=\"blank\">"
+            "1</a></span></td>")
+
+    def test_search_returns_data_result_form_progress_by_form_state_view(self):
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
+
+        view = views.FormProgressByFormStateDataView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        request.POST = {}
+        request.POST['search[value]'] = 12345
+
+        response = view(request, tally_id=self.tally.pk)
+
+        # check that the response template is correct.
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        data = content["data"]
+        self.assertEqual(1, len(data))
+
+    def test_search_returns_no_data_result_form_progress_by_form_state(self):
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
+
+        view = views.FormProgressByFormStateDataView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        request.POST = {}
+        request.POST['search[value]'] = 890
+
+        response = view(request, tally_id=self.tally.pk)
+
+        # check that the response template is correct.
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        data = content["data"]
+        self.assertEqual(0, len(data))
