@@ -8,8 +8,3 @@ class Gender(Enum):
     FEMALE = 1
     UNISEX = 3
 
-    CHOICES = [
-        (MALE, _(u'Male')),
-        (FEMALE, _(u'Female')),
-        (UNISEX, _(u'Unisex')),
-    ]
