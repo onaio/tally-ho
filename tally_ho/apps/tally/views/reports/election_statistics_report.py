@@ -29,13 +29,19 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             tally_id=tally_id,
             electrol_race__election_level=election_level,).distinct()
 
-    voters_in_counted_stations = 0
-    stations_counted = 0
-    registrants_in_stations_counted = 0
-
     for ballot in election_level_ballots:
-        ballot_election_statistics = {}
-        ballot_election_statistics['ballot_number'] = ballot.number
+        voters_in_counted_stations = 0
+        stations_counted = 0
+        registrants_in_stations_counted = 0
+
+        ballot_election_statistics = {
+            'ballot_number': ballot.number,
+            'stations_counted': 0,
+            'percentage_of_stations_counted': 0,
+            'voters_in_counted_stations': 0,
+            'registrants_in_stations_counted': 0,
+            'percentage_turnout_in_stations_counted': 0
+        }
         # Calculate stations expected
         qs =\
             Station.objects.filter(
@@ -108,6 +114,12 @@ def generate_election_statistics(tally_id, election_level, gender=None):
 
         # Calculate turnout percentage
         if stations_counted != 0:
+            ballot_election_statistics['stations_counted'] = stations_counted
+            ballot_election_statistics[
+                'percentage_of_stations_counted'] = round(
+                    100 * stations_counted / election_statistics[
+                        'stations_expected'],
+                    2)
             ballot_election_statistics['voters_in_counted_stations'] =\
                 voters_in_counted_stations
             ballot_election_statistics['registrants_in_stations_counted'] =\
@@ -115,16 +127,28 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             ballot_election_statistics[
                 'percentage_turnout_in_stations_counted'] =\
                 round(
-                    100 * stations_counted / election_statistics[
-                        'stations_expected'],
-                    2)
+                    100 * voters_in_counted_stations /
+                    registrants_in_stations_counted,
+                    2) if registrants_in_stations_counted else 0
 
         election_statistics.append(ballot_election_statistics)
 
     return election_statistics
 
+
 def generate_overview_election_statistics(tally_id, election_level):
-    election_statistics = {}
+    election_statistics = {
+        'male_voters_in_counted_stations': 0,
+        'female_voters_in_counted_stations': 0,
+        'voters_in_counted_stations': 0,
+        'male_total_registrants_in_counted_stations': 0,
+        'female_total_registrants_in_counted_stations': 0,
+        'total_registrants_in_counted_stations': 0,
+        'percentage_of_stations_processed': 0.0,
+        'male_projected_turnout_percentage': 0.0,
+        'female_projected_turnout_percentage': 0.0,
+        'projected_turnout_percentage': 0.0
+    }
     result_forms_expected = ResultForm.objects.filter(
                 tally__id=tally_id,
                 center__resultform__ballot__electrol_race__election_level=\
@@ -183,10 +207,10 @@ def generate_overview_election_statistics(tally_id, election_level):
             election_statistics[
                 'female_total_registrants_in_counted_stations'] = 0
             election_statistics['total_registrants_in_counted_stations'] = 0
-            election_statistics['percentage_of_stations_processed'] = 0
-            election_statistics['male_projected_turnout_percentage'] = 0
-            election_statistics['female_projected_turnout_percentage'] = 0
-            election_statistics['projected_turnout_percentage'] = 0
+            election_statistics['percentage_of_stations_processed'] = 0.0
+            election_statistics['male_projected_turnout_percentage'] = 0.0
+            election_statistics['female_projected_turnout_percentage'] = 0.0
+            election_statistics['projected_turnout_percentage'] = 0.0
             continue
 
         stations_counted += 1
@@ -253,6 +277,7 @@ def generate_overview_election_statistics(tally_id, election_level):
 
     return election_statistics
 
+
 class ElectionStatisticsDataView(LoginRequiredMixin,
                                  mixins.GroupRequiredMixin,
                                  mixins.TallyAccessMixin,
@@ -305,6 +330,7 @@ class ElectionStatisticsDataView(LoginRequiredMixin,
         })
 
         return response_data
+
 
 class ElectionStatisticsReportView(LoginRequiredMixin,
                                    mixins.GroupRequiredMixin,
