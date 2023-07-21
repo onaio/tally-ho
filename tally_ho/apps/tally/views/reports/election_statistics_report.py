@@ -192,8 +192,9 @@ def generate_overview_election_statistics(tally_id, election_level):
     forms_counted =\
         result_forms_expected.filter(form_state=FormState.ARCHIVED).count()
     election_statistics['forms_counted'] = forms_counted
-    election_statistics['completion_percentage'] =\
-            round(100 * forms_counted / forms_expected, 2)
+    election_statistics['completion_percentage'] = \
+        round(100 * forms_counted / forms_expected, 2) \
+            if forms_expected else 0.0
     # Calculate voters in counted stations
     qs =\
         Station.objects.filter(
@@ -290,7 +291,8 @@ def generate_overview_election_statistics(tally_id, election_level):
         election_statistics['total_registrants_in_counted_stations'] =\
             total_registrants_in_counted_stations
         election_statistics['projected_turnout_percentage'] =\
-            round(100 * voters / total_registrants_in_counted_stations, 2)
+            round(100 * voters / total_registrants_in_counted_stations, 2) \
+                if total_registrants_in_counted_stations else 0.0
         # Male station statistics
         election_statistics['male_voters_in_counted_stations'] = male_voters
         election_statistics['male_total_registrants_in_counted_stations'] =\
@@ -298,7 +300,7 @@ def generate_overview_election_statistics(tally_id, election_level):
         election_statistics['male_projected_turnout_percentage'] =\
             round(100 *\
                   male_voters / total_male_registrants_in_counted_stations,
-                  2)
+                  2) if total_male_registrants_in_counted_stations else 0.0
         # Female station statistics
         election_statistics['female_voters_in_counted_stations'] =\
             female_voters
@@ -307,7 +309,7 @@ def generate_overview_election_statistics(tally_id, election_level):
         election_statistics['female_projected_turnout_percentage'] =\
             round(100 *\
                   female_voters / total_female_registrants_in_counted_stations,
-                  2)
+                  2) if total_female_registrants_in_counted_stations else 0.0
 
     return election_statistics
 
