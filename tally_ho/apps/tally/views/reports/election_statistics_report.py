@@ -29,11 +29,19 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             tally_id=tally_id,
             electrol_race__election_level=election_level,).distinct()
 
-    for ballot in election_level_ballots:
-        voters_in_counted_stations = 0
-        stations_counted = 0
-        registrants_in_stations_counted = 0
+    voters_in_counted_stations = 0
+    stations_counted = 0
+    registrants_in_stations_counted = 0
 
+    aggregate_ballot_election_statistics = {
+        'ballot_number': 'Total',
+        'stations_expected': 0,
+        'stations_counted': 0,
+        'voters_in_counted_stations': 0,
+        'registrants_in_stations_counted': 0,
+    }
+
+    for ballot in election_level_ballots:
         ballot_election_statistics = {
             'ballot_number': ballot.number,
             'stations_counted': 0,
@@ -54,6 +62,8 @@ def generate_election_statistics(tally_id, election_level, gender=None):
 
         ballot_election_statistics['stations_expected'] =\
             qs.distinct('station_number', 'center', 'tally').count()
+        aggregate_ballot_election_statistics['stations_expected'] += \
+            ballot_election_statistics['stations_expected']
 
         ballot_stations_with_archived_forms = qs.filter(
             center__resultform__form_state=FormState.ARCHIVED,
@@ -117,7 +127,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             ballot_election_statistics['stations_counted'] = stations_counted
             ballot_election_statistics[
                 'percentage_of_stations_counted'] = round(
-                    100 * stations_counted / election_statistics[
+                    100 * stations_counted / ballot_election_statistics[
                         'stations_expected'],
                     2)
             ballot_election_statistics['voters_in_counted_stations'] =\
@@ -130,9 +140,33 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                     100 * voters_in_counted_stations /
                     registrants_in_stations_counted,
                     2) if registrants_in_stations_counted else 0
+            aggregate_ballot_election_statistics['stations_counted'] += \
+                ballot_election_statistics['stations_counted']
+            aggregate_ballot_election_statistics[
+                'voters_in_counted_stations'] += ballot_election_statistics[
+                'voters_in_counted_stations']
+            aggregate_ballot_election_statistics[
+                'registrants_in_stations_counted'] += \
+                ballot_election_statistics['registrants_in_stations_counted']
+
+        aggregate_ballot_election_statistics[
+            'percentage_of_stations_counted'] = round(
+            100 * aggregate_ballot_election_statistics['stations_counted'] /
+            aggregate_ballot_election_statistics[
+                'stations_expected'],
+            2) if aggregate_ballot_election_statistics[
+                'stations_expected'] else 0.0
+        aggregate_ballot_election_statistics[
+            'percentage_turnout_in_stations_counted'] = round(
+            100 * aggregate_ballot_election_statistics[
+                'voters_in_counted_stations'] /
+            aggregate_ballot_election_statistics[
+                'registrants_in_stations_counted'],
+            2) if aggregate_ballot_election_statistics[
+            'registrants_in_stations_counted'] else 0.0
 
         election_statistics.append(ballot_election_statistics)
-
+    election_statistics.append(aggregate_ballot_election_statistics)
     return election_statistics
 
 
