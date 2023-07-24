@@ -63,46 +63,47 @@ $(document).ready(() => {
         },
       ],
       searching: false,
+      ordering: true,
       processing: true,
       serverSide: true,
       stateSave: true,
-      ajax: '{{ remote_url }}',
-<!--      ajax: {-->
-<!--        url: LIST_JSON_URL,-->
-<!--        dataSrc: (json) => {-->
-<!--          return json.data.slice(0, 10)-->
-<!--        },-->
-<!--        dataType: 'json',-->
-<!--        data: (d) => {-->
-<!--          for (let i = 0; i < d.columns.length - 1; i++) {-->
-<!--            d[`columns[${i}][data]`] = d.columns[i].data-->
-<!--            d[`columns[${i}][name]`] = d.columns[i].name-->
-<!--            d[`columns[${i}][searchable]`] = d.columns[i].searchable-->
-<!--            d[`columns[${i}][search][value]`] = d.columns[i].search.value-->
-<!--            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex-->
-<!--            d[`columns[${i}][data]`] = d.columns[i].data-->
-<!--          }-->
-<!--          d['order[0][column]'] = d.columns[d.order[0].column].data;-->
-<!--          d['order[0][dir]'] = d.order[0].dir;-->
-<!--          d['search[value]'] = d.search.value;-->
-<!--          d['search[regex]'] = d.search.regex;-->
-<!--          d['columns'] = d.columns;-->
-<!--          d['order'] = d.order;-->
-<!--          d['draw'] = d.draw;-->
-<!--          d['start'] = d.start;-->
-<!--          d['length'] = d.length;-->
-<!--          d.data = JSON.stringify([])-->
-<!--        },-->
-<!--      },-->
-<!--      columns: [-->
-<!--            { "data": "region_name" },-->
-<!--            { "data": "stations_expected" },-->
-<!--            { "data": "stations_processed" },-->
-<!--            { "data": "percentage_progress" },-->
-<!--            { "data": "registrants_in_processed_stations" },-->
-<!--            { "data": "voters_in_counted_stations" },-->
-<!--            { "data": "percentage_turnout" }-->
-<!--      ],-->
+      ajax: {
+        url: '{{ remote_url }}',
+        type: 'POST',
+        data: (d) => {
+          for (let i = 0; i < d.columns.length - 1; i++) {
+            d[`columns[${i}][data]`] = d.columns[i].data
+            d[`columns[${i}][name]`] = d.columns[i].name
+            d[`columns[${i}][searchable]`] = d.columns[i].searchable
+            d[`columns[${i}][search][value]`] = d.columns[i].search.value
+            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
+            d[`columns[${i}][data]`] = d.columns[i].data
+          }
+          d['order[0][column]'] = d.columns[d.order[0].column].data;
+          d['order[0][dir]'] = d.order[0].dir;
+          d['search[value]'] = d.search.value;
+          d['search[regex]'] = d.search.regex;
+          d['columns'] = d.columns;
+          d['order'] = d.order;
+          d['draw'] = d.draw;
+          d['start'] = d.start;
+          d['length'] = d.length;
+          d.data = JSON.stringify([])
+        },
+        dataSrc: (res) => {
+            console.log({res});
+            const {aggregate} = res;
+            if(aggregate){
+              const tr = document.createElement('tr');
+              tr.innerHTML = aggregate[0].join('');
+              $('#turnout-report-table tfoot').empty();
+              $('#turnout-report-table tfoot').append(tr)
+            }
+            return res.data
+        },
+        traditional: true,
+        dataType: 'json',
+      },
       dom:
         "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
         "<'row'<'col-sm-12'tr>>" +
@@ -110,10 +111,23 @@ $(document).ready(() => {
       buttons: [
         {
           extend: "csv",
-          filename: 'regions_turnout_report.csv',
+          filename: '{{admin_level}}_turnout_report.csv',
           action: exportAction,
           exportOptions: {
             columns: ':visible :not(.hide-from-export)',
+          },
+          customize: (csvData, _, dt) => {
+          // include the tfoot table rows as last rows in csv
+          const aggregate = dt.ajax.json().aggregate;
+          const tdRegex = new RegExp("<.*>(.*?)</.*>");
+          const footerCsvData = aggregate.map(row => row.flatMap(td => {
+            if (!tdRegex.test(td)){
+                return ""
+            }
+            return td.match(tdRegex)[1]
+          }).join(",")).join("\n")
+            const finalData = `${csvData}\n${footerCsvData}`
+            return finalData
           },
         },
       ],
@@ -134,7 +148,7 @@ $(document).ready(() => {
 
 <!-- TODO mark strings as translateable-->
 <ul class="nav nav-tabs">
-    <li role="presentation" class="{% if admin_level == 'region' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'region' %}">Regions</a></li>
+    <li role="presentation" class="{% if not admin_level or admin_level == 'region' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'region' %}">Regions</a></li>
     <li role="presentation" class="{% if admin_level == 'office' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'office' %}">Offices</a></li>
     <li role="presentation" class="{% if admin_level == 'constituency' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'constituency' %}">Constituencies</a></li>
     <li role="presentation" class="{% if admin_level == 'sub_constituency' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'sub_constituency' %}">Sub Constituencies</a></li>
@@ -149,24 +163,23 @@ $(document).ready(() => {
 
 <div class="py-2">
     <table class="display" id="turnout-report-table">
-        <!--    {% include "reports/admin_area_filters.html" %}-->
         <thead>
         <tr>
-            {% if admin_level == "region" %}
-            <th>{% trans 'Regions' %}</th>
-            {% elif admin_level == "office" %}
-            <th>{% trans 'Regions' %}</th>
+            {% if admin_level == "office" %}
+            <th>{% trans 'Office' %}</th>
             {% elif admin_level == "constituency" %}
-            <th>{% trans 'Constituency' %}</th>
+            <th>{% trans 'Main-Constituency' %}</th>
             {% elif admin_level == "sub_constituency" %}
             <th>{% trans 'Sub constituency' %}</th>
+            {% else %}
+            <th>{% trans 'Region' %}</th>
             {% endif %}
             <th>{% trans 'Stations Expected' %}</th>
-            <th>{% trans 'Stations Included' %}</th>
+            <th>{% trans 'Stations Counted' %}</th>
             <th>{% trans '% Progress' %}</th>
             <th>{% trans 'Registrants in Counted Stations' %}</th>
-            <th>{% trans 'Voters in Counted Stations' %}</th>
-            <th>{% trans 'Turnout percentage' %}</th>
+            <th>{% trans 'Votes Cast in Counted Stations' %}</th>
+            <th>{% trans '% Turnout' %}</th>
         </tr>
         </thead>
         <tbody></tbody>
