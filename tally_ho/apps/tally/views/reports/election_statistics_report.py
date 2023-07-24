@@ -83,7 +83,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             station_is_processed =\
                 form_states.count() == 1 and\
                 form_states[0] == FormState.ARCHIVED
-            if station_is_processed is False:
+            if not station_is_processed:
                 ballot_election_statistics['stations_counted'] = 0
                 ballot_election_statistics[
                     'percentage_of_stations_counted'] = 0
@@ -137,9 +137,9 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             ballot_election_statistics[
                 'percentage_turnout_in_stations_counted'] =\
                 round(
-                    100 * voters_in_counted_stations /
-                    registrants_in_stations_counted,
-                    2) if registrants_in_stations_counted else 0
+                    100 * registrants_in_stations_counted /
+                    voters_in_counted_stations,
+                    2) if voters_in_counted_stations else 0
             aggregate_ballot_election_statistics['stations_counted'] += \
                 ballot_election_statistics['stations_counted']
             aggregate_ballot_election_statistics[
@@ -159,11 +159,11 @@ def generate_election_statistics(tally_id, election_level, gender=None):
         aggregate_ballot_election_statistics[
             'percentage_turnout_in_stations_counted'] = round(
             100 * aggregate_ballot_election_statistics[
-                'voters_in_counted_stations'] /
+                'registrants_in_stations_counted'] /
             aggregate_ballot_election_statistics[
-                'registrants_in_stations_counted'],
+                'voters_in_counted_stations'],
             2) if aggregate_ballot_election_statistics[
-            'registrants_in_stations_counted'] else 0.0
+            'voters_in_counted_stations'] else 0.0
 
         election_statistics.append(ballot_election_statistics)
     election_statistics.append(aggregate_ballot_election_statistics)
@@ -383,13 +383,13 @@ class ElectionStatisticsReportView(LoginRequiredMixin,
             generate_overview_election_statistics(tally_id, election_level)
         dt_columns =\
             [
-                { "data": "ballot_number" },
-                { "data": "stations_expected" },
-                { "data": "stations_counted" },
-                { "data": "percentage_of_stations_counted" },
-                { "data": "registrants_in_stations_counted" },
-                { "data": "voters_in_counted_stations" },
-                { "data": "percentage_turnout_in_stations_counted" },
+                {"data": "ballot_number"},
+                {"data": "stations_expected"},
+                {"data": "stations_counted"},
+                {"data": "percentage_of_stations_counted"},
+                {"data": "registrants_in_stations_counted"},
+                {"data": "voters_in_counted_stations"},
+                {"data": "percentage_turnout_in_stations_counted"},
             ]
 
         return self.render_to_response(self.get_context_data(
