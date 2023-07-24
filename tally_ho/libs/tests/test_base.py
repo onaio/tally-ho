@@ -354,12 +354,13 @@ def create_sub_constituency(
         code=1,
         tally=None,
         field_office='1',
-        ballots=[]
+        ballots=[],
+        name="subConstituency",
 ):
     sub_constituency, _ =\
         SubConstituency.objects.get_or_create(code=code,
                                               field_office=field_office,
-                                              tally=tally)
+                                              tally=tally, name=name)
     if len(ballots):
         sub_constituency.ballots.set(ballots)
 
