@@ -40,8 +40,8 @@ from tally_ho.apps.tally.views.reports import candidate_list_by_votes
 from tally_ho.apps.tally.views.reports import overall_votes
 from tally_ho.apps.tally.views.reports import votes_per_candidate
 from tally_ho.apps.tally.views.reports.turnout_reports_by_admin_areas import (
-    turn_out_report_by_admin_levels_data,
-    turn_out_report_by_admin_levels
+    TurnoutReportByAdminAreasDataView,
+    TurnoutReportByAdminAreasView
     )
 
 admin.autodiscover()
@@ -88,12 +88,14 @@ urlpatterns = [
             center_list_view.get_centers_stations_list,
             name='download-centers-and-stations-list'),
 
-    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/(?:(?P<admin_level>\w+)/)?$',
-            turn_out_report_by_admin_levels,
+    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/'
+            r'(?:(?P<admin_level>\w+)/)?$',
+            TurnoutReportByAdminAreasView.as_view(),
             name='turnout-list'),
     re_path(
-        r'^data/turnout-list-data/(?P<tally_id>(\d+))/(?:(?P<admin_level>\w+)/)?$',
-        turn_out_report_by_admin_levels_data,
+        r'^data/turnout-list-data/(?P<tally_id>(\d+))/'
+        r'(?:(?P<admin_level>\w+)/)?$',
+        TurnoutReportByAdminAreasDataView.as_view(),
         name='turnout-list-data'
         ),
 
@@ -173,9 +175,9 @@ urlpatterns = [
             administrative_areas_reports.DiscrepancyReportView.as_view(),
             name='sub-cons-stations-and-centers-excluded-after-investigation'),
 
-    re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))/$',
-            administrative_areas_reports.TurnoutReportDataView.as_view(),
-            name='turnout-list-data'),
+    # re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))/$',
+    #         administrative_areas_reports.TurnoutReportDataView.as_view(),
+    #         name='turnout-list-data'),
 
     re_path(r'^data/summary-list-data/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.SummaryReportDataView.as_view(),
