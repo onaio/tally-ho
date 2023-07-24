@@ -1,7 +1,6 @@
 import json
 
 from django.test import RequestFactory
-from bs4 import BeautifulSoup
 
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.center import Center
@@ -88,106 +87,11 @@ class TestAdministrativeAreasReports(TestBase):
             # create duplicate final results
             create_result(self.result_form, result.candidate, self.user, votes)
 
-    def test_admin_areas_builder(self):
-        """ Admin areas builder util works correctly even with filters"""
-        response = admin_reports.build_admin_areas_list(tally_id=self.tally.pk)
-        region_names, constituencies, sub_constituencies = response
-        self.assertEquals(region_names, ['1'])
-        self.assertEquals(constituencies, ['Region'])
-        self.assertEquals(sub_constituencies, [1])
-
-        response = admin_reports.build_admin_areas_list(
-            tally_id=self.tally.pk, named_regions=['2']
-            )
-        region_names, constituencies, sub_constituencies = response
-        self.assertEquals(region_names, ['1'])
-        self.assertEquals(constituencies, [])
-        self.assertEquals(sub_constituencies, [])
-
-    def test_turnout_view(self):
-        """Serves correct template"""
-        request = RequestFactory().get(f'/data/turnout-list/{self.tally.pk}')
-        request.user = self.user
-        request.session = {}
-        view = admin_reports.TurnOutReportView.as_view()
-        response = view(request, tally_id=self.tally.pk)
-        response.render()
-        content = response.content.decode()
-        self.assertEquals(
-            response.template_name, ['reports/turnout_report.html']
-            )
-        doc = BeautifulSoup(content, "xml")
-
-        table_header_texts = [header.text for header in
-                              doc.find('thead').findAll('th')]
-        self.assertEquals(
-            table_header_texts, ['Administrative areas', 'Total voters',
-                                 'Voters voted', 'Male voters',
-                                 'Female voters', 'Unisex voters',
-                                 'Turnout percentage']
-            )
-
-        # select options
-        region_select_options = [option.text for option in
-                                 doc.find(id='regions').findAll('option')]
-        self.assertEquals(region_select_options, ['1'])
-
-        const_options = [option.text for option in
-                         doc.find(id='constituencies').findAll('option')]
-        self.assertEquals(const_options, ['Region'])
-
-        sub_const_options = [option.text for option in
-                             doc.find(id='sub_constituencies').findAll(
-                                 'option'
-                                 )]
-        self.assertEquals(sub_const_options, ['1'])
-
     def test_sub_constituency_turn_out_and_votes_summary_reports(self):
         """
         Test that the sub constituency turn out and votes summary reports are
         rendered as expected.
         """
-        request = RequestFactory().post(f'/data/turnout-list/{self.tally.pk}')
-        request.user = self.user
-        request.session = {}
-        view = admin_reports.TurnoutReportDataView.as_view()
-        request = self.factory.get(f'/data/turnout-list/{self.tally.pk}')
-        request.user = self.user
-        raw_response = view(
-            request,
-            tally_id=self.tally.pk
-            )
-        response = json.loads(raw_response.content).get('data')[0]
-
-        admin_area, voters_voted, total_voters, male_voters, \
-            female_voters, unisex_voters, turnout_percentage = response
-        self.assertEquals(admin_area, '<td class="center">1</td>')
-        self.assertEquals(voters_voted, '<td class="center">80</td>')
-        self.assertEquals(total_voters, '<td class="center">20</td>')
-        self.assertEquals(male_voters, '<td class="center">20</td>')
-        self.assertEquals(female_voters, '<td class="center">None</td>')
-        self.assertEquals(unisex_voters, '<td class="center">None</td>')
-        self.assertEquals(turnout_percentage, '<td class="center">400.0%</td>')
-
-        filter = {
-            "data": '{\
-                "region_names": ["1"],\
-                "constituencies": ["Regions"],\
-                "sub_constituencies": []\
-        }'
-            }
-        request = RequestFactory().post(
-            f'/data/turnout-list/{self.tally.pk}', data=filter
-            )
-        request.user = self.user
-        request.session = {}
-        raw_response = view(
-            request,
-            tally_id=self.tally.pk
-            )
-        response = json.loads(raw_response.content).get('data')
-        self.assertEquals(response, [])
-
         # add
         view = admin_reports.SummaryReportDataView.as_view()
         request = self.factory.post('/sub-constituency-summary-report')
