@@ -10,7 +10,7 @@ from tally_ho.apps.tally.models import (
     Station, ResultForm, Result
     )
 from tally_ho.apps.tally.models.office import Office
-from tally_ho.apps.tally.views.reports.list_base_data_view import \
+from tally_ho.libs.reports.list_base_data_view import \
     NoneQsDatatableMixin
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
