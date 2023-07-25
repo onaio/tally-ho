@@ -263,7 +263,7 @@ class TurnoutReportByAdminAreasView(
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/turnout_report_by_admin_area.html'
 
-    def get(self, request, **kwargs):
+    def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         admin_level = kwargs.get('admin_level')
         language_de = get_datatables_language_de_from_locale(request)

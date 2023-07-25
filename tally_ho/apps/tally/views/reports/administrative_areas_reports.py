@@ -2098,7 +2098,6 @@ def get_results(request):
 
     returns: A JSON response of candidates results
     """
-    # TODO - how is this affected with the changes to turnout report.
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
     race_types = json.loads(request.GET.get('data')).get('race_types')
 

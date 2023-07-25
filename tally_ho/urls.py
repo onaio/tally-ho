@@ -175,10 +175,6 @@ urlpatterns = [
             administrative_areas_reports.DiscrepancyReportView.as_view(),
             name='sub-cons-stations-and-centers-excluded-after-investigation'),
 
-    # re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))/$',
-    #         administrative_areas_reports.TurnoutReportDataView.as_view(),
-    #         name='turnout-list-data'),
-
     re_path(r'^data/summary-list-data/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.SummaryReportDataView.as_view(),
             name='summary-list-data'),
