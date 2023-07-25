@@ -11,7 +11,7 @@ from tally_ho.apps.tally.models import (
     )
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.libs.reports.list_base_data_view import \
-    NoneQsDatatableMixin
+    NoneQsBaseDataView
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
@@ -67,6 +67,9 @@ def get_stations_in_admin_area(tally_id, admin_level, admin_area):
 def get_result_forms_for_station_in_admin_area(
         tally_id, admin_level, admin_area, station
         ):
+    """
+    get distinct result forms for a given station
+    """
     admin_area_name_filter = "center__region"
     if admin_level == "office":
         admin_area_name_filter = "center__office"
@@ -88,7 +91,9 @@ def get_result_forms_for_station_in_admin_area(
 def get_station_votes_in_admin_area(
         tally_id, admin_level, admin_area, station
         ):
-
+    """
+    Gets the station votes grouped by races for the given station.
+    """
     admin_area_name_filter = "center__region"
     if admin_level == "office":
         admin_area_name_filter = "center__office"
@@ -120,7 +125,7 @@ def get_station_votes_in_admin_area(
 
 class TurnoutReportByAdminAreasDataView(
     LoginRequiredMixin, mixins.GroupRequiredMixin, mixins.TallyAccessMixin,
-    NoneQsDatatableMixin
+    NoneQsBaseDataView
     ):
     group_required = groups.TALLY_MANAGER
     columns = ("area_code_or_name", "stations_expected", "stations_processed",

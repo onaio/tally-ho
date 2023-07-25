@@ -1,6 +1,8 @@
 """
 This module is to a data view response of type list; what BaseDataView is to
-a data view response of type queryset
+a data view response of type queryset i.e. BaseDataView knows how to apply
+filters and ordering to a response of querySet, NoneQsBaseDataView does this
+for response that are of type of list, i.e. a list of dictionaries.
 """
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -18,7 +20,7 @@ def sort_list_of_dicts(data, order):
     return sorted(data, key=lambda item: item[key_name], reverse=reverse)
 
 
-class NoneQsDatatableMixin(BaseDatatableView):
+class NoneQsBaseDataView(BaseDatatableView):
     """Json data based of list for datatables"""
 
     def ordering(self, qs):
@@ -78,6 +80,9 @@ class NoneQsDatatableMixin(BaseDatatableView):
         return len(qs)
 
     def get_aggregate(self, qs):
+        """
+        Compute aggregate, i.e. totals. later added to data tables response
+        """
         return None
 
     def get_context_data(self, *args, **kwargs):
