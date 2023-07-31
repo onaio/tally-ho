@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% load i18n static %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with server_side=True languageDE=languageDE %}
+<script>
+$(document).ready(() => {
+    // DataTable initialization for Table 2
+    const dt_language = {{ languageDE|safe }}
+    const offices_turnout_report_url = '{{ offices_remote_url }}'
+    const regions_turnout_report_url = '{{ regions_turnout_report_url }}'
+    const exportAction = function (e, dt, button, config) {
+    const self = this;
+    const oldStart = dt.settings()[0]._iDisplayStart;
+    dt.one('preXhr', function (e, s, data) {
+        // Just this once, load all data from the server...
+        data.start = 0;
+        data.length = -1;;
+        dt.one('preDraw', function (e, settings) {
+            if (button[0].className.indexOf('buttons-csv') >= 0) {
+                $.fn.dataTable.ext.buttons.csvHtml5.available(dt, config) ?
+                    $.fn.dataTable.ext.buttons.csvHtml5.action.call(self, e, dt, button, config) :
+                    $.fn.dataTable.ext.buttons.csvFlash.action.call(self, e, dt, button, config);
+            }
+            dt.one('preXhr', function (e, s, data) {
+                // DataTables thinks the first item displayed is index 0, but we're not drawing that.
+                // Set the property to what it was before exporting.
+                settings._iDisplayStart = oldStart;
+                data.start = oldStart;
+            });
+            // Reload the grid with the original page. Otherwise, API functions like table.cell(this) don't work properly.
+            setTimeout(dt.ajax.reload, 0);
+            // Prevent rendering of the full data to the DOM
+            return false;
+        });
+    });
+    // Requery the server with the new one-time export settings
+    dt.ajax.reload();
+  };
+
+    $('#turnout-report-table').DataTable({
+      language: dt_language, // global variable defined in html
+      order: [[0, "desc"]],
+      lengthMenu: [
+        [10, 25, 50, 100, 500, -1],
+        [10, 25, 50, 100, 500, 'Show all'],
+      ],
+      columnDefs: [
+        {
+          orderable: true,
+          searchable: true,
+          className: "center",
+          targets: [0, 1],
+        },
+      ],
+      searching: false,
+      ordering: true,
+      processing: true,
+      serverSide: true,
+      stateSave: true,
+      ajax: {
+        url: '{{ remote_url }}',
+        type: 'POST',
+        data: (d) => {
+          for (let i = 0; i < d.columns.length - 1; i++) {
+            d[`columns[${i}][data]`] = d.columns[i].data
+            d[`columns[${i}][name]`] = d.columns[i].name
+            d[`columns[${i}][searchable]`] = d.columns[i].searchable
+            d[`columns[${i}][search][value]`] = d.columns[i].search.value
+            d[`columns[${i}][search][regex]`] = d.columns[i].search.regex
+            d[`columns[${i}][data]`] = d.columns[i].data
+          }
+          d['order[0][column]'] = d.columns[d.order[0].column].data;
+          d['order[0][dir]'] = d.order[0].dir;
+          d['search[value]'] = d.search.value;
+          d['search[regex]'] = d.search.regex;
+          d['columns'] = d.columns;
+          d['order'] = d.order;
+          d['draw'] = d.draw;
+          d['start'] = d.start;
+          d['length'] = d.length;
+          d.data = JSON.stringify([])
+        },
+        dataSrc: (res) => {
+            console.log({res});
+            const {aggregate} = res;
+            if(aggregate){
+              const tr = document.createElement('tr');
+              tr.innerHTML = aggregate[0].join('');
+              $('#turnout-report-table tfoot').empty();
+              $('#turnout-report-table tfoot').append(tr)
+            }
+            return res.data
+        },
+        traditional: true,
+        dataType: 'json',
+      },
+      dom:
+        "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+      buttons: [
+        {
+          extend: "csv",
+          filename: '{{admin_level}}_turnout_report.csv',
+          action: exportAction,
+          exportOptions: {
+            columns: ':visible :not(.hide-from-export)',
+          },
+          customize: (csvData, _, dt) => {
+          // include the tfoot table rows as last rows in csv
+          const aggregate = dt.ajax.json().aggregate;
+          const tdRegex = new RegExp("<.*>(.*?)</.*>");
+          const footerCsvData = aggregate.map(row => row.flatMap(td => {
+            if (!tdRegex.test(td)){
+                return ""
+            }
+            return td.match(tdRegex)[1]
+          }).join(",")).join("\n")
+            const finalData = `${csvData}\n${footerCsvData}`
+            return finalData
+          },
+        },
+      ],
+      responsive: true,
+      });
+
+});
+
+
+
+</script>
+{% endblock %}
+{% block content %}
+
+<h1>{% trans 'Turnout Report' %}</h1>
+<br>
+
+
+<!-- TODO mark strings as translateable-->
+<ul class="nav nav-tabs">
+    <li role="presentation" class="{% if not admin_level or admin_level == 'region' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'region' %}">Regions</a></li>
+    <li role="presentation" class="{% if admin_level == 'office' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'office' %}">Offices</a></li>
+    <li role="presentation" class="{% if admin_level == 'constituency' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'constituency' %}">Constituencies</a></li>
+    <li role="presentation" class="{% if admin_level == 'sub_constituency' %} active {% endif %}"><a href="{% url 'turnout-list' tally_id  'sub_constituency' %}">Sub Constituencies</a></li>
+</ul>
+
+<style>
+    .py-2{
+        padding: 16px 0;
+    }
+
+</style>
+
+<div class="py-2">
+    <table class="display" id="turnout-report-table">
+        <thead>
+        <tr>
+            {% if admin_level == "office" %}
+            <th>{% trans 'Office' %}</th>
+            {% elif admin_level == "constituency" %}
+            <th>{% trans 'Main-Constituency' %}</th>
+            {% elif admin_level == "sub_constituency" %}
+            <th>{% trans 'Sub constituency' %}</th>
+            {% else %}
+            <th>{% trans 'Region' %}</th>
+            {% endif %}
+            <th>{% trans 'Stations Expected' %}</th>
+            <th>{% trans 'Stations Counted' %}</th>
+            <th>{% trans '% Progress' %}</th>
+            <th>{% trans 'Registrants in Counted Stations' %}</th>
+            <th>{% trans 'Votes Cast in Counted Stations' %}</th>
+            <th>{% trans '% Turnout' %}</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+    </table>
+</div>
+
+
+{% endblock %}

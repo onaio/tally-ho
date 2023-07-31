@@ -39,6 +39,10 @@ from tally_ho.apps.tally.views.reports import station_progress_report
 from tally_ho.apps.tally.views.reports import candidate_list_by_votes
 from tally_ho.apps.tally.views.reports import overall_votes
 from tally_ho.apps.tally.views.reports import votes_per_candidate
+from tally_ho.apps.tally.views.reports.turnout_reports_by_admin_areas import (
+    TurnoutReportByAdminAreasDataView,
+    TurnoutReportByAdminAreasView
+    )
 
 admin.autodiscover()
 
@@ -84,16 +88,16 @@ urlpatterns = [
             center_list_view.get_centers_stations_list,
             name='download-centers-and-stations-list'),
 
-    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/$',
-            administrative_areas_reports.TurnOutReportView.as_view(),
+    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/'
+            r'(?:(?P<admin_level>\w+)/)?$',
+            TurnoutReportByAdminAreasView.as_view(),
             name='turnout-list'),
-    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))/(?P<region_id>(\d+))/$',
-            administrative_areas_reports.TurnOutReportView.as_view(),
-            name='constituency-turnout-report'),
-    re_path(r'^data/turnout-list/(?P<tally_id>(\d+))'
-            r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
-            administrative_areas_reports.TurnOutReportView.as_view(),
-            name='sub-constituency-turnout-report'),
+    re_path(
+        r'^data/turnout-list-data/(?P<tally_id>(\d+))/'
+        r'(?:(?P<admin_level>\w+)/)?$',
+        TurnoutReportByAdminAreasDataView.as_view(),
+        name='turnout-list-data'
+        ),
 
     re_path(r'^data/summary-list/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.SummaryReportView.as_view(),
@@ -170,18 +174,6 @@ urlpatterns = [
             r'(stations-and-centers-excluded-after-investigation-list))/$',
             administrative_areas_reports.DiscrepancyReportView.as_view(),
             name='sub-cons-stations-and-centers-excluded-after-investigation'),
-
-    re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))/$',
-            administrative_areas_reports.TurnoutReportDataView.as_view(),
-            name='turnout-list-data'),
-    re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))'
-            r'/(?P<region_id>(\d+))/$',
-            administrative_areas_reports.TurnoutReportDataView.as_view(),
-            name='turnout-list-data'),
-    re_path(r'^data/turnout-list-data/(?P<tally_id>(\d+))'
-            r'/(?P<region_id>(\d+))/(?P<constituency_id>(\d+))/$',
-            administrative_areas_reports.TurnoutReportDataView.as_view(),
-            name='turnout-list-data'),
 
     re_path(r'^data/summary-list-data/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.SummaryReportDataView.as_view(),
@@ -466,9 +458,11 @@ urlpatterns = [
     re_path(r'^ajax/get-centers-stations/$',
             administrative_areas_reports.get_centers_stations,
             name='get-centers-stations'),
+
     re_path(r'^ajax/get-export/$',
             administrative_areas_reports.get_export,
             name='get-export'),
+
     re_path(r'^ajax/download-results/$',
             administrative_areas_reports.get_results,
             name='download-results'),
@@ -961,6 +955,7 @@ urlpatterns = [
     re_path(r'^data/office-list-data/(?P<tally_id>(\d+))/$',
             office_list_view.OfficeListDataView.as_view(),
             name='office-list-data'),
+
     re_path(r'^ajax/download-offices-list/$',
             office_list_view.get_offices_list,
             name='download-offices-list'),

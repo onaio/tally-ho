@@ -1,4 +1,5 @@
 import json
+
 from django.test import RequestFactory
 
 from tally_ho.libs.permissions import groups
@@ -19,6 +20,7 @@ from tally_ho.libs.tests.test_base import (
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
     electrol_races
 )
+
 
 
 class TestAdministrativeAreasReports(TestBase):
@@ -50,9 +52,11 @@ class TestAdministrativeAreasReports(TestBase):
             tally=self.tally,
             sub_constituency=self.sc,
             center_type=CenterType.GENERAL,
-            constituency=self.constituency)
+            constituency=self.constituency
+            )
         self.station = create_station(
-            center=center, registrants=20, tally=self.tally)
+            center=center, registrants=20, tally=self.tally
+            )
         self.result_form = create_result_form(
             tally=self.tally,
             form_state=FormState.ARCHIVED,
@@ -71,10 +75,12 @@ class TestAdministrativeAreasReports(TestBase):
             number_valid_votes=20,
             number_invalid_votes=0,
             number_ballots_received=20,
-        )
+            )
         votes = 20
-        create_candidates(self.result_form, votes=votes, user=self.user,
-                          num_results=1, tally=self.tally)
+        create_candidates(
+            self.result_form, votes=votes, user=self.user,
+            num_results=1, tally=self.tally
+            )
         for result in self.result_form.results.all():
             result.entry_version = EntryVersion.FINAL
             result.save()
@@ -86,43 +92,16 @@ class TestAdministrativeAreasReports(TestBase):
         Test that the sub constituency turn out and votes summary reports are
         rendered as expected.
         """
-        request = self._get_request()
-        view = admin_reports.TurnoutReportDataView.as_view()
-        request = self.factory.get('/sub-constituency-turnout-report')
-        request.user = self.user
-        response = view(
-            request,
-            tally_id=self.tally.pk,
-            region_id=self.region.pk,
-            constituency_id=self.constituency.pk)
-
-        # Sub Constituency turnout report tests
-        code, number_of_voters_voted, total_number_of_registrants,\
-            male_voters, female_voters, turnout_percentage, _, _, _ =\
-            json.loads(
-                response.content.decode())['data'][0]
-
-        self.assertEquals(
-            code, '<td class="center">{}</td>'.format(self.sc.code))
-        self.assertEquals(
-            number_of_voters_voted,
-            '<td class="center">{}</td>'.format(
-                self.recon_form.number_ballots_received))
-        self.assertEquals(total_number_of_registrants,
-                          '<td class="center">{}</td>'.format(
-                              self.station.registrants))
-        self.assertEquals(male_voters, '<td class="center">20</td>')
-        self.assertEquals(female_voters, '<td class="center">0</td>')
-        self.assertEquals(turnout_percentage, '<td class="center">100%</td>')
-
+        # add
         view = admin_reports.SummaryReportDataView.as_view()
-        request = self.factory.get('/sub-constituency-summary-report')
+        request = self.factory.post('/sub-constituency-summary-report')
         request.user = self.user
         response = view(
             request,
             tally_id=self.tally.pk,
             region_id=self.region.pk,
-            constituency_id=self.constituency.pk)
+            constituency_id=self.constituency.pk
+            )
 
         # Sub Constituency votes summary report tests
         code, valid_votes, invalid_votes, cancelled_votes, _, _, _ =\
