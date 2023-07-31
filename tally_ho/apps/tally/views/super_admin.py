@@ -674,6 +674,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
     columns = (
+        'sub_con_name',
         'sub_con_code',
         'election_level',
         'sub_race',
@@ -716,6 +717,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
             sub_con_code=F("center__sub_constituency__code")).values(
             'sub_con_code') \
             .annotate(
+                sub_con_name=F("center__sub_constituency__name"),
                 election_level=F("ballot__electrol_race__election_level"),
                 sub_race=F("ballot__electrol_race__ballot_name"),
                 total_forms=Count("barcode"),
