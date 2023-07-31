@@ -295,6 +295,7 @@ def create_quality_control(result_form, user):
 
 def create_station(center, registrants=1, tally=None, active=True):
     sc, _ = SubConstituency.objects.get_or_create(code=1,
+                                                  name="subConstituency",
                                                   field_office='1')
 
     station, _ = Station.objects.get_or_create(
