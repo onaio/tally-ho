@@ -12,6 +12,5 @@ fi
 echo "creating demo users..."
 python manage.py create_demo_users --settings=$SETTINGS
 echo "creating quarantine checks..."
-python manage.py create_electrol_races --settings=$SETTINGS
 python manage.py create_quarantine_checks --settings=$SETTINGS
 python manage.py runserver --settings=$SETTINGS
