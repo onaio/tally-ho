@@ -137,11 +137,11 @@ class TestFormListView(TestBase):
             raw_data_response_for_electrol_race_presidential
             ).get('data')
         self.assertEqual(len(data_response_for_electrol_race_presidential), 4)
-        election_levels_in_response = [form[8] for form in
+        election_levels_in_response = [form[9] for form in
                                   data_response_for_electrol_race_presidential]
-        sub_races_in_response = [form[9] for form in
+        sub_races_in_response = [form[10] for form in
                                   data_response_for_electrol_race_presidential]
-        form_states_in_response = [form[11] for form in
+        form_states_in_response = [form[12] for form in
                                    data_response_for_electrol_race_presidential]
 
         self.assertListEqual(

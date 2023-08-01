@@ -46,11 +46,14 @@ class StationProgressListView(TestBase):
         request.user = self.user
         response = view(request, tally_id=tally.pk)
 
-        office_name, sub_constituency_code, center_name, center_code,\
-            station_number, gender, registrants, active = json.loads(
+        office_name, sub_constituency_name, sub_constituency_code,\
+            center_name, center_code, station_number, gender, registrants,\
+                active = json.loads(
                 response.content.decode())['data'][0]
 
         self.assertEquals(office_name, str(station.center.office.name))
+        self.assertEquals(sub_constituency_name, str(
+            station.sub_constituency.name))
         self.assertEquals(sub_constituency_code, str(
             station.sub_constituency.code))
         self.assertEquals(office_name, str(station.center.office.name))

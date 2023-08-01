@@ -23,6 +23,7 @@ class StationProgressListDataView(LoginRequiredMixin,
     model = Station
     columns = (
         'center.office.name',
+        'sub_constituency.name',
         'sub_constituency.code',
         'center.name',
         'center.code',
@@ -47,6 +48,7 @@ class StationProgressListDataView(LoginRequiredMixin,
             qs = qs.filter(Q(station_number__contains=keyword) |
                            Q(center__office__name__contains=keyword) |
                            Q(center__code__contains=keyword) |
+                           Q(sub_constituency__name__contains=keyword) |
                            Q(sub_constituency__code__contains=keyword) |
                            Q(center__name__contains=keyword))
         return qs

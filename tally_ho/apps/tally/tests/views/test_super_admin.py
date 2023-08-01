@@ -1498,8 +1498,8 @@ class TestSuperAdmin(TestBase):
         ths = [th.text for th in doc.findAll('th')]
         self.assertListEqual(
             ths,
-            ['Sub Con', 'Election Level', 'Sub Race', 'Total forms',
-             'Unsubmitted', 'Intake', 'Data Entry 1', 'Data Entry 2',
+            ['Sub Con Name', 'Sub Con Code', 'Election Level', 'Sub Race',
+             'Total forms', 'Unsubmitted', 'Intake', 'DE1', 'DE2',
              'Corrections', 'Quality Control', 'Archived','Clearance',
              'Audit']
         )
@@ -1522,9 +1522,13 @@ class TestSuperAdmin(TestBase):
         content = json.loads(response.content)
         data = content["data"]
         first_row = data[0]
-        sub_con_code, election_level, sub_race, total_forms, unsubmitted,\
-        intake, de1, de2, corrections, quality_control, archived, clearance,\
-        audit = first_row
+        sub_con_name, sub_con_code, election_level, sub_race, total_forms,\
+            unsubmitted, intake, de1, de2, corrections, quality_control,\
+                archived, clearance, audit = first_row
+        self.assertEqual(
+            sub_con_name,
+            "<td class=\"center\">subConstituency</td>"
+        )
         self.assertEqual(
             sub_con_code,
             f"<td class=\"center\">{12345}</td>"

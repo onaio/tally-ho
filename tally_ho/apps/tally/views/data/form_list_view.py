@@ -47,6 +47,7 @@ class FormListDataView(LoginRequiredMixin,
         'office.name',
         'office.number',
         'ballot.number',
+        'center.sub_constituency.name',
         'center.sub_constituency.code',
         'ballot.electrol_race.election_level',
         'ballot.electrol_race.ballot_name',
@@ -136,6 +137,8 @@ class FormListDataView(LoginRequiredMixin,
                            Q(center__code__contains=keyword) |
                            Q(station_id__contains=keyword) |
                            Q(center__office__region__name__contains=keyword) |
+                           Q(center__sub_constituency__name__contains=keyword
+                             ) |
                            Q(center__office__name__contains=keyword) |
                            Q(center__office__number__contains=keyword) |
                            Q(station_number__contains=keyword) |

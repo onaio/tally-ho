@@ -32,9 +32,9 @@
 <h3>{% trans 'Reports' %}</h3>
 <ul>
     <li><a href="{% url 'turnout-list' tally_id=tally_id %}">{% trans 'Turnout Report' %}</a></li>
-    <li><a href="{% url 'summary-list' tally_id=tally_id %}">{% trans 'Votes Summary Report' %}</a></li>
-    <li><a href="{% url 'progressive-report-list' tally_id=tally_id %}">{% trans 'Progressive Report' %}</a></li>
-    <li>
+    <li style="display:none;"><a href="{% url 'summary-list' tally_id=tally_id %}">{% trans 'Votes Summary Report' %}</a></li>
+    <li style="display:none;"><a href="{% url 'progressive-report-list' tally_id=tally_id %}">{% trans 'Progressive Report' %}</a></li>
+    <li style="display:none;">
         {% trans 'Process Discrepancy Reports' %}
         <ul>
             <li><a href="{% url 'stations-and-centers-under-process-audit-list' tally_id=tally_id report_name='stations-and-centers-under-process-audit-list' %}">{% trans 'Stations and Centers under Process Audit' %}</a></li>
@@ -45,8 +45,8 @@
     <li><a href="{% url 'form-progress' tally_id=tally_id %}">{% trans 'Form Progress' %}</a></li>
     <li><a href="{% url 'progress-report-list' tally_id=tally_id %}">{% trans 'Progress by Sub Races Report' %}</a></li>
     <li><a href="{% url 'form-progress-by-form-state' tally_id=tally_id %}">{% trans 'Form Progress by Form State' %}</a></li>
-    <li><a href="{% url 'station-overall-votes' tally_id=tally_id %}">{% trans 'Station Overall Votes' %}</a></li>
-    <li><a href="{% url 'center-overall-votes' tally_id=tally_id %}">{% trans 'Center Overall Votes' %}</a></li>
+    <li style="display:none;"><a href="{% url 'station-overall-votes' tally_id=tally_id %}">{% trans 'Station Overall Votes' %}</a></li>
+    <li style="display:none;"><a href="{% url 'center-overall-votes' tally_id=tally_id %}">{% trans 'Center Overall Votes' %}</a></li>
     <li><a href="{% url 'staion-progress-list' tally_id=tally_id %}">{% trans 'Station Progress' %}</a></li>
     <li><a href="{% url 'form-duplicates' tally_id=tally_id %}">{% trans 'Form Duplicates' %}</a></li>
     <li><a href="{% url 'form-clearance' tally_id=tally_id %}">{% trans 'Form Clearance' %}</a></li>
