@@ -25,10 +25,15 @@ def generate_election_statistics(tally_id, election_level, gender=None):
     election_statistics = []
     # Calculate voters in counted stations
     election_level_ballots =\
-        Ballot.objects.filter(
-            tally_id=tally_id,
-            electrol_race__election_level=election_level,).distinct()
-
+        [
+            {
+                'id': ballot.id,
+                'number': ballot.number
+            } for ballot in Ballot.objects.filter(
+                    tally_id=tally_id,
+                    electrol_race__election_level=election_level,).only(
+            'id', 'number').values_list("id", "number", named=True)
+        ]
     voters_in_counted_stations = 0
     stations_counted = 0
     registrants_in_stations_counted = 0
@@ -43,7 +48,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
 
     for ballot in election_level_ballots:
         ballot_election_statistics = {
-            'ballot_number': ballot.number,
+            'ballot_number': ballot.get('number'),
             'stations_counted': 0,
             'percentage_of_stations_counted': 0,
             'voters_in_counted_stations': 0,
@@ -56,7 +61,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                 tally_id=tally_id,
                 center__resultform__ballot__electrol_race__election_level=\
                     election_level,
-                center__resultform__ballot=ballot,)
+                center__resultform__ballot__id=ballot.get('id'),)
         if gender:
             qs = qs.filter(gender=gender)
 
@@ -75,7 +80,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                     tally__id=tally_id,
                     center__resultform__ballot__electrol_race__election_level=\
                     election_level,
-                    center__resultform__ballot=ballot,
+                    center__resultform__ballot__id=ballot.get('id'),
                     center=station.center,
                     station_number=station.station_number,
                     ).values_list('form_state', flat=True).distinct()
@@ -104,7 +109,7 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                     result_form__tally__id=tally_id,
                     result_form__ballot__electrol_race__election_level=\
                         election_level,
-                    result_form__ballot=ballot,
+                    result_form__ballot__id=ballot.get('id'),
                     result_form__center=station.center,
                     result_form__station_number=station.station_number,
                     entry_version=EntryVersion.FINAL,
