@@ -34,6 +34,60 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                     electrol_race__election_level=election_level,).only(
             'id', 'number').values_list("id", "number", named=True)
         ]
+
+    # get stations
+    stations =\
+        [
+            {
+                'id': station.id,
+                'station_number': station.station_number,
+                'center': station.center,
+                'form_state': station.form_state,
+                'ballot_id': station.ballot_id,
+                'registrants': station.registrants,
+                'gender': station.gender
+            } for station in\
+                Station.objects.filter(
+                    tally_id=tally_id,
+                    center__resultform__ballot__electrol_race__election_level=\
+                            election_level,
+                ).annotate(
+                    form_state=F('center__resultform__form_state'),
+                    ballot_id=F('center__resultform__ballot__id')
+                        ).distinct(
+        'station_number', 'center', 'tally').only(
+            'id', 'station_number', 'center', 'form_state', 'ballot_id',
+            'gender', 'registrants'
+        ).values_list(
+        'id', 'station_number', 'center', 'form_state', 'ballot_id',
+        'gender', 'registrants', named=True)
+        ]
+
+    if gender:
+        stations =\
+            [station for station in stations\
+                if station.get('gender') == gender]
+
+    result_forms =\
+        [
+            {
+                'id': result_form.id,
+                'station_number': result_form.station_number,
+                'center': result_form.center,
+                'form_state': result_form.form_state,
+                'ballot': result_form.ballot,
+            } for result_form in\
+                ResultForm.objects.filter(
+                    tally__id=tally_id,
+                    ballot__electrol_race__election_level=election_level,
+                ).distinct(
+                'center', 'station_number', 'ballot', 'tally').only(
+                'id', 'station_number', 'center', 'form_state', 'ballot',
+        ).values_list(
+        'id', 'station_number', 'center', 'form_state', 'ballot', named=True
+        )
+    ]
+
     voters_in_counted_stations = 0
     stations_counted = 0
     registrants_in_stations_counted = 0
@@ -56,38 +110,32 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             'percentage_turnout_in_stations_counted': 0
         }
         # Calculate stations expected
-        qs =\
-            Station.objects.filter(
-                tally_id=tally_id,
-                center__resultform__ballot__electrol_race__election_level=\
-                    election_level,
-                center__resultform__ballot__id=ballot.get('id'),)
-        if gender:
-            qs = qs.filter(gender=gender)
-
-        ballot_election_statistics['stations_expected'] =\
-            qs.distinct('station_number', 'center', 'tally').count()
+        ballot_stations =\
+            [station for station in stations\
+                if station.get('ballot_id') == ballot.get('id')]
+        ballot_election_statistics['stations_expected'] = len(ballot_stations)
         aggregate_ballot_election_statistics['stations_expected'] += \
             ballot_election_statistics['stations_expected']
 
-        ballot_stations_with_archived_forms = qs.filter(
-            center__resultform__form_state=FormState.ARCHIVED,
-        ).distinct()
+        ballot_stations_with_archived_forms =\
+            [station for station in ballot_stations\
+                if station.get('form_state') == FormState.ARCHIVED]
+
         # Calculate stations processed/counted per ballot and total registrants
         for station in ballot_stations_with_archived_forms:
             form_states =\
-                ResultForm.objects.filter(
-                    tally__id=tally_id,
-                    center__resultform__ballot__electrol_race__election_level=\
-                    election_level,
-                    center__resultform__ballot__id=ballot.get('id'),
-                    center=station.center,
-                    station_number=station.station_number,
-                    ).values_list('form_state', flat=True).distinct()
+                set([
+                    result_form.get('form_state') for result_form in\
+                        result_forms\
+                            if result_form.get('ballot') == ballot.get('id')\
+                                and result_form.get('station_number') ==\
+                                    station.get('station_number')\
+                                and result_form.get('center') ==\
+                                    station.get('center')])
 
             station_is_processed =\
-                form_states.count() == 1 and\
-                form_states[0] == FormState.ARCHIVED
+                len(form_states) == 1 and\
+                form_states.pop() == FormState.ARCHIVED
             if not station_is_processed:
                 ballot_election_statistics['stations_counted'] = 0
                 ballot_election_statistics[
@@ -100,8 +148,8 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                 continue
 
             stations_counted += 1
-            if station.registrants:
-                registrants_in_stations_counted += station.registrants
+            if station.get('registrants'):
+                registrants_in_stations_counted += station.get('registrants')
 
             # Calculate voters voted in processed stations
             votes =\
@@ -110,8 +158,8 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                     result_form__ballot__electrol_race__election_level=\
                         election_level,
                     result_form__ballot__id=ballot.get('id'),
-                    result_form__center=station.center,
-                    result_form__station_number=station.station_number,
+                    result_form__center__id=station.get('center'),
+                    result_form__station_number=station.get('station_number'),
                     entry_version=EntryVersion.FINAL,
                     active=True,
                     ).annotate(
