@@ -227,13 +227,16 @@ def generate_overview_election_statistics(tally_id, election_level):
     election_statistics = {
         'male_voters_in_counted_stations': 0,
         'female_voters_in_counted_stations': 0,
+        'unisex_voters_in_counted_stations': 0,
         'voters_in_counted_stations': 0,
         'male_total_registrants_in_counted_stations': 0,
         'female_total_registrants_in_counted_stations': 0,
+        'unisex_total_registrants_in_counted_stations': 0,
         'total_registrants_in_counted_stations': 0,
         'percentage_of_stations_processed': 0.0,
         'male_projected_turnout_percentage': 0.0,
         'female_projected_turnout_percentage': 0.0,
+        'unisex_projected_turnout_percentage': 0.0,
         'projected_turnout_percentage': 0.0
     }
     result_forms_expected = ResultForm.objects.filter(
@@ -268,9 +271,11 @@ def generate_overview_election_statistics(tally_id, election_level):
     voters = 0
     male_voters = 0
     female_voters = 0
+    unisex_voters = 0
     stations_counted = 0
     total_male_registrants_in_counted_stations = 0
     total_female_registrants_in_counted_stations = 0
+    total_unisex_registrants_in_counted_stations = 0
     total_registrants_in_counted_stations = 0
     for station in station_ids_by_races:
         # Calculate stations processed and total registrants
@@ -289,15 +294,19 @@ def generate_overview_election_statistics(tally_id, election_level):
         if station_is_processed is False:
             election_statistics['male_voters_in_counted_stations'] = 0
             election_statistics['female_voters_in_counted_stations'] = 0
+            election_statistics['unisex_voters_in_counted_stations'] = 0
             election_statistics['voters_in_counted_stations'] = 0
             election_statistics[
                 'male_total_registrants_in_counted_stations'] = 0
             election_statistics[
                 'female_total_registrants_in_counted_stations'] = 0
+            election_statistics[
+                'unisex_total_registrants_in_counted_stations'] = 0
             election_statistics['total_registrants_in_counted_stations'] = 0
             election_statistics['percentage_of_stations_processed'] = 0.0
             election_statistics['male_projected_turnout_percentage'] = 0.0
             election_statistics['female_projected_turnout_percentage'] = 0.0
+            election_statistics['unisex_projected_turnout_percentage'] = 0.0
             election_statistics['projected_turnout_percentage'] = 0.0
             continue
 
@@ -309,6 +318,9 @@ def generate_overview_election_statistics(tally_id, election_level):
                     station.get('num_registrants')
         elif station.get('gender') == Gender.FEMALE:
             total_female_registrants_in_counted_stations +=\
+                station.get('num_registrants')
+        elif station.get('gender') == Gender.UNISEX:
+            total_unisex_registrants_in_counted_stations +=\
                 station.get('num_registrants')
 
         # Calculate voters voted in processed stations
@@ -337,6 +349,8 @@ def generate_overview_election_statistics(tally_id, election_level):
                 male_voters += votes[0].get('race_voters')
             elif station.get('gender') == Gender.FEMALE:
                 female_voters += votes[0].get('race_voters')
+            elif station.get('gender') == Gender.UNISEX:
+                unisex_voters += votes[0].get('race_voters')
 
     # Calculate turnout percentage
     if stations_counted != 0:
@@ -363,6 +377,15 @@ def generate_overview_election_statistics(tally_id, election_level):
             round(100 *\
                   female_voters / total_female_registrants_in_counted_stations,
                   2) if total_female_registrants_in_counted_stations else 0.0
+        # Unisex station statistics
+        election_statistics['unisex_voters_in_counted_stations'] =\
+            female_voters
+        election_statistics['unisex_total_registrants_in_counted_stations'] =\
+            total_female_registrants_in_counted_stations
+        election_statistics['unisex_projected_turnout_percentage'] =\
+            round(100 *\
+                  unisex_voters / total_unisex_registrants_in_counted_stations,
+                  2) if total_unisex_registrants_in_counted_stations else 0.0
 
     return election_statistics
 

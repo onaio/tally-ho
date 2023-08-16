@@ -183,27 +183,37 @@ $(document).ready(() => {
               </div>
           </div>
         </div>
-        <div class="col-12" style="margin-bottom: 2em;">
-            <div class="col-sm-3"  style="float: right">
+        <div class="col-12" style="margin-bottom: 2em; margin-left:.5em;">
+          <div class="col-sm-6" style="text-align: left;">
+              <div class="row">
+                <label><b>Total Unisex Voters in Counted Stations</b></label>
+                <span>{{election_statistics_report.unisex_voters_in_counted_stations}}</span>
+              </div>
+              <div class="row">
+                <label><b>Total Unisex Registrants in Counted Stations</b></label>
+                <span>{{election_statistics_report.unisex_total_registrants_in_counted_stations}}</span>
+              </div>
+              <div class="row">
+                <label><b>Projected Unisex Turnout (%)</b></label>
+                <span>{{election_statistics_report.unisex_projected_turnout_percentage}}</span>
+              </div>
+          </div>
+          <div class="col-sm-6"  style="float: right">
                 <p style="text-align: left; margin-left: .5em;">{% trans 'Station Gender' %}</p>
                 <select class="selectpicker" id="station-gender" name="report_length" aria-controls="report" data-actions-box="true" title="Station Gender">
                     {% for gender in genders %}
                     <option value={{gender.value}}>{{gender.name}}</option>
                     {% endfor %}
                 </select>
+                <div class="card">
+                <div class="card-body">
+                  <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
+                  <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+                  <button style="float: left; margin-left: 1em;" id="reset-filters-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
+                </div>
+              </div>
             </div>
         </div>
-    <div class="col-12" style="margin-bottom: 2em;">
-      <div class="col-sm-3" style="float: right">
-        <div class="card">
-          <div class="card-body">
-            <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
-            <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
-            <button style="float: left; margin-left: 1em;" id="reset-filters-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
-          </div>
-        </div>
-    </div>
-    </div>
   </div>
 </caption>
 <br>
