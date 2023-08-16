@@ -190,9 +190,9 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             ballot_election_statistics[
                 'percentage_turnout_in_stations_counted'] =\
                 round(
-                    100 * registrants_in_stations_counted /
-                    voters_in_counted_stations,
-                    2) if voters_in_counted_stations else 0
+                    100 * voters_in_counted_stations /
+                    registrants_in_stations_counted,
+                    2) if registrants_in_stations_counted else 0
             aggregate_ballot_election_statistics['stations_counted'] += \
                 ballot_election_statistics['stations_counted']
             aggregate_ballot_election_statistics[
@@ -212,11 +212,11 @@ def generate_election_statistics(tally_id, election_level, gender=None):
         aggregate_ballot_election_statistics[
             'percentage_turnout_in_stations_counted'] = round(
             100 * aggregate_ballot_election_statistics[
-                'registrants_in_stations_counted'] /
+                'voters_in_counted_stations'] /
             aggregate_ballot_election_statistics[
-                'voters_in_counted_stations'],
+                'registrants_in_stations_counted'],
             2) if aggregate_ballot_election_statistics[
-            'voters_in_counted_stations'] else 0.0
+            'registrants_in_stations_counted'] else 0.0
 
         election_statistics.append(ballot_election_statistics)
     election_statistics.append(aggregate_ballot_election_statistics)
