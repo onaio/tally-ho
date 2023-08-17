@@ -198,8 +198,8 @@ $(document).ready(() => {
                 <span>{{election_statistics_report.unisex_projected_turnout_percentage}}</span>
               </div>
           </div>
-          <div class="col-sm-6"  style="float: right">
-                <p style="text-align: left; margin-left: .5em;">{% trans 'Station Gender' %}</p>
+          <div class="col-sm-6"  style="float: right; padding-left: 0;">
+                <p style="text-align: left;">{% trans 'Station Gender' %}</p>
                 <select class="selectpicker" id="station-gender" name="report_length" aria-controls="report" data-actions-box="true" title="Station Gender">
                     {% for gender in genders %}
                     <option value={{gender.value}}>{{gender.name}}</option>
