@@ -182,7 +182,8 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                 'percentage_of_stations_counted'] = round(
                     100 * stations_counted / ballot_election_statistics[
                         'stations_expected'],
-                    2)
+                    2) if ballot_election_statistics['stations_expected']\
+                        else 0
             ballot_election_statistics['voters_in_counted_stations'] =\
                 voters_in_counted_stations
             ballot_election_statistics['registrants_in_stations_counted'] =\
