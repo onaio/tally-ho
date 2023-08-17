@@ -1,5 +1,3 @@
-from django.utils.translation import gettext_lazy as _
-
 from tally_ho.libs.utils.enum import Enum
 
 
@@ -8,8 +6,3 @@ class Gender(Enum):
     FEMALE = 1
     UNISEX = 3
 
-    CHOICES = [
-        (MALE, _(u'Male')),
-        (FEMALE, _(u'Female')),
-        (UNISEX, _(u'Unisex')),
-    ]

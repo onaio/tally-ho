@@ -47,6 +47,16 @@
     <li><a href="{% url 'form-progress-by-form-state' tally_id=tally_id %}">{% trans 'Form Progress by Form State' %}</a></li>
     <li style="display:none;"><a href="{% url 'station-overall-votes' tally_id=tally_id %}">{% trans 'Station Overall Votes' %}</a></li>
     <li style="display:none;"><a href="{% url 'center-overall-votes' tally_id=tally_id %}">{% trans 'Center Overall Votes' %}</a></li>
+    <li>
+        {% trans 'Election Statistics Reports' %}
+        <ul>
+            {% for election_level in election_levels %}
+                <li><a href="{% url 'election-statistics-report' tally_id=tally_id election_level=election_level %}">{{ election_level }} {% trans 'Election Statistics' %}</a></li>
+            {% endfor %}
+        </ul>
+    </li>
+    <li><a href="{% url 'station-overall-votes' tally_id=tally_id %}">{% trans 'Station Overall Votes' %}</a></li>
+    <li><a href="{% url 'center-overall-votes' tally_id=tally_id %}">{% trans 'Center Overall Votes' %}</a></li>
     <li><a href="{% url 'staion-progress-list' tally_id=tally_id %}">{% trans 'Station Progress' %}</a></li>
     <li><a href="{% url 'form-duplicates' tally_id=tally_id %}">{% trans 'Form Duplicates' %}</a></li>
     <li><a href="{% url 'form-clearance' tally_id=tally_id %}">{% trans 'Form Clearance' %}</a></li>
