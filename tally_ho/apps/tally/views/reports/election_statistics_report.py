@@ -242,7 +242,7 @@ def generate_overview_election_statistics(tally_id, election_level):
     }
     result_forms_expected = ResultForm.objects.filter(
                 tally__id=tally_id,
-                center__resultform__ballot__electrol_race__election_level=\
+                ballot__electrol_race__election_level=\
                 election_level).distinct()
     forms_expected = result_forms_expected.count()
     election_statistics['forms_expected'] = forms_expected
@@ -283,7 +283,7 @@ def generate_overview_election_statistics(tally_id, election_level):
         form_states =\
             ResultForm.objects.filter(
                 tally__id=tally_id,
-                center__resultform__ballot__electrol_race__election_level=\
+                ballot__electrol_race__election_level=\
                 election_level,
                 center__stations__id=station.get('id'),
                 station_number=station.get('number'),
