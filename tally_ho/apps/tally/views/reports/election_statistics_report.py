@@ -88,10 +88,6 @@ def generate_election_statistics(tally_id, election_level, gender=None):
         )
     ]
 
-    voters_in_counted_stations = 0
-    stations_counted = 0
-    registrants_in_stations_counted = 0
-
     aggregate_ballot_election_statistics = {
         'ballot_number': 'Total',
         'stations_expected': 0,
@@ -101,6 +97,9 @@ def generate_election_statistics(tally_id, election_level, gender=None):
     }
 
     for ballot in election_level_ballots:
+        voters_in_counted_stations = 0
+        stations_counted = 0
+        registrants_in_stations_counted = 0
         ballot_election_statistics = {
             'ballot_number': ballot.get('number'),
             'stations_counted': 0,
