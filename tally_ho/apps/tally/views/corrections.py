@@ -1,3 +1,5 @@
+import ast
+
 import dateutil.parser
 from django.core.serializers.json import json, DjangoJSONEncoder
 from django.core.exceptions import SuspiciousOperation
@@ -180,8 +182,8 @@ def save_recon(post_data, user, result_form):
             mismatched += 1
             value = post_data.get(v1.name)
             if value:
-                if value == 'False':
-                    value = False
+                if _type == 'bool':
+                    value = ast.literal_eval(value)
                 corrections[v1.name] = value
 
             # Error occured at data entry 1 stage
