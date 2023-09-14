@@ -88,10 +88,6 @@ def generate_election_statistics(tally_id, election_level, gender=None):
         )
     ]
 
-    voters_in_counted_stations = 0
-    stations_counted = 0
-    registrants_in_stations_counted = 0
-
     aggregate_ballot_election_statistics = {
         'ballot_number': 'Total',
         'stations_expected': 0,
@@ -101,6 +97,9 @@ def generate_election_statistics(tally_id, election_level, gender=None):
     }
 
     for ballot in election_level_ballots:
+        voters_in_counted_stations = 0
+        stations_counted = 0
+        registrants_in_stations_counted = 0
         ballot_election_statistics = {
             'ballot_number': ballot.get('number'),
             'stations_counted': 0,
@@ -136,7 +135,37 @@ def generate_election_statistics(tally_id, election_level, gender=None):
             station_is_processed =\
                 len(form_states) == 1 and\
                 form_states.pop() == FormState.ARCHIVED
-            if not station_is_processed:
+            if station_is_processed:
+                stations_counted += 1
+                if station.get('registrants'):
+                    registrants_in_stations_counted += station.get(
+                        'registrants')
+
+                # Calculate voters voted in processed stations
+                votes = \
+                    Result.objects.filter(
+                        result_form__tally__id=tally_id,
+                        result_form__ballot__electrol_race__election_level= \
+                            election_level,
+                        result_form__ballot__id=ballot.get('id'),
+                        result_form__center__id=station.get('center'),
+                        result_form__station_number=station.get(
+                            'station_number'),
+                        entry_version=EntryVersion.FINAL,
+                        active=True,
+                    ).annotate(
+                        race=F(
+                            'result_form__ballot__electrol_race__election_level')
+                    ).values('race').annotate(
+                        race_voters=Sum('votes')
+                    ).order_by(
+                        '-race_voters'
+                    ).values(
+                        'race_voters'
+                    )
+                if votes.count() != 0:
+                    voters_in_counted_stations += votes[0].get('race_voters')
+            else:
                 ballot_election_statistics['stations_counted'] = 0
                 ballot_election_statistics[
                     'percentage_of_stations_counted'] = 0
@@ -145,35 +174,6 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                     'registrants_in_stations_counted'] = 0
                 ballot_election_statistics[
                     'percentage_turnout_in_stations_counted'] = 0
-                continue
-
-            stations_counted += 1
-            if station.get('registrants'):
-                registrants_in_stations_counted += station.get('registrants')
-
-            # Calculate voters voted in processed stations
-            votes =\
-                Result.objects.filter(
-                    result_form__tally__id=tally_id,
-                    result_form__ballot__electrol_race__election_level=\
-                        election_level,
-                    result_form__ballot__id=ballot.get('id'),
-                    result_form__center__id=station.get('center'),
-                    result_form__station_number=station.get('station_number'),
-                    entry_version=EntryVersion.FINAL,
-                    active=True,
-                    ).annotate(
-                        race=F(
-                        'result_form__ballot__electrol_race__election_level')
-                    ).values('race').annotate(
-                        race_voters=Sum('votes')
-                    ).order_by(
-                        '-race_voters'
-                    ).values(
-                        'race_voters'
-                    )
-            if votes.count() != 0:
-                voters_in_counted_stations += votes[0].get('race_voters')
 
         # Calculate turnout percentage
         if stations_counted != 0:
@@ -242,7 +242,7 @@ def generate_overview_election_statistics(tally_id, election_level):
     }
     result_forms_expected = ResultForm.objects.filter(
                 tally__id=tally_id,
-                center__resultform__ballot__electrol_race__election_level=\
+                ballot__electrol_race__election_level=\
                 election_level).distinct()
     forms_expected = result_forms_expected.count()
     election_statistics['forms_expected'] = forms_expected
@@ -283,7 +283,7 @@ def generate_overview_election_statistics(tally_id, election_level):
         form_states =\
             ResultForm.objects.filter(
                 tally__id=tally_id,
-                center__resultform__ballot__electrol_race__election_level=\
+                ballot__electrol_race__election_level=\
                 election_level,
                 center__stations__id=station.get('id'),
                 station_number=station.get('number'),
