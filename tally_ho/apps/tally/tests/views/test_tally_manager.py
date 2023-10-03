@@ -85,9 +85,9 @@ class TestTallyManager(TestBase):
             user_id=user_id,
             tally_id=tally.id)
         response.render()
-        self.assertEquals(request.session['url_name'], 'user-tally-list')
-        self.assertEquals(request.session['url_param'], tally.id)
-        self.assertEquals(request.session['url_keyword'], 'tally_id')
+        self.assertEqual(request.session['url_name'], 'user-tally-list')
+        self.assertEqual(request.session['url_param'], tally.id)
+        self.assertEqual(request.session['url_keyword'], 'tally_id')
 
         request.session = {}
         request.META = {'HTTP_REFERER': '/tally-manager/user-list/user'}
@@ -97,8 +97,8 @@ class TestTallyManager(TestBase):
             user_id=user_id,
             tally_id=tally.id)
         response.render()
-        self.assertEquals(request.session['url_name'], 'user-tally-list')
-        self.assertEquals(request.session['url_keyword'], 'tally_id')
+        self.assertEqual(request.session['url_name'], 'user-tally-list')
+        self.assertEqual(request.session['url_keyword'], 'tally_id')
 
     def test_set_user_timeout_valid_post(self):
         tally = create_tally()

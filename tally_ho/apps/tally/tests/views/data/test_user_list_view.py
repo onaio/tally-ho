@@ -57,13 +57,13 @@ class TestUserListView(TestBase):
             _, date_joined, edit_link = json.loads(
                 response.content.decode())['data'][0]
 
-        self.assertEquals(
+        self.assertEqual(
             edit_link,
             f'<a href="/tally-manager/edit-user/user/{audit_user.id}/"'
             ' class="btn btn-default btn-small">Edit</a>')
-        self.assertEquals(username, audit_user.username)
-        self.assertEquals(first_name, audit_user.first_name)
-        self.assertEquals(last_name, audit_user.last_name)
-        self.assertEquals(date_joined,
+        self.assertEqual(username, audit_user.username)
+        self.assertEqual(first_name, audit_user.first_name)
+        self.assertEqual(last_name, audit_user.last_name)
+        self.assertEqual(date_joined,
                           audit_user.date_joined.strftime(
                               '%a, %d %b %Y %H:%M:%S %Z'))

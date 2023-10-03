@@ -44,7 +44,7 @@ class TestVotesPerCandidateListView(TestBase):
                         tally_id=self.tally.pk,
                         station_number=self.station.station_number)
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Station Votes per Candidate")
         self.assertContains(response, "Candidate Name")
         self.assertContains(response, "Votes")
@@ -61,7 +61,7 @@ class TestVotesPerCandidateListView(TestBase):
                         tally_id=self.tally.pk,
                         center_code=self.center.code)
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Center Votes per Candidate")
         self.assertContains(response, "Candidate Name")
         self.assertContains(response, "Votes")
@@ -85,11 +85,11 @@ class TestVotesPerCandidateListView(TestBase):
         candidate_name, candidate_votes = json.loads(
             response.content.decode())['data'][0]
 
-        self.assertEquals(
+        self.assertEqual(
             candidate_name,
             str('<td class="center sorting_1">'
                 f'{first_candidate.full_name}</td>'))
-        self.assertEquals(
+        self.assertEqual(
             candidate_votes,
             str('<td class="center">'
                 f'{first_candidate_votes}</td>'))
@@ -113,11 +113,11 @@ class TestVotesPerCandidateListView(TestBase):
         candidate_name, candidate_votes = json.loads(
             response.content.decode())['data'][0]
 
-        self.assertEquals(
+        self.assertEqual(
             candidate_name,
             str('<td class="center sorting_1">'
                 f'{first_candidate.full_name}</td>'))
-        self.assertEquals(
+        self.assertEqual(
             candidate_votes,
             str('<td class="center">'
                 f'{first_candidate_votes}</td>'))

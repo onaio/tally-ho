@@ -29,7 +29,7 @@ class TestCandidateListView(TestBase):
         request.session = {}
         response = view(request, tally_id=tally.pk)
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Candidate List")
 
     def test_candidate_list_per_office_view_get(self):
@@ -45,7 +45,7 @@ class TestCandidateListView(TestBase):
         request.session = {}
         response = view(request, tally_id=tally.pk, office_id=office.id)
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Candidate List Per Office")
 
     def test_candidate_list_data_view(self):
@@ -72,19 +72,19 @@ class TestCandidateListView(TestBase):
         election_level, sub_race, modified_date_formatted, action_btn =\
                 json.loads(response.content.decode())['data'][0]
 
-        self.assertEquals(parse_int(candidate_id), candidate.candidate_id)
-        self.assertEquals(candidate_full_name, candidate.full_name)
-        self.assertEquals(active, str(candidate.active))
-        self.assertEquals(parse_int(order), candidate.order)
-        self.assertEquals(parse_int(ballot_number), candidate.ballot.number)
-        self.assertEquals(election_level,
+        self.assertEqual(parse_int(candidate_id), candidate.candidate_id)
+        self.assertEqual(candidate_full_name, candidate.full_name)
+        self.assertEqual(active, str(candidate.active))
+        self.assertEqual(parse_int(order), candidate.order)
+        self.assertEqual(parse_int(ballot_number), candidate.ballot.number)
+        self.assertEqual(election_level,
                           candidate.ballot.electrol_race.election_level)
-        self.assertEquals(sub_race,
+        self.assertEqual(sub_race,
                           candidate.ballot.electrol_race.ballot_name)
-        self.assertEquals(
+        self.assertEqual(
             modified_date_formatted,
             candidate.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
-        self.assertEquals(
+        self.assertEqual(
             action_btn,
             str('<a href="/super-administrator/candidate-disable'
                 f'/{tally.id}/{candidate.id}" class="btn btn-default btn-small'
@@ -115,19 +115,19 @@ class TestCandidateListView(TestBase):
         election_level, sub_race, modified_date_formatted, action_btn =\
                 json.loads(response.content.decode())['data'][0]
 
-        self.assertEquals(parse_int(candidate_id), candidate.candidate_id)
-        self.assertEquals(candidate_full_name, candidate.full_name)
-        self.assertEquals(active, str(candidate.active))
-        self.assertEquals(parse_int(order), candidate.order)
-        self.assertEquals(parse_int(ballot_number), candidate.ballot.number)
-        self.assertEquals(election_level,
+        self.assertEqual(parse_int(candidate_id), candidate.candidate_id)
+        self.assertEqual(candidate_full_name, candidate.full_name)
+        self.assertEqual(active, str(candidate.active))
+        self.assertEqual(parse_int(order), candidate.order)
+        self.assertEqual(parse_int(ballot_number), candidate.ballot.number)
+        self.assertEqual(election_level,
                           candidate.ballot.electrol_race.election_level)
-        self.assertEquals(sub_race,
+        self.assertEqual(sub_race,
                           candidate.ballot.electrol_race.ballot_name)
-        self.assertEquals(
+        self.assertEqual(
             modified_date_formatted,
             candidate.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
-        self.assertEquals(
+        self.assertEqual(
             action_btn,
             str('<a href="/super-administrator/candidate-disable'
                 f'/{tally.id}/{candidate.id}" class="btn btn-default btn-small'

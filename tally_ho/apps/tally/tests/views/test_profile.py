@@ -55,9 +55,9 @@ class TestProfile(TestBase):
         response = views.session_expiry_logout_view(request)
 
         self.assertEqual(response.status_code, 302)
-        self.assertEquals(
+        self.assertEqual(
             request.session['encoded_result_form_data_entry_start_time'],
             encoded_result_form_data_entry_start_time)
-        self.assertEquals(
+        self.assertEqual(
             request.session['result_form'],
             result_form.pk)

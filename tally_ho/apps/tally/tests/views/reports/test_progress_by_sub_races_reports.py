@@ -104,12 +104,12 @@ class TestSubRacesReports(TestBase):
                 self.assertIn(key, data_item)
         # totals
         totals_row = data[-1]
-        self.assertEquals('Total', totals_row['region_name'])
+        self.assertEqual('Total', totals_row['region_name'])
         ballot_record_total = 0
         for data_item in data[:-1]:
             ballot_record_total += int(data_item[ballot_name].split('/')[0])
 
-        self.assertEquals(
+        self.assertEqual(
             int(data[-1][ballot_name].split('/')[0]), ballot_record_total)
 
         # Offices
@@ -130,12 +130,12 @@ class TestSubRacesReports(TestBase):
                 self.assertIn(key, data_item)
         # totals
         totals_row = data[-1]
-        self.assertEquals('Total', totals_row['office_name'])
+        self.assertEqual('Total', totals_row['office_name'])
         ballot_record_total = 0
         for data_item in data[:-1]:
             ballot_record_total += int(data_item[ballot_name].split('/')[0])
 
-        self.assertEquals(
+        self.assertEqual(
             int(data[-1][ballot_name].split('/')[0]), ballot_record_total)
 
         # Constituencies
@@ -156,12 +156,12 @@ class TestSubRacesReports(TestBase):
                 self.assertIn(key, data_item)
         # totals
         totals_row = data[-1]
-        self.assertEquals('Total', totals_row['constituency_name'])
+        self.assertEqual('Total', totals_row['constituency_name'])
         ballot_record_total = 0
         for data_item in data[:-1]:
             ballot_record_total += int(data_item[ballot_name].split('/')[0])
 
-        self.assertEquals(
+        self.assertEqual(
             int(data[-1][ballot_name].split('/')[0]), ballot_record_total)
 
         # Sub Constituencies
@@ -182,10 +182,10 @@ class TestSubRacesReports(TestBase):
                 self.assertIn(key, data_item)
         # totals
         totals_row = data[-1]
-        self.assertEquals('Total', totals_row['sub_constituency_code'])
+        self.assertEqual('Total', totals_row['sub_constituency_code'])
         ballot_record_total = 0
         for data_item in data[:-1]:
             ballot_record_total += int(data_item[ballot_name].split('/')[0])
-        self.assertEquals(
+        self.assertEqual(
             int(data[-1][ballot_name].split('/')[0]), ballot_record_total)
 
