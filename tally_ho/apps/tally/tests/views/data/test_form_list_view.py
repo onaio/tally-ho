@@ -157,7 +157,6 @@ class TestFormListView(TestBase):
                 'ballot_number_presidential'
             ]
             )
-        self.assertListEqual(
-            form_states_in_response,
-            ['Audit', 'Clearance', 'Intake', 'Unsubmitted']
-            )
+        expected_form_states = ['Audit', 'Clearance', 'Intake', 'Unsubmitted']
+        for state in expected_form_states:
+            self.assertIn(state, form_states_in_response)

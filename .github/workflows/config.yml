@@ -57,10 +57,11 @@ jobs:
             . venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements/dev.pip
+          pip install pytest-cov
           ruff . --exit-non-zero-on-fix
-          coverage run pytest tally_ho
-          coverage xml
-          ls -al
+          pytest tally_ho --cov=tally_ho
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v3
