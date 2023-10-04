@@ -18,4 +18,4 @@ class TestRegion(TestBase):
         # Test region object name is region name hyphen office name
         region_obj = Region.objects.get(pk=region.pk)
         expected_object_name = region_obj.name
-        self.assertEquals(expected_object_name, str(region_obj))
+        self.assertEqual(expected_object_name, str(region_obj))

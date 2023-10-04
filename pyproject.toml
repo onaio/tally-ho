@@ -45,3 +45,28 @@ target-version = "py39"
 [tool.ruff.mccabe]
 # Unlike Flake8, default to a complexity level of 10.
 max-complexity = 10
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tally_ho.settings.common"
+
+[tool.coverage.run]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "manage.py",
+    "tally_ho/wsgi.py",
+    "*/migrations/*",
+    "*/venv/*''*/settings/*",
+    "*/templates/*"
+]
+
+[tool.coverage.report]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "manage.py",
+    "tally_ho/wsgi.py",
+    "*/migrations/*",
+    "*/venv/*''*/settings/*",
+    "*/templates/*"
+]

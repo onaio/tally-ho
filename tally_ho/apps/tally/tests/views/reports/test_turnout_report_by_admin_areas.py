@@ -100,13 +100,13 @@ class TestTurnoutInAdminAreasReport(TestBase):
         view = TurnoutReportByAdminAreasView.as_view()
         response = view(request, tally_id=self.tally.pk)
         content = response.content.decode()
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         doc = BeautifulSoup(content, "xml")
 
         table_header_texts = [header.text for header in
                               doc.find('thead').findAll('th')]
-        self.assertEquals(
+        self.assertEqual(
             table_header_texts, ['Region',
                                  'Stations Expected',
                                  'Stations Counted',
@@ -125,13 +125,13 @@ class TestTurnoutInAdminAreasReport(TestBase):
         view = TurnoutReportByAdminAreasView.as_view()
         response = view(request, tally_id=self.tally.pk, admin_level='office')
         content = response.content.decode()
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         doc = BeautifulSoup(content, "xml")
 
         table_header_texts = [header.text for header in
                               doc.find('thead').findAll('th')]
-        self.assertEquals(
+        self.assertEqual(
             table_header_texts, ['Office',
                                  'Stations Expected',
                                  'Stations Counted',
@@ -153,13 +153,13 @@ class TestTurnoutInAdminAreasReport(TestBase):
             admin_level='constituency'
             )
         content = response.content.decode()
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         doc = BeautifulSoup(content, "xml")
 
         table_header_texts = [header.text for header in
                               doc.find('thead').findAll('th')]
-        self.assertEquals(
+        self.assertEqual(
             table_header_texts, ['Main-Constituency',
                                  'Stations Expected',
                                  'Stations Counted',
@@ -181,13 +181,13 @@ class TestTurnoutInAdminAreasReport(TestBase):
             admin_level='sub_constituency'
             )
         content = response.content.decode()
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         doc = BeautifulSoup(content, "xml")
 
         table_header_texts = [header.text for header in
                               doc.find('thead').findAll('th')]
-        self.assertEquals(
+        self.assertEqual(
             table_header_texts, ['Sub constituency',
                                  'Stations Expected',
                                  'Stations Counted',
@@ -206,33 +206,33 @@ class TestTurnoutInAdminAreasReport(TestBase):
         view = TurnoutReportByAdminAreasDataView.as_view()
         response = view(request, tally_id=self.tally.pk, admin_level='region')
         content = json.loads(response.content.decode())
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         (area_name, stations_expected, stations_processed,
          progress, registrants,
          voters,
          turnout) = content.get("data")[0]
 
-        self.assertEquals(area_name, '<td class="center">Region</td>')
-        self.assertEquals(stations_expected, '<td class="center">1</td>')
-        self.assertEquals(stations_processed, '<td class="center">1</td>')
-        self.assertEquals(progress, '<td class="center">100.0</td>')
-        self.assertEquals(registrants, '<td class="center">20</td>')
-        self.assertEquals(voters, '<td class="center">8</td>')
-        self.assertEquals(turnout, '<td class="center">40.0</td>')
+        self.assertEqual(area_name, '<td class="center">Region</td>')
+        self.assertEqual(stations_expected, '<td class="center">1</td>')
+        self.assertEqual(stations_processed, '<td class="center">1</td>')
+        self.assertEqual(progress, '<td class="center">100.0</td>')
+        self.assertEqual(registrants, '<td class="center">20</td>')
+        self.assertEqual(voters, '<td class="center">8</td>')
+        self.assertEqual(turnout, '<td class="center">40.0</td>')
 
         (area_name, stations_expected, stations_processed,
          progress, registrants,
          voters,
          turnout) = content.get("aggregate")[0]
 
-        self.assertEquals(area_name, '<td class="center">Total</td>')
-        self.assertEquals(stations_expected, '<td class="center">1</td>')
-        self.assertEquals(stations_processed, '<td class="center">1</td>')
-        self.assertEquals(progress, '<td class="center">100.0</td>')
-        self.assertEquals(registrants, '<td class="center">20</td>')
-        self.assertEquals(voters, '<td class="center">8</td>')
-        self.assertEquals(turnout, '<td class="center">40.0</td>')
+        self.assertEqual(area_name, '<td class="center">Total</td>')
+        self.assertEqual(stations_expected, '<td class="center">1</td>')
+        self.assertEqual(stations_processed, '<td class="center">1</td>')
+        self.assertEqual(progress, '<td class="center">100.0</td>')
+        self.assertEqual(registrants, '<td class="center">20</td>')
+        self.assertEqual(voters, '<td class="center">8</td>')
+        self.assertEqual(turnout, '<td class="center">40.0</td>')
 
     def test_turnout_data_in_office_view(self):
         request = RequestFactory().get(
@@ -243,33 +243,33 @@ class TestTurnoutInAdminAreasReport(TestBase):
         view = TurnoutReportByAdminAreasDataView.as_view()
         response = view(request, tally_id=self.tally.pk, admin_level='office')
         content = json.loads(response.content.decode())
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         (area_name, stations_expected, stations_processed,
          progress, registrants,
          voters,
          turnout) = content.get("data")[0]
 
-        self.assertEquals(area_name, '<td class="center">office</td>')
-        self.assertEquals(stations_expected, '<td class="center">1</td>')
-        self.assertEquals(stations_processed, '<td class="center">1</td>')
-        self.assertEquals(progress, '<td class="center">100.0</td>')
-        self.assertEquals(registrants, '<td class="center">20</td>')
-        self.assertEquals(voters, '<td class="center">8</td>')
-        self.assertEquals(turnout, '<td class="center">40.0</td>')
+        self.assertEqual(area_name, '<td class="center">office</td>')
+        self.assertEqual(stations_expected, '<td class="center">1</td>')
+        self.assertEqual(stations_processed, '<td class="center">1</td>')
+        self.assertEqual(progress, '<td class="center">100.0</td>')
+        self.assertEqual(registrants, '<td class="center">20</td>')
+        self.assertEqual(voters, '<td class="center">8</td>')
+        self.assertEqual(turnout, '<td class="center">40.0</td>')
 
         (area_name, stations_expected, stations_processed,
          progress, registrants,
          voters,
          turnout) = content.get("aggregate")[0]
 
-        self.assertEquals(area_name, '<td class="center">Total</td>')
-        self.assertEquals(stations_expected, '<td class="center">1</td>')
-        self.assertEquals(stations_processed, '<td class="center">1</td>')
-        self.assertEquals(progress, '<td class="center">100.0</td>')
-        self.assertEquals(registrants, '<td class="center">20</td>')
-        self.assertEquals(voters, '<td class="center">8</td>')
-        self.assertEquals(turnout, '<td class="center">40.0</td>')
+        self.assertEqual(area_name, '<td class="center">Total</td>')
+        self.assertEqual(stations_expected, '<td class="center">1</td>')
+        self.assertEqual(stations_processed, '<td class="center">1</td>')
+        self.assertEqual(progress, '<td class="center">100.0</td>')
+        self.assertEqual(registrants, '<td class="center">20</td>')
+        self.assertEqual(voters, '<td class="center">8</td>')
+        self.assertEqual(turnout, '<td class="center">40.0</td>')
 
     def test_turnout_data_in_sub_constituency_view(self):
         request = RequestFactory().get(
@@ -283,7 +283,7 @@ class TestTurnoutInAdminAreasReport(TestBase):
             admin_level='sub_constituency'
             )
         content = json.loads(response.content.decode())
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         # import ipdb; ipdb.set_trace()
 
         (area_name, stations_expected, stations_processed,
@@ -291,23 +291,23 @@ class TestTurnoutInAdminAreasReport(TestBase):
          voters,
          turnout) = content.get("data")[0]
 
-        self.assertEquals(area_name, '<td class="center">1</td>')
-        self.assertEquals(stations_expected, '<td class="center">1</td>')
-        self.assertEquals(stations_processed, '<td class="center">1</td>')
-        self.assertEquals(progress, '<td class="center">100.0</td>')
-        self.assertEquals(registrants, '<td class="center">20</td>')
-        self.assertEquals(voters, '<td class="center">8</td>')
-        self.assertEquals(turnout, '<td class="center">40.0</td>')
+        self.assertEqual(area_name, '<td class="center">1</td>')
+        self.assertEqual(stations_expected, '<td class="center">1</td>')
+        self.assertEqual(stations_processed, '<td class="center">1</td>')
+        self.assertEqual(progress, '<td class="center">100.0</td>')
+        self.assertEqual(registrants, '<td class="center">20</td>')
+        self.assertEqual(voters, '<td class="center">8</td>')
+        self.assertEqual(turnout, '<td class="center">40.0</td>')
 
         (area_name, stations_expected, stations_processed,
          progress, registrants,
          voters,
          turnout) = content.get("aggregate")[0]
 
-        self.assertEquals(area_name, '<td class="center">Total</td>')
-        self.assertEquals(stations_expected, '<td class="center">1</td>')
-        self.assertEquals(stations_processed, '<td class="center">1</td>')
-        self.assertEquals(progress, '<td class="center">100.0</td>')
-        self.assertEquals(registrants, '<td class="center">20</td>')
-        self.assertEquals(voters, '<td class="center">8</td>')
-        self.assertEquals(turnout, '<td class="center">40.0</td>')
+        self.assertEqual(area_name, '<td class="center">Total</td>')
+        self.assertEqual(stations_expected, '<td class="center">1</td>')
+        self.assertEqual(stations_processed, '<td class="center">1</td>')
+        self.assertEqual(progress, '<td class="center">100.0</td>')
+        self.assertEqual(registrants, '<td class="center">20</td>')
+        self.assertEqual(voters, '<td class="center">8</td>')
+        self.assertEqual(turnout, '<td class="center">40.0</td>')

@@ -1459,9 +1459,9 @@ class TestSuperAdmin(TestBase):
             user_id=user_id,
             tally_id=tally.id)
         response.render()
-        self.assertEquals(request.session['url_name'], 'user-tally-list')
-        self.assertEquals(request.session['url_param'], tally.id)
-        self.assertEquals(request.session['url_keyword'], 'tally_id')
+        self.assertEqual(request.session['url_name'], 'user-tally-list')
+        self.assertEqual(request.session['url_param'], tally.id)
+        self.assertEqual(request.session['url_keyword'], 'tally_id')
 
         request.session = {}
         request.META = {'HTTP_REFERER': '/tally-manager/user-list/user'}
@@ -1471,9 +1471,9 @@ class TestSuperAdmin(TestBase):
             user_id=user_id,
             tally_id=tally.id)
         response.render()
-        self.assertEquals(request.session['url_name'], 'user-list')
-        self.assertEquals(request.session['url_param'], 'user')
-        self.assertEquals(request.session['url_keyword'], 'role')
+        self.assertEqual(request.session['url_name'], 'user-list')
+        self.assertEqual(request.session['url_param'], 'user')
+        self.assertEqual(request.session['url_keyword'], 'role')
 
     def test_view_result_forms_progress_by_form_state(self):
         create_result_forms_per_form_state(

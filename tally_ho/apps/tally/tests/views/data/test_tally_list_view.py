@@ -50,18 +50,18 @@ class TestTallyListView(TestBase):
             admin_view_link, edit_link = json.loads(
                 response.content.decode())['data'][0]
 
-        self.assertEquals(
+        self.assertEqual(
             admin_view_link,
             f'<a href="/super-administrator/{tally.id}/"'
             ' class ="btn btn-default btn-small">Admin View</a>')
-        self.assertEquals(
+        self.assertEqual(
             edit_link,
             f'<a href="/tally-manager/update-tally/{tally.id}/"'
             ' class ="btn btn-default btn-small">Edit</a>')
-        self.assertEquals(tally_id, str(tally.id))
-        self.assertEquals(tally_name, tally.name)
-        self.assertEquals(created_date, str(tally.created_date))
-        self.assertEquals(
+        self.assertEqual(tally_id, str(tally.id))
+        self.assertEqual(tally_name, tally.name)
+        self.assertEqual(created_date, str(tally.created_date))
+        self.assertEqual(
             modified_formatted_date,
             tally.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
 
@@ -82,19 +82,19 @@ class TestTallyListView(TestBase):
         tally_id, tally_name, created_date, modified_formatted_date,\
             admin_view_link, edit_link = data[0]
 
-        self.assertEquals(1, len(data))
-        self.assertEquals(
+        self.assertEqual(1, len(data))
+        self.assertEqual(
             admin_view_link,
             f'<a href="/super-administrator/{tally_1.id}/"'
             ' class ="btn btn-default btn-small">Admin View</a>')
-        self.assertEquals(
+        self.assertEqual(
             edit_link,
             f'<a href="/tally-manager/update-tally/{tally_1.id}/"'
             ' class ="btn btn-default btn-small">Edit</a>')
-        self.assertEquals(tally_id, str(tally_1.id))
-        self.assertEquals(tally_name, tally_1.name)
-        self.assertEquals(created_date, str(tally_1.created_date))
-        self.assertEquals(
+        self.assertEqual(tally_id, str(tally_1.id))
+        self.assertEqual(tally_name, tally_1.name)
+        self.assertEqual(created_date, str(tally_1.created_date))
+        self.assertEqual(
             modified_formatted_date,
             tally_1.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z'))
 
@@ -114,4 +114,4 @@ class TestTallyListView(TestBase):
         json_data = json.loads(response.content.decode())
 
         self.assertListEqual([], json_data['data'])
-        self.assertEquals(2, json_data['recordsTotal'])
+        self.assertEqual(2, json_data['recordsTotal'])

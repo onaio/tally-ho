@@ -105,7 +105,7 @@ If you want to use Docker to run the site in production you will need to:
 
 ## Running Tests
 
-Pass the `-s` option if you want to use `ipdb.set_trace()` to debug during a test.
+run `pytest tally_ho`
 
 ## Documentation
 

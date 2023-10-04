@@ -18,4 +18,4 @@ class TestConstituency(TestBase):
         # Test constituency object name is constituency name hyphen center name
         constituency_obj = Constituency.objects.get(pk=constituency.pk)
         expected_object_name = constituency_obj.name
-        self.assertEquals(expected_object_name, str(constituency_obj))
+        self.assertEqual(expected_object_name, str(constituency_obj))

@@ -51,15 +51,15 @@ class StationProgressListView(TestBase):
                 active = json.loads(
                 response.content.decode())['data'][0]
 
-        self.assertEquals(office_name, str(station.center.office.name))
-        self.assertEquals(sub_constituency_name, str(
+        self.assertEqual(office_name, str(station.center.office.name))
+        self.assertEqual(sub_constituency_name, str(
             station.sub_constituency.name))
-        self.assertEquals(sub_constituency_code, str(
+        self.assertEqual(sub_constituency_code, str(
             station.sub_constituency.code))
-        self.assertEquals(office_name, str(station.center.office.name))
-        self.assertEquals(center_name, str(station.center.name))
-        self.assertEquals(center_code, str(station.center.code))
-        self.assertEquals(station_number, str(station.station_number))
-        self.assertEquals(gender, str(station.gender.name.capitalize()))
-        self.assertEquals(registrants, str(station.registrants))
-        self.assertEquals(active, str(station.active))
+        self.assertEqual(office_name, str(station.center.office.name))
+        self.assertEqual(center_name, str(station.center.name))
+        self.assertEqual(center_code, str(station.center.code))
+        self.assertEqual(station_number, str(station.station_number))
+        self.assertEqual(gender, str(station.gender.name.capitalize()))
+        self.assertEqual(registrants, str(station.registrants))
+        self.assertEqual(active, str(station.active))
