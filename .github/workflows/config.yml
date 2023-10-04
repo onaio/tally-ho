@@ -59,7 +59,7 @@ jobs:
           pip install -r requirements/dev.pip
           pip install pytest-cov
           ruff . --exit-non-zero-on-fix
-          pytest tally_ho --cov=tally_ho
+          pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html --cov-exclude='*/tests/*','*/__init__.py','manage.py','tally_ho/wsgi.py','*/migrations/*','*/venv/*''*/settings/*','*/templates/*'
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -67,4 +67,5 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage.xml
           fail_ci_if_error: true
