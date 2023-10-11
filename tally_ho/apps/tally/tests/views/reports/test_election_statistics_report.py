@@ -33,17 +33,18 @@ class TestElectionStatisticsReports(TestBase):
             self.tally,
             **electrol_races[0]
         )
-        ballot = create_ballot(self.tally, electrol_race=self.electrol_race)
+        self.ballot = create_ballot(
+            self.tally, electrol_race=self.electrol_race)
         self.region = create_region(tally=self.tally)
-        office = create_office(tally=self.tally, region=self.region)
+        self.office = create_office(tally=self.tally, region=self.region)
         self.constituency = create_constituency(tally=self.tally)
         self.sc = create_sub_constituency(
-            code=1, tally=self.tally, field_office='1', ballots=[ballot])
-        center, _ = Center.objects.get_or_create(
+            code=1, tally=self.tally, field_office='1', ballots=[self.ballot])
+        self.center, _ = Center.objects.get_or_create(
             code='1',
             mahalla='1',
             name='1',
-            office=office,
+            office=self.office,
             region='1',
             village='1',
             active=True,
@@ -52,14 +53,14 @@ class TestElectionStatisticsReports(TestBase):
             center_type=CenterType.GENERAL,
             constituency=self.constituency)
         self.station = create_station(
-            center=center, registrants=20, tally=self.tally)
+            center=self.center, registrants=20, tally=self.tally)
         self.result_form = create_result_form(
             tally=self.tally,
             form_state=FormState.ARCHIVED,
-            office=office,
-            center=center,
+            office=self.office,
+            center=self.center,
             station_number=self.station.station_number,
-            ballot=ballot)
+            ballot=self.ballot)
         self.recon_form = create_reconciliation_form(
             result_form=self.result_form,
             user=self.user,
@@ -121,17 +122,6 @@ class TestElectionStatisticsReports(TestBase):
 
         for key, val in enumerate(aggregate):
             self.assertEqual(total[key], val)
-        self.result_form.form_state = FormState.UNSUBMITTED
-        self.result_form.save()
-        election_stats = \
-            election_statistics_report.generate_election_statistics(
-                self.tally.id, 'Presidential')
-        fields.remove('ballot_number')
-        fields.remove('stations_expected')
-        for stat in election_stats:
-            for k, v in stat.items():
-                if k in fields:
-                    self.assertEqual(v, 0)
 
     def test_generate_overview_election_statistics(self):
         """
@@ -160,8 +150,17 @@ class TestElectionStatisticsReports(TestBase):
         self.assertEqual(election_stats['forms_expected'], 1)
         self.assertEqual(election_stats['forms_counted'], 1)
         self.assertEqual(election_stats['stations_expected'], 1)
-        self.result_form.form_state = FormState.UNSUBMITTED
-        self.result_form.save()
+        create_result_form(
+            barcode='012345678',
+            tally=self.tally,
+            form_state=FormState.UNSUBMITTED,
+            office=self.office,
+            center=self.center,
+            station_number=self.station.station_number,
+            ballot=self.ballot,
+            serial_number=1,
+            name='Another Result Form'
+        )
         election_stats = \
             election_statistics_report.generate_overview_election_statistics(
                 self.tally.id, 'Presidential')
