@@ -200,15 +200,17 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                 aggregate_ballot_election_statistics['stations_counted'] += \
                     ballot_election_statistics['stations_counted']
                 aggregate_ballot_election_statistics[
-                    'voters_in_counted_stations'] += ballot_election_statistics[
-                    'voters_in_counted_stations']
+                    'voters_in_counted_stations'] += \
+                    ballot_election_statistics['voters_in_counted_stations']
                 aggregate_ballot_election_statistics[
                     'registrants_in_stations_counted'] += \
-                    ballot_election_statistics['registrants_in_stations_counted']
+                    ballot_election_statistics[
+                        'registrants_in_stations_counted']
         if election_level != 'Presidential':
             aggregate_ballot_election_statistics[
                 'percentage_of_stations_counted'] = round(
-                100 * aggregate_ballot_election_statistics['stations_counted'] /
+                100 * aggregate_ballot_election_statistics[
+                    'stations_counted'] /
                 aggregate_ballot_election_statistics[
                     'stations_expected'],
                 2) if aggregate_ballot_election_statistics[
