@@ -9,9 +9,9 @@ from tally_ho.apps.tally.views.reports import (
     election_statistics_report
 )
 from tally_ho.libs.tests.test_base import (
-    create_electrol_race, create_result_form, create_station,\
-    create_reconciliation_form, create_sub_constituency, create_tally,\
-    create_region, create_constituency, create_office, create_result,\
+    create_electrol_race, create_result_form, create_station, \
+    create_reconciliation_form, create_sub_constituency, create_tally, \
+    create_region, create_constituency, create_office, create_result, \
     create_candidates, TestBase, create_ballot
 )
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
@@ -35,7 +35,7 @@ class TestElectionStatisticsReports(TestBase):
         self.region = create_region(tally=self.tally)
         office = create_office(tally=self.tally, region=self.region)
         self.constituency = create_constituency(tally=self.tally)
-        self.sc =create_sub_constituency(
+        self.sc = create_sub_constituency(
             code=1, tally=self.tally, field_office='1', ballots=[ballot])
         center, _ = Center.objects.get_or_create(
             code='1',
@@ -107,11 +107,27 @@ class TestElectionStatisticsReports(TestBase):
             for field in fields:
                 self.assertIn(field, stat)
 
-        aggregate = {}
-        for stat in election_stats:
-            for record, value in enumerate(stat):
-                if record in aggregate_keys:
-                    if record in aggregate:
-                        aggregate[record] += value
-                    else:
-                        aggregate[record] = value
+    def test_generate_overview_election_statistics(self):
+        election_stats = \
+            election_statistics_report.generate_overview_election_statistics(
+                self.tally.id, 'Presidential')
+        fields = [
+            'male_voters_in_counted_stations',
+            'female_voters_in_counted_stations',
+            'unisex_voters_in_counted_stations',
+            'voters_in_counted_stations',
+            'male_total_registrants_in_counted_stations',
+            'female_total_registrants_in_counted_stations',
+            'unisex_total_registrants_in_counted_stations',
+            'total_registrants_in_counted_stations',
+            'percentage_of_stations_processed',
+            'male_projected_turnout_percentage',
+            'female_projected_turnout_percentage',
+            'unisex_projected_turnout_percentage',
+            'projected_turnout_percentage'
+        ]
+        for field in fields:
+            self.assertIn(field, election_stats.keys())
+        self.assertEqual(election_stats['forms_expected'], 1)
+        self.assertEqual(election_stats['forms_counted'], 1)
+        self.assertEqual(election_stats['stations_expected'], 1)
