@@ -106,6 +106,30 @@ class TestElectionStatisticsReports(TestBase):
         for stat in election_stats:
             for field in fields:
                 self.assertIn(field, stat)
+        total = election_stats.pop()
+        self.assertEqual(total['ballot_number'], 'Total')
+        aggregate = {}
+        for stat in election_stats:
+            for record, value in enumerate(stat):
+                if record in aggregate_keys:
+                    if record in aggregate:
+                        aggregate[record] += value
+                    else:
+                        aggregate[record] = value
+
+        for key, val in enumerate(aggregate):
+            self.assertEqual(total[key], val)
+        self.result_form.form_state = FormState.UNSUBMITTED
+        self.result_form.save()
+        election_stats = \
+            election_statistics_report.generate_election_statistics(
+                self.tally.id, 'Presidential')
+        fields.remove('ballot_number')
+        fields.remove('stations_expected')
+        for stat in election_stats:
+            for k, v in stat.items():
+                if k in fields:
+                    self.assertEqual(v, 0)
 
     def test_generate_overview_election_statistics(self):
         election_stats = \
@@ -131,3 +155,12 @@ class TestElectionStatisticsReports(TestBase):
         self.assertEqual(election_stats['forms_expected'], 1)
         self.assertEqual(election_stats['forms_counted'], 1)
         self.assertEqual(election_stats['stations_expected'], 1)
+        self.result_form.form_state = FormState.UNSUBMITTED
+        self.result_form.save()
+        election_stats = \
+            election_statistics_report.generate_overview_election_statistics(
+                self.tally.id, 'Presidential')
+        for k, v in election_stats.items():
+            if k in fields:
+                self.assertEqual(v, 0)
+
