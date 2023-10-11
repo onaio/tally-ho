@@ -189,3 +189,12 @@ class TestSubRacesReports(TestBase):
         self.assertEqual(
             int(data[-1][ballot_name].split('/')[0]), ballot_record_total)
 
+        # progress_report
+        view = progress_reports.progress_report
+        request = self.factory.get('/data/progress-report-list/')
+        request.user = self.user
+        request.session = {'locale': 'en'}
+        response = view(
+            request,
+            tally_id=self.tally.pk)
+        self.assertEqual(response.status_code, 200)
