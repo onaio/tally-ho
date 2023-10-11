@@ -1,3 +1,5 @@
+import json
+
 from django.test import RequestFactory
 
 from tally_ho.libs.permissions import groups
@@ -132,6 +134,9 @@ class TestElectionStatisticsReports(TestBase):
                     self.assertEqual(v, 0)
 
     def test_generate_overview_election_statistics(self):
+        """
+        Test generate_overview_election_statistics function
+        """
         election_stats = \
             election_statistics_report.generate_overview_election_statistics(
                 self.tally.id, 'Presidential')
@@ -164,3 +169,33 @@ class TestElectionStatisticsReports(TestBase):
             if k in fields:
                 self.assertEqual(v, 0)
 
+    def test_election_statistics_data_view(self):
+        """
+        Test ElectionStatisticsDataView
+        """
+        view = election_statistics_report.ElectionStatisticsDataView.as_view()
+        request = self.factory.get(
+            '/reports/internal/election-statistics-data')
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, election_level='Presidential')
+        data = json.loads(response.content.decode())['data'][0]
+
+        election_stats = \
+            election_statistics_report.generate_election_statistics(
+                self.tally.id, 'Presidential')
+        self.assertDictEqual(election_stats[0], data)
+
+    def test_election_statistics_report_view(self):
+        """
+        Test ElectionStatisticsReportView
+        """
+        view = election_statistics_report\
+            .ElectionStatisticsReportView.as_view()
+        request = self.factory.get(
+            '/reports/internal/election-statistics-report')
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, election_level='Presidential')
+
+        self.assertEqual(response.status_code, 200)

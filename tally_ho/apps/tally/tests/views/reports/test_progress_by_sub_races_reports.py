@@ -80,9 +80,9 @@ class TestSubRacesReports(TestBase):
             # create duplicate final results
             create_result(self.result_form, result.candidate, self.user, votes)
 
-    def test_regions_reports_view(self):
+    def test_progress_reports_view(self):
         """
-        Test that the regions view returns the correct progress reports.
+        Test that the progress views returns the correct progress reports.
         """
         # Regions
         view = progress_reports.RegionsReportView.as_view()
