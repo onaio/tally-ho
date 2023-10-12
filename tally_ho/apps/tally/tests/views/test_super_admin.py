@@ -1840,3 +1840,29 @@ class TestSuperAdmin(TestBase):
         electoral_race = ElectrolRace.objects.get(id=electrol_race.id)
         self.assertTrue(electoral_race.active)
         self.assertEqual(response.status_code, 302)
+
+    def test_create_edit_electrol_race_view(self):
+        tally = create_tally()
+        electrol_race = create_electrol_race(
+            self.tally,
+            **electrol_races[0]
+        )
+        view = views.EditElectrolRaceView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            id=electrol_race.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test create
+        view = views.CreateElectrolRaceView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id,
+            id=electrol_race.id
+        )
+        self.assertEqual(response.status_code, 200)
+
