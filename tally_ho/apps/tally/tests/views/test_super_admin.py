@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
+from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
@@ -1703,16 +1704,29 @@ class TestSuperAdmin(TestBase):
         data = content["data"]
         self.assertEqual(0, len(data))
 
-    def test_disable_candidate_view(self):
+    def test_enable_disable_candidate_view(self):
         tally = create_tally()
         ballot = create_ballot(tally)
         candidate = create_candidate(
             ballot, "candidate name", tally)
+
+        # test diable
         self.assertTrue(candidate.active)
         view = views.DisableCandidateView.as_view()
         request = self.factory.get('/')
         request.user = self.user
         response = view(
             request, tally_id=self.tally.id, candidateId=candidate.id)
+        candidate = Candidate.objects.get(id=candidate.id)
+        self.assertFalse(candidate.active)
+        self.assertEqual(response.status_code, 302)
 
+        # test enable
+        view = views.EnableCandidateView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, candidateId=candidate.id)
+        candidate = Candidate.objects.get(id=candidate.id)
+        self.assertTrue(candidate.active)
         self.assertEqual(response.status_code, 302)
