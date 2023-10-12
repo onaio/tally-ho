@@ -1866,3 +1866,36 @@ class TestSuperAdmin(TestBase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_enable_disable_entity_view(self):
+        tally = create_tally()
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        view = views.DisableEntityView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            station_number=station.id,
+            center_code=center.code
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test enable
+        station = Station.objects.get(id=station.id)
+        self.assertTrue(station.active)
+        view = views.EnableEntityView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            station_number=station.id,
+            center_code=center.code
+        )
+        station = Station.objects.get(id=station.id)
+        self.assertFalse(station.active)
+        self.assertEqual(response.status_code, 302)
+
