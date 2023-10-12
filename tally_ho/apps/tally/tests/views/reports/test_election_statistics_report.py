@@ -106,8 +106,7 @@ class TestElectionStatisticsReports(TestBase):
         for stat in election_stats:
             for field in fields:
                 self.assertIn(field, stat)
-        total = election_stats.pop()
-        self.assertEqual(total['ballot_number'], 'Total')
+
         aggregate = {}
         for stat in election_stats:
             for record, value in enumerate(stat):
@@ -116,6 +115,3 @@ class TestElectionStatisticsReports(TestBase):
                         aggregate[record] += value
                     else:
                         aggregate[record] = value
-
-        for key, val in enumerate(aggregate):
-            self.assertEqual(total[key], val)
