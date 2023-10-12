@@ -1730,3 +1730,15 @@ class TestSuperAdmin(TestBase):
         candidate = Candidate.objects.get(id=candidate.id)
         self.assertTrue(candidate.active)
         self.assertEqual(response.status_code, 302)
+
+    def test_remove_station_confirmation_view(self):
+        tally = create_tally()
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        view = views.RemoveStationConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, station_id=station.id)
+        self.assertEqual(response.status_code, 200)
+
