@@ -27,6 +27,7 @@ from tally_ho.libs.tests.test_base import (
     configure_messages,
     create_audit,
     create_ballot,
+    create_candidate,
     create_candidates,
     create_electrol_race,
     create_reconciliation_form,
@@ -1701,3 +1702,17 @@ class TestSuperAdmin(TestBase):
         content = json.loads(response.content)
         data = content["data"]
         self.assertEqual(0, len(data))
+
+    def test_disable_candidate_view(self):
+        tally = create_tally()
+        ballot = create_ballot(tally)
+        candidate = create_candidate(
+            ballot, "candidate name", tally)
+        self.assertTrue(candidate.active)
+        view = views.DisableCandidateView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, candidateId=candidate.id)
+
+        self.assertEqual(response.status_code, 302)
