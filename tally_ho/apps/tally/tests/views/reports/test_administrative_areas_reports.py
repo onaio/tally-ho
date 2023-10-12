@@ -247,3 +247,98 @@ class TestAdministrativeAreasReports(TestBase):
         response = self.apply_filter(data)
         self.assertEqual(
             len(json.loads(response.content.decode())['data']), 2)
+
+    def test_administrative_areas_reports_views(self):
+        # test ActiveCandidatesVotesListView
+        tally = create_tally()
+        view = admin_reports.ActiveCandidatesVotesListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test ActiveCandidatesVotesDataView
+        view = admin_reports.ActiveCandidatesVotesDataView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        request = self.factory.post('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test AllCandidatesVotesListView
+        view = admin_reports.AllCandidatesVotesListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test AllCandidatesVotesDataView
+        view = admin_reports.AllCandidatesVotesDataView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        request = self.factory.post('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test DuplicateResultsListView
+        view = admin_reports.DuplicateResultsListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test DuplicateResultsListDataView
+        view = admin_reports.DuplicateResultsListDataView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        request = self.factory.post('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test ResultFormResultsListView
+        view = admin_reports.ResultFormResultsListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test SubConstituencyReportsView
+        view = admin_reports.ResultFormResultsListView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
