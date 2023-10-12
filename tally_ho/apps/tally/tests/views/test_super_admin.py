@@ -1744,7 +1744,7 @@ class TestSuperAdmin(TestBase):
             request, tally_id=tally.id, station_id=station.id)
         self.assertEqual(response.status_code, 200)
 
-    def test_quarantine_checks_config_view(self):
+    def test_quarantine_checks_config_list_view(self):
         tally = create_tally()
         quarantine_data = getattr(settings, 'QUARANTINE_DATA')
         create_quarantine_checks(quarantine_data)
@@ -1757,3 +1757,8 @@ class TestSuperAdmin(TestBase):
             request, tally_id=tally.id, checkId=quarantine_check.id)
         self.assertEqual(response.status_code, 200)
 
+        # test list view
+        view = views.QuarantineChecksListView.as_view()
+        response = view(
+            request, tally_id=tally.id)
+        self.assertEqual(response.status_code, 200)
