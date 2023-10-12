@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 
+from django.contrib import messages
 from django.core.exceptions import SuspiciousOperation
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages.storage import default_storage
@@ -12,6 +13,7 @@ from bs4 import BeautifulSoup
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
@@ -1763,7 +1765,7 @@ class TestSuperAdmin(TestBase):
             request, tally_id=tally.id)
         self.assertEqual(response.status_code, 200)
 
-    def test_disable_ballot_view(self):
+    def test_enable_disable_ballot_view(self):
         tally = create_tally()
         ballot = create_ballot(tally)
         self.assertTrue(ballot.active)
@@ -1773,3 +1775,68 @@ class TestSuperAdmin(TestBase):
         response = view(
             request, tally_id=tally.id, ballot_id=ballot.id)
         self.assertEqual(response.status_code, 200)
+
+        request = self.factory.post('/')
+        request._messages = messages.storage.default_storage(request)
+        request.user = self.user
+        response = view(
+            request, tally_id=tally.id, ballot_id=ballot.id)
+        self.assertEqual(response.status_code, 200)
+
+        # test enable
+        ballot = Ballot.objects.get(id=ballot.id)
+        ballot.active = False
+        ballot.save()
+        self.assertFalse(ballot.active)
+        view = views.EnableBallotView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.user = self.user
+        response = view(
+            request, tally_id=tally.id, ballot_id=ballot.id)
+        ballot = Ballot.objects.get(id=ballot.id)
+        self.assertTrue(ballot.active)
+        self.assertEqual(response.status_code, 302)
+
+    def test_enable_disable_electrol_race_view(self):
+        tally = create_tally()
+        electrol_race = create_electrol_race(
+            self.tally,
+            **electrol_races[0]
+        )
+        self.assertTrue(self.electrol_race.active)
+        view = views.DisableElectrolRaceView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            electrol_race_id=electrol_race.id
+        )
+        electoral_race = ElectrolRace.objects.get(id=electrol_race.id)
+        self.assertEqual(response.status_code, 200)
+        # test post
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            electrol_race_id=electrol_race.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test enable
+        electoral_race.active = False
+        electoral_race.save()
+        self.assertFalse(electoral_race.active)
+        request._messages = messages.storage.default_storage(request)
+        view = views.EnableElectrolRaceView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id,
+            electrol_race_id=electrol_race.id
+        )
+        electoral_race = ElectrolRace.objects.get(id=electrol_race.id)
+        self.assertTrue(electoral_race.active)
+        self.assertEqual(response.status_code, 302)
