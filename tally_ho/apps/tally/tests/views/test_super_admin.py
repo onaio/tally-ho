@@ -1762,3 +1762,14 @@ class TestSuperAdmin(TestBase):
         response = view(
             request, tally_id=tally.id)
         self.assertEqual(response.status_code, 200)
+
+    def test_disable_ballot_view(self):
+        tally = create_tally()
+        ballot = create_ballot(tally)
+        self.assertTrue(ballot.active)
+        view = views.DisableBallotView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=tally.id, ballot_id=ballot.id)
+        self.assertEqual(response.status_code, 200)
