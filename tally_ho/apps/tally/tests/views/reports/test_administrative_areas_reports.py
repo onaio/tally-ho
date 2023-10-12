@@ -334,11 +334,92 @@ class TestAdministrativeAreasReports(TestBase):
             tally_id=tally.id
         )
         self.assertEqual(response.status_code, 200)
+        report_types = admin_reports.report_types.values()
 
         # test SubConstituencyReportsView
-        view = admin_reports.ResultFormResultsListView.as_view()
+        view = admin_reports.SubConstituencyReportsView.as_view(
+            template_name='test.html')
+        for report_type in report_types:
+            response = view(
+                request,
+                tally_id=self.tally.id,
+                region_id=self.region.id,
+                constituency_id=self.constituency.id,
+                sub_constituency_id=self.sc.id,
+                report_type=report_type
+            )
+            self.assertEqual(response.status_code, 200)
+
+        # test ConstituencyReportsView
+        view = admin_reports.ConstituencyReportsView.as_view(
+            template_name='test.html')
+        for report_type in report_types:
+            response = view(
+                request,
+                tally_id=self.tally.id,
+                region_id=self.region.id,
+                constituency_id=self.constituency.id,
+                report_type=report_type
+            )
+            self.assertEqual(response.status_code, 200)
+        # test RegionsReportsView
+        view = admin_reports.RegionsReportsView.as_view(
+            template_name='test.html')
+        for report_type in report_types:
+            response = view(
+                request,
+                tally_id=self.tally.id,
+                region_id=self.region.id,
+                report_type=report_type
+            )
+            self.assertEqual(response.status_code, 200)
+
+        # test ProgressiveReportView
+        view = admin_reports.ProgressiveReportView.as_view(
+            template_name='test.html')
         response = view(
             request,
-            tally_id=tally.id
+            tally_id=self.tally.id,
+            region_id=self.region.id,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test DiscrepancyReportView
+        discrepancy_reports = [
+            "stations-and-centers-under-process-audit-list",
+            "stations-and-centers-under-investigation-list",
+            "stations-and-centers-excluded-after-investigation-list"
+        ]
+        view = admin_reports.DiscrepancyReportView.as_view(
+            template_name='reports/administrative_areas_reports.html')
+        for report in discrepancy_reports:
+            response = view(
+                request,
+                tally_id=self.tally.id,
+                region_id=self.region.id,
+                constituency_id=self.constituency.id,
+                report_name=report
+            )
+            self.assertEqual(response.status_code, 200)
+        # test DiscrepancyReportDataView
+        view = admin_reports.DiscrepancyReportDataView.as_view(
+            template_name='test.html')
+        for report in discrepancy_reports:
+            response = view(
+                request,
+                tally_id=self.tally.id,
+                region_id=self.region.id,
+                constituency_id=self.constituency.id,
+                report_name=report
+            )
+            self.assertEqual(response.status_code, 200)
+        # test SummaryReportView
+        view = admin_reports.SummaryReportView.as_view(
+            template_name='test.html')
+        response = view(
+            request,
+            tally_id=self.tally.id,
+            region_id=self.region.id,
+            constituency_id=self.constituency.id,
         )
         self.assertEqual(response.status_code, 200)
