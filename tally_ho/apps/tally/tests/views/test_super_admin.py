@@ -1882,7 +1882,6 @@ class TestSuperAdmin(TestBase):
         )
         self.assertEqual(response.status_code, 200)
 
-
     def test_edit_center_view(self):
         tally = create_tally()
         center = create_center('12345', tally=tally)
@@ -1925,6 +1924,54 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(response.status_code, 302)
 
     def test_form_views(self):
-        pass
-
-
+        # test FormActionView
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(form_state=FormState.AUDIT,
+                                         tally=tally)
+        create_audit(result_form, self.user)
+        view = views.FormActionView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.session = {}
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test FormResultsDuplicatesView
+        view = views.FormResultsDuplicatesView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test FormAuditView
+        view = views.FormAuditView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test FormClearanceView
+        view = views.FormClearanceView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test DuplicateResultTrackingView
+        view = views.DuplicateResultTrackingView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test FormProgressView
+        view = views.FormProgressView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
