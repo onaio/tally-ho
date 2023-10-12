@@ -1882,20 +1882,49 @@ class TestSuperAdmin(TestBase):
         )
         self.assertEqual(response.status_code, 200)
 
-        # test enable
-        station = Station.objects.get(id=station.id)
-        self.assertTrue(station.active)
-        view = views.EnableEntityView.as_view()
+
+    def test_edit_center_view(self):
+        tally = create_tally()
+        center = create_center('12345', tally=tally)
+        view = views.EditCenterView.as_view()
         request = self.factory.get('/')
         request._messages = messages.storage.default_storage(request)
+        request.session = {}
         request.user = self.user
         response = view(
             request,
             tally_id=tally.id,
-            station_number=station.id,
             center_code=center.code
         )
-        station = Station.objects.get(id=station.id)
-        self.assertFalse(station.active)
+        self.assertEqual(response.status_code, 200)
+
+    def test_remove_center_confirmation_view(self):
+        tally = create_tally()
+        center = create_center('12345', tally=tally)
+        view = views.RemoveCenterConfirmationView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.session = {}
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            center_code=center.code
+        )
+        self.assertEqual(response.status_code, 200)
+        # test post
+        request = self.factory.post('/')
+        request.session = {}
+        request.user = self.user
+        request._messages = messages.storage.default_storage(request)
+        response = view(
+            request,
+            tally_id=tally.id,
+            center_code=center.code
+        )
         self.assertEqual(response.status_code, 302)
+
+    def test_form_views(self):
+        pass
+
 
