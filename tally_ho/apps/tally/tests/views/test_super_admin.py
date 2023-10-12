@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
@@ -35,6 +36,7 @@ from tally_ho.libs.tests.test_base import (
     create_result_form,
     create_result,
     create_center,
+    create_quarantine_checks,
     create_station,
     create_sub_constituency,
     create_tally,
@@ -1739,6 +1741,19 @@ class TestSuperAdmin(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         response = view(
-            request, tally_id=self.tally.id, station_id=station.id)
+            request, tally_id=tally.id, station_id=station.id)
+        self.assertEqual(response.status_code, 200)
+
+    def test_quarantine_checks_config_view(self):
+        tally = create_tally()
+        quarantine_data = getattr(settings, 'QUARANTINE_DATA')
+        create_quarantine_checks(quarantine_data)
+        quarantine_check = QuarantineCheck.objects.get(
+            name='Trigger 1 - Guard against overvoting')
+        view = views.QuarantineChecksConfigView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=tally.id, checkId=quarantine_check.id)
         self.assertEqual(response.status_code, 200)
 
