@@ -8,6 +8,7 @@ from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.center_type import CenterType
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.views.reports import (
     administrative_areas_reports as admin_reports,
 )
@@ -439,3 +440,27 @@ class TestAdministrativeAreasReports(TestBase):
                 self.region.id,
                 self.constituency.id)
             self.assertEqual(qs.count(), 0)
+
+    def test_export_results_queryset(self):
+        qs = Result.objects.all()
+        self.assertEqual(qs.count(), 4)
+        export_qs = admin_reports.export_results_queryset(
+            tally_id=self.tally.id, qs=qs)
+        self.assertEqual(export_qs.count(), 2)
+        data = {
+            'select_1_ids': [1, 2],
+            'select_2_ids': [3, 4],
+            'election_level_names': ['Local', 'National'],
+            'sub_race_type_names': ['Presidential', 'Parliamentary'],
+            'ballot_status': ['available_for_release'],
+            'station_status': ['active'],
+            'candidate_status': ['active'],
+            'percentage_processed': 75
+        }
+        export_qs = admin_reports.export_results_queryset(
+            tally_id=self.tally.id, qs=qs, data=data)
+        self.assertEqual(export_qs.count(), 0)
+
+
+
+
