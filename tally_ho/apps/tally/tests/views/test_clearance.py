@@ -5,14 +5,17 @@ from django.template import Template, Context
 from django.test import RequestFactory
 from django.utils import timezone
 
+from tally_ho.apps.tally.models import Center
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.views import clearance as views
 from tally_ho.apps.tally.views.super_admin import CreateResultFormView
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
+from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
 from tally_ho.libs.tests.test_base import (
     create_ballot,
     create_candidates,
@@ -23,7 +26,8 @@ from tally_ho.libs.tests.test_base import (
     create_result_form,
     create_station,
     create_tally,
-    TestBase,
+    TestBase, create_electrol_race, create_region, create_constituency,
+    create_sub_constituency,
 )
 
 
@@ -844,3 +848,59 @@ class TestClearance(TestBase):
 
             barcode = barcode + 1
             serial_number = serial_number + 1
+
+    def test_check_center_details_view(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+        tally = create_tally()
+        tally.users.add(self.user)
+        electrol_race = create_electrol_race(
+            tally,
+            **electrol_races[0]
+        )
+        ballot = create_ballot(tally, electrol_race=electrol_race)
+        region = create_region(tally=tally)
+        office = create_office(tally=tally, region=region)
+        constituency = create_constituency(tally=tally)
+        sc = \
+            create_sub_constituency(code=1, field_office='1', ballots=[ballot])
+        center, _ = Center.objects.get_or_create(
+            code='1',
+            mahalla='1',
+            name='1',
+            office=office,
+            region='1',
+            village='1',
+            active=True,
+            tally=tally,
+            sub_constituency=sc,
+            center_type=CenterType.GENERAL,
+            constituency=constituency
+        )
+        station = create_station(
+            center=center, registrants=20, tally=tally
+        )
+        result_form = create_result_form(
+            tally=tally,
+            form_state=FormState.ARCHIVED,
+            office=office,
+            center=center,
+            station_number=station.station_number,
+            ballot=ballot)
+        view = views.CheckCenterDetailsView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.id}
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        request = self.factory.post('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.id}
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)

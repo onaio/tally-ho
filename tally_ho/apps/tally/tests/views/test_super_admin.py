@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 
+from django.contrib import messages
 from django.core.exceptions import SuspiciousOperation
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages.storage import default_storage
@@ -11,6 +12,9 @@ from bs4 import BeautifulSoup
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
+from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
@@ -27,12 +31,14 @@ from tally_ho.libs.tests.test_base import (
     configure_messages,
     create_audit,
     create_ballot,
+    create_candidate,
     create_candidates,
     create_electrol_race,
     create_reconciliation_form,
     create_result_form,
     create_result,
     create_center,
+    create_quarantine_checks,
     create_station,
     create_sub_constituency,
     create_tally,
@@ -1701,3 +1707,271 @@ class TestSuperAdmin(TestBase):
         content = json.loads(response.content)
         data = content["data"]
         self.assertEqual(0, len(data))
+
+    def test_enable_disable_candidate_view(self):
+        tally = create_tally()
+        ballot = create_ballot(tally)
+        candidate = create_candidate(
+            ballot, "candidate name", tally)
+
+        # test diable
+        self.assertTrue(candidate.active)
+        view = views.DisableCandidateView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, candidateId=candidate.id)
+        candidate = Candidate.objects.get(id=candidate.id)
+        self.assertFalse(candidate.active)
+        self.assertEqual(response.status_code, 302)
+
+        # test enable
+        view = views.EnableCandidateView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, candidateId=candidate.id)
+        candidate = Candidate.objects.get(id=candidate.id)
+        self.assertTrue(candidate.active)
+        self.assertEqual(response.status_code, 302)
+
+    def test_remove_station_confirmation_view(self):
+        tally = create_tally()
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        view = views.RemoveStationConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=tally.id, station_id=station.id)
+        self.assertEqual(response.status_code, 200)
+
+    def test_quarantine_checks_config_list_view(self):
+        tally = create_tally()
+        quarantine_data = getattr(settings, 'QUARANTINE_DATA')
+        create_quarantine_checks(quarantine_data)
+        quarantine_check = QuarantineCheck.objects.get(
+            name='Trigger 1 - Guard against overvoting')
+        view = views.QuarantineChecksConfigView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=tally.id, checkId=quarantine_check.id)
+        self.assertEqual(response.status_code, 200)
+
+        # test list view
+        view = views.QuarantineChecksListView.as_view()
+        response = view(
+            request, tally_id=tally.id)
+        self.assertEqual(response.status_code, 200)
+
+    def test_enable_disable_ballot_view(self):
+        tally = create_tally()
+        ballot = create_ballot(tally)
+        self.assertTrue(ballot.active)
+        view = views.DisableBallotView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request, tally_id=tally.id, ballot_id=ballot.id)
+        self.assertEqual(response.status_code, 200)
+
+        request = self.factory.post('/')
+        request._messages = messages.storage.default_storage(request)
+        request.user = self.user
+        response = view(
+            request, tally_id=tally.id, ballot_id=ballot.id)
+        self.assertEqual(response.status_code, 200)
+
+        # test enable
+        ballot = Ballot.objects.get(id=ballot.id)
+        ballot.active = False
+        ballot.save()
+        self.assertFalse(ballot.active)
+        view = views.EnableBallotView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.user = self.user
+        response = view(
+            request, tally_id=tally.id, ballot_id=ballot.id)
+        ballot = Ballot.objects.get(id=ballot.id)
+        self.assertTrue(ballot.active)
+        self.assertEqual(response.status_code, 302)
+
+    def test_enable_disable_electrol_race_view(self):
+        tally = create_tally()
+        electrol_race = create_electrol_race(
+            self.tally,
+            **electrol_races[0]
+        )
+        self.assertTrue(self.electrol_race.active)
+        view = views.DisableElectrolRaceView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            electrol_race_id=electrol_race.id
+        )
+        electoral_race = ElectrolRace.objects.get(id=electrol_race.id)
+        self.assertEqual(response.status_code, 200)
+        # test post
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            electrol_race_id=electrol_race.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test enable
+        electoral_race.active = False
+        electoral_race.save()
+        self.assertFalse(electoral_race.active)
+        request._messages = messages.storage.default_storage(request)
+        view = views.EnableElectrolRaceView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id,
+            electrol_race_id=electrol_race.id
+        )
+        electoral_race = ElectrolRace.objects.get(id=electrol_race.id)
+        self.assertTrue(electoral_race.active)
+        self.assertEqual(response.status_code, 302)
+
+    def test_create_edit_electrol_race_view(self):
+        tally = create_tally()
+        electrol_race = create_electrol_race(
+            self.tally,
+            **electrol_races[0]
+        )
+        view = views.EditElectrolRaceView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            id=electrol_race.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # test create
+        view = views.CreateElectrolRaceView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id,
+            id=electrol_race.id
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_enable_disable_entity_view(self):
+        tally = create_tally()
+        center = create_center('12345', tally=tally)
+        station = create_station(center)
+        view = views.DisableEntityView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            station_number=station.id,
+            center_code=center.code
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_edit_center_view(self):
+        tally = create_tally()
+        center = create_center('12345', tally=tally)
+        view = views.EditCenterView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.session = {}
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            center_code=center.code
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_remove_center_confirmation_view(self):
+        tally = create_tally()
+        center = create_center('12345', tally=tally)
+        view = views.RemoveCenterConfirmationView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.session = {}
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id,
+            center_code=center.code
+        )
+        self.assertEqual(response.status_code, 200)
+        # test post
+        request = self.factory.post('/')
+        request.session = {}
+        request.user = self.user
+        request._messages = messages.storage.default_storage(request)
+        response = view(
+            request,
+            tally_id=tally.id,
+            center_code=center.code
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_form_views(self):
+        # test FormActionView
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(form_state=FormState.AUDIT,
+                                         tally=tally)
+        create_audit(result_form, self.user)
+        view = views.FormActionView.as_view()
+        request = self.factory.get('/')
+        request._messages = messages.storage.default_storage(request)
+        request.session = {}
+        request.user = self.user
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test FormResultsDuplicatesView
+        view = views.FormResultsDuplicatesView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test FormAuditView
+        view = views.FormAuditView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test FormClearanceView
+        view = views.FormClearanceView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test DuplicateResultTrackingView
+        view = views.DuplicateResultTrackingView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        # test FormProgressView
+        view = views.FormProgressView.as_view()
+        response = view(
+            request,
+            tally_id=tally.id
+        )
+        self.assertEqual(response.status_code, 200)

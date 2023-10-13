@@ -161,3 +161,40 @@ class TestTallyManager(TestBase):
             response,
             str('<input type="text" name="user_idle_timeout" value="example" '
                 'size="50" required id="id_user_idle_timeout">'))
+
+    def test_create_user_view_get(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        user = UserProfile.objects.create(
+            username='john',
+            first_name='doe',
+            reset_password=False)
+        tally.users.add(user)
+        view = views.CreateUserView.as_view()
+        request = self.factory.get('/')
+        user_id = user.id
+        request.user = self.user
+        request.session = {}
+        request.META =\
+            {'HTTP_REFERER':
+             f'super-admin/create-user/{tally.id}/{user_id}/'}
+
+        response = view(
+            request,
+            user_id=user_id,
+            tally_id=tally.id)
+        response.render()
+        self.assertEqual(request.session['url_name'], 'user-tally-list')
+        self.assertEqual(request.session['url_param'], tally.id)
+        self.assertEqual(request.session['url_keyword'], 'tally_id')
+
+        request.session = {}
+        request.META = {'HTTP_REFERER': '/tally-manager/user-list/user'}
+
+        response = view(
+            request,
+            user_id=user_id,
+            tally_id=tally.id)
+        response.render()
+        self.assertEqual(request.session['url_name'], 'user-tally-list')
+        self.assertEqual(request.session['url_keyword'], 'tally_id')

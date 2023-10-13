@@ -470,3 +470,5 @@ BALLOT_ORDER_COLUMN_NAMES = ['candidate_id', 'ballot_order']
 
 CANDIDATE_RESULTS_PPT_COVER_PAGE_BCK_IMG_PATH =\
     'tally_ho/apps/tally/static/images/HNEC.jpg'
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'

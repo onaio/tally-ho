@@ -1,3 +1,5 @@
+import json
+
 from django.test import RequestFactory
 
 from tally_ho.libs.permissions import groups
@@ -9,9 +11,9 @@ from tally_ho.apps.tally.views.reports import (
     election_statistics_report
 )
 from tally_ho.libs.tests.test_base import (
-    create_electrol_race, create_result_form, create_station,\
-    create_reconciliation_form, create_sub_constituency, create_tally,\
-    create_region, create_constituency, create_office, create_result,\
+    create_electrol_race, create_result_form, create_station, \
+    create_reconciliation_form, create_sub_constituency, create_tally, \
+    create_region, create_constituency, create_office, create_result, \
     create_candidates, TestBase, create_ballot
 )
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
@@ -31,17 +33,18 @@ class TestElectionStatisticsReports(TestBase):
             self.tally,
             **electrol_races[0]
         )
-        ballot = create_ballot(self.tally, electrol_race=self.electrol_race)
+        self.ballot = create_ballot(
+            self.tally, electrol_race=self.electrol_race)
         self.region = create_region(tally=self.tally)
-        office = create_office(tally=self.tally, region=self.region)
+        self.office = create_office(tally=self.tally, region=self.region)
         self.constituency = create_constituency(tally=self.tally)
-        self.sc =create_sub_constituency(
-            code=1, tally=self.tally, field_office='1', ballots=[ballot])
-        center, _ = Center.objects.get_or_create(
+        self.sc = create_sub_constituency(
+            code=1, tally=self.tally, field_office='1', ballots=[self.ballot])
+        self.center, _ = Center.objects.get_or_create(
             code='1',
             mahalla='1',
             name='1',
-            office=office,
+            office=self.office,
             region='1',
             village='1',
             active=True,
@@ -50,14 +53,14 @@ class TestElectionStatisticsReports(TestBase):
             center_type=CenterType.GENERAL,
             constituency=self.constituency)
         self.station = create_station(
-            center=center, registrants=20, tally=self.tally)
+            center=self.center, registrants=20, tally=self.tally)
         self.result_form = create_result_form(
             tally=self.tally,
             form_state=FormState.ARCHIVED,
-            office=office,
-            center=center,
+            office=self.office,
+            center=self.center,
             station_number=self.station.station_number,
-            ballot=ballot)
+            ballot=self.ballot)
         self.recon_form = create_reconciliation_form(
             result_form=self.result_form,
             user=self.user,
@@ -96,22 +99,83 @@ class TestElectionStatisticsReports(TestBase):
             'voters_in_counted_stations',
             'percentage_turnout_in_stations_counted'
         ]
-        aggregate_keys = [
-            'stations_expected',
-            'stations_counted',
-            'registrants_in_stations_counted',
-            'voters_in_counted_stations',
-        ]
 
         for stat in election_stats:
             for field in fields:
                 self.assertIn(field, stat)
 
-        aggregate = {}
-        for stat in election_stats:
-            for record, value in enumerate(stat):
-                if record in aggregate_keys:
-                    if record in aggregate:
-                        aggregate[record] += value
-                    else:
-                        aggregate[record] = value
+    def test_generate_overview_election_statistics(self):
+        """
+        Test generate_overview_election_statistics function
+        """
+        election_stats = \
+            election_statistics_report.generate_overview_election_statistics(
+                self.tally.id, 'Presidential')
+        fields = [
+            'male_voters_in_counted_stations',
+            'female_voters_in_counted_stations',
+            'unisex_voters_in_counted_stations',
+            'voters_in_counted_stations',
+            'male_total_registrants_in_counted_stations',
+            'female_total_registrants_in_counted_stations',
+            'unisex_total_registrants_in_counted_stations',
+            'total_registrants_in_counted_stations',
+            'percentage_of_stations_processed',
+            'male_projected_turnout_percentage',
+            'female_projected_turnout_percentage',
+            'unisex_projected_turnout_percentage',
+            'projected_turnout_percentage'
+        ]
+        for field in fields:
+            self.assertIn(field, election_stats.keys())
+        self.assertEqual(election_stats['forms_expected'], 1)
+        self.assertEqual(election_stats['forms_counted'], 1)
+        self.assertEqual(election_stats['stations_expected'], 1)
+        create_result_form(
+            barcode='012345678',
+            tally=self.tally,
+            form_state=FormState.UNSUBMITTED,
+            office=self.office,
+            center=self.center,
+            station_number=self.station.station_number,
+            ballot=self.ballot,
+            serial_number=1,
+            name='Another Result Form'
+        )
+        election_stats = \
+            election_statistics_report.generate_overview_election_statistics(
+                self.tally.id, 'Presidential')
+        for k, v in election_stats.items():
+            if k in fields:
+                self.assertEqual(v, 0)
+
+    def test_election_statistics_data_view(self):
+        """
+        Test ElectionStatisticsDataView
+        """
+        view = election_statistics_report.ElectionStatisticsDataView.as_view()
+        request = self.factory.get(
+            '/reports/internal/election-statistics-data')
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, election_level='Presidential')
+        data = json.loads(response.content.decode())['data'][0]
+
+        election_stats = \
+            election_statistics_report.generate_election_statistics(
+                self.tally.id, 'Presidential')
+        self.assertDictEqual(election_stats[0], data)
+
+    def test_election_statistics_report_view(self):
+        """
+        Test ElectionStatisticsReportView
+        """
+        view = election_statistics_report\
+            .ElectionStatisticsReportView.as_view()
+        request = self.factory.get(
+            '/reports/internal/election-statistics-report')
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, election_level='Presidential')
+
+        self.assertEqual(response.status_code, 200)
