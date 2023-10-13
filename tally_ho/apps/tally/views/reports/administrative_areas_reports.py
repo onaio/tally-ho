@@ -89,6 +89,7 @@ def build_station_and_centers_list(tally_id):
 
     return stations, centers
 
+
 def get_stations_and_centers_by_admin_area(
         tally_id,
         report_column_name,

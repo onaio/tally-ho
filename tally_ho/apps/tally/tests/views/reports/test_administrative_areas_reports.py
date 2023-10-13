@@ -424,3 +424,18 @@ class TestAdministrativeAreasReports(TestBase):
             constituency_id=self.constituency.id,
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_get_stations_and_centers_by_admin_area(self):
+        discrepancy_reports = [
+            "stations-and-centers-under-process-audit-list",
+            "stations-and-centers-under-investigation-list",
+            "stations-and-centers-excluded-after-investigation-list"
+        ]
+        for report in discrepancy_reports:
+            qs = admin_reports.get_stations_and_centers_by_admin_area(
+                self.tally.id,
+                'id',
+                report,
+                self.region.id,
+                self.constituency.id)
+            self.assertEqual(qs.count(), 0)
