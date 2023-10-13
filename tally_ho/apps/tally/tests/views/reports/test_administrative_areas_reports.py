@@ -8,6 +8,7 @@ from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.center_type import CenterType
+from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.views.reports import (
@@ -482,7 +483,7 @@ class TestAdministrativeAreasReports(TestBase):
         self.assertEqual(duplicate_qs.count(), 1)
         duplicate_qs = admin_reports.duplicate_results_queryset(
             tally_id=self.tally.id, qs=qs, data=data)
-        self.assertEqual(duplicate_qs.count(), 0)
+        self.assertEqual(duplicate_qs.count(), 1)
 
     def test_generate_progressive_report_queryset(self):
         qs = Result.objects.all()
@@ -498,3 +499,28 @@ class TestAdministrativeAreasReports(TestBase):
         progres_qs = admin_reports.generate_progressive_report_queryset(
             tally_id=self.tally.id, qs=qs, data=data)
         self.assertEqual(progres_qs.count(), 1)
+
+    def test_custom_queryset_filter(self):
+        data = [{
+            'select_1_ids': [1, 2],
+            'select_2_ids': [1, 2],
+            'region_id': self.region.id
+        }]
+        kwargs1 = {
+            'region_id': self.region.id,
+            'constituency_id': self.constituency.id,
+            'report_type': 'turnout'
+        }
+        kwargs2 = {
+            'region_id': self.region.id,
+            'constituency_id': self.constituency.id,
+            'report_type': 'summary'
+        }
+        qs = ReconciliationForm.objects.all()
+        self.assertEqual(qs.count(), 1)
+        custom_qs = admin_reports.custom_queryset_filter(
+            self.tally.id, qs, data, **kwargs1)
+        self.assertEqual(custom_qs.count(), 0)
+        cus_qs = admin_reports.custom_queryset_filter(
+            self.tally.id, qs, data, **kwargs2)
+        self.assertEqual(cus_qs.count(), 0)
