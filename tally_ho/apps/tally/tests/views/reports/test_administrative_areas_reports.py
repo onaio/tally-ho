@@ -9,6 +9,7 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.apps.tally.models.result import Result
+from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.views.reports import (
     administrative_areas_reports as admin_reports,
 )
@@ -441,6 +442,14 @@ class TestAdministrativeAreasReports(TestBase):
                 self.constituency.id)
             self.assertEqual(qs.count(), 0)
 
+        # test get_admin_areas_with_forms_in_audit
+        qs = admin_reports.get_admin_areas_with_forms_in_audit(
+            self.tally.id,
+            "id",
+            self.region.id,
+            self.constituency.id)
+        self.assertEqual(qs.count(), 0)
+
     def test_export_results_queryset(self):
         qs = Result.objects.all()
         self.assertEqual(qs.count(), 4)
@@ -449,7 +458,7 @@ class TestAdministrativeAreasReports(TestBase):
         self.assertEqual(export_qs.count(), 2)
         data = {
             'select_1_ids': [1, 2],
-            'select_2_ids': [3, 4],
+            'select_2_ids': [1, 2],
             'election_level_names': ['Local', 'National'],
             'sub_race_type_names': ['Presidential', 'Parliamentary'],
             'ballot_status': ['available_for_release'],
@@ -461,6 +470,31 @@ class TestAdministrativeAreasReports(TestBase):
             tally_id=self.tally.id, qs=qs, data=data)
         self.assertEqual(export_qs.count(), 0)
 
+    def test_duplicate_results_queryset(self):
+        qs = ResultForm.objects.all()
+        self.assertEqual(qs.count(), 1)
+        data = {
+            'select_1_ids': [1, 2],
+            'select_2_ids': [1, 2]
+        }
+        duplicate_qs = admin_reports.duplicate_results_queryset(
+            tally_id=self.tally.id, qs=qs)
+        self.assertEqual(duplicate_qs.count(), 1)
+        duplicate_qs = admin_reports.duplicate_results_queryset(
+            tally_id=self.tally.id, qs=qs, data=data)
+        self.assertEqual(duplicate_qs.count(), 0)
 
-
-
+    def test_generate_progressive_report_queryset(self):
+        qs = Result.objects.all()
+        self.assertEqual(qs.count(), 4)
+        progres_qs = admin_reports.generate_progressive_report_queryset(
+            tally_id=self.tally.id, qs=qs)
+        self.assertEqual(progres_qs.count(), 1)
+        data = [{
+            'select_1_ids': [1, 2],
+            'select_2_ids': [1, 2],
+            'region_id': self.region.id
+        }]
+        progres_qs = admin_reports.generate_progressive_report_queryset(
+            tally_id=self.tally.id, qs=qs, data=data)
+        self.assertEqual(progres_qs.count(), 1)
