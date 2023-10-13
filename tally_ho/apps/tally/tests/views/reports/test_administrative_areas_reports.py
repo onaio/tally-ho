@@ -12,15 +12,14 @@ from tally_ho.apps.tally.views.reports import (
     administrative_areas_reports as admin_reports,
 )
 from tally_ho.libs.tests.test_base import (
-    create_electrol_race, create_result_form, create_station,\
-    create_reconciliation_form, create_sub_constituency, create_tally,\
-    create_region, create_constituency, create_office, create_result,\
+    create_electrol_race, create_result_form, create_station, \
+    create_reconciliation_form, create_sub_constituency, create_tally, \
+    create_region, create_constituency, create_office, create_result, \
     create_candidates, TestBase, create_ballot
 )
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
     electrol_races
 )
-
 
 
 class TestAdministrativeAreasReports(TestBase):
@@ -39,7 +38,7 @@ class TestAdministrativeAreasReports(TestBase):
         self.region = create_region(tally=self.tally)
         office = create_office(tally=self.tally, region=self.region)
         self.constituency = create_constituency(tally=self.tally)
-        self.sc =\
+        self.sc = \
             create_sub_constituency(code=1, field_office='1', ballots=[ballot])
         center, _ = Center.objects.get_or_create(
             code='1',
@@ -53,10 +52,10 @@ class TestAdministrativeAreasReports(TestBase):
             sub_constituency=self.sc,
             center_type=CenterType.GENERAL,
             constituency=self.constituency
-            )
+        )
         self.station = create_station(
             center=center, registrants=20, tally=self.tally
-            )
+        )
         self.result_form = create_result_form(
             tally=self.tally,
             form_state=FormState.ARCHIVED,
@@ -75,12 +74,12 @@ class TestAdministrativeAreasReports(TestBase):
             number_valid_votes=20,
             number_invalid_votes=0,
             number_ballots_received=20,
-            )
+        )
         votes = 20
         create_candidates(
             self.result_form, votes=votes, user=self.user,
             num_results=1, tally=self.tally
-            )
+        )
         for result in self.result_form.results.all():
             result.entry_version = EntryVersion.FINAL
             result.save()
@@ -101,10 +100,10 @@ class TestAdministrativeAreasReports(TestBase):
             tally_id=self.tally.pk,
             region_id=self.region.pk,
             constituency_id=self.constituency.pk
-            )
+        )
 
         # Sub Constituency votes summary report tests
-        code, valid_votes, invalid_votes, cancelled_votes, _, _, _ =\
+        code, valid_votes, invalid_votes, cancelled_votes, _, _, _ = \
             json.loads(
                 response.content.decode())['data'][0]
 
@@ -135,7 +134,7 @@ class TestAdministrativeAreasReports(TestBase):
             tally__id=self.tally.pk).count()
 
         # Sub Constituency progressive report tests
-        code, num_candidates, num_votes, _, _, _ =\
+        code, num_candidates, num_votes, _, _, _ = \
             json.loads(
                 response.content.decode())['data'][0]
 
@@ -168,24 +167,24 @@ class TestAdministrativeAreasReports(TestBase):
         data = {
             "data": str(
                 {
-                        "election_level_names":
+                    "election_level_names":
                         ["Presidential"],
-                        "sub_race_type_names":
+                    "sub_race_type_names":
                         ["ballot_number_presidential_runoff"]
-                    }
-                )
-            }
+                }
+            )
+        }
         response = self.apply_filter(data)
         self.assertEqual(
             len(json.loads(response.content.decode())['data']), 0)
         data = {
             "data": str(
                 {
-                        "election_level_names": ["Presidential"],
-                        "sub_race_type_names": ["ballot_number_presidential"]
-                    }
-                )
-            }
+                    "election_level_names": ["Presidential"],
+                    "sub_race_type_names": ["ballot_number_presidential"]
+                }
+            )
+        }
         response = self.apply_filter(data)
         self.assertEqual(
             len(json.loads(response.content.decode())['data']), 2)
@@ -413,6 +412,8 @@ class TestAdministrativeAreasReports(TestBase):
                 report_name=report
             )
             self.assertEqual(response.status_code, 200)
+            self.assertEqual(
+                json.loads(response.content.decode())['recordsTotal'], 1)
         # test SummaryReportView
         view = admin_reports.SummaryReportView.as_view(
             template_name='test.html')
