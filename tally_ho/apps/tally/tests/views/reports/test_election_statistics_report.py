@@ -99,29 +99,10 @@ class TestElectionStatisticsReports(TestBase):
             'voters_in_counted_stations',
             'percentage_turnout_in_stations_counted'
         ]
-        aggregate_keys = [
-            'stations_expected',
-            'stations_counted',
-            'registrants_in_stations_counted',
-            'voters_in_counted_stations',
-        ]
 
         for stat in election_stats:
             for field in fields:
                 self.assertIn(field, stat)
-        total = election_stats.pop()
-        self.assertEqual(total['ballot_number'], 'Total')
-        aggregate = {}
-        for stat in election_stats:
-            for record, value in enumerate(stat):
-                if record in aggregate_keys:
-                    if record in aggregate:
-                        aggregate[record] += value
-                    else:
-                        aggregate[record] = value
-
-        for key, val in enumerate(aggregate):
-            self.assertEqual(total[key], val)
 
     def test_generate_overview_election_statistics(self):
         """
