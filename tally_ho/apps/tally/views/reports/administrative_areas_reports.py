@@ -1608,6 +1608,7 @@ def get_centers_stations(request):
             center__id__in=center_ids).values_list('id', flat=True))
     })
 
+
 def get_export(request):
     """
     Generates and returns a PowerPoint export based on the filter
@@ -1655,11 +1656,13 @@ def get_export(request):
         return result
     return HttpResponse("Not found")
 
+
 def electrol_race_has_results(results_qs, electrol_race):
     results_qs = results_qs.filter(
             election_level=electrol_race.election_level,
             sub_race_type=electrol_race.ballot_name).order_by('-votes')
     return results_qs.count() != 0
+
 
 def create_ppt_export(
         qs,

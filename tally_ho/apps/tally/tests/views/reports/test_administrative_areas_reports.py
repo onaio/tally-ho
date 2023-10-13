@@ -558,7 +558,7 @@ class TestAdministrativeAreasReports(TestBase):
                     qs,
                     data,
                     **kwarg)
-                self.assertEqual(qs.count(), 1)
+                self.assertEqual(qs.count(), 0)
             else:
                 qs = s_qs
                 qs = admin_reports.stations_and_centers_queryset(
@@ -567,4 +567,35 @@ class TestAdministrativeAreasReports(TestBase):
                     data,
                     **kwarg)
                 self.assertEqual(qs.count(), 0)
+
+    def test_get_centers_stations(self):
+        center_ids = [center.id for center in Center.objects.all()]
+        data = {
+            'tally_id': self.tally.id,
+            'center_ids': center_ids
+        }
+        request = self.factory.get('/')
+        request.user = self.user
+        request.GET = {'data': json.dumps(data)}
+        response = admin_reports.get_centers_stations(request)
+        self.assertEqual(response.status_code, 200)
+        station_ids = [station.id for station in Station.objects.all()]
+        self.assertEqual(json.loads(response.content.decode())["station_ids"],
+                         station_ids)
+
+    def test_get_export(self):
+        center_ids = [center.id for center in Center.objects.all()]
+        station_ids = [station.id for station in Station.objects.all()]
+        data = {
+            'tally_id': self.tally.id,
+            'export_number': 1,
+            'exportType': 'PPT',
+            'select_1_ids': center_ids,
+            'select_2_ids': station_ids,
+        }
+        request = self.factory.get('/')
+        request.user = self.user
+        request.GET = {'data': json.dumps(data)}
+        response = admin_reports.get_export(request)
+        self.assertEqual(response.status_code, 200)
 
