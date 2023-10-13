@@ -2,6 +2,7 @@ import json
 
 from django.test import RequestFactory
 
+from tally_ho.apps.tally.models import Station
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -524,3 +525,46 @@ class TestAdministrativeAreasReports(TestBase):
         cus_qs = admin_reports.custom_queryset_filter(
             self.tally.id, qs, data, **kwargs2)
         self.assertEqual(cus_qs.count(), 0)
+
+    def test_stations_and_centers_queryset(self):
+        rf_qs = ResultForm.objects.all()
+        s_qs = Station.objects.all()
+        data = [{
+            'select_1_ids': [1, 2],
+            'select_2_ids': [1, 2],
+            'region_id': self.region.id
+        }]
+        kwargs = []
+
+        discrepancy_reports = [
+            "stations-and-centers-under-process-audit-list",
+            "stations-and-centers-under-investigation-list",
+            "stations-and-centers-excluded-after-investigation-list"
+        ]
+        for report in discrepancy_reports:
+            kwarg = {
+                'region_id': self.region.id,
+                'constituency_id': self.constituency.id,
+                'report_type': report
+            }
+            kwargs.append(kwarg)
+
+        for kwarg in kwargs:
+            if kwarg['report_type'] == \
+                    "stations-and-centers-under-process-audit-list":
+                qs = rf_qs
+                qs = admin_reports.stations_and_centers_queryset(
+                    self.tally.id,
+                    qs,
+                    data,
+                    **kwarg)
+                self.assertEqual(qs.count(), 1)
+            else:
+                qs = s_qs
+                qs = admin_reports.stations_and_centers_queryset(
+                    self.tally.id,
+                    qs,
+                    data,
+                    **kwarg)
+                self.assertEqual(qs.count(), 0)
+
