@@ -13,3 +13,4 @@ locust
 ruff
 pre-commit
 beautifulsoup4
+pytest-cov
