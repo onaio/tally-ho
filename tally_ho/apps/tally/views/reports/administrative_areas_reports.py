@@ -1990,7 +1990,12 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
           'sub_race_type': electrol_race.ballot_name}\
             for electrol_race in filtered_electrol_races\
                 if electrol_race_has_results(qs, electrol_race)}
-
+    tally_stations_qs = Station.objects.filter(tally_id=tally_id)
+    stations_by_id =\
+        {
+            station.id:\
+            station for station in tally_stations_qs
+        }
     # Calculate voters in counted stations and turnout percentage
     for race_type_obj in race_data_by_election_level_names.values():
         # race_type_obj =\
@@ -1999,8 +2004,7 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
         election_level_name = race_type_obj.get('election_level')
         # Calculate voters in counted stations
         qs =\
-            Station.objects.filter(
-                tally_id=tally_id,
+            tally_stations_qs.filter(
                 center__resultform__ballot__electrol_race__election_level=\
                     election_level_name,
                 center__resultform__ballot__electrol_race__ballot_name=\
@@ -2015,13 +2019,12 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
             race=F('center__resultform__ballot__electrol_race__election_level')
         ).values('id').annotate(
             races=ArrayAgg('race', distinct=True),
-            number=F('station_number'),
-            num_registrants=F('registrants')
         )
         voters = 0
         stations_processed = 0
         registrants_in_processed_stations = 0
         for station in station_ids_by_races:
+            station_obj = stations_by_id.get(station.get('id'))
             # Calculate stations processed and total registrants
             form_states =\
                 ResultForm.objects.filter(
@@ -2031,7 +2034,7 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
                     center__resultform__ballot__electrol_race__ballot_name=\
                     sub_race_type,
                     center__stations__id=station.get('id'),
-                    station_number=station.get('number'),
+                    station_number=station_obj.station_number,
                     ).values_list('form_state', flat=True).distinct()
 
             station_is_processed =\
@@ -2048,7 +2051,7 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
 
             stations_processed += 1
             registrants_in_processed_stations +=\
-                station.get('num_registrants')
+                station_obj.registrants
 
             # Calculate voters voted in processed stations
             votes =\
@@ -2059,7 +2062,7 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
                     result_form__ballot__electrol_race__ballot_name=\
                         sub_race_type,
                     result_form__center__stations__id=station.get('id'),
-                    result_form__station_number=station.get('number'),
+                    result_form__station_number=station_obj.station_number,
                     entry_version=EntryVersion.FINAL,
                     active=True,
                     ).annotate(
