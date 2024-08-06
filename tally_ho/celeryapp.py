@@ -6,7 +6,7 @@ from celery import Celery
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE",
-                      "tally_ho.settings.local_settings")
+                      "tally_ho.settings.default")
 app = Celery(__name__)
 
 # Using a string here means the worker will not have to
