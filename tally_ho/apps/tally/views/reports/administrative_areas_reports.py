@@ -2025,6 +2025,8 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
         registrants_in_processed_stations = 0
         for station in station_ids_by_races:
             station_obj = stations_by_id.get(station.get('id'))
+            if station_obj is None:
+                continue
             # Calculate stations processed and total registrants
             form_states =\
                 ResultForm.objects.filter(

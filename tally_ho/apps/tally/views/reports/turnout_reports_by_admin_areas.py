@@ -181,6 +181,8 @@ class TurnoutReportByAdminAreasDataView(
             registrants_in_processed_stations = 0
             for station in station_ids_by_race:
                 station_obj = stations_by_id.get(station.get('id'))
+                if station_obj is None:
+                    continue
                 # Calculate stations processed and total registrants
                 form_states = get_result_forms_for_station_in_admin_area(
                     tally_id,
