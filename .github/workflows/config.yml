@@ -57,8 +57,7 @@ jobs:
             . venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements/dev.pip
-          pip install pytest-cov
-          ruff . --exit-non-zero-on-fix
+          ruff check . --exit-non-zero-on-fix
           pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
           coverage xml
           ls -al

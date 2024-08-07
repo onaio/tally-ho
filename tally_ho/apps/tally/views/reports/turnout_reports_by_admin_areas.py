@@ -44,7 +44,7 @@ def get_sub_constituencies(tally_id):
         ).values("area_name", "id")
 
 
-def get_stations_in_admin_area(tally_id, admin_level, admin_area):
+def get_stations_in_admin_area(tally_stations_qs, admin_level, admin_area):
     """
     get stations in a given administrative area across any of the
     4 supported admin levels.
@@ -59,13 +59,11 @@ def get_stations_in_admin_area(tally_id, admin_level, admin_area):
 
     area_filter_map = {area_filter_key: admin_area}
 
-    return Station.objects.filter(
-        tally_id=tally_id, active=True, **area_filter_map
-        )
+    return tally_stations_qs.filter(active=True, **area_filter_map)
 
 
 def get_result_forms_for_station_in_admin_area(
-        tally_id, admin_level, admin_area, station
+        tally_id, admin_level, admin_area, station_id, station_number
         ):
     """
     get distinct result forms for a given station
@@ -83,14 +81,19 @@ def get_result_forms_for_station_in_admin_area(
     return ResultForm.objects.filter(
         tally__id=tally_id,
         **area_filter_map,
-        center__stations__id=station.get('id'),
-        station_number=station.get('number'),
+        center__stations__id=station_id,
+        station_number=station_number,
         ).values_list('form_state', flat=True).distinct()
 
 
 def get_station_votes_in_admin_area(
-        tally_id, admin_level, admin_area, station
-        ):
+        tally_id,
+        admin_level,
+        admin_area,
+        station_id,
+        station_number,
+        station_races
+    ):
     """
     Gets the station votes grouped by races for the given station.
     """
@@ -107,9 +110,9 @@ def get_station_votes_in_admin_area(
     return Result.objects.filter(
         result_form__tally__id=tally_id,
         **area_filter_map,
-        result_form__center__stations__id=station.get('id'),
-        result_form__station_number=station.get('number'),
-        result_form__ballot__electrol_race_id__in=station.get('races'),
+        result_form__center__stations__id=station_id,
+        result_form__station_number=station_number,
+        result_form__ballot__electrol_race_id__in=station_races,
         entry_version=EntryVersion.FINAL,
         active=True,
         ).annotate(
@@ -148,6 +151,13 @@ class TurnoutReportByAdminAreasDataView(
 
         ret_value = []
 
+        tally_stations_qs = Station.objects.filter(tally_id=tally_id)
+        stations_by_id =\
+            {
+                station.id:\
+                station for station in tally_stations_qs
+            }
+
         # Calculate voters in counted stations and turnout percentage
         for area in admin_areas_qs:
             response = {}
@@ -156,8 +166,11 @@ class TurnoutReportByAdminAreasDataView(
                 # regions are not linked by their ids, so we use name
                 area_code = area.get("area_name")
 
-            stations_in_area_qs = get_stations_in_admin_area(
-                tally_id, admin_level, area_code
+            stations_in_area_qs =\
+                get_stations_in_admin_area(
+                    tally_stations_qs,
+                    admin_level,
+                    area_code
                 )
             response['area_code_or_name'] = area.get("area_name")
             response['stations_expected'] = stations_in_area_qs.count()
@@ -168,29 +181,38 @@ class TurnoutReportByAdminAreasDataView(
                 race=F('center__resultform__ballot__electrol_race_id')
                 ).values('id').annotate(
                 races=ArrayAgg('race', distinct=True),
-                number=F('station_number'),
-                num_registrants=F('registrants')
                 )
             voters = 0
             stations_processed = 0
             registrants_in_processed_stations = 0
             for station in station_ids_by_race:
+                station_obj = stations_by_id.get(station.get('id'))
+                if station_obj is None:
+                    continue
                 # Calculate stations processed and total registrants
                 form_states = get_result_forms_for_station_in_admin_area(
                     tally_id,
-                    admin_level, area_code, station
+                    admin_level,
+                    area_code,
+                    station_obj.pk,
+                    station_obj.station_number
                     )
 
                 if form_states.count() == 1 and \
                         form_states[0] == FormState.ARCHIVED:
                     stations_processed += 1
                     registrants_in_processed_stations += \
-                        station.get('num_registrants')
+                        station_obj.registrants
 
                     # Calculate voters voted in processed stations
                     votes = get_station_votes_in_admin_area(
-                        tally_id, admin_level, area_code, station
-                        )
+                        tally_id,
+                        admin_level,
+                        area_code,
+                        station_obj.pk,
+                        station_obj.station_number,
+                        station.get('races'),
+                    )
 
                     if votes.count() != 0:
                         voters += votes[0].get('race_voters')
