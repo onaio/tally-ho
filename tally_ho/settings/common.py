@@ -294,32 +294,6 @@ QUARANTINE_DATA = [
      'active': False,
      'value': 0,
      'percentage': 100},
-    {'name':
-     'Trigger 9 - Validate percentage of votes per candidate of total votes',
-     'description':
-     str('Validate that the percentage of votes per candidate of the total '
-         'valid votes does not exceed a certain threshold. '
-         'If the result form does not have a reconciliation form this trigger '
-         'will always pass. '
-         'Fails if the percentage of votes for a particular candidate '
-         'of the total valid votes is greater than the this trigger '
-         'percentage value.'),
-     'method': 'pass_percentage_of_votes_per_candidate_validation',
-     'active': False,
-     'value': 0,
-     'percentage': 50},
-    {'name':
-     'Trigger 10 - Validate percentage of blank ballots',
-     'description':
-     str('Validate the percentage of blank ballots. '
-         'If the result form does not have a reconciliation form this trigger '
-         'will always pass. '
-         'Fails if the percentage of blank ballots is greater than the this '
-         'trigger percentage value.'),
-     'method': 'pass_percentage_of_blank_ballots_trigger',
-     'active': False,
-     'value': 0,
-     'percentage': 20},
 ]
 
 ELECTROL_RACES = [
