@@ -29,10 +29,6 @@ from tally_ho.libs.tests.test_base import (
     create_quarantine_checks,
     TestBase,
 )
-
-from tally_ho.libs.verify.quarantine_checks import (
-    pass_percentage_of_blank_ballots_trigger
-)
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
     electrol_races
 )
@@ -1167,7 +1163,6 @@ class TestQualityControl(TestBase):
             number_valid_votes=20,
             number_ballots_received=21,
             number_signatures_in_vr=21,
-            number_blank_ballots=4,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
@@ -1216,7 +1211,6 @@ class TestQualityControl(TestBase):
             number_valid_votes=20,
             number_ballots_received=21,
             number_signatures_in_vr=21,
-            number_blank_ballots=20,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
@@ -1241,74 +1235,6 @@ class TestQualityControl(TestBase):
             result_form.audit.quarantine_checks.all()[0].name,
             quarantine_data[9]['name'])
         self.assertIn('/quality-control/print', response['location'])
-
-    def test_pass_percentage_of_blank_ballots_trigger(self):
-        """
-        Test pass percentage of blank ballots trigger returns true if
-        the percentage of blank ballots has not exceeded the
-        allowed percentage value.
-        """
-        center = create_center()
-        station = create_station(center=center, registrants=21)
-        quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[9]['active'] = True
-        create_quarantine_checks(quarantine_data)
-        result_form = create_result_form(
-            tally=self.tally,
-            form_state=FormState.QUALITY_CONTROL,
-            center=center,
-            station_number=station.station_number)
-        create_reconciliation_form(
-            result_form=result_form,
-            user=self.user,
-            number_ballots_inside_box=21,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=0,
-            number_valid_votes=20,
-            number_ballots_received=21,
-            number_signatures_in_vr=21,
-            number_blank_ballots=4,
-        )
-        create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        self.assertTrue(pass_percentage_of_blank_ballots_trigger(result_form))
-
-    def test_fail_percentage_of_blank_ballots_trigger(self):
-        """
-        Test pass percentage of blank ballots trigger returns false if
-        the percentage of blank ballots has exceeded the allowed
-        percentage value.
-        """
-        center = create_center()
-        station = create_station(center=center, registrants=21)
-        quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[9]['active'] = True
-        create_quarantine_checks(quarantine_data)
-        result_form = create_result_form(
-            tally=self.tally,
-            form_state=FormState.QUALITY_CONTROL,
-            center=center,
-            station_number=station.station_number)
-        create_reconciliation_form(
-            result_form=result_form,
-            user=self.user,
-            number_ballots_inside_box=21,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=0,
-            number_valid_votes=20,
-            number_ballots_received=21,
-            number_signatures_in_vr=21,
-            number_blank_ballots=20,
-        )
-        create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        self.assertFalse(pass_percentage_of_blank_ballots_trigger(result_form))
 
     def test_quality_control_post_quarantine(self):
         """

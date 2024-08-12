@@ -239,7 +239,6 @@ def create_reconciliation_form(
         number_spoiled_ballots=1,
         number_cancelled_ballots=1,
         number_signatures_in_vr=1,
-        number_blank_ballots=0,
         is_stamped=True):
     return ReconciliationForm.objects.create(
         result_form=result_form,
@@ -247,7 +246,6 @@ def create_reconciliation_form(
         ballot_number_to=1,
         number_ballots_received=number_ballots_received,
         number_signatures_in_vr=number_signatures_in_vr,
-        number_blank_ballots=number_blank_ballots,
         number_unused_ballots=number_unused_ballots,
         number_spoiled_ballots=number_spoiled_ballots,
         number_cancelled_ballots=number_cancelled_ballots,
