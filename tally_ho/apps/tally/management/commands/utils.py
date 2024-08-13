@@ -249,12 +249,14 @@ def check_duplicates(csv_file_path: str, field: str) -> None:
     """
     con = duckdb.connect()
 
-    result = con.execute(f"""
+    query = """
         SELECT {field}, COUNT(*) AS cnt
-        FROM read_csv_auto('{csv_file_path}')
+        FROM read_csv_auto(?)
         GROUP BY {field}
         HAVING cnt > 1
-    """).fetchall()
+    """.format(field=field)
+
+    result = con.execute(query, [csv_file_path]).fetchall()
 
     if len(result) > 0:
         raise Exception(f"Duplicates found for field '{field}'")
