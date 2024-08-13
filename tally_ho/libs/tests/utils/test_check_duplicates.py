@@ -2,7 +2,7 @@ import os
 
 from django.test import TestCase
 from tally_ho.apps.tally.management.commands.utils import (
-    check_duplicates, DuplicateFoundError
+    check_duplicates
 )
 
 class CheckDuplicatesTestCase(TestCase):
@@ -31,7 +31,7 @@ class CheckDuplicatesTestCase(TestCase):
 
     def test_duplicates_exist(self):
         """Test that duplicates are correctly identified."""
-        with self.assertRaises(DuplicateFoundError):
+        with self.assertRaises(Exception):
             check_duplicates(
                 csv_file_path=self.csv_with_duplicates, field='barcode')
 
@@ -40,6 +40,6 @@ class CheckDuplicatesTestCase(TestCase):
         try:
             check_duplicates(
                 csv_file_path=self.csv_without_duplicates, field='barcode')
-        except DuplicateFoundError:
+        except Exception:
             self.fail(
                 "check_duplicates() raised DuplicatesFoundError unexpectedly!")

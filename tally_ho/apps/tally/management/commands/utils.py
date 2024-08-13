@@ -221,10 +221,6 @@ def check_for_missing_columns(
         raise Exception(error_message)
     return None
 
-class DuplicateFoundError(Exception):
-    """Custom exception to be raised when duplicates are found."""
-    pass
-
 def check_duplicates(csv_file_path: str, field: str) -> None:
     """
     Checks for duplicates in a CSV file based on a specified field using
@@ -261,4 +257,4 @@ def check_duplicates(csv_file_path: str, field: str) -> None:
     """).fetchall()
 
     if len(result) > 0:
-        raise DuplicateFoundError(f"Duplicates found for field '{field}'")
+        raise Exception(f"Duplicates found for field '{field}'")
