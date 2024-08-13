@@ -251,6 +251,12 @@ class TestAdministrativeAreasReports(TestBase):
         self.assertEqual(
             len(json.loads(response.content.decode())['data']), 2)
 
+        # test sub constituency filter
+        data = {'data': '{"sub_con_codes": ' + f'["{self.sc.code}"]' + '}'}
+        response = self.apply_filter(data)
+        self.assertEqual(
+            len(json.loads(response.content.decode())['data']), 2)
+
     def test_administrative_areas_reports_views(self):
         # test ActiveCandidatesVotesListView
         tally = create_tally()
@@ -466,7 +472,8 @@ class TestAdministrativeAreasReports(TestBase):
             'ballot_status': ['available_for_release'],
             'station_status': ['active'],
             'candidate_status': ['active'],
-            'percentage_processed': 75
+            'percentage_processed': 75,
+            'sub_con_codes': [self.sc.code]
         }
         export_qs = admin_reports.export_results_queryset(
             tally_id=self.tally.id, qs=qs, data=data)
@@ -592,6 +599,7 @@ class TestAdministrativeAreasReports(TestBase):
             'exportType': 'PPT',
             'select_1_ids': center_ids,
             'select_2_ids': station_ids,
+            'sub_con_codes': [self.sc.code]
         }
         request = self.factory.get('/')
         request.user = self.user
