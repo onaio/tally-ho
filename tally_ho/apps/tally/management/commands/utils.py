@@ -1,3 +1,4 @@
+import duckdb
 from gettext import ngettext
 from django.conf import settings
 from django.db import transaction
@@ -219,3 +220,45 @@ def check_for_missing_columns(
             )
         raise Exception(error_message)
     return None
+
+class DuplicateFoundError(Exception):
+    """Custom exception to be raised when duplicates are found."""
+    pass
+
+def check_duplicates(csv_file_path: str, field: str) -> None:
+    """
+    Checks for duplicates in a CSV file based on a specified field using
+    DuckDB.
+
+    This function loads the specified CSV file into DuckDB, groups the data
+    by the provided field, and checks if any of the groups contain more than
+    one row. It returns `True` if duplicates are found, otherwise `False`.
+
+    Parameters:
+    ----------
+    csv_file_path : str
+        The path to the CSV file to be checked.
+    field : str, optional
+        The name of the field/column to check for duplicates.
+
+    Raises:
+    -------
+    DuplicatesFoundError
+        If duplicates are found in the specified field.
+
+    Returns:
+    -------
+    None
+        If no duplicates are found.
+    """
+    con = duckdb.connect()
+
+    result = con.execute(f"""
+        SELECT {field}, COUNT(*) AS cnt
+        FROM read_csv_auto('{csv_file_path}')
+        GROUP BY {field}
+        HAVING cnt > 1
+    """).fetchall()
+
+    if len(result) > 0:
+        raise DuplicateFoundError(f"Duplicates found for field '{field}'")
