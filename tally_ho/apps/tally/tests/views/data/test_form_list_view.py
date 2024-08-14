@@ -1,5 +1,7 @@
+import datetime
 import json
 from django.test import RequestFactory
+from django.contrib.auth.models import AnonymousUser
 
 from tally_ho.apps.tally.views.constants import (
     sub_con_code_query_param,
@@ -8,6 +10,7 @@ from tally_ho.apps.tally.views.constants import (
     pending_at_state_query_param
     )
 from tally_ho.apps.tally.views.data import form_list_view as views
+from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
     create_ballot,
@@ -15,6 +18,10 @@ from tally_ho.libs.tests.test_base import (
     create_tally,
     TestBase,
     create_result_forms_per_form_state,
+    create_sub_constituency,
+    create_center,
+    create_station,
+    create_result_form,
     )
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
     electrol_races
@@ -34,6 +41,19 @@ class TestFormListView(TestBase):
             **electrol_races[0]
         )
 
+    def test_access_control(self):
+        view = views.FormListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=self.tally.pk)
+        self.assertEqual(response.status_code, 200)
+
+        request.user = AnonymousUser()
+        request.session = {}
+        response = view(request, tally_id=self.tally.pk)
+        self.assertEqual(response.status_code, 302)
+
     def test_form_list_view(self):
         tally = create_tally()
         tally.users.add(self.user)
@@ -44,6 +64,36 @@ class TestFormListView(TestBase):
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Form List")
         self.assertContains(response, "New Form")
+
+    def test_csv_export(self):
+        ballot = create_ballot(self.tally, self.electrol_race)
+        sub_con = create_sub_constituency(code=12345,tally=self.tally)
+        center_code = '12345'
+        center = create_center(
+            center_code, tally=self.tally, sub_constituency=sub_con)
+        station = create_station(center)
+        state = 'unsubmitted'
+        form_state = FormState[state.upper()]
+        barcode = f"{center_code}0{station.station_number}011"
+        result_form = create_result_form(
+                ballot=ballot,
+                barcode=barcode,
+                form_state=form_state,
+                center=center,
+                station_number=station.station_number,
+                tally=self.tally
+            )
+        view = views.FormListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=self.tally.pk, state=state)
+        self.assertEqual(response['Content-Type'], 'text/csv')
+        content = b"".join(response.streaming_content).decode('utf-8')
+        self.assertIn(result_form.barcode, content)
+        formatted_datestring = datetime.date.today().strftime("%Y%m%d")
+        filename = f'{state}_form_list_{formatted_datestring}.csv'
+        self.assertIn(filename, response.headers['Content-Disposition'])
 
     def test_form_not_received_list_view(self):
         tally = create_tally()

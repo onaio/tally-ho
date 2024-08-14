@@ -176,14 +176,43 @@ class FormListView(LoginRequiredMixin,
                 form_state = FormState[form_state.upper()]
                 form_list = ResultForm.forms_in_state(form_state.value,
                                                       tally_id=tally_id)
-
             form_list = form_list.values(
-                'barcode', 'form_state', 'gender', 'station_number',
-                'center__sub_constituency__code',
+                'barcode',
+                'ballot__electrol_race__election_level',
+                'ballot__electrol_race__ballot_name',
+                'ballot__number',
+                'center__office__region__name',
                 'center__code',
-                'ballot__electrol_race___election_level').order_by('barcode')
+                'office__name',
+                'office__number',
+                'station_number',
+                'center__sub_constituency__name',
+                'center__sub_constituency__code',
+                'form_state',).order_by('barcode')
 
-            return render_to_csv_response(form_list)
+            header_map = {
+                'barcode': 'barcode',
+                'center__code': 'center code',
+                'station_number': 'station number',
+                'office__name': 'office name',
+                'office__number': 'office number',
+                'center__sub_constituency__name': 'subconstituency name',
+                'center__sub_constituency__code': 'subconstituency code',
+                'ballot__electrol_race__election_level': 'election level',
+                'ballot__electrol_race__ballot_name': 'sub race type',
+                'ballot__number': 'ballot number',
+                'center__office__region__name': 'region name',
+                'form_state': 'form state',
+            }
+            report_name =\
+                '{}_form_list'.format(
+                    form_state if form_state == ALL else form_state.name)
+
+            return render_to_csv_response(
+                form_list,
+                filename=report_name,
+                append_datestamp=True,
+                field_header_map=header_map)
 
         query_param_string = self.request.GET.urlencode()
         remote_data_url = reverse(

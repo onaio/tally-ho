@@ -58,9 +58,7 @@ def quarantine_checks():
                    'pass_turnout_percentage_validation':
                    pass_turnout_percentage_validation,
                    'pass_percentage_of_votes_per_candidate_validation':
-                   pass_percentage_of_votes_per_candidate_validation,
-                   'pass_percentage_of_blank_ballots_trigger':
-                   pass_percentage_of_blank_ballots_trigger}
+                   pass_percentage_of_votes_per_candidate_validation}
     methods = []
 
     quarantine_checks_methods =\
@@ -287,33 +285,6 @@ def pass_invalid_ballots_percentage_validation(result_form):
     allowed_invalid_ballots_percentage = qc.percentage
 
     return invalid_ballots_percentage <= allowed_invalid_ballots_percentage
-
-
-def pass_percentage_of_blank_ballots_trigger(result_form):
-    """Validate the percentage of blank ballots.
-
-    If the `result_form` does not have a `reconciliation_form` this will
-    always return True.
-
-    Fails if the percentage of blank ballots is greater than the this
-    trigger percentage value.
-
-    :param result_form: The result form to check.
-    :returns: A boolean of true if passed, otherwise false.
-    """
-    recon_form = result_form.reconciliationform
-
-    if not recon_form:
-        return True
-
-    qc = QuarantineCheck.objects.get(
-        method='pass_percentage_of_blank_ballots_trigger')
-    blank_ballots_percentage =\
-        100 * (recon_form.number_blank_ballots /
-               recon_form.number_ballots_inside_the_box)
-    allowed_blank_ballots_percentage = qc.percentage
-
-    return blank_ballots_percentage <= allowed_blank_ballots_percentage
 
 
 def pass_turnout_percentage_validation(result_form):

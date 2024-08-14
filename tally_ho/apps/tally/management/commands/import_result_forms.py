@@ -4,6 +4,7 @@ import logging
 from django.conf import settings
 from tally_ho.apps.tally.management.commands.utils import (
     build_generic_model_key_values_from_duckdb_row_tuple_data,
+    check_duplicates,
     check_for_missing_columns,
     get_ballot_by_ballot_number,
     get_office_by_office_name_and_region_name,
@@ -194,6 +195,10 @@ def async_import_results_forms_from_result_forms_file(
             result_forms_col_names,
             duckdb_result_forms_data.columns,
             'result_form'
+        )
+        check_duplicates(
+            csv_file_path=file_path,
+            field='barcode'
         )
 
         stations_by_number_underscore_center_code =\

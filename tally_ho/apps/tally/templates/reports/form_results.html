@@ -15,6 +15,16 @@
 {% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url results_download_url=results_download_url languageDE=languageDE deployedSiteUrl=deployedSiteUrl %}
 <script>
 $(document).ready(() => {
+  const fileNamePostFix = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-based, so add 1
+    const day = String(now.getDate()).padStart(2, '0');
+    const hour = String(now.getHours()).padStart(2, '0');
+    const minute = String(now.getMinutes()).padStart(2, '0');
+    const second = String(now.getSeconds()).padStart(2, '0');
+    return `${year}${month}${day}_${hour}${minute}${second}`;
+  }
   const dt_language = {{ languageDE|safe }}
   const candidatesResultsReportUrl = '{{ remote_url }}'
   const candidatesResultsExportReportUrl = '{{ export_url }}'
@@ -94,6 +104,7 @@ $(document).ready(() => {
   $('#in-report').on('click', '#filter-in-report', function () {
     let data = [];
     let selectOneIds = $('select#filter-in-centers').val();
+    let subConCodes = $('select#filter-sub-cons').val();
     let selectTwoIds = $('select#filter-in-stations').val();
     let exportNumber = $('input#export-number').val();
     let electionLevelNames = $('select#election-level-names').val();
@@ -107,6 +118,7 @@ $(document).ready(() => {
       const items = {
         select_1_ids: selectOneIds !== null ? selectOneIds : [],
         select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
+        sub_con_codes: subConCodes !== null ? subConCodes : [],
         export_number: exportNumber !== null ? exportNumber : [],
         election_level_names: electionLevelNames !== null ? electionLevelNames : [],
         sub_race_type_names: subRaceTypeNames !== null ? subRaceTypeNames : [],
@@ -139,6 +151,7 @@ $(document).ready(() => {
 
     let data = [];
     let selectOneIds = $('select#filter-in-centers').val();
+    let subConCodes = $('select#filter-sub-cons').val();
     let selectTwoIds = $('select#filter-in-stations').val();
     let electionLevelNames = $('select#election-level-names').val();
     let subRaceTypeNames = $('select#sub-race-names').val();
@@ -147,7 +160,7 @@ $(document).ready(() => {
     let stationStatus = $('select#station-status').val();
     let candidateStatus = $('select#candidate-status').val();
     let percentageProcessed = $('input#percentage-processed').val();
-    const exportFileName = 'election_results.pptx'
+    const exportFileName = `election_results_${fileNamePostFix()}.pptx`
 
     const downloadFile = (blob, fileName) => {
       const link = document.createElement('a');
@@ -162,6 +175,7 @@ $(document).ready(() => {
 
     const items = {
       select_1_ids: selectOneIds !== null ? selectOneIds : [],
+      sub_con_codes: subConCodes !== null ? subConCodes : [],
       select_2_ids: selectTwoIds !== null ? selectTwoIds : [],
       election_level_names: electionLevelNames !== null ? electionLevelNames : [],
       sub_race_type_names: subRaceTypeNames !== null ? subRaceTypeNames : [],
@@ -213,6 +227,7 @@ $(document).ready(() => {
       'select#election-level-names',
       'select#sub-race-names',
       'select#filter-in-centers',
+      'select#filter-sub-cons',
       'select#filter-in-stations',
       'select#ballot-status',
       'select#station-status',
@@ -256,7 +271,7 @@ $(document).ready(() => {
     </div>
     </div>
     <div class="col-12" style="margin-bottom: 2em;">
-    <div class="col-sm-3" style="padding-left: 0.5em;">
+    <div class="col-sm-4" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Election Levels' %}</p>
       <select class="selectpicker" id="election-level-names" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
         {% for name in election_level_names %}
@@ -264,7 +279,7 @@ $(document).ready(() => {
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3" style="padding-left: 0.5em;">
+    <div class="col-sm-4" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Sub Races' %}</p>
       <select class="selectpicker" id="sub-race-names" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
         {% for name in sub_race_type_names %}
@@ -272,7 +287,17 @@ $(document).ready(() => {
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3" style="padding-left: 0.5em;">
+    <div class="col-sm-4">
+      <p style="text-align: left; margin-left: .5em;">{% trans 'Sub Constituencies' %}</p>
+      <select  class="selectpicker" id="filter-sub-cons" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Sub Constituency">
+        {% for sub_con in sub_cons %}
+          <option value={{sub_con.code}}>{{sub_con.name}}-{{sub_con.code}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    </div>
+    <div class="col-12" style="margin-bottom: 2em;">
+    <div class="col-sm-4" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans  'Centers' %}</p>
       <select class="selectpicker" id="filter-in-centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
         {% for center in centers %}
@@ -280,7 +305,7 @@ $(document).ready(() => {
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Stations' %}</p>
       <select class="selectpicker filter-in-center-stations" id="filter-in-stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
         {% for station in stations %}
@@ -288,9 +313,7 @@ $(document).ready(() => {
         {% endfor %}
       </select>
     </div>
-    </div>
-    <div class="col-12" style="margin-bottom: 2em;">
-    <div class="col-sm-3" style="padding-left: 0.5em;">
+    <div class="col-sm-4" style="padding-left: 0.5em;">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Ballot Status' %}</p>
       <select class="selectpicker ballot-status" id="ballot-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Ballot Status">
         {% for status in ballot_status %}
@@ -298,7 +321,9 @@ $(document).ready(() => {
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3">
+    </div>
+    <div class="col-12" style="margin-bottom: 2em;">
+    <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Station Status' %}</p>
       <select class="selectpicker station-status" id="station-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Station Status">
         {% for status in station_status %}
@@ -306,7 +331,7 @@ $(document).ready(() => {
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Candidate Status' %}</p>
       <select class="selectpicker candidate-status" id="candidate-status" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Candidate Status">
         {% for status in candidate_status %}
@@ -314,7 +339,7 @@ $(document).ready(() => {
         {% endfor %}
       </select>
     </div>
-    <div class="col-sm-3">
+    <div class="col-sm-4">
       <p style="text-align: left; margin-left: .5em;">{% trans 'Station Processed Percentage' %}</p>
       <div>
        <input style="width: 100%;" type="number" min="0" max="100" value="0" id="percentage-processed">
@@ -344,6 +369,7 @@ $(document).ready(() => {
         <th>{% trans 'Gender' %}</th>
         <th>{% trans 'Election Level' %}</th>
         <th>{% trans 'Sub Race' %}</th>
+        <th>{% trans 'Sub Con' %}</th>
         <th>{% trans 'Order' %}</th>
         <th>{% trans 'Ballot Number' %}</th>
       </tr>

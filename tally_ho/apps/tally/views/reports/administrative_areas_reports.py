@@ -1,4 +1,5 @@
 import ast
+import datetime
 import json
 import os
 
@@ -54,13 +55,13 @@ report_types = {1: "turnout",
                 6: "progressive-report"}
 
 
-def build_station_and_centers_list(tally_id):
+def build_stations_centers_and_sub_cons_list(tally_id):
     """
     Create a list of stations and centers filtered by tally id.
 
     :param tally_id: Tally id.
 
-    returns: list of stations and centers.
+    returns: list of stations, centers and sub cons.
     """
     qs = Station.objects.filter(
         tally__id=tally_id
@@ -86,8 +87,18 @@ def build_station_and_centers_list(tally_id):
                 'center__code'
                 )
             )
+    sub_cons = \
+        list(
+            qs.annotate(
+                name=F('center__sub_constituency__name')
+                ).values(
+                'name'
+                ).annotate(code=F('center__sub_constituency__code')).distinct(
+                'center__sub_constituency__code'
+                )
+            )
 
-    return stations, centers
+    return stations, centers, sub_cons
 
 
 def get_stations_and_centers_by_admin_area(
@@ -627,6 +638,8 @@ def results_queryset(
             if data.get('station_status') else []
         candidate_status = data['candidate_status'] \
             if data.get('candidate_status') else []
+        sub_con_codes = data['sub_con_codes'] \
+            if data.get('sub_con_codes') else []
         percentage_processed = data['percentage_processed'] \
             if data.get('percentage_processed') else 0
         stations_processed_percentage = min(int(percentage_processed), 100)
@@ -692,6 +705,12 @@ def results_queryset(
             query_args[sub_race_type_field] =\
                 sub_race_type_names
 
+        if sub_con_codes:
+            sub_con_code_field =\
+                'result_form__center__sub_constituency__code__in'
+            query_args[sub_con_code_field] =\
+                sub_con_codes
+
         if election_level_names:
             election_level_field =\
                 'result_form__ballot__electrol_race__election_level__in'
@@ -738,6 +757,8 @@ def results_queryset(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
+                sub_con_name=F(
+                    'result_form__center__sub_constituency__name'),
                 order=F('candidate__order'),
                 ballot_number=F('candidate__ballot__number'),
                 candidate_status=Case(
@@ -760,6 +781,8 @@ def results_queryset(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
+                sub_con_name=F(
+                    'result_form__center__sub_constituency__name'),
                 order=F('candidate__order'),
                 ballot_number=F('candidate__ballot__number'),
                 candidate_status=Case(
@@ -840,6 +863,8 @@ def export_results_queryset(
             if data.get('station_status') else []
         candidate_status = data['candidate_status'] \
             if data.get('candidate_status') else []
+        sub_con_codes = data['sub_con_codes'] \
+            if data.get('sub_con_codes') else []
         percentage_processed = data['percentage_processed'] \
             if data.get('percentage_processed') else 0
         stations_processed_percentage = min(int(percentage_processed), 100)
@@ -930,6 +955,12 @@ def export_results_queryset(
                     active = False
                 query_args['candidate__active'] = active
 
+        if sub_con_codes:
+            sub_con_code_field =\
+                'result_form__center__sub_constituency__code__in'
+            query_args[sub_con_code_field] =\
+                sub_con_codes
+
         qs = qs.filter(**query_args)
         if selected_station_ids or stations_processed_percentage:
             qs = qs.filter(
@@ -950,6 +981,8 @@ def export_results_queryset(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
+                sub_con_name=F(
+                    'result_form__center__sub_constituency__name'),
             )
 
     else:
@@ -964,6 +997,8 @@ def export_results_queryset(
                     'result_form__ballot__electrol_race__election_level'),
                 sub_race_type=F(
                     'result_form__ballot__electrol_race__ballot_name'),
+                sub_con_name=F(
+                    'result_form__center__sub_constituency__name'),
             )
 
     return qs
@@ -1626,6 +1661,7 @@ def get_export(request):
     station_status = data.get('station_status')
     candidate_status = data.get('candidate_status')
     percentage_processed = data.get('percentage_processed')
+    sub_con_codes = data.get('sub_con_codes')
     filters_applied =\
         center_ids or\
         station_ids or\
@@ -1634,7 +1670,8 @@ def get_export(request):
         ballot_status or\
         station_status or\
         candidate_status or\
-        percentage_processed
+        percentage_processed or\
+        sub_con_codes
 
     qs = Result.objects.filter(
         result_form__tally__id=tally_id,
@@ -1745,7 +1782,9 @@ def create_ppt_export(
         )
 
     # Save the presentation to a file
-    response = save_ppt_presentation_to_file(prs, 'election_results.pptx')
+    formatted_datestring = datetime.date.today().strftime("%Y%m%d")
+    response = save_ppt_presentation_to_file(
+        prs, f'election_results_{formatted_datestring}.pptx')
 
     return response
 
@@ -3584,6 +3623,7 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                'gender',
                'election_level',
                'sub_race_type',
+               'sub_con_name',
                'order',
                'ballot_number',
             )
@@ -3661,6 +3701,7 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                 'valid_votes':
                 valid_votes_per_electrol_race_id.get(
                 result.get('electrol_race_id')),
+                'sub_con_name': result.get('sub_con_name'),
             } for result in qs]
 
         sorted_results_report = \
@@ -3678,7 +3719,8 @@ class ResultFormResultsListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        stations, centers = build_station_and_centers_list(tally_id)
+        stations, centers, sub_cons =\
+            build_stations_centers_and_sub_cons_list(tally_id)
         electrol_races =\
             ElectrolRace.objects.filter(tally__id=tally_id)
         columns = (
@@ -3689,6 +3731,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
                     'gender',
                     'election_level',
                     'sub_race_type',
+                    'sub_con_name',
                     'order',
                     'ballot_number',
                 )
@@ -3731,6 +3774,7 @@ class ResultFormResultsListView(LoginRequiredMixin,
             tally_id=tally_id,
             stations=stations,
             centers=centers,
+            sub_cons=sub_cons,
             election_level_names=set(electrol_races.values_list(
             'election_level', flat=True)),
             sub_race_type_names=set(electrol_races.values_list(
@@ -3826,7 +3870,8 @@ class DuplicateResultsListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        stations, centers = build_station_and_centers_list(tally_id)
+        stations, centers, _unused =\
+            build_stations_centers_and_sub_cons_list(tally_id)
         language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
@@ -3921,7 +3966,8 @@ class AllCandidatesVotesListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        stations, centers = build_station_and_centers_list(tally_id)
+        stations, centers, _unused =\
+            build_stations_centers_and_sub_cons_list(tally_id)
         language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
@@ -4020,7 +4066,8 @@ class ActiveCandidatesVotesListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        stations, centers = build_station_and_centers_list(tally_id)
+        stations, centers, _unused =\
+            build_stations_centers_and_sub_cons_list(tally_id)
         language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
