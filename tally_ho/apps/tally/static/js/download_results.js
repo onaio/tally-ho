@@ -10,24 +10,22 @@ $(document).ready(function () {
         a.remove();
     };
 
-    $("#report").on("click", "#export-form-results-presidential", function () {
-        $("#export-form-results-presidential").html("Exporting...");
-        $("#export-form-results-presidential").prop("disabled", true);
-        const presidentialRaceTypeNumber = [5];
+    $("#in-report").on("click", "#export-results", function () {
+        $("#export-results").html("Exporting...");
+        $("#export-results").prop("disabled", true);
         $.ajax({
             url: resultsDownloadUrl,
             data: {
                 data: JSON.stringify({
                     tally_id: tallyId,
-                    race_types: presidentialRaceTypeNumber
                 }),
             },
             traditional: true,
             dataType: 'json',
             success: (data) => {
-                downloadResults(data, 'presidential_results.json');
-                $("#export-form-results-presidential").removeAttr("disabled");
-                $("#export-form-results-presidential").html("Export Presidential Results in JSON");
+                downloadResults(data, `results_${Date.now()}.json`);
+                $("#export-results").removeAttr("disabled");
+                $("#export-results").html("Export Results in JSON");
             },
         });
     });
