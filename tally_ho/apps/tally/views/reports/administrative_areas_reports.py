@@ -2213,6 +2213,32 @@ def get_results(request):
         data={'data': sorted_results_report, 'created_at': timezone.now()},
         safe=False)
 
+
+def get_sub_cons_list(request):
+    """
+    Builds a json object of sub constituencies.
+
+    :param request: The request object containing the tally id.
+
+    returns: A JSON response of sub constituencies results
+    """
+    tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    qs = SubConstituency.objects.filter(
+                tally__id=tally_id).annotate(
+                    constituency_name=F('constituency__name'),
+                )
+    subs =\
+        [{
+            'code': sub.code,
+            'name': sub.name,
+            'number_of_ballots': sub.number_of_ballots,
+            'constituency_name': sub.constituency.name,
+        } for sub in qs]
+
+    return JsonResponse(
+        data={'data': subs, 'created_at': timezone.now()},
+        safe=False)
+
 class SummaryReportDataView(LoginRequiredMixin,
                             mixins.GroupRequiredMixin,
                             mixins.TallyAccessMixin,

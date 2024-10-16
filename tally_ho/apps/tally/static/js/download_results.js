@@ -30,6 +30,26 @@ $(document).ready(function () {
         });
     });
 
+    $("#sub-cons-list-export").on("click", "#export-sub-cons", function () {
+        $("#export-sub-cons").html("Exporting...");
+        $("#export-sub-cons").prop("disabled", true);
+        $.ajax({
+            url: subConsDownloadUrl,
+            data: {
+                data: JSON.stringify({
+                    tally_id: tallyId,
+                }),
+            },
+            traditional: true,
+            dataType: 'json',
+            success: (data) => {
+                downloadResults(data, `sub_cons_list_${Date.now()}.json`);
+                $("#export-sub-cons").removeAttr("disabled");
+                $("#export-sub-cons").html("Export Sub Constituencies List in JSON");
+            },
+        });
+    });
+
     $("#report").on("click", "#export-form-results-parliamentary", function () {
         $("#export-form-results-parliamentary").html("Exporting...");
         $("#export-form-results-parliamentary").prop("disabled", true);
