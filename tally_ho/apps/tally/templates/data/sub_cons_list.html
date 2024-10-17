@@ -26,7 +26,7 @@
 {% endif %}
 
 <div class="pull-left" id="sub-cons-list-export" style="margin-bottom: 2em;">
-    <button id="export-sub-cons" class="btn btn-default btn-small">{% trans 'Export Sub Constituencies List in JSON' %}</button>
+    <button id="export-sub-cons" class="btn btn-default btn-small">{% trans 'json' %}</button>
 </div>
 
 <table class="datatable">
@@ -34,8 +34,9 @@
         <tr>
             <th>{% trans 'Code' %}</th>
             <th>{% trans 'Name' %}</th>
-            <th>{% trans 'Ballots' %}</th>
-            <th>{% trans 'Constituency Name' %}</th>
+            <th>{% trans 'Election Level' %}</th>
+            <th>{% trans 'Sub Race' %}</th>
+            <th>{% trans 'Ballot Number' %}</th>
         </tr>
     </thead>
     <tbody></tbody>

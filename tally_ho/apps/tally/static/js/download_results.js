@@ -45,7 +45,7 @@ $(document).ready(function () {
             success: (data) => {
                 downloadResults(data, `sub_cons_list_${Date.now()}.json`);
                 $("#export-sub-cons").removeAttr("disabled");
-                $("#export-sub-cons").html("Export Sub Constituencies List in JSON");
+                $("#export-sub-cons").html("json");
             },
         });
     });

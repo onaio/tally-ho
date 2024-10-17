@@ -4,7 +4,7 @@ $(document).ready(function () {
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = 'candidates-list.json';
+        a.download = `candidates_list_${Date.now()}.json`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -25,7 +25,7 @@ $(document).ready(function () {
             success: (data) => {
                 downLoadCandidates(data);
                 $("#export-candidates-list").removeAttr("disabled");
-                $("#export-candidates-list").html("Export in JSON");
+                $("#export-candidates-list").html("json");
             },
         });
     });

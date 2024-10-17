@@ -748,6 +748,7 @@ def results_queryset(
         qs = qs.filter(candidate__full_name__isnull=False)\
             .values('candidate_id')\
             .annotate(
+                candidate_number=F('candidate__candidate_id'),
                 candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 gender=F('result_form__gender'),
@@ -779,6 +780,7 @@ def results_queryset(
         qs = qs.filter(candidate__full_name__isnull=False)\
             .values('candidate_id')\
             .annotate(
+                candidate_number=F('candidate__candidate_id'),
                 candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 gender=F('result_form__gender'),
@@ -2186,6 +2188,7 @@ def get_results(request):
         }
     results =\
         [{
+            'candidate_id': result.get('candidate_number'),
             'candidate_name': result.get('candidate_name'),
             'total_votes': result.get('total_votes'),
             'gender': result.get('gender').name,
@@ -2224,15 +2227,26 @@ def get_sub_cons_list(request):
     """
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
     qs = SubConstituency.objects.filter(
-                tally__id=tally_id).annotate(
-                    constituency_name=F('constituency__name'),
-                )
+        tally__id=tally_id).prefetch_related('ballots__electrol_race')\
+            .values(
+                'code',
+                'name',
+                'field_office',
+                'ballots__electrol_race__election_level',
+                'ballots__electrol_race__ballot_name',
+                'ballots__number',
+            ).annotate(
+                election_level=F('ballots__electrol_race__election_level'),
+                sub_race=F('ballots__electrol_race__ballot_name'),
+                ballot_number=F('ballots__number')
+            )
     subs =\
         [{
-            'code': sub.code,
-            'name': sub.name,
-            'number_of_ballots': sub.number_of_ballots,
-            'constituency_name': sub.constituency.name,
+            'code': sub.get('code'),
+            'name': sub.get('name'),
+            'election_level': sub.get('election_level'),
+            'sub_race': sub.get('sub_race'),
+            'ballot_number': sub.get('ballot_number'),
         } for sub in qs]
 
     return JsonResponse(

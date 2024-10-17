@@ -39,8 +39,7 @@
 </div>
 {% if show_create_form_button %}
     <div class="col-6" id="result-forms-report" style="float: left;padding-left: 0;">
-        <button style="margin-bottom: 2em; margin-top: 2em;" id="export-result-forms-presidential" class="btn btn-default btn-small">{% trans 'Export Presidential Forms in JSON' %}</button>
-        <button id="export-result-forms-parlimentary" class="btn btn-default btn-small">{% trans 'Export Parliamentary Forms in JSON' %}</button>
+        <button style="margin-bottom: 2em; margin-top: 2em;" id="export-result-forms" class="btn btn-default btn-small">{% trans 'json' %}</button>
     </div>
     <div class="pull-right">
         <form method="get" action="{% url 'create-form' tally_id%}">
