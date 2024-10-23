@@ -64,6 +64,8 @@ class ReconciliationForm(BaseModel):
         _('Number of ballots found inside the ballot box'))
     number_ballots_inside_and_outside_box = models.PositiveIntegerField(
         _('Total number of ballots found inside and outside the ballot box'))
+    total_of_fields_5_and_7 = models.PositiveIntegerField(
+        _('Total of fields 5+7'), default=0)
     number_unstamped_ballots = models.PositiveIntegerField(
         _('Number of unstamped ballots'))
     number_invalid_votes = models.PositiveIntegerField(
