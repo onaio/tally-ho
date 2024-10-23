@@ -50,8 +50,6 @@ class ReconciliationForm(BaseModel):
     is_stamped = models.BooleanField(_('Is the form stamped?'))
     number_ballots_received = models.PositiveIntegerField(
         _('Total number of ballots received by the polling station'))
-    number_signatures_in_vr = models.PositiveIntegerField(
-        _('Number of signatures in the VR'))
     number_of_voter_cards_in_the_ballot_box = models.PositiveIntegerField(
         _('Number of voter cards in the ballot box'), default=0)
     number_unused_ballots = models.PositiveIntegerField(
