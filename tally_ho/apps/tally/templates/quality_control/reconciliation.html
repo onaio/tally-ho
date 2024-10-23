@@ -140,6 +140,12 @@
             <td class="pink-bg">{{ form.number_ballots_inside_and_outside_box.data }}</td>
         </tr>
         <tr>
+            <th><span class="bignum">8</span></th>
+            <th><label for="id_total_of_fields_5_and_7">
+                {% trans 'Total of fields 5 + 7:' %}</label></th>
+            <td class="pink-bg">{{ form.total_of_fields_5_and_7.data }}</td>
+        </tr>
+        <tr>
             <td class="pink-bg" colspan="3">
                 {% trans 'N.B. if the figure in field 8 does not equal the figure in field 1, the calculations above should be redone.' %}
                 <br/>
