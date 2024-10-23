@@ -19,7 +19,7 @@ class ReconForm(ModelForm):
                                      'ballot_number_to',
                                      'is_stamped',
                                      'number_ballots_received',
-                                     'number_signatures_in_vr',
+                                     'number_of_voter_cards_in_the_ballot_box',
                                      'number_unused_ballots',
                                      'number_spoiled_ballots',
                                      'number_cancelled_ballots',

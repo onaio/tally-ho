@@ -183,13 +183,14 @@ def pass_signatures_validation(result_form):
     cancelled_ballots_and_ballots_inside_the_box = (
         recon_form.number_ballots_inside_the_box +
         recon_form.number_cancelled_ballots)
-    number_signatures_in_vr = recon_form.number_signatures_in_vr
+    number_of_voter_cards_in_the_ballot_box =\
+        recon_form.number_of_voter_cards_in_the_ballot_box
     diff =\
-        abs(number_signatures_in_vr -
+        abs(number_of_voter_cards_in_the_ballot_box -
             cancelled_ballots_and_ballots_inside_the_box)
     qc = QuarantineCheck.objects.get(method='pass_signatures_validation')
     scaled_tolerance =\
-        (qc.value / 100) * (number_signatures_in_vr +
+        (qc.value / 100) * (number_of_voter_cards_in_the_ballot_box +
                             cancelled_ballots_and_ballots_inside_the_box) / 2
 
     return diff <= scaled_tolerance

@@ -866,7 +866,7 @@ class TestQualityControl(TestBase):
             number_unused_ballots=0,
             number_valid_votes=20,
             number_ballots_received=21,
-            number_signatures_in_vr=21,
+            number_signaturnumber_of_voter_cards_in_the_ballot_boxes_in_vr=21,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
@@ -917,7 +917,7 @@ class TestQualityControl(TestBase):
             number_unused_ballots=0,
             number_valid_votes=20,
             number_ballots_received=21,
-            number_signatures_in_vr=21,
+            number_of_voter_cards_in_the_ballot_box=21,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
@@ -968,7 +968,7 @@ class TestQualityControl(TestBase):
             number_unused_ballots=0,
             number_valid_votes=20,
             number_ballots_received=21,
-            number_signatures_in_vr=21,
+            number_of_voter_cards_in_the_ballot_box=21,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
@@ -1019,7 +1019,7 @@ class TestQualityControl(TestBase):
             number_unused_ballots=0,
             number_valid_votes=20,
             number_ballots_received=21,
-            number_signatures_in_vr=21,
+            number_of_voter_cards_in_the_ballot_box=21,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
@@ -1066,7 +1066,7 @@ class TestQualityControl(TestBase):
             number_unused_ballots=0,
             number_valid_votes=20,
             number_ballots_received=21,
-            number_signatures_in_vr=21,
+            number_of_voter_cards_in_the_ballot_box=21,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)
@@ -1114,7 +1114,7 @@ class TestQualityControl(TestBase):
             number_unused_ballots=0,
             number_valid_votes=20,
             number_ballots_received=21,
-            number_signatures_in_vr=21,
+            number_of_voter_cards_in_the_ballot_box=21,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=1, num_results=10)

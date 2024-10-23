@@ -86,7 +86,7 @@ class UserLogin(TaskSet):
                 'signature_polling_station_chair': 'on',
                 'signature_dated': 'on',
                 'is_stamped': 'on',
-                'number_signatures_in_vr': '80',
+                'number_of_voter_cards_in_the_ballot_box': '80',
                 'number_unused_ballots': '5',
                 'number_spoiled_ballots': '10',
                 'number_cancelled_ballots': '10',
