@@ -26,7 +26,7 @@ class ReconForm(ModelForm):
                                      'number_ballots_outside_box',
                                      'number_ballots_inside_box',
                                      'number_ballots_inside_and_outside_box',
-                                     'total_of_fields_5_and_7',
+                                     'total_of_cancelled_ballots_and_ballots_inside_box',
                                      'number_unstamped_ballots',
                                      'number_invalid_votes',
                                      'number_valid_votes',

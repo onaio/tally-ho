@@ -93,7 +93,7 @@ class UserLogin(TaskSet):
                 'number_ballots_outside_box': '5',
                 'number_ballots_inside_box': '70',
                 'number_ballots_inside_and_outside_box': '100',
-                'total_of_fields_5_and_7': '80',
+                'total_of_cancelled_ballots_and_ballots_inside_box': '80',
                 'form-TOTAL_FORMS': '8',
                 'form-INITIAL_FORMS': '0',
                 'form-MIN_NUM_FORMS': '0',
