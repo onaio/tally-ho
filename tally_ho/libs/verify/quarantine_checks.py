@@ -7,14 +7,10 @@ from tally_ho.libs.models.enums.form_state import FormState
 
 def create_quarantine_checks():
     for quarantine_check in getattr(settings, 'QUARANTINE_DATA'):
-        QuarantineCheck.objects.update_or_create(
-            name=quarantine_check['name'],
-            method=quarantine_check['method'],
-            defaults={'active': quarantine_check['active'],
-                      'value': quarantine_check['value'],
-                      'description': quarantine_check['description'],
-                      'percentage': quarantine_check['percentage']},
-        )
+        try:
+            QuarantineCheck.objects.get(method=quarantine_check['method'])
+        except QuarantineCheck.DoesNotExist:
+            QuarantineCheck.objects.create(**quarantine_check)
 
 
 def get_total_candidates_votes(result_form):
@@ -41,7 +37,18 @@ def get_total_candidates_votes(result_form):
 
 def quarantine_checks():
     """Return tuples of (QuarantineCheck, validation_function)."""
-    all_methods = {'pass_overvote':
+    all_methods = {
+                   'pass_registrants_trigger':
+                   pass_registrants_trigger,
+                   'pass_voter_cards_trigger':
+                   pass_voter_cards_trigger,
+                   'pass_ballot_papers_trigger':
+                   pass_ballot_papers_trigger,
+                   'pass_ballot_inside_box_trigger':
+                   pass_ballot_inside_box_trigger,
+                   'pass_candidates_votes_trigger':
+                   pass_candidates_votes_trigger,
+                   'pass_overvote':
                    pass_overvote,
                    'pass_tampering':
                    pass_tampering,
@@ -58,7 +65,8 @@ def quarantine_checks():
                    'pass_turnout_percentage_validation':
                    pass_turnout_percentage_validation,
                    'pass_percentage_of_votes_per_candidate_validation':
-                   pass_percentage_of_votes_per_candidate_validation}
+                   pass_percentage_of_votes_per_candidate_validation
+                }
     methods = []
 
     quarantine_checks_methods =\
@@ -105,6 +113,113 @@ def pass_overvote(result_form):
     max_number_ballots = (qc.percentage / 100) * registrants + qc.value
 
     return recon_form.number_ballots_used <= max_number_ballots
+
+def pass_registrants_trigger(result_form):
+    """Summation of recon fields number_cancelled_ballots and
+    number_ballots_inside_box must be less than or equal to the number of
+    registered voters at the station.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    If the `station` for this `result_form` has an empty `registrants` field
+    this will always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    registrants = result_form.station.registrants if result_form.station\
+        else None
+
+    if registrants is None:
+        return True
+
+    return recon_form.total_of_cancelled_ballots_and_ballots_inside_box <=\
+        registrants
+
+def pass_voter_cards_trigger(result_form):
+    """Summation of recon fields number_cancelled_ballots and
+    number_ballots_inside_box must be equal to
+    number_of_voter_cards_in_the_ballot_box
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    return recon_form.total_of_cancelled_ballots_and_ballots_inside_box ==\
+        recon_form.number_of_voter_cards_in_the_ballot_box
+
+def pass_ballot_papers_trigger(result_form):
+    """The total number of ballots received by the polling station must be
+    equal to the total number of ballots found inside and outside the
+    ballot box.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    return recon_form.number_ballots_received ==\
+        recon_form.number_ballots_inside_and_outside_box
+
+def pass_ballot_inside_box_trigger(result_form):
+    """The total number of ballots found inside the ballot box must be
+    equal to the summation of the number of unstamped ballots and the
+    number of invalid votes (including the blanks) and
+    the number of valid votes
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    return (
+        recon_form.number_unstamped_ballots +
+        recon_form.number_invalid_votes +
+        recon_form.number_valid_votes
+    ) ==\
+        recon_form.number_ballots_inside_box
+
+def pass_candidates_votes_trigger(result_form):
+    """The total number of the sorted and counted ballots must be
+    equal to the total votes distributed among the candidates.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    return recon_form.num_votes == recon_form.number_sorted_and_counted
 
 
 def pass_tampering(result_form):
