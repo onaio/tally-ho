@@ -81,6 +81,7 @@ class ReconciliationForm(BaseModel):
     signature_polling_station_chair = models.BooleanField(
         _('Is the form signed by the polling station chair?'))
     signature_dated = models.BooleanField(_('Is the form dated?'))
+    notes = models.TextField(null=True, blank=True)
     objects = ReconciliationFormSet.as_manager()
 
     @property
