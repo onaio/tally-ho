@@ -25,7 +25,7 @@ $(document).ready(function () {
             success: (data) => {
                 downloadResults(data, `results_${Date.now()}.json`);
                 $("#export-results").removeAttr("disabled");
-                $("#export-results").html("Export Results in JSON");
+                $("#export-results").html("All Results JSON Export");
             },
         });
     });
