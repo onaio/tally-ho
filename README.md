@@ -109,6 +109,59 @@ run `pytest tally_ho`
 
 ## Documentation
 
+### Arabic Translations
+
+This project supports Arabic translations using Django’s internationalization (i18n) framework. Follow these steps to manage Arabic translations in the project:
+
+### 1. Set Up Arabic Language Support
+
+Ensure that Arabic (`ar`) is added to the list of supported languages in the Django settings file (`settings.py`):
+
+```python
+# settings.py
+LANGUAGES = [
+    ('en', 'English'),
+    ('ar', 'Arabic'),
+    # Add other languages as needed
+]
+
+# Ensure LANGUAGE_CODE is set to a default language (e.g., 'en')
+LANGUAGE_CODE = 'en'
+```
+
+### 2. Generate Arabic Translation Files
+
+In your project root, run the following command to generate a `django.po` file for Arabic. This file will be located in `locale/ar/LC_MESSAGES/django.po`:
+
+```bash
+django-admin makemessages -l ar
+```
+
+This command will extract all translatable strings marked with the `gettext` functions (e.g., `_("Your text here")`) from your codebase and add them to the Arabic `.po` file.
+
+### 3. Edit Arabic Translations
+
+Open `locale/ar/LC_MESSAGES/django.po` and provide Arabic translations for each entry. Each translation entry will look like this:
+
+```po
+#: path/to/your/template.html:42
+msgid "Original text to translate"
+msgstr "Your Arabic translation here"
+```
+
+Replace `"Your Arabic translation here"` with the Arabic equivalent of the `msgid` string.
+
+### 4. Compile Arabic Translations
+
+After updating the translations, compile them to create the `.mo` files required by Django. Run:
+
+```bash
+django-admin compilemessages
+```
+
+This command will compile all `.po` files, including Arabic, into `.mo` files for use by Django.
+
+
 ### Generating Model Graphs
 
 The below assumes you have `pip` installed `requirements/dev.pip` and [graphviz](https://graphviz.org/download/) in your machine.
