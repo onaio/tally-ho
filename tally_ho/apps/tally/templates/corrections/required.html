@@ -14,7 +14,7 @@
 {% if form.errors %}<p class='errors'>{{ form.errors }}</p>{% endif %}
     {% csrf_token %}
     {% if result_form.has_recon %}
-    <h2>{% trans 'Reconciliation Form Corrections' %}</h2>
+    <h3>{% trans 'Reconciliation Form Corrections' %}: {% trans header %}</h3>
     <table class="table table-striped table-bordered">
         <tr>
             <th>{% trans 'Corrections Required?' %}</th>
