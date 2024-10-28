@@ -1,23 +1,20 @@
-function validate_results(blank_message) {
-    var required_fields = Array.filter(
-        document.getElementsByClassName("required"),
-        function(el) {
-            return el.nodeName === "INPUT";
+function validate_results(alertMessage) {
+    const requiredElements = document.querySelectorAll('.required-input');
+    let allFilled = true;
+    console.log({ requiredElements })
+    requiredElements.forEach(el => {
+        const inputChild = el.querySelector('input');
+        if (inputChild && inputChild.value.trim() === '') {
+            allFilled = false;
+            el.classList.add('has-error');
+        } else if (inputChild) {
+            el.classList.remove('has-error');
         }
-    );
+    });
 
-    var valid = true;
-    for (var i = 0; i < required_fields.length; i++) {
-        var elem = required_fields[i];
-        if (elem.value === ""){
-            valid = false;
-            elem.parentNode.setAttribute("class", "has-error");
-        } else {
-            elem.parentNode.setAttribute("class", "has-success");
-        }
+    if (!allFilled) {
+        alert(alertMessage);
+        return false;
     }
-    if (valid === false) {
-        alert(blank_message);
-    }
-    return valid;
+    return true;
 }
