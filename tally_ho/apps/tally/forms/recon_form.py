@@ -35,7 +35,8 @@ class ReconForm(ModelForm):
             'signature_polling_officer_1',
             'signature_polling_officer_2',
             'signature_polling_station_chair',
-            'signature_dated']
+            'signature_dated',
+            'notes']
         localized_fields = '__all__'
 
     def __init__(self, *args, **kwargs):

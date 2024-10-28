@@ -83,19 +83,29 @@ form{
 	margin-top:1em;
 	padding-top:.6em;
 }
-.blue-bg{
+.blue-bg {
 	background:#AFCCE5;
+	border-color: light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
+}
+
+.blue-bg .form-control:focus {
+  background:#AFCCE5;
+  border-color: light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
+  box-shadow: light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
 }
 .gray-bg{
 	background:#D1D3D4;
 	border:1px solid #808080;
 	min-height:4em;
-	padding:.4em;
+	padding:1.4em;
 	text-align:center;
 	vertical-align:middle!important;
 }
 .pink-bg{
 	background:#FFDFDD;
+}
+.green-bg{
+	background: linear-gradient(to right, #e2f0d9 0%, #e2f0d9 100%);
 }
 .yellow-bg{
 	background:#FFFFC2;
