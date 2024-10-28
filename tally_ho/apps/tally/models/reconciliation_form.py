@@ -45,8 +45,9 @@ class ReconciliationForm(BaseModel):
 
     active = models.BooleanField(default=True)
     entry_version = EnumIntegerField(EntryVersion)
-    ballot_number_from = models.CharField(_('from:'), max_length=256)
-    ballot_number_to = models.CharField(_('to:'), max_length=256)
+    ballot_number_from = models.CharField(
+        _('from:'), max_length=256, null=True)
+    ballot_number_to = models.CharField(_('to:'), max_length=256, null=True)
     is_stamped = models.BooleanField(_('Is the form stamped?'))
     number_ballots_received = models.PositiveIntegerField(
         _('Total number of ballots received by the polling station'))

@@ -18,9 +18,7 @@ class ReconForm(ModelForm):
     class Meta:
         model = ReconciliationForm
         fields = localized_fields =\
-            ['ballot_number_from',
-            'ballot_number_to',
-            'is_stamped',
+            ['is_stamped',
             'number_ballots_received',
             'number_of_voter_cards_in_the_ballot_box',
             'number_unused_ballots',
@@ -42,7 +40,6 @@ class ReconForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ReconForm, self).__init__(*args, **kwargs)
-        self.fields['ballot_number_from'].widget.attrs['autofocus'] = 'on'
 
         for field in self.fields:
             for k, v in list(disable_copy_input.items()):
