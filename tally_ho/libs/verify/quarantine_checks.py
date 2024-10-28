@@ -219,7 +219,7 @@ def pass_candidates_votes_trigger(result_form):
     if not recon_form:
         return True
 
-    return recon_form.num_votes == recon_form.number_sorted_and_counted
+    return result_form.num_votes == recon_form.number_sorted_and_counted
 
 
 def pass_tampering(result_form):
