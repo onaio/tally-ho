@@ -5,7 +5,7 @@ from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.form_state import FormState
 
 
-def create_quarantine_checks(quarantine_data):
+def create_quarantine_checks(quarantine_data=None):
     quarantine_data =\
         quarantine_data if quarantine_data is not None\
                         else getattr(settings, 'QUARANTINE_DATA')
