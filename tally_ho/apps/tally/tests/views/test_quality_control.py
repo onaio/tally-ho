@@ -1166,11 +1166,13 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(result_form.form_state, FormState.AUDIT)
         self.assertTrue(result_form.audit)
-        quarantine_checks_count =\
-            QuarantineCheck.objects.filter(active=True).count()
         self.assertEqual(
             result_form.audit.quarantine_checks.count(),
-            quarantine_checks_count)
+            2)
+        self.assertEqual(
+            [c.method for c in result_form.audit.quarantine_checks.all()],
+            ['pass_ballot_inside_box_trigger',
+             'pass_candidates_votes_trigger'])
         self.assertEqual(result_form.audit.user, self.user)
         self.assertEqual(result_form.audited_count, 1)
         self.assertIn('quality-control/print', response['location'])
