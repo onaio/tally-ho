@@ -283,7 +283,7 @@ class TestQualityControl(TestBase):
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        request = self.factory.get('/')
+        request = self.factory.post('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
 
