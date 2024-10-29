@@ -2168,6 +2168,7 @@ def get_results(request):
                 result_form__tally__id=tally_id,
                 result_form__form_state=FormState.ARCHIVED,
                 entry_version=EntryVersion.FINAL,
+                result_form__ballot__available_for_release=True,
                 active=True)
     qs = results_queryset(
                 tally_id,
