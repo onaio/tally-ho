@@ -561,6 +561,10 @@ class TestCorrections(TestBase):
                                          tally=self.tally,
                                          electrol_race=self.electrol_race)
 
+        data_entry_1_user =\
+            self._create_user('data_entry_1', 'password')
+        self._add_user_to_group(data_entry_1_user,
+                                groups.DATA_ENTRY_1_CLERK)
         data_entry_2_user =\
             self._create_user('data_entry_2', 'password')
         self._add_user_to_group(data_entry_2_user,
@@ -573,7 +577,12 @@ class TestCorrections(TestBase):
         form_processing_time_in_seconds =\
             (end_time - start_time).total_seconds()
 
-        result_form_stat = create_result_form_stats(
+        result_form_stat_de_1 = create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_1_user,
+            result_form=result_form
+        )
+        result_form_stat_de_2 = create_result_form_stats(
             processing_time=form_processing_time_in_seconds,
             user=data_entry_2_user,
             result_form=result_form
@@ -629,8 +638,10 @@ class TestCorrections(TestBase):
                          FormState.QUALITY_CONTROL)
         self.assertIn('corrections/success', response['location'])
 
-        result_form_stat.reload()
-        self.assertEqual(result_form_stat.data_entry_errors, 1)
+        result_form_stat_de_1.reload()
+        result_form_stat_de_2.reload()
+        self.assertEqual(result_form_stat_de_1.data_entry_errors, 2)
+        self.assertEqual(result_form_stat_de_2.data_entry_errors, 0)
 
     def test_confirmation_get(self):
         result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,
