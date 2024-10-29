@@ -754,7 +754,7 @@ class TestQualityControl(TestBase):
             result_form.num_votes,
             recon_form.total_of_cancelled_ballots_and_ballots_inside_box)
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
+        self.assertNotEqual(result_form.form_state, FormState.AUDIT)
         self.assertIsNone(result_form.audit)
         self.assertEqual(result_form.audited_count, 0)
         self.assertIn('quality-control/print', response['location'])
