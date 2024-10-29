@@ -2,7 +2,6 @@ from django.conf import settings
 
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
-from tally_ho.libs.models.enums.form_state import FormState
 
 
 def create_quarantine_checks(quarantine_data=None):
@@ -66,7 +65,9 @@ def quarantine_checks():
 
     return zip(methods, checks)
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def pass_overvote(result_form):
     """Check to guard against overvoting.
 
@@ -83,21 +84,22 @@ def pass_overvote(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
+    pass
+    # recon_form = result_form.reconciliationform
 
-    if not recon_form:
-        return True
+    # if not recon_form:
+    #     return True
 
-    registrants = result_form.station.registrants if result_form.station\
-        else None
+    # registrants = result_form.station.registrants if result_form.station\
+    #     else None
 
-    if registrants is None:
-        return True
+    # if registrants is None:
+    #     return True
 
-    qc = QuarantineCheck.objects.get(method='pass_overvote')
-    max_number_ballots = (qc.percentage / 100) * registrants + qc.value
+    # qc = QuarantineCheck.objects.get(method='pass_overvote')
+    # max_number_ballots = (qc.percentage / 100) * registrants + qc.value
 
-    return recon_form.number_ballots_used <= max_number_ballots
+    # return recon_form.number_ballots_used <= max_number_ballots
 
 def pass_registrants_trigger(result_form):
     """Summation of recon fields number_cancelled_ballots and
@@ -206,7 +208,9 @@ def pass_candidates_votes_trigger(result_form):
 
     return result_form.num_votes == recon_form.number_sorted_and_counted
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def pass_tampering(result_form):
     """Guard against errors and tampering with the form.
 
@@ -220,23 +224,26 @@ def pass_tampering(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
+    pass
+    # recon_form = result_form.reconciliationform
 
-    if not recon_form:
-        return True
+    # if not recon_form:
+    #     return True
 
-    num_votes = result_form.num_votes
-    number_ballots_expected = recon_form.number_ballots_expected
-    diff = abs(num_votes - number_ballots_expected)
+    # num_votes = result_form.num_votes
+    # number_ballots_expected = recon_form.number_ballots_expected
+    # diff = abs(num_votes - number_ballots_expected)
     # TODO Check if 'qc' variable must be QuarantineCheck object with method
-    # 'pass_tampering' or not
-    qc = QuarantineCheck.objects.get(method='pass_tampering')
-    scaled_tolerance = (qc.value / 100) * (
-        num_votes + number_ballots_expected) / 2
+    # # 'pass_tampering' or not
+    # qc = QuarantineCheck.objects.get(method='pass_tampering')
+    # scaled_tolerance = (qc.value / 100) * (
+    #     num_votes + number_ballots_expected) / 2
 
-    return diff <= scaled_tolerance
+    # return diff <= scaled_tolerance
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def pass_ballots_number_validation(result_form):
     """Validate that the total number of received ballots equals the
     total of the ballots inside the box plus ballots outside the box.
@@ -247,23 +254,26 @@ def pass_ballots_number_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
+    pass
+    # recon_form = result_form.reconciliationform
 
-    if not recon_form:
-        return True
+    # if not recon_form:
+    #     return True
 
-    ballots_inside_and_outside_the_box = (
-        recon_form.number_ballots_inside_the_box +
-        recon_form.number_ballots_outside_the_box)
-    number_ballots_received = recon_form.number_ballots_received
-    diff = abs(number_ballots_received - ballots_inside_and_outside_the_box)
-    qc = QuarantineCheck.objects.get(method='pass_ballots_number_validation')
-    scaled_tolerance = (qc.value / 100) * (
-        number_ballots_received + ballots_inside_and_outside_the_box) / 2
+    # ballots_inside_and_outside_the_box = (
+    #     recon_form.number_ballots_inside_the_box +
+    #     recon_form.number_ballots_outside_the_box)
+    # number_ballots_received = recon_form.number_ballots_received
+    # diff = abs(number_ballots_received - ballots_inside_and_outside_the_box)
+    # qc = QuarantineCheck.objects.get(method='pass_ballots_number_validation')
+    # scaled_tolerance = (qc.value / 100) * (
+    #     number_ballots_received + ballots_inside_and_outside_the_box) / 2
 
-    return diff <= scaled_tolerance
+    # return diff <= scaled_tolerance
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def pass_signatures_validation(result_form):
     """Validate that the total number of signatures on the voter list for
     the voters who voted equals the number of ballots found in the ballot
@@ -275,27 +285,30 @@ def pass_signatures_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
+    pass
+    # recon_form = result_form.reconciliationform
 
-    if not recon_form:
-        return True
+    # if not recon_form:
+    #     return True
 
-    cancelled_ballots_and_ballots_inside_the_box = (
-        recon_form.number_ballots_inside_the_box +
-        recon_form.number_cancelled_ballots)
-    number_of_voter_cards_in_the_ballot_box =\
-        recon_form.number_of_voter_cards_in_the_ballot_box
-    diff =\
-        abs(number_of_voter_cards_in_the_ballot_box -
-            cancelled_ballots_and_ballots_inside_the_box)
-    qc = QuarantineCheck.objects.get(method='pass_signatures_validation')
-    scaled_tolerance =\
-        (qc.value / 100) * (number_of_voter_cards_in_the_ballot_box +
-                            cancelled_ballots_and_ballots_inside_the_box) / 2
+    # cancelled_ballots_and_ballots_inside_the_box = (
+    #     recon_form.number_ballots_inside_the_box +
+    #     recon_form.number_cancelled_ballots)
+    # number_of_voter_cards_in_the_ballot_box =\
+    #     recon_form.number_of_voter_cards_in_the_ballot_box
+    # diff =\
+    #     abs(number_of_voter_cards_in_the_ballot_box -
+    #         cancelled_ballots_and_ballots_inside_the_box)
+    # qc = QuarantineCheck.objects.get(method='pass_signatures_validation')
+    # scaled_tolerance =\
+    #     (qc.value / 100) * (number_of_voter_cards_in_the_ballot_box +
+    #                         cancelled_ballots_and_ballots_inside_the_box) / 2
 
-    return diff <= scaled_tolerance
+    # return diff <= scaled_tolerance
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def pass_ballots_inside_box_validation(result_form):
     """The total number of ballot papers inside the ballot box will be
     compared against the total of valid, invalid, and unstamped ballots.
@@ -310,28 +323,31 @@ def pass_ballots_inside_box_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
+    pass
+    # recon_form = result_form.reconciliationform
 
-    if not recon_form:
-        return True
+    # if not recon_form:
+    #     return True
 
-    # Number of ballots value entered by data entry clerk on the recon form
-    number_ballots_inside_box = recon_form.number_ballots_inside_box
+    # # Number of ballots value entered by data entry clerk on the recon form
+    # number_ballots_inside_box = recon_form.number_ballots_inside_box
 
-    # The total of valid, invalid, and unstamped ballots
-    number_ballots_inside_the_box = recon_form.number_ballots_inside_the_box
-    diff =\
-        abs(number_ballots_inside_box -
-            number_ballots_inside_the_box)
-    qc = QuarantineCheck.objects.get(
-        method='pass_ballots_inside_box_validation')
-    scaled_tolerance =\
-        (qc.value / 100) * (number_ballots_inside_box +
-                            number_ballots_inside_the_box) / 2
+    # # The total of valid, invalid, and unstamped ballots
+    # number_ballots_inside_the_box = recon_form.number_ballots_inside_the_box
+    # diff =\
+    #     abs(number_ballots_inside_box -
+    #         number_ballots_inside_the_box)
+    # qc = QuarantineCheck.objects.get(
+    #     method='pass_ballots_inside_box_validation')
+    # scaled_tolerance =\
+    #     (qc.value / 100) * (number_ballots_inside_box +
+    #                         number_ballots_inside_the_box) / 2
 
-    return diff <= scaled_tolerance
+    # return diff <= scaled_tolerance
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def pass_sum_of_candidates_votes_validation(result_form):
     """The total votes for candidates should equal the valid ballots:
     after sorting the ballots inside the ballot box as valid and invalid,
@@ -348,19 +364,22 @@ def pass_sum_of_candidates_votes_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
+    pass
+    # recon_form = result_form.reconciliationform
 
-    if not recon_form:
-        return True
+    # if not recon_form:
+    #     return True
 
-    total_candidates_votes = get_total_candidates_votes(result_form)
-    number_valid_votes = recon_form.number_valid_votes
+    # total_candidates_votes = get_total_candidates_votes(result_form)
+    # number_valid_votes = recon_form.number_valid_votes
 
-    diff = total_candidates_votes - number_valid_votes
+    # diff = total_candidates_votes - number_valid_votes
 
-    return diff > 0
+    # return diff > 0
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def pass_invalid_ballots_percentage_validation(result_form):
     """Validate the percentage of invalid ballots.
 
@@ -373,21 +392,24 @@ def pass_invalid_ballots_percentage_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
+    pass
+    # recon_form = result_form.reconciliationform
 
-    if not recon_form:
-        return True
+    # if not recon_form:
+    #     return True
 
-    qc = QuarantineCheck.objects.get(
-        method='pass_invalid_ballots_percentage_validation')
-    invalid_ballots_percentage =\
-        100 * (recon_form.number_invalid_votes /
-               recon_form.number_ballots_inside_the_box)
-    allowed_invalid_ballots_percentage = qc.percentage
+    # qc = QuarantineCheck.objects.get(
+    #     method='pass_invalid_ballots_percentage_validation')
+    # invalid_ballots_percentage =\
+    #     100 * (recon_form.number_invalid_votes /
+    #            recon_form.number_ballots_inside_the_box)
+    # allowed_invalid_ballots_percentage = qc.percentage
 
-    return invalid_ballots_percentage <= allowed_invalid_ballots_percentage
+    # return invalid_ballots_percentage <= allowed_invalid_ballots_percentage
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def pass_turnout_percentage_validation(result_form):
     """Validate the turnout percentage.
 
@@ -403,26 +425,29 @@ def pass_turnout_percentage_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
+    pass
+    # recon_form = result_form.reconciliationform
 
-    if not recon_form:
-        return True
+    # if not recon_form:
+    #     return True
 
-    registrants = result_form.station.registrants if result_form.station\
-        else None
+    # registrants = result_form.station.registrants if result_form.station\
+    #     else None
 
-    if registrants is None:
-        return True
+    # if registrants is None:
+    #     return True
 
-    qc = QuarantineCheck.objects.get(
-        method='pass_turnout_percentage_validation')
+    # qc = QuarantineCheck.objects.get(
+    #     method='pass_turnout_percentage_validation')
 
-    turnout_percentage = 100 * (recon_form.number_ballots_used / registrants)
-    allowed_turnout_percentage = qc.percentage
+    # turnout_percentage = 100 * (recon_form.number_ballots_used / registrants)
+    # allowed_turnout_percentage = qc.percentage
 
-    return turnout_percentage <= allowed_turnout_percentage
+    # return turnout_percentage <= allowed_turnout_percentage
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def pass_percentage_of_votes_per_candidate_validation(result_form):
     """Validate that the percentage of votes per candidate of the total
     valid votes does not exceed a certain threshold.
@@ -436,27 +461,28 @@ def pass_percentage_of_votes_per_candidate_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
+    pass
+    # recon_form = result_form.reconciliationform
 
-    if not recon_form:
-        return True
+    # if not recon_form:
+    #     return True
 
-    qc = QuarantineCheck.objects.get(
-        method='pass_percentage_of_votes_per_candidate_validation')
-    allowed_candidate_votes_percentage = qc.percentage
-    total_candidates_votes = get_total_candidates_votes(result_form)
+    # qc = QuarantineCheck.objects.get(
+    #     method='pass_percentage_of_votes_per_candidate_validation')
+    # allowed_candidate_votes_percentage = qc.percentage
+    # total_candidates_votes = get_total_candidates_votes(result_form)
 
-    for candidate in result_form.candidates:
-        candidate_votes =\
-            candidate.num_votes(result_form=result_form,
-                                form_state=FormState.QUALITY_CONTROL)
-        candidate_votes_percentage =\
-            100 * (candidate_votes/total_candidates_votes)
+    # for candidate in result_form.candidates:
+    #     candidate_votes =\
+    #         candidate.num_votes(result_form=result_form,
+    #                             form_state=FormState.QUALITY_CONTROL)
+    #     candidate_votes_percentage =\
+    #         100 * (candidate_votes/total_candidates_votes)
 
-        if candidate_votes_percentage > allowed_candidate_votes_percentage:
-            return False
+    #     if candidate_votes_percentage > allowed_candidate_votes_percentage:
+    #         return False
 
-    return True
+    # return True
 
 
 def check_quarantine(result_form, user):
