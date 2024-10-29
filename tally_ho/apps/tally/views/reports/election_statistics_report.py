@@ -320,13 +320,13 @@ def generate_overview_election_statistics(tally_id, election_level):
         stations_counted += 1
         total_registrants_in_counted_stations +=\
             station.get('num_registrants')
-        if station.get('gender') == Gender.MALE:
+        if station.get('station_gender') == Gender.MALE:
                 total_male_registrants_in_counted_stations +=\
                     station.get('num_registrants')
-        elif station.get('gender') == Gender.FEMALE:
+        elif station.get('station_gender') == Gender.FEMALE:
             total_female_registrants_in_counted_stations +=\
                 station.get('num_registrants')
-        elif station.get('gender') == Gender.UNISEX:
+        elif station.get('station_gender') == Gender.UNISEX:
             total_unisex_registrants_in_counted_stations +=\
                 station.get('num_registrants')
 
@@ -342,8 +342,10 @@ def generate_overview_election_statistics(tally_id, election_level):
                 active=True,
                 ).annotate(
                     race=F(
-                    'result_form__ballot__electrol_race__election_level')
-                ).values('race').annotate(
+                    'result_form__ballot__electrol_race__election_level'),
+                    ballot_number=F(
+                    'result_form__ballot__number')
+                ).values('race', 'ballot_number').annotate(
                     race_voters=Sum('votes')
                 ).order_by(
                     '-race_voters'
@@ -352,11 +354,11 @@ def generate_overview_election_statistics(tally_id, election_level):
                 )
         if votes.count() != 0:
             voters += votes[0].get('race_voters')
-            if station.get('gender') == Gender.MALE:
+            if station.get('station_gender') == Gender.MALE:
                 male_voters += votes[0].get('race_voters')
-            elif station.get('gender') == Gender.FEMALE:
+            elif station.get('station_gender') == Gender.FEMALE:
                 female_voters += votes[0].get('race_voters')
-            elif station.get('gender') == Gender.UNISEX:
+            elif station.get('station_gender') == Gender.UNISEX:
                 unisex_voters += votes[0].get('race_voters')
 
     # Calculate turnout percentage

@@ -2124,8 +2124,9 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
                     active=True,
                     ).annotate(
                         race=F(
-                        'result_form__ballot__electrol_race__election_level')
-                    ).values('race').annotate(
+                        'result_form__ballot__electrol_race__election_level'),
+                        ballot_number=F('result_form__ballot__number')
+                    ).values('race', 'ballot_number').annotate(
                         race_voters=Sum('votes')
                     ).order_by(
                         '-race_voters'
