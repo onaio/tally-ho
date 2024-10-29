@@ -279,8 +279,6 @@ class TestQualityControl(TestBase):
                                          tally=self.tally,
                                          form_state=FormState.QUALITY_CONTROL)
         create_reconciliation_form(result_form, self.user)
-        create_reconciliation_form(result_form, self.user,
-                                   ballot_number_from=2)
         create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
 

@@ -581,7 +581,6 @@ class TestCorrections(TestBase):
 
         create_results(result_form, vote1=2, vote2=2)
 
-        ballot_from_val = '2'
         sorted_counted_val = 3
         is_stamped = False
 
@@ -592,7 +591,6 @@ class TestCorrections(TestBase):
         recon2 = create_reconciliation_form(
             result_form,
             self.user,
-            ballot_number_from=ballot_from_val,
             number_sorted_and_counted=sorted_counted_val,
             is_stamped=is_stamped)
         recon2.entry_version = EntryVersion.DATA_ENTRY_2
@@ -605,7 +603,6 @@ class TestCorrections(TestBase):
         session = {'result_form': result_form.pk}
         data = {
             'submit_corrections': 1,
-            'ballot_number_from': ballot_from_val,
             'number_sorted_and_counted': sorted_counted_val,
             'is_stamped': is_stamped,
             'tally_id': self.tally.pk,
@@ -618,7 +615,6 @@ class TestCorrections(TestBase):
         final_form = ReconciliationForm.objects.filter(
             result_form=result_form, entry_version=EntryVersion.FINAL)[0]
 
-        self.assertEqual(final_form.ballot_number_from, ballot_from_val)
         self.assertEqual(final_form.is_stamped, is_stamped)
         self.assertEqual(final_form.number_sorted_and_counted,
                          sorted_counted_val)
