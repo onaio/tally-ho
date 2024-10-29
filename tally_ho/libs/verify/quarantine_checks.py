@@ -51,24 +51,6 @@ def quarantine_checks():
                    pass_ballot_inside_box_trigger,
                    'pass_candidates_votes_trigger':
                    pass_candidates_votes_trigger,
-                   'pass_overvote':
-                   pass_overvote,
-                   'pass_tampering':
-                   pass_tampering,
-                   'pass_ballots_number_validation':
-                   pass_ballots_number_validation,
-                   'pass_signatures_validation':
-                   pass_signatures_validation,
-                   'pass_ballots_inside_box_validation':
-                   pass_ballots_inside_box_validation,
-                   'pass_sum_of_candidates_votes_validation':
-                   pass_sum_of_candidates_votes_validation,
-                   'pass_invalid_ballots_percentage_validation':
-                   pass_invalid_ballots_percentage_validation,
-                   'pass_turnout_percentage_validation':
-                   pass_turnout_percentage_validation,
-                   'pass_percentage_of_votes_per_candidate_validation':
-                   pass_percentage_of_votes_per_candidate_validation
                 }
     methods = []
 
