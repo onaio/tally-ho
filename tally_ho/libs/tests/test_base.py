@@ -12,7 +12,6 @@ from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.office import Office
-from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.reconciliation_form import (
     ReconciliationForm,
 )
@@ -36,6 +35,9 @@ from tally_ho.libs.permissions.groups import (
 )
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
     electrol_races
+)
+from tally_ho.libs.verify.quarantine_checks import (
+    create_quarantine_checks as create_quarantine_checks_fn
 )
 
 
@@ -245,7 +247,8 @@ def create_reconciliation_form(
         ballot_number_from=ballot_number_from,
         ballot_number_to=1,
         number_ballots_received=number_ballots_received,
-        number_of_voter_cards_in_the_ballot_box=number_of_voter_cards_in_the_ballot_box,
+        number_of_voter_cards_in_the_ballot_box=\
+            number_of_voter_cards_in_the_ballot_box,
         number_unused_ballots=number_unused_ballots,
         number_spoiled_ballots=number_spoiled_ballots,
         number_cancelled_ballots=number_cancelled_ballots,
@@ -268,14 +271,7 @@ def create_reconciliation_form(
 
 
 def create_quarantine_checks(quarantine_data):
-    for quarantine_check in quarantine_data:
-        QuarantineCheck.objects.get_or_create(
-            name=quarantine_check['name'],
-            method=quarantine_check['method'],
-            active=quarantine_check['active'],
-            value=quarantine_check['value'],
-            percentage=quarantine_check['percentage']
-        )
+    create_quarantine_checks_fn(quarantine_data=quarantine_data)
 
 
 def create_recon_forms(result_form, user):

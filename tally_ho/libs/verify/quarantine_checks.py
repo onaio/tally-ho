@@ -5,8 +5,11 @@ from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.form_state import FormState
 
 
-def create_quarantine_checks():
-    for quarantine_check in getattr(settings, 'QUARANTINE_DATA'):
+def create_quarantine_checks(quarantine_data):
+    quarantine_data =\
+        quarantine_data if quarantine_data is not None\
+                        else getattr(settings, 'QUARANTINE_DATA')
+    for quarantine_check in quarantine_data:
         try:
             QuarantineCheck.objects.get(method=quarantine_check['method'])
         except QuarantineCheck.DoesNotExist:
