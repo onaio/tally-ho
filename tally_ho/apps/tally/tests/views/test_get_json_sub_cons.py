@@ -2,12 +2,11 @@ from datetime import datetime
 from django.urls import reverse
 from tally_ho.libs.tests.test_base import TestBase
 from tally_ho.libs.tests.test_base import (
-    create_ballot, create_electrol_race, create_sub_constituency
+    create_ballot, create_electrol_race, create_sub_constituency, create_tally
 )
 from django.http import JsonResponse
 import json
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_tally
 from django.utils import timezone
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
 
