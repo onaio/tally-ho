@@ -67,7 +67,7 @@ class ReconFormTest(TestBase):
         """Test that the copy/paste attributes are disabled on all
         form fields."""
         form = ReconForm()
-        for field_name, field in form.fields.items():
+        for field in form.fields.values():
             widget_attrs = field.widget.attrs
             self.assertEqual(widget_attrs.get('onCopy'), 'return false;')
             self.assertEqual(widget_attrs.get('onDrag'), 'return false;')
@@ -79,6 +79,6 @@ class ReconFormTest(TestBase):
     def test_required_field_class_added(self):
         """Test that 'required' class is added to required fields."""
         form = ReconForm()
-        for field_name, field in form.fields.items():
+        for field in form.fields.values():
             if field.required:
                 self.assertIn('required', field.widget.attrs.get('class', ''))
