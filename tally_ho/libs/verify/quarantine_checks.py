@@ -130,8 +130,11 @@ def pass_registrants_trigger(result_form):
     if registrants is None:
         return True
 
+    qc = QuarantineCheck.objects.get(method='pass_registrants_trigger')
+    potential_voters_num = registrants + qc.value
+
     return recon_form.total_of_cancelled_ballots_and_ballots_inside_box <=\
-        registrants
+        potential_voters_num
 
 def pass_voter_cards_trigger(result_form):
     """Summation of recon fields number_cancelled_ballots and
