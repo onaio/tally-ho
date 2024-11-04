@@ -1,8 +1,10 @@
+# Tally-Ho
+
 ![Build Status](https://github.com/onaio/tally-ho/actions/workflows/config.yml/badge.svg?branch=master)
 [![codecov](https://codecov.io/github/onaio/tally-ho/branch/master/graph/badge.svg?token=1PR3KIqgr6)](https://codecov.io/github/onaio/tally-ho)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/1e817ebba18946fa84cb129cdc914f0b)](https://app.codacy.com/gh/onaio/tally-ho/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
-## Tally-Ho!
+## Overview
 
 Election results data entry and verification software built by [Ona Systems](http://company.ona.io) and commissioned by the Libyan [High National Elections Commission](http://hnec.ly/) and the [United Nations Development Program](http://www.undp.org).
 
@@ -23,28 +25,33 @@ mkvirtualenv tally --python=python3.9
 pip install -r requirements/dev.pip
 ```
 
-Install `libpq-dev` library that contains a minimal set of `PostgreSQL`_ binaries and headers requried
+Install `libpq-dev` library that contains a minimal set of `PostgreSQL`_binaries and headers requried
 for building 3rd-party applications for `PostgreSQL`_.
+
 ```bash
 sudo apt-get install libpq-dev
 ```
 
 Install memcache
+
 ```bash
 sudo apt-get update && sudo apt-get install -y memcached
 ```
 
 Install redis
+
 ```bash
 sudo apt-get install -y redis-server
 ```
 
 Make sure you have the latest versions of pip, wheel, and setuptools installed, run
+
 ```bash
 python -m pip install -U pip wheel setuptools
 ```
 
 To Enable [pre-commit hook checks](https://pre-commit.com/#3-install-the-git-hook-scripts) for development, in your virtual env, run
+
 ```bash
 pre-commit install
 ```
@@ -54,6 +61,7 @@ pre-commit install
 ```bash
 celery -A tally_ho.celeryapp worker --loglevel=info
 ```
+
 ### Quick start with user demo data
 
 > This will remove all data in the database.
@@ -77,7 +85,6 @@ python manage.py runserver --settings=tally_ho.settings.dev
 ### Advanced: recreate the database, then load the data and demo users
 
 > This will remove all data in the database.
-
 > This will only work if you have data files in the folder `./data`
 
 The first argument is the database user, the second is the database host IP
@@ -161,20 +168,19 @@ django-admin compilemessages
 
 This command will compile all `.po` files, including Arabic, into `.mo` files for use by Django.
 
-
 ### Generating Model Graphs
 
 The below assumes you have `pip` installed `requirements/dev.pip` and [graphviz](https://graphviz.org/download/) in your machine.
 
 Generate model graph for all models:
 
-```
+```python
 python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -g -o tally-ho-all-models.png
 ```
 
 Generate model graph for app models:
 
-```
+```python
 python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -X GroupObjectPermission,UserObjectPermission,GroupObjectPermissionBase,BaseGenericObjectPermission,UserObjectPermissionBase,BaseObjectPermission,Version,Revision,Pageview,Visitor,Session,AbstractBaseSession,Site,LogEntry,User,Group,AbstractUser,Permission,ContentType,AbstractBaseUser,PermissionsMixin,BaseModel -g -o tally-ho-app-models.png
 ```
 
