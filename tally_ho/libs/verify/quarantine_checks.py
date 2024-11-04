@@ -14,7 +14,9 @@ def create_quarantine_checks(quarantine_data=None):
         except QuarantineCheck.DoesNotExist:
             QuarantineCheck.objects.create(**quarantine_check)
 
-
+# Disabled: Awaiting client feedback for final removal.
+# This function is temporarily inactive; it will be removed if the client
+# confirms it is no longer required.
 def get_total_candidates_votes(result_form):
     """Calculate total candidates votes for the result form
 
@@ -28,13 +30,13 @@ def get_total_candidates_votes(result_form):
     :returns: A Int of total candidates votes.
     """
 
-    vote_list = ()
+    # vote_list = ()
 
-    for candidate in result_form.candidates:
-        votes = candidate.num_votes(result_form, result_form.form_state)
-        vote_list += (votes,)
+    # for candidate in result_form.candidates:
+    #     votes = candidate.num_votes(result_form, result_form.form_state)
+    #     vote_list += (votes,)
 
-    return sum(vote_list)
+    # return sum(vote_list)
 
 
 def quarantine_checks():
@@ -231,7 +233,6 @@ def pass_tampering(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    pass
     # recon_form = result_form.reconciliationform
 
     # if not recon_form:
@@ -261,7 +262,6 @@ def pass_ballots_number_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    pass
     # recon_form = result_form.reconciliationform
 
     # if not recon_form:
@@ -292,7 +292,6 @@ def pass_signatures_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    pass
     # recon_form = result_form.reconciliationform
 
     # if not recon_form:
@@ -330,7 +329,6 @@ def pass_ballots_inside_box_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    pass
     # recon_form = result_form.reconciliationform
 
     # if not recon_form:
@@ -371,7 +369,6 @@ def pass_sum_of_candidates_votes_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    pass
     # recon_form = result_form.reconciliationform
 
     # if not recon_form:
@@ -399,7 +396,6 @@ def pass_invalid_ballots_percentage_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    pass
     # recon_form = result_form.reconciliationform
 
     # if not recon_form:
@@ -432,7 +428,6 @@ def pass_turnout_percentage_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    pass
     # recon_form = result_form.reconciliationform
 
     # if not recon_form:
@@ -468,7 +463,6 @@ def pass_percentage_of_votes_per_candidate_validation(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    pass
     # recon_form = result_form.reconciliationform
 
     # if not recon_form:
