@@ -200,7 +200,9 @@ QUARANTINE_DATA = [
      'description':
      str('Summation of the number of cancelled ballots and '
          'the number of ballots inside the box must be less than or equal to '
-         'the number of registered voters at the station.'),
+         'the number of potential voters which is the number of registered '
+         'voters at the station plus N persons to accommodate staff and '
+         'security.'),
      'method': 'pass_registrants_trigger',
      'active': True,
      'value': 0,

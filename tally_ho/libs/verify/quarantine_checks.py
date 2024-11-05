@@ -115,8 +115,9 @@ def pass_registrants_trigger(result_form):
     this will always return True.
 
     Fails if the summation of recon fields number_cancelled_ballots and
-    number_ballots_inside_box exceeds the number of potential voters minus
-    the number of registrants plus N persons to accomodate staff and security.
+    number_ballots_inside_box exceeds the number of potential voters which is
+    the number of registered voters at the station plus N persons to
+    accommodate staff and security.
 
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
