@@ -241,8 +241,8 @@ QUARANTINE_DATA = [
      },
     {'name': 'Candidates votes trigger',
      'description':
-     str('The total number of the sorted and counted ballots must be '
-         'equal to the total votes distributed among the candidates.'),
+     str('The total valid votes must be equal to the total votes '
+         'distributed among the candidates.'),
      'method': 'pass_candidates_votes_trigger',
      'active': True,
      'value': 0,

@@ -202,8 +202,8 @@ def pass_ballot_inside_box_trigger(result_form):
         recon_form.number_ballots_inside_box
 
 def pass_candidates_votes_trigger(result_form):
-    """The total number of the sorted and counted ballots must be
-    equal to the total votes distributed among the candidates.
+    """The total valid votes must be equal to the total votes
+    distributed among the candidates.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -216,7 +216,7 @@ def pass_candidates_votes_trigger(result_form):
     if not recon_form:
         return True
 
-    return result_form.num_votes == recon_form.number_sorted_and_counted
+    return result_form.num_votes == recon_form.number_valid_votes
 
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client

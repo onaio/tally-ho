@@ -188,7 +188,7 @@ class TestQuarantineChecks(TestBase):
             create_reconciliation_form(
                 result_form=result_form,
                 user=self.user,
-                number_sorted_and_counted=200,
+                number_valid_votes=200,
             )
         votes = 100
         tally = create_tally()
@@ -202,7 +202,7 @@ class TestQuarantineChecks(TestBase):
         self.assertTrue(pass_candidates_votes_trigger(result_form))
 
         # Test for inequality
-        recon_form.number_sorted_and_counted = 100
+        recon_form.number_valid_votes = 100
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_candidates_votes_trigger(result_form))

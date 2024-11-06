@@ -1399,7 +1399,7 @@ class TestQualityControl(TestBase):
             center=center,
             station_number=1)
         create_reconciliation_form(
-            result_form, self.user, number_unstamped_ballots=1000)
+            result_form, self.user, number_valid_votes=2)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
