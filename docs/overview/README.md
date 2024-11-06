@@ -1,4 +1,4 @@
-## System Overview
+# System Overview
 
 **tally-system** is used to record, verify, and report the results of paper votes
 that have been used in an election.  Tally centers enter *result forms* and
@@ -83,7 +83,7 @@ form is not a replacement form it will have a pre-assigned center and station.
 If it is a replacement form the clerk will next enter the center and station
 number for that form.
 
-![](images/intake.png)
+![Intake](images/intake.png)
 
 The original form or the replacement form is a duplicate if there is already a
 form in the system with the same ballot, center, and station.  If the form is a
@@ -115,17 +115,17 @@ The Data Entry Clerk begins by entering the barcode for a form they have
 received.  The system then shows the results component, which displays the
 candidates that appear on the ballot assigned
 to the form in the order in which they appear on the ballot (and form).  The physical form
-shows the number of results for each candidate.  The Data Entry Clerk must enter the 
+shows the number of results for each candidate.  The Data Entry Clerk must enter the
 results for each candidate that appear on the form into the system.
 
-![](images/data-entry-results.png)
+![Data entry results](images/data-entry-results.png)
 
 If the form contains a reconcilliation component, the Clerk must also enter
 reconciliation information regarding the number of ballots, number of stampted
 votes, number of damaged votes, etc.  The system will use this information
 later when deciding whether to Audit the form.
 
-![](images/data-entry.png)
+![data entry](images/data-entry.png)
 
 After a Data Entry 1 Clerk has entered the form's information, the system moves the
 form to Data Entry 2 and the Clerk is instructed to move the physical form to
@@ -141,9 +141,9 @@ and 2 matches exactly the Clerk is simply displayed a message and the form is
 moved to quality control.  The Corrections Clerk begins by entering a barcode
 for the form they have received.
 
-![](images/corrections.png)
+![corrections](images/corrections.png)
 
-If any entries do not match, the system displays the information entered 
+If any entries do not match, the system displays the information entered
 during Data Entry 1 and 2 side-by-side.  The Corrections Clerk must select the
 correct information and select "Submit Corrections", "Not Correct - Reject", or
 "Abort".  If the Clerk chooses "Submit" the corrections are stored and the form
@@ -154,7 +154,7 @@ in the pipeline from there.  If the Clerk choose "Abort" no corrections are
 saved, the forms stays in corrections, and the Clerk is returned to the enter
 barcode entry screen.
 
-![](images/corrections-results.png)
+![corrections results](images/corrections-results.png)
 
 ### Quality Control
 
@@ -169,7 +169,7 @@ form is move to Data Entry 1 and continues in the pipeline from there.  If the
 Clerk chooses "Abort" the form stays in quality control, and the Clerk is
 returned to the enter barcode screen.
 
-![](images/quality-control.png)
+![quality control](images/quality-control.png)
 
 ### Archiving
 
@@ -187,7 +187,7 @@ Otherwise, the Archiving Clerk prints an *Archived* cover sheet and attaches it
 to the form.  The Clerk selects "Print Successful", moving the form to archived
 state.  The form is then filed away.
 
-![](images/archive.png)
+![archive](images/archive.png)
 
 ## Review Stages
 
@@ -223,7 +223,7 @@ recommendations made by a clerk for the form the choose
 the system moves form to Unsubmitted state, and the physical form is returned to
 the Intake Section.
 
-![](images/clearance.png)
+![clearance](images/clearance.png)
 
 ### Audit
 
@@ -260,7 +260,7 @@ recommending that the form skip Quarantine Checks on its next time through the
 system.  The form is then hidden from the Audit team and must then be reviewed
 by a Super Administration before moving to Data Entry 1.
 
-![](images/audit-review.png)
+![audit review](images/audit-review.png)
 
 ## Super Administrator Views
 
@@ -277,7 +277,7 @@ change.  The *Forms Waiting For Approval* list shows those forms which a Super
 Administrator must review.  Rows in this list link to the Audit review view for
 the forms.
 
-![](images/admin-review.png)
+![admin review](images/admin-review.png)
 
 ### Reports Views
 
@@ -286,7 +286,7 @@ current state within the system.  This view is useful to determine where a form
 is in processing and to see how many forms from a particular center have been
 entered into the system.
 
-![](images/reports-progress.png)
+![reports progress](images/reports-progress.png)
 
 The *Reports Offices* list shows the percentage of forms in each state within
 the system.  This can be used to balance the Clerk assigned to specific
@@ -294,7 +294,7 @@ stations.  For example, if there are twice as many forms in Data Entry 1 than
 in Data Entry 2, it may be wise to assign some Clerk from Data Entry 2 to Dat
 Entry 1.
 
-![](images/reports-race.png)
+![reports race](images/reports-race.png)
 
 This view also shows the number of Intaken and Archived form for each Office
 (analogous to a type of voting district).  This allows administrators to track
@@ -319,12 +319,11 @@ that can be entered into the system.
 The *Forms Not Received List* shows the barcodes for forms that the system has
 not yet intaken.
 
-
 ### Results Exports
 
 The *Downloads* section allows Super Administrators to export both simple and
 deteailed results views.  The *All Candidate Votes* download shows a simple
-spreadsheet of the leading candidates and their votes accross all ballots. The 
+spreadsheet of the leading candidates and their votes accross all ballots. The
 same for *Active Candidate Votes* which only shows votes for active candidates.
 The *Result Form List* returns a detailed file of the results entered for every
 result form and associated information about that result form, e.g. gender,

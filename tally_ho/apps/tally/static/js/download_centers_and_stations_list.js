@@ -4,7 +4,7 @@ $(document).ready(function () {
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = 'centers-and-stations-list.json';
+        a.download = `centers_and_stations_list_${Date.now()}.json`;
         document.body.appendChild(a);
         a.click();
         a.remove();

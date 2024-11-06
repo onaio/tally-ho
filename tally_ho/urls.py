@@ -21,6 +21,7 @@ from tally_ho.apps.tally.views import (
 )
 from tally_ho.apps.tally.views.data import (
     electrol_race_list_view,
+    sub_constituency_list_view,
     ballot_list_view,
     center_list_view,
     form_list_view,
@@ -467,6 +468,9 @@ urlpatterns = [
     re_path(r'^ajax/download-results/$',
             administrative_areas_reports.get_results,
             name='download-results'),
+    re_path(r'^ajax/download-sub-cons-list/$',
+            administrative_areas_reports.get_sub_cons_list,
+            name='download-sub-cons-list'),
     re_path(r'^super-administrator/results-(?P<report>.*).csv/'
             r'(?P<tally_id>(\d+))/$',
             super_admin.ResultExportView.as_view(),
@@ -503,6 +507,12 @@ urlpatterns = [
             r'(?P<id>(\d+))$',
             super_admin.EditBallotView.as_view(),
             name='edit-ballot'),
+    re_path(r'^data/sub-cons-list-data/(?P<tally_id>(\d+))/$',
+            sub_constituency_list_view.SubConstituencyListDataView.as_view(),
+            name='sub-cons-list-data'),
+    re_path(r'^data/sub-cons-list/(?P<tally_id>(\d+))/$',
+            sub_constituency_list_view.SubConstituencyListView.as_view(),
+            name='sub-cons-list'),
     re_path(r'^data/electrol-race-list-data/(?P<tally_id>(\d+))/$',
             electrol_race_list_view.ElectrolRaceListDataView.as_view(),
             name='electrol-race-list-data'),

@@ -100,7 +100,8 @@ def build_result_and_recon_output(result_form):
             'cancelled ballots': recon.number_cancelled_ballots,
             'spoilt ballots': recon.number_spoiled_ballots,
             'unused ballots': recon.number_unused_ballots,
-            'number of signatures': recon.number_signatures_in_vr,
+            'number of voter cards in the ballot box':
+            recon.number_of_voter_cards_in_the_ballot_box,
             'received ballots papers': recon.number_ballots_received,
             'valid votes': recon.number_valid_votes,
         })

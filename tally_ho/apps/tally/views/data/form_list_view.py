@@ -298,7 +298,6 @@ def get_result_forms(request):
     returns: A JSON response of result forms
     """
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
-    race_types = json.loads(request.GET.get('data')).get('race_types')
     station_id_query = \
         Subquery(
             Station.objects.filter(
@@ -311,14 +310,19 @@ def get_result_forms(request):
             output_field=IntegerField())
 
     form_list = ResultForm.objects.filter(
-        tally__id=tally_id,
-        ballot__electrol_race__election_level__in=race_types)\
+        tally__id=tally_id)\
         .annotate(
         center_code=F('center__code'),
+        center_name=F('center__name'),
         office_name=F('center__office__name'),
         office_number=F('center__office__number'),
         region_id=F('center__office__region__id'),
         region_name=F('center__office__region__name'),
+        election_level=F('ballot__electrol_race__election_level'),
+        sub_race=F('ballot__electrol_race__ballot_name'),
+        ballot_number=F('ballot__number'),
+        sub_con_name=F('center__sub_constituency__name'),
+        sub_con_code=F('center__sub_constituency__code'),
         station_id=station_id_query) \
         .values(
         'id',
@@ -326,6 +330,7 @@ def get_result_forms(request):
         'barcode',
         'station_id',
         'station_number',
+        'center_name',
         'center_code',
         'office_id',
         'office_name',
@@ -333,6 +338,11 @@ def get_result_forms(request):
         'region_id',
         'region_name',
         'form_state',
+        'election_level',
+        'sub_race',
+        'ballot_number',
+        'sub_con_name',
+        'sub_con_code',
     )
 
     for form in form_list:

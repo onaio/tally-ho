@@ -3,71 +3,105 @@
 {% block content %}
 
 <h2>{% trans 'Reconciliation Section' %}</h2>
-
+<hr>
+<br>
 <div class="row">
-    <table class="table table-bordered">
-    <tbody>
-    <tr>
-        <td width="45%">
-            <span class="helptext">{% trans 'Serial number of ballots received by the polling station</span>' %}</td>
-        <td width=""><label for="id_ballot_number_from">{% trans 'from:' %}</label></td>
-        <td>{{ form.ballot_number_from.data }}</td>
-        <th><label for="id_ballot_number_to">{% trans 'to:' %}</label></th>
-        <td>{{ form.ballot_number_to.data }}</td>
-    </tr>
-    </tbody>
-    </table>
+    <div class="text-center">
+        <p class="gray-bg">{% trans 'In all the fields below, please check the number of ballots twice to ensure accuracy' %}</p >
+        <p class="gray-bg">{% trans 'Section (A) to be filled prior to opening the polling station' %}</p>
+    </div>
+</div>
+<div class="row">
     <table class="table table-bordered">
     <tbody>
     <tr>
         <th width="10%"><span class="bignum">1</span></th>
         <th width="70%">
             <label for="id_number_ballots_received">
-            <span class="helptext">{% trans 'Total number of ballots received by the polling station' %} </span></label></th>
+            <span class="helptext">{% trans 'Total number of ballots papers received by the polling station' %} </span></label></th>
         <td class="pink-bg" width="20%">{{ form.number_ballots_received.data }}</td>
     </tr>
     </tbody>
     </table>
 </div>
 <div class="row">
+    <div class="text-center">
+        <p class="gray-bg">{% trans 'Section (B) reconciliation of the number of voter cards with ballot papers' %}</p>
+    </div>
+    <div class="col-md-2 col-sm-1 grid2">
+        <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th width="10%"><span class="bignum">9</span></th>
+                <th width="60%"><label for="id_total_of_cancelled_ballots_and_ballots_inside_box">
+                    {% trans 'Total of fields 5 + 7' %}:</label></th>
+                <td width="30%" class="green-bg required-input">{{ form.total_of_cancelled_ballots_and_ballots_inside_box.data }}</td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="col-md-2 col-sm-1 grid2 righter">
+        <table class="table table-bordered">
+    <tbody>
+    <tr>
+        <th width="10%"><span class="bignum">2</span></th>
+        <th width="60%"><label for="id_number_of_voter_cards_in_the_ballot_box">
+            <span class="helptext">
+                {% trans 'Number of voter cards in the ballot box:' %}</span></label></th>
+        <td width="30%"class="green-bg required-input">{{ form.number_of_voter_cards_in_the_ballot_box.data }}</td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+</div>
+<div class="row">
     <div class="col-md-2 col-sm-1 grid2">
         <p class="gray-bg">
-        {% trans 'Section (d) to be filled after the completion of the results forms' %}</p>
+        {% trans 'Section (E) to be filled in after completing the results forms' %}</p>
         <table class="table table-bordered">
         <tbody>
         <tr>
-            <th width="10%"><span class="bignum">9</span></th>
+            <th width="10%"><span class="bignum">10</span></th>
             <th width="60%"><label for="id_number_unstamped_ballots">
                 {% trans 'Number of unstamped ballots:' %}</label></th>
-            <td class="blue-bg" width="30%">{{ form.number_unstamped_ballots.data }}</td>
-        </tr>
-        <tr>
-            <th><span class="bignum">10</span></th>
-            <th><label for="id_number_invalid_votes">
-                {% trans 'Number of invalid votes (including the blanks):' %}</label></th>
-            <td class="blue-bg">{{ form.number_invalid_votes.data }}</td>
+            <td width="30%" class="blue-bg required-input">{{ form.number_unstamped_ballots.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">11</span></th>
-            <th><label for="id_number_valid_votes">
-                {% trans 'Number of valid votes:' %}</label></th>
-            <td class="blue-bg">{{ form.number_valid_votes.data }}</td>
+            <th><label for="id_number_invalid_votes">
+                {% trans 'Number of invalid votes (including empty ballot papers):' %}</label></th>
+            <td class="blue-bg required-input">{{ form.number_invalid_votes.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">12</span></th>
+            <th><label for="id_number_valid_votes">
+                {% trans 'Number of valid votes:' %}</label></th>
+            <td class="blue-bg required-input">{{ form.number_valid_votes.data }}</td>
+        </tr>
+        <tr>
+            <th><span class="bignum">13</span></th>
             <th><label for="id_number_sorted_and_counted">
-                {% trans 'Total number of the sorted and counted ballots:' %}</label></th>
-            <td class="blue-bg">{{ form.number_sorted_and_counted.data }}</td>
+                {% trans 'Total number of the sorted and counted ballots (10 + 11 + 12):' %}</label></th>
+            <td class="blue-bg required-input">{{ form.number_sorted_and_counted.data }}<br/></td>
         </tr>
         <tr>
             <td colspan="3" class="blue-bg">
-                {% trans 'If the figure in the field 12 does not equal the one in field 7, the totals of the fields  9, 10 and 11 should be recounted.' %}
+                {% trans 'NB: If the number in field 2 is not equal to the number in field 9, the result should be recalculated in fields 5, 7.' %}
                 <br/>
                 <br/>
-                {% trans 'If after recounting, the difference persists, the ballots of the fields 9, 10 and 11 should be recounted as in the manual.' %}
+                {% trans 'If the difference remains after the recalculation, the cancelled ballot papers and ballot papers in the box shall be recounted in fields 5 and 7.' %}
                 <br/>
                 <br/>
-                {% trans 'If  the  difference  persists,  write a note in the field  at the bottom of the form to explain the action taken prior to proceeding to the next step.' %}
+                {% trans 'If the difference remains, write a note in the box below the form, stating the procedures followed before proceeding to the next step.' %}
+                <br/>
+                <br/>
+                {% trans 'If the number in field 13 is not equal to the number in field 7, the result should be recalculated in fields 10, 11, and 12.' %}
+                <br/>
+                <br/>
+                {% trans 'If the difference remains after the recalculation, the ballot papers shall be recounted in fields 10, 11 , and 12 as indicated in the procedures manual.' %}
+                <br/>
+                <br/>
+                {% trans 'If the difference remains, write a note in the box below the form, stating the procedures followed before proceeding to the next step.' %}
             </td>
         </tr>
         <tr><th></th><th><label for="id_signature_polling_officer_1">{% trans 'Is the form signed by polling officer 1?' %}</label></th>
@@ -85,59 +119,52 @@
     </div>
 
     <div class="col-md-2 col-sm-1 grid2 righter">
-        <p class="gray-bg">
-            {% trans 'Section (B) to be filled after closure of polling station' %}
-        </p>
+            <p class="gray-bg">
+        {% trans 'Section (C) to be filled in upon closing the station' %}
+            </p>
         <table class="table table-bordered">
         <tbody>
-        <tr>
-            <th width="10%"><span class="bignum">2</span></th>
-            <th width="60%"><label for="id_number_signatures_in_vr">
-                <span class="helptext">
-                    {% trans 'Number of cards in the VR:' %}</span></label></th>
-            <td width="30%">{{ form.number_signatures_in_vr.data }}</td>
-        </tr>
         <tr>
             <th><span class="bignum">3</span></th>
             <th><label for="id_number_unused_ballots">
                     {% trans 'Number of unused ballots:' %}</label></th>
-            <td class="yellow-bg">{{ form.number_unused_ballots.data }}</td>
+            <td class="yellow-bg required-input" width="30%">{{ form.number_unused_ballots.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">4</span></th>
             <th><label for="id_number_spoiled_ballots">
                 {% trans 'Number of spoiled ballots:' %}</label></th>
-            <td class="yellow-bg">{{ form.number_spoiled_ballots.data }}</td>
+            <td class="yellow-bg required-input" width="30%">{{ form.number_spoiled_ballots.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">5</span></th>
             <th><label for="id_number_cancelled_ballots">
                 {% trans 'Number of cancelled ballots:' %}</label></th>
-            <td class="yellow-bg">{{ form.number_cancelled_ballots.data }}</td>
+            <td class="yellow-bg required-input" width="30%">{{ form.number_cancelled_ballots.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">6</span></th>
             <th><label for="id_number_ballots_outside_box">
-                {% trans 'Total number of ballots remaining outside the ballot box:' %}</label></th>
-            <td class="yellow-bg">{{ form.number_ballots_outside_box.data }}</td>
+                {% trans 'Total number of ballots remaining outside the ballot box (3 + 4 + 5):' %}</label></th>
+            <td class="yellow-bg required-input" width="30%">{{ form.number_ballots_outside_box.data }}</td>
         </tr>
         </tbody>
         </table>
         <p class="gray-bg">
-        {% trans 'Section (C) to be filled after counting the ballots in the box' %}</p>
+        {% trans 'Section (D) to be completed after counting the ballot papers in the ballot box' %}</p>
         <table class="table table-bordered">
         <tbody>
         <tr>
             <th width="10%"><span class="bignum">7</span></th>
             <th width="60%"><label for="id_number_ballots_inside_box">
                 {% trans 'Number of ballots found inside the ballot box:' %}</label></th>
-            <td class="blue-bg" width="30%">{{ form.number_ballots_inside_box.data }}</td>
+            <td class="blue-bg required-input" width="30%">{{ form.number_ballots_inside_box.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">8</span></th>
             <th><label for="id_number_ballots_inside_and_outside_box">
-                {% trans 'Total number of ballots found inside and outside the ballot box:' %}</label></th>
-            <td class="pink-bg">{{ form.number_ballots_inside_and_outside_box.data }}</td>
+                {% trans 'Total number of ballots found inside and outside the ballot box (6 + 7):' %}</label></th>
+            <td class="pink-bg required-input">{{ form.number_ballots_inside_and_outside_box.data }}</td>
         </tr>
         <tr>
             <td class="pink-bg" colspan="3">

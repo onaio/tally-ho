@@ -116,8 +116,9 @@ def get_station_votes_in_admin_area(
         entry_version=EntryVersion.FINAL,
         active=True,
         ).annotate(
-        race=F('result_form__ballot__electrol_race_id')
-        ).values('race').annotate(
+        race=F('result_form__ballot__electrol_race_id'),
+        ballot_number=F('result_form__ballot__number')
+        ).values('race', 'ballot_number').annotate(
         race_voters=Sum('votes')
         ).order_by(
         '-race_voters'

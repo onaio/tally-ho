@@ -12,7 +12,6 @@ from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.office import Office
-from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.reconciliation_form import (
     ReconciliationForm,
 )
@@ -36,6 +35,9 @@ from tally_ho.libs.permissions.groups import (
 )
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
     electrol_races
+)
+from tally_ho.libs.verify.quarantine_checks import (
+    create_quarantine_checks as create_quarantine_checks_fn
 )
 
 
@@ -238,20 +240,27 @@ def create_reconciliation_form(
         number_unused_ballots=1,
         number_spoiled_ballots=1,
         number_cancelled_ballots=1,
-        number_signatures_in_vr=1,
-        is_stamped=True):
+        number_of_voter_cards_in_the_ballot_box=1,
+        is_stamped=True,
+        total_of_cancelled_ballots_and_ballots_inside_box=1,
+        number_ballots_inside_and_outside_box=1,
+    ):
     return ReconciliationForm.objects.create(
         result_form=result_form,
         ballot_number_from=ballot_number_from,
         ballot_number_to=1,
         number_ballots_received=number_ballots_received,
-        number_signatures_in_vr=number_signatures_in_vr,
+        number_of_voter_cards_in_the_ballot_box=\
+            number_of_voter_cards_in_the_ballot_box,
         number_unused_ballots=number_unused_ballots,
         number_spoiled_ballots=number_spoiled_ballots,
         number_cancelled_ballots=number_cancelled_ballots,
         number_ballots_outside_box=1,
         number_ballots_inside_box=number_ballots_inside_box,
-        number_ballots_inside_and_outside_box=1,
+        number_ballots_inside_and_outside_box=\
+            number_ballots_inside_and_outside_box,
+        total_of_cancelled_ballots_and_ballots_inside_box=\
+            total_of_cancelled_ballots_and_ballots_inside_box,
         number_unstamped_ballots=number_unstamped_ballots,
         number_invalid_votes=number_invalid_votes,
         number_valid_votes=number_valid_votes,
@@ -266,14 +275,7 @@ def create_reconciliation_form(
 
 
 def create_quarantine_checks(quarantine_data):
-    for quarantine_check in quarantine_data:
-        QuarantineCheck.objects.get_or_create(
-            name=quarantine_check['name'],
-            method=quarantine_check['method'],
-            active=quarantine_check['active'],
-            value=quarantine_check['value'],
-            percentage=quarantine_check['percentage']
-        )
+    create_quarantine_checks_fn(quarantine_data=quarantine_data)
 
 
 def create_recon_forms(result_form, user):
@@ -395,6 +397,7 @@ def result_form_data(result_form):
         'number_unstamped_ballots': ['1'],
         'number_ballots_inside_box': ['1'],
         'number_ballots_inside_and_outside_box': ['1'],
+        'total_of_cancelled_ballots_and_ballots_inside_box': ['2'],
         'number_valid_votes': ['1'],
         'number_unused_ballots': ['1'],
         'number_spoiled_ballots': ['1'],
@@ -404,7 +407,7 @@ def result_form_data(result_form):
         'number_ballots_outside_box': ['1'],
         'number_sorted_and_counted': ['1'],
         'number_invalid_votes': ['1'],
-        'number_signatures_in_vr': ['1'],
+        'number_of_voter_cards_in_the_ballot_box': ['1'],
         'ballot_number_to': ['1'],
         'form-0-votes': ['1'],
     })

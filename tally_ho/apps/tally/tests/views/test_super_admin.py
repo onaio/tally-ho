@@ -1751,7 +1751,7 @@ class TestSuperAdmin(TestBase):
         quarantine_data = getattr(settings, 'QUARANTINE_DATA')
         create_quarantine_checks(quarantine_data)
         quarantine_check = QuarantineCheck.objects.get(
-            name='Trigger 1 - Guard against overvoting')
+            method='pass_registrants_trigger')
         view = views.QuarantineChecksConfigView.as_view()
         request = self.factory.get('/')
         request.user = self.user

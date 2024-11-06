@@ -45,13 +45,14 @@ class ReconciliationForm(BaseModel):
 
     active = models.BooleanField(default=True)
     entry_version = EnumIntegerField(EntryVersion)
-    ballot_number_from = models.CharField(_('from:'), max_length=256)
-    ballot_number_to = models.CharField(_('to:'), max_length=256)
+    ballot_number_from = models.CharField(
+        _('from:'), max_length=256, null=True)
+    ballot_number_to = models.CharField(_('to:'), max_length=256, null=True)
     is_stamped = models.BooleanField(_('Is the form stamped?'))
     number_ballots_received = models.PositiveIntegerField(
         _('Total number of ballots received by the polling station'))
-    number_signatures_in_vr = models.PositiveIntegerField(
-        _('Number of signatures in the VR'))
+    number_of_voter_cards_in_the_ballot_box = models.PositiveIntegerField(
+        _('Number of voter cards in the ballot box'), default=0)
     number_unused_ballots = models.PositiveIntegerField(
         _('Number of unused ballots'))
     number_spoiled_ballots = models.PositiveIntegerField(
@@ -64,6 +65,8 @@ class ReconciliationForm(BaseModel):
         _('Number of ballots found inside the ballot box'))
     number_ballots_inside_and_outside_box = models.PositiveIntegerField(
         _('Total number of ballots found inside and outside the ballot box'))
+    total_of_cancelled_ballots_and_ballots_inside_box =\
+        models.PositiveIntegerField(_('Total of fields 5+7'), default=0)
     number_unstamped_ballots = models.PositiveIntegerField(
         _('Number of unstamped ballots'))
     number_invalid_votes = models.PositiveIntegerField(
@@ -79,6 +82,7 @@ class ReconciliationForm(BaseModel):
     signature_polling_station_chair = models.BooleanField(
         _('Is the form signed by the polling station chair?'))
     signature_dated = models.BooleanField(_('Is the form dated?'))
+    notes = models.TextField(null=True, blank=True)
     objects = ReconciliationFormSet.as_manager()
 
     @property

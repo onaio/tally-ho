@@ -1,4 +1,3 @@
-import copy
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.serializers.json import json, DjangoJSONEncoder
 from django.contrib.auth.models import AnonymousUser
@@ -279,14 +278,12 @@ class TestQualityControl(TestBase):
                                          tally=self.tally,
                                          form_state=FormState.QUALITY_CONTROL)
         create_reconciliation_form(result_form, self.user)
-        create_reconciliation_form(result_form, self.user,
-                                   ballot_number_from=2)
         create_candidates(result_form, self.user)
         create_quality_control(result_form, self.user)
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
-        request = self.factory.get('/')
+        request = self.factory.post('/')
         request.user = self.user
         request.session = {'result_form': result_form.pk}
 
@@ -712,21 +709,33 @@ class TestQualityControl(TestBase):
         quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertEqual(quality_control.active, False)
 
-    def test_quality_control_post_quarantine_pass_with_zero_diff(self):
+    def test_quality_control_post_passes_all_quarantine_triggers(self):
         """
-        Test quality control post pass quarantine trigger with zero difference
+        Test quality control post passes all quarantine triggers
         """
-        center = create_center()
-        create_station(center)
         create_quarantine_checks(self.quarantine_data)
+        center = create_center()
+        station = create_station(center=center,
+                       registrants=50)
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
             center=center,
             tally=self.tally,
-            station_number=1)
-        recon_form = create_reconciliation_form(
-            result_form, self.user, number_unstamped_ballots=0)
+            station_number=station.station_number)
+        recon_form =\
+                    create_reconciliation_form(
+                        result_form=result_form,
+                        user=self.user,
+                        number_unstamped_ballots=0,
+                        number_invalid_votes=0,
+                        number_valid_votes=50,
+                        number_ballots_inside_box=50,
+                        number_of_voter_cards_in_the_ballot_box=50,
+                        total_of_cancelled_ballots_and_ballots_inside_box=50,
+                        number_sorted_and_counted=50,
+                    )
         create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user, votes=25, num_results=1)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {
@@ -740,289 +749,90 @@ class TestQualityControl(TestBase):
         response = view(request, tally_id=self.tally.pk)
         result_form.reload()
 
-        self.assertEqual(result_form.num_votes,
-                         recon_form.number_ballots_expected)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
-        self.assertIsNone(result_form.audit)
-        self.assertEqual(result_form.audited_count, 0)
-        self.assertIn('quality-control/print', response['location'])
-
-    def test_quality_control_post_quarantine_pass_below_tolerance(self):
-        """
-        Test quality control post pass quarantine trigger below tolerance
-        """
-        center = create_center()
-        create_station(center)
-        create_quarantine_checks(self.quarantine_data)
-        result_form = create_result_form(
-            tally=self.tally,
-            form_state=FormState.QUALITY_CONTROL,
-            center=center, station_number=1)
-        recon_form = create_reconciliation_form(
-            result_form, self.user, number_ballots_inside_box=21,
-            number_unstamped_ballots=0)
-        create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlDashboardView.as_view()
-        data = {
-            'correct': 1,
-            'result_form': result_form.pk,
-            'tally_id': self.tally.pk,
-        }
-        request = self.factory.post('/', data=data)
-        request.session = {'result_form': result_form.pk}
-        request.user = self.user
-        response = view(request, tally_id=self.tally.pk)
-        result_form.reload()
-
-        self.assertEqual(result_form.num_votes,
-                         recon_form.number_ballots_expected)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
-        self.assertTrue(result_form.audit)
-        self.assertEqual(result_form.audit.quarantine_checks.count(), 1)
         self.assertEqual(
-            result_form.audit.quarantine_checks.all()[0].name[:9], 'Trigger 1')
+            result_form.num_votes,
+            recon_form.total_of_cancelled_ballots_and_ballots_inside_box)
+        self.assertEqual(response.status_code, 302)
+        self.assertNotEqual(result_form.form_state, FormState.AUDIT)
+        self.assertIsNone(result_form.audit)
+        self.assertEqual(result_form.audited_count, 0)
+        self.assertIn('quality-control/print', response['location'])
+
+    def test_quality_control_post_fails_registrants_quarantine_trigger(self):
+        """
+        Test quality control post fails registrants quarantine trigger
+        """
+        create_quarantine_checks(self.quarantine_data)
+        center = create_center()
+        station = create_station(
+                        center=center,
+                        registrants=40)
+        result_form = create_result_form(
+            form_state=FormState.QUALITY_CONTROL,
+            center=center,
+            tally=self.tally,
+            station_number=station.station_number)
+        create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_unstamped_ballots=0,
+            number_invalid_votes=0,
+            number_valid_votes=50,
+            number_ballots_inside_box=50,
+            number_of_voter_cards_in_the_ballot_box=50,
+            total_of_cancelled_ballots_and_ballots_inside_box=50,
+            number_sorted_and_counted=50,
+        )
+        create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user, votes=25, num_results=1)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {
+            'correct': 1,
+            'result_form': result_form.pk,
+            'tally_id': self.tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.session = {'result_form': result_form.pk}
+        request.user = self.user
+        response = view(request, tally_id=self.tally.pk)
+        result_form.reload()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIsNotNone(result_form.audit)
         self.assertEqual(result_form.audited_count, 1)
+        self.assertEqual(
+            [c.method for c in result_form.audit.quarantine_checks.all()],
+            ['pass_registrants_trigger'])
         self.assertIn('quality-control/print', response['location'])
 
-    def test_quality_control_post_quarantine_pass_ballot_num_validation(self):
+    def test_quality_control_post_fails_voter_cards_quarantine_trigger(self):
         """
-        Test that the total number of received ballots equals the
-        total of the ballots inside the box plus ballots outside the box
+        Test quality control post fails voter cards quarantine trigger
         """
+        create_quarantine_checks(self.quarantine_data)
         center = create_center()
-        station = create_station(center=center, registrants=21)
-        quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[2]['active'] = True
-        create_quarantine_checks(quarantine_data)
+        station = create_station(
+                        center=center,
+                        registrants=50)
         result_form = create_result_form(
-            tally=self.tally,
             form_state=FormState.QUALITY_CONTROL,
             center=center,
-            station_number=station.station_number)
-        recon_form = create_reconciliation_form(
-            result_form=result_form,
-            user=self.user,
-            number_ballots_inside_box=21,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=0,
-            number_valid_votes=20,
-            number_ballots_received=21,
-        )
-        create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlDashboardView.as_view()
-        data = {
-            'correct': 1,
-            'result_form': result_form.pk,
-            'tally_id': self.tally.pk,
-        }
-        request = self.factory.post('/', data=data)
-        request.session = {'result_form': result_form.pk}
-        request.user = self.user
-        response = view(request, tally_id=self.tally.pk)
-        result_form.reload()
-
-        self.assertEqual(result_form.num_votes,
-                         recon_form.number_ballots_expected)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
-        self.assertIsNone(result_form.audit)
-        self.assertEqual(result_form.audited_count, 0)
-        self.assertIn('quality-control/print', response['location'])
-
-    def test_quality_control_post_quarantine_pass_signatures_validation(self):
-        """
-        Test that the total number of signatures on the voter list equals
-        the number of ballots found in the ballot box after polling
-        plus cancelled ballots.
-        """
-        center = create_center()
-        station = create_station(center=center, registrants=21)
-        quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[3]['active'] = True
-        create_quarantine_checks(quarantine_data)
-        result_form = create_result_form(
             tally=self.tally,
-            form_state=FormState.QUALITY_CONTROL,
-            center=center,
-            station_number=station.station_number)
-        recon_form = create_reconciliation_form(
-            result_form=result_form,
-            user=self.user,
-            number_ballots_inside_box=21,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=0,
-            number_valid_votes=20,
-            number_ballots_received=21,
-            number_signatures_in_vr=21,
-        )
-        create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlDashboardView.as_view()
-        data = {
-            'correct': 1,
-            'result_form': result_form.pk,
-            'tally_id': self.tally.pk,
-        }
-        request = self.factory.post('/', data=data)
-        request.session = {'result_form': result_form.pk}
-        request.user = self.user
-        response = view(request, tally_id=self.tally.pk)
-        result_form.reload()
-
-        self.assertEqual(result_form.num_votes,
-                         recon_form.number_ballots_expected)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
-        self.assertIsNone(result_form.audit)
-        self.assertEqual(result_form.audited_count, 0)
-        self.assertIn('quality-control/print', response['location'])
-
-    def test_quality_control_quarantine_pass_ballots_inside_box_check(self):
-        """
-        Test that the number of ballots value inside recon form matches the
-        total of valid, invalid, and unstamped ballots.
-        """
-        center = create_center()
-        station = create_station(center=center, registrants=21)
-        quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[4]['active'] = True
-        create_quarantine_checks(quarantine_data)
-        result_form = create_result_form(
-            tally=self.tally,
-            form_state=FormState.QUALITY_CONTROL,
-            center=center,
-            station_number=station.station_number)
-        recon_form = create_reconciliation_form(
-            result_form=result_form,
-            user=self.user,
-            number_ballots_inside_box=21,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=0,
-            number_valid_votes=20,
-            number_ballots_received=21,
-            number_signatures_in_vr=21,
-        )
-        create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlDashboardView.as_view()
-        data = {
-            'correct': 1,
-            'result_form': result_form.pk,
-            'tally_id': self.tally.pk,
-        }
-        request = self.factory.post('/', data=data)
-        request.session = {'result_form': result_form.pk}
-        request.user = self.user
-        response = view(request, tally_id=self.tally.pk)
-        result_form.reload()
-
-        self.assertEqual(result_form.num_votes,
-                         recon_form.number_ballots_expected)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
-        self.assertIsNone(result_form.audit)
-        self.assertEqual(result_form.audited_count, 0)
-        self.assertIn('quality-control/print', response['location'])
-
-    def test_quality_control_quarantine_pass_sum_candidates_votes_check(self):
-        """
-        Test that the sum of candidates votes matches the total
-        number of valid ballots.
-        """
-        center = create_center()
-        station = create_station(center=center, registrants=21)
-        quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[4]['active'] = True
-        create_quarantine_checks(quarantine_data)
-        result_form = create_result_form(
-            tally=self.tally,
-            form_state=FormState.QUALITY_CONTROL,
-            center=center,
-            station_number=station.station_number)
-        recon_form = create_reconciliation_form(
-            result_form=result_form,
-            user=self.user,
-            number_ballots_inside_box=21,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=0,
-            number_valid_votes=20,
-            number_ballots_received=21,
-            number_signatures_in_vr=21,
-        )
-        create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlDashboardView.as_view()
-        data = {
-            'correct': 1,
-            'result_form': result_form.pk,
-            'tally_id': self.tally.pk,
-        }
-        request = self.factory.post('/', data=data)
-        request.session = {'result_form': result_form.pk}
-        request.user = self.user
-        response = view(request, tally_id=self.tally.pk)
-        result_form.reload()
-
-        self.assertEqual(result_form.num_votes,
-                         recon_form.number_ballots_expected)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
-        self.assertIsNone(result_form.audit)
-        self.assertEqual(result_form.audited_count, 0)
-        self.assertIn('quality-control/print', response['location'])
-
-    def test_quality_control_quarantine_pass_invalid_ballots_percentage(self):
-        """
-        Test that the percentage of invalid ballots has not superseded the
-        allowed limit.
-        """
-        center = create_center()
-        station = create_station(center=center, registrants=21)
-        quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[6]['active'] = True
-        create_quarantine_checks(quarantine_data)
-        result_form = create_result_form(
-            tally=self.tally,
-            form_state=FormState.QUALITY_CONTROL,
-            center=center,
             station_number=station.station_number)
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_ballots_inside_box=21,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
             number_unstamped_ballots=0,
-            number_unused_ballots=0,
-            number_valid_votes=20,
-            number_ballots_received=21,
-            number_signatures_in_vr=21,
+            number_invalid_votes=0,
+            number_valid_votes=50,
+            number_ballots_inside_box=50,
+            number_of_voter_cards_in_the_ballot_box=40,
+            total_of_cancelled_ballots_and_ballots_inside_box=50,
+            number_sorted_and_counted=50,
         )
         create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
+        create_candidates(result_form, self.user, votes=25, num_results=1)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {
@@ -1037,39 +847,42 @@ class TestQualityControl(TestBase):
         result_form.reload()
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
-        self.assertIsNone(result_form.audit)
-        self.assertEqual(result_form.audited_count, 0)
+        self.assertIsNotNone(result_form.audit)
+        self.assertEqual(result_form.audited_count, 1)
+        self.assertEqual(
+            [c.method for c in result_form.audit.quarantine_checks.all()],
+            ['pass_voter_cards_trigger'])
         self.assertIn('quality-control/print', response['location'])
 
-    def test_quality_control_quarantine_pass_turnout_percentage(self):
+    def test_quality_control_post_fails_ballot_papers_quarantine_trigger(self):
         """
-        Test that the turnout percentage has not superseded the allowed limit.
+        Test quality control post fails ballot papers quarantine trigger
         """
+        create_quarantine_checks(self.quarantine_data)
         center = create_center()
-        station = create_station(center=center, registrants=21)
-        quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[7]['active'] = True
-        create_quarantine_checks(quarantine_data)
+        station = create_station(
+                        center=center,
+                        registrants=50)
         result_form = create_result_form(
-            tally=self.tally,
             form_state=FormState.QUALITY_CONTROL,
             center=center,
+            tally=self.tally,
             station_number=station.station_number)
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_ballots_inside_box=21,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
             number_unstamped_ballots=0,
-            number_unused_ballots=0,
-            number_valid_votes=20,
-            number_ballots_received=21,
-            number_signatures_in_vr=21,
+            number_invalid_votes=0,
+            number_valid_votes=50,
+            number_ballots_inside_box=50,
+            number_of_voter_cards_in_the_ballot_box=50,
+            total_of_cancelled_ballots_and_ballots_inside_box=50,
+            number_sorted_and_counted=50,
+            number_ballots_received=49,
+            number_ballots_inside_and_outside_box=50,
         )
         create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
+        create_candidates(result_form, self.user, votes=25, num_results=1)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {
@@ -1084,40 +897,43 @@ class TestQualityControl(TestBase):
         result_form.reload()
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
-        self.assertIsNone(result_form.audit)
-        self.assertEqual(result_form.audited_count, 0)
+        self.assertIsNotNone(result_form.audit)
+        self.assertEqual(result_form.audited_count, 1)
+        self.assertEqual(
+            [c.method for c in result_form.audit.quarantine_checks.all()],
+            ['pass_ballot_papers_trigger'])
         self.assertIn('quality-control/print', response['location'])
 
-    def test_quality_control_quarantine_pass_votes_candidate_percentage(self):
+    def test_quality_control_post_fails_ballot_inside_quarantine_trigger(self):
         """
-        Test that the percentage of votes per candidate of the total
-        valid votes does not exceed a certain threshold.
+        Test quality control post fails ballot inside the box quarantine
+        trigger
         """
+        create_quarantine_checks(self.quarantine_data)
         center = create_center()
-        station = create_station(center=center, registrants=21)
-        quarantine_data = copy.deepcopy(self.quarantine_data)
-        quarantine_data[8]['active'] = True
-        create_quarantine_checks(quarantine_data)
+        station = create_station(
+                        center=center,
+                        registrants=50)
         result_form = create_result_form(
-            tally=self.tally,
             form_state=FormState.QUALITY_CONTROL,
             center=center,
+            tally=self.tally,
             station_number=station.station_number)
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_ballots_inside_box=21,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=0,
-            number_valid_votes=20,
-            number_ballots_received=21,
-            number_signatures_in_vr=21,
+            number_unstamped_ballots=1,
+            number_invalid_votes=0,
+            number_valid_votes=50,
+            number_ballots_inside_box=50,
+            number_of_voter_cards_in_the_ballot_box=50,
+            total_of_cancelled_ballots_and_ballots_inside_box=50,
+            number_sorted_and_counted=50,
+            number_ballots_received=50,
+            number_ballots_inside_and_outside_box=50,
         )
         create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=1, num_results=10)
+        create_candidates(result_form, self.user, votes=25, num_results=1)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {
@@ -1132,10 +948,443 @@ class TestQualityControl(TestBase):
         result_form.reload()
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(result_form.form_state, FormState.AUDIT)
-        self.assertIsNone(result_form.audit)
-        self.assertEqual(result_form.audited_count, 0)
+        self.assertIsNotNone(result_form.audit)
+        self.assertEqual(result_form.audited_count, 1)
+        self.assertEqual(
+            [c.method for c in result_form.audit.quarantine_checks.all()],
+            ['pass_ballot_inside_box_trigger'])
         self.assertIn('quality-control/print', response['location'])
+
+    # Disabled old quarantine triggers test:
+    # Awaiting client feedback for final removal.
+    # def test_quality_control_post_quarantine_pass_with_zero_diff(self):
+    #     """
+    #     Test quality control post pass quarantine trigger with zero
+    #     difference
+    #     """
+    #     center = create_center()
+    #     create_station(center)
+    #     create_quarantine_checks(self.quarantine_data)
+    #     result_form = create_result_form(
+    #         form_state=FormState.QUALITY_CONTROL,
+    #         center=center,
+    #         tally=self.tally,
+    #         station_number=1)
+    #     recon_form = create_reconciliation_form(
+    #         result_form, self.user, number_unstamped_ballots=0)
+    #     create_quality_control(result_form, self.user)
+    #     self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+    #     view = views.QualityControlDashboardView.as_view()
+    #     data = {
+    #         'correct': 1,
+    #         'result_form': result_form.pk,
+    #         'tally_id': self.tally.pk,
+    #     }
+    #     request = self.factory.post('/', data=data)
+    #     request.session = {'result_form': result_form.pk}
+    #     request.user = self.user
+    #     response = view(request, tally_id=self.tally.pk)
+    #     result_form.reload()
+
+    #     self.assertEqual(result_form.num_votes,
+    #                      recon_form.number_ballots_expected)
+
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertTrue(result_form.form_state, FormState.AUDIT)
+    #     self.assertIsNone(result_form.audit)
+    #     self.assertEqual(result_form.audited_count, 0)
+    #     self.assertIn('quality-control/print', response['location'])
+
+    # def test_quality_control_post_quarantine_pass_below_tolerance(self):
+    #     """
+    #     Test quality control post pass quarantine trigger below tolerance
+    #     """
+    #     center = create_center()
+    #     create_station(center)
+    #     create_quarantine_checks(self.quarantine_data)
+    #     result_form = create_result_form(
+    #         tally=self.tally,
+    #         form_state=FormState.QUALITY_CONTROL,
+    #         center=center, station_number=1)
+    #     recon_form = create_reconciliation_form(
+    #         result_form, self.user, number_ballots_inside_box=21,
+    #         number_unstamped_ballots=0)
+    #     create_quality_control(result_form, self.user)
+    #     create_candidates(result_form, self.user, votes=1, num_results=10)
+    #     self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+    #     view = views.QualityControlDashboardView.as_view()
+    #     data = {
+    #         'correct': 1,
+    #         'result_form': result_form.pk,
+    #         'tally_id': self.tally.pk,
+    #     }
+    #     request = self.factory.post('/', data=data)
+    #     request.session = {'result_form': result_form.pk}
+    #     request.user = self.user
+    #     response = view(request, tally_id=self.tally.pk)
+    #     result_form.reload()
+
+    #     self.assertEqual(result_form.num_votes,
+    #                      recon_form.number_ballots_expected)
+
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertTrue(result_form.form_state, FormState.AUDIT)
+    #     self.assertTrue(result_form.audit)
+    #     self.assertEqual(result_form.audit.quarantine_checks.count(), 1)
+    #     self.assertEqual(
+    #         result_form.audit.quarantine_checks.all()[0].name[:9],
+    #         'Trigger 1')
+    #     self.assertEqual(result_form.audited_count, 1)
+    #     self.assertIn('quality-control/print', response['location'])
+
+    # def test_qc_post_quarantine_pass_ballot_num_validation(self):
+    #     """
+    #     Test that the total number of received ballots equals the
+    #     total of the ballots inside the box plus ballots outside the box
+    #     """
+    #     center = create_center()
+    #     station = create_station(center=center, registrants=21)
+    #     quarantine_data = copy.deepcopy(self.quarantine_data)
+    #     quarantine_data[2]['active'] = True
+    #     create_quarantine_checks(quarantine_data)
+    #     result_form = create_result_form(
+    #         tally=self.tally,
+    #         form_state=FormState.QUALITY_CONTROL,
+    #         center=center,
+    #         station_number=station.station_number)
+    #     recon_form = create_reconciliation_form(
+    #         result_form=result_form,
+    #         user=self.user,
+    #         number_ballots_inside_box=21,
+    #         number_cancelled_ballots=0,
+    #         number_spoiled_ballots=0,
+    #         number_unstamped_ballots=0,
+    #         number_unused_ballots=0,
+    #         number_valid_votes=20,
+    #         number_ballots_received=21,
+    #     )
+    #     create_quality_control(result_form, self.user)
+    #     create_candidates(result_form, self.user, votes=1, num_results=10)
+    #     self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+    #     view = views.QualityControlDashboardView.as_view()
+    #     data = {
+    #         'correct': 1,
+    #         'result_form': result_form.pk,
+    #         'tally_id': self.tally.pk,
+    #     }
+    #     request = self.factory.post('/', data=data)
+    #     request.session = {'result_form': result_form.pk}
+    #     request.user = self.user
+    #     response = view(request, tally_id=self.tally.pk)
+    #     result_form.reload()
+
+    #     self.assertEqual(result_form.num_votes,
+    #                      recon_form.number_ballots_expected)
+
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertTrue(result_form.form_state, FormState.AUDIT)
+    #     self.assertIsNone(result_form.audit)
+    #     self.assertEqual(result_form.audited_count, 0)
+    #     self.assertIn('quality-control/print', response['location'])
+
+    # def test_qc_post_quarantine_pass_signatures_validation(self):
+    #     """
+    #     Test that the total number of signatures on the voter list equals
+    #     the number of ballots found in the ballot box after polling
+    #     plus cancelled ballots.
+    #     """
+    #     center = create_center()
+    #     station = create_station(center=center, registrants=21)
+    #     quarantine_data = copy.deepcopy(self.quarantine_data)
+    #     quarantine_data[3]['active'] = True
+    #     create_quarantine_checks(quarantine_data)
+    #     result_form = create_result_form(
+    #         tally=self.tally,
+    #         form_state=FormState.QUALITY_CONTROL,
+    #         center=center,
+    #         station_number=station.station_number)
+    #     recon_form = create_reconciliation_form(
+    #         result_form=result_form,
+    #         user=self.user,
+    #         number_ballots_inside_box=21,
+    #         number_cancelled_ballots=0,
+    #         number_spoiled_ballots=0,
+    #         number_unstamped_ballots=0,
+    #         number_unused_ballots=0,
+    #         number_valid_votes=20,
+    #         number_ballots_received=21,
+    #         number_signaturnumber_of_voter_cards_in_the_ballot_boxes_in_vr=\
+    #         21,
+    #     )
+    #     create_quality_control(result_form, self.user)
+    #     create_candidates(result_form, self.user, votes=1, num_results=10)
+    #     self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+    #     view = views.QualityControlDashboardView.as_view()
+    #     data = {
+    #         'correct': 1,
+    #         'result_form': result_form.pk,
+    #         'tally_id': self.tally.pk,
+    #     }
+    #     request = self.factory.post('/', data=data)
+    #     request.session = {'result_form': result_form.pk}
+    #     request.user = self.user
+    #     response = view(request, tally_id=self.tally.pk)
+    #     result_form.reload()
+
+    #     self.assertEqual(result_form.num_votes,
+    #                      recon_form.number_ballots_expected)
+
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertTrue(result_form.form_state, FormState.AUDIT)
+    #     self.assertIsNone(result_form.audit)
+    #     self.assertEqual(result_form.audited_count, 0)
+    #     self.assertIn('quality-control/print', response['location'])
+
+    # def test_quality_control_quarantine_pass_ballots_inside_box_check(self):
+    #     """
+    #     Test that the number of ballots value inside recon form matches the
+    #     total of valid, invalid, and unstamped ballots.
+    #     """
+    #     center = create_center()
+    #     station = create_station(center=center, registrants=21)
+    #     quarantine_data = copy.deepcopy(self.quarantine_data)
+    #     quarantine_data[4]['active'] = True
+    #     create_quarantine_checks(quarantine_data)
+    #     result_form = create_result_form(
+    #         tally=self.tally,
+    #         form_state=FormState.QUALITY_CONTROL,
+    #         center=center,
+    #         station_number=station.station_number)
+    #     recon_form = create_reconciliation_form(
+    #         result_form=result_form,
+    #         user=self.user,
+    #         number_ballots_inside_box=21,
+    #         number_cancelled_ballots=0,
+    #         number_spoiled_ballots=0,
+    #         number_unstamped_ballots=0,
+    #         number_unused_ballots=0,
+    #         number_valid_votes=20,
+    #         number_ballots_received=21,
+    #         number_of_voter_cards_in_the_ballot_box=21,
+    #     )
+    #     create_quality_control(result_form, self.user)
+    #     create_candidates(result_form, self.user, votes=1, num_results=10)
+    #     self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+    #     view = views.QualityControlDashboardView.as_view()
+    #     data = {
+    #         'correct': 1,
+    #         'result_form': result_form.pk,
+    #         'tally_id': self.tally.pk,
+    #     }
+    #     request = self.factory.post('/', data=data)
+    #     request.session = {'result_form': result_form.pk}
+    #     request.user = self.user
+    #     response = view(request, tally_id=self.tally.pk)
+    #     result_form.reload()
+
+    #     self.assertEqual(result_form.num_votes,
+    #                      recon_form.number_ballots_expected)
+
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertTrue(result_form.form_state, FormState.AUDIT)
+    #     self.assertIsNone(result_form.audit)
+    #     self.assertEqual(result_form.audited_count, 0)
+    #     self.assertIn('quality-control/print', response['location'])
+
+    # def test_qc_quarantine_pass_sum_candidates_votes_check(self):
+    #     """
+    #     Test that the sum of candidates votes matches the total
+    #     number of valid ballots.
+    #     """
+    #     center = create_center()
+    #     station = create_station(center=center, registrants=21)
+    #     quarantine_data = copy.deepcopy(self.quarantine_data)
+    #     quarantine_data[4]['active'] = True
+    #     create_quarantine_checks(quarantine_data)
+    #     result_form = create_result_form(
+    #         tally=self.tally,
+    #         form_state=FormState.QUALITY_CONTROL,
+    #         center=center,
+    #         station_number=station.station_number)
+    #     recon_form = create_reconciliation_form(
+    #         result_form=result_form,
+    #         user=self.user,
+    #         number_ballots_inside_box=21,
+    #         number_cancelled_ballots=0,
+    #         number_spoiled_ballots=0,
+    #         number_unstamped_ballots=0,
+    #         number_unused_ballots=0,
+    #         number_valid_votes=20,
+    #         number_ballots_received=21,
+    #         number_of_voter_cards_in_the_ballot_box=21,
+    #     )
+    #     create_quality_control(result_form, self.user)
+    #     create_candidates(result_form, self.user, votes=1, num_results=10)
+    #     self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+    #     view = views.QualityControlDashboardView.as_view()
+    #     data = {
+    #         'correct': 1,
+    #         'result_form': result_form.pk,
+    #         'tally_id': self.tally.pk,
+    #     }
+    #     request = self.factory.post('/', data=data)
+    #     request.session = {'result_form': result_form.pk}
+    #     request.user = self.user
+    #     response = view(request, tally_id=self.tally.pk)
+    #     result_form.reload()
+
+    #     self.assertEqual(result_form.num_votes,
+    #                      recon_form.number_ballots_expected)
+
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertTrue(result_form.form_state, FormState.AUDIT)
+    #     self.assertIsNone(result_form.audit)
+    #     self.assertEqual(result_form.audited_count, 0)
+    #     self.assertIn('quality-control/print', response['location'])
+
+    # def test_qc_quarantine_pass_invalid_ballots_percentage(self):
+    #     """
+    #     Test that the percentage of invalid ballots has not superseded the
+    #     allowed limit.
+    #     """
+    #     center = create_center()
+    #     station = create_station(center=center, registrants=21)
+    #     quarantine_data = copy.deepcopy(self.quarantine_data)
+    #     quarantine_data[6]['active'] = True
+    #     create_quarantine_checks(quarantine_data)
+    #     result_form = create_result_form(
+    #         tally=self.tally,
+    #         form_state=FormState.QUALITY_CONTROL,
+    #         center=center,
+    #         station_number=station.station_number)
+    #     create_reconciliation_form(
+    #         result_form=result_form,
+    #         user=self.user,
+    #         number_ballots_inside_box=21,
+    #         number_cancelled_ballots=0,
+    #         number_spoiled_ballots=0,
+    #         number_unstamped_ballots=0,
+    #         number_unused_ballots=0,
+    #         number_valid_votes=20,
+    #         number_ballots_received=21,
+    #         number_of_voter_cards_in_the_ballot_box=21,
+    #     )
+    #     create_quality_control(result_form, self.user)
+    #     create_candidates(result_form, self.user, votes=1, num_results=10)
+    #     self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+    #     view = views.QualityControlDashboardView.as_view()
+    #     data = {
+    #         'correct': 1,
+    #         'result_form': result_form.pk,
+    #         'tally_id': self.tally.pk,
+    #     }
+    #     request = self.factory.post('/', data=data)
+    #     request.session = {'result_form': result_form.pk}
+    #     request.user = self.user
+    #     response = view(request, tally_id=self.tally.pk)
+    #     result_form.reload()
+
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertTrue(result_form.form_state, FormState.AUDIT)
+    #     self.assertIsNone(result_form.audit)
+    #     self.assertEqual(result_form.audited_count, 0)
+    #     self.assertIn('quality-control/print', response['location'])
+
+    # def test_quality_control_quarantine_pass_turnout_percentage(self):
+    #     """
+    #     Test that the turnout percentage has not superseded the allowed
+    #     limit.
+    #     """
+    #     center = create_center()
+    #     station = create_station(center=center, registrants=21)
+    #     quarantine_data = copy.deepcopy(self.quarantine_data)
+    #     quarantine_data[7]['active'] = True
+    #     create_quarantine_checks(quarantine_data)
+    #     result_form = create_result_form(
+    #         tally=self.tally,
+    #         form_state=FormState.QUALITY_CONTROL,
+    #         center=center,
+    #         station_number=station.station_number)
+    #     create_reconciliation_form(
+    #         result_form=result_form,
+    #         user=self.user,
+    #         number_ballots_inside_box=21,
+    #         number_cancelled_ballots=0,
+    #         number_spoiled_ballots=0,
+    #         number_unstamped_ballots=0,
+    #         number_unused_ballots=0,
+    #         number_valid_votes=20,
+    #         number_ballots_received=21,
+    #         number_of_voter_cards_in_the_ballot_box=21,
+    #     )
+    #     create_quality_control(result_form, self.user)
+    #     create_candidates(result_form, self.user, votes=1, num_results=10)
+    #     self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+    #     view = views.QualityControlDashboardView.as_view()
+    #     data = {
+    #         'correct': 1,
+    #         'result_form': result_form.pk,
+    #         'tally_id': self.tally.pk,
+    #     }
+    #     request = self.factory.post('/', data=data)
+    #     request.session = {'result_form': result_form.pk}
+    #     request.user = self.user
+    #     response = view(request, tally_id=self.tally.pk)
+    #     result_form.reload()
+
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertTrue(result_form.form_state, FormState.AUDIT)
+    #     self.assertIsNone(result_form.audit)
+    #     self.assertEqual(result_form.audited_count, 0)
+    #     self.assertIn('quality-control/print', response['location'])
+
+    # def test_qc_quarantine_pass_votes_candidate_percentage(self):
+    #     """
+    #     Test that the percentage of votes per candidate of the total
+    #     valid votes does not exceed a certain threshold.
+    #     """
+    #     center = create_center()
+    #     station = create_station(center=center, registrants=21)
+    #     quarantine_data = copy.deepcopy(self.quarantine_data)
+    #     quarantine_data[8]['active'] = True
+    #     create_quarantine_checks(quarantine_data)
+    #     result_form = create_result_form(
+    #         tally=self.tally,
+    #         form_state=FormState.QUALITY_CONTROL,
+    #         center=center,
+    #         station_number=station.station_number)
+    #     create_reconciliation_form(
+    #         result_form=result_form,
+    #         user=self.user,
+    #         number_ballots_inside_box=21,
+    #         number_cancelled_ballots=0,
+    #         number_spoiled_ballots=0,
+    #         number_unstamped_ballots=0,
+    #         number_unused_ballots=0,
+    #         number_valid_votes=20,
+    #         number_ballots_received=21,
+    #         number_of_voter_cards_in_the_ballot_box=21,
+    #     )
+    #     create_quality_control(result_form, self.user)
+    #     create_candidates(result_form, self.user, votes=1, num_results=10)
+    #     self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+    #     view = views.QualityControlDashboardView.as_view()
+    #     data = {
+    #         'correct': 1,
+    #         'result_form': result_form.pk,
+    #         'tally_id': self.tally.pk,
+    #     }
+    #     request = self.factory.post('/', data=data)
+    #     request.session = {'result_form': result_form.pk}
+    #     request.user = self.user
+    #     response = view(request, tally_id=self.tally.pk)
+    #     result_form.reload()
+
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertTrue(result_form.form_state, FormState.AUDIT)
+    #     self.assertIsNone(result_form.audit)
+    #     self.assertEqual(result_form.audited_count, 0)
+    #     self.assertIn('quality-control/print', response['location'])
 
     def test_quality_control_post_quarantine(self):
         """
@@ -1150,7 +1399,7 @@ class TestQualityControl(TestBase):
             center=center,
             station_number=1)
         create_reconciliation_form(
-            result_form, self.user, number_unstamped_ballots=1000)
+            result_form, self.user, number_valid_votes=2)
         create_quality_control(result_form, self.user)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
@@ -1168,7 +1417,13 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(result_form.form_state, FormState.AUDIT)
         self.assertTrue(result_form.audit)
-        self.assertEqual(result_form.audit.quarantine_checks.count(), 2)
+        self.assertEqual(
+            result_form.audit.quarantine_checks.count(),
+            2)
+        self.assertEqual(
+            [c.method for c in result_form.audit.quarantine_checks.all()],
+            ['pass_ballot_inside_box_trigger',
+             'pass_candidates_votes_trigger'])
         self.assertEqual(result_form.audit.user, self.user)
         self.assertEqual(result_form.audited_count, 1)
         self.assertIn('quality-control/print', response['location'])

@@ -114,3 +114,16 @@ class AsyncImportResultFormsTestCase(TransactionTestCase):
                         tally_id=self.tally.id,
                         csv_file_path=csv_file_path,)
             task.wait()
+
+    def test_async_import_result_forms_with_invalid_centers_exception(self):
+        # Prepare test data with faulty file
+        csv_file_path =\
+        str('tally_ho/libs/tests/fixtures/'
+            'tally_setup_files/invalid_center_codes_result_forms.csv')
+
+        # Call the task with faulty data that raises an exception
+        with self.assertRaises(Exception):
+            task = async_import_results_forms_from_result_forms_file.delay(
+                        tally_id=self.tally.id,
+                        csv_file_path=csv_file_path,)
+            task.wait()

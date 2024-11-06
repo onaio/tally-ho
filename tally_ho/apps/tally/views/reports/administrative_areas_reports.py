@@ -748,9 +748,15 @@ def results_queryset(
         qs = qs.filter(candidate__full_name__isnull=False)\
             .values('candidate_id')\
             .annotate(
+                candidate_number=F('candidate__candidate_id'),
                 candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 gender=F('result_form__gender'),
+                center_code=F('result_form__center__code'),
+                center_name=F('result_form__center__name'),
+                office_number=F('result_form__office__number'),
+                office_name=F('result_form__office__name'),
+                station_number=F('result_form__station_number'),
                 electrol_race_id=F(
                     'result_form__ballot__electrol_race__id'),
                 election_level=F(
@@ -759,6 +765,8 @@ def results_queryset(
                     'result_form__ballot__electrol_race__ballot_name'),
                 sub_con_name=F(
                     'result_form__center__sub_constituency__name'),
+                sub_con_code=F(
+                    'result_form__center__sub_constituency__code'),
                 order=F('candidate__order'),
                 ballot_number=F('candidate__ballot__number'),
                 candidate_status=Case(
@@ -772,9 +780,15 @@ def results_queryset(
         qs = qs.filter(candidate__full_name__isnull=False)\
             .values('candidate_id')\
             .annotate(
+                candidate_number=F('candidate__candidate_id'),
                 candidate_name=F('candidate__full_name'),
                 total_votes=Sum('votes'),
                 gender=F('result_form__gender'),
+                center_code=F('result_form__center__code'),
+                center_name=F('result_form__center__name'),
+                office_number=F('result_form__office__number'),
+                office_name=F('result_form__office__name'),
+                station_number=F('result_form__station_number'),
                 electrol_race_id=F(
                     'result_form__ballot__electrol_race__id'),
                 election_level=F(
@@ -783,6 +797,8 @@ def results_queryset(
                     'result_form__ballot__electrol_race__ballot_name'),
                 sub_con_name=F(
                     'result_form__center__sub_constituency__name'),
+                sub_con_code=F(
+                    'result_form__center__sub_constituency__code'),
                 order=F('candidate__order'),
                 ballot_number=F('candidate__ballot__number'),
                 candidate_status=Case(
@@ -2108,8 +2124,9 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
                     active=True,
                     ).annotate(
                         race=F(
-                        'result_form__ballot__electrol_race__election_level')
-                    ).values('race').annotate(
+                        'result_form__ballot__electrol_race__election_level'),
+                        ballot_number=F('result_form__ballot__number')
+                    ).values('race', 'ballot_number').annotate(
                         race_voters=Sum('votes')
                     ).order_by(
                         '-race_voters'
@@ -2147,29 +2164,95 @@ def get_results(request):
     returns: A JSON response of candidates results
     """
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
-    race_types = json.loads(request.GET.get('data')).get('race_types')
-
     qs = Result.objects.filter(
                 result_form__tally__id=tally_id,
                 result_form__form_state=FormState.ARCHIVED,
-                result_form__ballot__electrol_race__election_level__in=\
-                    race_types,
                 entry_version=EntryVersion.FINAL,
+                result_form__ballot__available_for_release=True,
                 active=True)
-
-    data = results_queryset(tally_id, qs).values(
-                'candidate_name',
-                'total_votes',
-                'ballot_number',
-                'order',
-                'candidate_status',
-                'valid_votes',
-                'election_level',
-                'sub_race_type',
+    qs = results_queryset(
+                tally_id,
+                qs,
+                data=None
             )
+    electrol_race_ids =\
+            list(set([result.get('electrol_race_id') for result in qs]))
+    valid_votes_per_electrol_race_id =\
+        {
+            id: total_valid_votes_with_recon_forms_per_electrol_race(
+                tally_id,
+                id
+            ) +
+            total_valid_votes_with_no_recon_forms_per_electrol_race(
+                tally_id,
+                id
+            ) for id in electrol_race_ids
+        }
+    results =\
+        [{
+            'candidate_id': result.get('candidate_number'),
+            'candidate_name': result.get('candidate_name'),
+            'total_votes': result.get('total_votes'),
+            'gender': result.get('gender').name,
+            'election_level': result.get('election_level'),
+            'sub_race_type': result.get('sub_race_type'),
+            'order': result.get('order'),
+            'ballot_number': result.get('ballot_number'),
+            'candidate_status': result.get('candidate_status'),
+            'center_code': result.get('center_code'),
+            'center_name': result.get('center_name'),
+            'office_number': result.get('office_number'),
+            'office_name': result.get('office_name'),
+            'station_number': result.get('station_number'),
+            'sub_con_code': result.get('sub_con_code'),
+            'valid_votes':
+            valid_votes_per_electrol_race_id.get(
+            result.get('electrol_race_id')),
+            'sub_con_name': result.get('sub_con_name'),
+        } for result in qs]
+
+    sorted_results_report = \
+        sorted(results, key=lambda x: -x['total_votes'])
 
     return JsonResponse(
-        data={'data': list(data), 'created_at': timezone.now()},
+        data={'data': sorted_results_report, 'created_at': timezone.now()},
+        safe=False)
+
+
+def get_sub_cons_list(request):
+    """
+    Builds a json object of sub constituencies.
+
+    :param request: The request object containing the tally id.
+
+    returns: A JSON response of sub constituencies results
+    """
+    tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    qs = SubConstituency.objects.filter(
+        tally__id=tally_id).prefetch_related('ballots__electrol_race')\
+            .values(
+                'code',
+                'name',
+                'field_office',
+                'ballots__electrol_race__election_level',
+                'ballots__electrol_race__ballot_name',
+                'ballots__number',
+            ).annotate(
+                election_level=F('ballots__electrol_race__election_level'),
+                sub_race=F('ballots__electrol_race__ballot_name'),
+                ballot_number=F('ballots__number')
+            )
+    subs =\
+        [{
+            'code': sub.get('code'),
+            'name': sub.get('name'),
+            'election_level': sub.get('election_level'),
+            'sub_race': sub.get('sub_race'),
+            'ballot_number': sub.get('ballot_number'),
+        } for sub in qs]
+
+    return JsonResponse(
+        data={'data': subs, 'created_at': timezone.now()},
         safe=False)
 
 class SummaryReportDataView(LoginRequiredMixin,

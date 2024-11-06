@@ -10,24 +10,42 @@ $(document).ready(function () {
         a.remove();
     };
 
-    $("#report").on("click", "#export-form-results-presidential", function () {
-        $("#export-form-results-presidential").html("Exporting...");
-        $("#export-form-results-presidential").prop("disabled", true);
-        const presidentialRaceTypeNumber = [5];
+    $("#in-report").on("click", "#export-results", function () {
+        $("#export-results").html("Exporting...");
+        $("#export-results").prop("disabled", true);
         $.ajax({
             url: resultsDownloadUrl,
             data: {
                 data: JSON.stringify({
                     tally_id: tallyId,
-                    race_types: presidentialRaceTypeNumber
                 }),
             },
             traditional: true,
             dataType: 'json',
             success: (data) => {
-                downloadResults(data, 'presidential_results.json');
-                $("#export-form-results-presidential").removeAttr("disabled");
-                $("#export-form-results-presidential").html("Export Presidential Results in JSON");
+                downloadResults(data, `results_${Date.now()}.json`);
+                $("#export-results").removeAttr("disabled");
+                $("#export-results").html("All Results JSON Export");
+            },
+        });
+    });
+
+    $("#sub-cons-list-export").on("click", "#export-sub-cons", function () {
+        $("#export-sub-cons").html("Exporting...");
+        $("#export-sub-cons").prop("disabled", true);
+        $.ajax({
+            url: subConsDownloadUrl,
+            data: {
+                data: JSON.stringify({
+                    tally_id: tallyId,
+                }),
+            },
+            traditional: true,
+            dataType: 'json',
+            success: (data) => {
+                downloadResults(data, `sub_cons_list_${Date.now()}.json`);
+                $("#export-sub-cons").removeAttr("disabled");
+                $("#export-sub-cons").html("json");
             },
         });
     });
