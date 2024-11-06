@@ -224,7 +224,8 @@ def create_centers_from_centers_file_data(
                     constituency = get_constituency_by_name(
                         field_val,
                         constituencies_by_name,
-                        kwargs.get('sub_constituency')
+                        kwargs.get('sub_constituency'),
+                        tally,
                     )
                     kwargs['constituency'] = constituency
                     continue

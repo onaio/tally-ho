@@ -112,6 +112,7 @@ def get_constituency_by_name(
         constituency_name,
         constituency_by_name,
         sc_code,
+        tally,
     ):
     constituency = None
     if constituency_name != NO_CONSTITUENCY and\
@@ -119,8 +120,11 @@ def get_constituency_by_name(
         constituency =\
             constituency_by_name.get(constituency_name)
         if constituency is None:
-            raise Constituency.DoesNotExist(
-                f'Constituency {constituency_name} does not exist')
+            constituency_obj, _ = Constituency.objects.get_or_create(
+                name=constituency_name,
+                tally=tally,
+            )
+            constituency = constituency_obj
 
     return constituency
 
