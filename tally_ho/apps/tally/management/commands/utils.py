@@ -269,7 +269,7 @@ def check_duplicates(csv_file_path: str, field: str) -> None:
     query = """
         SELECT {field}, COUNT(*) AS cnt
         FROM read_csv_auto(?)
-        WHERE {field} IS NOT NULL AND {field} != ''
+        WHERE {field} IS NOT NULL
         GROUP BY {field}
         HAVING cnt > 1
     """.format(field=field)
