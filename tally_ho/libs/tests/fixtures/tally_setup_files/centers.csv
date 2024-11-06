@@ -1,2 +1,3 @@
 center_id,name,center_type,center_lat,center_lon,region_name,office_name,office_id,constituency_name,subconstituency_id,mahalla_name,village_name,reg_open
 31001,مدرسة شهداء عين الغزالة للتعليم الأساسي,General,32.144404,23.356148,East,Tubruq,12,الأولى,1,عين الغزالة,طبرق,1
+31002,Test Center,General,32.144404,23.356148,East,Tubruq,12,Test,1,عين الغزالة,طبرق,1
