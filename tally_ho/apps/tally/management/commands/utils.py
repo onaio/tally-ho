@@ -225,6 +225,19 @@ def check_for_missing_columns(
         raise Exception(error_message)
     return None
 
+class DuplicatesFoundError(Exception):
+    """Exception raised when duplicates are found in a CSV file based on
+    a specified field."""
+    def __init__(self, field, duplicates):
+        self.field = field
+        self.duplicates = duplicates
+        message = (
+            f"Duplicate entries detected in the '{field}' column: "
+            f"{', '.join(map(str, duplicates))}."
+            "Please ensure these values are unique."
+        )
+        super().__init__(message)
+
 def check_duplicates(csv_file_path: str, field: str) -> None:
     """
     Checks for duplicates in a CSV file based on a specified field using
@@ -256,11 +269,51 @@ def check_duplicates(csv_file_path: str, field: str) -> None:
     query = """
         SELECT {field}, COUNT(*) AS cnt
         FROM read_csv_auto(?)
+        WHERE {field} IS NOT NULL AND {field} != ''
         GROUP BY {field}
         HAVING cnt > 1
     """.format(field=field)
 
     result = con.execute(query, [csv_file_path]).fetchall()
+    con.close()
 
     if len(result) > 0:
-        raise Exception(f"Duplicates found for field '{field}'")
+        duplicate_values = [row[0] for row in result]
+        raise DuplicatesFoundError(field, duplicate_values)
+
+
+class CenterCodeNotFoundException(Exception):
+    def __init__(self, center_codes):
+        self.center_codes = center_codes
+        self.message = (
+            "The following center codes do not exist in the centers file: "
+            f"{', '.join(map(str, center_codes))}"
+        )
+        super().__init__(self.message)
+
+def find_missing_center_codes(result_forms_file, centers_by_code):
+    center_codes_list = list(centers_by_code.keys())
+
+    con = duckdb.connect()
+
+    center_codes_tuple = tuple(center_codes_list)
+
+    query = f"""
+    SELECT rf.center_code
+    FROM read_csv_auto('{result_forms_file}') AS rf
+    WHERE rf.center_code NOT IN {center_codes_tuple};
+    """
+
+    # Execute the query and fetch the result
+    result = con.execute(query).fetchall()
+
+    # Close the connection
+    con.close()
+
+    # Extract the missing center codes
+    missing_center_codes = [row[0] for row in result]
+
+    # Raise the exception if there are any missing center codes
+    if missing_center_codes:
+        print(f"center codes: {missing_center_codes}")
+        raise CenterCodeNotFoundException(missing_center_codes)

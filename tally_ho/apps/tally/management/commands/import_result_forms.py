@@ -6,6 +6,7 @@ from tally_ho.apps.tally.management.commands.utils import (
     build_generic_model_key_values_from_duckdb_row_tuple_data,
     check_duplicates,
     check_for_missing_columns,
+    find_missing_center_codes,
     get_ballot_by_ballot_number,
     get_office_by_office_name_and_region_name,
 )
@@ -200,6 +201,15 @@ def async_import_results_forms_from_result_forms_file(
             csv_file_path=file_path,
             field='barcode'
         )
+        centers_by_code =\
+            {
+                center.code:\
+                center for center in Center.objects.filter(tally=tally)
+            }
+        find_missing_center_codes(
+            result_forms_file=file_path,
+            centers_by_code=centers_by_code
+        )
 
         stations_by_number_underscore_center_code =\
             {
@@ -210,11 +220,6 @@ def async_import_results_forms_from_result_forms_file(
             {
                 ballot.number:\
                 ballot for ballot in Ballot.objects.filter(tally=tally)
-            }
-        centers_by_code =\
-            {
-                center.code:\
-                center for center in Center.objects.filter(tally=tally)
             }
         offices_by_name_underscore_region_name =\
             {
