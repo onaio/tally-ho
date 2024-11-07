@@ -539,30 +539,14 @@ def stations_and_centers_queryset(
 
     return qs
 
-def total_valid_votes_with_recon_forms_per_electrol_race(
+def get_total_valid_votes_per_electrol_race(
         tally_id,
-        electral_race_id,
-    ):
-    total_valid_votes =\
-        ReconciliationForm.objects.filter(
-            result_form__tally__id=tally_id,
-            active=True,
-            result_form__ballot__electrol_race__id=electral_race_id,
-            entry_version=EntryVersion.FINAL,
-        ).values('result_form__ballot__electrol_race__id').aggregate(
-            total_valid_votes=Sum('number_valid_votes')
-        ).get('total_valid_votes')
-    return total_valid_votes or 0
-
-def total_valid_votes_with_no_recon_forms_per_electrol_race(
-        tally_id,
-        electral_race_id,
-    ):
+        electral_race_id
+):
     total_valid_votes =\
         Result.objects.filter(
                 result_form__tally__id=tally_id,
                 active=True,
-                result_form__reconciliationform__isnull=True,
                 result_form__ballot__electrol_race__id=electral_race_id,
                 entry_version=EntryVersion.FINAL,
             ).values('result_form__ballot__electrol_race__id').aggregate(
@@ -1739,11 +1723,7 @@ def create_ppt_export(
 
     valid_votes_per_electrol_race_id =\
         {
-            id: total_valid_votes_with_recon_forms_per_electrol_race(
-                tally_id,
-                id
-            ) +
-            total_valid_votes_with_no_recon_forms_per_electrol_race(
+            id: get_total_valid_votes_per_electrol_race(
                 tally_id,
                 id
             ) for id in electrol_race_ids
@@ -2179,11 +2159,7 @@ def get_results(request):
             list(set([result.get('electrol_race_id') for result in qs]))
     valid_votes_per_electrol_race_id =\
         {
-            id: total_valid_votes_with_recon_forms_per_electrol_race(
-                tally_id,
-                id
-            ) +
-            total_valid_votes_with_no_recon_forms_per_electrol_race(
+            id: get_total_valid_votes_per_electrol_race(
                 tally_id,
                 id
             ) for id in electrol_race_ids
@@ -3761,16 +3737,12 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         electrol_race_ids =\
             list(set([result.get('electrol_race_id') for result in qs]))
         valid_votes_per_electrol_race_id =\
-            {
-                id: total_valid_votes_with_recon_forms_per_electrol_race(
-                    tally_id,
-                    id
-                ) +
-                total_valid_votes_with_no_recon_forms_per_electrol_race(
-                    tally_id,
-                    id
-                ) for id in electrol_race_ids
-            }
+        {
+            id: get_total_valid_votes_per_electrol_race(
+                tally_id,
+                id
+            ) for id in electrol_race_ids
+        }
         results =\
             [{
                 'candidate_name': result.get('candidate_name'),
