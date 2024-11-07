@@ -549,6 +549,7 @@ def get_total_valid_votes_per_electrol_race(
                 active=True,
                 result_form__ballot__electrol_race__id=electral_race_id,
                 entry_version=EntryVersion.FINAL,
+                result_form__form_state=FormState.ARCHIVED,
             ).values('result_form__ballot__electrol_race__id').aggregate(
                 total_valid_votes=Sum('votes'),
             ).get('total_valid_votes')
