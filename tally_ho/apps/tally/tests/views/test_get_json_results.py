@@ -21,11 +21,11 @@ class GetJSONResultsTest(TestBase):
     @patch('tally_ho.apps.tally.views.reports.administrative_areas_reports.'
            'results_queryset')
     @patch('tally_ho.apps.tally.views.reports.administrative_areas_reports.'
-           'total_valid_votes_with_recon_forms_per_electrol_race')
-    @patch('tally_ho.apps.tally.views.reports.administrative_areas_reports.'
-           'total_valid_votes_with_no_recon_forms_per_electrol_race')
+           'get_total_valid_votes_per_electrol_race')
     def test_get_results_success(
-        self, mock_no_recon, mock_with_recon, mock_results_queryset):
+        self,
+        mock_get_total_valid_votes_per_electrol_race,
+        mock_results_queryset):
         mock_results_queryset.return_value = [
             {
                 'candidate_number': 1,
@@ -47,8 +47,7 @@ class GetJSONResultsTest(TestBase):
                 'sub_con_name': 'Sub Con A',
             }
         ]
-        mock_with_recon.return_value = 50
-        mock_no_recon.return_value = 50
+        mock_get_total_valid_votes_per_electrol_race.return_value = 100
 
         request_data = json.dumps({'tally_id': self.tally.id})
         response = self.client.get(self.url, {'data': request_data})
