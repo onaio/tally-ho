@@ -1160,10 +1160,10 @@ class TestSuperAdmin(TestBase):
             # create duplicate final results
             create_result(result_form_4, result.candidate, self.user, votes)
         ballot_1_duplicates = views.get_result_form_with_duplicate_results(
-            ballot=ballot_1.pk,
+            ballot=ballot_1.number,
             tally_id=tally.pk)
         ballot_2_duplicates = views.get_result_form_with_duplicate_results(
-            ballot=ballot_2.pk,
+            ballot=ballot_2.number,
             tally_id=tally.pk)
         all_duplicates = views.get_result_form_with_duplicate_results(
             tally_id=tally.pk)
@@ -1229,11 +1229,11 @@ class TestSuperAdmin(TestBase):
             request,
             tally_id=tally.pk,
             barcode=barcode,
-            ballot_id=ballot.pk)
+            ballot_id=ballot.number)
         response.render()
         self.assertIn(("{}{}").format(
             "Duplicate result forms list for ballot:  ",
-            ballot.pk), str(response.content))
+            ballot.number), str(response.content))
         self.assertIn(("{}{}").format("Result form barcode:  ",
                                       barcode), str(response.content))
         self.assertIn("Send to clearance", str(response.content))
@@ -1277,7 +1277,7 @@ class TestSuperAdmin(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         configure_messages(request)
-        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.number)
 
         result_form_1.reload()
         result_form_2.reload()
@@ -1310,7 +1310,7 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         configure_messages(request)
         request.session = {'result_form': result_form.pk}
-        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.number)
 
         result_form.reload()
         self.assertEqual(response.status_code, 302)
@@ -1339,7 +1339,7 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         configure_messages(request)
         request.session = {'result_form': result_form_2.pk}
-        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.number)
 
         result_form_2.reload()
         self.assertNotEqual(result_form_2.form_state, FormState.CLEARANCE)
@@ -1384,7 +1384,7 @@ class TestSuperAdmin(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         configure_messages(request)
-        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.number)
 
         result_form_1.reload()
         result_form_2.reload()
@@ -1432,7 +1432,7 @@ class TestSuperAdmin(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         configure_messages(request)
-        response = view(request, tally_id=tally.pk, ballot_id=ballot.pk)
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.number)
 
         result_form_1.reload()
         result_form_2.reload()
