@@ -1,6 +1,15 @@
 {% load i18n %}
 
     <tr>
+        <td>{% trans 'Barcode:' %}</td><td>{{ result_form.barcode }}</td>
+    </tr>
+    <tr>
+        <td>{% trans 'Region Name:' %}</td><td>{{ result_form.center.office.region.name }}</td>
+    </tr>
+    <tr>
+        <td>{% trans 'Office Name:' %}</td><td>{{ result_form.center.office.name }}</td>
+    </tr>
+    <tr>
         <td>{% trans 'Center Name:' %}</td><td>{{ result_form.center.name }}</td>
     </tr>
     <tr>
