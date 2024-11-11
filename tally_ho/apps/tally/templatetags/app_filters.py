@@ -58,7 +58,14 @@ def get_audit_action_name(action_prior_enum):
 
     :returns: Action prior name as a String.
     """
-    return get_action_prior_label_by_number(action_prior_enum.value)
+    action_prior_name = None
+    try:
+        action_prior_name =\
+            get_action_prior_label_by_number(action_prior_enum.value)
+    except AttributeError:
+        pass
+
+    return action_prior_name
 
 def get_audti_resolution_label_by_number(choice_number):
     for number, choice_label in AuditResolution.choices():
@@ -73,4 +80,11 @@ def get_audit_resolution_name(audit_resolution_enum):
 
     :returns: Audit resolution name as a String.
     """
-    return get_audti_resolution_label_by_number(audit_resolution_enum.value)
+    audit_resolution_name = None
+    try:
+        audit_resolution_name =\
+            get_audti_resolution_label_by_number(audit_resolution_enum.value)
+    except AttributeError:
+        pass
+
+    return audit_resolution_name
