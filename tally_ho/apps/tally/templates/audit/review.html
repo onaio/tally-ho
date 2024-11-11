@@ -6,9 +6,22 @@
 {% block content %}
 
 <div class="container main-container">
-<h1>{% trans 'Audit:' %} {{ audit_type }}</h1>
-
+<div class="row">
+    <h1>{% trans 'Audit:' %} {% if is_clerk %}{% trans 'Clerk Review' %}{% else %}{% trans 'Supervisor Review' %}{% endif %}</h1>
+</div>
 {% include 'center_details.html' %}
+
+{% if result_form.audit %}
+<h1>{% trans 'Quarantined Form' %}</h1>
+<hr>
+{% for check in result_form.audit.quarantine_checks.all %}
+<p>
+    {% trans 'Failed quarantine check:' %}
+    <b>{{ check.local_name }}</b>
+</p>
+<br>
+{% endfor %}
+{% endif %}
 
 {% if reconciliation_form %}
 {% include 'quality_control/reconciliation.html' with form=reconciliation_form %}
@@ -20,15 +33,6 @@
 <div class="row audit-form border-top">
 	<form name="audit" method="post" action="">
         <div class="col-md-2 col-sm-1 grid2">
-            {% if result_form.audit %}
-            <h3>{% trans 'Quarantined Form' %}</h3>
-            {% for check in result_form.audit.quarantine_checks.all %}
-            <p>
-                {% trans 'Failed quarantine check:' %}
-                {{ check.local_name }}
-            </p>
-            {% endfor %}
-            {% endif %}
             <h3>{% trans "Problem" %}</h3>
             <p>{{ form.blank_reconciliation }}<label for="id_blank_reconciliation">{% trans "Blank reconciliation:" %}</label></p>
             <p>{{ form.blank_results }}<label for="id_blank_results">{% trans "Blank results:" %}</label> </p>
