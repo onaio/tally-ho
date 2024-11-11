@@ -1,5 +1,6 @@
 import dateutil.parser
 from django.core.serializers.json import json, DjangoJSONEncoder
+from django.forms import model_to_dict
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.views.generic import FormView, TemplateView
@@ -9,9 +10,11 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.audit_form import AuditForm
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
+from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
+from tally_ho.apps.tally.views.quality_control import result_form_results
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.actions_prior import\
@@ -218,11 +221,19 @@ class ReviewView(LoginRequiredMixin,
         self.request.session[
             'encoded_result_form_audit_start_time'] =\
             json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
+        reconciliation_form = ReconForm(data=model_to_dict(
+            result_form.reconciliationform
+        )) if result_form.reconciliationform else None
+        results = result_form_results(result_form)
 
         return self.render_to_response(self.get_context_data(
-            form=form, result_form=result_form,
+            form=form,
+            result_form=result_form,
             is_clerk=is_clerk(self.request.user),
-            tally_id=tally_id))
+            tally_id=tally_id,
+            reconciliation_form=reconciliation_form,
+            results=results,
+        ))
 
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load app_filters %}
 
 {% block content %}
 
@@ -8,6 +9,12 @@
 <h1>{% trans 'Audit:' %} {{ audit_type }}</h1>
 
 {% include 'center_details.html' %}
+
+{% if reconciliation_form %}
+{% include 'quality_control/reconciliation.html' with form=reconciliation_form %}
+{% endif %}
+
+{% include 'quality_control/results.html' with results=results header_text=header_text %}
 
 
 <div class="row audit-form border-top">
@@ -44,6 +51,17 @@
                 <p><button class="btn btn-danger" type="submit" name="return">{% trans "Return to Audit Team" %}</button></p>
                 {% endif %}
         </div>
+        {% if not is_clerk %}
+        <div class="col-md-2 col-sm-1 grid2 righter">
+            <h3>{% trans "Action Prior to Recommendation" %}</h3>
+            <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
+                {{ form.action_prior_to_recommendation.value|get_audit_action_name }}
+            </p>
+            <p><label for="id_resolution_recommendation">{% trans "Resolution recommendation:" %}</label>
+            {{ form.resolution_recommendation.value|get_audit_resolution_name }}
+            </p>
+        </div>
+        {% endif %}
         <div class="col-md-2 col-sm-1 grid2 righter">
             {% if is_clerk %}
             <p><label for="id_team_comment">{% trans "Team comment:" %}</label>
