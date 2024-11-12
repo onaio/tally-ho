@@ -91,7 +91,8 @@ def audit_action(audit, post_data, result_form, url):
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
                  ActionsPrior.REQUEST_COPY_FROM_FIELD]:
             audit.active = True
-            result_form.reject(new_state=FormState.AUDIT)
+            result_form.form_state=FormState.AUDIT
+            result_form.save()
         else:
             audit.active = False
             result_form.reject(new_state=FormState.DATA_ENTRY_1)
@@ -372,12 +373,12 @@ class CreateAuditView(LoginRequiredMixin,
                     self.request.user):
                 possible_states.append(FormState.ARCHIVED)
 
-            if result_form.form_state == FormState.AUDIT &\
-                result_form.audit.active == True &\
-                result_form.audited_count > 0 &\
-                result_form.audit.action_prior_to_recommendation in\
+            if (result_form.form_state == FormState.AUDIT) &\
+                (result_form.audit.active is True) &\
+                (result_form.audited_count > 0) &\
+                (result_form.audit.action_prior_to_recommendation in\
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
-                 ActionsPrior.REQUEST_COPY_FROM_FIELD]:
+                 ActionsPrior.REQUEST_COPY_FROM_FIELD]):
                 possible_states.append(FormState.AUDIT)
 
             form = safe_form_in_state(result_form, possible_states, form)
