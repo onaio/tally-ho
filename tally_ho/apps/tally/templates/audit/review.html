@@ -20,13 +20,6 @@
     <b>{{ check.local_name }}</b>
 </p>
 <br>
-{% if reconciliation_form %}
-{% include 'quality_control/reconciliation.html' with form=reconciliation_form %}
-{% endif %}
-
-{% if results %}
-{% include 'quality_control/results.html' with results=results header_text=header_text %}
-{% endif %}
 {% endfor %}
 {% endif %}
 
