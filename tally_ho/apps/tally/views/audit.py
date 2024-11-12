@@ -371,15 +371,13 @@ class CreateAuditView(LoginRequiredMixin,
             if groups.SUPER_ADMINISTRATOR in groups.user_groups(
                     self.request.user):
                 possible_states.append(FormState.ARCHIVED)
-
-            if (result_form.form_state == FormState.AUDIT) &\
-                (result_form.audit is not None) &\
-                (result_form.audit.active is True) &\
-                (result_form.audited_count > 0) &\
-                (result_form.audit.action_prior_to_recommendation in\
-                [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
-                 ActionsPrior.REQUEST_COPY_FROM_FIELD]):
-                possible_states.append(FormState.AUDIT)
+            if result_form.audit is not None:
+                if (result_form.form_state == FormState.AUDIT) &\
+                    (result_form.audited_count > 0) &\
+                    (result_form.audit.action_prior_to_recommendation in\
+                    [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
+                    ActionsPrior.REQUEST_COPY_FROM_FIELD]):
+                    possible_states.append(FormState.AUDIT)
 
             form = safe_form_in_state(result_form, possible_states, form)
 
