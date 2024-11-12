@@ -374,6 +374,7 @@ class CreateAuditView(LoginRequiredMixin,
                 possible_states.append(FormState.ARCHIVED)
 
             if (result_form.form_state == FormState.AUDIT) &\
+                (result_form.audit is not None) &\
                 (result_form.audit.active is True) &\
                 (result_form.audited_count > 0) &\
                 (result_form.audit.action_prior_to_recommendation in\
