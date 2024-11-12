@@ -91,8 +91,7 @@ def audit_action(audit, post_data, result_form, url):
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
                  ActionsPrior.REQUEST_COPY_FROM_FIELD]:
             audit.active = True
-            result_form.form_state=FormState.AUDIT
-            result_form.save()
+            result_form.reject(new_state=FormState.AUDIT)
         else:
             audit.active = False
             result_form.reject(new_state=FormState.DATA_ENTRY_1)
