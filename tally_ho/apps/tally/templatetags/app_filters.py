@@ -3,6 +3,7 @@ from django import template
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
+from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
 
 register = template.Library()
 
@@ -67,7 +68,7 @@ def get_audit_action_name(action_prior_enum):
 
     return action_prior_name
 
-def get_audti_resolution_label_by_number(choice_number):
+def get_audit_resolution_label_by_number(choice_number):
     for number, choice_label in AuditResolution.choices():
         if number == choice_number:
             return choice_label
@@ -83,8 +84,31 @@ def get_audit_resolution_name(audit_resolution_enum):
     audit_resolution_name = None
     try:
         audit_resolution_name =\
-            get_audti_resolution_label_by_number(audit_resolution_enum.value)
+            get_audit_resolution_label_by_number(audit_resolution_enum.value)
     except AttributeError:
         pass
 
     return audit_resolution_name
+
+def get_clearance_resolution_label_by_number(choice_number):
+    for number, choice_label in ClearanceResolution.choices():
+        if number == choice_number:
+            return choice_label
+
+@register.filter(name="get_clearance_resolution_name")
+def get_clearance_resolution_name(clearance_resolution_enum):
+    """Get clearance resolution name.
+
+    :param clearance_resolution_enum: Clearance resolution enum
+
+    :returns: Clearance resolution name as a String.
+    """
+    clearance_resolution_name = None
+    try:
+        clearance_resolution_name =\
+            get_clearance_resolution_label_by_number(
+                clearance_resolution_enum.value)
+    except AttributeError:
+        pass
+
+    return clearance_resolution_name
