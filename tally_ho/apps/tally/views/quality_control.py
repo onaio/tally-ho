@@ -272,10 +272,15 @@ class ConfirmationView(LoginRequiredMixin,
 
         del self.request.session['result_form']
 
+        next_step =\
+            _('Audit') if result_form.form_state == FormState.AUDIT\
+                else _('Archiving')
+
+
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   header_text=_('Quality Control'),
-                                  next_step=_('Archiving'),
+                                  next_step=next_step,
                                   tally_id=tally_id,
                                   start_url='quality-control'))
 

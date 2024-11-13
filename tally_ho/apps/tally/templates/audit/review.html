@@ -1,27 +1,32 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load app_filters %}
 
 {% block content %}
 
 <div class="container main-container">
-<h1>{% trans 'Audit:' %} {{ audit_type }}</h1>
-
+<div class="row">
+    <h1>{% trans 'Audit:' %} {% if is_clerk %}{% trans 'Clerk Review' %}{% else %}{% trans 'Supervisor Review' %}{% endif %}</h1>
+</div>
 {% include 'center_details.html' %}
+
+{% if result_form.audit %}
+<h1>{% trans 'Quarantined Form' %}</h1>
+<hr>
+{% for check in result_form.audit.quarantine_checks.all %}
+<p>
+    {% trans 'Failed quarantine check:' %}
+    <b>{{ check.local_name }}</b>
+</p>
+<br>
+{% endfor %}
+{% endif %}
 
 
 <div class="row audit-form border-top">
 	<form name="audit" method="post" action="">
         <div class="col-md-2 col-sm-1 grid2">
-            {% if result_form.audit %}
-            <h3>{% trans 'Quarantined Form' %}</h3>
-            {% for check in result_form.audit.quarantine_checks.all %}
-            <p>
-                {% trans 'Failed quarantine check:' %}
-                {{ check.local_name }}
-            </p>
-            {% endfor %}
-            {% endif %}
             <h3>{% trans "Problem" %}</h3>
             <p>{{ form.blank_reconciliation }}<label for="id_blank_reconciliation">{% trans "Blank reconciliation:" %}</label></p>
             <p>{{ form.blank_results }}<label for="id_blank_results">{% trans "Blank results:" %}</label> </p>
@@ -44,14 +49,37 @@
                 <p><button class="btn btn-danger" type="submit" name="return">{% trans "Return to Audit Team" %}</button></p>
                 {% endif %}
         </div>
+        {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' or form.action_prior_to_recommendation.value|get_audit_action_name != '----' %}
         <div class="col-md-2 col-sm-1 grid2 righter">
+            <h3>{% trans "Action Prior to Recommendation" %}</h3>
+            {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' %}
+            <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
+                {{ form.action_prior_to_recommendation.value|get_audit_action_name }}
+            </p>
+            {% endif %}
+            {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' %}
+            <p><label for="id_resolution_recommendation">{% trans "Resolution recommendation:" %}</label>
+            {{ form.resolution_recommendation.value|get_audit_resolution_name }}
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+        <div class="col-md-2 col-sm-1 grid2 righter">
+            {% if form.team_comment.value %}
+            <p><label for="id_team_comment">{% trans "Team comment:" %}</label>
+                {{ form.team_comment.value }}
+            </p>
+            {% endif %}
+            {% if not is_clerk %}
+            {% if form.supervisor_comment.value %}
+            <p><label for="id_supervisor_comment">{% trans "Supervisor comment:" %}</label>
+                {{ form.supervisor_comment.value }}
+            </p>
+            {% endif %}
+            {% endif %}
             {% if is_clerk %}
             <p><label for="id_team_comment">{% trans "Team comment:" %}</label>
                 {{ form.team_comment }}
-            </p>
-            {% else %}
-            <p><label for="id_team_comment">{% trans "Team comment:" %}</label>
-                {{ form.team_comment.value }}
             </p>
             {% endif %}
             {% if not is_clerk %}

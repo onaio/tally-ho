@@ -1,37 +1,7 @@
-let barcodeNumber = "";
-
-const barcode_scanner = (barcodeInputField) => {
-    let typingTimeout;
-
-    if (barcodeInputField) {
-        barcodeInputField.addEventListener("keypress", function (e) {
-            // Reset the timeout on each keypress
-            clearTimeout(typingTimeout);
-
-            if (e.key === "Enter") {
-                barcodeInputField.value = barcodeNumber;
-                barcodeInputField.readOnly = true;
-                barcodeNumber = ""; // Reset after a full scan is detected
-            } else if (!isNaN(e.key)) {
-                barcodeNumber += e.key; // Append numeric input
-            }
-
-            // Set a timeout to reset if no key is pressed in 200ms (example debounce time)
-            typingTimeout = setTimeout(() => {
-                barcodeNumber = "";
-            }, 200);
-        });
-    }
-};
-
 document.addEventListener("DOMContentLoaded", () => {
     const barcodeScanInputField = document.getElementById("id_scanned_barcode");
     const barcodeManualEntryInputField = document.getElementById("id_barcode");
     const barcodeCopyManualEntryInputField = document.getElementById("id_barcode_copy");
-
-    barcodeNumber = "";
-    barcode_scanner(barcodeScanInputField);
-
     // Set or remove required attributes based on form mode
     barcodeScanInputField.setAttribute("required", "true");
     barcodeManualEntryInputField.removeAttribute("required");

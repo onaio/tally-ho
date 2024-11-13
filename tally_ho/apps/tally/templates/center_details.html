@@ -1,8 +1,9 @@
 {% load i18n %}
 
-<h3>{% trans 'Polling Center Details' %}</h3>
 <div class="row">
 	<div class="container">
+    <h3>{% trans 'Polling Center Details' %}</h3>
+    <hr>
 
 		<table class="table table-bordered pull-left infotable">
 		<tr>
@@ -19,7 +20,7 @@
 		</tr>
 		<tr>
             <td width="40%">{% trans 'Office Name:' %}</td>
-			<td width="">{{ result_form.center.office }}</td>
+			<td width="">{{ result_form.center.office.name }}</td>
 		</tr>
 		<tr>
             <td>{% trans 'Center Name:' %}</td>
