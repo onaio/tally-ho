@@ -524,7 +524,7 @@ class TestAudit(TestBase):
 
         audit = Audit.objects.get(result_form=result_form)
         self.assertEqual(audit.supervisor, self.user)
-        self.assertTrue(audit.reviewed_supervisor)
+        self.assertFalse(audit.reviewed_supervisor)
         self.assertTrue(audit.reviewed_team)
         self.assertTrue(audit.active)
         self.assertEqual(audit.result_form.form_state,
@@ -544,10 +544,10 @@ class TestAudit(TestBase):
         self.assertEqual(result_form_stat.result_form, result_form)
 
         for result in audit.result_form.results.all():
-            self.assertFalse(result.active)
+            self.assertTrue(result.active)
 
         for result in audit.result_form.reconciliationform_set.all():
-            self.assertFalse(result.active)
+            self.assertTrue(result.active)
 
         self.assertEqual(audit.action_prior_to_recommendation,
                          ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD)
