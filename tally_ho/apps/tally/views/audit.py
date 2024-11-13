@@ -296,6 +296,7 @@ class PrintCoverView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
+                                  username=self.request.user.username,
                                   problems=problems,
                                   tally_id=tally_id))
 

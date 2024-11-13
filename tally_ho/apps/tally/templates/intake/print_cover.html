@@ -16,6 +16,21 @@
         <td></td>
     </tr>
     <tr>
+        <td>{% trans 'Date/Time:' %}</td>
+        <td>{{ result_form.modified_date }}</td>
+    </tr>
+    <tr>
+        <td>{% trans 'Intaken by:' %}</td>
+        <td>{{ username }}</td>
+    </tr>
+    <tr>
+        <td>{% trans 'Intake Clerk:' %}</td>
+        <td>{% trans 'Name:' %}
+            <span class='underline'>________________________________________</span>
+        </td>
+        <td></td>
+    </tr>
+    <tr>
         <td>{% trans 'Data Entry One:' %}</td>
         <td>{% trans 'Name:' %}
             <span class='underline'>________________________________________</span>
