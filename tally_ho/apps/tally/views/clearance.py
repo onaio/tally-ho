@@ -385,11 +385,11 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                     self.request.user):
                 possible_states.append(FormState.ARCHIVED)
 
-            if (result_form.form_state == FormState.CLEARANCE) &\
-                (result_form.clearance is not None) &\
-                (result_form.clearance.resolution_recommendation ==\
-                    ClearanceResolution.PENDING_FIELD_INPUT):
-                possible_states.append(FormState.CLEARANCE)
+            if result_form.clearance is not None:
+                if (result_form.form_state == FormState.CLEARANCE) &\
+                    (result_form.clearance.resolution_recommendation ==\
+                        ClearanceResolution.PENDING_FIELD_INPUT):
+                    possible_states.append(FormState.CLEARANCE)
 
             form = safe_form_in_state(result_form, possible_states, form)
 
