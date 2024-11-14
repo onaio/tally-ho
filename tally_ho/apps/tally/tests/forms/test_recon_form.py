@@ -1,7 +1,6 @@
 from tally_ho.libs.tests.test_base import TestBase, create_result_form
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.forms.recon_form import ReconForm
-from django.utils.translation import gettext_lazy as _
 
 class ReconFormTest(TestBase):
     def setUp(self):
@@ -46,22 +45,6 @@ class ReconFormTest(TestBase):
         form = ReconForm(data=invalid_data)
         self.assertFalse(form.is_valid())
         self.assertIn('number_valid_votes', form.errors)
-
-    def test_custom_clean_validation(self):
-        """Test that custom validation in clean method raises error with
-        incorrect totals."""
-        invalid_data = self.valid_data.copy()
-        invalid_data['total_of_cancelled_ballots_and_ballots_inside_box'] =\
-            999  # Invalid total
-        form = ReconForm(data=invalid_data)
-        self.assertFalse(form.is_valid())
-
-        # Convert the error messages to strings for comparison
-        error_messages = [str(err) for err in form.errors['__all__']]
-
-        # Check if the expected error message is in the error messages
-        self.assertIn(
-            str(_('Total of fied 5 and 7 is incorrect')), error_messages)
 
     def test_disable_copy_paste_attributes(self):
         """Test that the copy/paste attributes are disabled on all

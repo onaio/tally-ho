@@ -1,7 +1,5 @@
-from django import forms
 from django.forms import ModelForm
 from tally_ho.apps.tally.models import ReconciliationForm
-from django.utils.translation import gettext_lazy as _
 
 
 disable_copy_input = {
@@ -54,23 +52,3 @@ class ReconForm(ModelForm):
                         class_str,
                         self.fields[field].widget.attrs.get('class'))
                 self.fields[field].widget.attrs['class'] = class_str
-    def clean(self):
-        """Verify that the total of field number_cancelled_ballots and
-        field number_ballots_inside_box match the value of field
-        total_of_cancelled_ballots_and_ballots_inside_box
-        """
-        if self.is_valid():
-            cleaned_data = super(ReconForm, self).clean()
-            number_cancelled_ballots =\
-                cleaned_data.get('number_cancelled_ballots')
-            number_ballots_inside_box =\
-                cleaned_data.get('number_ballots_inside_box')
-            total_of_cancelled_ballots_and_ballots_inside_box =\
-                cleaned_data.get(
-                    'total_of_cancelled_ballots_and_ballots_inside_box')
-
-            if (number_cancelled_ballots + number_ballots_inside_box) !=\
-                total_of_cancelled_ballots_and_ballots_inside_box:
-                raise forms.ValidationError(
-                    _('Total of fied 5 and 7 is incorrect'))
-            return cleaned_data
