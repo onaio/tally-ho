@@ -43,8 +43,7 @@ def clearance_action(post_data, clearance, result_form, url):
         if clearance.resolution_recommendation ==\
                 ClearanceResolution.PENDING_FIELD_INPUT:
             clearance.active = True
-            result_form.form_state = FormState.CLEARANCE
-            result_form.save()
+            clearance.reviewed_supervisor = False
 
         if clearance.resolution_recommendation ==\
                 ClearanceResolution.RESET_TO_PREINTAKE:
@@ -234,6 +233,7 @@ class PrintCoverView(LoginRequiredMixin,
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
+                                  username=self.request.user.username,
                                   problems=problems,
                                   printed_url=reverse(
                                       self.printed_url, args=(pk,)),
@@ -311,12 +311,6 @@ class CreateClearanceView(LoginRequiredMixin,
                     self.request.user):
                 possible_states.append(FormState.ARCHIVED)
 
-            if result_form.clearance is not None:
-                if (result_form.form_state == FormState.CLEARANCE) &\
-                    (result_form.clearance.resolution_recommendation ==\
-                        ClearanceResolution.PENDING_FIELD_INPUT):
-                    possible_states.append(FormState.CLEARANCE)
-
             form = safe_form_in_state(result_form, possible_states, form)
 
             if form:
@@ -383,12 +377,6 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             if groups.SUPER_ADMINISTRATOR in groups.user_groups(
                     self.request.user):
                 possible_states.append(FormState.ARCHIVED)
-
-            if (result_form.form_state == FormState.CLEARANCE) &\
-                (result_form.clearance is not None) &\
-                (result_form.clearance.resolution_recommendation ==\
-                    ClearanceResolution.PENDING_FIELD_INPUT):
-                possible_states.append(FormState.CLEARANCE)
 
             form = safe_form_in_state(result_form, possible_states, form)
 

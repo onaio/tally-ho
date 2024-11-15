@@ -26,6 +26,58 @@
 
 <div class="row audit-form border-top">
 	<form name="audit" method="post" action="">
+        <div class="row" style="padding: 1em;">
+            <div class="col-md-2 col-sm-1 grid2">
+                {% if form.blank_reconciliation.value or form.blank_results.value or form.unclear_figures.value or form.damaged_form.value or form.other.value %}
+                <h3 style="margin-top: 0;">{% trans "Problem" %}</h3>
+                {% endif %}
+                {% if form.blank_reconciliation.value %}
+                 <p><label for="id_blank_reconciliation">{% trans "Blank reconciliation" %}</label></p>
+                {% endif %}
+                {% if form.blank_results.value %}
+                 <p><label for="id_blank_results">{% trans "Blank results" %}</label> </p>
+                {% endif %}
+                {% if form.unclear_figures.value %}
+                 <p><label for="id_unclear_figures">{% trans "Unclear figures" %}</label> </p>
+                {% endif %}
+                {% if form.damaged_form.value %}
+                  <p><label for="id_damaged_form">{% trans "Damaged form" %}</label> </p>
+                {% endif %}
+                {% if form.other.value %}
+                 <p class="large"><label class="wrap_label" for="id_other">
+                    {% trans "Other:" %}</label>{{ form.other.value }}</p>
+                <p>
+                {% endif %}
+
+                {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' or form.resolution_recommendation.value|get_audit_resolution_name != '----' %}
+                    <h3>{% trans "Action Prior to Recommendation" %}</h3>
+                    {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' %}
+                    <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
+                        {{ form.action_prior_to_recommendation.value|get_audit_action_name }}
+                    </p>
+                    {% endif %}
+                    {% if form.resolution_recommendation.value|get_audit_resolution_name != '----' %}
+                    <p><label for="id_resolution_recommendation">{% trans "Resolution recommendation:" %}</label>
+                    {{ form.resolution_recommendation.value|get_audit_resolution_name }}
+                    </p>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="col-md-2 col-sm-1 grid2 righter">
+                {% if form.team_comment.value %}
+                    <p><label for="id_team_comment">{% trans "Team comment:" %}</label>
+                        {{ form.team_comment.value }}
+                    </p>
+                {% endif %}
+                {% if not is_clerk %}
+                    {% if form.supervisor_comment.value %}
+                    <p><label for="id_supervisor_comment">{% trans "Supervisor comment:" %}</label>
+                        {{ form.supervisor_comment.value }}
+                    </p>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
         <div class="col-md-2 col-sm-1 grid2">
             <h3>{% trans "Problem" %}</h3>
             <p>{{ form.blank_reconciliation }}<label for="id_blank_reconciliation">{% trans "Blank reconciliation:" %}</label></p>
@@ -34,7 +86,10 @@
                 <p>{{ form.damaged_form }}<label for="id_damaged_form">{% trans "Damaged form:" %}</label> </p>
                 <p class="large"><label class="wrap_label" for="id_other">
                     {% trans "Other:" %}</label>{{ form.other }}</p>
-                <p><button class="btn btn-primary" type="submit" name="save">{% trans "Save" %}</button></p>
+                <p>
+                    <button class="btn btn-primary" type="submit" name="save">{% trans "Save" %}</button>
+                    <a class="btn btn-danger" role="button" href="{% url 'audit' tally_id=tally_id %}">{% trans "Cancel" %}</a>
+                </p>
                 <h3>{% trans "Action Prior to Recommendation" %}</h3>
                 <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
                     {{ form.action_prior_to_recommendation }}
@@ -49,34 +104,7 @@
                 <p><button class="btn btn-danger" type="submit" name="return">{% trans "Return to Audit Team" %}</button></p>
                 {% endif %}
         </div>
-        {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' or form.action_prior_to_recommendation.value|get_audit_action_name != '----' %}
         <div class="col-md-2 col-sm-1 grid2 righter">
-            <h3>{% trans "Action Prior to Recommendation" %}</h3>
-            {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' %}
-            <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
-                {{ form.action_prior_to_recommendation.value|get_audit_action_name }}
-            </p>
-            {% endif %}
-            {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' %}
-            <p><label for="id_resolution_recommendation">{% trans "Resolution recommendation:" %}</label>
-            {{ form.resolution_recommendation.value|get_audit_resolution_name }}
-            </p>
-            {% endif %}
-        </div>
-        {% endif %}
-        <div class="col-md-2 col-sm-1 grid2 righter">
-            {% if form.team_comment.value %}
-            <p><label for="id_team_comment">{% trans "Team comment:" %}</label>
-                {{ form.team_comment.value }}
-            </p>
-            {% endif %}
-            {% if not is_clerk %}
-            {% if form.supervisor_comment.value %}
-            <p><label for="id_supervisor_comment">{% trans "Supervisor comment:" %}</label>
-                {{ form.supervisor_comment.value }}
-            </p>
-            {% endif %}
-            {% endif %}
             {% if is_clerk %}
             <p><label for="id_team_comment">{% trans "Team comment:" %}</label>
                 {{ form.team_comment }}

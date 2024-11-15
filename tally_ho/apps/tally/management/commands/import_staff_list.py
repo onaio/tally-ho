@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.utils.translation import gettext_lazy
 
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.user_profile import UserProfile
 
@@ -41,12 +42,9 @@ STAFF_ROLES = STAFF_ROLE_DICT.keys()
 
 
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
-    # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-    csv_reader = csv.reader(utf_8_encoder(unicode_csv_data),
-                            dialect=dialect, **kwargs)
+    csv_reader = csv.reader(unicode_csv_data, dialect=dialect, **kwargs)
     for row in csv_reader:
-        # decode UTF-8 back to Unicode, cell by cell:
-        yield [str(cell, 'utf-8') for cell in row]
+        yield row
 
 
 def utf_8_encoder(unicode_csv_data):
@@ -54,10 +52,22 @@ def utf_8_encoder(unicode_csv_data):
         yield line.encode('utf-8')
 
 
-def add_row(command, name, username, role, admin=None):
+def add_row(command, name, username, role, admin=None, tally_id=None):
     try:
+        # Parse the name into first and last name
         first_name, last_name = assign_names(name)
-        user = create_user(first_name, last_name, username)
+
+        tally = None
+        if tally_id:
+            try:
+                tally = Tally.objects.get(id=tally_id)
+            except Tally.DoesNotExist:
+                command.stdout.write(command.style.ERROR(
+                    f"Tally with id '{tally_id}' does not exist."
+                ))
+                return  # Exit function if the Tally is not found
+
+        user = create_user(first_name, last_name, username, tally)
 
         permission = True if admin == 'Yes' else False
         user.is_superuser = user.is_staff = permission
@@ -65,18 +75,18 @@ def add_row(command, name, username, role, admin=None):
 
     except Exception as e:
         command.stdout.write(command.style.ERROR(
-            "User '%s' not created! '%s'" % (username, e)))
+            f"User '{username}' not created! '{e}'"
+        ))
     else:
         system_role = STAFF_ROLE_DICT.get(role.upper().strip())
 
         if system_role:
-            group = Group.objects.get_or_create(
-                name=system_role)[0]
+            group = Group.objects.get_or_create(name=system_role)[0]
             user.groups.add(group)
         else:
             command.stdout.write(command.style.ERROR(
-               "Unable to add user %s to unknown group '%s'."
-               % (username, role)))
+                f"Unable to add user {username} to unknown group '{role}'."
+            ))
 
 
 def assign_names(name):
@@ -91,14 +101,20 @@ def assign_names(name):
     return first_name, last_name
 
 
-def create_user(first_name, last_name, username):
+def create_user(first_name, last_name, username, tally=None):
     try:
         return UserProfile.objects.get(username=username)
     except UserProfile.DoesNotExist:
-        return UserProfile.objects.create_user(
-            username, password=username,
+        user = UserProfile.objects.create_user(
+            username=username,
+            password=username,
             first_name=first_name,
-            last_name=last_name)
+            last_name=last_name
+        )
+        if tally:
+            user.tally = tally
+            user.save()
+        return user
 
 
 class Command(BaseCommand):
@@ -106,7 +122,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         self.import_staff_list()
-        self.import_user_list()
 
     def import_staff_list(self):
         with codecs.open(STAFF_LIST_PATH, encoding='utf-8') as f:
@@ -116,12 +131,15 @@ class Command(BaseCommand):
             for row in reader:
                 try:
                     name, username, role, admin = row[0:4]
+                    tally_id =\
+                        row[4].strip()\
+                            if len(row) > 4 and row[4].strip() else None
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(
-                        'Unable to add user in row: %s. Exception %s.' %
-                        (row, e)))
+                        f'Unable to add user in row: {row}. Exception: {e}.'
+                    ))
                 else:
-                    add_row(self, name, username, role, admin)
+                    add_row(self, name, username, role, admin, tally_id)
 
     def import_user_list(self):
         with codecs.open(USER_LIST_PATH, encoding='utf-8') as f:

@@ -46,6 +46,10 @@
             {% else %} {% trans 'None' %} {% endif %}
         </td>
     </tr>
+    <tr>
+        <td>{% trans 'Modified by:' %}</td>
+        <td>{{ username }}</td>
+    </tr>
     <tr class="underline">
         <td colspan="4"><h4>{% trans 'Problem' %}</h4>
             <table id="problems" width="100%">
