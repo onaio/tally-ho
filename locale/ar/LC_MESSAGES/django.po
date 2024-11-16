@@ -1621,11 +1621,11 @@ msgstr "مجموع أوراق الاقتراع المفروزة والمعدود
 #: tally_ho/apps/tally/templates/data_entry/enter_results_view.html:100
 #: tally_ho/apps/tally/templates/quality_control/reconciliation.html:89
 msgid ""
-"NB: If the number in field 2 is not equal to the number in field 9, the "
+"Note: If the number in field 2 is not equal to the number in field 9, the "
 "result should be recalculated in fields 5, 7."
 msgstr ""
-"ملاحظة: إذا كان الرقم في الخانة  8 لا يساوي الرقم في الخانة 1، ينبغي تكرار "
-"الحسابات أعلاه."
+"ملاحظة: إذا كان الرقم في الخانة 2 غير مساوي للرقم في الخانة 9 يجب إعادة "
+"حساب الخانات 5 و 7 ."
 
 #: tally_ho/apps/tally/templates/data_entry/enter_results_view.html:103
 #: tally_ho/apps/tally/templates/quality_control/reconciliation.html:92
@@ -1633,8 +1633,8 @@ msgid ""
 "If the difference remains after the recalculation, the cancelled ballot "
 "papers and ballot papers in the box shall be recounted in fields 5 and 7."
 msgstr ""
-"إذا ظل الفرق بعد إعادة الحساب، يجب إعادة عد أوراق الاقتراع الملغاة وأوراق "
-"الاقتراع الموجودة في الصندوق في الحقول 5 و 7."
+"إذا ظل الفرق قائًما بعد إعادة الحساب يجب إعادة عد أوراق الاقتراع الملغاة "
+"وأوراق الاقتراع الموجودة داخل الصندوق في الخانات 5 و 7."
 
 #: tally_ho/apps/tally/templates/data_entry/enter_results_view.html:106
 #: tally_ho/apps/tally/templates/data_entry/enter_results_view.html:115
@@ -1644,8 +1644,8 @@ msgid ""
 "If the difference remains, write a note in the box below the form, stating "
 "the procedures followed before proceeding to the next step."
 msgstr ""
-"إذا ظل الفرق، اكتب ملاحظة فى الخانة أسفل الاستمارة  ذاكرا  الإجراءات "
-"المتبعة  قبل الانتقال للخطوة التالية."
+"إذا ظل الفرق قائًما أكتب ملاحظة في الخانة أسفل الاستمارة ذاكًرا الإجراءات "
+"المتبعة قبل الانتقال للخطوة التالية."
 
 #: tally_ho/apps/tally/templates/data_entry/enter_results_view.html:109
 #: tally_ho/apps/tally/templates/quality_control/reconciliation.html:98
@@ -1653,8 +1653,8 @@ msgid ""
 "If the number in field 13 is not equal to the number in field 7, the result "
 "should be recalculated in fields 10, 11, and 12."
 msgstr ""
-"إذا كان الرقم في الخانة  12 غير مساوي للرقم  في الخانة  7، يجب اعادة حساب "
-"النتائج  فى الخانات 9 و 10 و 11."
+"إذا كان الرقم في الخانة 13 غير مساوي للرقم في الخانة 7 يجب إعادة حساب الناتج "
+"في الخانات 10، 11، و12."
 
 #: tally_ho/apps/tally/templates/data_entry/enter_results_view.html:112
 #: tally_ho/apps/tally/templates/quality_control/reconciliation.html:101
@@ -1662,8 +1662,8 @@ msgid ""
 "If the difference remains after the recalculation, the ballot papers shall "
 "be recounted in fields 10, 11 , and 12 as indicated in the procedures manual."
 msgstr ""
-"إذا ظل الفرق بعد إعادة الحساب، يجب إعادة عد أوراق الاقتراع في الحقول 10 و 11 "
-"و 12 كما هو موضح في دليل الإجراءات."
+"إذا ظل الفرق قائًما بعد إعادة الحساب يجب إعادة عد أوراق الاقتراع في الخانات "
+"10، 11، 12 كما مبين في دليل الإجراءات."
 
 #: tally_ho/apps/tally/templates/data_entry/enter_results_view.html:134
 #: tally_ho/apps/tally/templates/quality_control/reconciliation.html:123
