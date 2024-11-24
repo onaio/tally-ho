@@ -85,9 +85,9 @@ def build_result_and_recon_output(result_form):
         'station': result_form.station_number,
         'gender': result_form.gender_name,
         'barcode': result_form.barcode,
-        'election level': result_form.ballot__electrol_race__election_level,
-        'sub race type': result_form.ballot__electrol_race__ballot_name,
-        'voting district': result_form.ballot.sub_constituency.code,
+        'election level': result_form.ballot.electrol_race.election_level,
+        'sub race type': result_form.ballot.electrol_race.ballot_name,
+        'voting district': result_form.center.sub_constituency.code,
         'number registrants': result_form.station.registrants
     }
 
@@ -141,13 +141,15 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'sub race type',
             'voting district',
             'order',
-            'name', 'votes',
+            'candidate name',
+            'candidate id',
+            'votes',
             'invalid ballots',
             'unstamped ballots',
             'cancelled ballots',
             'spoilt ballots',
             'unused ballots',
-            'number of signatures',
+            'number of voter cards in the ballot box',
             'received ballots papers',
             'valid votes',
             'number registrants',
@@ -170,7 +172,8 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
                 vote_list += (votes,)
 
                 output['order'] = candidate.order
-                output['name'] = candidate.full_name
+                output['candidate name'] = candidate.full_name
+                output['candidate id'] = candidate.candidate_id
                 output['votes'] = votes
                 output['race number'] = candidate.ballot.number
                 if candidate.active:

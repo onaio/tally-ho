@@ -30,6 +30,64 @@ $(document).ready(function () {
         });
     });
 
+    $("#in-report").on("click", "#export-centers-by-mun-results", function () {
+        $("#export-centers-by-mun-results").html("Exporting...");
+        $("#export-centers-by-mun-results").prop("disabled", true);
+        $.ajax({
+            url: centersByMunResultsDownloadUrl,
+            data: {
+                data: JSON.stringify({
+                    tally_id: tallyId,
+                }),
+            },
+            traditional: true,
+            dataType: 'json',
+            success: (data) => {
+                downloadResults(data, `centers_by_mun_results_${Date.now()}.json`);
+                $("#export-centers-by-mun-results").removeAttr("disabled");
+                $("#export-centers-by-mun-results").html("All Centers By Mun Results JSON Export");
+            },
+        });
+    });
+    $("#in-report").on("click", "#export-centers-by-mun-c-votes-results", function () {
+        $("#export-centers-by-mun-c-votes-results").html("Exporting...");
+        $("#export-centers-by-mun-c-votes-results").prop("disabled", true);
+        $.ajax({
+            url: centersByMunCandidatesVotesResultsDownloadUrl,
+            data: {
+                data: JSON.stringify({
+                    tally_id: tallyId,
+                }),
+            },
+            traditional: true,
+            dataType: 'json',
+            success: (data) => {
+                downloadResults(data, `centers_by_mun_c_votes_results_${Date.now()}.json`);
+                $("#export-centers-by-mun-c-votes-results").removeAttr("disabled");
+                $("#export-centers-by-mun-c-votes-results").html("Centers By Mun Candidates Votes Results (JSON)");
+            },
+        });
+    });
+    $("#in-report").on("click", "#export-centers-stations-by-mun-c-votes-results", function () {
+        $("#export-centers-stations-by-mun-c-votes-results").html("Exporting...");
+        $("#export-centers-stations-by-mun-c-votes-results").prop("disabled", true);
+        $.ajax({
+            url: centersStationsByMunCandidatesVotesResultsDownloadUrl,
+            data: {
+                data: JSON.stringify({
+                    tally_id: tallyId,
+                }),
+            },
+            traditional: true,
+            dataType: 'json',
+            success: (data) => {
+                downloadResults(data, `centers_stations_by_mun_c_votes_results_${Date.now()}.json`);
+                $("#export-centers-stations-by-mun-c-votes-results").removeAttr("disabled");
+                $("#export-centers-stations-by-mun-c-votes-results").html("Centers/Stations By Mun Candidates Votes Results (JSON)");
+            },
+        });
+    });
+
     $("#sub-cons-list-export").on("click", "#export-sub-cons", function () {
         $("#export-sub-cons").html("Exporting...");
         $("#export-sub-cons").prop("disabled", true);
