@@ -60,7 +60,6 @@ def generate_csv():
         'sub_race_type'
     ).annotate(
         total_registrants=Sum('station_registrants')
-    # ).filter(municipality_code=102)
     )
 
     # Generate CSV file path with timestamp
