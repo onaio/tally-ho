@@ -42,10 +42,14 @@ from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale,
     get_deployed_site_url,
 )
+from tally_ho.libs.utils.numbers import parse_int
 from tally_ho.libs.utils.query_set_helpers import Round
 from tally_ho.libs.views import mixins
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.apps.tally.views.reports.helpers import (
+        get_filtered_candidate_votes
+)
 
 report_types = {1: "turnout",
                 2: "summary",
@@ -1652,7 +1656,7 @@ def get_export(request):
     """
     data = ast.literal_eval(request.GET.get('data'))
     tally_id = data.get('tally_id')
-    limit = int(data.get('export_number'))
+    limit = parse_int(data.get('export_number'))
     export_type = data.get('exportType')
     center_ids = data.get('select_1_ids')
     station_ids = data.get('select_2_ids')
@@ -1674,13 +1678,16 @@ def get_export(request):
         percentage_processed or\
         sub_con_codes
 
-    qs = Result.objects.filter(
-        result_form__tally__id=tally_id,
-        result_form__form_state=FormState.ARCHIVED,
-        entry_version=EntryVersion.FINAL,
-        active=True)
-
-    qs = export_results_queryset(
+    qs = Result.objects.select_related(
+            'candidate',
+        )
+    qs =\
+        qs.filter(
+            result_form__tally__id=tally_id,
+            result_form__form_state=FormState.ARCHIVED,
+            entry_version=EntryVersion.FINAL,
+            active=True)
+    qs = get_filtered_candidate_votes(
             tally_id,
             qs,
             data=data if filters_applied else None
@@ -1722,21 +1729,24 @@ def create_ppt_export(
     race_bg_img_root_path =\
         getattr(settings, 'MEDIA_ROOT')
 
-    valid_votes_per_electrol_race_id =\
-        {
-            id: get_total_valid_votes_per_electrol_race(
-                tally_id,
-                id
-            ) for id in electrol_race_ids
-        }
+    electrol_races_ids_to_total_votes_mapping = {}
+    for electral_race_id in\
+        filtered_electrol_races.values_list('id', flat=True):
+        electrol_races_ids_to_total_votes_mapping[electral_race_id] = sum([
+                        q.get(
+                            'total_votes') for q in qs if q.get(
+                                'electrol_race_id') == electral_race_id])
+
     for electrol_race in filtered_electrol_races:
         if electrol_race_has_results(qs, electrol_race):
-            data = qs.filter(
-                election_level=electrol_race.election_level,
-                sub_race_type=electrol_race.ballot_name).order_by('-votes')
-            body_data = data.values(
-                'candidate_name', 'total_votes', 'electrol_race_id')
-            if limit != 0:
+            data =\
+                [
+                    r for r in qs\
+                        if r.get('electrol_race_id') == electrol_race.id]
+            sorted_results = \
+                sorted(data, key=lambda x: -x['total_votes'])
+            body_data = sorted_results
+            if limit:
                 body_data = body_data[:limit]
             body =\
                 [
@@ -1744,8 +1754,9 @@ def create_ppt_export(
                         'candidate_name': item.get('candidate_name'),
                         'total_votes': item.get('total_votes'),
                         'valid_votes':
-                        valid_votes_per_electrol_race_id.get(
-                            item.get('electrol_race_id'))
+                        electrol_races_ids_to_total_votes_mapping.get(
+                            item.get('electrol_race_id')
+                        ),
                     } for item in body_data
                 ]
             header =\
@@ -1836,9 +1847,11 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
     background_image = power_point_race_data['background_image']
     election_level_name =\
         power_point_race_data['header']['election_level'].capitalize()
+    sub_race = \
+        power_point_race_data['header']['sub_race_type'].capitalize()
 
     summary_slide_title =\
-        f"{election_level_name} Election Summary Results"
+        f"{election_level_name} {sub_race} Election Summary Results"
     # Set background image if provided
     if background_image:
         slide.shapes.add_picture(
@@ -1848,30 +1861,39 @@ def create_results_power_point_summary_slide(prs, power_point_race_data):
             prs.slide_width,
             prs.slide_height)
 
-    # Add title text box for the summary slide
-    title_text_box =\
-        slide.shapes.add_textbox(
-            Inches(0.5),
-            Inches(0.7),
-            prs.slide_width - Inches(1),
-            Inches(0.5))
-    title_text_frame = title_text_box.text_frame
+    # Access the title placeholder and set its text
+    if slide.shapes.title:
+        slide.shapes.title.text = summary_slide_title
+        # Apply formatting to the title
+        title_frame = slide.shapes.title.text_frame
+        title_frame.paragraphs[0].font.bold = True
+        title_frame.paragraphs[0].font.size = Pt(24)
+        title_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+    else:
+        # Add title text box for the summary slide
+        title_text_box =\
+            slide.shapes.add_textbox(
+                Inches(0.5),
+                Inches(0.7),
+                prs.slide_width - Inches(1),
+                Inches(0.5))
+        title_text_frame = title_text_box.text_frame
 
-    # Set title properties
-    title_text_frame.text = summary_slide_title
-    title_text_frame.word_wrap = True
-    title_text_frame.margin_left = 0
-    title_text_frame.margin_right = 0
-    title_text_frame.margin_top = 0
-    title_text_frame.margin_bottom = 0
+        # Set title properties
+        title_text_frame.text = summary_slide_title
+        title_text_frame.word_wrap = True
+        title_text_frame.margin_left = 0
+        title_text_frame.margin_right = 0
+        title_text_frame.margin_top = 0
+        title_text_frame.margin_bottom = 0
 
-    # Set title font properties
-    title_text_frame.clear()  # Clear existing paragraphs
-    p = title_text_frame.add_paragraph()
-    p.text = summary_slide_title
-    p.font.bold = True
-    p.font.size = Pt(24)
-    p.alignment = PP_ALIGN.CENTER
+        # Set title font properties
+        title_text_frame.clear()  # Clear existing paragraphs
+        p = title_text_frame.add_paragraph()
+        p.text = summary_slide_title
+        p.font.bold = True
+        p.font.size = Pt(24)
+        p.alignment = PP_ALIGN.CENTER
 
     # Create a table shape for the summary data
     summary_table =\
@@ -1930,6 +1952,8 @@ def create_results_power_point_candidates_results_slide(
     candidate_rank = 0
     election_level_name = \
         power_point_race_data['header']['election_level'].capitalize()
+    sub_race = \
+        power_point_race_data['header']['sub_race_type'].capitalize()
 
     for slide_num in range(num_slides):
         # Create a new candidates slide
@@ -1937,10 +1961,11 @@ def create_results_power_point_candidates_results_slide(
         slide = prs.slides.add_slide(slide_layout)
 
         candidates_result_slide_title =\
-            f"Showing all {election_level_name} Election Results"
-        if limit != 0:
+            f"Showing all {election_level_name} {sub_race} Election Results"
+        if limit:
             candidates_result_slide_title =\
-                f"Top {limit} Leading {election_level_name} Election Results"
+                str(f"Top {limit} Leading {election_level_name} {sub_race} "
+                    "Election Results")
         # Set background image if provided
         if background_image:
             slide.shapes.add_picture(
@@ -1950,29 +1975,36 @@ def create_results_power_point_candidates_results_slide(
                 prs.slide_width,
                 prs.slide_height)
 
-        # Add title text box for the candidates slide
-        title_text_box = slide.shapes.add_textbox(
-            Inches(0.5), Inches(0.7),
-            prs.slide_width - Inches(1), Inches(0.5))
-        title_text_frame = title_text_box.text_frame
-        title_text_frame.text = candidates_result_slide_title
-        title_text_frame.word_wrap = True
+        # Access the title placeholder and set its text
+        if slide.shapes.title:
+            slide.shapes.title.text = candidates_result_slide_title
+            # Apply formatting to the title
+            title_frame = slide.shapes.title.text_frame
+            title_frame.paragraphs[0].font.bold = True
+            title_frame.paragraphs[0].font.size = Pt(24)
+            title_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+        else:
+            # Add title text box for the candidates slide
+            title_text_box = slide.shapes.add_textbox(
+                Inches(0.5), Inches(0.7),
+                prs.slide_width - Inches(1), Inches(0.5))
+            title_text_frame = title_text_box.text_frame
 
-        # Set title properties
-        title_text_frame.text = candidates_result_slide_title
-        title_text_frame.word_wrap = True
-        title_text_frame.margin_left = 0
-        title_text_frame.margin_right = 0
-        title_text_frame.margin_top = 0
-        title_text_frame.margin_bottom = 0
+            # Set title properties
+            title_text_frame.text = candidates_result_slide_title
+            title_text_frame.word_wrap = True
+            title_text_frame.margin_left = 0
+            title_text_frame.margin_right = 0
+            title_text_frame.margin_top = 0
+            title_text_frame.margin_bottom = 0
 
-        # Set title font properties
-        title_text_frame.clear()  # Clear existing paragraphs
-        p = title_text_frame.add_paragraph()
-        p.text = candidates_result_slide_title
-        p.font.bold = True
-        p.font.size = Pt(24)
-        p.alignment = PP_ALIGN.CENTER
+            # Set title font properties
+            title_text_frame.clear()  # Clear existing paragraphs
+            p = title_text_frame.add_paragraph()
+            p.text = candidates_result_slide_title
+            p.font.bold = True
+            p.font.size = Pt(24)
+            p.alignment = PP_ALIGN.CENTER
 
         # Calculate the number of candidates for the current slide
         start_index = slide_num * max_candidates_per_slide
@@ -1987,7 +2019,7 @@ def create_results_power_point_candidates_results_slide(
 
         # Set the column widths for the candidates table
         column_widths =\
-            [Inches(1), Inches(5), Inches(1), Inches(1), Inches(1)]
+            [Inches(1), Inches(3), Inches(2), Inches(1.5), Inches(1.5)]
         for i, width in enumerate(column_widths):
             candidates_table.columns[i].width = width
 
@@ -1999,23 +2031,22 @@ def create_results_power_point_candidates_results_slide(
         candidates_table.cell(0, 4).text = '% Valid Votes'
 
         for i, candidate in enumerate(candidates_slice):
-            valid_votes = candidate['valid_votes']
             candidate_rank = candidate_rank + 1
             candidates_table.cell(i + 1, 0).text =\
                 str(candidate_rank)
             candidates_table.cell(i + 1, 1).text =\
                 candidate['candidate_name']
+            total_votes = candidate['total_votes']
             candidates_table.cell(i + 1, 2).text =\
-                str(candidate['total_votes'])
+                str(total_votes)
+            valid_votes = candidate['valid_votes']
             candidates_table.cell(i + 1, 3).text =\
                 str(valid_votes)
             if valid_votes == 0:
                 candidates_table.cell(i + 1, 4).text = "0"
                 continue
             candidates_table.cell(i + 1, 4).text =\
-                str(
-                round(
-                100 * candidate['total_votes'] / valid_votes, 2))
+                str(round(100 * total_votes / valid_votes, 2))
 
     return
 
@@ -2038,6 +2069,18 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
             # race_data_by_election_level_names.get(election_level_name)
         sub_race_type = race_type_obj.get('sub_race_type')
         election_level_name = race_type_obj.get('election_level')
+        voters =\
+                Result.objects.filter(
+                    result_form__tally__id=tally_id,
+                    result_form__ballot__electrol_race__ballot_name=\
+                        sub_race_type,
+                    result_form__form_state=FormState.ARCHIVED,
+                    entry_version=EntryVersion.FINAL,
+                    active=True,
+                    ).aggregate(
+                        race_voters=Coalesce(Sum('votes'), 0)
+                    ).get('race_voters')
+        race_type_obj['voters_in_counted_stations'] = voters
         # Calculate voters in counted stations
         qs =\
             tally_stations_qs.filter(
@@ -2056,7 +2099,6 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
         ).values('id').annotate(
             races=ArrayAgg('race', distinct=True),
         )
-        voters = 0
         stations_processed = 0
         registrants_in_processed_stations = 0
         for station in station_ids_by_races:
@@ -2079,7 +2121,6 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
                 form_states.count() == 1 and\
                 form_states[0] == FormState.ARCHIVED
             if station_is_processed is False:
-                race_type_obj['voters_in_counted_stations'] = 0
                 race_type_obj['stations_processed'] = 0
                 race_type_obj['registrants_in_processed_stations'] = 0
                 race_type_obj['percentage_of_stations_processed'] = 0
@@ -2091,35 +2132,8 @@ def create_results_power_point_headers(tally_id, filtered_electrol_races, qs):
             registrants_in_processed_stations +=\
                 station_obj.registrants
 
-            # Calculate voters voted in processed stations
-            votes =\
-                Result.objects.filter(
-                    result_form__tally__id=tally_id,
-                    result_form__ballot__electrol_race__election_level=\
-                        election_level_name,
-                    result_form__ballot__electrol_race__ballot_name=\
-                        sub_race_type,
-                    result_form__center__stations__id=station.get('id'),
-                    result_form__station_number=station_obj.station_number,
-                    entry_version=EntryVersion.FINAL,
-                    active=True,
-                    ).annotate(
-                        race=F(
-                        'result_form__ballot__electrol_race__election_level'),
-                        ballot_number=F('result_form__ballot__number')
-                    ).values('race', 'ballot_number').annotate(
-                        race_voters=Sum('votes')
-                    ).order_by(
-                        '-race_voters'
-                    ).values(
-                        'race_voters'
-                    )
-            if votes.count() != 0:
-                voters += votes[0].get('race_voters')
-
         # Calculate turnout percentage
         if stations_processed != 0:
-            race_type_obj['voters_in_counted_stations'] = voters
             race_type_obj['stations_processed'] = stations_processed
             race_type_obj['registrants_in_processed_stations'] =\
                 registrants_in_processed_stations
@@ -2145,54 +2159,188 @@ def get_results(request):
     returns: A JSON response of candidates results
     """
     tally_id = json.loads(request.GET.get('data')).get('tally_id')
-    qs = Result.objects.filter(
-                result_form__tally__id=tally_id,
-                result_form__form_state=FormState.ARCHIVED,
-                entry_version=EntryVersion.FINAL,
-                result_form__ballot__available_for_release=True,
-                active=True)
-    qs = results_queryset(
-                tally_id,
-                qs,
-                data=None
-            )
-    electrol_race_ids =\
-            list(set([result.get('electrol_race_id') for result in qs]))
-    valid_votes_per_electrol_race_id =\
-        {
-            id: get_total_valid_votes_per_electrol_race(
-                tally_id,
-                id
-            ) for id in electrol_race_ids
-        }
-    results =\
-        [{
-            'candidate_id': result.get('candidate_number'),
-            'candidate_name': result.get('candidate_name'),
-            'total_votes': result.get('total_votes'),
-            'gender': result.get('gender').name,
-            'election_level': result.get('election_level'),
-            'sub_race_type': result.get('sub_race_type'),
-            'order': result.get('order'),
-            'ballot_number': result.get('ballot_number'),
-            'candidate_status': result.get('candidate_status'),
-            'center_code': result.get('center_code'),
-            'center_name': result.get('center_name'),
-            'office_number': result.get('office_number'),
-            'office_name': result.get('office_name'),
-            'station_number': result.get('station_number'),
-            'sub_con_code': result.get('sub_con_code'),
-            'valid_votes':
-            valid_votes_per_electrol_race_id.get(
-            result.get('electrol_race_id')),
-            'sub_con_name': result.get('sub_con_name'),
-        } for result in qs]
+    qs = Result.objects.select_related(
+            'candidate',
+            'result_form__center__sub_constituency',
+            'result_form__ballot__electrol_race',
+            'result_form__office',
+        ).filter(
+            result_form__tally__id=tally_id,
+            result_form__form_state=FormState.ARCHIVED,
+            entry_version=EntryVersion.FINAL,
+            result_form__ballot__available_for_release=True,
+            active=True)
+    results_metadata_queryset = qs
+    qs = get_filtered_candidate_votes(
+        tally_id,
+        qs,
+        data=None,
+    )
+    electrol_races_ids_to_total_votes_mapping = {}
+    for electral_race_id in\
+        ElectrolRace.objects.filter(
+            tally__id=tally_id).values_list('id', flat=True):
+        electrol_races_ids_to_total_votes_mapping[electral_race_id] = sum([
+                        q.get(
+                            'total_votes') for q in qs if q.get(
+                                'electrol_race_id') == electral_race_id])
+
+    candidate_data = []
+    for candidate_result in qs:
+        candidate_result.update({
+            'candidate_id': candidate_result.get('candidate_number'),
+            'valid_votes': electrol_races_ids_to_total_votes_mapping.get(
+                    candidate_result.get('electrol_race_id')
+                ),
+            'metadata': [
+                {
+                    'barcode': result.result_form.barcode,
+                    'gender': result.result_form.gender.name,
+                    'station_number': result.result_form.station_number,
+                    'center_code': result.result_form.center.code,
+                    'center_name': result.result_form.center.name,
+                    'office_name': result.result_form.office.name,
+                    'office_number': result.result_form.office.number,
+                    'sub_con_name':
+                    result.result_form.center.sub_constituency.name,
+                    'sub_con_code':
+                    result.result_form.center.sub_constituency.code,
+        } for result in results_metadata_queryset.filter(
+            candidate__candidate_id=candidate_result.get('candidate_number'))]
+        })
+        candidate_data.append(candidate_result)
 
     sorted_results_report = \
-        sorted(results, key=lambda x: -x['total_votes'])
+        sorted(candidate_data, key=lambda x: -x['total_votes'])
 
     return JsonResponse(
         data={'data': sorted_results_report, 'created_at': timezone.now()},
+        safe=False)
+
+
+def get_centers_by_municipalities_results(request):
+    """
+    Builds a An Array of Dictionaries contain candidates total votes grouped
+    by center code, sub race and sub constituency code.
+
+    :param request: The request object containing the tally id.
+
+    returns: A JSON response
+    """
+    tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    qs = Result.objects.select_related(
+            'candidate',
+            'result_form__center__sub_constituency',
+            'result_form__ballot__electrol_race',
+            'result_form__office',
+        ).filter(
+            result_form__tally__id=tally_id,
+            result_form__form_state=FormState.ARCHIVED,
+            entry_version=EntryVersion.FINAL,
+            result_form__ballot__available_for_release=True,
+            active=True)
+    data =\
+        qs.annotate(
+            code=F('result_form__center__code'),
+            sub_race=F('result_form__ballot__electrol_race__ballot_name'),
+            sub_con_code=F('result_form__center__sub_constituency__code')
+        ).values('code', 'sub_race','sub_con_code').annotate(
+            total_votes=Sum('votes'))
+    sorted_data = \
+        sorted(data, key=lambda x: -x['total_votes'])
+
+    return JsonResponse(
+        data={'data': sorted_data, 'created_at': timezone.now()},
+        safe=False)
+
+
+def get_centers_by_municipalities_candidates_results(request):
+    """
+    Builds a An Array of Dictionaries containing each candidates total votes
+    grouped by center code, sub race and sub constituency code.
+
+    :param request: The request object containing the tally id.
+
+    returns: A JSON response
+    """
+    tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    qs = Result.objects.select_related(
+            'candidate',
+            'result_form__center__sub_constituency',
+            'result_form__ballot__electrol_race',
+            'result_form__office',
+        ).filter(
+            result_form__tally__id=tally_id,
+            result_form__form_state=FormState.ARCHIVED,
+            entry_version=EntryVersion.FINAL,
+            result_form__ballot__available_for_release=True,
+            active=True)
+    data =\
+        qs.annotate(
+            code=F('result_form__center__code'),
+            sub_race=F('result_form__ballot__electrol_race__ballot_name'),
+            sub_con_code=F('result_form__center__sub_constituency__code'),
+            candidate_number=F('candidate__candidate_id'),
+            candidate_name=F('candidate__full_name'),
+        ).values(
+            'code',
+            'sub_race',
+            'sub_con_code',
+            'candidate_number',
+            'candidate_name').annotate(
+            total_votes=Sum('votes')
+        )
+    sorted_data = \
+        sorted(data, key=lambda x: -x['total_votes'])
+
+    return JsonResponse(
+        data={'data': sorted_data, 'created_at': timezone.now()},
+        safe=False)
+
+
+def get_centers_stations_by_municipalities_candidates_results(request):
+    """
+    Builds a An Array of Dictionaries containing each candidates total votes
+    grouped by center code, station number, sub race and sub constituency code.
+
+    :param request: The request object containing the tally id.
+
+    returns: A JSON response
+    """
+    tally_id = json.loads(request.GET.get('data')).get('tally_id')
+    qs = Result.objects.select_related(
+            'candidate',
+            'result_form__center__sub_constituency',
+            'result_form__ballot__electrol_race',
+            'result_form__office',
+        ).filter(
+            result_form__tally__id=tally_id,
+            result_form__form_state=FormState.ARCHIVED,
+            entry_version=EntryVersion.FINAL,
+            result_form__ballot__available_for_release=True,
+            active=True)
+    data =\
+        qs.annotate(
+            code=F('result_form__center__code'),
+            station_number=F('result_form__station_number'),
+            sub_race=F('result_form__ballot__electrol_race__ballot_name'),
+            sub_con_code=F('result_form__center__sub_constituency__code'),
+            candidate_number=F('candidate__candidate_id'),
+            candidate_name=F('candidate__full_name'),
+        ).values(
+            'code',
+            'station_number',
+            'sub_race',
+            'sub_con_code',
+            'candidate_number',
+            'candidate_name').annotate(
+            total_votes=Sum('votes')
+        )
+    sorted_data = \
+        sorted(data, key=lambda x: -x['total_votes'])
+
+    return JsonResponse(
+        data={'data': sorted_data, 'created_at': timezone.now()},
         safe=False)
 
 
@@ -3680,10 +3828,8 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
                'total_votes',
                'valid_votes',
                'candidate_status',
-               'gender',
                'election_level',
                'sub_race_type',
-               'sub_con_name',
                'order',
                'ballot_number',
             )
@@ -3694,6 +3840,11 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         total_records = len(queryset)
         page = self.request.POST.get('start', 0)
         page_size = self.request.POST.get('length', 10)
+        data = self.request.POST.get('data')
+        data = ast.literal_eval(data) if data else None
+        if data and parse_int(data.get('export_number')):
+            page_size = parse_int(data.get('export_number'))
+            total_records = parse_int(data.get('export_number'))
 
         if page_size == '-1':
             page_records = queryset
@@ -3719,45 +3870,49 @@ class ResultFormResultsListDataView(LoginRequiredMixin,
         data = self.request.POST.get('data')
         keyword = self.request.POST.get('search[value]')
 
+        qs = self.model.objects.select_related(
+            'candidate',
+        )
+        if keyword:
+            qs = qs.filter(
+                Q(candidate_name__contains=keyword) |
+                Q(candidate__ballot__electrol_race__ballot_name__contains=\
+                  keyword) |
+                Q(candidate__ballot__electrol_race__election_level__contains=\
+                  keyword))
         qs =\
-            self.model.objects.filter(
+            qs.filter(
                 result_form__tally__id=tally_id,
                 result_form__form_state=FormState.ARCHIVED,
                 entry_version=EntryVersion.FINAL,
+                candidate__ballot__active=True,
                 active=True)
-
-        qs = results_queryset(
+        qs = get_filtered_candidate_votes(
                 tally_id,
                 qs,
                 data= ast.literal_eval(data) if data else None
             )
 
-        if keyword:
-            qs = qs.filter(Q(candidate_name__contains=keyword) |
-                           Q(total_votes__contains=keyword))
-        electrol_race_ids =\
-            list(set([result.get('electrol_race_id') for result in qs]))
-        valid_votes_per_electrol_race_id =\
-        {
-            id: get_total_valid_votes_per_electrol_race(
-                tally_id,
-                id
-            ) for id in electrol_race_ids
-        }
+        electrol_races_ids_to_total_votes_mapping = {}
+        for electral_race_id in\
+            ElectrolRace.objects.filter(
+                tally__id=tally_id).values_list('id', flat=True):
+            electrol_races_ids_to_total_votes_mapping[electral_race_id] = sum([
+                            q.get(
+                                'total_votes') for q in qs if q.get(
+                                    'electrol_race_id') == electral_race_id])
         results =\
             [{
                 'candidate_name': result.get('candidate_name'),
                 'total_votes': result.get('total_votes'),
-                'gender': result.get('gender').name,
                 'election_level': result.get('election_level'),
                 'sub_race_type': result.get('sub_race_type'),
                 'order': result.get('order'),
                 'ballot_number': result.get('ballot_number'),
                 'candidate_status': result.get('candidate_status'),
-                'valid_votes':
-                valid_votes_per_electrol_race_id.get(
-                result.get('electrol_race_id')),
-                'sub_con_name': result.get('sub_con_name'),
+                'valid_votes': electrol_races_ids_to_total_votes_mapping.get(
+                    result.get('electrol_race_id')
+                ),
             } for result in qs]
 
         sorted_results_report = \
@@ -3784,10 +3939,8 @@ class ResultFormResultsListView(LoginRequiredMixin,
                     'total_votes',
                     'valid_votes',
                     'candidate_status',
-                    'gender',
                     'election_level',
                     'sub_race_type',
-                    'sub_con_name',
                     'order',
                     'ballot_number',
                 )
@@ -3841,6 +3994,12 @@ class ResultFormResultsListView(LoginRequiredMixin,
             get_centers_stations_url='/ajax/get-centers-stations/',
             export_url='/ajax/get-export/',
             results_download_url='/ajax/download-results/',
+            centers_by_mun_results_download_url=\
+                '/ajax/download-centers-by-mun-results/',
+            centers_by_mun_candidate_votes_results_download_url=\
+                '/ajax/download-centers-by-mun-results-candidates-votes/',
+            centers_stations_by_mun_candidates_votes_results_download_url=\
+                '/ajax/download-centers-stations-by-mun-results-candidates-votes/',
             languageDE=language_de,
             deployedSiteUrl=get_deployed_site_url(),
             dt_columns=dt_columns,
