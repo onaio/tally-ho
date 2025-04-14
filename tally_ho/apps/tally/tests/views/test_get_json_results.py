@@ -95,7 +95,7 @@ class GetJSONResultsTest(TestBase):
                 'electrol_race_id': electrol_race.id,
                 'election_level': 'Level 1',
                 'sub_race_type': 'Type A',
-                'candidate_id': candidate.id,
+                'candidate_id': candidate.candidate_id,
                 'valid_votes': 100,
                 'metadata': [{
                     'barcode': result_form.barcode,
