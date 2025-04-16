@@ -159,7 +159,7 @@ class CreateRecallRequestView(LoginRequiredMixin,
             messages.error(
                 self.request, _("Form is no longer in ARCHIVED state."))
             return redirect(
-                self.get_success_url(tally_id=tally_id, tab='recalls'))
+                self.get_success_url(tally_id=tally_id))
         if WorkflowRequest.objects.filter(
             result_form=result_form,
             request_type=RequestType.RECALL_FROM_ARCHIVE,
@@ -168,7 +168,7 @@ class CreateRecallRequestView(LoginRequiredMixin,
                 self.request,
                 _("An active recall request already exists for this form."))
             return redirect(
-                self.get_success_url(tally_id=tally_id, tab='recalls'))
+                self.get_success_url(tally_id=tally_id))
 
         form.instance.result_form = result_form
         form.instance.requester = self.request.user.userprofile
@@ -184,7 +184,7 @@ class CreateRecallRequestView(LoginRequiredMixin,
         return response
 
     def get_success_url(self, **kwargs):
-        return reverse(self.success_url_name, kwargs=kwargs)
+        return reverse(self.success_url_name, kwargs=kwargs) + '?tab=recalls'
 
 
 class ViewResultFormDetailsView(LoginRequiredMixin,
@@ -194,7 +194,7 @@ class ViewResultFormDetailsView(LoginRequiredMixin,
     model = ResultForm
     template_name = 'workflow/view_result_form_details.html'
     context_object_name = 'result_form'
-    pk_url_kwarg = 'result_form_pk' # Use result_form_pk from URL
+    pk_url_kwarg = 'result_form_pk'
 
     def get_queryset(self):
         # Ensure the result form belongs to the correct tally
@@ -207,16 +207,21 @@ class ViewResultFormDetailsView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
 
         context['tally_id'] = tally_id
-        context['header_text'] = _('Result Form Details') # Generic header
+        context['header_text'] = _('Result Form Details')
 
-        # Get ReconciliationForm data if available
-        context['reconciliation_form'] = \
-                ReconForm(data=forms.model_to_dict(
-                    result_form.reconciliationform
-                )) if result_form.reconciliationform else None
+        context['return_url_name'] = self.request.GET.get(
+            'return_url_name', 'create_recall_request')
+        context['request_pk'] = self.request.GET.get('request_pk')
 
-        # Get Results data
-        # Assuming results are needed similarly to quality control dashboard
+        try:
+            recon_model_instance = result_form.reconciliationform
+            context['reconciliation_form'] = ReconForm(
+                data=forms.model_to_dict(recon_model_instance))
+        except ResultForm.reconciliationform.RelatedObjectDoesNotExist:
+            context['reconciliation_form'] = None
+        except AttributeError:
+             context['reconciliation_form'] = None
+
         context['results'] = result_form_results(result_form=result_form)
 
         return context
@@ -296,7 +301,7 @@ class RecallRequestDetailView(LoginRequiredMixin,
                 messages.success(
                     request,
                     _(str("Recall request for barcode "
-                          "{result_form.barcode} approved.")))
+                          f"{result_form.barcode} approved.")))
 
             elif 'reject' in request.POST:
                 workflow_request.status = RequestStatus.REJECTED
@@ -307,7 +312,7 @@ class RecallRequestDetailView(LoginRequiredMixin,
                 messages.success(
                     request,
                     _(str("Recall request for barcode "
-                          "{result_form.barcode} rejected.")))
+                          f"{result_form.barcode} rejected.")))
             else:
                 messages.error(request, _("Invalid action."))
                 return self.form_invalid(form)

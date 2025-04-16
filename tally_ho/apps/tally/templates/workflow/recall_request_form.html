@@ -40,6 +40,9 @@
 		</tr>
 		</table>
 	</div>
+    <div class="container">
+        <a href="{% url 'view_result_form_details_recall' tally_id=tally_id result_form_pk=result_form.pk %}?return_url_name=create_recall_request" class="btn btn-info">{% trans "View Form Details" %}</a>
+    </div>
 </div>
 
 <div class="well">
@@ -49,7 +52,6 @@
         <br>
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">{% trans "Submit Recall Request" %}</button>
-            <a href="{% url 'view_result_form_details_recall' tally_id=tally_id result_form_pk=result_form.pk %}" class="btn btn-info">{% trans "View Form Details" %}</a>
             <a href="{% url 'audit_dashboard' tally_id %}" class="btn btn-danger">{% trans "Cancel" %}</a>
         </div>
     </form>

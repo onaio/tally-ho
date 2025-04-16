@@ -27,6 +27,11 @@
             <tr><th>{% trans "Action Comment" %}</th><td>{{ request.approval_comment|linebreaksbr }}</td></tr>
             {% endif %}
         </table>
+        {% if request.is_pending %}
+        <div class="container">
+            <a href="{% url 'view_result_form_details_recall' tally_id=tally_id result_form_pk=request.result_form.pk %}?return_url_name=recall_request_detail&request_pk={{ request.pk }}" class="btn btn-info">{% trans "View Form Details" %}</a>
+        </div>
+        {% endif %}
     </div>
 
     {% if can_action %}
