@@ -27,10 +27,13 @@ from guardian.mixins import LoginRequiredMixin
 
 
 class AuditUserRequiredMixin(AccessMixin):
-    """Verify that the current user is an Audit Clerk or Supervisor."""
+    """Verify that the current user is an
+    Audit Clerk or Supervisor or Tally Manager or Super Admin."""
     def dispatch(self, request, *args, **kwargs):
         if not (groups.is_audit_clerk(request.user) or
-                groups.is_audit_supervisor(request.user)):
+                groups.is_audit_supervisor(request.user) or
+                groups.is_tally_manager(request.user) or
+                groups.is_super_administrator(request.user)):
             return self.handle_no_permission()
         return super().dispatch(request, *args, **kwargs)
 
