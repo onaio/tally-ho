@@ -58,7 +58,8 @@ jobs:
 
       - name: Generate Report
         run: |
-          uv pip sync requirements/dev.pip
+          uv venv
+          uv pip install -r requirements/dev.pip
           uv run ruff check . --exit-non-zero-on-fix
           uv run pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
           coverage xml
