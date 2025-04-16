@@ -9,6 +9,7 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 
 
 class ReconciliationFormSet(models.QuerySet):
@@ -84,6 +85,15 @@ class ReconciliationForm(BaseModel):
     signature_dated = models.BooleanField(_('Is the form dated?'))
     notes = models.TextField(null=True, blank=True)
     objects = ReconciliationFormSet.as_manager()
+    deactivated_by_request = models.ForeignKey(
+        WorkflowRequest,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='deactivated_recons',
+        help_text=_(str("The workflow request that triggered the "
+                        "deactivation of this reconciliation record."))
+    )
 
     @property
     def number_ballots_used(self):

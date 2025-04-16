@@ -389,18 +389,29 @@ class ResultForm(BaseModel):
             (not self.reconciliationform_exists or
              self.reconciliation_match))
 
-    def reject(self, new_state=FormState.DATA_ENTRY_1, reject_reason=None):
+    def reject(
+            self,
+            new_state=FormState.DATA_ENTRY_1,
+            reject_reason=None,
+            workflow_request=None):
         """Deactivate existing results and reconciliation forms for this result
         form, change the state, and increment the rejected count.
 
         :param new_state: The state to set the form to.
+        :param reject_reason: Optional reason text for the rejection.
+        :param workflow_request: Optional WorkflowRequest instance that
+            triggered this rejection.
         """
         for result in self.results.all():
             result.active = False
+            if workflow_request:
+                result.deactivated_by_request = workflow_request
             result.save()
 
         for recon in self.reconciliationform_set.all():
             recon.active = False
+            if workflow_request:
+                recon.deactivated_by_request = workflow_request
             recon.save()
 
         self.rejected_count += 1

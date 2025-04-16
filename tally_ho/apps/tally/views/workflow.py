@@ -293,7 +293,10 @@ class RecallRequestDetailView(LoginRequiredMixin,
                 workflow_request.status = RequestStatus.APPROVED
                 # Move form back to Audit
                 result_form.reject(
-                    new_state=FormState.AUDIT, reject_reason=approval_comment)
+                    new_state=FormState.AUDIT,
+                    reject_reason=approval_comment,
+                    workflow_request=workflow_request
+                )
                 # Create an audit record for the form
                 Audit.objects.create(
                     result_form=result_form, user=request.user.userprofile)
