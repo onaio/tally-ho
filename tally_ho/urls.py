@@ -45,6 +45,11 @@ from tally_ho.apps.tally.views.reports.turnout_reports_by_admin_areas import (
     TurnoutReportByAdminAreasDataView,
     TurnoutReportByAdminAreasView
     )
+from tally_ho.apps.tally.views.workflow import (
+    InitiateRecallView,
+    CreateRecallRequestView,
+    RecallRequestDetailView
+)
 
 admin.autodiscover()
 
@@ -1013,7 +1018,15 @@ urlpatterns = [
     re_path(r'^data/sub-constituencies-progress-report/(?P<tally_id>(\d+))/$',
             progress_by_sub_races_reports.SubConstituenciesReportView.as_view(),
             name='sub-constituencies-progress-report'),
-
+    re_path(r'^tally/(?P<tally_id>\d+)/workflow/initiate-recall/$',
+        InitiateRecallView.as_view(),
+        name='initiate_recall_request'),
+    re_path(r'^tally/(?P<tally_id>\d+)/workflow/create-recall/$',
+        CreateRecallRequestView.as_view(),
+        name='create_recall_request'),
+    re_path(r'^tally/(?P<tally_id>\d+)/workflow/recall/(?P<request_pk>\d+)/$',
+        RecallRequestDetailView.as_view(),
+        name='recall_request_detail'),
     path('operation-not-allowed',
          home.suspicious_error,
          name='suspicious-error'),
