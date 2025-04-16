@@ -56,19 +56,26 @@ def save_result_form_processing_stats(
         result_form=result_form)
 
 
-def result_form_results(result_form):
+def result_form_results(result_form, active=True, workflow_request_pk=None):
     """Return the results from this form.
 
     :param result_form: The result form to return results for.
+    :param active: Whether to filter results by active.
+    :param workflow_request_pk: The workflow request pk to filter results by.
 
     :returns: A queryset of results for this form.
     """
     election_level = result_form.ballot.electrol_race.election_level
     results = result_form.results.filter(
-        active=True,
+        active=active,
         entry_version=EntryVersion.FINAL,
         candidate__ballot__electrol_race__election_level=election_level
     ).order_by('candidate__order')
+
+    if workflow_request_pk:
+        results = results.filter(
+            deactivated_by_request__pk=workflow_request_pk
+        )
 
     return results
 

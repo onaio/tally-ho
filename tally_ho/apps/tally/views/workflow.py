@@ -15,7 +15,9 @@ from tally_ho.apps.tally.forms.workflow_request_forms import (
 )
 from tally_ho.apps.tally.models import ResultForm, WorkflowRequest
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.views.quality_control import result_form_results
+from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.request_status import RequestStatus
 from tally_ho.libs.models.enums.request_type import RequestType
@@ -215,16 +217,41 @@ class ViewResultFormDetailsView(LoginRequiredMixin,
         context['request_pk'] = self.request.GET.get('request_pk')
 
         try:
-            recon_model_instance = result_form.reconciliationform
-            context['reconciliation_form'] = ReconForm(
-                data=forms.model_to_dict(recon_model_instance))
+            if self.request.GET.get('request_status') ==\
+                RequestStatus.APPROVED.name:
+                recon_model_instance = ReconciliationForm.objects.filter(
+                    result_form=result_form,
+                    result_form__tally=result_form.tally,
+                    entry_version=EntryVersion.FINAL,
+                    active=False,
+                    deactivated_by_request__pk=\
+                        self.request.GET.get('request_pk')
+                ).first()
+                context['reconciliation_form'] = ReconForm(
+                    data=forms.model_to_dict(recon_model_instance))
+            else:
+                recon_model_instance = result_form.reconciliationform
+                context['reconciliation_form'] = ReconForm(
+                    data=forms.model_to_dict(recon_model_instance))
         except ResultForm.reconciliationform.RelatedObjectDoesNotExist:
             context['reconciliation_form'] = None
         except AttributeError:
              context['reconciliation_form'] = None
 
-        context['results'] = result_form_results(result_form=result_form)
-
+        try:
+            if self.request.GET.get('request_status') == \
+                RequestStatus.APPROVED.name:
+                context['results'] =\
+                    result_form_results(
+                        result_form=result_form,
+                        active=False,
+                        workflow_request_pk=self.request.GET.get('request_pk')
+                    )
+            else:
+                context['results'] =\
+                    result_form_results(result_form=result_form)
+        except ResultForm.results.RelatedObjectDoesNotExist:
+            context['results'] = None
         return context
 
 
