@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404, redirect
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
 from django.views import View
+from django.http import HttpResponse
+import csv
 
 from tally_ho.apps.tally.forms.audit_form import AuditForm
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -431,41 +433,53 @@ class AuditRecallRequestsCsvView(LoginRequiredMixin,
             'approver'
         ).order_by('-created_date')
 
-        fields = [
-            'pk',
-            'request_type',
-            'status',
-            'result_form__barcode',
-            'result_form__center__code',
-            'result_form__station_number',
-            'result_form__ballot__number',
-            'request_reason',
-            'request_comment',
-            'requester__username',
-            'created_date',
-            'approver__username',
-            'resolved_date',
-            'approval_comment'
+        # Define user-friendly headers in the desired order
+        headers = [
+            'Request ID',
+            'Request Type',
+            'Status',
+            'Barcode',
+            'Center Code',
+            'Station Number',
+            'Ballot Number',
+            'Reason',
+            'Request Comment',
+            'Requested By',
+            'Requested On',
+            'Actioned By',
+            'Actioned On',
+            'Action Comment'
         ]
 
-        field_header_map = {
-            'pk': 'Request ID',
-            'request_type': 'Request Type',
-            'status': 'Status',
-            'result_form__barcode': 'Barcode',
-            'result_form__center__code': 'Center Code',
-            'result_form__station_number': 'Station Number',
-            'result_form__ballot__number': 'Ballot Number',
-            'request_reason': 'Reason',
-            'request_comment': 'Request Comment',
-            'requester__username': 'Requested By',
-            'created_date': 'Requested On',
-            'approver__username': 'Actioned By',
-            'resolved_date': 'Actioned On',
-            'approval_comment': 'Action Comment'
-        }
+        # Create the HttpResponse object with CSV header.
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] =\
+            'attachment; filename="recall_requests.csv"'
 
-        recall_requests_values = recall_requests_qs.values(*fields)
+        writer = csv.writer(response)
+        writer.writerow(headers) # Write the header row
 
-        return render_to_csv_response(
-            recall_requests_values, field_header_map=field_header_map)
+        # Write data rows
+        for req in recall_requests_qs:
+            writer.writerow([
+                req.pk,
+                req.get_request_type_display(),
+                req.get_status_display(),
+                req.result_form.barcode,
+                req.result_form.center.code\
+                    if req.result_form.center else None,
+                req.result_form.station_number,
+                req.result_form.ballot.number\
+                    if req.result_form.ballot else None,
+                req.get_request_reason_display(),
+                req.request_comment,
+                req.requester.username if req.requester else None,
+                req.created_date.strftime("%Y-%m-%d %H:%M:%S")\
+                    if req.created_date else None,
+                req.approver.username if req.approver else None,
+                req.resolved_date.strftime("%Y-%m-%d %H:%M:%S")\
+                    if req.resolved_date else None,
+                req.approval_comment
+            ])
+
+        return response
