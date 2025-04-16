@@ -67,8 +67,7 @@
                 <th>{% trans 'Sub Race' %}</th>
                 <th>{% trans 'Audit Team Reviewed By' %}</th>
                 <th>{% trans 'Audit Supervisor Reviewed By' %}</th>
-                <th>{% trans 'Quarantine Checks' %}</th>
-                <th>{% trans 'Review' %}</th>
+                <th>{% trans 'Action' %}</th>
             </tr>
             {% for form in forms %}
             <tr>
@@ -79,13 +78,6 @@
                 <td>{{ form.ballot.electrol_race.ballot_name }}</td>
                 <td>{{ form.audit_team_reviewed }}</td>
                 <td>{{ form.audit_supervisor_reviewed }}</td>
-                <td>
-                    {% for check in form.audit_quaritine_checks %}
-                        {{ check.name }}{% if not forloop.last %}, {% endif %}
-                    {% empty %}
-                        N/A
-                    {% endfor %}
-                </td>
                 <td>
                     <form name="form_{{ forloop.counter }}" method="post" action="">
                         <input type="hidden" name="result_form" value="{{ form.pk }}">
