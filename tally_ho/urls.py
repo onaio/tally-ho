@@ -48,7 +48,8 @@ from tally_ho.apps.tally.views.reports.turnout_reports_by_admin_areas import (
 from tally_ho.apps.tally.views.workflow import (
     InitiateRecallView,
     CreateRecallRequestView,
-    RecallRequestDetailView
+    RecallRequestDetailView,
+    ViewResultFormDetailsView # Import the new view
 )
 
 admin.autodiscover()
@@ -1030,6 +1031,11 @@ urlpatterns = [
     re_path(r'^tally/(?P<tally_id>\d+)/workflow/recall/(?P<request_pk>\d+)/$',
         RecallRequestDetailView.as_view(),
         name='recall_request_detail'),
+    # New URL for viewing result form details during recall
+    re_path(r'^tally/(?P<tally_id>\d+)/workflow/recall/view_details/(?P<result_form_pk>\d+)/$',
+        ViewResultFormDetailsView.as_view(),
+        name='view_result_form_details_recall'),
+
     path('operation-not-allowed',
          home.suspicious_error,
          name='suspicious-error'),

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% blocktrans with barcode=result_form.barcode %}Details for Result Form: {{ barcode }}{% endblocktrans %}</h1>
+
+{# Display Reconciliation Section if available #}
+{% if reconciliation_form %}
+<div class="well">
+    {% include 'quality_control/reconciliation.html' with form=reconciliation_form %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    {% trans "No reconciliation data available for this form." %}
+</div>
+{% endif %}
+
+{# Display Results Section #}
+<div class="well">
+    {% include 'quality_control/results.html' with results=results header_text=header_text %}
+</div>
+
+{# Back Button #}
+<div class="form-actions">
+    <a href="{% url 'create_recall_request' tally_id=tally_id %}" class="btn btn-secondary">{% trans "Back to Recall Request" %}</a>
+</div>
+
+{% endblock %} 

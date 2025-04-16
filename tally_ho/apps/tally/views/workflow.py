@@ -9,11 +9,13 @@ from django.views.generic.edit import FormMixin
 from django import forms
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
+from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.forms.workflow_request_forms import (
     ApprovalForm, RequestRecallForm
 )
 from tally_ho.apps.tally.models import ResultForm, WorkflowRequest
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.views.quality_control import result_form_results
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.request_status import RequestStatus
 from tally_ho.libs.models.enums.request_type import RequestType
@@ -183,6 +185,41 @@ class CreateRecallRequestView(LoginRequiredMixin,
 
     def get_success_url(self, **kwargs):
         return reverse(self.success_url_name, kwargs=kwargs)
+
+
+class ViewResultFormDetailsView(LoginRequiredMixin,
+                                mixins.TallyAccessMixin,
+                                DetailView):
+    """Displays Recon and Results details for a specific ResultForm."""
+    model = ResultForm
+    template_name = 'workflow/view_result_form_details.html'
+    context_object_name = 'result_form'
+    pk_url_kwarg = 'result_form_pk' # Use result_form_pk from URL
+
+    def get_queryset(self):
+        # Ensure the result form belongs to the correct tally
+        return super().get_queryset().filter(
+            tally__id=self.kwargs.get('tally_id'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        result_form = self.get_object()
+        tally_id = self.kwargs.get('tally_id')
+
+        context['tally_id'] = tally_id
+        context['header_text'] = _('Result Form Details') # Generic header
+
+        # Get ReconciliationForm data if available
+        context['reconciliation_form'] = \
+                ReconForm(data=forms.model_to_dict(
+                    result_form.reconciliationform
+                )) if result_form.reconciliationform else None
+
+        # Get Results data
+        # Assuming results are needed similarly to quality control dashboard
+        context['results'] = result_form_results(result_form=result_form)
+
+        return context
 
 
 class RecallRequestDetailView(LoginRequiredMixin,
