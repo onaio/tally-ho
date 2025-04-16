@@ -88,7 +88,7 @@
                     {% trans "Other:" %}</label>{{ form.other }}</p>
                 <p>
                     <button class="btn btn-primary" type="submit" name="save">{% trans "Save" %}</button>
-                    <a class="btn btn-danger" role="button" href="{% url 'audit' tally_id=tally_id %}">{% trans "Cancel" %}</a>
+                    <a class="btn btn-danger" role="button" href="{% url 'audit_dashboard' tally_id=tally_id %}">{% trans "Cancel" %}</a>
                 </p>
                 <h3>{% trans "Action Prior to Recommendation" %}</h3>
                 <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
