@@ -90,7 +90,7 @@
     <div class="tab-pane {% if active_tab == 'recalls' %}active{% endif %}" id="recall-requests">
         <br>
          <div class="pull-right">
-            <form method="get" action="{% url 'audit_dashboard_csv' tally_id 'csv' %}?tab=recalls" style="display: inline;">
+            <form method="get" action="{% url 'audit_recall_requests_csv' tally_id %}" style="display: inline;">
                 <button type="submit" class="btn btn-primary btn-small">{% trans 'Download Recall List' %}</button>
             </form>
         </div>

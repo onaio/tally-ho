@@ -682,6 +682,9 @@ urlpatterns = [
     re_path(r'^audit/review/(?P<tally_id>(\d+))/$',
             audit.ReviewView.as_view(),
             name='audit-review'),
+    re_path(r'^audit/recall-requests/csv/(?P<tally_id>(\d+))/$',
+            audit.AuditRecallRequestsCsvView.as_view(),
+            name='audit_recall_requests_csv'),
 
     re_path(r'^clearance/(?P<tally_id>(\d+))/$',
             clearance.DashboardView.as_view(),

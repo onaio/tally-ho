@@ -7,6 +7,7 @@ from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
+from django.views import View
 
 from tally_ho.apps.tally.forms.audit_form import AuditForm
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -410,3 +411,61 @@ class CreateAuditView(LoginRequiredMixin,
             return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.form_invalid(form)
+
+class AuditRecallRequestsCsvView(LoginRequiredMixin,
+                                 mixins.GroupRequiredMixin,
+                                 mixins.TallyAccessMixin,
+                                 View):
+    group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR,
+                      groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        recall_requests_qs = WorkflowRequest.objects.filter(
+            result_form__tally__id=tally_id,
+            request_type=RequestType.RECALL_FROM_ARCHIVE
+        ).select_related(
+            'result_form__center',
+            'result_form__ballot',
+            'requester',
+            'approver'
+        ).order_by('-created_date')
+
+        fields = [
+            'pk',
+            'request_type',
+            'status',
+            'result_form__barcode',
+            'result_form__center__code',
+            'result_form__station_number',
+            'result_form__ballot__number',
+            'request_reason',
+            'request_comment',
+            'requester__username',
+            'created_date',
+            'approver__username',
+            'resolved_date',
+            'approval_comment'
+        ]
+
+        field_header_map = {
+            'pk': 'Request ID',
+            'request_type': 'Request Type',
+            'status': 'Status',
+            'result_form__barcode': 'Barcode',
+            'result_form__center__code': 'Center Code',
+            'result_form__station_number': 'Station Number',
+            'result_form__ballot__number': 'Ballot Number',
+            'request_reason': 'Reason',
+            'request_comment': 'Request Comment',
+            'requester__username': 'Requested By',
+            'created_date': 'Requested On',
+            'approver__username': 'Actioned By',
+            'resolved_date': 'Actioned On',
+            'approval_comment': 'Action Comment'
+        }
+
+        recall_requests_values = recall_requests_qs.values(*fields)
+
+        return render_to_csv_response(
+            recall_requests_values, field_header_map=field_header_map)
