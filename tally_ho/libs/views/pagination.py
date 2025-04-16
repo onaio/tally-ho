@@ -10,7 +10,7 @@ def paging(objects_list, request, page_kwarg='page'):
 
     :returns: A page for this list and request.
     """
-    paginator = Paginator(objects_list, 100)
+    paginator = Paginator(objects_list, 10)
     page = request.GET.get(page_kwarg)
 
     return paginate(paginator, page)
