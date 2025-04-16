@@ -46,8 +46,6 @@
                 </form>
             </div>
             <div class="pull-right"> {# Existing Buttons #}
-                <a href="{% url 'initiate_recall_request' tally_id %}" class="btn btn-info btn-small">{% trans 'Initiate Archive Recall' %}</a>
-                &nbsp;
                 <form method="get" action="{% url 'audit_dashboard_csv' tally_id 'csv' %}?tab=audit" style="display: inline;">
                     <button type="submit" class="btn btn-primary btn-small">{% trans 'Download Audit List' %}</button>
                 </form>
@@ -125,6 +123,8 @@
                 </form>
             </div>
              <div class="pull-right"> {# Existing Button #}
+                <a href="{% url 'initiate_recall_request' tally_id %}" class="btn btn-info btn-small">{% trans 'Initiate Archive Recall' %}</a>
+                &nbsp;
                 <form method="get" action="{% url 'audit_recall_requests_csv' tally_id %}" style="display: inline;">
                     <button type="submit" class="btn btn-primary btn-small">{% trans 'Download Recall List' %}</button>
                 </form>
