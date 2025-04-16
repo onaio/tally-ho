@@ -9,6 +9,7 @@ class AuditResolution(Enum):
     CLARIFIED_FIGURES_TO_DE_1 = 2
     OTHER_CORRECTION_TO_DE_1 = 3
     MAKE_AVAILABLE_FOR_ARCHIVE = 4
+    SEND_TO_CLEARANCE = 5
 
     CHOICES = [
         (EMPTY, '----'),
@@ -18,5 +19,6 @@ class AuditResolution(Enum):
         (OTHER_CORRECTION_TO_DE_1,
          _(u"Other Correction To Data Entry 1")),
         (MAKE_AVAILABLE_FOR_ARCHIVE,
-         _(u"Make Available For Archive"))
+         _(u"Make Available For Archive")),
+        (SEND_TO_CLEARANCE, _(u"Send to Clearance"))
     ]

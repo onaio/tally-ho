@@ -83,26 +83,26 @@
             <p>{{ form.blank_reconciliation }}<label for="id_blank_reconciliation">{% trans "Blank reconciliation:" %}</label></p>
             <p>{{ form.blank_results }}<label for="id_blank_results">{% trans "Blank results:" %}</label> </p>
             <p>{{ form.unclear_figures }}<label for="id_unclear_figures">{% trans "Unclear figures:" %}</label> </p>
-                <p>{{ form.damaged_form }}<label for="id_damaged_form">{% trans "Damaged form:" %}</label> </p>
-                <p class="large"><label class="wrap_label" for="id_other">
-                    {% trans "Other:" %}</label>{{ form.other }}</p>
-                <p>
-                    <button class="btn btn-primary" type="submit" name="save">{% trans "Save" %}</button>
-                    <a class="btn btn-danger" role="button" href="{% url 'audit_dashboard' tally_id=tally_id %}">{% trans "Cancel" %}</a>
-                </p>
-                <h3>{% trans "Action Prior to Recommendation" %}</h3>
-                <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
-                    {{ form.action_prior_to_recommendation }}
-                </p>
-                <p><label for="id_resolution_recommendation">{% trans "Resolution recommendation:" %}</label>
-                {{ form.resolution_recommendation }}
-                </p>
-                {% if is_clerk %}
-                <p><button class="btn btn-success" type="submit" name="forward">{% trans "Forward to Supervisor and Print Cover" %}</button></p>
-                {% else %}
-                <p><button class="btn btn-success" type="submit" name="implement">{% trans "Mark Form as Resolved" %}</button></p>
-                <p><button class="btn btn-danger" type="submit" name="return">{% trans "Return to Audit Team" %}</button></p>
-                {% endif %}
+            <p>{{ form.damaged_form }}<label for="id_damaged_form">{% trans "Damaged form:" %}</label> </p>
+            <p class="large"><label class="wrap_label" for="id_other">
+                {% trans "Other:" %}</label>{{ form.other }}</p>
+            <p>
+                <button class="btn btn-primary" type="submit" name="save">{% trans "Save" %}</button>
+                <a class="btn btn-danger" role="button" href="{% url 'audit_dashboard' tally_id=tally_id %}">{% trans "Cancel" %}</a>
+            </p>
+            <h3>{% trans "Action Prior to Recommendation" %}</h3>
+            <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
+                {{ form.action_prior_to_recommendation }}
+            </p>
+            <p><label for="id_resolution_recommendation">{% trans "Resolution recommendation:" %}</label>
+            {{ form.resolution_recommendation }}
+            </p>
+            {% if is_clerk %}
+            <p><button class="btn btn-success" type="submit" name="forward">{% trans "Forward to Supervisor and Print Cover" %}</button></p>
+            {% else %}
+            <p><button class="btn btn-success" type="submit" name="implement">{% trans "Mark Form as Resolved" %}</button></p>
+            <p><button class="btn btn-danger" type="submit" name="return">{% trans "Return to Audit Team" %}</button></p>
+            {% endif %}
         </div>
         <div class="col-md-2 col-sm-1 grid2 righter">
             {% if is_clerk %}

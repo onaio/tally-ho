@@ -92,6 +92,10 @@ def audit_action(audit, post_data, result_form, url):
         if audit.resolution_recommendation ==\
                 AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE:
             audit.for_superadmin = True
+        elif audit.resolution_recommendation ==\
+                AuditResolution.SEND_TO_CLEARANCE:
+            audit.active = False
+            result_form.reject(new_state=FormState.CLEARANCE)
         elif audit.action_prior_to_recommendation in\
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
                  ActionsPrior.REQUEST_COPY_FROM_FIELD]:
