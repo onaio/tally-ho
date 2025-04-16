@@ -129,9 +129,8 @@ class CreateRecallRequestView(LoginRequiredMixin,
         if 'recall_result_form_pk' not in request.session:
             messages.error(request, _("No result form selected for recall."))
             return redirect(
-                'audit_dashboard',
-                tally_id=self.kwargs.get('tally_id'),
-                tab='recalls')
+                self.get_success_url(tally_id=self.kwargs.get('tally_id')))
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -174,14 +173,16 @@ class CreateRecallRequestView(LoginRequiredMixin,
         form.instance.requester = self.request.user.userprofile
         form.instance.request_type = RequestType.RECALL_FROM_ARCHIVE
 
-        response = super().form_valid(form)
+        self.object = form.save()
+
         messages.success(
             self.request,
             _("Recall request created successfully for barcode {}").format(
                 result_form.barcode))
         # Clean up session
         del self.request.session['recall_result_form_pk']
-        return response
+        # Return the redirect directly
+        return redirect(self.get_success_url(tally_id=tally_id))
 
     def get_success_url(self, **kwargs):
         return reverse(self.success_url_name, kwargs=kwargs) + '?tab=recalls'
@@ -237,6 +238,7 @@ class RecallRequestDetailView(LoginRequiredMixin,
     template_name = 'workflow/recall_request_detail.html'
     context_object_name = 'request'
     pk_url_kwarg = 'request_pk'
+    success_url_name = 'audit_dashboard'
 
     def get_queryset(self):
         # Ensure we only get recall requests for the correct tally
@@ -272,7 +274,7 @@ class RecallRequestDetailView(LoginRequiredMixin,
             messages.warning(
                 request, _("This request has already been actioned."))
             return redirect(
-                'audit_dashboard', tally_id=tally_id, tab='recalls')
+                    self.get_success_url(tally_id=tally_id))
 
         form = self.get_form()
         if form.is_valid():
@@ -286,9 +288,7 @@ class RecallRequestDetailView(LoginRequiredMixin,
                          _(str("Form is no longer in ARCHIVED state."
                                " Cannot approve recall.")))
                      return redirect(
-                         'audit_dashboard',
-                         tally_id=tally_id,
-                         tab='recalls')
+                                self.get_success_url(tally_id=tally_id))
 
                 workflow_request.status = RequestStatus.APPROVED
                 # Move form back to Audit
@@ -325,12 +325,14 @@ class RecallRequestDetailView(LoginRequiredMixin,
             workflow_request.resolved_date = timezone.now()
             workflow_request.save()
 
-            return redirect(reverse(
-                'audit_dashboard',
-                kwargs={'tally_id': tally_id}) + '?tab=recalls')
+            return redirect(
+                self.get_success_url(tally_id=tally_id))
         else:
             return self.form_invalid(form)
 
     def form_invalid(self, form):
         messages.error(self.request, _("Please correct the errors below."))
         return super().form_invalid(form)
+
+    def get_success_url(self, **kwargs):
+        return reverse(self.success_url_name, kwargs=kwargs) + '?tab=recalls'
