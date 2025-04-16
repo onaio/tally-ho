@@ -181,8 +181,12 @@ class DashboardView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         user_is_clerk = is_clerk(self.request.user)
         active_tab = self.request.GET.get('tab', 'audit')
+        barcode = self.request.GET.get('barcode', '').strip()
 
         form_list = forms_for_user(user_is_clerk, tally_id)
+
+        if barcode:
+            form_list = form_list.filter(barcode__icontains=barcode)
 
         if format_ == 'csv' and active_tab == 'audit':
             return render_to_csv_response(form_list)
@@ -196,6 +200,10 @@ class DashboardView(LoginRequiredMixin,
             'result_form', 'requester', 'approver'
         ).order_by('-created_date')
 
+        if barcode:
+            recall_requests_qs = recall_requests_qs.filter(
+                result_form__barcode__icontains=barcode)
+
         if format_ == 'csv' and active_tab == 'recalls':
             return render_to_csv_response(recall_requests_qs)
 
@@ -207,7 +215,8 @@ class DashboardView(LoginRequiredMixin,
             is_clerk=user_is_clerk,
             tally_id=tally_id,
             recall_requests=recall_requests,
-            active_tab=active_tab
+            active_tab=active_tab,
+            barcode_query=barcode
         )
         return self.render_to_response(context)
 

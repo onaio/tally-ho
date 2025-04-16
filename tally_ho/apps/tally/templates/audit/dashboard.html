@@ -28,16 +28,34 @@
     {# Forms Awaiting Audit Tab #}
     <div class="tab-pane {% if active_tab == 'audit' %}active{% endif %}" id="audit-forms">
         <br>
-        <div class="pull-right">
-            <a href="{% url 'initiate_recall_request' tally_id %}" class="btn btn-info btn-small">{% trans 'Initiate Archive Recall' %}</a>
-            &nbsp;
-            <form method="get" action="{% url 'audit_dashboard_csv' tally_id 'csv' %}?tab=audit" style="display: inline;">
-                <button type="submit" class="btn btn-primary btn-small">{% trans 'Download Audit List' %}</button>
-            </form>
-            &nbsp;
-            <form method="get" action="{% url 'audit_create' tally_id %}" style="display: inline;">
-                <button type="submit" class="btn btn-primary btn-small">{% trans 'New Form Record' %}</button>
-            </form>
+        <div class="clearfix" style="margin-bottom: 10px;"> {# Wrapper for float clearing #}
+            <div class="pull-left"> {# Search Form for Audit Tab #}
+                <form method="get" action="{% url 'audit_dashboard' tally_id %}" class="form-inline">
+                    <input type="hidden" name="tab" value="audit">
+                    <div class="input-group mb-3" style="display: flex;">
+                        <input type="text" name="barcode" class="form-control" placeholder="{% trans 'Search by Barcode' %}" aria-label="Search by Barcode" aria-describedby="basic-addon2" value="{{ barcode_query|default:"" }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit">{% trans 'Search' %}</button>
+                        </div>
+                        <div class="input-group-append">
+                            {% if barcode_query %}
+                                <a href="{% url 'audit_dashboard' tally_id %}?tab=audit" class="btn btn-link">{% trans 'Clear' %}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="pull-right"> {# Existing Buttons #}
+                <a href="{% url 'initiate_recall_request' tally_id %}" class="btn btn-info btn-small">{% trans 'Initiate Archive Recall' %}</a>
+                &nbsp;
+                <form method="get" action="{% url 'audit_dashboard_csv' tally_id 'csv' %}?tab=audit" style="display: inline;">
+                    <button type="submit" class="btn btn-primary btn-small">{% trans 'Download Audit List' %}</button>
+                </form>
+                &nbsp;
+                <form method="get" action="{% url 'audit_create' tally_id %}" style="display: inline;">
+                    <button type="submit" class="btn btn-primary btn-small">{% trans 'New Form Record' %}</button>
+                </form>
+            </div>
         </div>
 
         <h2>{% trans 'Forms Awaiting Audit' %}</h2>
@@ -89,10 +107,28 @@
     {# Archive Recall Requests Tab #}
     <div class="tab-pane {% if active_tab == 'recalls' %}active{% endif %}" id="recall-requests">
         <br>
-         <div class="pull-right">
-            <form method="get" action="{% url 'audit_recall_requests_csv' tally_id %}" style="display: inline;">
-                <button type="submit" class="btn btn-primary btn-small">{% trans 'Download Recall List' %}</button>
-            </form>
+        <div class="clearfix" style="margin-bottom: 10px;"> {# Wrapper for float clearing #}
+            <div class="pull-left"> {# Search Form for Recalls Tab #}
+                <form method="get" action="{% url 'audit_dashboard' tally_id %}" class="form-inline">
+                    <input type="hidden" name="tab" value="recalls">
+                    <div class="input-group mb-3" style="display: flex;">
+                        <input type="text" name="barcode" class="form-control" placeholder="{% trans 'Search by Barcode' %}" aria-label="Search by Barcode" aria-describedby="basic-addon2" value="{{ barcode_query|default:"" }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit">{% trans 'Search' %}</button>
+                        </div>
+                        <div class="input-group-append">
+                            {% if barcode_query %}
+                                <a href="{% url 'audit_dashboard' tally_id %}?tab=recalls" class="btn btn-link">{% trans 'Clear' %}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+             <div class="pull-right"> {# Existing Button #}
+                <form method="get" action="{% url 'audit_recall_requests_csv' tally_id %}" style="display: inline;">
+                    <button type="submit" class="btn btn-primary btn-small">{% trans 'Download Recall List' %}</button>
+                </form>
+            </div>
         </div>
 
         <h2>{% trans 'Archive Recall Requests' %}</h2>
@@ -139,10 +175,15 @@ document.addEventListener('DOMContentLoaded', function() {
     paginationLinks.forEach(function(link) {
         var url = new URL(link.href);
         var currentTab = '{{ active_tab|escapejs }}';
+        var currentBarcode = '{{ barcode_query|escapejs }}';
+
         if (currentTab) {
             url.searchParams.set('tab', currentTab);
-            link.href = url.toString();
         }
+        if (currentBarcode) {
+            url.searchParams.set('barcode', currentBarcode);
+        }
+        link.href = url.toString();
     });
 });
 </script>
