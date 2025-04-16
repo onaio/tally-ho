@@ -6,7 +6,7 @@
 {% block content %}
 
 <div class="container main-container">
-<h1>{% trans 'Clearance:' %} {{ clearance_type }}</h1>
+<h1>{% trans 'Clearance' %}</h1>
 
 {% include 'center_details.html' %}
 
@@ -44,7 +44,7 @@
                     {% trans "Other:" %}</label>{{ form.other.value }}</p>
                 {% endif %}
 
-                {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' or form.resolution_recommendation.value|get_clearance_resolution_name != '----' %}
+                {% if form.action_prior_to_recommendation.value != None and form.action_prior_to_recommendation.value|get_audit_action_name != '----' or form.resolution_recommendation.value != None and form.resolution_recommendation.value|get_clearance_resolution_name != '----' %}
                     <h3>{% trans "Action Prior to Recommendation" %}</h3>
                     {% if form.action_prior_to_recommendation.value|get_audit_action_name != '----' %}
                     <p><label for="id_action_prior_to_recommendation">{% trans "Action prior to recommendation:" %}</label>
