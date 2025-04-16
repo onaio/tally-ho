@@ -9,8 +9,8 @@ from tally_ho.apps.tally.models import UserProfile
 
 
 GROUP_URLS = {
-    groups.AUDIT_CLERK: "audit",
-    groups.AUDIT_SUPERVISOR: "audit",
+    groups.AUDIT_CLERK: "audit_dashboard",
+    groups.AUDIT_SUPERVISOR: "audit_dashboard",
     groups.CLEARANCE_CLERK: "clearance",
     groups.CLEARANCE_SUPERVISOR: "clearance",
     groups.CORRECTIONS_CLERK: "corrections",
