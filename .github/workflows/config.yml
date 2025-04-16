@@ -3,8 +3,8 @@ name: Django CI
 on: [push]
 
 jobs:
-  container-job:
-    runs-on: ubuntu-24.0.4
+  build-amd64:
+    runs-on: ubuntu-latest
 
     services:
       # Label used to access the service container
