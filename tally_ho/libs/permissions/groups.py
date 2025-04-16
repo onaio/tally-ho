@@ -34,4 +34,22 @@ def add_user_to_group(user, name):
 
 
 def user_groups(user):
-    return user.groups.values_list("name", flat=True)
+    # Check if user is authenticated and not anonymous before accessing groups
+    if user and user.is_authenticated:
+        return user.groups.values_list("name", flat=True)
+    return []
+
+
+# Helper functions for checking group membership
+def is_audit_clerk(user):
+    return AUDIT_CLERK in user_groups(user)
+
+def is_audit_supervisor(user):
+    return AUDIT_SUPERVISOR in user_groups(user)
+
+def is_tally_manager(user):
+    return TALLY_MANAGER in user_groups(user)
+
+def is_super_administrator(user):
+    return SUPER_ADMINISTRATOR in user_groups(user)
+
