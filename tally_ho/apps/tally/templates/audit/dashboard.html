@@ -61,24 +61,24 @@
         <table class="table table-bordered table-striped">
             <tr>
                 <th>{% trans 'Barcode' %}</th>
-                <th>{% trans 'Center Name' %}</th>
-                <th>{% trans 'Center ID' %}</th>
+                <th>{% trans 'Center' %}</th>
                 <th>{% trans 'Station' %}</th>
+                <th>{% trans 'Race' %}</th>
+                <th>{% trans 'Sub Race' %}</th>
                 <th>{% trans 'Audit Team Reviewed By' %}</th>
                 <th>{% trans 'Audit Supervisor Reviewed By' %}</th>
-                <th>{% trans 'Modified Date' %}</th>
                 <th>{% trans 'Quarantine Checks' %}</th>
                 <th>{% trans 'Review' %}</th>
             </tr>
             {% for form in forms %}
             <tr>
                 <td>{{ form.barcode }}</td>
-                <td>{{ form.center.name }}</td>
                 <td>{{ form.center.code }}</td>
                 <td>{{ form.station_number }}</td>
+                <td>{{ form.ballot.electrol_race.election_level }}</td>
+                <td>{{ form.ballot.electrol_race.ballot_name }}</td>
                 <td>{{ form.audit_team_reviewed }}</td>
                 <td>{{ form.audit_supervisor_reviewed }}</td>
-                <td>{{ form.modified_date }}</td>
                 <td>
                     {% for check in form.audit_quaritine_checks %}
                         {{ check.name }}{% if not forloop.last %}, {% endif %}
@@ -135,10 +135,11 @@
 
         <table class="table table-bordered table-striped">
             <tr>
-                <th>{% trans 'Request ID' %}</th>
                 <th>{% trans 'Barcode' %}</th>
                 <th>{% trans 'Center' %}</th>
                 <th>{% trans 'Station' %}</th>
+                <th>{% trans 'Race' %}</th>
+                <th>{% trans 'Sub Race' %}</th>
                 <th>{% trans 'Reason' %}</th>
                 <th>{% trans 'Requested By' %}</th>
                 <th>{% trans 'Requested On' %}</th>
@@ -147,10 +148,11 @@
             </tr>
             {% for request in recall_requests %}
             <tr>
-                <td>{{ request.pk }}</td>
                 <td>{{ request.result_form.barcode }}</td>
-                <td>{{ request.result_form.center_name }} ({{ request.result_form.center_code }})</td>
+                <td>{{ request.result_form.center_code }}</td>
                 <td>{{ request.result_form.station_number }}</td>
+                <td>{{ request.result_form.ballot.electrol_race.election_level }}</td>
+                <td>{{ request.result_form.ballot.electrol_race.ballot_name }}</td>
                 <td>{{ request.get_request_reason_display }}</td>
                 <td>{{ request.requester.username }}</td>
                 <td>{{ request.created_date|date:"Y-m-d H:i" }}</td>
