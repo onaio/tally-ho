@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+
+<h1>{{ header_text }}</h1>
+
+<div class="well">
+	<div class="container">
+    <h3>{% trans 'Result Form Details' %}</h3>
+    <hr>
+		<table class="table table-bordered pull-left infotable">
+		<tr>
+            <td>
+                {% trans 'Barcode:' %}
+            </td>
+            <td>
+                {{ result_form.barcode }}
+            </td>
+        </tr>
+		<tr>
+            <td>{% trans 'Center Name:' %}</td>
+			<td>{{ result_form.center.name }}</td>
+		</tr>
+        <tr>
+            <td>{% trans 'Center Code:' %}</td>
+            <td>{{ result_form.center.code }}</td>
+		</tr>
+		<tr>
+            <td>{% trans 'Station Code:' %}</td>
+            <td>{{ result_form.station_number }}</td>
+		</tr>
+		<tr>
+            <td>{% trans 'Election Level:' %}</td>
+            <td>{{ result_form.ballot.electrol_race.election_level }}</td>
+		</tr>
+		<tr>
+            <td>{% trans 'Sub Race Type:' %}</td>
+            <td>{{ result_form.ballot.electrol_race.ballot_name }}</td>
+		</tr>
+		</table>
+	</div>
+</div>
+
+<div class="well">
+    <form class="form-horizontal" action="" method="post">
+        {% csrf_token %}
+        {% include "includes/form_snippet.html" %}
+        <br>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">{% trans "Submit Recall Request" %}</button>
+            <a href="{% url 'audit_dashboard' tally_id %}" class="btn btn-danger">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %} 

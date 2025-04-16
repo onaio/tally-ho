@@ -1,0 +1,41 @@
+{% comment %} tally_ho/apps/tally/templates/includes/pagination.html {% endcomment %}
+{% load i18n %}
+
+{% if objects.has_other_pages %}
+<div class="pagination pagination-centered">
+    <ul class="step-links">
+        {# Use page_key (defaulting to 'page' if not provided) #}
+        {% with current_page_key=page_key|default:'page' %}
+            {% if objects.has_previous %}
+                <li><a href="?{{ current_page_key }}={{ objects.previous_page_number }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo; {% trans 'previous' %}</a></li>
+            {% else %}
+                <li class="disabled"><span>&laquo; {% trans 'previous' %}</span></li>
+            {% endif %}
+
+            {% for i in objects.paginator.page_range %}
+                {% if objects.number == i %}
+                    <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+                {% elif i > objects.number|add:'-3' and i < objects.number|add:'3' %}
+                    <li><a href="?{{ current_page_key }}={{ i }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a></li>
+                {% elif i == 1 or i == objects.paginator.num_pages %}
+                    {# Always show first and last page #}
+                    {% if i == 1 and objects.number > 3 %}<li><span>...</span></li>{% endif %}
+                     <li><a href="?{{ current_page_key }}={{ i }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a></li>
+                     {% if i == objects.paginator.num_pages and objects.number < objects.paginator.num_pages|add:'-2' %}<li><span>...</span></li>{% endif %}
+                 {% endif %}
+            {% endfor %}
+
+            {% if objects.has_next %}
+                <li><a href="?{{ current_page_key }}={{ objects.next_page_number }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">{% trans 'next' %} &raquo;</a></li>
+            {% else %}
+                <li class="disabled"><span>{% trans 'next' %} &raquo;</span></li>
+            {% endif %}
+        {% endwith %}
+    </ul>
+    <span class="current page-info">
+        {% blocktrans with number=objects.number num_pages=objects.paginator.num_pages %}
+        Page {{ number }} of {{ num_pages }}.
+        {% endblocktrans %}
+    </span>
+</div>
+{% endif %} 

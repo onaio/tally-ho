@@ -1,0 +1,25 @@
+{% comment %} tally_ho/apps/tally/templates/includes/form_snippet.html {% endcomment %}
+{% load i18n %}
+
+{% if form.non_field_errors %}
+<div class="alert alert-danger">
+    {{ form.non_field_errors }}
+</div>
+{% endif %}
+
+{% for field in form %}
+    <div class="control-group {% if field.errors %}error{% endif %}">
+        <label class="control-label" for="{{ field.id_for_label }}">
+            {{ field.label }}{% if field.field.required %} <span class="required">*</span>{% endif %}
+        </label>
+        <div class="controls">
+            {{ field }}
+            {% if field.help_text %}
+                <p class="help-block">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {% if field.errors %}
+                <span class="help-inline text-error">{{ field.errors|striptags }}</span>
+            {% endif %}
+        </div>
+    </div>
+{% endfor %} 
