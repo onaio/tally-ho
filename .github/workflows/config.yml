@@ -51,14 +51,16 @@ jobs:
       - name: Start Redis
         run: sudo service redis-server start
 
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        # Add uv to the PATH
+      - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Generate Report
         run: |
-          python3 -m venv venv
-            . venv/bin/activate
-          python -m pip install --upgrade pip
-          pip install -r requirements/dev.pip
-          ruff check . --exit-non-zero-on-fix
-          pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
+          uv pip sync requirements/dev.pip
+          uv run ruff check . --exit-non-zero-on-fix
+          uv run pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
           coverage xml
           ls -al
         env:
