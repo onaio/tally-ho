@@ -4,77 +4,147 @@
 
 {% block content %}
 
-<h1>{% trans 'Audit List' %}</h1>
+<h1>{% trans 'Audit Dashboard' %}</h1>
 
-<form method="get" action="{% url 'audit-csv' tally_id 'csv' %}">
-    <button type="submit" class="btn btn-primary btn-small pull-right">
-        {% trans 'Download' %}
-    </button>
-</form>
+{% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
 
-<br/>
+{# Tabs #}
+<ul class="nav nav-tabs">
+    <li class="{% if active_tab == 'audit' %}active{% endif %}">
+        <a href="{% url 'audit_dashboard' tally_id %}?tab=audit">{% trans 'Forms Awaiting Audit' %}</a>
+    </li>
+    <li class="{% if active_tab == 'recalls' %}active{% endif %}">
+        <a href="{% url 'audit_dashboard' tally_id %}?tab=recalls">{% trans 'Archive Recall Requests' %}</a>
+    </li>
+</ul>
 
-<form method="get" action="{% url 'audit-new' tally_id %}">
-    <button type="submit" class="btn btn-primary btn-small pull-right">
-        {% trans 'New Form Record' %}
-    </button>
-</form>
-
-<br/>
-<br/>
-
-<table class="table table-bordered table-striped">
-    <tr>
-        <th>{% trans 'Barcode' %}</th>
-        <th>{% trans 'Center Name' %}</th>
-        <th>{% trans 'Center ID' %}</th>
-        <th>{% trans 'Station' %}</th>
-        <th>{% trans 'Reviewed?' %}</th>
-        <th>{% trans 'Supervisor Reviewed?' %}</th>
-        <th>{% trans 'Modified Date' %}</th>
-        <th>{% trans 'Quaritine Check' %}</th>
-        <th>{% trans 'Review' %}</th>
-    </tr>
-{% for form in forms %}
-    <tr>
-        <td>{{ form.barcode }}</td>
-        <td>{{ form.center.name }}</td>
-        <td>{{ form.center.code }}</td>
-        <td>{{ form.station_number }}</td>
-        <td>{{ form.audit_team_reviewed }}</td>
-        <td>{{ form.audit_supervisor_reviewed }}</td>
-        <td>{{ form.modified_date }}</td>
-        <td>
-            {% for audit_quaritine_check_name in form.audit_quaritine_checks %}
-                {% trans audit_quaritine_check_name.name %}
-            {% endfor %}
-        </td>
-        <td>
-            <form name="form_{{ forloop.counter }}" method="post" action="">
-                <input type="hidden" name="result_form" value="{{ form.pk }}">
-                <button class="btn btn-default btn-small" type="submit" name="submit">{% trans "Review" %}</button>
-                {% csrf_token %}
+<div class="tab-content">
+    {# Forms Awaiting Audit Tab #}
+    <div class="tab-pane {% if active_tab == 'audit' %}active{% endif %}" id="audit-forms">
+        <br>
+        <div class="pull-right">
+            <a href="{% url 'initiate_recall_request' tally_id %}" class="btn btn-info btn-small">{% trans 'Initiate Archive Recall' %}</a>
+            &nbsp;
+            <form method="get" action="{% url 'audit_dashboard_csv' tally_id 'csv' %}?tab=audit" style="display: inline;">
+                <button type="submit" class="btn btn-primary btn-small">{% trans 'Download Audit List' %}</button>
             </form>
-        </td>
-    </tr>
-{% endfor %}
-</table>
+            &nbsp;
+            <form method="get" action="{% url 'audit_create' tally_id %}" style="display: inline;">
+                <button type="submit" class="btn btn-primary btn-small">{% trans 'New Form Record' %}</button>
+            </form>
+        </div>
 
-<div class="pagination">
-    <span class="step-links">
-        {% if forms.has_previous %}
-            <a href="?page={{ forms.previous_page_number }}">{% trans 'previous' %}</a>
-        {% endif %}
+        <h2>{% trans 'Forms Awaiting Audit' %}</h2>
 
-        <span class="current">
-            {% blocktrans with number=forms.number  num_pages=forms.paginator.num_pages %}
-            Page {{ number }} of {{num_pages}}.
-            {% endblocktrans %}
-        </span>
+        <table class="table table-bordered table-striped">
+            <tr>
+                <th>{% trans 'Barcode' %}</th>
+                <th>{% trans 'Center Name' %}</th>
+                <th>{% trans 'Center ID' %}</th>
+                <th>{% trans 'Station' %}</th>
+                <th>{% trans 'Audit Team Reviewed By' %}</th>
+                <th>{% trans 'Audit Supervisor Reviewed By' %}</th>
+                <th>{% trans 'Modified Date' %}</th>
+                <th>{% trans 'Quarantine Checks' %}</th>
+                <th>{% trans 'Review' %}</th>
+            </tr>
+            {% for form in forms %}
+            <tr>
+                <td>{{ form.barcode }}</td>
+                <td>{{ form.center.name }}</td>
+                <td>{{ form.center.code }}</td>
+                <td>{{ form.station_number }}</td>
+                <td>{{ form.audit_team_reviewed }}</td>
+                <td>{{ form.audit_supervisor_reviewed }}</td>
+                <td>{{ form.modified_date }}</td>
+                <td>
+                    {% for check in form.audit_quaritine_checks %}
+                        {{ check.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        N/A
+                    {% endfor %}
+                </td>
+                <td>
+                    <form name="form_{{ forloop.counter }}" method="post" action="">
+                        <input type="hidden" name="result_form" value="{{ form.pk }}">
+                        <button class="btn btn-default btn-small" type="submit" name="submit">{% trans "Review" %}</button>
+                        {% csrf_token %}
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="9">{% trans "No forms awaiting audit." %}</td></tr>
+            {% endfor %}
+        </table>
 
-        {% if forms.has_next %}
-            <a href="?page={{ forms.next_page_number }}">{% trans 'next' %}</a>
-        {% endif %}
-    </span>
+        {% include "includes/pagination.html" with objects=forms page_key='page_audit' %}
+    </div>
+
+    {# Archive Recall Requests Tab #}
+    <div class="tab-pane {% if active_tab == 'recalls' %}active{% endif %}" id="recall-requests">
+        <br>
+         <div class="pull-right">
+            <form method="get" action="{% url 'audit_dashboard_csv' tally_id 'csv' %}?tab=recalls" style="display: inline;">
+                <button type="submit" class="btn btn-primary btn-small">{% trans 'Download Recall List' %}</button>
+            </form>
+        </div>
+
+        <h2>{% trans 'Archive Recall Requests' %}</h2>
+
+        <table class="table table-bordered table-striped">
+            <tr>
+                <th>{% trans 'Request ID' %}</th>
+                <th>{% trans 'Barcode' %}</th>
+                <th>{% trans 'Center' %}</th>
+                <th>{% trans 'Station' %}</th>
+                <th>{% trans 'Reason' %}</th>
+                <th>{% trans 'Requested By' %}</th>
+                <th>{% trans 'Requested On' %}</th>
+                <th>{% trans 'Status' %}</th>
+                <th>{% trans 'Action' %}</th>
+            </tr>
+            {% for request in recall_requests %}
+            <tr>
+                <td>{{ request.pk }}</td>
+                <td>{{ request.result_form.barcode }}</td>
+                <td>{{ request.result_form.center_name }} ({{ request.result_form.center_code }})</td>
+                <td>{{ request.result_form.station_number }}</td>
+                <td>{{ request.get_request_reason_display }}</td>
+                <td>{{ request.requester.username }}</td>
+                <td>{{ request.created_date|date:"Y-m-d H:i" }}</td>
+                <td>{{ request.get_status_display }}</td>
+                <td>
+                    <a href="{% url 'recall_request_detail' tally_id request.pk %}" class="btn btn-default btn-small">{% trans "View Details" %}</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="9">{% trans "No archive recall requests found." %}</td></tr>
+            {% endfor %}
+        </table>
+
+        {% include "includes/pagination.html" with objects=recall_requests page_key='page_recalls' %}
+    </div>
 </div>
+
+{# Ensure pagination links work with tabs #}
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    var paginationLinks = document.querySelectorAll('.pagination a[href*="page_"]');
+    paginationLinks.forEach(function(link) {
+        var url = new URL(link.href);
+        var currentTab = '{{ active_tab|escapejs }}';
+        if (currentTab) {
+            url.searchParams.set('tab', currentTab);
+            link.href = url.toString();
+        }
+    });
+});
+</script>
+
 {% endblock %}

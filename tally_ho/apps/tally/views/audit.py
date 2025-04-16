@@ -14,12 +14,14 @@ from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
+from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 from tally_ho.apps.tally.views.quality_control import result_form_results
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.actions_prior import\
     ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.request_type import RequestType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.form_state import form_in_state,\
@@ -172,19 +174,39 @@ class DashboardView(LoginRequiredMixin,
     success_url = 'audit-review'
 
     def get(self, *args, **kwargs):
-        format_ = kwargs.get('format')
-        tally_id = kwargs.get('tally_id')
+        format_ = self.kwargs.get('format')
+        tally_id = self.kwargs.get('tally_id')
         user_is_clerk = is_clerk(self.request.user)
+        active_tab = self.request.GET.get('tab', 'audit')
+
         form_list = forms_for_user(user_is_clerk, tally_id)
 
-        if format_ == 'csv':
+        if format_ == 'csv' and active_tab == 'audit':
             return render_to_csv_response(form_list)
 
-        forms = paging(form_list, self.request)
+        forms = paging(form_list, self.request, page_kwarg='page_audit')
 
-        return self.render_to_response(self.get_context_data(
-            forms=forms, is_clerk=user_is_clerk,
-            tally_id=tally_id))
+        recall_requests_qs = WorkflowRequest.objects.filter(
+            result_form__tally__id=tally_id,
+            request_type=RequestType.RECALL_FROM_ARCHIVE
+        ).select_related(
+            'result_form', 'requester', 'approver'
+        ).order_by('-created_date')
+
+        if format_ == 'csv' and active_tab == 'recalls':
+            return render_to_csv_response(recall_requests_qs)
+
+        recall_requests =\
+            paging(recall_requests_qs, self.request, page_kwarg='page_recalls')
+
+        context = self.get_context_data(
+            forms=forms,
+            is_clerk=user_is_clerk,
+            tally_id=tally_id,
+            recall_requests=recall_requests,
+            active_tab=active_tab
+        )
+        return self.render_to_response(context)
 
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
@@ -207,7 +229,7 @@ class ReviewView(LoginRequiredMixin,
     form_class = AuditForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
     template_name = "audit/review.html"
-    success_url = 'audit'
+    success_url = 'audit_dashboard'
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
@@ -321,7 +343,7 @@ class PrintCoverView(LoginRequiredMixin,
 
             del self.request.session['result_form']
 
-            return redirect('audit', tally_id=tally_id)
+            return redirect('audit_dashboard', tally_id=tally_id)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
@@ -336,7 +358,7 @@ class CreateAuditView(LoginRequiredMixin,
     form_class = BarcodeForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
     template_name = "barcode_verify.html"
-    success_url = 'audit'
+    success_url = 'audit_dashboard'
 
     def get_context_data(self, **kwargs):
         context = super(CreateAuditView, self).get_context_data(**kwargs)
