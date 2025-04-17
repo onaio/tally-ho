@@ -234,8 +234,11 @@ class ViewResultFormDetailsView(LoginRequiredMixin,
                     data=forms.model_to_dict(recon_model_instance))
             else:
                 recon_model_instance = result_form.reconciliationform
-                context['reconciliation_form'] = ReconForm(
-                    data=forms.model_to_dict(recon_model_instance))
+                if recon_model_instance:
+                    context['reconciliation_form'] = ReconForm(
+                        data=forms.model_to_dict(recon_model_instance))
+                else:
+                    context['reconciliation_form'] = None
         except ResultForm.reconciliationform.RelatedObjectDoesNotExist:
             context['reconciliation_form'] = None
         except AttributeError:
