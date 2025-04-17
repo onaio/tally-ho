@@ -59,9 +59,10 @@ jobs:
       - name: Generate Report
         run: |
           uv venv
+          source .venv/bin/activate
           uv pip install -r requirements/dev.pip
-          uv run ruff check . --exit-non-zero-on-fix
-          uv run pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
+          python -m ruff check . --exit-non-zero-on-fix
+          python -m pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
           coverage xml
           ls -al
         env:
