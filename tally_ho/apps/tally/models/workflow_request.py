@@ -52,7 +52,6 @@ class WorkflowRequest(BaseModel):
             f"{self.result_form.barcode} - Status: "
             f"{self.get_status_display()}")
 
-    # Methods to check status easily
     def is_pending(self):
         return self.status == RequestStatus.PENDING
 
@@ -62,24 +61,30 @@ class WorkflowRequest(BaseModel):
     def is_rejected(self):
         return self.status == RequestStatus.REJECTED
 
-    # Permission helpers (can be expanded)
     def can_be_actioned_by(self, user):
-        # Logic to determine if the user (Tally Manager/Super Admin)
-        # can approve/reject
-        # Placeholder: requires checking user groups
+        """
+        Logic to determine if the user (Tally Manager/Super Admin)
+        can approve/reject
+        :param user: Logged in user
+        :return: bool
+        """
         from tally_ho.libs.permissions import groups
         return user.is_authenticated and\
             groups.is_tally_manager(user) or\
                 groups.is_super_administrator(user)
 
     def can_be_viewed_by(self, user):
-        # Logic to determine who can view the request
-        # Audit Clerks/Supervisors who created it, or any
-        # Tally Manager/Super Admin
+        """
+        Logic to determine who can view the request
+        Audit Clerks/Supervisors, or any
+        Tally Manager/Super Admin
+        :param user: Logged in user
+        :return: bool
+        """
         from tally_ho.libs.permissions import groups
         return (
             user.is_authenticated and (
-                self.requester == user.userprofile or
+                groups.is_audit_clerk(user) or
                 groups.is_audit_supervisor(user) or
                 groups.is_tally_manager(user) or
                 groups.is_super_administrator(user)
