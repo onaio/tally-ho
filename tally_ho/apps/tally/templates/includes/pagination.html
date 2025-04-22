@@ -1,0 +1,74 @@
+{% comment %} tally_ho/apps/tally/templates/includes/pagination.html {% endcomment %}
+{% load i18n %}
+
+{% if objects.has_other_pages %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {# Use page_key (defaulting to 'page' if not provided) #}
+        {% with current_page_key=page_key|default:'page' %}
+            {% comment %} Previous Page Link {% endcomment %}
+            {% if objects.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{{ current_page_key }}={{ objects.previous_page_number }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="{% trans 'Previous' %}">
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="visually-hidden">{% trans 'Previous' %}</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                    <span class="visually-hidden">{% trans 'Previous' %}</span>
+                </li>
+            {% endif %}
+
+            {% comment %} Page Number Links {% endcomment %}
+            {% for i in objects.paginator.page_range %}
+                {% if objects.number == i %}
+                    <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                {% elif i > objects.number|add:'-3' and i < objects.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?{{ current_page_key }}={{ i }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a></li>
+                {% elif i == 1 or i == objects.paginator.num_pages %}
+                    {# Always show first and last page, add ellipsis if needed #}
+                    {% if i == 1 and objects.number > 4 %}
+                        <li class="page-item"><a class="page-link" href="?{{ current_page_key }}=1{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">1</a></li>
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% elif i == objects.paginator.num_pages and objects.number < objects.paginator.num_pages|add:'-3' %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <li class="page-item"><a class="page-link" href="?{{ current_page_key }}={{ i }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a></li>
+                    {% elif i == 1 %}
+                        {# Show first page if it's within the nearby range but wasn't caught by the main elif #}
+                         <li class="page-item"><a class="page-link" href="?{{ current_page_key }}={{ i }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a></li>
+                    {% elif i == objects.paginator.num_pages %}
+                        {# Show last page if it's within the nearby range but wasn't caught by the main elif #}
+                         <li class="page-item"><a class="page-link" href="?{{ current_page_key }}={{ i }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i }}</a></li>
+                    {% endif %}
+                 {% endif %}
+            {% endfor %}
+
+            {% comment %} Next Page Link {% endcomment %}
+            {% if objects.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{{ current_page_key }}={{ objects.next_page_number }}{% for key, value in request.GET.items %}{% if key != current_page_key and key != '_' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="{% trans 'Next' %}">
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="visually-hidden">{% trans 'Next' %}</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                     <span class="page-link" aria-hidden="true">&raquo;</span>
+                     <span class="visually-hidden">{% trans 'Next' %}</span>
+                </li>
+            {% endif %}
+        {% endwith %}
+    </ul>
+</nav>
+
+{# Optional: Keep the page info text, maybe style it with Bootstrap utilities #}
+<div class="text-center mt-2">
+    <span class="text-muted page-info">
+        {% blocktrans with number=objects.number num_pages=objects.paginator.num_pages %}
+        Page {{ number }} of {{ num_pages }}.
+        {% endblocktrans %}
+    </span>
+</div>
+{% endif %} 

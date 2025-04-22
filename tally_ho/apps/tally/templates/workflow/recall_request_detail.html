@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans "Recall Request Details" %}</h1>
+
+<div class="container main-container">
+<div class="row">
+    <div class="well">
+        <h4>{% trans "Request Information" %}</h4>
+        <br>
+        <table class="table table-bordered table-striped">
+            <tr><th>{% trans "Request ID" %}</th><td>{{ request.pk }}</td></tr>
+            <tr><th>{% trans "Form Barcode" %}</th><td>{{ request.result_form.barcode }}</td></tr>
+            <tr><th>{% trans "Center" %}</th><td>{{ request.result_form.center_name }} ({{ request.result_form.center_code }})</td></tr>
+            <tr><th>{% trans "Station" %}</th><td>{{ request.result_form.station_number }}</td></tr>
+            <tr><th>{% trans "Ballot" %}</th><td>{{ request.result_form.ballot.number }}</td></tr>
+            <tr><th>{% trans "Status" %}</th><td>{{ request.get_status_display }}</td></tr>
+            <tr><th>{% trans "Reason" %}</th><td>{{ request.get_request_reason_display }}</td></tr>
+            <tr><th>{% trans "Request Comment" %}</th><td>{{ request.request_comment|linebreaksbr }}</td></tr>
+            <tr><th>{% trans "Requested By" %}</th><td>{{ request.requester.username }}</td></tr>
+            <tr><th>{% trans "Requested On" %}</th><td>{{ request.created_date }}</td></tr>
+            {% if not request.is_pending %}
+            <tr><th>{% trans "Actioned By" %}</th><td>{{ request.approver.username }}</td></tr>
+            <tr><th>{% trans "Actioned On" %}</th><td>{{ request.resolved_date }}</td></tr>
+            <tr><th>{% trans "Action Comment" %}</th><td>{{ request.approval_comment|linebreaksbr }}</td></tr>
+            {% endif %}
+        </table>
+        <div class="container">
+            <a href="{% url 'view_result_form_details_recall' tally_id=tally_id result_form_pk=request.result_form.pk %}?return_url_name=recall_request_detail&request_pk={{ request.pk }}&request_status={{ request.status.name }}" class="btn btn-info">{% trans "View Form Details" %}</a>
+        </div>
+    </div>
+
+    {% if can_action %}
+    <div class="well">
+        <h4>{% trans "Take Action" %}</h4>
+        <div>
+            <form class="form-horizontal" action="" method="post">
+                {% csrf_token %}
+                {% include "includes/form_snippet.html" with form=approval_form %}
+                <br>
+                <div class="form-actions">
+                    <button type="submit" name="approve" class="btn btn-success">{% trans "Approve Recall" %}</button>
+                    <button type="submit" name="reject" class="btn btn-danger">{% trans "Reject Recall" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+</div>
+
+<div class="form-actions">
+    <a href="{% url 'audit_dashboard' tally_id %}?tab=recalls" class="btn btn-default btn-small">{% trans "Back to Recall Requests" %}</a>
+</div>
+
+{% endblock %} 

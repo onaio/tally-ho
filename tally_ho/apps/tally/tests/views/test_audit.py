@@ -3,7 +3,9 @@ from django.core.serializers.json import json, DjangoJSONEncoder
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.utils import timezone
+import csv
 
+from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 from tally_ho.apps.tally.views import audit as views
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
@@ -11,6 +13,9 @@ from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.request_reason import RequestReason
+from tally_ho.libs.models.enums.request_status import RequestStatus
+from tally_ho.libs.models.enums.request_type import RequestType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
     create_audit,
@@ -79,19 +84,16 @@ class TestAudit(TestBase):
         view = views.DashboardView.as_view()
         response = view(request, tally_id=tally.pk)
 
-        self.assertContains(response, '<h1>Audit List</h1>')
         self.assertContains(response, '<th>Barcode</th>')
-        self.assertContains(response, '<th>Center Name</th>')
-        self.assertContains(response, '<th>Center ID</th>')
+        self.assertContains(response, '<th>Center</th>')
         self.assertContains(response, '<th>Station</th>')
-        self.assertContains(response, '<th>Reviewed?</th>')
-        self.assertContains(response, '<th>Supervisor Reviewed?</th>')
-        self.assertContains(response, '<th>Modified Date</th>')
-        self.assertContains(response, '<th>Quaritine Check</th>')
-        self.assertContains(response, '<th>Review</th>')
+        self.assertContains(response, '<th>Race</th>')
+        self.assertContains(response, '<th>Sub Race</th>')
+        self.assertContains(response, '<th>Audit Team Reviewed By</th>')
+        self.assertContains(response, '<th>Audit Supervisor Reviewed By</th>')
+        self.assertContains(response, '<th>Action</th>')
         self.assertContains(response, username)
         self.assertContains(response, '42')
-        self.assertContains(response, 'Guard against overvoting')
 
     def test_dashboard_get_csv(self):
         self._create_and_login_user()
@@ -732,3 +734,108 @@ class TestAudit(TestBase):
 
             barcode = barcode + 1
             serial_number = serial_number + 1
+
+    def test_print_cover_get(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(form_state=FormState.AUDIT,
+                                         tally=tally)
+        create_audit(result_form, self.user)
+
+        view = views.PrintCoverView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Audit Case: Team Page')
+        self.assertContains(response, self.user.username)
+        self.assertContains(response, 'Problem')
+
+    def test_print_cover_post(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(form_state=FormState.AUDIT,
+                                         tally=tally)
+        create_audit(result_form, self.user)
+
+        view = views.PrintCoverView.as_view()
+        data = {'result_form': result_form.pk, 'tally_id': tally.pk}
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {
+            'result_form': result_form.pk,
+            'encoded_result_form_audit_start_time':
+                self.encoded_result_form_audit_start_time
+        }
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response,
+                             f'/audit/{tally.pk}/',
+                             fetch_redirect_response=False)
+        self.assertNotIn('result_form', request.session)
+        self.assertTrue(ResultFormStats.objects.filter(
+            result_form=result_form, user=self.user.userprofile).exists())
+
+
+class TestAuditRecallRequestsCsvView(TestBase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self._create_permission_groups()
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
+        self.tally = create_tally()
+        self.tally.users.add(self.user)
+
+    def test_audit_recall_requests_csv_get(self):
+        result_form1 = create_result_form(tally=self.tally,
+                                          form_state=FormState.ARCHIVED)
+        result_form2 = create_result_form(tally=self.tally,
+                                          form_state=FormState.ARCHIVED,
+                                          barcode='987654321',
+                                          serial_number=1)
+        WorkflowRequest.objects.create(
+            result_form=result_form1,
+            request_type=RequestType.RECALL_FROM_ARCHIVE,
+            request_reason=RequestReason.OTHER,
+            requester=self.user.userprofile
+        )
+        WorkflowRequest.objects.create(
+            result_form=result_form2,
+            request_type=RequestType.RECALL_FROM_ARCHIVE,
+            request_reason=RequestReason.DATA_ENTRY_ERROR,
+            requester=self.user.userprofile,
+            status=RequestStatus.APPROVED,
+            approver=self.user.userprofile,
+            resolved_date=timezone.now()
+        )
+
+        view = views.AuditRecallRequestsCsvView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=self.tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/csv')
+        self.assertIn('attachment; filename="recall_requests.csv"',
+                      response['Content-Disposition'])
+
+        content = response.content.decode('utf-8')
+        reader = csv.reader(content.splitlines())
+        header = next(reader)
+        self.assertEqual(header[0], 'Request ID')
+        self.assertEqual(header[3], 'Barcode')
+        self.assertEqual(header[9], 'Requested By')
+
+        data_rows = list(reader)
+        self.assertEqual(len(data_rows), 2)
+        self.assertEqual(data_rows[0][3], result_form2.barcode)
+        self.assertEqual(data_rows[1][3], result_form1.barcode)
+        self.assertEqual(data_rows[1][2], 'Pending')

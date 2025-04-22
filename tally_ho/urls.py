@@ -45,6 +45,12 @@ from tally_ho.apps.tally.views.reports.turnout_reports_by_admin_areas import (
     TurnoutReportByAdminAreasDataView,
     TurnoutReportByAdminAreasView
     )
+from tally_ho.apps.tally.views.workflow import (
+    InitiateRecallView,
+    CreateRecallRequestView,
+    RecallRequestDetailView,
+    ViewResultFormDetailsView # Import the new view
+)
 
 admin.autodiscover()
 
@@ -664,19 +670,22 @@ urlpatterns = [
 
     re_path(r'^audit/(?P<tally_id>(\d+))/$',
             audit.DashboardView.as_view(),
-            name='audit'),
-    re_path(r'^audit/(?P<tally_id>(\d+))/(?P<format>(csv))/$',
+            name='audit_dashboard'),
+    re_path(r'^audit/(?P<tally_id>(\d+))/(?P<format>\w+)/$',
             audit.DashboardView.as_view(),
-            name='audit-csv'),
+            name='audit_dashboard_csv'),
     re_path(r'^audit/new/(?P<tally_id>(\d+))/$',
             audit.CreateAuditView.as_view(),
-            name='audit-new'),
+            name='audit_create'),
     re_path(r'^audit/print/(?P<tally_id>(\d+))/$',
             audit.PrintCoverView.as_view(),
             name='audit-print'),
     re_path(r'^audit/review/(?P<tally_id>(\d+))/$',
             audit.ReviewView.as_view(),
             name='audit-review'),
+    re_path(r'^audit/recall-requests/csv/(?P<tally_id>(\d+))/$',
+            audit.AuditRecallRequestsCsvView.as_view(),
+            name='audit_recall_requests_csv'),
 
     re_path(r'^clearance/(?P<tally_id>(\d+))/$',
             clearance.DashboardView.as_view(),
@@ -1013,6 +1022,19 @@ urlpatterns = [
     re_path(r'^data/sub-constituencies-progress-report/(?P<tally_id>(\d+))/$',
             progress_by_sub_races_reports.SubConstituenciesReportView.as_view(),
             name='sub-constituencies-progress-report'),
+    re_path(r'^tally/(?P<tally_id>\d+)/workflow/initiate-recall/$',
+        InitiateRecallView.as_view(),
+        name='initiate_recall_request'),
+    re_path(r'^tally/(?P<tally_id>\d+)/workflow/create-recall/$',
+        CreateRecallRequestView.as_view(),
+        name='create_recall_request'),
+    re_path(r'^tally/(?P<tally_id>\d+)/workflow/recall/(?P<request_pk>\d+)/$',
+        RecallRequestDetailView.as_view(),
+        name='recall_request_detail'),
+    # New URL for viewing result form details during recall
+    re_path(r'^tally/(?P<tally_id>\d+)/workflow/recall/view_details/(?P<result_form_pk>\d+)/$',
+        ViewResultFormDetailsView.as_view(),
+        name='view_result_form_details_recall'),
 
     path('operation-not-allowed',
          home.suspicious_error,

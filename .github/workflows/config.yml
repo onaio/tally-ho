@@ -3,8 +3,8 @@ name: Django CI
 on: [push]
 
 jobs:
-  container-job:
-    runs-on: ubuntu-20.04
+  build-amd64:
+    runs-on: ubuntu-latest
 
     services:
       # Label used to access the service container
@@ -28,10 +28,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.9.0
+      - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9.0
+          python-version: '3.9'
 
       - name: Cache Dependencies
         uses: actions/cache@v3
@@ -51,14 +51,18 @@ jobs:
       - name: Start Redis
         run: sudo service redis-server start
 
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        # Add uv to the PATH
+      - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Generate Report
         run: |
-          python3 -m venv venv
-            . venv/bin/activate
-          python -m pip install --upgrade pip
-          pip install -r requirements/dev.pip
-          ruff check . --exit-non-zero-on-fix
-          pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
+          uv venv
+          source .venv/bin/activate
+          uv pip install -r requirements/dev.pip
+          python -m ruff check . --exit-non-zero-on-fix
+          python -m pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
           coverage xml
           ls -al
         env:

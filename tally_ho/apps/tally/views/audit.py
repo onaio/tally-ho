@@ -7,6 +7,9 @@ from django.views.generic import FormView, TemplateView
 from django.shortcuts import get_object_or_404, redirect
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
+from django.views import View
+from django.http import HttpResponse
+import csv
 
 from tally_ho.apps.tally.forms.audit_form import AuditForm
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -14,12 +17,14 @@ from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
+from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 from tally_ho.apps.tally.views.quality_control import result_form_results
 from tally_ho.libs.models.enums.audit_resolution import\
     AuditResolution
 from tally_ho.libs.models.enums.actions_prior import\
     ActionsPrior
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.request_type import RequestType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.form_state import form_in_state,\
@@ -87,6 +92,10 @@ def audit_action(audit, post_data, result_form, url):
         if audit.resolution_recommendation ==\
                 AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE:
             audit.for_superadmin = True
+        elif audit.resolution_recommendation ==\
+                AuditResolution.SEND_TO_CLEARANCE:
+            audit.active = False
+            result_form.reject(new_state=FormState.CLEARANCE)
         elif audit.action_prior_to_recommendation in\
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
                  ActionsPrior.REQUEST_COPY_FROM_FIELD]:
@@ -172,19 +181,48 @@ class DashboardView(LoginRequiredMixin,
     success_url = 'audit-review'
 
     def get(self, *args, **kwargs):
-        format_ = kwargs.get('format')
-        tally_id = kwargs.get('tally_id')
+        format_ = self.kwargs.get('format')
+        tally_id = self.kwargs.get('tally_id')
         user_is_clerk = is_clerk(self.request.user)
+        active_tab = self.request.GET.get('tab', 'audit')
+        barcode = self.request.GET.get('barcode', '').strip()
+
         form_list = forms_for_user(user_is_clerk, tally_id)
 
-        if format_ == 'csv':
+        if barcode:
+            form_list = form_list.filter(barcode__icontains=barcode)
+
+        if format_ == 'csv' and active_tab == 'audit':
             return render_to_csv_response(form_list)
 
-        forms = paging(form_list, self.request)
+        forms = paging(form_list, self.request, page_kwarg='page_audit')
 
-        return self.render_to_response(self.get_context_data(
-            forms=forms, is_clerk=user_is_clerk,
-            tally_id=tally_id))
+        recall_requests_qs = WorkflowRequest.objects.filter(
+            result_form__tally__id=tally_id,
+            request_type=RequestType.RECALL_FROM_ARCHIVE
+        ).select_related(
+            'result_form', 'requester', 'approver'
+        ).order_by('-created_date')
+
+        if barcode:
+            recall_requests_qs = recall_requests_qs.filter(
+                result_form__barcode__icontains=barcode)
+
+        if format_ == 'csv' and active_tab == 'recalls':
+            return render_to_csv_response(recall_requests_qs)
+
+        recall_requests =\
+            paging(recall_requests_qs, self.request, page_kwarg='page_recalls')
+
+        context = self.get_context_data(
+            forms=forms,
+            is_clerk=user_is_clerk,
+            tally_id=tally_id,
+            recall_requests=recall_requests,
+            active_tab=active_tab,
+            barcode_query=barcode
+        )
+        return self.render_to_response(context)
 
     def post(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
@@ -207,7 +245,7 @@ class ReviewView(LoginRequiredMixin,
     form_class = AuditForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
     template_name = "audit/review.html"
-    success_url = 'audit'
+    success_url = 'audit_dashboard'
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
@@ -321,7 +359,7 @@ class PrintCoverView(LoginRequiredMixin,
 
             del self.request.session['result_form']
 
-            return redirect('audit', tally_id=tally_id)
+            return redirect('audit_dashboard', tally_id=tally_id)
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
@@ -336,7 +374,7 @@ class CreateAuditView(LoginRequiredMixin,
     form_class = BarcodeForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
     template_name = "barcode_verify.html"
-    success_url = 'audit'
+    success_url = 'audit_dashboard'
 
     def get_context_data(self, **kwargs):
         context = super(CreateAuditView, self).get_context_data(**kwargs)
@@ -388,3 +426,73 @@ class CreateAuditView(LoginRequiredMixin,
             return redirect(self.success_url, tally_id=tally_id)
         else:
             return self.form_invalid(form)
+
+class AuditRecallRequestsCsvView(LoginRequiredMixin,
+                                 mixins.GroupRequiredMixin,
+                                 mixins.TallyAccessMixin,
+                                 View):
+    group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR,
+                      groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]
+
+    def get(self, request, *args, **kwargs):
+        tally_id = kwargs.get('tally_id')
+        recall_requests_qs = WorkflowRequest.objects.filter(
+            result_form__tally__id=tally_id,
+            request_type=RequestType.RECALL_FROM_ARCHIVE
+        ).select_related(
+            'result_form__center',
+            'result_form__ballot',
+            'requester',
+            'approver'
+        ).order_by('-created_date')
+
+        # Define user-friendly headers in the desired order
+        headers = [
+            'Request ID',
+            'Request Type',
+            'Status',
+            'Barcode',
+            'Center Code',
+            'Station Number',
+            'Ballot Number',
+            'Reason',
+            'Request Comment',
+            'Requested By',
+            'Requested On',
+            'Actioned By',
+            'Actioned On',
+            'Action Comment'
+        ]
+
+        # Create the HttpResponse object with CSV header.
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] =\
+            'attachment; filename="recall_requests.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(headers) # Write the header row
+
+        # Write data rows
+        for req in recall_requests_qs:
+            writer.writerow([
+                req.pk,
+                req.get_request_type_display(),
+                req.get_status_display(),
+                req.result_form.barcode,
+                req.result_form.center.code\
+                    if req.result_form.center else None,
+                req.result_form.station_number,
+                req.result_form.ballot.number\
+                    if req.result_form.ballot else None,
+                req.get_request_reason_display(),
+                req.request_comment,
+                req.requester.username if req.requester else None,
+                req.created_date.strftime("%Y-%m-%d %H:%M:%S")\
+                    if req.created_date else None,
+                req.approver.username if req.approver else None,
+                req.resolved_date.strftime("%Y-%m-%d %H:%M:%S")\
+                    if req.resolved_date else None,
+                req.approval_comment
+            ])
+
+        return response

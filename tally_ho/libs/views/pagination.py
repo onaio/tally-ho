@@ -1,16 +1,17 @@
 from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
 
 
-def paging(objects_list, request):
+def paging(objects_list, request, page_kwarg='page'):
     """Return the appropriate page for this list and request.
 
     :param objects_list: The list of objects to paginate.
     :param request: The request to retrieve a page from.
+    :param page_kwarg: The name of the query parameter for the page number.
 
     :returns: A page for this list and request.
     """
-    paginator = Paginator(objects_list, 100)
-    page = request.GET.get('page')
+    paginator = Paginator(objects_list, 10)
+    page = request.GET.get(page_kwarg)
 
     return paginate(paginator, page)
 
