@@ -330,3 +330,5 @@ class ConfirmFormResetView(LoginRequiredMixin,
             del self.request.session['result_form']
 
             return redirect(self.success_url, tally_id=tally_id)
+        else:
+            return self.form_invalid(form)
