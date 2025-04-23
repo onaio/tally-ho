@@ -325,8 +325,36 @@ class EnterResultsView(LoginRequiredMixin,
                                            formset=BaseCandidateFormSet)
         formset = CandidateFormSet(post_data)
 
-        if (not result_form.has_recon or
-                recon_form.is_valid()) and formset.is_valid():
+        if result_form.form_state == FormState.DATA_ENTRY_1:
+            all_zero = True
+            has_votes = False
+
+            for i, form in enumerate(formset.forms):
+                form.is_valid()
+                votes = form.cleaned_data.get('votes')
+                if votes:
+                    has_votes = True
+                    if int(votes) > 0:
+                        all_zero = False
+                        break
+            if (
+                not has_votes or all_zero
+            ) or (
+                result_form.has_recon and not recon_form.is_valid()
+            ):
+                error_message =\
+                    _(str('Form rejected: All candidate votes '
+                          'are blank or zero, or reconciliation form '
+                          'is invalid.'))
+
+                result_form.reject(new_state=FormState.CLEARANCE,
+                                   reject_reason=error_message)
+                self.request.session['clearance_error'] = str(error_message)
+                return redirect(self.success_url, tally_id=tally_id)
+
+        if (
+            not result_form.has_recon or recon_form.is_valid()
+        ) and formset.is_valid():
             check_form = check_state_and_group(
                 result_form, self.request.user, recon_form)
 
@@ -408,10 +436,15 @@ class ConfirmationView(LoginRequiredMixin,
 
         next_step = _('Data Entry 2') if result_form.form_state ==\
             FormState.DATA_ENTRY_2 else _('Corrections')
+        clearance_error = None
+        if self.request.session.get('clearance_error'):
+            clearance_error = self.request.session.pop('clearance_error')
+            next_step = _('Clearance')
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   header_text=_('Data Entry'),
                                   next_step=next_step,
                                   start_url='data-entry',
-                                  tally_id=tally_id))
+                                  tally_id=tally_id,
+                                  clearance_error=clearance_error))

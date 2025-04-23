@@ -3,9 +3,21 @@
 {% load i18n %}
 
 {% block content %}
+<div class="page-header">
+    <h1>{{ header_text }}</h1>
+</div>
 
-<h1>{{ header_text }}</h1>
+{% if clearance_error %}
+<div class="alert alert-danger">
+    {{ clearance_error }}
+</div>
+{% endif %}
 
+{% if not clearance_error %}
+<div class="alert alert-success">
+    {% trans 'Success!' %}
+</div>
+{% endif %}
 <h4 class="headertxt">{% trans 'Form successful moved to' %} {{ next_step }}</h4>
 <div class="subtitle">{% trans 'Barcode:' %} {{ result_form.barcode }}</div>
 <br>
