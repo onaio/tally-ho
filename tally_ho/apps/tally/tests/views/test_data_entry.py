@@ -293,8 +293,12 @@ class TestDataEntry(TestBase):
         request.user = self.user
         request.session = {'result_form': result_form.pk}
         response = view(request, tally_id=tally.pk)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Missing votes')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('data-entry', response['location'])
+        self.assertEqual(request.session.get('clearance_error'),
+                         str('Form rejected: All candidate votes '
+                         'are blank or zero, or reconciliation form '
+                         'is invalid.'))
 
     def test_enter_results_success_data_entry_one(self):
         self._create_and_login_user()
