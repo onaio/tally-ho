@@ -436,10 +436,15 @@ class ConfirmationView(LoginRequiredMixin,
 
         next_step = _('Data Entry 2') if result_form.form_state ==\
             FormState.DATA_ENTRY_2 else _('Corrections')
+        clearance_error = None
+        if self.request.session.get('clearance_error'):
+            clearance_error = self.request.session.pop('clearance_error')
+            next_step = _('Clearance')
 
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   header_text=_('Data Entry'),
                                   next_step=next_step,
                                   start_url='data-entry',
-                                  tally_id=tally_id))
+                                  tally_id=tally_id,
+                                  clearance_error=clearance_error))
