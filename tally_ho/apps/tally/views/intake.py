@@ -270,10 +270,30 @@ class CheckCenterDetailsView(LoginRequiredMixin,
 
         form_in_intake_state(result_form)
 
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  header_text=_('Intake'),
-                                  tally_id=tally_id))
+        pending_station_forms = ResultForm.get_pending_intake_for_station(
+            tally_id, result_form.center.code, result_form.station_number
+        )
+        intaken_station_forms = ResultForm.get_intaken_for_station(
+            tally_id, result_form.center.code, result_form.station_number
+        )
+        pending_center_forms = ResultForm.get_pending_intake_for_center(
+            tally_id, result_form.center.code
+        )
+        intaken_center_forms = ResultForm.get_intaken_for_center(
+            tally_id, result_form.center.code
+        )
+
+        context = self.get_context_data(
+            result_form=result_form,
+            header_text=_('Intake'),
+            tally_id=tally_id,
+            pending_station_count=pending_station_forms.count(),
+            intaken_station_count=intaken_station_forms.count(),
+            pending_center_forms=pending_center_forms,
+            intaken_center_forms=intaken_center_forms,
+        )
+
+        return self.render_to_response(context)
 
     def post(self, *args, **kwargs):
         post_data = self.request.POST
