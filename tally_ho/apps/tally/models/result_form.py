@@ -471,6 +471,107 @@ class ResultForm(BaseModel):
         return get_result_form_edit_delete_links(self) if self else None
 
     @classmethod
+    def get_pending_intake_for_station(
+        cls, tally_id, center_code, station_number):
+        """
+        Returns a queryset of forms pending intake for a specific station.
+
+        :param tally_id: The ID of the tally.
+        :param center_code: The code of the center.
+        :param station_number: The station number.
+
+        :returns: A queryset of forms pending intake for the specific station.
+        """
+        if not center_code or station_number is None:
+            return cls.objects.none()
+        return cls.objects.filter(
+            tally__id=tally_id,
+            center__code=center_code,
+            station_number=station_number,
+            form_state=FormState.UNSUBMITTED
+        ).select_related(
+            'ballot', 'ballot__electrol_race'
+        ).order_by('ballot__number')
+
+    @classmethod
+    def get_intaken_for_station(cls, tally_id, center_code, station_number):
+        """
+        Returns a queryset of forms already intaken for a specific station.
+
+        :param tally_id: The ID of the tally.
+        :param center_code: The code of the center.
+        :param station_number: The station number.
+
+        :returns: A queryset of forms already intaken for the specific station.
+        """
+        if not center_code or station_number is None:
+            return cls.objects.none()
+        intaken_states = [
+            FormState.DATA_ENTRY_1,
+            FormState.DATA_ENTRY_2,
+            FormState.CORRECTION,
+            FormState.QUALITY_CONTROL,
+            FormState.ARCHIVED,
+            FormState.AUDIT
+        ]
+        return cls.objects.filter(
+            tally__id=tally_id,
+            center__code=center_code,
+            station_number=station_number,
+            form_state__in=intaken_states
+        ).select_related(
+            'ballot', 'ballot__electrol_race'
+        ).order_by('ballot__number')
+
+    @classmethod
+    def get_pending_intake_for_center(cls, tally_id, center_code):
+        """
+        Returns a queryset of forms pending intake for a specific center.
+
+        :param tally_id: The ID of the tally.
+        :param center_code: The code of the center.
+
+        :returns: A queryset of forms pending intake for the specific center.
+        """
+        if not center_code:
+            return cls.objects.none()
+        return cls.objects.filter(
+            tally__id=tally_id,
+            center__code=center_code,
+            form_state=FormState.UNSUBMITTED
+        ).select_related(
+            'ballot', 'ballot__electrol_race', 'center', 'office'
+        ).order_by('station_number', 'ballot__number')
+
+    @classmethod
+    def get_intaken_for_center(cls, tally_id, center_code):
+        """
+        Returns a queryset of forms already intaken for a specific center.
+
+        :param tally_id: The ID of the tally.
+        :param center_code: The code of the center.
+
+        :returns: A queryset of forms already intaken for the specific center.
+        """
+        if not center_code:
+            return cls.objects.none()
+        intaken_states = [
+            FormState.DATA_ENTRY_1,
+            FormState.DATA_ENTRY_2,
+            FormState.CORRECTION,
+            FormState.QUALITY_CONTROL,
+            FormState.ARCHIVED,
+            FormState.AUDIT
+        ]
+        return cls.objects.filter(
+            tally__id=tally_id,
+            center__code=center_code,
+            form_state__in=intaken_states
+        ).select_related(
+            'ballot', 'ballot__electrol_race', 'center', 'office'
+        ).order_by('station_number', 'ballot__number')
+
+    @classmethod
     def distinct_filter(self, qs, tally_id=None):
         """Add a distinct filter onto a queryset.
 

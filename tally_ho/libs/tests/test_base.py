@@ -293,7 +293,8 @@ def create_quality_control(result_form, user):
                                          user=user)
 
 
-def create_station(center, registrants=1, tally=None, active=True):
+def create_station(
+        center, registrants=1, tally=None, active=True, station_number=1):
     sc, _ = SubConstituency.objects.get_or_create(code=1,
                                                   name="subConstituency",
                                                   field_office='1')
@@ -303,7 +304,7 @@ def create_station(center, registrants=1, tally=None, active=True):
         center=center,
         sub_constituency=sc,
         gender=Gender.MALE,
-        station_number=1,
+        station_number=station_number,
         registrants=registrants,
         tally=tally)
     return station
