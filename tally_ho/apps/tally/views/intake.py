@@ -429,20 +429,51 @@ class ConfirmationView(LoginRequiredMixin,
         tally_id = kwargs['tally_id']
         pk = self.request.session.get('result_form')
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+        tally = result_form.tally
+        center = result_form.center
+        station_number = result_form.station_number
+
         encoded_start_time = self.request.session.get(
             'encoded_result_form_intake_start_time')
-        # Track intake clerks result form processing time
-        save_result_form_processing_stats(
-            self.request, encoded_start_time, result_form)
+        if encoded_start_time:
+            save_result_form_processing_stats(
+                self.request, encoded_start_time, result_form)
 
-        del self.request.session['result_form']
+        pending_station_forms = ResultForm.objects.none()
+        intaken_station_forms = ResultForm.objects.none()
+        pending_center_forms = ResultForm.objects.none()
+        intaken_center_forms = ResultForm.objects.none()
 
-        return self.render_to_response(
-            self.get_context_data(result_form=result_form,
-                                  header_text=_('Intake'),
-                                  next_step=_('Data Entry 1'),
-                                  start_url='intake',
-                                  tally_id=tally_id))
+        if center:
+            pending_station_forms = ResultForm.get_pending_intake_for_station(
+                tally, center, station_number
+            )
+            intaken_station_forms = ResultForm.get_intaken_for_station(
+                tally, center, station_number
+            )
+            pending_center_forms = ResultForm.get_pending_intake_for_center(
+                tally, center
+            )
+            intaken_center_forms = ResultForm.get_intaken_for_center(
+                tally, center
+            )
+
+        if 'result_form' in self.request.session:
+            del self.request.session['result_form']
+
+        context = self.get_context_data(
+            result_form=result_form,
+            header_text=_('Intake Successful'),
+            next_step=_('Data Entry 1'),
+            start_url='intake',
+            tally_id=tally_id,
+            pending_station_count=pending_station_forms.count(),
+            intaken_station_count=intaken_station_forms.count(),
+            pending_center_forms=pending_center_forms,
+            intaken_center_forms=intaken_center_forms,
+        )
+
+        return self.render_to_response(context)
 
 
 class IntakePrintedView(LoginRequiredMixin,
