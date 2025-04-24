@@ -1,5 +1,6 @@
 import dateutil.parser
 from django.core.serializers.json import json, DjangoJSONEncoder
+from django.core.exceptions import SuspiciousOperation
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import FormView, TemplateView
 from django.urls import reverse
@@ -260,10 +261,17 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             station_number = self.request.session.get('station_number')
             center_number = self.request.session.get('center_number')
 
-            center = Center.objects.get(code=center_number, tally__id=tally_id)
+            try:
+                center = Center.objects.get(code=center_number,
+                                            tally__id=tally_id)
+            except Center.DoesNotExist:
+                raise SuspiciousOperation(
+                    _(f"Center with code {center_number} does not exist")
+                )
 
             result_form.station_number = station_number
             result_form.center = center
+            result_form.save()
 
             self.request.session['station_number'] = station_number
             self.request.session['center_number'] = center_number
