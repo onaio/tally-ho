@@ -422,7 +422,7 @@ class ConfirmationView(LoginRequiredMixin,
                        mixins.GroupRequiredMixin,
                        mixins.TallyAccessMixin,
                        TemplateView):
-    template_name = "success.html"
+    template_name = "intake_success.html"
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 
     def get(self, *args, **kwargs):
