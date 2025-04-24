@@ -746,3 +746,294 @@ class TestResultForm(TestBase):
                                       tally_id=self.tally.id)
         self.assertCountEqual(
             list(forms_in_de2.values_list('pk', flat=True)), [form_de2.pk])
+
+    def test_get_pending_intake_for_station(self):
+        """Test the get_pending_intake_for_station class method."""
+        # Form in the correct state for the target station
+        pending_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.UNSUBMITTED,
+            barcode='123456789',
+        )
+        # Form in a different state for the target station
+        create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.INTAKE,
+            barcode='123456790',
+            serial_number=2
+        )
+        # Form in the correct state but for a different station
+        station2 =\
+            create_station(
+                self.center,
+                tally=self.tally,
+                station_number=self.station.station_number + 1
+            )
+        create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=station2.station_number,
+            form_state=FormState.UNSUBMITTED,
+            barcode='123456791',
+            serial_number=3
+        )
+
+        pending_qs = ResultForm.get_pending_intake_for_station(
+            self.tally.id, self.center.code, self.station.station_number
+        )
+        self.assertQuerySetEqual(
+            pending_qs, [pending_form], transform=lambda x: x)
+
+        pending_qs_no_center = ResultForm.get_pending_intake_for_station(
+            self.tally.id, None, self.station.station_number
+        )
+        self.assertFalse(pending_qs_no_center.exists())
+
+        pending_qs_no_station = ResultForm.get_pending_intake_for_station(
+            self.tally.id, self.center.code, None
+        )
+        self.assertFalse(pending_qs_no_station.exists())
+
+        pending_qs_bad_station = ResultForm.get_pending_intake_for_station(
+            self.tally.id, self.center.code, 9999
+        )
+        self.assertFalse(pending_qs_bad_station.exists())
+
+    def test_get_intaken_for_station(self):
+        """Test the get_intaken_for_station class method."""
+        intaken_states = [
+            FormState.DATA_ENTRY_1,
+            FormState.DATA_ENTRY_2,
+            FormState.CORRECTION,
+            FormState.QUALITY_CONTROL,
+            FormState.ARCHIVED,
+            FormState.AUDIT
+        ]
+        intaken_forms = []
+        for i, state in enumerate(intaken_states):
+            form = create_result_form(
+                tally=self.tally,
+                ballot=self.ballot,
+                center=self.center,
+                station_number=self.station.station_number,
+                form_state=state,
+                barcode=f'12345679{i}',
+                serial_number=i + 1
+            )
+            intaken_forms.append(form)
+
+        create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.UNSUBMITTED,
+            barcode='123456799',
+            serial_number=len(intaken_states) + 1
+        )
+        station2 =\
+            create_station(
+                self.center,
+                tally=self.tally,
+                station_number=self.station.station_number + 1
+            )
+        create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=station2.station_number,
+            form_state=FormState.DATA_ENTRY_1,
+            barcode='123456800',
+            serial_number=len(intaken_states) + 2
+        )
+
+        intaken_qs = ResultForm.get_intaken_for_station(
+            self.tally.id, self.center.code, self.station.station_number
+        )
+        self.assertCountEqual(list(intaken_qs), intaken_forms)
+
+        intaken_qs_no_center = ResultForm.get_intaken_for_station(
+            self.tally.id, None, self.station.station_number
+        )
+        self.assertFalse(intaken_qs_no_center.exists())
+
+        intaken_qs_no_station = ResultForm.get_intaken_for_station(
+            self.tally.id, self.center.code, None
+        )
+        self.assertFalse(intaken_qs_no_station.exists())
+
+        intaken_qs_bad_station = ResultForm.get_intaken_for_station(
+            self.tally.id, self.center.code, 9999
+        )
+        self.assertFalse(intaken_qs_bad_station.exists())
+
+    def test_get_pending_intake_for_center(self):
+        """Test the get_pending_intake_for_center class method."""
+        station2 =\
+            create_station(
+                self.center,
+                tally=self.tally,
+                station_number=self.station.station_number + 1
+            )
+        ballot2 =\
+            create_ballot(
+                self.tally,
+                electrol_race=self.electrol_race,
+                number=2
+            )
+
+        pending_form_s1_b1 =\
+            create_result_form(
+                tally=self.tally, ballot=self.ballot, center=self.center,
+                station_number=self.station.station_number,
+                form_state=FormState.UNSUBMITTED,
+                barcode='123456801',
+                serial_number=1
+            )
+        pending_form_s1_b2 =\
+            create_result_form(
+                tally=self.tally, ballot=ballot2, center=self.center,
+                station_number=self.station.station_number,
+                form_state=FormState.UNSUBMITTED,
+                barcode='123456802',
+                serial_number=2
+            )
+        pending_form_s2_b1 =\
+            create_result_form(
+                tally=self.tally, ballot=self.ballot, center=self.center,
+                station_number=station2.station_number,
+                form_state=FormState.UNSUBMITTED,
+                barcode='123456803',
+                serial_number=3
+            )
+        create_result_form(
+            tally=self.tally, ballot=self.ballot, center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.INTAKE,
+            barcode='123456804', serial_number=4
+        )
+        center2 =\
+            create_center(code=self.center.code + 1, tally=self.tally,
+                          sub_constituency=self.sub_constituency,
+                          office_name=self.office.name)
+        station_c2 =\
+            create_station(center2, tally=self.tally)
+        create_result_form(
+            tally=self.tally, ballot=self.ballot, center=center2,
+            station_number=station_c2.station_number,
+            form_state=FormState.UNSUBMITTED,
+            barcode='123456805', serial_number=5
+        )
+
+        pending_qs = ResultForm.get_pending_intake_for_center(
+            self.tally.id, self.center.code
+        )
+        expected_order =\
+            [pending_form_s1_b1, pending_form_s1_b2, pending_form_s2_b1]
+        self.assertQuerySetEqual(
+            pending_qs, expected_order, transform=lambda x: x)
+
+        pending_qs_no_center = ResultForm.get_pending_intake_for_center(
+            self.tally.id, None
+        )
+        self.assertFalse(pending_qs_no_center.exists())
+
+        # Test non-existent center
+        pending_qs_bad_center = ResultForm.get_pending_intake_for_center(
+            self.tally.id, 99999
+        )
+        self.assertFalse(pending_qs_bad_center.exists())
+
+    def test_get_intaken_for_center(self):
+        """Test the get_intaken_for_center class method."""
+        station2 =\
+            create_station(
+                self.center,
+                tally=self.tally,
+                station_number=self.station.station_number + 1
+            )
+        ballot2 =\
+            create_ballot(
+                self.tally, electrol_race=self.electrol_race, number=2)
+        intaken_forms = []
+        serial_counter = 1
+
+        form_s1_b1_de1 =\
+            create_result_form(
+                tally=self.tally, ballot=self.ballot, center=self.center,
+                station_number=self.station.station_number,
+                form_state=FormState.DATA_ENTRY_1,
+                barcode='123456806', serial_number=serial_counter
+            )
+        serial_counter += 1
+        intaken_forms.append(form_s1_b1_de1)
+        form_s1_b2_qc =\
+            create_result_form(
+                tally=self.tally, ballot=ballot2, center=self.center,
+                station_number=self.station.station_number,
+                form_state=FormState.QUALITY_CONTROL,
+                barcode='123456807', serial_number=serial_counter
+            )
+        serial_counter += 1
+        intaken_forms.append(form_s1_b2_qc)
+
+        form_s2_b1_arch =\
+            create_result_form(
+                tally=self.tally,
+                ballot=self.ballot,
+                center=self.center,
+                station_number=station2.station_number,
+                form_state=FormState.ARCHIVED,
+                barcode='123456808', serial_number=serial_counter
+            )
+        serial_counter += 1
+        intaken_forms.append(form_s2_b1_arch)
+
+        create_result_form(
+            tally=self.tally, ballot=self.ballot, center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.UNSUBMITTED,
+            barcode='123456809', serial_number=serial_counter
+        )
+        serial_counter += 1
+
+        center2 =\
+            create_center(code=self.center.code + 1, tally=self.tally,
+                          sub_constituency=self.sub_constituency,
+                          office_name=self.office.name)
+        station_c2 =\
+            create_station(center2, tally=self.tally)
+        create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=center2,
+            station_number=station_c2.station_number,
+            form_state=FormState.DATA_ENTRY_1,
+            barcode='123456810', serial_number=serial_counter)
+        serial_counter += 1
+
+        intaken_qs = ResultForm.get_intaken_for_center(
+            self.tally.id, self.center.code
+        )
+        expected_order =\
+            [form_s1_b1_de1, form_s1_b2_qc, form_s2_b1_arch]
+        self.assertQuerySetEqual(
+            intaken_qs, expected_order, transform=lambda x: x)
+        self.assertCountEqual(list(intaken_qs), intaken_forms)
+
+        intaken_qs_no_center = ResultForm.get_intaken_for_center(
+            self.tally.id, None
+        )
+        self.assertFalse(intaken_qs_no_center.exists())
+
+        intaken_qs_bad_center = ResultForm.get_intaken_for_center(
+            self.tally.id, 99999
+        )
+        self.assertFalse(intaken_qs_bad_center.exists())
