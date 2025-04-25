@@ -122,6 +122,51 @@ def group_data_by_gender(
         total_registrants=Sum('station_registrants')
     )
 
+def get_voters_by_gender(
+        tally_id,
+        admin_level_filter_name,
+        admit_area_name,
+        sub_race_type,
+        station_gender_code
+    ):
+    """
+    Get the voters by gender
+    :param tally_id: The id of the tally
+    :param admin_level_filter_name: The name of the admin level filter
+    :param admit_area_name: The name of the admit area
+    :param sub_race_type: The type of the sub race
+    :param station_gender_code: The code of the station gender
+    :return: The voters by gender
+    """
+    area_filter_map =\
+                {
+                    f"result_form__{admin_level_filter_name}":
+                    admit_area_name
+                }
+    voters = Result.objects.filter(
+            result_form__tally__id=tally_id,
+            **area_filter_map,
+            result_form__ballot__electrol_race__ballot_name=\
+                sub_race_type,
+            result_form__form_state=FormState.ARCHIVED,
+            entry_version=EntryVersion.FINAL,
+            active=True,
+    ).annotate(
+        station_gender_code=station_gender_query(
+            tally_id,
+            center_code_filter_name='result_form__center__code',
+            station_number_filter_name='result_form__station_number'),
+        station_registrants=station_registrants_query(
+            tally_id,
+            center_code_filter_name='result_form__center__code',
+            station_number_filter_name='result_form__station_number'),
+    ).filter(
+        station_gender_code=station_gender_code
+    ).aggregate(
+        voters=Coalesce(Sum('votes'), 0)
+    ).get('voters')
+    return voters
+
 class TurnoutReportByGenderAndAdminAreasDataView(
     LoginRequiredMixin, mixins.GroupRequiredMixin, mixins.TallyAccessMixin,
     NoneQsBaseDataView
@@ -158,33 +203,13 @@ class TurnoutReportByGenderAndAdminAreasDataView(
         )
         for data in turnout_data:
             response = {}
-            area_filter_map =\
-                {
-                    f"result_form__{admin_level_filter_name}":
-                    data.get('admit_area_name')
-                }
-            voters = Result.objects.filter(
-                    result_form__tally__id=tally_id,
-                    **area_filter_map,
-                    result_form__ballot__electrol_race__ballot_name=\
-                        data.get('sub_race_type'),
-                    result_form__form_state=FormState.ARCHIVED,
-                    entry_version=EntryVersion.FINAL,
-                    active=True,
-            ).annotate(
-                station_gender_code=station_gender_query(
-                    tally_id,
-                    center_code_filter_name='result_form__center__code',
-                    station_number_filter_name='result_form__station_number'),
-                station_registrants=station_registrants_query(
-                    tally_id,
-                    center_code_filter_name='result_form__center__code',
-                    station_number_filter_name='result_form__station_number'),
-            ).filter(
-                station_gender_code=data.get('station_gender_code')
-            ).aggregate(
-                voters=Coalesce(Sum('votes'), 0)
-            ).get('voters')
+            voters = get_voters_by_gender(
+                tally_id,
+                admin_level_filter_name,
+                data.get('admit_area_name'),
+                data.get('sub_race_type'),
+                data.get('station_gender_code')
+            )
             invalid_votes = get_invalid_votes_from_reconciliation_form(
                 tally_id,
                 admin_level_filter_name,
