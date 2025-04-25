@@ -104,10 +104,13 @@ def generate_csv():
                     .values('registrants')[:1],
                     output_field=IntegerField())
 
-            voters = Result.objects.filter(
+            voters =\
+                Result.objects.filter(
                     result_form__tally__id=tally_id,
-                    result_form__center__sub_constituency__code=data.get('municipality_code'),
-                    result_form__ballot__electrol_race__ballot_name=data.get('sub_race_type'),
+                    result_form__center__sub_constituency__code=\
+                        data.get('municipality_code'),
+                    result_form__ballot__electrol_race__ballot_name=\
+                        data.get('sub_race_type'),
                     result_form__form_state=FormState.ARCHIVED,
                     entry_version=EntryVersion.FINAL,
                     active=True,
