@@ -33,6 +33,7 @@
 <h3>{% trans 'Reports' %}</h3>
 <ul>
     <li><a href="{% url 'turnout-list' tally_id=tally_id %}">{% trans 'Turnout Report' %}</a></li>
+    <li><a href="{% url 'turnout-report-by-gender' tally_id=tally_id %}">{% trans 'Turnout Report by Gender' %}</a></li>
     <li style="display:none;"><a href="{% url 'summary-list' tally_id=tally_id %}">{% trans 'Votes Summary Report' %}</a></li>
     <li style="display:none;"><a href="{% url 'progressive-report-list' tally_id=tally_id %}">{% trans 'Progressive Report' %}</a></li>
     <li style="display:none;">

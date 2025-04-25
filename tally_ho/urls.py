@@ -45,6 +45,10 @@ from tally_ho.apps.tally.views.reports.turnout_reports_by_admin_areas import (
     TurnoutReportByAdminAreasDataView,
     TurnoutReportByAdminAreasView
     )
+from tally_ho.apps.tally.views.reports.turnout_reports_by_gender import (
+    TurnoutReportByGenderAndAdminAreasDataView,
+    TurnoutReportByGenderAndAdminAreasView
+    )
 from tally_ho.apps.tally.views.workflow import (
     InitiateRecallView,
     CreateRecallRequestView,
@@ -105,6 +109,18 @@ urlpatterns = [
         r'(?:(?P<admin_level>\w+)/)?$',
         TurnoutReportByAdminAreasDataView.as_view(),
         name='turnout-list-data'
+        ),
+    re_path(
+        r'^data/turnout-report-by-gender/(?P<tally_id>(\d+))/'
+        r'(?:(?P<admin_level>\w+)/)?$',
+        TurnoutReportByGenderAndAdminAreasView.as_view(),
+        name='turnout-report-by-gender'
+        ),
+    re_path(
+        r'^data/turnout-report-by-gender-data/(?P<tally_id>(\d+))/'
+        r'(?:(?P<admin_level>\w+)/)?$',
+        TurnoutReportByGenderAndAdminAreasDataView.as_view(),
+        name='turnout-report-by-gender-data'
         ),
 
     re_path(r'^data/summary-list/(?P<tally_id>(\d+))/$',
