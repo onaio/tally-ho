@@ -131,6 +131,24 @@ def create_candidates(result_form,
         create_result(result_form, candidate_f, user, votes)
 
 
+def create_candidate_result(result_form,
+                      user,
+                      name='the candidate name',
+                      votes=123,
+                      tally=None):
+    candidate =\
+        Candidate.objects.create(
+            ballot=result_form.ballot,
+            candidate_id=1,
+            full_name=name,
+            order=0,
+            tally=tally
+        )
+    create_result(result_form, candidate, user, votes)
+    return candidate
+
+
+
 def create_result_form(barcode='123456789',
                        form_state=FormState.UNSUBMITTED,
                        ballot=None,
