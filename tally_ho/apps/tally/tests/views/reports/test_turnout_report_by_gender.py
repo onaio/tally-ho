@@ -329,7 +329,7 @@ class TestTurnoutByGenderReport(TestBase):
         self.assertEqual(turnout_male, '<td class="center">60.0</td>')
 
         # Female Row Data Check
-        (area_name_female, sub_race_female, gender_female, voters_female,
+        (area_name_female, _, gender_female, voters_female,
          registrants_female, turnout_female) = data[1]
         self.assertEqual(area_name_female, '<td class="center">office</td>')
         self.assertEqual(gender_female, '<td class="center">Woman</td>')
@@ -338,7 +338,7 @@ class TestTurnoutByGenderReport(TestBase):
         self.assertEqual(turnout_female, '<td class="center">66.67</td>')
 
         # Aggregate Data Check (should be same as region level in this setup)
-        (agg_area, agg_sub_race, agg_gender, agg_voters,
+        (_, _, _, agg_voters,
          agg_registrants, agg_turnout) = content.get("aggregate")[0]
         self.assertEqual(agg_voters, '<td class="center">140</td>')
         self.assertEqual(agg_registrants, '<td class="center">220</td>')
