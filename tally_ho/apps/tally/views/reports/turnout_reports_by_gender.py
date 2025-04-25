@@ -59,7 +59,8 @@ def get_invalid_votes_from_reconciliation_form(
         tally_id,
         admin_level_filter_name,
         admit_area_name,
-        sub_race_type
+        sub_race_type,
+        station_gender_code
     ):
     """
     Get the invalid votes from the reconciliation form
@@ -67,6 +68,7 @@ def get_invalid_votes_from_reconciliation_form(
     :param admin_level_filter_name: The name of the admin level filter
     :param admit_area_name: The name of the admit area
     :param sub_race_type: The type of the sub race
+    :param station_gender_code: The code of the station gender
     :return: The invalid votes from the reconciliation form
     """
     area_filter_map =\
@@ -81,6 +83,13 @@ def get_invalid_votes_from_reconciliation_form(
         result_form__form_state=FormState.ARCHIVED,
         entry_version=EntryVersion.FINAL,
         active=True
+    ).annotate(
+        station_gender_code=station_gender_query(
+            tally_id,
+            center_code_filter_name='result_form__center__code',
+            station_number_filter_name='result_form__station_number'),
+    ).filter(
+        station_gender_code=station_gender_code
     ).aggregate(
         invalid_votes=Coalesce(Sum('number_invalid_votes'), 0)
     ).get('invalid_votes')
@@ -214,7 +223,8 @@ class TurnoutReportByGenderAndAdminAreasDataView(
                 tally_id,
                 admin_level_filter_name,
                 data.get('admit_area_name'),
-                data.get('sub_race_type')
+                data.get('sub_race_type'),
+                data.get('station_gender_code')
             )
             voters = voters + invalid_votes
             response['admit_area_name'] = data.get('admit_area_name')
