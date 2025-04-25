@@ -225,8 +225,7 @@ class TurnoutReportByGenderAndAdminAreasDataView(
             response['turnout'] =\
                 round(100 * voters / response['registrants'], 2)
             ret_value.append(response)
-        ret_value = sorted(ret_value, key=lambda x: -x['turnout'])
-        return ret_value
+        return self.ordering(ret_value)
 
     def get_aggregate(self, data):
         aggregate = get_aggregate_data(data)
