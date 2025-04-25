@@ -85,6 +85,42 @@ def get_invalid_votes_from_reconciliation_form(
         invalid_votes=Coalesce(Sum('number_invalid_votes'), 0)
     ).get('invalid_votes')
 
+def group_data_by_gender(
+        tally_id,
+        admin_level_filter_name
+    ):
+    """
+    Group the data by gender
+    :param tally_id: The id of the tally
+    :param admin_level_filter_name: The name of the admin level filter
+    :return: The grouped data by gender
+    """
+    return ResultForm.objects.filter(
+        tally__id=tally_id,
+    ).annotate(
+        station_gender_code=station_gender_query(
+            tally_id,
+            center_code_filter_name='center__code',
+            station_number_filter_name='station_number'),
+        station_registrants=station_registrants_query(
+            tally_id,
+            center_code_filter_name='center__code',
+            station_number_filter_name='station_number'),
+        station_gender=Case(
+            When(station_gender_code=0,
+                then=V('Man')),
+            default=V('Woman'),
+            output_field=CharField()),
+        admit_area_name=F(admin_level_filter_name),
+        sub_race_type=F('ballot__electrol_race__ballot_name')
+    ).values(
+        'admit_area_name',
+        'station_gender_code',
+        'station_gender',
+        'sub_race_type'
+    ).annotate(
+        total_registrants=Sum('station_registrants')
+    )
 
 class TurnoutReportByGenderAndAdminAreasDataView(
     LoginRequiredMixin, mixins.GroupRequiredMixin, mixins.TallyAccessMixin,
@@ -103,7 +139,7 @@ class TurnoutReportByGenderAndAdminAreasDataView(
     def get_initial_queryset(self):
         tally_id = self.kwargs.get('tally_id')
         admin_level = self.kwargs.get('admin_level')
-        admin_level_filter_name = 'office__region__name'
+        admin_level_filter_name = None
 
         if admin_level == "office":
             admin_level_filter_name = 'office__name'
@@ -111,35 +147,14 @@ class TurnoutReportByGenderAndAdminAreasDataView(
             admin_level_filter_name = 'center__constituency__name'
         elif admin_level == "sub_constituency":
             admin_level_filter_name = 'center__sub_constituency__name'
+        else:
+            admin_level_filter_name = 'office__region__name'
 
         ret_value = []
 
-        turnout_data = ResultForm.objects.filter(
-            tally__id=tally_id,
-            form_state=FormState.ARCHIVED,
-        ).annotate(
-            station_gender_code=station_gender_query(
-                tally_id,
-                center_code_filter_name='center__code',
-                station_number_filter_name='station_number'),
-            station_registrants=station_registrants_query(
-                tally_id,
-                center_code_filter_name='center__code',
-                station_number_filter_name='station_number'),
-            station_gender=Case(
-                When(station_gender_code=0,
-                    then=V('Man')),
-                default=V('Woman'),
-                output_field=CharField()),
-            admit_area_name=F(admin_level_filter_name),
-            sub_race_type=F('ballot__electrol_race__ballot_name')
-        ).values(
-            'admit_area_name',
-            'station_gender_code',
-            'station_gender',
-            'sub_race_type'
-        ).annotate(
-            total_registrants=Sum('station_registrants')
+        turnout_data = group_data_by_gender(
+            tally_id,
+            admin_level_filter_name
         )
         for data in turnout_data:
             response = {}
@@ -185,7 +200,13 @@ class TurnoutReportByGenderAndAdminAreasDataView(
             response['turnout'] =\
                 round(100 * voters / response['registrants'], 2)
             ret_value.append(response)
+        ret_value = sorted(ret_value, key=lambda x: -x['turnout'])
         return ret_value
+
+    def get_aggregate(self, data):
+        aggregate = get_aggregate_data(data)
+        return self.prepare_results([aggregate])
+
 
     def render_column(self, row, column):
         if column in self.columns:
@@ -199,23 +220,22 @@ class TurnoutReportByGenderAndAdminAreasDataView(
                 TurnoutReportByGenderAndAdminAreasDataView, self
                 ).render_column(row, column)
 
-    def get_aggregate(self, data):
-        aggregate = {}
-        aggregate['admit_area_name'] = "Total"
-        aggregate["sub_race"] = ""
-        aggregate["human"] = ""
-        aggregate["voters"] = sum(
-            entry['voters'] for entry in
-            data
-            )
-        aggregate["registrants"] = sum(
-            entry['registrants'] for entry in
-            data
-            )
-        aggregate["turnout"] =\
-            round(100 * aggregate["voters"] / aggregate["registrants"], 2)
-        return self.prepare_results([aggregate])
-
+def get_aggregate_data(data):
+    aggregate = {}
+    aggregate['admit_area_name'] = "Total"
+    aggregate["sub_race"] = "N/A"
+    aggregate["human"] = "N/A"
+    aggregate["voters"] = sum(
+        entry['voters'] for entry in
+        data
+        )
+    aggregate["registrants"] = sum(
+        entry['registrants'] for entry in
+        data
+        )
+    aggregate["turnout"] =\
+        round(100 * aggregate["voters"] / aggregate["registrants"], 2)
+    return aggregate
 
 class TurnoutReportByGenderAndAdminAreasView(
     LoginRequiredMixin,
