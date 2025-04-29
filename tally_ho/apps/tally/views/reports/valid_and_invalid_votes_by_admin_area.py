@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models import (
-    Station, ResultForm, Result, ReconciliationForm
+    ResultForm, Result, ReconciliationForm
     )
 from tally_ho.libs.reports.list_base_data_view import \
     NoneQsBaseDataView
@@ -14,26 +14,8 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import \
     get_datatables_language_de_from_locale
 from tally_ho.libs.views import mixins
-from django.db.models import ( IntegerField, Subquery, F, OuterRef, Sum, Q )
+from django.db.models import F, Sum, Q
 from django.db.models.functions import Coalesce
-
-def station_gender_query(
-        tally_id, center_code_filter_name, station_number_filter_name):
-    """
-    Get the gender of the station
-    :param tally_id: The id of the tally
-    :param center_code_filter_name: The name of the center code filter
-    :param station_number_filter_name: The name of the station number filter
-    :return: The gender of the station
-    """
-    return Subquery(
-        Station.objects.filter(
-            tally__id=tally_id,
-            center__code=OuterRef(center_code_filter_name),
-            station_number=OuterRef(station_number_filter_name))
-        .values('gender')[:1],
-        output_field=IntegerField()
-    )
 
 def valid_votes_query(
         tally_id,
