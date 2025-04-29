@@ -58,7 +58,7 @@ def station_registrants_query(
 def get_invalid_votes_from_reconciliation_form(
         tally_id,
         admin_level_filter_name,
-        admit_area_name,
+        admin_area_name,
         sub_race_type,
         station_gender_code
     ):
@@ -66,7 +66,7 @@ def get_invalid_votes_from_reconciliation_form(
     Get the invalid votes from the reconciliation form
     :param tally_id: The id of the tally
     :param admin_level_filter_name: The name of the admin level filter
-    :param admit_area_name: The name of the admit area
+    :param admin_area_name: The name of the admin area
     :param sub_race_type: The type of the sub race
     :param station_gender_code: The code of the station gender
     :return: The invalid votes from the reconciliation form
@@ -74,7 +74,7 @@ def get_invalid_votes_from_reconciliation_form(
     area_filter_map =\
                 {
                     f"result_form__{admin_level_filter_name}":
-                    admit_area_name
+                    admin_area_name
                 }
     return ReconciliationForm.objects.filter(
         result_form__tally__id=tally_id,
@@ -120,10 +120,10 @@ def group_data_by_gender(
                 then=V('Man')),
             default=V('Woman'),
             output_field=CharField()),
-        admit_area_name=F(admin_level_filter_name),
+        admin_area_name=F(admin_level_filter_name),
         sub_race_type=F('ballot__electrol_race__ballot_name')
     ).values(
-        'admit_area_name',
+        'admin_area_name',
         'station_gender_code',
         'station_gender',
         'sub_race_type'
@@ -134,7 +134,7 @@ def group_data_by_gender(
 def get_voters_by_gender(
         tally_id,
         admin_level_filter_name,
-        admit_area_name,
+        admin_area_name,
         sub_race_type,
         station_gender_code
     ):
@@ -142,7 +142,7 @@ def get_voters_by_gender(
     Get the voters by gender
     :param tally_id: The id of the tally
     :param admin_level_filter_name: The name of the admin level filter
-    :param admit_area_name: The name of the admit area
+    :param admin_area_name: The name of the admin area
     :param sub_race_type: The type of the sub race
     :param station_gender_code: The code of the station gender
     :return: The voters by gender
@@ -150,7 +150,7 @@ def get_voters_by_gender(
     area_filter_map =\
                 {
                     f"result_form__{admin_level_filter_name}":
-                    admit_area_name
+                    admin_area_name
                 }
     voters = Result.objects.filter(
             result_form__tally__id=tally_id,
@@ -182,7 +182,7 @@ class TurnoutReportByGenderAndAdminAreasDataView(
     ):
     group_required = groups.TALLY_MANAGER
     columns = (
-        "admit_area_name",
+        "admin_area_name",
         "sub_race",
         "human",
         "voters",
@@ -215,19 +215,19 @@ class TurnoutReportByGenderAndAdminAreasDataView(
             voters = get_voters_by_gender(
                 tally_id,
                 admin_level_filter_name,
-                data.get('admit_area_name'),
+                data.get('admin_area_name'),
                 data.get('sub_race_type'),
                 data.get('station_gender_code')
             )
             invalid_votes = get_invalid_votes_from_reconciliation_form(
                 tally_id,
                 admin_level_filter_name,
-                data.get('admit_area_name'),
+                data.get('admin_area_name'),
                 data.get('sub_race_type'),
                 data.get('station_gender_code')
             )
             voters = voters + invalid_votes
-            response['admit_area_name'] = data.get('admit_area_name')
+            response['admin_area_name'] = data.get('admin_area_name')
             response['sub_race'] = data.get('sub_race_type')
             response['human'] = data.get('station_gender')
             response['voters'] = voters
@@ -256,7 +256,7 @@ class TurnoutReportByGenderAndAdminAreasDataView(
 
 def get_aggregate_data(data):
     aggregate = {}
-    aggregate['admit_area_name'] = "Total"
+    aggregate['admin_area_name'] = "Total"
     aggregate["sub_race"] = "N/A"
     aggregate["human"] = "N/A"
     aggregate["voters"] = sum(
