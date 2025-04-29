@@ -49,11 +49,16 @@ from tally_ho.apps.tally.views.reports.turnout_reports_by_gender import (
     TurnoutReportByGenderAndAdminAreasDataView,
     TurnoutReportByGenderAndAdminAreasView
     )
+from tally_ho.apps.tally.views.reports.valid_and_invalid_votes_by_admin_area\
+        import (
+    ValidAndInvalidVotesByAdminAreasDataView,
+    ValidAndInvalidVotesByAdminAreasView
+)
 from tally_ho.apps.tally.views.workflow import (
     InitiateRecallView,
     CreateRecallRequestView,
     RecallRequestDetailView,
-    ViewResultFormDetailsView # Import the new view
+    ViewResultFormDetailsView
 )
 
 admin.autodiscover()
@@ -122,7 +127,18 @@ urlpatterns = [
         TurnoutReportByGenderAndAdminAreasDataView.as_view(),
         name='turnout-report-by-gender-data'
         ),
-
+    re_path(
+        r'^data/valid-and-invalid-votes-by-admin-area/(?P<tally_id>(\d+))/'
+        r'(?:(?P<admin_level>\w+)/)?$',
+        ValidAndInvalidVotesByAdminAreasView.as_view(),
+        name='valid-and-invalid-votes-by-admin-area'
+        ),
+    re_path(
+        r'^data/valid-and-invalid-votes-by-adminarea-data/(?P<tally_id>(\d+))/'
+        r'(?:(?P<admin_level>\w+)/)?$',
+        ValidAndInvalidVotesByAdminAreasDataView.as_view(),
+        name='valid-and-invalid-votes-by-adminarea-data'
+        ),
     re_path(r'^data/summary-list/(?P<tally_id>(\d+))/$',
             administrative_areas_reports.SummaryReportView.as_view(),
             name='summary-list'),
