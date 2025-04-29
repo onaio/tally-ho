@@ -27,7 +27,7 @@ def valid_votes_query(
     Get the valid votes from the result form
     :param tally_id: The id of the tally
     :param admin_level_filter_name: The name of the admin level filter
-    :param admin_area_name: The name of the admit area
+    :param admin_area_name: The name of the admin area
     :param sub_race_type: The sub race type
     :return: The valid votes from the result form
     """
