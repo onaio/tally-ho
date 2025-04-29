@@ -18,6 +18,9 @@ from tally_ho.libs.tests.test_base import (
 )
 
 class TestValidAndInvalidVotesByAdminArea(TestBase):
+    """
+    Test the valid and invalid votes by admin area report
+    """
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
@@ -92,6 +95,9 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
             header.text.strip() for header in doc.find('thead').findAll('th')]
 
     def test_html_view_region(self):
+        """
+        Test the HTML view for the region admin level
+        """
         request =\
             self.factory.get(
                 str(
@@ -109,6 +115,9 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
             headers, ['Region', 'Race Type', 'Valid Votes', 'Invalid Votes'])
 
     def test_html_view_office(self):
+        """
+        Test the HTML view for the office admin level
+        """
         request =\
             self.factory.get(
                 str(
@@ -126,6 +135,9 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
             headers, ['Office', 'Race Type', 'Valid Votes', 'Invalid Votes'])
 
     def test_html_view_constituency(self):
+        """
+        Test the HTML view for the constituency admin level
+        """
         request =\
             self.factory.get(
                 str(
@@ -150,6 +162,9 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
             ])
 
     def test_html_view_sub_constituency(self):
+        """
+        Test the HTML view for the sub constituency admin level
+        """
         request =\
             self.factory.get(
                 str(
@@ -174,6 +189,9 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
         )
 
     def test_data_view_region(self):
+        """
+        Test the data view for the region admin level
+        """
         request =\
             self.factory.post(
                 str(
@@ -224,6 +242,9 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
         )
 
     def test_data_view_office(self):
+        """
+        Test the data view for the office admin level
+        """
         request =\
             self.factory.post(
                 str(
@@ -259,6 +280,9 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
             '<td class="center" style="padding-left: 10px;">5</td>')
 
     def test_data_view_constituency(self):
+        """
+        Test the data view for the constituency admin level
+        """
         request =\
             self.factory.post(
                 str(
@@ -303,6 +327,9 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
             '<td class="center" style="padding-left: 10px;">5</td>')
 
     def test_data_view_sub_constituency(self):
+        """
+        Test the data view for the sub constituency admin level
+        """
         request =\
             self.factory.post(
                 str(
