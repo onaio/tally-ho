@@ -41,7 +41,7 @@ class TestQuarantineChecks(TestBase):
             create_reconciliation_form(
                 result_form=result_form,
                 user=self.user,
-                total_of_cancelled_ballots_and_ballots_inside_box=50
+                number_valid_votes=50
             )
         # Test when registrants are equal
         self.assertTrue(pass_registrants_trigger(result_form))
@@ -58,7 +58,7 @@ class TestQuarantineChecks(TestBase):
         self.assertTrue(pass_registrants_trigger(result_form))
 
         # Test when number of ballots exceeds registrants
-        recon_form.total_of_cancelled_ballots_and_ballots_inside_box = 70
+        recon_form.number_valid_votes = 70
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_registrants_trigger(result_form))
