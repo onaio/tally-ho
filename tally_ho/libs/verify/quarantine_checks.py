@@ -104,9 +104,9 @@ def pass_overvote(result_form):
     # return recon_form.number_ballots_used <= max_number_ballots
 
 def pass_registrants_trigger(result_form):
-    """Summation of recon fields number_cancelled_ballots and
-    number_ballots_inside_box must be less than or equal to the number of
-    registered voters at the station.
+    """The number_valid_votes must be less than or equal to the number of
+    registered voters at the station plus N persons to accommodate staff and
+    security.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -114,10 +114,9 @@ def pass_registrants_trigger(result_form):
     If the `station` for this `result_form` has an empty `registrants` field
     this will always return True.
 
-    Fails if the summation of recon fields number_cancelled_ballots and
-    number_ballots_inside_box exceeds the number of potential voters which is
-    the number of registered voters at the station plus N persons to
-    accommodate staff and security.
+    Fails if the summation of recon fields number_valid_votes exceeds the
+    number of potential voters which is the number of registered voters at the
+    station plus N persons to accommodate staff and security.
 
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
@@ -134,15 +133,16 @@ def pass_registrants_trigger(result_form):
         return True
 
     qc = QuarantineCheck.objects.get(method='pass_registrants_trigger')
-    potential_voters_num = registrants + qc.value
+    allowed_tolerance =\
+        (qc.value)\
+            if qc.value != 0 else ((qc.percentage / 100) * registrants)
 
-    return recon_form.total_of_cancelled_ballots_and_ballots_inside_box <=\
-        potential_voters_num
+    return recon_form.number_valid_votes <= allowed_tolerance + registrants
 
 def pass_voter_cards_trigger(result_form):
-    """Summation of recon fields number_cancelled_ballots and
-    number_ballots_inside_box must be equal to
-    number_of_voter_cards_in_the_ballot_box
+    """The total number of voter cards in the ballot box must be within N
+    persons (tolerance) of the total number of ballots found inside and
+    outside the ballot box.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -155,13 +155,22 @@ def pass_voter_cards_trigger(result_form):
     if not recon_form:
         return True
 
-    return recon_form.total_of_cancelled_ballots_and_ballots_inside_box ==\
+    qc = QuarantineCheck.objects.get(method='pass_voter_cards_trigger')
+    allowed_tolerance =\
+        (qc.value)\
+            if qc.value != 0 else (
+                (qc.percentage / 100) *\
+                    recon_form.number_of_voter_cards_in_the_ballot_box)
+
+    return abs(
+        recon_form.total_of_cancelled_ballots_and_ballots_inside_box -
         recon_form.number_of_voter_cards_in_the_ballot_box
+    ) <= allowed_tolerance
 
 def pass_ballot_papers_trigger(result_form):
     """The total number of ballots received by the polling station must be
-    equal to the total number of ballots found inside and outside the
-    ballot box.
+    within N persons (tolerance) of the total number of ballots found inside
+    and outside the ballot box.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -174,14 +183,22 @@ def pass_ballot_papers_trigger(result_form):
     if not recon_form:
         return True
 
-    return recon_form.number_ballots_received ==\
+    qc = QuarantineCheck.objects.get(method='pass_ballot_papers_trigger')
+    allowed_tolerance =\
+        (qc.value)\
+            if qc.value != 0 else (
+                (qc.percentage / 100) *\
+                    recon_form.number_ballots_inside_and_outside_box)
+
+    return abs(
+        recon_form.number_ballots_received -
         recon_form.number_ballots_inside_and_outside_box
+    ) <= allowed_tolerance
 
 def pass_ballot_inside_box_trigger(result_form):
     """The total number of ballots found inside the ballot box must be
-    equal to the summation of the number of unstamped ballots and the
-    number of invalid votes (including the blanks) and
-    the number of valid votes
+    within N persons (tolerance) of the total number of ballots found inside
+    the ballot box.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -194,16 +211,23 @@ def pass_ballot_inside_box_trigger(result_form):
     if not recon_form:
         return True
 
-    return (
+    qc = QuarantineCheck.objects.get(method='pass_ballot_inside_box_trigger')
+    allowed_tolerance =\
+        (qc.value)\
+            if qc.value != 0 else (
+                (qc.percentage / 100) *\
+                    recon_form.number_ballots_inside_box)
+
+    return abs(
         recon_form.number_unstamped_ballots +
         recon_form.number_invalid_votes +
-        recon_form.number_valid_votes
-    ) ==\
+        recon_form.number_valid_votes -
         recon_form.number_ballots_inside_box
+    ) <= allowed_tolerance
 
 def pass_candidates_votes_trigger(result_form):
-    """The total valid votes must be equal to the total votes
-    distributed among the candidates.
+    """The total valid votes must be within N persons (tolerance) of the total
+    votes distributed among the candidates.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -216,7 +240,15 @@ def pass_candidates_votes_trigger(result_form):
     if not recon_form:
         return True
 
-    return result_form.num_votes == recon_form.number_valid_votes
+    qc = QuarantineCheck.objects.get(method='pass_candidates_votes_trigger')
+    allowed_tolerance = (
+        qc.value
+        if qc.value != 0 else
+        (qc.percentage / 100) * recon_form.number_valid_votes
+    )
+
+    return abs(result_form.num_votes - recon_form.number_valid_votes) <=\
+        allowed_tolerance
 
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
