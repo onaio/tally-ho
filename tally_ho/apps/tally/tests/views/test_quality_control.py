@@ -960,7 +960,7 @@ class TestQualityControl(TestBase):
         Test quality control post
         """
         center = create_center()
-        create_station(center)
+        create_station(center, registrants=2)
         create_quarantine_checks(self.quarantine_data)
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
