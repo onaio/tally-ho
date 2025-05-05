@@ -162,8 +162,10 @@ def pass_voter_cards_trigger(result_form):
                 (qc.percentage / 100) *\
                     recon_form.number_of_voter_cards_in_the_ballot_box)
 
-    return recon_form.total_of_cancelled_ballots_and_ballots_inside_box <=\
-        recon_form.number_of_voter_cards_in_the_ballot_box + allowed_tolerance
+    return abs(
+        recon_form.total_of_cancelled_ballots_and_ballots_inside_box -
+        recon_form.number_of_voter_cards_in_the_ballot_box
+    ) <= allowed_tolerance
 
 def pass_ballot_papers_trigger(result_form):
     """The total number of ballots received by the polling station must be
