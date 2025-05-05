@@ -197,9 +197,8 @@ def pass_ballot_papers_trigger(result_form):
 
 def pass_ballot_inside_box_trigger(result_form):
     """The total number of ballots found inside the ballot box must be
-    equal to the summation of the number of unstamped ballots and the
-    number of invalid votes (including the blanks) and
-    the number of valid votes
+    within N persons (tolerance) of the total number of ballots found inside
+    the ballot box.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -212,12 +211,19 @@ def pass_ballot_inside_box_trigger(result_form):
     if not recon_form:
         return True
 
-    return (
+    qc = QuarantineCheck.objects.get(method='pass_ballot_inside_box_trigger')
+    allowed_tolerance =\
+        (qc.value)\
+            if qc.value != 0 else (
+                (qc.percentage / 100) *\
+                    recon_form.number_ballots_inside_box)
+
+    return abs(
         recon_form.number_unstamped_ballots +
         recon_form.number_invalid_votes +
-        recon_form.number_valid_votes
-    ) ==\
+        recon_form.number_valid_votes -
         recon_form.number_ballots_inside_box
+    ) <= allowed_tolerance
 
 def pass_candidates_votes_trigger(result_form):
     """The total valid votes must be equal to the total votes
