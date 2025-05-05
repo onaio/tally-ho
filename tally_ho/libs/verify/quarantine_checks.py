@@ -140,9 +140,9 @@ def pass_registrants_trigger(result_form):
     return recon_form.number_valid_votes <= allowed_tolerance + registrants
 
 def pass_voter_cards_trigger(result_form):
-    """The total number of voter cards in the ballot box must be within N
-    persons (tolerance) of the total number of ballots found inside and
-    outside the ballot box.
+    """The number_cancelled_ballots and number_ballots_inside_box must be less
+    than or equal to the number_of_voter_cards_in_the_ballot_box plus N persons
+    to accommodate staff and security.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -169,8 +169,8 @@ def pass_voter_cards_trigger(result_form):
 
 def pass_ballot_papers_trigger(result_form):
     """The total number of ballots received by the polling station must be
-    equal to the total number of ballots found inside and outside the
-    ballot box.
+    within N persons (tolerance) of the total number of ballots found inside
+    and outside the ballot box.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -183,8 +183,17 @@ def pass_ballot_papers_trigger(result_form):
     if not recon_form:
         return True
 
-    return recon_form.number_ballots_received ==\
+    qc = QuarantineCheck.objects.get(method='pass_ballot_papers_trigger')
+    allowed_tolerance =\
+        (qc.value)\
+            if qc.value != 0 else (
+                (qc.percentage / 100) *\
+                    recon_form.number_ballots_inside_and_outside_box)
+
+    return abs(
+        recon_form.number_ballots_received -
         recon_form.number_ballots_inside_and_outside_box
+    ) <= allowed_tolerance
 
 def pass_ballot_inside_box_trigger(result_form):
     """The total number of ballots found inside the ballot box must be
