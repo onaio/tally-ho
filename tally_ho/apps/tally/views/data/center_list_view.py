@@ -149,7 +149,9 @@ class CenterListView(LoginRequiredMixin,
             constituency_name=constituency_name,
             sub_constituency_code=sub_constituency_code,
             centers_and_stations_list_download_url=download_url,
-            languageDE=language_de
+            languageDE=language_de,
+            enable_responsive=False,
+            enable_scroll_x=True,
         ))
 
 

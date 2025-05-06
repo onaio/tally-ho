@@ -217,28 +217,28 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
         row = data[0]
         self.assertEqual(
             row[0],
-            '<td class="center" style="padding-left: 10px;">Region</td>'
+            '<td class="center">Region</td>'
         )
         self.assertEqual(
             row[2],
-            '<td class="center" style="padding-left: 10px;">55</td>'
+            '<td class="center">55</td>'
         )
         self.assertEqual(
             row[3],
-            '<td class="center" style="padding-left: 10px;">5</td>'
+            '<td class="center">5</td>'
         )
         # Aggregate
         self.assertEqual(
             aggregate[0],
-            '<td class="center" style="padding-left: 10px;">Total</td>'
+            '<td class="center">Total</td>'
         )
         self.assertEqual(
             aggregate[2],
-            '<td class="center" style="padding-left: 10px;">55</td>'
+            '<td class="center">55</td>'
         )
         self.assertEqual(
             aggregate[3],
-            '<td class="center" style="padding-left: 10px;">5</td>'
+            '<td class="center">5</td>'
         )
 
     def test_data_view_office(self):
@@ -264,20 +264,20 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
         row = data[0]
         self.assertEqual(
             row[0],
-            '<td class="center" style="padding-left: 10px;">office</td>')
+            '<td class="center">office</td>')
         self.assertEqual(
-            row[2], '<td class="center" style="padding-left: 10px;">55</td>')
+            row[2], '<td class="center">55</td>')
         self.assertEqual(
-            row[3], '<td class="center" style="padding-left: 10px;">5</td>')
+            row[3], '<td class="center">5</td>')
         self.assertEqual(
             aggregate[0],
-            '<td class="center" style="padding-left: 10px;">Total</td>')
+            '<td class="center">Total</td>')
         self.assertEqual(
             aggregate[2],
-            '<td class="center" style="padding-left: 10px;">55</td>')
+            '<td class="center">55</td>')
         self.assertEqual(
             aggregate[3],
-            '<td class="center" style="padding-left: 10px;">5</td>')
+            '<td class="center">5</td>')
 
     def test_data_view_constituency(self):
         """
@@ -308,23 +308,23 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
         self.assertEqual(
             row[0],
             str(
-                '<td class="center" style="padding-left: 10px;">'
+                '<td class="center">'
                 'Constituency 1</td>'))
         self.assertEqual(
             row[2],
-            '<td class="center" style="padding-left: 10px;">55</td>')
+            '<td class="center">55</td>')
         self.assertEqual(
             row[3],
-            '<td class="center" style="padding-left: 10px;">5</td>')
+            '<td class="center">5</td>')
         self.assertEqual(
             aggregate[0],
-            '<td class="center" style="padding-left: 10px;">Total</td>')
+            '<td class="center">Total</td>')
         self.assertEqual(
             aggregate[2],
-            '<td class="center" style="padding-left: 10px;">55</td>')
+            '<td class="center">55</td>')
         self.assertEqual(
             aggregate[3],
-            '<td class="center" style="padding-left: 10px;">5</td>')
+            '<td class="center">5</td>')
 
     def test_data_view_sub_constituency(self):
         """
@@ -355,23 +355,23 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
         self.assertEqual(
             row[0],
             str(
-                '<td class="center" style="padding-left: 10px;">'
+                '<td class="center">'
                 f'{self.sc.name}</td>'
             )
         )
         self.assertEqual(
             row[2],
-            '<td class="center" style="padding-left: 10px;">55</td>'
+            '<td class="center">55</td>'
         )
         self.assertEqual(
             row[3],
-            '<td class="center" style="padding-left: 10px;">5</td>'
+            '<td class="center">5</td>'
         )
         self.assertEqual(
             aggregate[0],
-            '<td class="center" style="padding-left: 10px;">Total</td>'
+            '<td class="center">Total</td>'
         )
         self.assertEqual(
             aggregate[2],
-            '<td class="center" style="padding-left: 10px;">55</td>'
+            '<td class="center">55</td>'
         )

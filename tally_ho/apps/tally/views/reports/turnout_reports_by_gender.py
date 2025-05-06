@@ -257,8 +257,8 @@ class TurnoutReportByGenderAndAdminAreasDataView(
 def get_aggregate_data(data):
     aggregate = {}
     aggregate['admin_area_name'] = "Total"
-    aggregate["sub_race"] = "N/A"
-    aggregate["human"] = "N/A"
+    aggregate["sub_race"] = ""
+    aggregate["human"] = ""
     aggregate["voters"] = sum(
         entry['voters'] for entry in
         data

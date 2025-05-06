@@ -8,6 +8,18 @@
 <link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<style>
+.datatable-footer-highlight th,
+.datatable-footer-highlight td {
+    background-color: #e0f3ff !important; /* Light blue, adjust as needed */
+    font-weight: bold !important;
+    color: #1a237e !important;           /* Dark blue text, adjust as needed */
+    border-top: 2px solid #1976d2 !important;
+}
+.dataTable tbody tr td {
+ padding-left: 18px;
+}
+</style>
 {% endblock %}
 
 {% block javascript %}
@@ -90,17 +102,6 @@ $(document).ready(() => {
           d['length'] = d.length;
           d.data = JSON.stringify([])
         },
-        dataSrc: (res) => {
-            console.log({res});
-            const {aggregate} = res;
-            if(aggregate){
-              const tr = document.createElement('tr');
-              tr.innerHTML = aggregate[0].join('');
-              $('#turnout-report-table tfoot').empty();
-              $('#turnout-report-table tfoot').append(tr)
-            }
-            return res.data
-        },
         traditional: true,
         dataType: 'json',
       },
@@ -131,7 +132,20 @@ $(document).ready(() => {
           },
         },
       ],
-      responsive: true,
+      responsive: false,
+      scrollX: true,
+      footerCallback: function(row, data, start, end, display) {
+        const api = this.api();
+        const aggregate = api.ajax.json() && api.ajax.json().aggregate;
+        if (aggregate && aggregate.length > 0) {
+            const $footer = $(api.table().footer());
+            $footer.empty();
+            const tr = document.createElement('tr');
+            tr.innerHTML = aggregate[0].join('');
+            tr.className = 'datatable-footer-highlight';
+            $footer.append(tr);
+        }
+      },
       });
 
 });
@@ -183,7 +197,17 @@ $(document).ready(() => {
         </tr>
         </thead>
         <tbody></tbody>
-        <tfoot></tfoot>
+        <tfoot>
+          <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+        </tfoot>
     </table>
 </div>
 

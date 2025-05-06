@@ -9,6 +9,11 @@
 <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
+<style>
+  .results {
+    width: 100% !important;
+  }
+</style>
 {% endblock %}
 
 {% block javascript %}
@@ -18,37 +23,36 @@
 
 <h1>{% trans 'Result Forms with Duplicate Results' %}</h1>
 <br>
-
-<table class="display datatable results">
-  <caption style="margin-top: 2em; margin-left: -0.5em">
-    <div id="report" class="row">
-    <div class="col-sm-4">
-      <p style="text-align: left; margin-left: .5em;">{% trans 'Centers' %}</p>
-      <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
-        {% for center in centers %}
-          <option value={{center.id}}>{{center.name}}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-sm-4">
-      <p style="text-align: left; margin-left: .5em;">{% trans 'Stations' %}</p>
-      <select class="selectpicker center-stations" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
-        {% for station in stations %}
-          <option value={{station.id}}>{{station.id}}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-sm-4">
-      <div class="card">
-        <div class="card-body">
-          <p class="card-text" style="text-align: left;">{% trans 'Filter out Centers and Stations from report.' %}</p>
-          <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
-          <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">{% trans 'Reset' %}</a>
+<div style="margin-top: 2em; margin-bottom: 2em;" class="row">
+    <div id="report" class="col-12">
+      <div class="col-sm-4" style="padding-left: 0;">
+        <p style="text-align: left;">{% trans 'Centers' %}</p>
+        <select class="selectpicker" id="centers" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Centers">
+          {% for center in centers %}
+            <option value={{center.id}}>{{center.name}}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-4">
+        <p style="text-align: left; margin-left: .5em;">{% trans 'Stations' %}</p>
+        <select class="selectpicker center-stations" id="stations" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Stations">
+          {% for station in stations %}
+            <option value={{station.id}}>{{station.id}}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-4">
+        <div class="card">
+          <div class="card-body">
+            <p class="card-text" style="text-align: left;">{% trans 'Filter out Centers and Stations from report.' %}</p>
+            <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+            <a href='.' style="float: left; margin-left: 1em;" class="btn btn-default btn-small">{% trans 'Reset' %}</a>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</caption>
+<table class="display datatable results">
 <br>
   <thead>
       <tr>
@@ -63,7 +67,6 @@
   </thead>
   <tbody></tbody>
 </table>
-</div>
 
 {% endblock %}
 

@@ -89,7 +89,9 @@ class CandidateListView(LoginRequiredMixin,
             tally_id=tally_id,
             report_title=report_title,
             candidates_list_download_url='/ajax/download-candidates-list/',
-            languageDE=language_de))
+            languageDE=language_de,
+            enable_responsive=False,
+            enable_scroll_x=True))
 
 
 def get_candidates_list(request):

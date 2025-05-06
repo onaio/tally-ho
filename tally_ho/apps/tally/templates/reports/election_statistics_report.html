@@ -83,11 +83,12 @@ $(document).ready(() => {
         },
         columns: {{ dt_columns|safe }},
         dom:
-          "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
+          "<'row'<'col-sm-6'B><'col-sm-6'l>>" +
           "<'row'<'col-sm-12'tr>>" +
           "<'row'<'col-sm-5'i><'col-sm-7'p>>",
         buttons: ['csv'],
-        responsive: true,
+        responsive: false,
+        scrollX: true,
     });
   
   $('#election-statistics-overview-section').on('click', '#filter-report', function () {
@@ -120,103 +121,101 @@ $(document).ready(() => {
 <h1>{{ election_level }} {% trans 'Election Statistics' %}</h1>
 <br>
 
-<table class="display" id="election-statistics-report">
-  <caption style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
-    <div id="election-statistics-overview-section" class="row">
-        <div class="col-12" style="margin-bottom: 2em; text-align: left; margin-left:.5em;">
-          <div class="col-sm-6" style="text-align: left;">
-              <div class="row">
-                <label><b>Forms Expected</b></label>
-                <span>{{election_statistics_report.forms_expected}}</span>
-              </div>
-              <div class="row">
-                <label><b>Forms Counted</b></label>
-                <span>{{election_statistics_report.forms_counted}}</span>
-              </div>
-              <div class="row">
-                <label><b>Completion (%)</b></label>
-                <span>{{election_statistics_report.completion_percentage}}</span>
-              </div>
+<div id="election-statistics-overview-section" class="row" style="margin-bottom: 1em;">
+    <div class="col-12" style="margin-bottom: 2em; text-align: left; margin-left:.5em;">
+      <div class="col-sm-6" style="text-align: left;">
+          <div class="row">
+            <label><b>Forms Expected</b></label>
+            <span>{{election_statistics_report.forms_expected}}</span>
           </div>
-          <div class="col-sm-6" style="text-align: left;">
-              <div class="row">
-                <label><b>Total Voters in Counted Stations</b></label>
-                <span>{{election_statistics_report.voters_in_counted_stations}}</span>
-              </div>
-              <div class="row">
-                <label><b>Total Registrants in Counted Stations</b></label>
-                <span>{{election_statistics_report.total_registrants_in_counted_stations}}</span>
-              </div>
-              <div class="row">
-                <label><b>Projected Turnout (%)</b></label>
-                <span>{{election_statistics_report.projected_turnout_percentage}}</span>
-              </div>
+          <div class="row">
+            <label><b>Forms Counted</b></label>
+            <span>{{election_statistics_report.forms_counted}}</span>
           </div>
-        </div>
-        <div class="col-12" style="margin-bottom: 2em; margin-left:.5em;">
-          <div class="col-sm-6" style="text-align: left;">
-              <div class="row">
-                <label><b>Total Female Voters in Counted Stations</b></label>
-                <span>{{election_statistics_report.female_voters_in_counted_stations}}</span>
-              </div>
-              <div class="row">
-                <label><b>Total Female Registrants in Counted Stations</b></label>
-                <span>{{election_statistics_report.female_total_registrants_in_counted_stations}}</span>
-              </div>
-              <div class="row">
-                <label><b>Projected Female Turnout (%)</b></label>
-                <span>{{election_statistics_report.female_projected_turnout_percentage}}</span>
-              </div>
+          <div class="row">
+            <label><b>Completion (%)</b></label>
+            <span>{{election_statistics_report.completion_percentage}}</span>
           </div>
-          <div class="col-sm-6" style="text-align: left;">
-              <div class="row">
-                <label><b>Total Male Voters in Counted Stations</b></label>
-                <span>{{election_statistics_report.male_voters_in_counted_stations}}</span>
-              </div>
-              <div class="row">
-                <label><b>Total Male Registrants in Counted Stations</b></label>
-                <span>{{election_statistics_report.male_total_registrants_in_counted_stations}}</span>
-              </div>
-              <div class="row">
-                <label><b>Projected Male Turnout (%)</b></label>
-                <span>{{election_statistics_report.male_projected_turnout_percentage}}</span>
-              </div>
+      </div>
+      <div class="col-sm-6" style="text-align: left;">
+          <div class="row">
+            <label><b>Total Voters in Counted Stations</b></label>
+            <span>{{election_statistics_report.voters_in_counted_stations}}</span>
           </div>
-        </div>
-        <div class="col-12" style="margin-bottom: 2em; margin-left:.5em;">
-          <div class="col-sm-6" style="text-align: left;">
-              <div class="row">
-                <label><b>Total Unisex Voters in Counted Stations</b></label>
-                <span>{{election_statistics_report.unisex_voters_in_counted_stations}}</span>
-              </div>
-              <div class="row">
-                <label><b>Total Unisex Registrants in Counted Stations</b></label>
-                <span>{{election_statistics_report.unisex_total_registrants_in_counted_stations}}</span>
-              </div>
-              <div class="row">
-                <label><b>Projected Unisex Turnout (%)</b></label>
-                <span>{{election_statistics_report.unisex_projected_turnout_percentage}}</span>
-              </div>
+          <div class="row">
+            <label><b>Total Registrants in Counted Stations</b></label>
+            <span>{{election_statistics_report.total_registrants_in_counted_stations}}</span>
           </div>
-          <div class="col-sm-6"  style="float: right; padding-left: 0;">
-                <p style="text-align: left;">{% trans 'Station Gender' %}</p>
-                <select class="selectpicker" id="station-gender" name="report_length" aria-controls="report" data-actions-box="true" title="Station Gender">
-                    {% for gender in genders %}
-                    <option value={{gender.value}}>{{gender.name}}</option>
-                    {% endfor %}
-                </select>
-                <div class="card">
-                <div class="card-body">
-                  <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
-                  <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
-                  <button style="float: left; margin-left: 1em;" id="reset-filters-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
-                </div>
-              </div>
+          <div class="row">
+            <label><b>Projected Turnout (%)</b></label>
+            <span>{{election_statistics_report.projected_turnout_percentage}}</span>
+          </div>
+      </div>
+    </div>
+    <div class="col-12" style="margin-bottom: 2em; margin-left:.5em;">
+      <div class="col-sm-6" style="text-align: left;">
+          <div class="row">
+            <label><b>Total Female Voters in Counted Stations</b></label>
+            <span>{{election_statistics_report.female_voters_in_counted_stations}}</span>
+          </div>
+          <div class="row">
+            <label><b>Total Female Registrants in Counted Stations</b></label>
+            <span>{{election_statistics_report.female_total_registrants_in_counted_stations}}</span>
+          </div>
+          <div class="row">
+            <label><b>Projected Female Turnout (%)</b></label>
+            <span>{{election_statistics_report.female_projected_turnout_percentage}}</span>
+          </div>
+      </div>
+      <div class="col-sm-6" style="text-align: left;">
+          <div class="row">
+            <label><b>Total Male Voters in Counted Stations</b></label>
+            <span>{{election_statistics_report.male_voters_in_counted_stations}}</span>
+          </div>
+          <div class="row">
+            <label><b>Total Male Registrants in Counted Stations</b></label>
+            <span>{{election_statistics_report.male_total_registrants_in_counted_stations}}</span>
+          </div>
+          <div class="row">
+            <label><b>Projected Male Turnout (%)</b></label>
+            <span>{{election_statistics_report.male_projected_turnout_percentage}}</span>
+          </div>
+      </div>
+    </div>
+    <div class="col-12" style="margin-bottom: 2em; margin-left:.5em;">
+      <div class="col-sm-6" style="text-align: left;">
+          <div class="row">
+            <label><b>Total Unisex Voters in Counted Stations</b></label>
+            <span>{{election_statistics_report.unisex_voters_in_counted_stations}}</span>
+          </div>
+          <div class="row">
+            <label><b>Total Unisex Registrants in Counted Stations</b></label>
+            <span>{{election_statistics_report.unisex_total_registrants_in_counted_stations}}</span>
+          </div>
+          <div class="row">
+            <label><b>Projected Unisex Turnout (%)</b></label>
+            <span>{{election_statistics_report.unisex_projected_turnout_percentage}}</span>
+          </div>
+      </div>
+      <div class="col-sm-6"  style="float: right; padding-left: 0;">
+            <p style="text-align: left;">{% trans 'Station Gender' %}</p>
+            <select class="selectpicker" id="station-gender" name="report_length" aria-controls="report" data-actions-box="true" title="Station Gender">
+                {% for gender in genders %}
+                <option value={{gender.value}}>{{gender.name}}</option>
+                {% endfor %}
+            </select>
+            <div class="card">
+            <div class="card-body">
+              <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
+              <button style="float: left;" id="filter-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+              <button style="float: left; margin-left: 1em;" id="reset-filters-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
             </div>
+          </div>
         </div>
-  </div>
-</caption>
-<br>
+    </div>
+</div>
+
+<table class="display" id="election-statistics-report">
   <thead>
       <tr>
         <th>{% trans 'Ballot Number' %}</th>
@@ -230,6 +229,5 @@ $(document).ready(() => {
   </thead>
   <tbody></tbody>
 </table>
-</div>
 
 {% endblock %}
