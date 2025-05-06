@@ -480,7 +480,9 @@ class FormProgressView(LoginRequiredMixin,
             remote_url=reverse('form-progress-data',
                                kwargs={'tally_id': tally_id}),
             languageDE=language_de,
-            tally_id=tally_id))
+            tally_id=tally_id,
+            enable_responsive=False,
+            enable_scroll_x=True))
 
 
 class FormProgressByFormStateView(LoginRequiredMixin,
@@ -497,7 +499,9 @@ class FormProgressByFormStateView(LoginRequiredMixin,
             remote_url=reverse('form-progress-by-form-state-data',
                                kwargs={'tally_id': tally_id}),
             languageDE=language_de,
-            tally_id=tally_id))
+            tally_id=tally_id,
+            enable_responsive=False,
+            enable_scroll_x=True))
 
 
 class DuplicateResultTrackingView(LoginRequiredMixin,

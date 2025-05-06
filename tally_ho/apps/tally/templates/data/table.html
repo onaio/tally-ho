@@ -37,6 +37,8 @@
     const candidatesDownloadUrl = '{{ candidates_list_download_url }}';
     const exportFileName = '{{ export_file_name }}';
     const serverSide = '{{ server_side }}' ? $.parseJSON('{{ server_side }}'.toLowerCase()) : true;
+    const enableResponsive = '{{ enable_responsive }}' ? $.parseJSON('{{ enable_responsive }}'.toLowerCase()) : true;
+    const enableScrollX = '{{ enable_scroll_x }}' ? $.parseJSON('{{ enable_scroll_x }}'.toLowerCase()) : false;
     const LIST_JSON_URL = '{{ remote_url | safe }}';
     const deployedSiteUrl = '{{ deployedSiteUrl }}';
     const arialNormal = `${deployedSiteUrl}/static/pdfmake/ARIAL.TTF`;

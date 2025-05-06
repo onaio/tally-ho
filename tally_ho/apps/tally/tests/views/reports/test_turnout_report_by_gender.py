@@ -293,8 +293,8 @@ class TestTurnoutByGenderReport(TestBase):
          agg_registrants, agg_turnout) = content.get("aggregate")[0]
 
         self.assertEqual(agg_area, '<td class="center">Total</td>')
-        self.assertEqual(agg_sub_race, '<td class="center">N/A</td>')
-        self.assertEqual(agg_gender, '<td class="center">N/A</td>')
+        self.assertEqual(agg_sub_race, '<td class="center"></td>')
+        self.assertEqual(agg_gender, '<td class="center"></td>')
         # 60 + 80
         self.assertEqual(agg_voters, '<td class="center">140</td>')
         # 100 + 120

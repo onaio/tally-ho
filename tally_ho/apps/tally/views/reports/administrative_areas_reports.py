@@ -4025,7 +4025,7 @@ class DuplicateResultsListDataView(LoginRequiredMixin,
         data = self.request.POST.get('data')
         keyword = self.request.POST.get('search[value]')
 
-        qs = qs.filter(tally__id=tally_id, form_state=FormState.ARCHIVED)
+        qs = qs.filter(tally__id=tally_id, form_state=FormState.UNSUBMITTED)
 
         duplicate_result_forms =\
             get_result_form_with_duplicate_results(

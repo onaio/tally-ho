@@ -228,7 +228,9 @@ class FormListView(LoginRequiredMixin,
                                   error_message=_(error) if error else None,
                                   show_create_form_button=True,
                                   result_forms_download_url=download_url,
-                                  languageDE=language_de))
+                                  languageDE=language_de,
+                                  enable_responsive=False,
+                                  enable_scroll_x=True))
 
 
 class FormNotReceivedListView(FormListView):
@@ -251,7 +253,9 @@ class FormNotReceivedListView(FormListView):
                                       'form-not-received-data',
                                       kwargs={'tally_id': tally_id}),
                                   tally_id=tally_id,
-                                  languageDE=language_de))
+                                  languageDE=language_de,
+                                  enable_responsive=False,
+                                  enable_scroll_x=True))
 
 
 class FormNotReceivedDataView(FormListDataView):

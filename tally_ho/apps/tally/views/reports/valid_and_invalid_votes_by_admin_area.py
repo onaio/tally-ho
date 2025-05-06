@@ -187,7 +187,7 @@ class ValidAndInvalidVotesByAdminAreasDataView(
         if column in self.columns:
             col_value = row[column]
             return str(
-                '<td class="center" style="padding-left: 10px;">'
+                '<td class="center"">'
                 f'{col_value}</td>'
                 )
         else:

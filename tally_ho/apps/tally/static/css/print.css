@@ -20,4 +20,32 @@ a:link:after, a:visited:after {
 footer {
     display: none;
 }
+
+/* DataTables and table print tweaks */
+.dataTables_wrapper {
+    overflow-x: auto !important;
+    width: 100vw !important;
+}
+table.dataTable {
+    font-size: 10px !important;
+    width: 100% !important;
+    table-layout: auto !important;
+    white-space: nowrap !important;
+}
+table.dataTable th, table.dataTable td {
+    padding: 2px 4px !important;
+    white-space: nowrap !important;
+}
+/* Hide DataTables controls for print */
+.dataTables_length, .dataTables_filter, .dataTables_info, .dataTables_paginate, .dt-buttons {
+    display: none !important;
+}
+}
+
+/* Prevent table headers from wrapping/overflowing in all views */
+table.dataTable th {
+    white-space: nowrap !important;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    min-width: 80px; /* Optional: prevents columns from becoming too narrow */
 }
