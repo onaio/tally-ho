@@ -6,28 +6,40 @@
 
 <h1 class="do-not-print">{% trans 'Print Cover' %}</h1>
 
-{% if result_form.audit %}
-<h2>{% trans 'Quarantined' %}</h2>
-{% else %}
-<h2>{% trans 'Successful Archive' %}</h2>
-{% endif %}
+<div class="form-destination {% if result_form.audit %}audit-destination{% else %}archive-destination{% endif %}">
+    {% if result_form.audit %}
+    <h2 class="audit-header destination-banner">{% trans '❌ Quarantined - Requires Audit' %}</h2>
+    {% else %}
+    <h2 class="archive-header destination-banner">{% trans '✅ Successful Archive' %}</h2>
+    {% endif %}
+</div>
 
 <table id="coverform" class="print-table">
     <tr>
         {% if result_form.audit %}
-        <td colspan="2">{% trans 'Quarantined Form' %}</td>
-        {% for check in result_form.audit.quarantine_checks.all %}
-    </tr>
-    <tr class="underline">
-        <td>
-            {% trans 'Failed quarantine check:' %}
-            {{ check.local_name }}
-        </td>
-        {% endfor %}
+        <td colspan="2" class="audit-cell audit-form-header">{% trans 'Quarantined Form' %}</td>
         {% else %}
-        <td colspan="2">{% trans 'Archived Form' %}</td>
+        <td colspan="2" class="archive-cell archive-form-header">{% trans 'Archived Form' %}</td>
         {% endif %}
     </tr>
+
+    {% if result_form.audit and result_form.audit.quarantine_checks.all %}
+    <tr class="failed-checks-row">
+        <td colspan="2" class="failed-checks-cell">
+            <div class="failed-checks-section">
+                <h4 class="failed-checks-title">{% trans 'Failed Quarantine Checks:' %}</h4>
+                <ul class="failed-checks-list">
+                    {% for check in result_form.audit.quarantine_checks.all %}
+                    <li>
+                        <span class="check-icon">❗</span>
+                        <span class="check-name">{{ check.local_name }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </td>
+    </tr>
+    {% endif %}
     {% include 'print_cover_common.html' %}
     <tr class="underline">
         <td>{% trans 'Number of Registrants:' %} </td><td>{{ result_form.station.registrants }}</td>
@@ -45,12 +57,38 @@
         <td>{{ user.username }}</td>
     </tr>
 </table>
+
+<div id="next-steps-container" class="next-steps {% if result_form.audit %}audit-next-steps{% else %}archive-next-steps{% endif %}">
+    <h3 class="next-steps-title">{% trans 'Next Steps' %}</h3>
+    {% if result_form.audit %}
+    <p class="audit-steps next-steps-instruction">{% trans 'This form requires audit. Please forward to the audit team for review.' %}</p>
+    {% else %}
+    <p class="archive-steps next-steps-instruction">{% trans 'This form has been successfully archived.' %}</p>
+    {% endif %}
+</div>
+
+<div id="print-confirm-instructions" class="do-not-print print-confirm-instructions">
+  <p>
+    {% if result_form.audit %}
+      {% trans "After printing, click the button below to send this form to Audit." %}
+    {% else %}
+      {% trans "After printing, click the button below to archive this form." %}
+    {% endif %}
+  </p>
+</div>
+
 <div class="do-not-print">
 <form name="print_cover_form" method='post' action="">
     {% csrf_token %}
     <input type="hidden" name="result_form" value="{{result_form.pk}}" />
     <button class="btn btn-primary" type="button" name="print_cover_form" onclick="print_cover()">{% trans 'Print' %}</button>
-    <button class="btn btn-success" type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">{% trans 'Print Successful' %}</button>
+    <button class="btn btn-success btn-lg" type="submit" id="submit_cover_form" name="submit_cover_form" style="display:none">
+      {% if result_form.audit %}
+        {% trans "Finish and Send to Audit" %}
+      {% else %}
+        {% trans "Finish and Archive" %}
+      {% endif %}
+    </button>
 </form>
 </div>
 {% endblock %}
@@ -58,4 +96,178 @@
 {% block javascript %}
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/print_button_check.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-destination {
+        margin: 30px 0 30px 0;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 2rem;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .destination-banner {
+        font-size: 2.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin: 0;
+    }
+    .audit-destination {
+        background-color: #ffeaea;
+        border: 3px solid #ff0000;
+        color: #b30000;
+    }
+    .archive-destination {
+        background-color: #eaffea;
+        border: 3px solid #00b300;
+        color: #006600;
+    }
+    .next-steps {
+        margin: 35px 0 0 0;
+        padding: 20px;
+        border-radius: 8px;
+        font-size: 1.3rem;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        border: 2px solid #ccc;
+    }
+    .archive-next-steps {
+        background-color: #f0fff0;
+        border-color: #00b300;
+        color: #006600;
+    }
+    .audit-next-steps {
+        background-color: #fff0f0;
+        border-color: #ff0000;
+        color: #b30000;
+    }
+    .next-steps-title {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+    .next-steps-instruction {
+        font-size: 1.25rem;
+        margin: 0;
+        font-weight: bold;
+    }
+    .audit-header, .archive-header {
+        font-size: 2.2rem;
+        font-weight: bold;
+    }
+    .audit-cell {
+        background-color: #fff3f3;
+        color: #ff0000;
+        font-weight: bold;
+    }
+    .archive-cell {
+        background-color: #f3fff3;
+        color: #008000;
+        font-weight: bold;
+    }
+    /* RTL Support */
+    [dir="rtl"] .next-steps, [dir="rtl"] .form-destination {
+        text-align: right;
+    }
+    /* Styles for Failed Quarantine Checks */
+    .audit-form-header, .archive-form-header {
+        font-size: 1.3em; /* Make header slightly larger */
+        padding: 10px;
+        font-weight: bold;
+    }
+
+    .failed-checks-row .failed-checks-cell {
+        padding: 10px 15px;
+        background-color: #fff8f8; /* Light warning background for the cell */
+        border-bottom: 1px solid #e0c0c0; /* A slightly stronger border */
+    }
+
+    .failed-checks-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #b30000; /* Matching audit destination color */
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+
+    .failed-checks-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+
+    .failed-checks-list li {
+        padding: 6px 0;
+        display: flex;
+        align-items: center;
+        font-size: 1.1em;
+        border-bottom: 1px dashed #f0d0d0; /* Lighter separator for checks */
+    }
+
+    .failed-checks-list li:last-child {
+        border-bottom: none;
+    }
+
+    .check-icon {
+        margin-right: 10px;
+        color: #b30000; /* Matching audit destination color */
+        font-size: 1.3em; /* Slightly larger icon */
+        line-height: 1; /* Ensure proper alignment */
+    }
+
+    .check-name {
+        font-weight: bold;
+    }
+
+    [dir="rtl"] .failed-checks-list {
+        padding-left: initial; /* Reset for RTL */
+        padding-right: 0;     /* Standard RTL padding */
+    }
+
+    [dir="rtl"] .check-icon {
+        margin-right: 0;
+        margin-left: 10px;
+    }
+    /* End Styles for Failed Quarantine Checks */
+    /* Print-specific styles */
+    @media print {
+        .form-destination, .next-steps {
+            box-shadow: none !important;
+        }
+        .form-destination {
+            font-size: 2.5rem !important;
+            padding: 30px 0 !important;
+            margin: 40px 0 40px 0 !important;
+        }
+        .destination-banner {
+            font-size: 2.5rem !important;
+        }
+        .next-steps {
+            font-size: 1.5rem !important;
+            padding: 25px !important;
+            margin: 40px 0 0 0 !important;
+        }
+        .next-steps-title {
+            font-size: 1.7rem !important;
+        }
+        .next-steps-instruction {
+            font-size: 1.4rem !important;
+        }
+    }
+    .btn-lg {
+      font-size: 1.3em;
+      padding: 12px 32px;
+    }
+    .print-confirm-instructions {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #b30000;
+      font-size: 1.1em;
+    }
+</style>
 {% endblock %}
