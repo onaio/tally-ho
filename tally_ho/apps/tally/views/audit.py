@@ -330,6 +330,18 @@ class PrintCoverView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.AUDIT)
 
+        # Check if cover printing is enabled for audit
+        if not result_form.tally.print_cover_in_audit:
+            # If printing is disabled, move directly to next state
+            # Track audit clerks result form processing time
+            if groups.user_groups(self.request.user)[0] == groups.AUDIT_CLERK:
+                encoded_start_time = self.request.session.get(
+                    'encoded_result_form_audit_start_time')
+                save_result_form_processing_stats(
+                    self.request, encoded_start_time, result_form)
+            del self.request.session['result_form']
+            return redirect('audit_dashboard', tally_id=tally_id)
+
         problems = result_form.audit.get_problems()
 
         return self.render_to_response(
