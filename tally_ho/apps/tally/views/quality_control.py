@@ -237,6 +237,14 @@ class PrintView(LoginRequiredMixin,
         result_form = get_object_or_404(ResultForm, pk=pk)
         form_in_state(result_form, FormState.QUALITY_CONTROL)
 
+        # Check if cover printing is enabled for quality control
+        if not result_form.tally.print_cover_in_quality_control:
+            # If printing is disabled, move directly to next state
+            result_form.form_state = FormState.AUDIT if result_form.audit else\
+                FormState.ARCHIVED
+            result_form.save()
+            return redirect(self.success_url, tally_id=result_form.tally.id)
+
         return self.render_to_response(
             self.get_context_data(result_form=result_form))
 
