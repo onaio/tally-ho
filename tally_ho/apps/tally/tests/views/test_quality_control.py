@@ -1007,6 +1007,7 @@ class TestQualityControl(TestBase):
         create_station(center)
         result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,
                                          center=center,
+                                         tally=self.tally,
                                          station_number=station_number)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.PrintView.as_view()
