@@ -454,16 +454,16 @@ class ConfirmationView(LoginRequiredMixin,
 
         if center:
             pending_station_forms = ResultForm.get_pending_intake_for_station(
-                tally, center, station_number
+                tally.id, center.code, station_number
             )
             intaken_station_forms = ResultForm.get_intaken_for_station(
-                tally, center, station_number
+                tally.id, center.code, station_number
             )
             pending_center_forms = ResultForm.get_pending_intake_for_center(
-                tally, center
+                tally.id, center.code
             )
             intaken_center_forms = ResultForm.get_intaken_for_center(
-                tally, center
+                tally.id, center.code
             )
 
         if 'result_form' in self.request.session:
