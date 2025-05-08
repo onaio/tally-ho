@@ -848,6 +848,30 @@ class TestIntake(TestBase):
         self.assertEqual(request.session.get('result_form'),
                          result_form.pk)
 
+    def test_print_cover_get_with_no_print_cover_in_intake(self):
+        self._create_or_login_intake_clerk()
+        tally = create_tally()
+        tally.users.add(self.user)
+        tally.print_cover_in_intake = False
+        tally.save()
+        result_form = create_result_form(tally=tally)
+        result_form.form_state = FormState.INTAKE
+        result_form.save()
+        view = views.PrintCoverView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        response = view(request, tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('intaken', kwargs={'tally_id': tally.pk}),
+                      response['location'])
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state,
+                         FormState.DATA_ENTRY_1)
+        self.assertFalse(updated_result_form.duplicate_reviewed)
+        self.assertEqual(request.session.get('result_form'),
+                         result_form.pk)
+
     def test_print_cover_post_supervisor(self):
         self._create_and_login_user()
         tally = create_tally()
