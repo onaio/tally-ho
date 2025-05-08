@@ -698,6 +698,30 @@ class TestClearance(TestBase):
         self.assertContains(response, '42')
         self.assertContains(response, date_str)
 
+    def test_print_cover_get_with_no_print_cover_in_clearance(self):
+        username = 'alice'
+        self._create_and_login_user(username=username)
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        tally.print_cover_in_clearance = False
+        tally.save()
+        result_form = create_result_form(form_state=FormState.CLEARANCE,
+                                         tally=tally,
+                                         station_number=42)
+        create_clearance(result_form, self.user, reviewed_team=True)
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        view = views.PrintCoverView.as_view()
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response,
+                             f'/clearance/{tally.pk}/',
+                             fetch_redirect_response=False)
+        self.assertNotIn('result_form', request.session)
+
     def test_create_clearance_get(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)

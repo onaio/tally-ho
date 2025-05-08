@@ -231,6 +231,12 @@ class PrintCoverView(LoginRequiredMixin,
         form_in_state(result_form, FormState.CLEARANCE)
         problems = result_form.clearance.get_problems()
 
+        # Check if cover printing is enabled for clearance
+        if not result_form.tally.print_cover_in_clearance:
+            # If printing is disabled, mark as printed and move to next state
+            del self.request.session['result_form']
+            return redirect('clearance', tally_id=tally_id)
+
         return self.render_to_response(
             self.get_context_data(result_form=result_form,
                                   username=self.request.user.username,

@@ -21,6 +21,7 @@ from django.views.generic import (
 )
 from guardian.mixins import LoginRequiredMixin
 from celery.result import AsyncResult
+from django.contrib import messages
 
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
@@ -439,6 +440,28 @@ class TallyUpdateView(LoginRequiredMixin,
                                         form=form)
 
         return self.render_to_response(context)
+
+    def form_valid(self, form):
+        """Handle a valid form submission."""
+        try:
+            super().form_valid(form)
+            messages.success(self.request, _('Tally updated successfully'))
+            return self.render_to_response(self.get_context_data(
+                form=form,
+                tally_id=self.kwargs['tally_id']
+            ))
+        except Exception as e:
+            messages.error(
+                self.request, _('Error updating tally: %s') % str(e))
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        """Handle an invalid form submission."""
+        messages.error(self.request, _('Please correct the errors below.'))
+        return self.render_to_response(self.get_context_data(
+            form=form,
+            tally_id=self.kwargs['tally_id']
+        ))
 
 
 class TallyRemoveView(LoginRequiredMixin,

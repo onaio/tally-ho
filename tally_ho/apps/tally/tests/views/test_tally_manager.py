@@ -18,8 +18,12 @@ class TestTallyManager(TestBase):
     def setUp(self):
         self.factory = RequestFactory()
         self._create_permission_groups()
-        self._create_and_login_user()
+        self._create_and_login_user(username='manager', password='pass')
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+        self.client.login(username='manager', password='pass')
+        self.tally = create_tally()
+        self.user.tally = self.tally
+        self.user.save()
 
     def test_set_user_timeout_get(self):
         tally = create_tally()
@@ -198,3 +202,73 @@ class TestTallyManager(TestBase):
         response.render()
         self.assertEqual(request.session['url_name'], 'user-tally-list')
         self.assertEqual(request.session['url_keyword'], 'tally_id')
+
+    def test_get_update_view_renders_form(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.TallyUpdateView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(
+            request,
+            tally_id=tally.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Edit Tally')
+        self.assertContains(response, self.tally.name)
+
+    def test_post_update_view_success_message(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.TallyUpdateView.as_view()
+        super_admin =\
+            self._create_user(username='super_admin', password='pass')
+        self._add_user_to_group(super_admin, groups.SUPER_ADMINISTRATOR)
+        tally.users.add(super_admin)
+        super_admins = UserProfile.objects.filter(
+            tally=tally,
+            groups__name__exact=groups.SUPER_ADMINISTRATOR)
+        data = {
+            'name': 'updated tally',
+            'administrators': [s.pk for s in super_admins],
+            'print_cover_in_intake': True,
+            'print_cover_in_clearance': True,
+            'print_cover_in_quality_control': True,
+            'print_cover_in_audit': True,
+        }
+        request = self.factory.post('/', data=data)
+        configure_messages(request)
+        request.user = self.user
+        request.session = {}
+        response = view(
+            request,
+            tally_id=self.tally.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Tally updated successfully')
+        self.tally.refresh_from_db()
+        self.assertEqual(self.tally.name, 'updated tally')
+
+    def test_post_update_view_error_message(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.TallyUpdateView.as_view()
+        super_admin =\
+            self._create_user(username='super_admin', password='pass')
+        self._add_user_to_group(super_admin, groups.SUPER_ADMINISTRATOR)
+        tally.users.add(super_admin)
+        super_admins = UserProfile.objects.filter(
+            tally=tally,
+            groups__name__exact=groups.SUPER_ADMINISTRATOR)
+        data = {
+            'name': '',
+            'administrators': [s.pk for s in super_admins],
+        }
+        request = self.factory.post('/', data=data)
+        configure_messages(request)
+        request.user = self.user
+        request.session = {}
+        response = view(
+            request,
+            tally_id=self.tally.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Please correct the errors below.')

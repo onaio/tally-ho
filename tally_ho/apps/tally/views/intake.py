@@ -362,6 +362,14 @@ class PrintCoverView(LoginRequiredMixin,
                                           [FormState.INTAKE], result_form)
         form_in_state(result_form, possible_states)
 
+        # Check if cover printing is enabled for intake
+        if not result_form.tally.print_cover_in_intake:
+            # If printing is disabled, move directly to next state
+            result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.duplicate_reviewed = False
+            result_form.save()
+            return redirect('intaken', tally_id=tally_id)
+
         return self.render_to_response(
             self.get_context_data(
                     result_form=result_form,

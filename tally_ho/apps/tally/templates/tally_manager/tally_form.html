@@ -11,32 +11,71 @@
 {% endif %}
 
 {% if messages %}
-<ul class="text-info">
+<div class="messages">
     {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+    </div>
     {% endfor %}
-</ul>
+</div>
 {% endif %}
 
 <form action="" method="post" enctype="multipart/form-data">
     {% if form.non_field_errors %}
-    <div class="text-danger">
-        {{ form.non_field_errors }}<br/>
+    <div class="alert alert-danger">
+        {{ form.non_field_errors }}
     </div>
     {% endif %}
     <table class="table table-bordered">
         <tr>
             <td>{% trans form.name.label %}:</td>
             <td>
-                {{ form.name.errors }}
+                {% if form.name.errors %}
+                <div class="alert alert-danger">
+                    {{ form.name.errors }}
+                </div>
+                {% endif %}
                 {{ form.name }}
             </td>
         </tr>
         <tr>
             <td>{% trans form.administrators.label %}:</td>
             <td>
-                {{ form.administrators.errors }}
+                {% if form.administrators.errors %}
+                <div class="alert alert-danger">
+                    {{ form.administrators.errors }}
+                </div>
+                {% endif %}
                 {{ form.administrators }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans 'Print Cover Options' %}:</td>
+            <td>
+                <div class="checkbox">
+                    <label>
+                        {{ form.print_cover_in_intake }}
+                        {% trans 'Enable cover printing in Intake' %}
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        {{ form.print_cover_in_clearance }}
+                        {% trans 'Enable cover printing in Clearance' %}
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        {{ form.print_cover_in_quality_control }}
+                        {% trans 'Enable cover printing in Quality Control' %}
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        {{ form.print_cover_in_audit }}
+                        {% trans 'Enable cover printing in Audit' %}
+                    </label>
+                </div>
             </td>
         </tr>
     </table>
@@ -61,4 +100,15 @@
     {% csrf_token %}
 </form>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-hide alerts after 5 seconds
+    $(document).ready(function() {
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+    });
+</script>
 {% endblock %}

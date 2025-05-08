@@ -20,7 +20,13 @@ disable_copy_input = {
 class TallyForm(forms.ModelForm):
     class Meta:
         model = Tally
-        fields = ['name']
+        fields = [
+            'name',
+            'print_cover_in_intake',
+            'print_cover_in_clearance',
+            'print_cover_in_quality_control',
+            'print_cover_in_audit'
+        ]
 
     administrators = forms.ModelMultipleChoiceField(
         queryset=UserProfile.objects.filter(
@@ -29,7 +35,6 @@ class TallyForm(forms.ModelForm):
         label=_('Administrators'),)
 
     def __init__(self, *args, **kwargs):
-
         if 'instance' in kwargs and kwargs['instance']:
             initial = kwargs.setdefault('initial', {})
             initial['administrators'] = [
@@ -37,6 +42,15 @@ class TallyForm(forms.ModelForm):
 
         super(TallyForm, self).__init__(*args, **kwargs)
         self.fields['name'].widget.attrs.update({'class': 'form-control'})
+
+        self.fields['print_cover_in_intake'].label =\
+            _('Enable Cover Printing in Intake')
+        self.fields['print_cover_in_clearance'].label =\
+            _('Enable Cover Printing in Clearance')
+        self.fields['print_cover_in_quality_control'].label =\
+            _('Enable Cover Printing in Quality Control')
+        self.fields['print_cover_in_audit'].label =\
+            _('Enable Cover Printing in Audit')
 
     def clean(self):
         if self.is_valid():

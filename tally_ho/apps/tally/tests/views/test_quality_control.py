@@ -1007,6 +1007,7 @@ class TestQualityControl(TestBase):
         create_station(center)
         result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,
                                          center=center,
+                                         tally=self.tally,
                                          station_number=station_number)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.PrintView.as_view()
@@ -1063,6 +1064,25 @@ class TestQualityControl(TestBase):
         request = self.factory.post('/', data=data)
         request.session = data
         request.user = self.user
+        response = view(request, tally_id=self.tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/quality-control/success', response['location'])
+
+        result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+
+    def test_print_cover_get_with_no_print_cover_in_quality_control(self):
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        tally.print_cover_in_quality_control = False
+        tally.save()
+        result_form = create_result_form(form_state=FormState.QUALITY_CONTROL,
+                                         tally=tally)
+        view = views.PrintView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
         response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 302)
         self.assertIn('/quality-control/success', response['location'])

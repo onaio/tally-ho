@@ -755,6 +755,34 @@ class TestAudit(TestBase):
         self.assertContains(response, self.user.username)
         self.assertContains(response, 'Problem')
 
+    def test_print_cover_get_with_no_print_cover_in_audit(self):
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        tally.print_cover_in_audit = False
+        tally.save()
+        result_form = create_result_form(form_state=FormState.AUDIT,
+                                         tally=tally)
+        create_audit(result_form, self.user)
+
+        view = views.PrintCoverView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {
+            'result_form': result_form.pk,
+            'encoded_result_form_audit_start_time':
+                self.encoded_result_form_audit_start_time
+        }
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response,
+                             f'/audit/{tally.pk}/',
+                             fetch_redirect_response=False)
+        self.assertNotIn('result_form', request.session)
+        self.assertTrue(ResultFormStats.objects.filter(
+            result_form=result_form, user=self.user.userprofile).exists())
     def test_print_cover_post(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)

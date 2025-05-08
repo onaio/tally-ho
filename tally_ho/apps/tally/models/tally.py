@@ -17,6 +17,14 @@ class Tally(BaseModel):
         max_length=255, null=False, blank=False, unique=True)
     active = models.BooleanField(default=True)
     disable_reason = EnumIntegerField(DisableReason, null=True)
+    print_cover_in_intake = models.BooleanField(default=True,
+        help_text='Enable/disable cover printing in Intake stage')
+    print_cover_in_clearance = models.BooleanField(default=True,
+        help_text='Enable/disable cover printing in Clearance stage')
+    print_cover_in_quality_control = models.BooleanField(default=True,
+        help_text='Enable/disable cover printing in Quality Control stage')
+    print_cover_in_audit = models.BooleanField(default=True,
+        help_text='Enable/disable cover printing in Audit stage')
 
     def __str__(self):
         return u'%d - %s' % (self.id, self.name)
