@@ -109,6 +109,44 @@ def build_result_and_recon_output(result_form):
     return output
 
 
+def build_candidate_results_output(result_form):
+    """Build dict of data from a result form and add reconciliation information
+    if it has a reconciliation form.
+
+    :param result_form: The result form to build data for.
+
+    :returns: A dict of information about this result form.
+    """
+    output = {
+        'ballot': result_form.ballot.number,
+        'center': result_form.center.code,
+        'station': result_form.station_number,
+        'gender': result_form.gender_name,
+        'barcode': result_form.barcode,
+        'election_level': result_form.ballot.electrol_race.election_level,
+        'sub_race_type': result_form.ballot.electrol_race.ballot_name,
+        'voting_district': result_form.center.sub_constituency.code,
+        'number_registrants': result_form.station.registrants
+    }
+
+    recon = result_form.reconciliationform
+
+    if recon:
+        output.update({
+            'invalid_ballots': recon.number_invalid_votes,
+            'unstamped_ballots': recon.number_unstamped_ballots,
+            'cancelled_ballots': recon.number_cancelled_ballots,
+            'spoilt_ballots': recon.number_spoiled_ballots,
+            'unused_ballots': recon.number_unused_ballots,
+            'number_of_voter_cards_in_the_ballot_box':
+            recon.number_of_voter_cards_in_the_ballot_box,
+            'received_ballots_papers': recon.number_ballots_received,
+            'valid_votes': recon.number_valid_votes,
+        })
+
+    return output
+
+
 def save_barcode_results(complete_barcodes, output_duplicates=False,
                          output_to_file=True, tally_id=None):
     """Save a list of results for all candidates in all result forms.
