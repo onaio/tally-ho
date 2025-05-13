@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Always specify the exception type in except blocks.
+Why: Pyflakes (F).

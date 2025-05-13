@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: All function arguments should be used, unless underscore-prefixed.
+Why: Pyflakes (F).

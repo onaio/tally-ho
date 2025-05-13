@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Only one statement per line.
+Why: Pycodestyle (E701, E702).

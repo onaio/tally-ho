@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Do not generate unused imports or variables, unless the variable is underscore-prefixed (e.g., _unused).
+Why: Pyflakes (F) and pycodestyle (E) will flag these.
