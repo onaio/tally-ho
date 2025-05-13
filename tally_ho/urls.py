@@ -31,7 +31,8 @@ from tally_ho.apps.tally.views.data import (
     region_list_view,
     office_list_view,
 )
-from tally_ho.apps.tally.views.reports import administrative_areas_reports
+from tally_ho.apps.tally.views.reports import (
+    administrative_areas_reports, candidate_results)
 from tally_ho.apps.tally.views.reports import progress_by_sub_races_reports
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.apps.tally.views.reports import races
@@ -525,6 +526,12 @@ urlpatterns = [
     re_path(r'^super-administrator/results/(?P<tally_id>(\d+))/$',
             super_admin.ResultExportView.as_view(),
             name='result-export'),
+    re_path(r'^super-administrator/candidate-results/(?P<tally_id>(\d+))/$',
+            candidate_results.CandidateResultsView.as_view(),
+            name='candidate-results'),
+    re_path(r'^super-administrator/candidate-results-data/(?P<tally_id>(\d+))/$',
+            candidate_results.CandidateResultsDataView.as_view(),
+            name='candidate-results-data'),
     re_path(r'^super-administrator/remove-center/(?P<tally_id>(\d+))/$',
             super_admin.RemoveCenterView.as_view(),
             name='remove-center'),

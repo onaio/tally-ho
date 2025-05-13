@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Do not use from module import *.
+Why: Pyflakes (F).

@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% load i18n static %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/responsive.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/select.dataTables.min.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "css/bootstrap-select.min.css" %}">
+{% endblock %}
+
+{% block javascript %}
+{% include "data/table.html" with export_file_name='form_results_report' server_side=True tally_id=tally_id get_centers_stations_url=get_centers_stations_url results_download_url=results_download_url centers_by_mun_results_download_url=centers_by_mun_results_download_url languageDE=languageDE deployedSiteUrl=deployedSiteUrl %}
+<script>
+$(document).ready(() => {
+  const dt_language = {{ languageDE|safe }};
+  const candidatesResultsReportUrl = '{{ remote_url }}';
+  const buildTablePayload = (d, customPayloadObj=undefined) => {
+    let payload = d;
+    if (customPayloadObj) {
+      payload = {
+        ...payload,
+        ...customPayloadObj,
+      }
+    }
+    for (let i = 0; i < payload.columns.length - 1; i++) {
+      payload[`columns[${i}][data]`] = payload.columns[i].data
+      payload[`columns[${i}][name]`] = payload.columns[i].name
+      payload[`columns[${i}][searchable]`] = payload.columns[i].searchable
+      payload[`columns[${i}][search][value]`] = payload.columns[i].search.value
+      payload[`columns[${i}][search][regex]`] = payload.columns[i].search.regex
+      payload[`columns[${i}][data]`] = payload.columns[i].data
+    }
+    payload['order[0][column]'] = payload.columns[payload.order[0].column].data;
+    payload['order[0][dir]'] = payload.order[0].dir;
+    payload['search[value]'] = payload.search.value;
+    payload['search[regex]'] = payload.search.regex;
+    payload['columns'] = payload.columns;
+    payload['order'] = payload.order;
+    payload['draw'] = payload.draw;
+    payload['start'] = payload.start;
+    payload['length'] = payload.length;
+    return payload;
+  };
+
+  const resetFilters = (attributesList) => {
+    for (let i = 0; i < attributesList.length; i++) {
+        $(attributesList[i]).val(null);
+        $(attributesList[i]).change();
+    }
+  };
+
+  const table = $('#candidate-results-report').DataTable({
+        language: dt_language,
+        order: [[0, "desc"]],
+        lengthMenu: [
+          [10, 25, 50, 100, 500, -1],
+          [10, 25, 50, 100, 500, 'Show all'],
+        ],
+        columnDefs: [
+          {
+            orderable: true,
+            searchable: true,
+            className: "center",
+            targets: '_all',
+          },
+        ],
+        searching: true,
+        processing: true,
+        serverSide: true,
+        stateSave: true,
+        ajax: {
+          url: candidatesResultsReportUrl,
+          type: 'GET',
+          data: (d) => {
+            return buildTablePayload(d);
+          },
+          traditional: true,
+          dataType: 'json',
+        },
+        columns: {{ dt_columns|safe }},
+        dom:
+          "<'row'<'col-sm-2'B><'col-sm-6'l><'col-sm-4'f>>" +
+          "<'row'<'col-sm-12'tr>>" +
+          "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+        buttons: [{
+          extend: "csv",
+          filename: `final_candidate_results_${Date.now()}`,
+        }],
+        responsive: false,
+        scrollX: true,
+    });
+
+  $('#in-report').on('click', '#filter-in-report', function () {
+    let data = [];
+    let subConCodes = $('select#filter-sub-cons').val();
+    let electionLevelNames = $('select#election-level-names').val();
+    let subRaceTypeNames = $('select#sub-race-names').val();
+
+    if (subConCodes || electionLevelNames || subRaceTypeNames) {
+      const items = {
+        sub_con_codes: subConCodes !== null ? subConCodes : [],
+        election_level_names: electionLevelNames !== null ? electionLevelNames : [],
+        sub_race_type_names: subRaceTypeNames !== null ? subRaceTypeNames : [],
+      };
+
+      data = items;
+    }
+
+    data = data.length
+      ? data.filter((item) =>
+          Object.values(item).every((value) => typeof value !== 'undefined')
+        )
+      : data;
+    table.settings()[0].ajax.data = (d) => {
+      return buildTablePayload(d, { data: JSON.stringify(data) });
+    };
+
+    table.ajax.reload();
+  });
+
+  $('#in-report').on('click', '#reset-filters-in-report', function () {
+    const attributesList = [
+      'select#election-level-names',
+      'select#sub-race-names',
+      'select#filter-sub-cons',
+    ];
+    resetFilters(attributesList);
+    table.settings()[0].ajax.data = (d) => {
+      return buildTablePayload(d, { data: JSON.stringify([]) });
+    };
+    table.ajax.reload();
+  });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+
+<h1>{% trans 'Candidate Results' %}</h1>
+<br>
+
+<div style="margin-top: 2em; margin-left: -0.5em; margin-bottom: 2em;">
+    <div id="in-report" class="row">
+      <div class="col-12" style="margin-bottom: 2em;">
+        <div class="col-sm-4" style="padding-left: 0.5em;">
+          <p style="text-align: left; margin-left: .5em;">{% trans 'Election Levels' %}</p>
+          <select class="selectpicker" id="election-level-names" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
+            {% for name in election_level_names %}
+              <option value={{name}}>{{name}}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-4" style="padding-left: 0.5em;">
+          <p style="text-align: left; margin-left: .5em;">{% trans 'Sub Races' %}</p>
+          <select class="selectpicker" id="sub-race-names" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Race Type">
+            {% for name in sub_race_type_names %}
+              <option value={{name}}>{{name}}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-4">
+          <p style="text-align: left; margin-left: .5em;">{% trans 'Municipalities' %}</p>
+          <select  class="selectpicker" id="filter-sub-cons" name="report_length" aria-controls="report" multiple data-actions-box="true" title="Select Sub Constituency">
+            {% for sub_con in sub_cons %}
+              <option value={{sub_con.code}}>{{sub_con.name}}-{{sub_con.code}}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="col-12" style="margin-bottom: 2em;">
+        <div class="col-sm-3" style="float: right">
+          <div class="card">
+            <div class="card-body">
+              <p class="card-text" style="text-align: left;">{% trans 'Filters.' %}</p>
+              <button style="float: left;" id="filter-in-report" class="btn btn-default btn-small">{% trans 'Apply' %}</button>
+              <button style="float: left; margin-left: 1em;" id="reset-filters-in-report" class="btn btn-default btn-small">{% trans 'Reset' %}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<table class="display" id="candidate-results-report">
+  <br>
+  <thead>
+      <tr>
+        <th>{% trans 'Ballot' %}</th>
+        <th>{% trans 'Race Number' %}</th>
+        <th>{% trans 'Center' %}</th>
+        <th>{% trans 'Station' %}</th>
+        <th>{% trans 'Gender' %}</th>
+        <th>{% trans 'Barcode' %}</th>
+        <th>{% trans 'Election Level' %}</th>
+        <th>{% trans 'Sub Race Type' %}</th>
+        <th>{% trans 'Voting District' %}</th>
+        <th>{% trans 'Order' %}</th>
+        <th>{% trans 'Candidate Name' %}</th>
+        <th>{% trans 'Candidate ID' %}</th>
+        <th>{% trans 'Votes' %}</th>
+        <th>{% trans 'Invalid Ballots' %}</th>
+        <th>{% trans 'Unstamped Ballots' %}</th>
+        <th>{% trans 'Cancelled Ballots' %}</th>
+        <th>{% trans 'Spoilt Ballots' %}</th>
+        <th>{% trans 'Unused Ballots' %}</th>
+        <th>{% trans 'Number of Voter Cards in the Ballot Box' %}</th>
+        <th>{% trans 'Received Ballots Papers' %}</th>
+        <th>{% trans 'Valid Votes' %}</th>
+        <th>{% trans 'Number Registrants' %}</th>
+        <th>{% trans 'Candidate Status' %}</th>
+      </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+{% endblock %} 

@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Do not generate lines with trailing whitespace.
+Why: Pycodestyle (E) will flag this.

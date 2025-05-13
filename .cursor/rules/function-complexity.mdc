@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Keep functions simple, ideally ≤ 10 branches.
+Why: [tool.ruff.mccabe] max-complexity = 10.

@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Use 4 spaces per indentation level, no tabs.
+Why: Pycodestyle (E) enforces this.

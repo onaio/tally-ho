@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Group standard library, third-party, and local imports separately.
+Why: Pycodestyle (E401, E402).

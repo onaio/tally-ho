@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Avoid print() in non-test code.
+Why: Pyflakes (F).

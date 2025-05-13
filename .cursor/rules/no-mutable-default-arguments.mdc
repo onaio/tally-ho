@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: Do not use mutable types (like lists or dicts) as default arguments.
+Why: Pyflakes (F).

@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule: All lines must be ≤ 79 characters.
+Why: Matches [tool.ruff] line-length = 79.
