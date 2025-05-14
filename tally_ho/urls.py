@@ -61,6 +61,10 @@ from tally_ho.apps.tally.views.workflow import (
     RecallRequestDetailView,
     ViewResultFormDetailsView
 )
+from tally_ho.apps.tally.views.reports.overvoted_forms import (
+    OvervotedResultFormsView,
+    OvervotedResultFormsDataView
+)
 
 admin.autodiscover()
 
@@ -1082,6 +1086,12 @@ urlpatterns = [
     path('accounts/', include(accounts_urls)),
     path('admin/', admin.site.urls),
     path('tracking/', include('tracking.urls')),
+    re_path(r'^reports/overvoted-forms/(?P<tally_id>(\d+))/$',
+            OvervotedResultFormsView.as_view(),
+            name='overvoted-forms'),
+    re_path(r'^data/overvoted-forms-data/(?P<tally_id>(\d+))/$',
+            OvervotedResultFormsDataView.as_view(),
+            name='overvoted-forms-data'),
 ]
 
 if settings.DEBUG:
