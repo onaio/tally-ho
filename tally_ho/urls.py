@@ -65,6 +65,10 @@ from tally_ho.apps.tally.views.reports.overvoted_forms import (
     OvervotedResultFormsView,
     OvervotedResultFormsDataView
 )
+from tally_ho.apps.tally.views.reports.administrative_areas_reports import (
+    ClearanceAuditSummaryReportView,
+    ClearanceAuditSummaryReportDataView,
+)
 
 admin.autodiscover()
 
@@ -1092,6 +1096,16 @@ urlpatterns = [
     re_path(r'^data/overvoted-forms-data/(?P<tally_id>(\d+))/$',
             OvervotedResultFormsDataView.as_view(),
             name='overvoted-forms-data'),
+    re_path(
+        r'^reports/clearance-audit-summary/(?P<tally_id>(\d+))/$',
+        ClearanceAuditSummaryReportView.as_view(),
+        name='clearance-audit-summary',
+    ),
+    re_path(
+        r'^reports/clearance-audit-summary-data/(?P<tally_id>(\d+))/$',
+        ClearanceAuditSummaryReportDataView.as_view(),
+        name='clearance-audit-summary-data',
+    ),
 ]
 
 if settings.DEBUG:
