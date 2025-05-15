@@ -4296,3 +4296,174 @@ class ActiveCandidatesVotesListView(LoginRequiredMixin,
             get_export_url='/ajax/get-export/',
             languageDE=language_de,
         ))
+
+class ClearanceAuditSummaryReportView(
+    LoginRequiredMixin,
+    mixins.GroupRequiredMixin,
+    TemplateView,
+):
+    group_required = [groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER]
+    template_name = "reports/clearance_audit_summary.html"
+
+    def get(self, request, *args, **kwargs):
+        tally_id = self.kwargs.get('tally_id')
+        language_de = get_datatables_language_de_from_locale(self.request)
+        columns = (
+            'barcode',
+            'center_code',
+            'station_number',
+            'race',
+            'sub_race',
+            'municipality_name',
+            'municipality_code',
+            'action_prior',
+            'recommendation',
+            'decision',
+            'issue_reason',
+            'supervisor',
+            'last_modified',
+        )
+        dt_columns = [{'data': column} for column in columns]
+        _, _, sub_cons = build_stations_centers_and_sub_cons_list(tally_id)
+        electrol_races = ElectrolRace.objects.filter(tally__id=tally_id)
+        context_data = {
+            'tally_id': tally_id,
+            'remote_url': reverse(
+                'clearance-audit-summary-data',
+                kwargs={'tally_id': tally_id},
+            ),
+            'sub_cons': sub_cons,
+            'races':
+                set(electrol_races.values_list('election_level', flat=True)),
+            'sub_races':
+                set(electrol_races.values_list('ballot_name', flat=True)),
+            'dt_columns': dt_columns,
+            'languageDE': language_de,
+            'deployedSiteUrl': get_deployed_site_url(),
+        }
+        return self.render_to_response(self.get_context_data(**context_data))
+
+class ClearanceAuditSummaryReportDataView(
+    LoginRequiredMixin,
+    mixins.GroupRequiredMixin,
+    mixins.TallyAccessMixin,
+    BaseDatatableView,
+):
+    group_required = [groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER]
+    columns = [
+        'barcode',
+        'center_code',
+        'station_number',
+        'race',
+        'sub_race',
+        'municipality_name',
+        'municipality_code',
+        'action_prior',
+        'recommendation',
+        'decision',
+        'issue_reason',
+        'supervisor',
+        'last_modified',
+    ]
+    order_columns = columns
+
+    def get_initial_queryset(self, data=None):
+        tally_id = self.kwargs.get('tally_id')
+        qs = ResultForm.objects.filter(tally_id=tally_id)
+        tab = 'clearance'
+        municipalities = None
+        races = None
+        sub_races = None
+        if data:
+            tab = data.get('tab', 'clearance')
+            municipalities = data.get('sub_con_codes')
+            races = data.get('election_level_names')
+            sub_races = data.get('sub_race_type_names')
+        if tab == 'clearance':
+            qs = qs.filter(clearances__active=True)
+        elif tab == 'audit':
+            qs = qs.filter(form_state=FormState.AUDIT)
+        if municipalities:
+            qs = qs.filter(center__sub_constituency__code__in=municipalities)
+        if races:
+            qs = qs.filter(ballot__electrol_race__election_level__in=races)
+        if sub_races:
+            qs = qs.filter(ballot__electrol_race__ballot_name__in=sub_races)
+        qs = qs.select_related(
+            'center', 'ballot', 'center__office', 'ballot__electrol_race',
+            'center__sub_constituency'
+        )
+        return [
+            {
+                'barcode': form.barcode,
+                'center_code': form.center.code if form.center else '',
+                'station_number': form.station_number,
+                'race': (
+                    form.ballot.electrol_race.election_level
+                    if form.ballot and form.ballot.electrol_race else ''
+                ),
+                'sub_race': (
+                    form.ballot.electrol_race.ballot_name
+                    if form.ballot and form.ballot.electrol_race else ''
+                ),
+                'municipality_name': (
+                    form.center.sub_constituency.name
+                    if form.center and form.center.sub_constituency else ''
+                ),
+                'municipality_code': (
+                    form.center.sub_constituency.code
+                    if form.center and form.center.sub_constituency else ''
+                ),
+                'action_prior': (
+                    getattr(form, 'clearance_action_prior', '')
+                    if tab == 'clearance'
+                    else getattr(form, 'audit_action_prior', '')
+                ),
+                'recommendation': (
+                    getattr(form, 'clearance_recommendation', '')
+                    if tab == 'clearance'
+                    else getattr(form, 'audit_recommendation', '')
+                ),
+                'decision': getattr(form, 'decision', ''),
+                'issue_reason': getattr(form, 'issue_reason', ''),
+                'supervisor': getattr(form, 'supervisor', ''),
+                'last_modified': getattr(form, 'modified_date_formatted', ''),
+            }
+            for form in qs
+        ]
+
+    def get(self, request, *args, **kwargs):
+        request_data = request.GET.get('data')
+        data = None
+        if request_data:
+            try:
+                data = ast.literal_eval(request_data)
+            except Exception:
+                data = None
+        queryset = self.get_initial_queryset(data)
+        total_records = len(queryset)
+        page = request.GET.get('start', 0)
+        page_size = request.GET.get('length', 10)
+        search = request.GET.get('search[value]', None)
+
+        if search:
+            queryset = [
+                row for row in queryset
+                if search.lower() in str(row).lower()
+            ]
+            total_records = len(queryset)
+
+        if page_size == '-1':
+            page_records = queryset
+        else:
+            page_records = queryset[
+                int(page):int(page) + int(page_size)
+            ]
+
+        response_data = JsonResponse({
+            'draw': int(request.GET.get('draw', 0)),
+            'recordsTotal': total_records,
+            'recordsFiltered': total_records,
+            'data': page_records,
+        })
+        return response_data

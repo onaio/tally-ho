@@ -1,8 +1,10 @@
 import json
 
 from django.test import RequestFactory
+from django.urls import reverse
 
 from tally_ho.apps.tally.models import Station
+from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -19,7 +21,7 @@ from tally_ho.libs.tests.test_base import (
     create_electrol_race, create_result_form, create_station, \
     create_reconciliation_form, create_sub_constituency, create_tally, \
     create_region, create_constituency, create_office, create_result, \
-    create_candidates, TestBase, create_ballot
+    create_candidates, TestBase, create_ballot, create_clearance
 )
 from tally_ho.libs.tests.fixtures.electrol_race_data import (
     electrol_races
@@ -606,4 +608,220 @@ class TestAdministrativeAreasReports(TestBase):
         request.GET = {'data': json.dumps(data)}
         response = admin_reports.get_export(request)
         self.assertEqual(response.status_code, 200)
+
+
+class TestClearanceAuditSummaryReportViews(TestBase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self._create_permission_groups()
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+        self.tally = create_tally()
+        self.tally.users.add(self.user)
+        self.electrol_race = create_electrol_race(
+            self.tally,
+            election_level='Municipal',
+            ballot_name='Individual',
+        )
+        ballot = create_ballot(
+            self.tally,
+            electrol_race=self.electrol_race,
+        )
+        self.region = create_region(tally=self.tally)
+        office = create_office(tally=self.tally, region=self.region)
+        self.constituency = create_constituency(tally=self.tally)
+        self.sc = create_sub_constituency(
+            code=1,
+            field_office='1',
+            ballots=[ballot],
+            tally=self.tally,
+        )
+        center, _ = Center.objects.get_or_create(
+            code=1,
+            mahalla='1',
+            name='1',
+            office=office,
+            region=self.region.name,
+            village='1',
+            active=True,
+            tally=self.tally,
+            sub_constituency=self.sc,
+            center_type=CenterType.GENERAL,
+            constituency=self.constituency,
+        )
+        self.station = create_station(
+            center=center,
+            registrants=50,
+            tally=self.tally,
+            station_number=1,
+            gender=Gender.MALE,
+        )
+        self.result_form = create_result_form(
+            tally=self.tally,
+            form_state=FormState.CLEARANCE,
+            office=office,
+            center=center,
+            station_number=self.station.station_number,
+            ballot=ballot,
+        )
+        create_clearance(self.result_form, user=self.user)
+        self.result_form.save()
+
+    def test_clearance_audit_summary_report_view_renders(self):
+        """
+        Test that the clearance audit summary report view renders correctly
+        """
+        from tally_ho.apps.tally.views.reports.administrative_areas_reports \
+            import ClearanceAuditSummaryReportView
+        from bs4 import BeautifulSoup
+        request = self.factory.get(
+            reverse('clearance-audit-summary',
+                    kwargs={'tally_id': self.tally.pk})
+        )
+        request.user = self.user
+        request.session = {}
+        response = ClearanceAuditSummaryReportView.as_view()(
+            request, tally_id=self.tally.pk
+        )
+        self.assertEqual(response.status_code, 200)
+        content = response.rendered_content if hasattr(
+            response, 'rendered_content') else response.content.decode()
+        doc = BeautifulSoup(content, "html.parser")
+        table_headers = [th.text.strip() for th in doc.find_all('th')]
+        expected_headers = [
+            'Barcode', 'Center Code', 'Station Number', 'Race', 'Sub Race',
+            'Municipality Name', 'Action Prior', 'Recommendation', 'Decision',
+            'Issue Reason', 'Supervisor', 'Last Modified',
+        ]
+        self.assertTrue(
+            any(header in table_headers for header in expected_headers)
+        )
+        remote_url = reverse(
+            'clearance-audit-summary-data',
+            kwargs={'tally_id': self.tally.pk}
+        )
+        self.assertIn(str(self.tally.pk), content)
+        self.assertIn(remote_url, content)
+        self.assertIn('deployedSiteUrl', content)
+
+    def test_clearance_audit_summary_report_data_view_returns_data(self):
+        """
+        Test that the clearance audit summary report data view returns data
+        """
+        from tally_ho.apps.tally.views.reports.administrative_areas_reports \
+            import ClearanceAuditSummaryReportDataView
+        url = reverse(
+            'clearance-audit-summary-data',
+            kwargs={'tally_id': self.tally.pk}
+        )
+        request = self.factory.get(url)
+        request.user = self.user
+        request.session = {}
+        response = ClearanceAuditSummaryReportDataView.as_view()(
+            request, tally_id=self.tally.pk
+        )
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode())
+        self.assertIn('data', content)
+        self.assertGreaterEqual(len(content['data']), 1)
+        row = content['data'][0]
+        expected_keys = [
+            'barcode', 'center_code', 'station_number', 'race', 'sub_race',
+            'municipality_name', 'municipality_code', 'action_prior',
+            'recommendation', 'decision', 'issue_reason', 'supervisor',
+            'last_modified',
+        ]
+        for key in expected_keys:
+            self.assertIn(key, row)
+        self.assertEqual(row['barcode'], self.result_form.barcode)
+        self.assertEqual(row['center_code'], self.result_form.center.code)
+
+    def test_clearance_audit_summary_report_data_view_filtering(self):
+        """
+        Test that the clearance audit summary report data view filters data
+        """
+        from tally_ho.apps.tally.views.reports.administrative_areas_reports \
+            import ClearanceAuditSummaryReportDataView
+        url = reverse(
+            'clearance-audit-summary-data',
+            kwargs={'tally_id': self.tally.pk}
+        )
+        # Filter by race
+        data = {'election_level_names': ['Municipal']}
+        request = self.factory.get(url, {'data': str(data)})
+        request.user = self.user
+        request.session = {}
+        response = ClearanceAuditSummaryReportDataView.as_view()(
+            request, tally_id=self.tally.pk
+        )
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode())
+        for row in content['data']:
+            self.assertEqual(row['race'], 'Municipal')
+
+    def test_clearance_audit_summary_report_data_view_pagination(self):
+        """
+        Test that the clearance audit summary report data view paginates data
+        """
+        from tally_ho.apps.tally.views.reports.administrative_areas_reports \
+            import ClearanceAuditSummaryReportDataView
+        url = reverse(
+            'clearance-audit-summary-data',
+            kwargs={'tally_id': self.tally.pk}
+        )
+        request = self.factory.get(url, {'start': 0, 'length': 1})
+        request.user = self.user
+        request.session = {}
+        response = ClearanceAuditSummaryReportDataView.as_view()(
+            request, tally_id=self.tally.pk
+        )
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 1)
+        row = content['data'][0]
+        self.assertEqual(row['barcode'], self.result_form.barcode)
+
+    def test_clearance_audit_summary_report_view_requires_login(self):
+        """
+        Test that the clearance audit summary report view requires login
+        """
+        from tally_ho.apps.tally.views.reports.administrative_areas_reports \
+            import ClearanceAuditSummaryReportView
+        url = reverse(
+            'clearance-audit-summary',
+            kwargs={'tally_id': self.tally.pk}
+        )
+        request = self.factory.get(url)
+        from django.contrib.auth.models import AnonymousUser
+        request.user = AnonymousUser()
+        request.session = {}
+        response = ClearanceAuditSummaryReportView.as_view()(
+            request, tally_id=self.tally.pk
+        )
+        self.assertIn(response.status_code, [302, 403])
+
+    def test_clearance_audit_summary_report_data_view_empty(self):
+        """
+        Test that the clearance audit summary report data view returns empty
+        data
+        """
+        from tally_ho.apps.tally.views.reports.administrative_areas_reports \
+            import ClearanceAuditSummaryReportDataView
+        # Remove clearance from the form
+        self.result_form.clearances.all().delete()
+        self.result_form.form_state = FormState.ARCHIVED
+        self.result_form.save()
+        url = reverse(
+            'clearance-audit-summary-data',
+            kwargs={'tally_id': self.tally.pk}
+        )
+        request = self.factory.get(url)
+        request.user = self.user
+        request.session = {}
+        response = ClearanceAuditSummaryReportDataView.as_view()(
+            request, tally_id=self.tally.pk
+        )
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode())
+        self.assertEqual(len(content['data']), 0)
 
