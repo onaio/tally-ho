@@ -48,9 +48,12 @@
             <td><a onclick="return change_barcode_entry_mode('scan')" class="btn btn-primary">{% trans "Use barcode reader" %}</a></td>
         </tr>
         </tr>
-        {{ form.tally_id }}
-        {% csrf_token %}
-</table>
+    </table>
+    {% if form.tally_id and form.tally_id.errors %}
+    Tally ID: {{ form.tally_id.errors }}
+    {% endif %}
+    {{ form.tally_id }}
+    {% csrf_token %}
 </form>
 
 {% endblock %}

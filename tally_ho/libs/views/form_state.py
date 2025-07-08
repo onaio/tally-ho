@@ -1,8 +1,8 @@
 from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import gettext_lazy as _
 
-from tally_ho.libs.utils.collections import listify
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.utils.collections import listify
 from tally_ho.libs.views.errors import add_generic_error
 
 
@@ -37,17 +37,23 @@ def form_in_state(result_form, states):
         state_names = get_state_names(states)
 
         raise SuspiciousOperation(
-            _(u"Form not in %(state_name)s.  Return form to %(state)s"
-              % {'state_name': state_names,
-                 'state': result_form.form_state_name}))
+            _(
+                "Form not in %(state_name)s. Return form to %(state)s"
+                % {
+                    "state_name": state_names,
+                    "state": result_form.form_state_name,
+                }
+            )
+        )
 
     return True
 
 
 def form_in_data_entry_state(result_form):
     """Check that result form is in a data entry state."""
-    return form_in_state(result_form, [
-        FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2])
+    return form_in_state(
+        result_form, [FormState.DATA_ENTRY_1, FormState.DATA_ENTRY_2]
+    )
 
 
 def form_in_intake_state(result_form):
