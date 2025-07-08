@@ -62,7 +62,11 @@
         <td>{{ form.clearance_team_reviewed }}</td>
         <td>{{ form.clearance_supervisor_reviewed }}</td>
         <td>{{ form.modified_date }}</td>
+        {% if form.previous_form_state %}
         <td>{{ form.previous_form_state.label }}</td>
+        {% else %}
+        <td></td>
+        {% endif %}
         <td>
         {% if not form.clearance_team_reviewed_bool or not is_clerk %}
             <form name="form_{{ forloop.counter }}" method="post" action="">
