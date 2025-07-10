@@ -40,7 +40,7 @@ SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 
 EXPECTED_FORM_STATE_ERROR = (
     "Form not in CORRECTION or DATA_ENTRY_1 or DATA_ENTRY_2 or "
-    "INTAKE or QUALITY_CONTROL or UNSUBMITTED. "
+    "INTAKE or QUALITY_CONTROL or ARCHIVING or UNSUBMITTED. "
     "Return form to Clearance"
 )
 
@@ -998,7 +998,7 @@ class TestClearance(TestBase):
             station_number=station.station_number,
             ballot=ballot,
         )
-        view = views.CheckCenterDetailsView.as_view()
+        view = views.CreateClearanceView.as_view()
         request = self.factory.get("/")
         request.user = self.user
         request.session = SessionStore()
@@ -1054,4 +1054,7 @@ class TestClearance(TestBase):
         request.session = SessionStore()
         request.user = self.user
         response = view(request, tally_id=tally.id)
-        self.assertContains(response, "Check Center Details Against Form")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, f"/clearance/check-center-details/{tally.id}/"
+        )
