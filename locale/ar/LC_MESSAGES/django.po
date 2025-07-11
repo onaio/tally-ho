@@ -4171,7 +4171,7 @@ msgstr "الصفحة غير موجودة"
 
 #: tally_ho/libs/views/form_state.py:40
 #, python-format
-msgid "Form not in %(state_name)s.  Return form to %(state)s"
+msgid "Form not in %(state_name)s. Return form to %(state)s"
 msgstr "النموذج ليس في %(state_name)s. ارجع النموذج الي %(state)s"
 
 #: tally_ho/libs/views/session.py:19 tally_ho/libs/views/session.py:24
