@@ -237,6 +237,15 @@ class CenterDetailsView(
     template_name = "enter_center_details.html"
     success_url = "enter-results"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        if hasattr(self, "_result_form") and "result_form" not in kwargs:
+            context["result_form"] = getattr(self, "_result_form")
+            context["header_text"] = get_header_text(context["result_form"])
+
+        return context
+
     def get(self, *args, **kwargs):
         tally_id = kwargs.get("tally_id")
         self.initial = {
@@ -263,7 +272,9 @@ class CenterDetailsView(
         form = self.get_form(form_class)
         post_data = self.request.POST
         pk = session_matches_post_result_form(post_data, self.request)
-        result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+        result_form = self._result_form = get_object_or_404(
+            ResultForm, pk=pk, tally__id=tally_id
+        )
 
         if form.is_valid():
             check_form = check_state_and_group(
@@ -284,28 +295,23 @@ class CenterDetailsView(
             except SuspiciousOperation as e:
                 errors = form._errors.setdefault("__all__", ErrorList())
                 errors.append(e)
-
-                return self.render_to_response(
-                    self.get_context_data(form=form, result_form=result_form)
+            else:
+                check_form = check_state_and_group(
+                    result_form, self.request.user, form
                 )
 
-            check_form = check_state_and_group(
-                result_form, self.request.user, form
-            )
+                if check_form:
+                    return self.form_invalid(check_form)
 
-            if check_form:
-                return self.form_invalid(check_form)
-
-            return redirect(self.success_url, tally_id=tally_id)
-        else:
-            return self.render_to_response(
-                self.get_context_data(
-                    form=form,
-                    result_form=result_form,
-                    tally_id=tally_id,
-                    header_text=get_header_text(result_form),
-                )
+                return redirect(self.success_url, tally_id=tally_id)
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                result_form=result_form,
+                tally_id=tally_id,
+                header_text=get_header_text(result_form),
             )
+        )
 
 
 class EnterResultsView(

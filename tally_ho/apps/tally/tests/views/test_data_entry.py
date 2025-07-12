@@ -275,9 +275,12 @@ class TestDataEntry(TestBase):
         tally.users.add(self.user)
         code = "12345"
         center = create_center(code, tally=tally)
-        create_station(center)
+        station = create_station(center)
         result_form = create_result_form(
-            form_state=FormState.DATA_ENTRY_1, tally=tally
+            center=center,
+            form_state=FormState.DATA_ENTRY_1,
+            station_number=station.station_number,
+            tally=tally,
         )
         ballot = result_form.ballot
         candidate_name = "candidate name"
