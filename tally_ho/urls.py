@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.http import JsonResponse
 from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 from django.views.static import serve
@@ -1556,5 +1557,13 @@ urlpatterns = [
     ),
 ]
 
-if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:
-    urlpatterns += [path("__debug__/", include("debug_toolbar.urls"))]
+if settings.DEBUG:
+    if "debug_toolbar" in settings.INSTALLED_APPS:
+        urlpatterns += [path("__debug__/", include("debug_toolbar.urls"))]
+
+    def empty_view(request):
+        return JsonResponse({}, status=200)
+
+    urlpatterns += [
+        re_path(r"^\.well-known/.*$", empty_view),
+    ]
