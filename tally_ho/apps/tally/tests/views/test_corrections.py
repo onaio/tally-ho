@@ -1,34 +1,26 @@
-from django.core.exceptions import PermissionDenied, SuspiciousOperation
-from django.core.serializers.json import json, DjangoJSONEncoder
-from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
+from django.core.serializers.json import DjangoJSONEncoder, json
 from django.test import RequestFactory
+from django.urls import reverse
 from django.utils import timezone
 
+from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
-from tally_ho.apps.tally.models.reconciliation_form import\
-    ReconciliationForm
 from tally_ho.apps.tally.views import corrections as views
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (
-    create_electrol_race,
-    create_result_form,
-    create_result_form_stats,
-    create_candidate,
-    create_center,
-    create_station,
-    TestBase,
-    create_reconciliation_form,
-    create_recon_forms,
-    create_tally,
-)
-from tally_ho.libs.tests.fixtures.electrol_race_data import (
-    electrol_races
-)
+from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
+from tally_ho.libs.tests.test_base import (TestBase, create_candidate,
+                                           create_center, create_electrol_race,
+                                           create_recon_forms,
+                                           create_reconciliation_form,
+                                           create_result_form,
+                                           create_result_form_stats,
+                                           create_station, create_tally)
 
 
 def create_results(result_form, vote1=1, vote2=1, num=1):
@@ -591,8 +583,6 @@ class TestCorrections(TestBase):
         create_results(result_form, vote1=2, vote2=2)
 
         sorted_counted_val = 3
-        is_stamped = False
-
         recon1 = create_reconciliation_form(result_form, self.user)
         recon1.entry_version = EntryVersion.DATA_ENTRY_1
         recon1.save()
@@ -600,8 +590,7 @@ class TestCorrections(TestBase):
         recon2 = create_reconciliation_form(
             result_form,
             self.user,
-            number_sorted_and_counted=sorted_counted_val,
-            is_stamped=is_stamped)
+            number_sorted_and_counted=sorted_counted_val)
         recon2.entry_version = EntryVersion.DATA_ENTRY_2
         recon2.save()
 
@@ -613,7 +602,6 @@ class TestCorrections(TestBase):
         data = {
             'submit_corrections': 1,
             'number_sorted_and_counted': sorted_counted_val,
-            'is_stamped': is_stamped,
             'tally_id': self.tally.pk,
         }
         data.update(session)
@@ -624,7 +612,6 @@ class TestCorrections(TestBase):
         final_form = ReconciliationForm.objects.filter(
             result_form=result_form, entry_version=EntryVersion.FINAL)[0]
 
-        self.assertEqual(final_form.is_stamped, is_stamped)
         self.assertEqual(final_form.number_sorted_and_counted,
                          sorted_counted_val)
         self.assertEqual(final_form.result_form, result_form)
@@ -640,7 +627,7 @@ class TestCorrections(TestBase):
 
         result_form_stat_de_1.reload()
         result_form_stat_de_2.reload()
-        self.assertEqual(result_form_stat_de_1.data_entry_errors, 2)
+        self.assertEqual(result_form_stat_de_1.data_entry_errors, 1)
         self.assertEqual(result_form_stat_de_2.data_entry_errors, 0)
 
     def test_confirmation_get(self):
