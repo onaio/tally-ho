@@ -14,15 +14,21 @@ from tally_ho.apps.tally.views import quality_control as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
-from tally_ho.libs.tests.test_base import (TestBase, create_audit,
-                                           create_ballot, create_candidates,
-                                           create_center, create_electrol_race,
-                                           create_quality_control,
-                                           create_quarantine_checks,
-                                           create_recon_forms,
-                                           create_reconciliation_form,
-                                           create_result_form, create_station,
-                                           create_tally)
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_audit,
+    create_ballot,
+    create_candidates,
+    create_center,
+    create_electrol_race,
+    create_quality_control,
+    create_quarantine_checks,
+    create_recon_forms,
+    create_reconciliation_form,
+    create_result_form,
+    create_station,
+    create_tally,
+)
 
 
 class TestQualityControl(TestBase):
@@ -363,11 +369,18 @@ class TestQualityControl(TestBase):
         Test reconciliation get
         """
         barcode = "123456789"
+        center = create_center(tally=self.tally)
+        station = create_station(center=center)
         create_result_form(
-            barcode, form_state=FormState.QUALITY_CONTROL, tally=self.tally
+            barcode,
+            center=center,
+            station_number=station.station_number,
+            form_state=FormState.QUALITY_CONTROL,
+            tally=self.tally,
         )
         result_form = ResultForm.objects.get(barcode=barcode)
         create_reconciliation_form(result_form, self.user)
+        create_quality_control(result_form, self.user)
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
@@ -542,6 +555,7 @@ class TestQualityControl(TestBase):
             form_state=FormState.QUALITY_CONTROL,
         )
         result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
         name = "the candidate name"
         women_name = "women candidate name"
         votes = 123
@@ -969,7 +983,8 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.audit.quarantine_checks.count(), 3)
         self.assertEqual(
             [c.method for c in result_form.audit.quarantine_checks.all()],
-            ['pass_voter_cards_trigger',
+            [
+                "pass_voter_cards_trigger",
                 "pass_ballot_inside_box_trigger",
                 "pass_candidates_votes_trigger",
             ],
