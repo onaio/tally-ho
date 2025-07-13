@@ -17,7 +17,7 @@
         </td>
         {% if result1.votes != result2.votes %}
         <td colspan="2" class="warn">
-            <input type="radio" name="candidate_{{ prefix }}_{{ candidate.pk }}{{de_1_suffix}}" value="{{ result1.votes }}" />&nbsp;
+            <input type="radio" name="candidate_{{ prefix }}_{{ candidate.pk }}" value="{{ result1.votes }}" />&nbsp;
             {{ result1.votes }}
         </td>
         {% else %}
@@ -27,7 +27,7 @@
         {% endif %}
         {% if result1.votes != result2.votes %}
         <td colspan="2" class="warn">
-            <input type="radio" name="candidate_{{ prefix }}_{{ candidate.pk }}{{de_2_suffix}}" value="{{ result2.votes }}" />&nbsp;
+            <input type="radio" name="candidate_{{ prefix }}_{{ candidate.pk }}" value="{{ result2.votes }}" />&nbsp;
             {{ result2.votes }}
         </td>
         {% else %}

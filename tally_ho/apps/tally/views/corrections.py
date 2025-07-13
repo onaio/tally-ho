@@ -443,5 +443,6 @@ class ConfirmationView(
                 next_step=_("Quality Control & Archiving"),
                 start_url="corrections",
                 tally_id=tally_id,
+                clearance_error=None,
             )
         )

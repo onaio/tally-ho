@@ -165,8 +165,14 @@ class TestCorrections(TestBase):
         self.assertIn("corrections/required", response["location"])
 
     def test_corrections_match_page(self):
+        code = "12345"
+        center = create_center(code)
+        station = create_station(center)
         result_form = create_result_form(
-            form_state=FormState.CORRECTION, tally=self.tally
+            center=center,
+            form_state=FormState.CORRECTION,
+            station_number=station.station_number,
+            tally=self.tally,
         )
         session = {"result_form": result_form.pk}
         response = self._common_view_tests(
@@ -716,8 +722,13 @@ class TestCorrections(TestBase):
         self.assertEqual(result_form_stat_de_2.data_entry_errors, 0)
 
     def test_confirmation_get(self):
+        code = "12345"
+        center = create_center(code)
+        station = create_station(center)
         result_form = create_result_form(
+            center=center,
             form_state=FormState.QUALITY_CONTROL,
+            station_number=station.station_number,
             tally=self.tally,
             electrol_race=self.electrol_race,
         )
