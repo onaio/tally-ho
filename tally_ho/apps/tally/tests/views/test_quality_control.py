@@ -723,12 +723,9 @@ class TestQualityControl(TestBase):
         recon_form = create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=0,
             number_invalid_votes=0,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=50,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
         )
         create_quality_control(result_form, self.user)
@@ -772,12 +769,9 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=0,
             number_invalid_votes=0,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=50,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
         )
         create_quality_control(result_form, self.user)
@@ -820,12 +814,9 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=0,
             number_invalid_votes=0,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=40,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
         )
         create_quality_control(result_form, self.user)
@@ -868,15 +859,11 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=0,
             number_invalid_votes=0,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=50,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
             number_ballots_received=49,
-            number_ballots_inside_and_outside_box=50,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=25, num_results=1)
@@ -919,15 +906,11 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=1,
-            number_invalid_votes=0,
+            number_invalid_votes=5,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=50,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
             number_ballots_received=50,
-            number_ballots_inside_and_outside_box=50,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=25, num_results=1)
