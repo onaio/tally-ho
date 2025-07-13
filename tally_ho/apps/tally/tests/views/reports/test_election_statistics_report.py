@@ -64,11 +64,6 @@ class TestElectionStatisticsReports(TestBase):
         self.recon_form = create_reconciliation_form(
             result_form=self.result_form,
             user=self.user,
-            number_ballots_inside_box=20,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=0,
             number_valid_votes=20,
             number_invalid_votes=0,
             number_ballots_received=20,
