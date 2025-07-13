@@ -14,10 +14,12 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
     create_ballot,
     create_candidate,
+    create_center,
     create_electrol_race,
     create_result,
     create_result_form,
     create_reconciliation_form,
+    create_station,
     create_tally,
     TestBase
 )
@@ -80,9 +82,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.ARCHIVED,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
 
@@ -111,9 +117,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.DATA_ENTRY_1,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
 
@@ -139,9 +149,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.ARCHIVED,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
 
@@ -177,9 +191,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.ARCHIVED,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
 
@@ -219,9 +237,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.ARCHIVED,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
 
@@ -255,9 +277,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.ARCHIVED,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
 
@@ -290,9 +316,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.ARCHIVED,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
 
@@ -324,9 +354,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.ARCHIVED,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
 
@@ -375,9 +409,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.ARCHIVED,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
 
@@ -422,9 +460,13 @@ class TestWorkflow(TestBase):
         self._add_user_to_group(self.user, groups.AUDIT_CLERK)
         tally = create_tally()
         tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station = create_station(center=center)
         result_form = create_result_form(
             form_state=FormState.ARCHIVED,
             barcode='123456789',
+            center=center,
+            station_number=station.station_number,
             tally=tally
         )
         create_reconciliation_form(
