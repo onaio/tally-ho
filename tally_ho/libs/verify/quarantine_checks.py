@@ -170,7 +170,7 @@ def pass_voter_cards_trigger(result_form):
 
     return (
         abs(
-            recon_form.number_valid_votes
+            (recon_form.number_valid_votes + recon_form.number_invalid_votes)
             - recon_form.number_of_voter_cards_in_the_ballot_box
         )
         <= allowed_tolerance
