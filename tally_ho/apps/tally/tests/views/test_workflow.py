@@ -430,12 +430,9 @@ class TestWorkflow(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=0,
             number_invalid_votes=0,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=50,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
         )
         candidate1 = create_candidate(self.ballot, "cand1", tally=self.tally)
