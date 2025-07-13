@@ -1,6 +1,6 @@
-from collections import defaultdict, OrderedDict
 import csv
 import os
+from collections import OrderedDict, defaultdict
 from tempfile import NamedTemporaryFile
 
 from django.core.files.base import File
@@ -12,7 +12,6 @@ from django.utils.translation import gettext_lazy as _
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
-
 
 OUTPUT_PATH = 'results/all_candidate_votes_%s.csv'
 ACTIVE_OUTPUT_PATH = 'results/active_candidate_votes_%s.csv'
@@ -134,10 +133,6 @@ def build_candidate_results_output(result_form):
     if recon:
         output.update({
             'invalid_ballots': recon.number_invalid_votes,
-            'unstamped_ballots': recon.number_unstamped_ballots,
-            'cancelled_ballots': recon.number_cancelled_ballots,
-            'spoilt_ballots': recon.number_spoiled_ballots,
-            'unused_ballots': recon.number_unused_ballots,
             'number_of_voter_cards_in_the_ballot_box':
             recon.number_of_voter_cards_in_the_ballot_box,
             'received_ballots_papers': recon.number_ballots_received,
