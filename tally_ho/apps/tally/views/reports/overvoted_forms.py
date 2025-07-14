@@ -1,14 +1,8 @@
 import ast
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import (
-    Case,
-    CharField,
-    F,
-    IntegerField,
-    OuterRef,
-    Subquery,
-)
+from django.db.models import (Case, CharField, F, IntegerField, OuterRef,
+                              Subquery)
 from django.db.models import Value as V
 from django.db.models import When
 from django.http import JsonResponse
@@ -19,16 +13,13 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.views.reports.administrative_areas_reports import (
-    build_stations_centers_and_sub_cons_list,
-)
+from tally_ho.apps.tally.views.reports.administrative_areas_reports import \
+    build_stations_centers_and_sub_cons_list
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale,
-    get_deployed_site_url,
-)
+    get_datatables_language_de_from_locale, get_deployed_site_url)
 from tally_ho.libs.views import mixins
 
 
@@ -209,5 +200,28 @@ class OvervotedResultFormsView(
             "dt_columns": dt_columns,
             "languageDE": language_de,
             "deployedSiteUrl": get_deployed_site_url(),
+            'get_centers_stations_url': '/ajax/get-centers-stations/',
+            "candidates_list_download_url": ("/ajax/download-"
+                                "candidates-list/"),
+            "enable_scroll_x": True,
+            "enable_responsive": False,
+            "centers_and_stations_list_download_url": ("/ajax/download-"
+                                "centers-and-stations-list/"),
+            "sub_cons_list_download_url": "/ajax/download-sub-cons-list/",
+            "result_forms_download_url": "/ajax/download-result-forms/",
+            ("centers_stations_by_mun_candidates"
+                                "_votes_results_download_url"): (
+                "/ajax/download-centers-stations"
+                    "-by-mun-results-candidates-votes/"),
+            "centers_by_mun_candidate_votes_results_download_url": (
+                "/ajax/download-centers-"
+                    "by-mun-results-candidates-votes/"),
+            "get_export_url": "/ajax/get-export/",
+            "offices_list_download_url": "/ajax/download-offices-list/",
+            "regions_list_download_url": "/ajax/download-regions-list/",
+            "centers_by_mun_results_download_url": (
+                "/ajax/download-"
+                    "centers-by-mun-results/"),
+            "results_download_url": "/ajax/download-results/",
         }
         return self.render_to_response(self.get_context_data(**context_data))
