@@ -1,17 +1,13 @@
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.test import RequestFactory
 
-from django.contrib.sites.models import Site
 from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views import tally_manager as views
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (
-    configure_messages,
-    create_site_info,
-    create_tally,
-    TestBase,
-)
+from tally_ho.libs.tests.test_base import (TestBase, configure_messages,
+                                           create_site_info, create_tally)
 
 
 class TestTallyManager(TestBase):
@@ -206,6 +202,13 @@ class TestTallyManager(TestBase):
     def test_get_update_view_renders_form(self):
         tally = create_tally()
         tally.users.add(self.user)
+        super_admin =\
+            self._create_user(username='super_admin', password='pass')
+        self._add_user_to_group(super_admin, groups.SUPER_ADMINISTRATOR)
+        tally.users.add(super_admin)
+        _super_admins = UserProfile.objects.filter(
+            tally=tally,
+            groups__name__exact=groups.SUPER_ADMINISTRATOR)
         view = views.TallyUpdateView.as_view()
         request = self.factory.get('/')
         request.user = self.user
