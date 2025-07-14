@@ -3,6 +3,7 @@ import os
 from collections import OrderedDict, defaultdict
 from tempfile import NamedTemporaryFile
 
+from django.conf import settings
 from django.core.files.base import File
 from django.core.files.storage import default_storage
 from django.http import HttpResponse
@@ -95,10 +96,6 @@ def build_result_and_recon_output(result_form):
     if recon:
         output.update({
             'invalid ballots': recon.number_invalid_votes,
-            'unstamped ballots': recon.number_unstamped_ballots,
-            'cancelled ballots': recon.number_cancelled_ballots,
-            'spoilt ballots': recon.number_spoiled_ballots,
-            'unused ballots': recon.number_unused_ballots,
             'number of voter cards in the ballot box':
             recon.number_of_voter_cards_in_the_ballot_box,
             'received ballots papers': recon.number_ballots_received,
@@ -178,10 +175,6 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'candidate id',
             'votes',
             'invalid ballots',
-            'unstamped ballots',
-            'cancelled ballots',
-            'spoilt ballots',
-            'unused ballots',
             'number of voter cards in the ballot box',
             'received ballots papers',
             'valid votes',
@@ -473,7 +466,9 @@ def get_result_export_response(report, tally_id):
         else:
             raise Exception(_(u"File Not found!"))
 
-    except Exception:
+    except Exception as e:
+        if settings.DEBUG:
+            raise e
         response.write(_(u"Report not found."))
         response.status_code = 404
 

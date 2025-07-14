@@ -9,31 +9,23 @@ from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.apps.tally.views.reports import (
-    administrative_areas_reports as admin_reports,
-)
+from tally_ho.apps.tally.views.reports import \
+    administrative_areas_reports as admin_reports
 from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
-from tally_ho.libs.tests.test_base import (
-    TestBase,
-    create_ballot,
-    create_candidates,
-    create_clearance,
-    create_constituency,
-    create_electrol_race,
-    create_office,
-    create_reconciliation_form,
-    create_region,
-    create_result,
-    create_result_form,
-    create_station,
-    create_sub_constituency,
-    create_tally,
-)
+from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
+                                           create_candidates, create_clearance,
+                                           create_constituency,
+                                           create_electrol_race, create_office,
+                                           create_reconciliation_form,
+                                           create_region, create_result,
+                                           create_result_form, create_station,
+                                           create_sub_constituency,
+                                           create_tally)
 
 
 class TestAdministrativeAreasReports(TestBase):
@@ -116,7 +108,7 @@ class TestAdministrativeAreasReports(TestBase):
         )
 
         # Sub Constituency votes summary report tests
-        code, valid_votes, invalid_votes, cancelled_votes, _, _, _ = (
+        code, valid_votes, invalid_votes, _, _, _ = (
             json.loads(response.content.decode())["data"][0]
         )
 
@@ -654,9 +646,8 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         from bs4 import BeautifulSoup
 
-        from tally_ho.apps.tally.views.reports import (
-            administrative_areas_reports as aar,
-        )
+        from tally_ho.apps.tally.views.reports import \
+            administrative_areas_reports as aar
 
         request = self.factory.get(
             reverse(
@@ -704,9 +695,8 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         Test that the clearance audit summary report data view returns data
         """
-        from tally_ho.apps.tally.views.reports import (
-            administrative_areas_reports as aar,
-        )
+        from tally_ho.apps.tally.views.reports import \
+            administrative_areas_reports as aar
 
         url = reverse(
             "clearance-audit-summary-data", kwargs={"tally_id": self.tally.pk}
@@ -746,9 +736,8 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         Test that the clearance audit summary report data view filters data
         """
-        from tally_ho.apps.tally.views.reports import (
-            administrative_areas_reports as aar,
-        )
+        from tally_ho.apps.tally.views.reports import \
+            administrative_areas_reports as aar
 
         url = reverse(
             "clearance-audit-summary-data", kwargs={"tally_id": self.tally.pk}
@@ -770,9 +759,8 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         Test that the clearance audit summary report data view paginates data
         """
-        from tally_ho.apps.tally.views.reports import (
-            administrative_areas_reports as aar,
-        )
+        from tally_ho.apps.tally.views.reports import \
+            administrative_areas_reports as aar
 
         url = reverse(
             "clearance-audit-summary-data", kwargs={"tally_id": self.tally.pk}
@@ -793,9 +781,8 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         Test that the clearance audit summary report view requires login
         """
-        from tally_ho.apps.tally.views.reports import (
-            administrative_areas_reports as aar,
-        )
+        from tally_ho.apps.tally.views.reports import \
+            administrative_areas_reports as aar
 
         url = reverse(
             "clearance-audit-summary", kwargs={"tally_id": self.tally.pk}
@@ -815,9 +802,8 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         Test that the clearance audit summary report data view returns empty
         data
         """
-        from tally_ho.apps.tally.views.reports import (
-            administrative_areas_reports as aar,
-        )
+        from tally_ho.apps.tally.views.reports import \
+            administrative_areas_reports as aar
 
         # Remove clearance from the form
         self.result_form.clearances.all().delete()

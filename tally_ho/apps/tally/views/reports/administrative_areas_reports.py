@@ -1653,8 +1653,6 @@ def custom_queryset_filter(tally_id, qs, data=None, **kwargs):
                     total_number_of_ballots_used=Sum(
                         ExpressionWrapper(
                             F("number_valid_votes")
-                            + F("number_cancelled_ballots")
-                            + F("number_unstamped_ballots")
                             + F("number_invalid_votes"),
                             output_field=IntegerField(),
                         )
@@ -2556,7 +2554,6 @@ class SummaryReportDataView(
         "name",
         "number_valid_votes",
         "number_invalid_votes",
-        "number_cancelled_ballots",
         "constituencies_ids",
         "sub_constituencies_ids",
         "actions",
@@ -3586,8 +3583,6 @@ def generate_report(
                 total_number_of_ballots_used=Sum(
                     ExpressionWrapper(
                         F("number_valid_votes")
-                        + F("number_cancelled_ballots")
-                        + F("number_unstamped_ballots")
                         + F("number_invalid_votes"),
                         output_field=IntegerField(),
                     )
@@ -3619,7 +3614,6 @@ def generate_report(
         qs = (
             qs.annotate(number_valid_votes=Sum("number_valid_votes"))
             .annotate(number_invalid_votes=Sum("number_invalid_votes"))
-            .annotate(number_cancelled_ballots=Sum("number_cancelled_ballots"))
         )
 
     return qs
@@ -4345,6 +4339,31 @@ class DuplicateResultsListView(
                 get_centers_stations_url="/ajax/get-centers-stations/",
                 get_export_url="/ajax/get-export/",
                 languageDE=language_de,
+                **{
+
+            "deployedSiteUrl": get_deployed_site_url(),
+            "candidates_list_download_url": ("/ajax/download-"
+                                "candidates-list/"),
+            "enable_scroll_x": True,
+            "enable_responsive": False,
+            "centers_and_stations_list_download_url": ("/ajax/download-"
+                                "centers-and-stations-list/"),
+            "sub_cons_list_download_url": "/ajax/download-sub-cons-list/",
+            "result_forms_download_url": "/ajax/download-result-forms/",
+            ("centers_stations_by_mun_candidates"
+                                "_votes_results_download_url"): (
+                "/ajax/download-centers-stations"
+                    "-by-mun-results-candidates-votes/"),
+            "centers_by_mun_candidate_votes_results_download_url": (
+                "/ajax/download-centers-"
+                    "by-mun-results-candidates-votes/"),
+            "offices_list_download_url": "/ajax/download-offices-list/",
+            "regions_list_download_url": "/ajax/download-regions-list/",
+            "centers_by_mun_results_download_url": (
+                "/ajax/download-"
+                    "centers-by-mun-results/"),
+            "results_download_url": "/ajax/download-results/",
+                }
             )
         )
 

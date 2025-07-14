@@ -218,7 +218,10 @@ class DashboardView(
         group_logins = [g.lower().replace(" ", "_") for g in groups.GROUPS]
 
         return self.render_to_response(
-            self.get_context_data(groups=group_logins, site_id=site_id)
+            self.get_context_data(
+                groups=group_logins,
+                site_id=site_id,
+                tally_id=None)
         )
 
 

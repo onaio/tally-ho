@@ -1,82 +1,69 @@
 from collections import defaultdict
 from urllib.parse import urlencode
 
-from django.db.models.deletion import ProtectedError
-from django.core.exceptions import SuspiciousOperation
-from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Count, Q, F
-from django.shortcuts import get_object_or_404, redirect
-from django.views.generic.edit import UpdateView, DeleteView, CreateView
-from django.views.generic import FormView, TemplateView
-from django.utils.translation import gettext_lazy as _
-from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.core.exceptions import SuspiciousOperation
+from django.db.models import Count, F, Q
+from django.db.models.deletion import ProtectedError
 from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-
+from django.utils.translation import gettext_lazy as _
+from django.views.generic import FormView, TemplateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.forms.disable_entity_form import DisableEntityForm
-from tally_ho.apps.tally.forms.create_electrol_race_form import (
+from tally_ho.apps.tally.forms.create_ballot_form import CreateBallotForm
+from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
+from tally_ho.apps.tally.forms.create_electrol_race_form import \
     CreateElectrolRaceForm
-)
-from tally_ho.apps.tally.forms.edit_electrol_race_form import (
+from tally_ho.apps.tally.forms.create_result_form import CreateResultForm
+from tally_ho.apps.tally.forms.create_station_form import CreateStationForm
+from tally_ho.apps.tally.forms.disable_entity_form import DisableEntityForm
+from tally_ho.apps.tally.forms.edit_ballot_form import EditBallotForm
+from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
+from tally_ho.apps.tally.forms.edit_electrol_race_form import \
     EditElectrolRaceForm
-)
+from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
+from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
+from tally_ho.apps.tally.forms.edit_user_profile_form import \
+    EditUserProfileForm
+from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
-from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
-from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
-from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
-from tally_ho.apps.tally.forms.create_station_form import CreateStationForm
-from tally_ho.apps.tally.forms.create_ballot_form import CreateBallotForm
-from tally_ho.apps.tally.forms.edit_ballot_form import EditBallotForm
-from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
-from tally_ho.apps.tally.forms.edit_user_profile_form import (
-    EditUserProfileForm,
-)
-from tally_ho.apps.tally.forms.create_result_form import CreateResultForm
-from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
-from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result import Result
+from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
-from tally_ho.apps.tally.views.constants import (
-    election_level_query_param,
-    sub_race_query_param,
-    sub_con_code_query_param,
-    pending_at_state_query_param, at_state_query_param
-)
-from tally_ho.libs.models.enums.audit_resolution import \
-    AuditResolution
+from tally_ho.apps.tally.views.constants import (at_state_query_param,
+                                                 election_level_query_param,
+                                                 pending_at_state_query_param,
+                                                 sub_con_code_query_param,
+                                                 sub_race_query_param)
+from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.form_state import (
-    FormState, un_processed_states_at_state
-)
+    FormState, un_processed_states_at_state)
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.active_status import (disable_enable_ballot,
+                                               disable_enable_candidate,
+                                               disable_enable_electrol_race,
+                                               disable_enable_entity)
 from tally_ho.libs.utils.collections import flatten
-from tally_ho.libs.utils.active_status import (
-    disable_enable_electrol_race,
-    disable_enable_entity,
-    disable_enable_ballot,
-    disable_enable_candidate,
-)
-from tally_ho.libs.utils.context_processors import (
+from tally_ho.libs.utils.context_processors import \
     get_datatables_language_de_from_locale
-)
 from tally_ho.libs.views import mixins
-from tally_ho.libs.views.exports import (
-    get_result_export_response,
-    valid_ballots,
-    distinct_forms,
-    SPECIAL_BALLOTS,
-)
+from tally_ho.libs.views.exports import (SPECIAL_BALLOTS, distinct_forms,
+                                         get_result_export_response,
+                                         valid_ballots)
 from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
 

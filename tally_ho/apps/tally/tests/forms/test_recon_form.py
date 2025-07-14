@@ -1,6 +1,7 @@
-from tally_ho.libs.tests.test_base import TestBase, create_result_form
-from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.forms.recon_form import ReconForm
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import TestBase, create_result_form
+
 
 class ReconFormTest(TestBase):
     def setUp(self):
@@ -15,22 +16,9 @@ class ReconFormTest(TestBase):
             'is_stamped': True,
             'number_ballots_received': 100,
             'number_of_voter_cards_in_the_ballot_box': 100,
-            'number_unused_ballots': 0,
-            'number_spoiled_ballots': 0,
-            'number_cancelled_ballots': 0,
-            'number_ballots_outside_box': 0,
-            'number_ballots_inside_box': 100,
-            'number_ballots_inside_and_outside_box': 100,
-            'total_of_cancelled_ballots_and_ballots_inside_box': 100,
-            # Should match 5 + 7
-            'number_unstamped_ballots': 0,
             'number_invalid_votes': 0,
             'number_valid_votes': 100,
             'number_sorted_and_counted': 100,
-            'signature_polling_officer_1': True,
-            'signature_polling_officer_2': True,
-            'signature_polling_station_chair': True,
-            'signature_dated': True,
         }
 
     def test_valid_data(self):
