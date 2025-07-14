@@ -1,12 +1,11 @@
 import json
 
-from django.db.models import Q, Subquery, OuterRef, IntegerField, F
+from django.db.models import F, IntegerField, OuterRef, Q, Subquery
+from django.http import JsonResponse
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
-from django.urls import reverse
-from django.http import JsonResponse
-from django.utils import timezone
-
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
@@ -14,20 +13,16 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.views.constants import (
-    election_level_query_param,
-    sub_race_query_param,
-    sub_con_code_query_param,
-    pending_at_state_query_param, at_state_query_param
-)
+from tally_ho.apps.tally.views.constants import (at_state_query_param,
+                                                 election_level_query_param,
+                                                 pending_at_state_query_param,
+                                                 sub_con_code_query_param,
+                                                 sub_race_query_param)
 from tally_ho.libs.models.enums.form_state import (
-    FormState,
-    un_processed_states_at_state
-)
+    FormState, un_processed_states_at_state)
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
-)
+    get_datatables_language_de_from_locale, get_deployed_site_url)
 from tally_ho.libs.views import mixins
 
 ALL = '__all__'
@@ -221,6 +216,29 @@ class FormListView(LoginRequiredMixin,
         if query_param_string:
             remote_data_url = f"{remote_data_url}?{query_param_string}"
 
+        additional_context = {
+            'deployedSiteUrl': get_deployed_site_url(),
+            'get_centers_stations_url': '/ajax/get-centers-stations/',
+            "candidates_list_download_url": ("/ajax/download-"
+                                "candidates-list/"),
+            "centers_and_stations_list_download_url": ("/ajax/download-"
+                                "centers-and-stations-list/"),
+            "sub_cons_list_download_url": "/ajax/download-sub-cons-list/",
+            ("centers_stations_by_mun_candidates"
+                                "_votes_results_download_url"): (
+                "/ajax/download-centers-stations"
+                    "-by-mun-results-candidates-votes/"),
+            "centers_by_mun_candidate_votes_results_download_url": (
+                "/ajax/download-centers-"
+                    "by-mun-results-candidates-votes/"),
+            "get_export_url": "/ajax/get-export/",
+            "offices_list_download_url": "/ajax/download-offices-list/",
+            "regions_list_download_url": "/ajax/download-regions-list/",
+            "centers_by_mun_results_download_url": (
+                "/ajax/download-"
+                    "centers-by-mun-results/"),
+            "export_file_name": "form-list"
+        }
         return self.render_to_response(
             self.get_context_data(header_text=_('Form List'),
                                   remote_url=remote_data_url,
@@ -228,9 +246,10 @@ class FormListView(LoginRequiredMixin,
                                   error_message=_(error) if error else None,
                                   show_create_form_button=True,
                                   result_forms_download_url=download_url,
+                                  results_download_url="/ajax/download-results/",
                                   languageDE=language_de,
                                   enable_responsive=False,
-                                  enable_scroll_x=True))
+                                  enable_scroll_x=True, **additional_context))
 
 
 class FormNotReceivedListView(FormListView):

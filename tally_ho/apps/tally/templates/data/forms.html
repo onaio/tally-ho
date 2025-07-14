@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block javascript %}
-{% include "data/table.html" with remote_url=remote_url result_forms_download_url=result_forms_download_url languageDE=languageDE enable_responsive=enable_responsive enable_scroll_x=enable_scroll_x %}
+{% include "data/table.html" with remote_url=remote_url result_forms_download_url=result_forms_download_url languageDE=languageDE enable_responsive=enable_responsive enable_scroll_x=enable_scroll_x  server_side=True%}
 {% endblock %}
 
 {% block content %}
@@ -18,13 +18,6 @@
 <h1>{{ header_text }}</h1>
 
 <div class="pull-left">
-{% if not none %}
-{% trans 'Export:' %}
-{% endif %}
-{% if custom %}
-<a href="{% url 'form-not-received-view' 'csv' tally_id %}">{% trans 'All' %}</a>
-{% elif none %}
-{% else %}
 <a href="{% url 'form-list' tally_id '__all__' %}">{% trans 'All' %}</a>
 <a href="{% url 'form-list' tally_id 'unsubmitted' %}">{% trans 'Unsubmitted' %}</a>
 <a href="{% url 'form-list' tally_id 'intake' %}">{% trans 'Intake' %}</a>
@@ -35,7 +28,6 @@
 <a href="{% url 'form-list' tally_id 'archived' %}">{% trans 'Archived' %}</a>
 <a href="{% url 'form-list' tally_id 'clearance' %}">{% trans 'Clearance' %}</a>
 <a href="{% url 'form-list' tally_id 'audit' %}">{% trans 'Audit' %}</a>
-{% endif %}
 </div>
 {% if show_create_form_button %}
     <div class="col-6" id="result-forms-report" style="float: left;padding-left: 0;">
