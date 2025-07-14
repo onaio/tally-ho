@@ -10,14 +10,21 @@ from tally_ho.apps.tally.views.reports import (
     progress_by_sub_races_reports as progress_reports,
 )
 from tally_ho.libs.tests.test_base import (
-    create_electrol_race, create_result_form, create_station,\
-    create_reconciliation_form, create_sub_constituency, create_tally,\
-    create_region, create_constituency, create_office, create_result,\
-    create_candidates, TestBase, create_ballot
+    create_electrol_race,
+    create_result_form,
+    create_station,
+    create_reconciliation_form,
+    create_sub_constituency,
+    create_tally,
+    create_region,
+    create_constituency,
+    create_office,
+    create_result,
+    create_candidates,
+    TestBase,
+    create_ballot,
 )
-from tally_ho.libs.tests.fixtures.electrol_race_data import (
-    electrol_races
-)
+from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
 
 
 class TestSubRacesReports(TestBase):
@@ -29,51 +36,54 @@ class TestSubRacesReports(TestBase):
         self.tally = create_tally()
         self.tally.users.add(self.user)
         self.electrol_race = create_electrol_race(
-            self.tally,
-            **electrol_races[0]
+            self.tally, **electrol_races[0]
         )
         ballot = create_ballot(self.tally, electrol_race=self.electrol_race)
         self.region = create_region(tally=self.tally)
         office = create_office(tally=self.tally, region=self.region)
         self.constituency = create_constituency(tally=self.tally)
-        self.sc =create_sub_constituency(
-            code=1, tally=self.tally, field_office='1', ballots=[ballot])
+        self.sc = create_sub_constituency(
+            code=1, tally=self.tally, field_office="1", ballots=[ballot]
+        )
         center, _ = Center.objects.get_or_create(
-            code='1',
-            mahalla='1',
-            name='1',
+            code="1",
+            mahalla="1",
+            name="1",
             office=office,
-            region='1',
-            village='1',
+            region="1",
+            village="1",
             active=True,
             tally=self.tally,
             sub_constituency=self.sc,
             center_type=CenterType.GENERAL,
-            constituency=self.constituency)
+            constituency=self.constituency,
+        )
         self.station = create_station(
-            center=center, registrants=20, tally=self.tally)
+            center=center, registrants=20, tally=self.tally
+        )
         self.result_form = create_result_form(
             tally=self.tally,
             form_state=FormState.ARCHIVED,
             office=office,
             center=center,
             station_number=self.station.station_number,
-            ballot=ballot)
+            ballot=ballot,
+        )
         self.recon_form = create_reconciliation_form(
             result_form=self.result_form,
             user=self.user,
-            number_ballots_inside_box=20,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=0,
             number_valid_votes=20,
             number_invalid_votes=0,
             number_ballots_received=20,
         )
         votes = 20
-        create_candidates(self.result_form, votes=votes, user=self.user,
-                          num_results=1, tally=self.tally)
+        create_candidates(
+            self.result_form,
+            votes=votes,
+            user=self.user,
+            num_results=1,
+            tally=self.tally,
+        )
         for result in self.result_form.results.all():
             result.entry_version = EntryVersion.FINAL
             result.save()
@@ -86,31 +96,36 @@ class TestSubRacesReports(TestBase):
         """
         # Regions
         view = progress_reports.RegionsReportView.as_view()
-        request = self.factory.get('/data/progress-report-list/1')
+        request = self.factory.get("/data/progress-report-list/1")
         request.user = self.user
         response = view(
             request,
             tally_id=self.tally.pk,
             region_id=self.region.pk,
-            constituency_id=self.constituency.pk)
-        data = json.loads(response.content.decode())['data']
-        ballot_name = electrol_races[0]['ballot_name']
+            constituency_id=self.constituency.pk,
+        )
+        data = json.loads(response.content.decode())["data"]
+        ballot_name = electrol_races[0]["ballot_name"]
         ballot_name_percentage = f"{ballot_name}_percentage"
         keys = [
-            ballot_name, ballot_name_percentage,
-            'overall', 'overall_percentage']
+            ballot_name,
+            ballot_name_percentage,
+            "overall",
+            "overall_percentage",
+        ]
         for data_item in data:
             for key in keys:
                 self.assertIn(key, data_item)
         # totals
         totals_row = data[-1]
-        self.assertEqual('Total', totals_row['region_name'])
+        self.assertEqual("Total", totals_row["region_name"])
         ballot_record_total = 0
         for data_item in data[:-1]:
-            ballot_record_total += int(data_item[ballot_name].split('/')[0])
+            ballot_record_total += int(data_item[ballot_name].split("/")[0])
 
         self.assertEqual(
-            int(data[-1][ballot_name].split('/')[0]), ballot_record_total)
+            int(data[-1][ballot_name].split("/")[0]), ballot_record_total
+        )
 
         # Offices
         view = progress_reports.OfficesReportView.as_view()
@@ -118,25 +133,30 @@ class TestSubRacesReports(TestBase):
             request,
             tally_id=self.tally.pk,
             region_id=self.region.pk,
-            constituency_id=self.constituency.pk)
-        data = json.loads(response.content.decode())['data']
-        ballot_name = electrol_races[0]['ballot_name']
+            constituency_id=self.constituency.pk,
+        )
+        data = json.loads(response.content.decode())["data"]
+        ballot_name = electrol_races[0]["ballot_name"]
         ballot_name_percentage = f"{ballot_name}_percentage"
         keys = [
-            ballot_name, ballot_name_percentage,
-            'overall', 'overall_percentage']
+            ballot_name,
+            ballot_name_percentage,
+            "overall",
+            "overall_percentage",
+        ]
         for data_item in data:
             for key in keys:
                 self.assertIn(key, data_item)
         # totals
         totals_row = data[-1]
-        self.assertEqual('Total', totals_row['office_name'])
+        self.assertEqual("Total", totals_row["office_name"])
         ballot_record_total = 0
         for data_item in data[:-1]:
-            ballot_record_total += int(data_item[ballot_name].split('/')[0])
+            ballot_record_total += int(data_item[ballot_name].split("/")[0])
 
         self.assertEqual(
-            int(data[-1][ballot_name].split('/')[0]), ballot_record_total)
+            int(data[-1][ballot_name].split("/")[0]), ballot_record_total
+        )
 
         # Constituencies
         view = progress_reports.ConstituenciesReportView.as_view()
@@ -144,25 +164,30 @@ class TestSubRacesReports(TestBase):
             request,
             tally_id=self.tally.pk,
             region_id=self.region.pk,
-            constituency_id=self.constituency.pk)
-        data = json.loads(response.content.decode())['data']
-        ballot_name = electrol_races[0]['ballot_name']
+            constituency_id=self.constituency.pk,
+        )
+        data = json.loads(response.content.decode())["data"]
+        ballot_name = electrol_races[0]["ballot_name"]
         ballot_name_percentage = f"{ballot_name}_percentage"
         keys = [
-            ballot_name, ballot_name_percentage,
-            'overall', 'overall_percentage']
+            ballot_name,
+            ballot_name_percentage,
+            "overall",
+            "overall_percentage",
+        ]
         for data_item in data:
             for key in keys:
                 self.assertIn(key, data_item)
         # totals
         totals_row = data[-1]
-        self.assertEqual('Total', totals_row['constituency_name'])
+        self.assertEqual("Total", totals_row["constituency_name"])
         ballot_record_total = 0
         for data_item in data[:-1]:
-            ballot_record_total += int(data_item[ballot_name].split('/')[0])
+            ballot_record_total += int(data_item[ballot_name].split("/")[0])
 
         self.assertEqual(
-            int(data[-1][ballot_name].split('/')[0]), ballot_record_total)
+            int(data[-1][ballot_name].split("/")[0]), ballot_record_total
+        )
 
         # Sub Constituencies
         view = progress_reports.SubConstituenciesReportView.as_view()
@@ -170,31 +195,34 @@ class TestSubRacesReports(TestBase):
             request,
             tally_id=self.tally.pk,
             region_id=self.region.pk,
-            constituency_id=self.constituency.pk)
-        data = json.loads(response.content.decode())['data']
-        ballot_name = electrol_races[0]['ballot_name']
+            constituency_id=self.constituency.pk,
+        )
+        data = json.loads(response.content.decode())["data"]
+        ballot_name = electrol_races[0]["ballot_name"]
         ballot_name_percentage = f"{ballot_name}_percentage"
         keys = [
-            ballot_name, ballot_name_percentage,
-            'overall', 'overall_percentage']
+            ballot_name,
+            ballot_name_percentage,
+            "overall",
+            "overall_percentage",
+        ]
         for data_item in data:
             for key in keys:
                 self.assertIn(key, data_item)
         # totals
         totals_row = data[-1]
-        self.assertEqual('Total', totals_row['sub_constituency_code'])
+        self.assertEqual("Total", totals_row["sub_constituency_code"])
         ballot_record_total = 0
         for data_item in data[:-1]:
-            ballot_record_total += int(data_item[ballot_name].split('/')[0])
+            ballot_record_total += int(data_item[ballot_name].split("/")[0])
         self.assertEqual(
-            int(data[-1][ballot_name].split('/')[0]), ballot_record_total)
+            int(data[-1][ballot_name].split("/")[0]), ballot_record_total
+        )
 
         # progress_report
         view = progress_reports.progress_report
-        request = self.factory.get('/data/progress-report-list/')
+        request = self.factory.get("/data/progress-report-list/")
         request.user = self.user
-        request.session = {'locale': 'en'}
-        response = view(
-            request,
-            tally_id=self.tally.pk)
+        request.session = {"locale": "en"}
+        response = view(request, tally_id=self.tally.pk)
         self.assertEqual(response.status_code, 200)
