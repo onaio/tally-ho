@@ -56,10 +56,11 @@ class FormListDataView(LoginRequiredMixin,
     def render_column(self, row, column):
         if column == 'modified_date':
             return row.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z')
+
         if column == 'action':
             return row.get_action_button
-        else:
-            return super(FormListDataView, self).render_column(row, column)
+
+        return super(FormListDataView, self).render_column(row, column)
 
     def filter_queryset(self, qs):
         ballot_number = self.request.POST.get('ballot[value]', None)
