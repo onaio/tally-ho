@@ -128,20 +128,20 @@ class FormListDataView(LoginRequiredMixin,
                 ballot__number__in=ballot.form_ballot_numbers)
 
         if keyword:
-            qs = qs.filter(Q(barcode__contains=keyword) |
+            qs = qs.filter(Q(barcode__icontains=keyword) |
                            Q(center__code__contains=keyword) |
                            Q(station_id__contains=keyword) |
-                           Q(center__office__region__name__contains=keyword) |
-                           Q(center__sub_constituency__name__contains=keyword
+                           Q(center__office__region__name__icontains=keyword) |
+                           Q(center__sub_constituency__name__icontains=keyword
                              ) |
-                           Q(center__office__name__contains=keyword) |
+                           Q(center__office__name__icontains=keyword) |
                            Q(center__office__number__contains=keyword) |
                            Q(station_number__contains=keyword) |
                            Q(ballot__number__contains=keyword) |
                            Q(
-                ballot__electrol_race__election_level__contains=keyword) |
+                ballot__electrol_race__election_level__icontains=keyword) |
                            Q(
-                ballot__electrol_race__ballot_name__contains=keyword))
+                ballot__electrol_race__ballot_name__icontains=keyword))
 
         return qs
 
@@ -285,10 +285,10 @@ class FormNotReceivedDataView(FormListDataView):
             FormState.UNSUBMITTED,
             tally_id=tally_id)
         if keyword:
-            qs = qs.filter(Q(barcode__contains=keyword) |
+            qs = qs.filter(Q(barcode__icontains=keyword) |
                            Q(center__code__contains=keyword) |
-                           Q(center__office__region__name__contains=keyword) |
-                           Q(center__office__name__contains=keyword) |
+                           Q(center__office__region__name__icontains=keyword) |
+                           Q(center__office__name__icontains=keyword) |
                            Q(center__office__number__contains=keyword) |
                            Q(station_number__contains=keyword) |
                            Q(ballot__number__contains=keyword))

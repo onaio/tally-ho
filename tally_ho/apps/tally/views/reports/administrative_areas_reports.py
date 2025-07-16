@@ -2586,7 +2586,7 @@ class SummaryReportDataView(
 
         if keyword:
             qs = qs.filter(
-                Q(name__contains=keyword)
+                Q(name__icontains=keyword)
                 | Q(total_number_of_registrants__contains=keyword)
                 | Q(number_of_voters_voted__contains=keyword)
                 | Q(male_voters__contains=keyword)
@@ -2794,7 +2794,7 @@ class ProgressiveReportDataView(
 
         if keyword:
             qs = qs.filter(
-                Q(admin_area_name__contains=keyword)
+                Q(admin_area_name__icontains=keyword)
                 | Q(total_candidates=keyword)
                 | Q(total_votes=keyword)
             )
@@ -3077,7 +3077,7 @@ class DiscrepancyReportDataView(
 
         if keyword:
             qs = qs.filter(
-                Q(admin_area_name__contains=keyword)
+                Q(admin_area_name__icontains=keyword)
                 | Q(number_of_centers__contains=keyword)
                 | Q(number_of_stations__contains=keyword)
             )
@@ -4116,12 +4116,12 @@ class ResultFormResultsListDataView(
         )
         if keyword:
             qs = qs.filter(
-                Q(candidate_name__contains=keyword)
+                Q(candidate_name__icontains=keyword)
                 | Q(
-                    candidate__ballot__electrol_race__ballot_name__contains=keyword
+                    candidate__ballot__electrol_race__ballot_name__icontains=keyword
                 )
                 | Q(
-                    candidate__ballot__electrol_race__election_level__contains=keyword
+                    candidate__ballot__electrol_race__election_level__icontains=keyword
                 )
             )
         qs = qs.filter(
@@ -4287,11 +4287,11 @@ class DuplicateResultsListDataView(
         if keyword:
             qs = qs.filter(
                 Q(votes__contains=keyword)
-                | Q(barcode__contains=keyword)
+                | Q(barcode__icontains=keyword)
                 | Q(ballot_number__contains=keyword)
                 | Q(station_id__contains=keyword)
                 | Q(center_code__contains=keyword)
-                | Q(state__contains=keyword)
+                | Q(state__icontains=keyword)
             )
         return qs
 
@@ -4409,7 +4409,7 @@ class AllCandidatesVotesDataView(
 
         if keyword:
             qs = qs.filter(
-                Q(full_name__contains=keyword)
+                Q(full_name__icontains=keyword)
                 | Q(total_votes__contains=keyword)
                 | Q(candidate_votes_included_quarantine__contains=keyword)
                 | Q(stations_completed__contains=keyword)
@@ -4515,7 +4515,7 @@ class ActiveCandidatesVotesDataView(
 
         if keyword:
             qs = qs.filter(
-                Q(full_name__contains=keyword)
+                Q(full_name__icontains=keyword)
                 | Q(total_votes__contains=keyword)
                 | Q(candidate_votes_included_quarantine__contains=keyword)
                 | Q(stations_completed__contains=keyword)

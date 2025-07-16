@@ -46,11 +46,11 @@ class StationProgressListDataView(LoginRequiredMixin,
 
         if keyword:
             qs = qs.filter(Q(station_number__contains=keyword) |
-                           Q(center__office__name__contains=keyword) |
+                           Q(center__office__name__icontains=keyword) |
                            Q(center__code__contains=keyword) |
-                           Q(sub_constituency__name__contains=keyword) |
+                           Q(sub_constituency__name__icontains=keyword) |
                            Q(sub_constituency__code__contains=keyword) |
-                           Q(center__name__contains=keyword))
+                           Q(center__name__icontains=keyword))
         return qs
 
     def render_column(self, row, column):

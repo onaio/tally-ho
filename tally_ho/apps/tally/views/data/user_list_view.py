@@ -57,10 +57,10 @@ class UserListDataView(LoginRequiredMixin,
             qs = qs.filter(tally__id=tally_id)
 
         if keyword:
-            qs = qs.filter(Q(username__contains=keyword) |
-                           Q(email__contains=keyword) |
-                           Q(first_name__contains=keyword) |
-                           Q(last_name__contains=keyword))
+            qs = qs.filter(Q(username__icontains=keyword) |
+                           Q(email__icontains=keyword) |
+                           Q(first_name__icontains=keyword) |
+                           Q(last_name__icontains=keyword))
 
         return qs
 

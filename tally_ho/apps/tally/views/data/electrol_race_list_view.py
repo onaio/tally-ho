@@ -44,8 +44,8 @@ class ElectrolRaceListDataView(LoginRequiredMixin,
             qs = qs.filter(tally__id=tally_id)
 
         if keyword:
-            qs = qs.filter(Q(election_level__contains=keyword)|
-                           Q(ballot_name__contains=keyword))
+            qs = qs.filter(Q(election_level__icontains=keyword)|
+                           Q(ballot_name__icontains=keyword))
 
         return qs
 

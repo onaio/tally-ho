@@ -36,7 +36,7 @@ class OfficeListDataView(LoginRequiredMixin,
         qs = qs.filter(tally__id=tally_id)
 
         if keyword:
-            qs = qs.filter(name__contains=keyword)
+            qs = qs.filter(name__icontains=keyword)
         return qs
 
     def render_column(self, row, column):

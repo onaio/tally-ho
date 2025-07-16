@@ -50,8 +50,8 @@ class SubConstituencyListDataView(LoginRequiredMixin,
             qs = qs.filter(tally__id=tally_id)
 
         if keyword:
-            qs = qs.filter(Q(name__contains=keyword)|
-                           Q(election_level__contains=keyword))
+            qs = qs.filter(Q(name__icontains=keyword)|
+                           Q(election_level__icontains=keyword))
 
         return qs
 

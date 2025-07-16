@@ -57,8 +57,8 @@ class CandidateListDataView(LoginRequiredMixin,
                 qs = qs.filter(tally__id=tally_id)
 
         if keyword:
-            qs = qs.filter(Q(full_name__contains=keyword)|
-                           Q(ballot__electrol_race__ballot_name=keyword))
+            qs = qs.filter(Q(full_name__icontains=keyword)|
+                           Q(ballot__electrol_race__ballot_name__icontains=keyword))
 
         return qs
 

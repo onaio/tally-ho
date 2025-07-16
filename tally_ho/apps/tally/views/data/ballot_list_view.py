@@ -47,7 +47,7 @@ class BallotListDataView(LoginRequiredMixin,
 
         if keyword:
             qs = qs.filter(Q(number__contains=keyword)|
-                           Q(electrol_race__election_level__contains=keyword))
+                           Q(electrol_race__election_level__icontains=keyword))
 
         return qs
 
