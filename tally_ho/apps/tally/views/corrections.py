@@ -13,9 +13,8 @@ from django.views.generic import FormView, TemplateView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
-from tally_ho.apps.tally.forms.pass_to_quality_control_form import (
-    PassToQualityControlForm,
-)
+from tally_ho.apps.tally.forms.pass_to_quality_control_form import \
+    PassToQualityControlForm
 from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -25,12 +24,8 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views import mixins
 from tally_ho.libs.views.corrections import (
-    get_matched_forms,
-    result_form_candidate_results,
-    save_final_results,
-    save_form_results,
-    update_result_form_entries_with_de_errors,
-)
+    get_matched_forms, result_form_candidate_results, save_final_results,
+    save_form_results, update_result_form_entries_with_de_errors)
 from tally_ho.libs.views.form_state import form_in_state, safe_form_in_state
 from tally_ho.libs.views.session import session_matches_post_result_form
 
@@ -191,14 +186,27 @@ def save_recon(post_data, user, result_form):
                 if _type == "bool":
                     value = ast.literal_eval(value)
                 corrections[v1.name] = value
+            else:
+                if value is None:
+                    continue
+            try:
+                # Error occured at data entry 1 stage
+                if int(value) != v1.data:
+                    data_entry_1_errors += 1
 
-            # Error occured at data entry 1 stage
-            if int(value) != v1.data:
-                data_entry_1_errors += 1
+                # Error occured at data entry 2 stage
+                if int(value) != v2.data:
+                    data_entry_2_errors += 1
+            except ValueError:
+                # String comparison
+                # Error occured at data entry 1 stage
+                if value != v1.data:
+                    data_entry_1_errors += 1
 
-            # Error occured at data entry 2 stage
-            if int(value) != v2.data:
-                data_entry_2_errors += 1
+                # Error occured at data entry 2 stage
+                if value != v2.data:
+                    data_entry_2_errors += 1
+
 
     if len(corrections) < mismatched:
         raise ValidationError(
