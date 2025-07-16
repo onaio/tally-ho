@@ -63,7 +63,7 @@ class ReconciliationForm(BaseModel):
         _("Number of valid votes")
     )
     number_sorted_and_counted = models.PositiveIntegerField(
-        _("Total number of the sorted and counted ballots")
+        _("Total number of ballot papers in the box")
     )
     notes = models.TextField(null=True, blank=True)
     objects = ReconciliationFormSet.as_manager()

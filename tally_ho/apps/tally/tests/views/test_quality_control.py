@@ -14,21 +14,15 @@ from tally_ho.apps.tally.views import quality_control as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
-from tally_ho.libs.tests.test_base import (
-    TestBase,
-    create_audit,
-    create_ballot,
-    create_candidates,
-    create_center,
-    create_electrol_race,
-    create_quality_control,
-    create_quarantine_checks,
-    create_recon_forms,
-    create_reconciliation_form,
-    create_result_form,
-    create_station,
-    create_tally,
-)
+from tally_ho.libs.tests.test_base import (TestBase, create_audit,
+                                           create_ballot, create_candidates,
+                                           create_center, create_electrol_race,
+                                           create_quality_control,
+                                           create_quarantine_checks,
+                                           create_recon_forms,
+                                           create_reconciliation_form,
+                                           create_result_form, create_station,
+                                           create_tally)
 
 
 class TestQualityControl(TestBase):
@@ -391,7 +385,8 @@ class TestQualityControl(TestBase):
         response.render()
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Reconciliation")
-        self.assertContains(response, "Total number of the sorted and counted")
+        self.assertContains(
+            response, "Total number of ballot papers in the box")
 
     def test_reconciliation_post_correct(self):
         """
