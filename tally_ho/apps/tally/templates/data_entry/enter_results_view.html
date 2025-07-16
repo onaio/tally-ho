@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load app_filters %}
 
 {% block content %}
 <div class="page-header">
@@ -29,32 +30,32 @@
             <th width="70%">
                 <label for="id_number_of_voters">
                 <span class="helptext">{% trans "Number of voters in the station's voter register (in addition to additional voters)" %} </span></label></th>
-			<td width="20%" class="blue-bg required-input"><input tabindex="10" autocomplete="off" class="blue-bg form-control" id="id_number_of_voters" name="number_of_voters" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"></td>
+			<td width="20%" class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} required-input"><input tabindex="10" autocomplete="off" class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} form-control" id="id_number_of_voters" name="number_of_voters" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"></td>
 		</tr>
 		<tr>
 			<th width="10%"><span class="bignum">2</span></th>
             <th width="70%">
                 <label for="id_number_of_voter_cards_in_the_ballot_box">
                 <span class="helptext">{% trans "Number of voter cards in the box:" %} </span></label></th>
-			<td width="20%" class="blue-bg required-input"><input tabindex="11" autocomplete="off" class="blue-bg form-control" id="id_number_of_voter_cards_in_the_ballot_box" name="number_of_voter_cards_in_the_ballot_box" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"></td>
+			<td width="20%" class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} required-input"><input tabindex="11" autocomplete="off" class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} form-control" id="id_number_of_voter_cards_in_the_ballot_box" name="number_of_voter_cards_in_the_ballot_box" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"></td>
 		</tr>
             <tr>
                 <th><span class="bignum">3</span></th>
                 <th><label for="id_number_valid_votes">
                     {% trans 'Number of valid ballot papers:' %}</label></th>
-                <td class="blue-bg required-input"><input tabindex="12" autocomplete="off" class="blue-bg form-control" id="id_number_valid_votes" name="number_valid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+                <td class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} required-input"><input tabindex="12" autocomplete="off" class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} form-control" id="id_number_valid_votes" name="number_valid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
             </tr>
             <tr>
                 <th><span class="bignum">4</span></th>
                 <th><label for="id_number_invalid_votes">
                     {% trans 'Number of invalid ballot papers (including blank ones):' %}</label></th>
-                <td class="blue-bg required-input"><input tabindex="13" autocomplete="off" class="blue-bg form-control" id="id_number_invalid_votes" name="number_invalid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
+                <td class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} required-input"><input tabindex="13" autocomplete="off" class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} form-control" id="id_number_invalid_votes" name="number_invalid_votes" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/></td>
             </tr>
             <tr>
                 <th><span class="bignum">5</span></th>
                 <th><label for="id_number_sorted_and_counted">
                     {% trans 'Total number of ballot papers in the box (4 + 3):' %}</label></th>
-                <td class="blue-bg required-input"><input tabindex="14" autocomplete="off" class="blue-bg form-control" id="id_number_sorted_and_counted" name="number_sorted_and_counted" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/><br/></td>
+                <td class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} required-input"><input tabindex="14" autocomplete="off" class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} form-control" id="id_number_sorted_and_counted" name="number_sorted_and_counted" oncopy="return false;" ondrag="return false;" ondrop="return false;" onpaste="return false;" type="text"/><br/></td>
             </tr>
 		</tbody>
 		</table>

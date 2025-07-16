@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load app_filters %}
 
 {% block content %}
 
@@ -8,7 +9,6 @@
     <br>
     <div class="text-center">
         <p class="gray-bg">{% trans 'In all the fields below, please check the number of ballots twice to ensure accuracy' %}</p >
-        <p class="gray-bg">{% trans 'Section (A) to be filled prior to opening the polling station' %}</p>
     </div>
 </div>
 <div class="row">
@@ -19,32 +19,32 @@
         <th width="70%">
             <label for="id_number_of_voters">
             <span class="helptext">{% trans "Number of voters in the station's voter register (in addition to additional voters)" %} </span></label></th>
-        <td class="blue-bg" width="20%">{{ form.number_of_voters.data }}</td>
+        <td class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }}" width="20%">{{ form.number_of_voters.data }}</td>
     </tr>
     <tr>
         <th width="10%"><span class="bignum">2</span></th>
         <th width="60%"><label for="id_number_of_voter_cards_in_the_ballot_box">
             <span class="helptext">
                 {% trans 'Number of voter cards in the box:' %}</span></label></th>
-        <td width="30%"class="blue-bg required-input">{{ form.number_of_voter_cards_in_the_ballot_box.data }}</td>
+        <td width="30%"class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} required-input">{{ form.number_of_voter_cards_in_the_ballot_box.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">3</span></th>
             <th><label for="id_number_valid_votes">
                 {% trans 'Number of valid ballot papers:' %}</label></th>
-            <td class="blue-bg required-input">{{ form.number_valid_votes.data }}</td>
+            <td class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} required-input">{{ form.number_valid_votes.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">4</span></th>
             <th><label for="id_number_invalid_votes">
                 {% trans 'Number of invalid ballot papers (including blank ones):' %}</label></th>
-            <td class="blue-bg required-input">{{ form.number_invalid_votes.data }}</td>
+            <td class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} required-input">{{ form.number_invalid_votes.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">5</span></th>
             <th><label for="id_number_sorted_and_counted">
                 {% trans 'Total number of ballot papers in the box (4 + 3):' %}</label></th>
-            <td class="blue-bg required-input">{{ form.number_sorted_and_counted.data }}<br/></td>
+            <td class="{{ result_form.ballot.electrol_race|get_bg_class_by_race_type }} required-input">{{ form.number_sorted_and_counted.data }}<br/></td>
         </tr>
     </tbody>
     </table>
