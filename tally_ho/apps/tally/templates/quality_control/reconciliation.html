@@ -18,34 +18,43 @@
         <th width="10%"><span class="bignum">1</span></th>
         <th width="70%">
             <label for="id_number_ballots_received">
-            <span class="helptext">{% trans 'Total number of ballots papers received by the polling station' %} </span></label></th>
+            <span class="helptext">{% trans "Number of voters in the station's voter register (in addition to additional voters)" %} </span></label></th>
         <td class="blue-bg" width="20%">{{ form.number_ballots_received.data }}</td>
     </tr>
     <tr>
         <th width="10%"><span class="bignum">2</span></th>
         <th width="60%"><label for="id_number_of_voter_cards_in_the_ballot_box">
             <span class="helptext">
-                {% trans 'Number of voter cards in the ballot box:' %}</span></label></th>
+                {% trans 'Number of voter cards in the box:' %}</span></label></th>
         <td width="30%"class="blue-bg required-input">{{ form.number_of_voter_cards_in_the_ballot_box.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">3</span></th>
             <th><label for="id_number_valid_votes">
-                {% trans 'Number of valid votes:' %}</label></th>
+                {% trans 'Number of valid ballot papers:' %}</label></th>
             <td class="blue-bg required-input">{{ form.number_valid_votes.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">4</span></th>
             <th><label for="id_number_invalid_votes">
-                {% trans 'Number of invalid votes (including empty ballot papers):' %}</label></th>
+                {% trans 'Number of invalid ballot papers (including blank ones):' %}</label></th>
             <td class="blue-bg required-input">{{ form.number_invalid_votes.data }}</td>
         </tr>
         <tr>
             <th><span class="bignum">5</span></th>
             <th><label for="id_number_sorted_and_counted">
-                {% trans 'Total number of the sorted and counted ballots (4 + 3):' %}</label></th>
+                {% trans 'Total number of ballot papers in the box (4 + 3):' %}</label></th>
             <td class="blue-bg required-input">{{ form.number_sorted_and_counted.data }}<br/></td>
         </tr>
+    </tbody>
+    </table>
+    <table class="table">
+    <tbody>
+    <tr>
+        <td width="60%"><p>{% trans 'Notes:' %}</p>
+            <p>{{ form.notes.data }}</p>
+        </td>
+    </tr>
     </tbody>
     </table>
 </div>
