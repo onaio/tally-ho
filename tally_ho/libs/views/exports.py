@@ -98,7 +98,7 @@ def build_result_and_recon_output(result_form):
             'invalid ballots': recon.number_invalid_votes,
             'number of voter cards in the ballot box':
             recon.number_of_voter_cards_in_the_ballot_box,
-            'received ballots papers': recon.number_ballots_received,
+            'received ballots papers': recon.number_of_voters,
             'valid votes': recon.number_valid_votes,
         })
 
@@ -132,7 +132,7 @@ def build_candidate_results_output(result_form):
             'invalid_ballots': recon.number_invalid_votes,
             'number_of_voter_cards_in_the_ballot_box':
             recon.number_of_voter_cards_in_the_ballot_box,
-            'received_ballots_papers': recon.number_ballots_received,
+            'received_ballots_papers': recon.number_of_voters,
             'valid_votes': recon.number_valid_votes,
         })
 

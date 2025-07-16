@@ -66,7 +66,7 @@ class TestElectionStatisticsReports(TestBase):
             user=self.user,
             number_valid_votes=20,
             number_invalid_votes=0,
-            number_ballots_received=20,
+            number_of_voters=20,
         )
         votes = 20
         create_candidates(self.result_form, votes=votes, user=self.user,

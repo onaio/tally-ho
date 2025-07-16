@@ -18,7 +18,7 @@ class ReconForm(ModelForm):
     class Meta:
         model = ReconciliationForm
         fields = localized_fields = [
-            "number_ballots_received",
+            "number_of_voters",
             "number_of_voter_cards_in_the_ballot_box",
             "number_invalid_votes",
             "number_valid_votes",
@@ -52,7 +52,7 @@ class ReconForm(ModelForm):
         has_data = False
 
         recon_fields = [
-            "number_ballots_received",
+            "number_of_voters",
             "number_of_voter_cards_in_the_ballot_box",
             "number_invalid_votes",
             "number_valid_votes",

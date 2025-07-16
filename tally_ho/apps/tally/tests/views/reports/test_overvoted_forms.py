@@ -89,7 +89,7 @@ class TestOvervotedFormsViews(TestBase):
             user=self.user,
             number_valid_votes=55,
             number_invalid_votes=5,
-            number_ballots_received=100,
+            number_of_voters=100,
             number_of_voter_cards_in_the_ballot_box=60,
             entry_version=EntryVersion.FINAL,
         )

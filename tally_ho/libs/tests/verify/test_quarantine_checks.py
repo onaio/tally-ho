@@ -122,7 +122,7 @@ class TestQuarantineChecks(TestBase):
         recon_form = create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_ballots_received=100,
+            number_of_voters=100,
             number_of_voter_cards_in_the_ballot_box=100,
         )
 
@@ -326,13 +326,13 @@ class TestQuarantineChecks(TestBase):
         recon_form = create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_ballots_received=105,
+            number_of_voters=105,
             number_of_voter_cards_in_the_ballot_box=100,
         )
         MockQC.objects.get.return_value.value = 5
         MockQC.objects.get.return_value.percentage = 0
         self.assertTrue(pass_ballot_papers_trigger(result_form))
-        recon_form.number_ballots_received = 106
+        recon_form.number_of_voters = 106
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_ballot_papers_trigger(result_form))
@@ -356,13 +356,13 @@ class TestQuarantineChecks(TestBase):
         recon_form = create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_ballots_received=110,
+            number_of_voters=110,
             number_of_voter_cards_in_the_ballot_box=100,
         )
         MockQC.objects.get.return_value.value = 0
         MockQC.objects.get.return_value.percentage = 10
         self.assertTrue(pass_ballot_papers_trigger(result_form))
-        recon_form.number_ballots_received = 112
+        recon_form.number_of_voters = 112
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_ballot_papers_trigger(result_form))

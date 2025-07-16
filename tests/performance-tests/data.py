@@ -43,7 +43,7 @@ RESULT_FORMS_DATA = [
 
 RESULTS = {'ballot_number_from': 0,
            'ballot_number_to': 10,
-           'number_ballots_received': 10,
+           'number_of_voters': 10,
            'number_invalid_votes': 0,
            'number_valid_votes': 10,
            'number_sorted_and_counted': 10,

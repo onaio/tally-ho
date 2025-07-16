@@ -205,7 +205,7 @@ def pass_ballot_papers_trigger(result_form):
 
     return (
         abs(
-            recon_form.number_ballots_received
+            recon_form.number_of_voters
             - recon_form.number_of_voter_cards_in_the_ballot_box
         )
         <= allowed_tolerance
@@ -330,11 +330,11 @@ def pass_ballots_number_validation(result_form):
     # ballots_inside_and_outside_the_box = (
     #     recon_form.number_ballots_inside_the_box +
     #     recon_form.number_ballots_outside_the_box)
-    # number_ballots_received = recon_form.number_ballots_received
-    # diff = abs(number_ballots_received - ballots_inside_and_outside_the_box)
+    # number_of_voters = recon_form.number_of_voters
+    # diff = abs(number_of_voters - ballots_inside_and_outside_the_box)
     # qc = QuarantineCheck.objects.get(method='pass_ballots_number_validation')
     # scaled_tolerance = (qc.value / 100) * (
-    #     number_ballots_received + ballots_inside_and_outside_the_box) / 2
+    #     number_of_voters + ballots_inside_and_outside_the_box) / 2
 
     # return diff <= scaled_tolerance
 

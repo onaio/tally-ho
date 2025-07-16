@@ -258,7 +258,7 @@ def create_reconciliation_form(
     entry_version=EntryVersion.FINAL,
     ballot_number_from=1,
     number_sorted_and_counted=1,
-    number_ballots_received=1,
+    number_of_voters=1,
     number_valid_votes=1,
     number_invalid_votes=1,
     number_of_voter_cards_in_the_ballot_box=1,
@@ -267,7 +267,7 @@ def create_reconciliation_form(
         result_form=result_form,
         ballot_number_from=ballot_number_from,
         ballot_number_to=1,
-        number_ballots_received=number_ballots_received,
+        number_of_voters=number_of_voters,
         number_of_voter_cards_in_the_ballot_box=number_of_voter_cards_in_the_ballot_box,
         number_invalid_votes=number_invalid_votes,
         number_valid_votes=number_valid_votes,
@@ -396,7 +396,7 @@ def result_form_data(result_form):
     data = result_form_data_blank(result_form)
     data.update(
         {
-            "number_ballots_received": ["125"],
+            "number_of_voters": ["125"],
             "number_of_voter_cards_in_the_ballot_box": ["100"],
             "number_valid_votes": ["100"],
             "number_invalid_votes": ["25"],

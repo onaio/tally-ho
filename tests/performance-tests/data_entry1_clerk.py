@@ -77,7 +77,7 @@ class UserLogin(TaskSet):
             {
                 'ballot_number_from': '1',
                 'ballot_number_to': '100',
-                'number_ballots_received': '100',
+                'number_of_voters': '100',
                 'number_invalid_votes': '5',
                 'number_valid_votes': '7',
                 'number_sorted_and_counted': '80',

@@ -49,8 +49,9 @@ class ReconciliationForm(BaseModel):
         _("from:"), max_length=256, null=True
     )
     ballot_number_to = models.CharField(_("to:"), max_length=256, null=True)
-    number_ballots_received = models.PositiveIntegerField(
-        _("Total number of ballots received by the polling station")
+    number_of_voters = models.PositiveIntegerField(
+        _("Number of voters in the station's voter register"
+          " (in addition to additional voters)")
     )
     number_of_voter_cards_in_the_ballot_box = models.PositiveIntegerField(
         _("Number of voter cards in the ballot box"), default=0
@@ -97,7 +98,7 @@ class ReconciliationForm(BaseModel):
         :returns: A positive integer representing the number of ballots
             expected.
         """
-        return self.number_ballots_received - self.number_invalid_votes
+        return self.number_of_voters - self.number_invalid_votes
 
     @property
     def number_ballots_inside_the_box(self):

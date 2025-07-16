@@ -103,7 +103,7 @@ class TestTurnoutByGenderReport(TestBase):
             user=self.user,
             number_valid_votes=55,
             number_invalid_votes=5,  # Invalid votes contribute to turnout
-            number_ballots_received=100,
+            number_of_voters=100,
             entry_version=EntryVersion.FINAL,
         )
         self.recon_form_female = create_reconciliation_form(
@@ -111,7 +111,7 @@ class TestTurnoutByGenderReport(TestBase):
             user=self.user,
             number_valid_votes=70,
             number_invalid_votes=10,  # Invalid votes contribute to turnout
-            number_ballots_received=120,
+            number_of_voters=120,
             entry_version=EntryVersion.FINAL,
         )
 

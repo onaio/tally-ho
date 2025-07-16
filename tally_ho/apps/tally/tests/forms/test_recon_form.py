@@ -14,7 +14,7 @@ class ReconFormTest(TestBase):
             'result_form': self.result_form,
             'user': self.user,
             'is_stamped': True,
-            'number_ballots_received': 100,
+            'number_of_voters': 100,
             'number_of_voter_cards_in_the_ballot_box': 100,
             'number_invalid_votes': 0,
             'number_valid_votes': 100,
