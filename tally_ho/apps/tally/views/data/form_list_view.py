@@ -23,6 +23,7 @@ from tally_ho.libs.models.enums.form_state import (
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale, get_deployed_site_url)
+from tally_ho.libs.utils.enum import get_matching_enum_values
 from tally_ho.libs.views import mixins
 
 ALL = '__all__'
@@ -128,7 +129,13 @@ class FormListDataView(LoginRequiredMixin,
                 ballot__number__in=ballot.form_ballot_numbers)
 
         if keyword:
-            qs = qs.filter(Q(barcode__icontains=keyword) |
+            # Get matching FormState enum values for case-insensitive search
+            matching_states = get_matching_enum_values(FormState, keyword)
+            form_state_q = Q(form_state__in=matching_states) \
+                if matching_states else Q()
+
+            qs = qs.filter(form_state_q |
+                           Q(barcode__icontains=keyword) |
                            Q(center__code__contains=keyword) |
                            Q(station_id__contains=keyword) |
                            Q(center__office__region__name__icontains=keyword) |
@@ -285,7 +292,13 @@ class FormNotReceivedDataView(FormListDataView):
             FormState.UNSUBMITTED,
             tally_id=tally_id)
         if keyword:
-            qs = qs.filter(Q(barcode__icontains=keyword) |
+            # Get matching FormState enum values for case-insensitive search
+            matching_states = get_matching_enum_values(FormState, keyword)
+            form_state_q = Q(form_state__in=matching_states) \
+                if matching_states else Q()
+
+            qs = qs.filter(form_state_q |
+                           Q(barcode__icontains=keyword) |
                            Q(center__code__contains=keyword) |
                            Q(center__office__region__name__icontains=keyword) |
                            Q(center__office__name__icontains=keyword) |
