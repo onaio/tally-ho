@@ -27,8 +27,8 @@ class QuarantineCheckForm(ModelForm):
         self.fields['name'].widget.attrs.update(
             {'class': 'form-control'})
         self.fields['value'].widget.attrs.update(
-            {'class': 'form-control', 'disabled': ''})
+            {'class': 'form-control'})
         self.fields['percentage'].widget.attrs.update(
-            {'class': 'form-control', 'disabled': ''})
+            {'class': 'form-control'})
         self.fields['description'].widget.attrs.update(
             {'class': 'form-control'})
