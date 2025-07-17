@@ -36,6 +36,20 @@
             </td>
         </tr>
         <tr>
+            <td>{% trans 'Value:' %}</td>
+            <td>
+                {{ form.value.errors }}
+                {{ form.value }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans 'Percentage:' %}</td>
+            <td>
+                {{ form.percentage.errors }}
+                {{ form.percentage }}
+            </td>
+        </tr>
+        <tr>
             <td>{% trans 'Active:' %}</td>
             <td>
                 {{ form.active.errors }}
