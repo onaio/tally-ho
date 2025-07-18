@@ -11,6 +11,7 @@
     <li><a href="{% url 'result-export' tally_id=tally_id report='all-candidates' %}">{% trans 'All Candidate Votes' %}</a></li>
     <li><a href="{% url 'result-export' tally_id=tally_id report='active-candidates' %}">{% trans 'Active Candidate Votes' %}</a></li>
     <li><a href="{% url 'result-forms-with-duplicate-results' tally_id=tally_id %}">{% trans 'Result Forms With Duplicate Results' %}</a></li>
+    <li><a href="{% url 'form-results' tally_id=tally_id %}">{% trans 'Leading Candidate Results Report' %}</a></li>
 </ul>
 
 {% endblock %}
