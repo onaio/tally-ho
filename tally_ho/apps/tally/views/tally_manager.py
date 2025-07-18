@@ -449,7 +449,8 @@ class TallyUpdateView(
             )
         except Exception as e:
             messages.error(
-                self.request, _("Error updating tally: %s") % str(e)
+                self.request, _("Error updating tally: %(error)s") % {
+                    'error': str(e)}
             )
             return self.form_invalid(form)
 

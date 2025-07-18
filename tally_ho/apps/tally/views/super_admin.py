@@ -592,8 +592,9 @@ class DuplicateResultFormView(LoginRequiredMixin,
             if archived_forms_barcodes:
                 messages.error(
                     self.request,
-                    _(u"Archived form(s) (%s) can not be sent to clearance.") %
-                    (', '.join(archived_forms_barcodes)))
+                    _(u"Archived form(s) (%(barcodes)s) "
+                      "can not be sent to clearance.") %
+                      {'barcodes':(', '.join(archived_forms_barcodes))})
                 return HttpResponseRedirect(self.request.path_info)
             else:
                 self.success_message = _(
@@ -1134,14 +1135,15 @@ class DisableEntityView(LoginRequiredMixin,
         center_code = kwargs.get('center_code')
         tally_id = kwargs.get('tally_id')
 
-        entity_name = u'Center' if not station_number else u'Station'
-
         self.initial = {
             'tally_id': tally_id,
             'center_code_input': center_code,
             'station_number_input': station_number
         }
-        self.success_message = _(u"%s Successfully Disabled.") % entity_name
+
+        entity_name = _(u'Center') if not station_number else _(u'Station')
+        self.success_message = _(u"%(entity_name)s Successfully Disabled.") % {
+            'entity_name': entity_name}
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
@@ -1187,9 +1189,9 @@ class EnableEntityView(LoginRequiredMixin,
         center_code = kwargs.get('center_code')
         tally_id = kwargs.get('tally_id')
 
-        entityName = u'Center' if not station_number else u'Station'
-
-        self.success_message = _(u"%s Successfully enabled.") % entityName
+        entity_name = _(u'Center') if not station_number else _(u'Station')
+        self.success_message = _(u"%(entity_name)s Successfully enabled.") % {
+            'entity_name': entity_name}
 
         disable_enable_entity(center_code, station_number, tally_id=tally_id)
 

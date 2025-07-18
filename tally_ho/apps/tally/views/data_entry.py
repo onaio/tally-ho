@@ -117,7 +117,9 @@ def check_group_for_state(result_form, user, form):
         result_form.form_state == FormState.DATA_ENTRY_2
         and not user_is_data_entry_2(user)
     ):
-        message = _("Return form to %s" % result_form.form_state_name)
+        message = _("Return form to %(state)s") % {
+            'state': result_form.form_state_name
+        }
 
         return add_generic_error(form, message)
 
@@ -174,20 +176,25 @@ class DataEntryView(
 
         user = self.request.user
 
+        is_admin = entry_type = None
+
         if user_is_data_entry_1(user):
             entry_type = 1
         elif user_is_data_entry_2(user):
             entry_type = 2
         else:
-            entry_type = "Admin"
+            is_admin = True
 
         context["tally_id"] = self.kwargs.get("tally_id")
         context["form_action"] = ""
-        context["header_text"] = _("Data Entry %s") % entry_type
-        if entry_type != "Admin":
+        context["header_text"] = _("Data Entry %(entry_type)s") % {
+                'entry_type': entry_type if not is_admin else _("Admin")}
+
+        if entry_type is not is_admin:
             self.request.session[
                 "encoded_result_form_data_entry_start_time"
             ] = json.loads(json.dumps(timezone.now(), cls=DjangoJSONEncoder))
+
         return context
 
     def get_initial(self):

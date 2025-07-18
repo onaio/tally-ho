@@ -318,7 +318,7 @@ class FormsForRaceView(FormListView):
         language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
-            header_text=_('Forms for Race %s' % ballot),
+            header_text=_('Forms for Race %(ballot)s') % {'ballot': ballot},
             none=True,
             tally_id=tally_id,
             remote_url=reverse('forms-for-race-data',
