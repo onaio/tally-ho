@@ -58,7 +58,7 @@ def get_overvoted_forms_queryset(tally_id, data=None):
         )
         .values("barcode")
         .annotate(
-            ballots_inside=F("number_of_voter_cards_in_the_ballot_box"),
+            ballots_inside=F("number_sorted_and_counted"),
             station_registrants=station_registrants_query,
             station_id=F("station_id_num"),
             station_gender_code=station_gender_query,
