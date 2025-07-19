@@ -54,7 +54,8 @@ from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.memcache import MemCache
 from tally_ho.libs.utils.numbers import parse_int
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+                                        ReverseSuccessURLMixin)
 
 BATCH_BLOCK_SIZE = 100
 UPLOADED_FILES_PATH = "data/uploaded/"
@@ -208,7 +209,7 @@ def process_batch_step(current_step, file_map, tally):
 
 
 class DashboardView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
     template_name = "tally_manager/home.html"
@@ -227,8 +228,8 @@ class DashboardView(
 
 class EditUserView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
     SuccessMessageMixin,
     UpdateView,
 ):
@@ -296,8 +297,8 @@ class EditUserView(
 
 class RemoveUserConfirmationView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
     SuccessMessageMixin,
     DeleteView,
 ):
@@ -338,7 +339,7 @@ class RemoveUserConfirmationView(
 
 
 class CreateUserView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, CreateView
+    LoginRequiredMixin, GroupRequiredMixin, CreateView
 ):
     group_required = groups.TALLY_MANAGER
     template_name = "tally_manager/edit_user_profile.html"
@@ -398,7 +399,7 @@ class CreateUserView(
 
 
 class CreateTallyView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, CreateView
+    LoginRequiredMixin, GroupRequiredMixin, CreateView
 ):
     group_required = groups.TALLY_MANAGER
     template_name = "tally_manager/tally_form.html"
@@ -411,8 +412,8 @@ class CreateTallyView(
 
 class TallyUpdateView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
     UpdateView,
 ):
     template_name = "tally_manager/tally_form.html"
@@ -464,8 +465,8 @@ class TallyUpdateView(
 
 class TallyRemoveView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
     TemplateView,
 ):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -486,7 +487,7 @@ class TallyRemoveView(
 
 class TallyFilesFormView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
+    GroupRequiredMixin,
     SuccessMessageMixin,
     FormView,
 ):
@@ -582,7 +583,7 @@ class TallyFilesFormView(
 
 class BatchView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
+    GroupRequiredMixin,
     SuccessMessageMixin,
     TemplateView,
 ):
@@ -716,8 +717,8 @@ def get_import_progress(request, **kwargs):
 
 class SetUserTimeOutView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
     SuccessMessageMixin,
     UpdateView,
 ):

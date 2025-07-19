@@ -23,10 +23,12 @@ from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views import mixins
 from tally_ho.libs.views.errors import add_generic_error
 from tally_ho.libs.views.form_state import (form_in_data_entry_state,
                                             safe_form_in_state)
+from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+                                        ReverseSuccessURLMixin,
+                                        TallyAccessMixin)
 from tally_ho.libs.views.session import session_matches_post_result_form
 
 
@@ -161,9 +163,9 @@ def check_state_and_group(result_form, user, form):
 
 class DataEntryView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = BarcodeForm
@@ -232,9 +234,9 @@ class DataEntryView(
 
 class CenterDetailsView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = CenterDetailsForm
@@ -321,9 +323,9 @@ class CenterDetailsView(
 
 class EnterResultsView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = CreateResultForm
@@ -457,8 +459,8 @@ class EnterResultsView(
 
 class ConfirmationView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     TemplateView,
 ):
     template_name = "success.html"

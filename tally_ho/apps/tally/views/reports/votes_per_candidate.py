@@ -2,22 +2,19 @@ from django.db.models import Q, Sum
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
-
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
-)
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 class VotesPerCandidateListDataView(LoginRequiredMixin,
-                                    mixins.GroupRequiredMixin,
-                                    mixins.TallyAccessMixin,
+                                    GroupRequiredMixin,
+                                    TallyAccessMixin,
                                     BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Result
@@ -70,15 +67,15 @@ class VotesPerCandidateListDataView(LoginRequiredMixin,
 
 
 class VotesPerCandidateListView(LoginRequiredMixin,
-                                mixins.GroupRequiredMixin,
-                                mixins.TallyAccessMixin,
+                                GroupRequiredMixin,
+                                TallyAccessMixin,
+                                DataTablesMixin,
                                 TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Result
     template_name = "reports/votes_per_candidate.html"
 
     def get(self, request, *args, **kwargs):
-        language_de = get_datatables_language_de_from_locale(self.request)
         tally_id = kwargs.get('tally_id')
         station_number = kwargs.get('station_number')
         center_code = kwargs.get('center_code')
@@ -96,5 +93,4 @@ class VotesPerCandidateListView(LoginRequiredMixin,
             tally_id=tally_id,
             station_number=station_number,
             center_code=center_code,
-            report_name=report_name,
-            languageDE=language_de))
+            report_name=report_name))

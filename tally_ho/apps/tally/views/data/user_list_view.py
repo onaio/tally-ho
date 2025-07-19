@@ -1,20 +1,18 @@
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.views.generic import TemplateView
 from django.urls import reverse
+from django.views.generic import TemplateView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
-)
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 class UserListDataView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
+                       GroupRequiredMixin,
                        BaseDatatableView):
     group_required = [groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]
     model = UserProfile
@@ -66,7 +64,8 @@ class UserListDataView(LoginRequiredMixin,
 
 
 class UserListView(LoginRequiredMixin,
-                   mixins.GroupRequiredMixin,
+                   GroupRequiredMixin,
+                   DataTablesMixin,
                    TemplateView):
     group_required = groups.TALLY_MANAGER
     template_name = "data/users.html"
@@ -75,18 +74,17 @@ class UserListView(LoginRequiredMixin,
         # check cache
         role = kwargs.get('role', 'user')
         is_admin = role == 'admin'
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             role=role,
             is_admin=is_admin,
-            remote_url=reverse('user-list-data', kwargs={'role': role}),
-            languageDE=language_de))
+            remote_url=reverse('user-list-data', kwargs={'role': role})))
 
 
 class UserTallyListView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.TallyAccessMixin,
+                        GroupRequiredMixin,
+                        TallyAccessMixin,
+                        DataTablesMixin,
                         TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/users.html"
@@ -95,15 +93,13 @@ class UserTallyListView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
         is_admin = False
         role = 'user'
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             role=role,
             is_admin=is_admin,
             remote_url=reverse('user-tally-list-data',
                                kwargs={'tally_id': tally_id, 'role': role}),
-            tally_id=tally_id,
-            languageDE=language_de))
+            tally_id=tally_id))
 
 
 class UserTallyListDataView(UserListDataView):

@@ -5,19 +5,15 @@ from django.urls import reverse
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.models import (
-    Region, Constituency, SubConstituency,
-    Station, ResultForm, Result
-    )
+from tally_ho.apps.tally.models import (Constituency, Region, Result,
+                                        ResultForm, Station, SubConstituency)
 from tally_ho.apps.tally.models.office import Office
-from tally_ho.libs.reports.list_base_data_view import \
-    NoneQsBaseDataView
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import \
-    get_datatables_language_de_from_locale
-from tally_ho.libs.views import mixins
+from tally_ho.libs.reports.list_base_data_view import NoneQsBaseDataView
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 def get_regions(tally_id):
@@ -128,7 +124,7 @@ def get_station_votes_in_admin_area(
 
 
 class TurnoutReportByAdminAreasDataView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, mixins.TallyAccessMixin,
+    LoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin,
     NoneQsBaseDataView
     ):
     group_required = groups.TALLY_MANAGER
@@ -285,7 +281,8 @@ class TurnoutReportByAdminAreasDataView(
 
 class TurnoutReportByAdminAreasView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
+    GroupRequiredMixin,
+    DataTablesMixin,
     TemplateView
     ):
     group_required = groups.TALLY_MANAGER
@@ -294,12 +291,10 @@ class TurnoutReportByAdminAreasView(
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         admin_level = kwargs.get('admin_level')
-        language_de = get_datatables_language_de_from_locale(request)
 
         context = {
             'tally_id': tally_id,
             "admin_level": admin_level,
-            'languageDE': language_de,
             "remote_url": reverse('turnout-list-data', kwargs=kwargs),
             }
 

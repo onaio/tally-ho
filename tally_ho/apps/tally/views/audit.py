@@ -1,15 +1,16 @@
+import csv
+
 import dateutil.parser
-from django.core.serializers.json import json, DjangoJSONEncoder
+from django.core.serializers.json import DjangoJSONEncoder, json
 from django.forms import model_to_dict
-from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
-from django.views.generic import FormView, TemplateView
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.views import View
+from django.views.generic import FormView, TemplateView
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
-from django.views import View
-from django.http import HttpResponse
-import csv
 
 from tally_ho.apps.tally.forms.audit_form import AuditForm
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
@@ -19,16 +20,15 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 from tally_ho.apps.tally.views.quality_control import result_form_results
-from tally_ho.libs.models.enums.audit_resolution import\
-    AuditResolution
-from tally_ho.libs.models.enums.actions_prior import\
-    ActionsPrior
+from tally_ho.libs.models.enums.actions_prior import ActionsPrior
+from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.request_type import RequestType
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views import mixins
-from tally_ho.libs.views.form_state import form_in_state,\
-    safe_form_in_state
+from tally_ho.libs.views.form_state import form_in_state, safe_form_in_state
+from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+                                        ReverseSuccessURLMixin,
+                                        TallyAccessMixin)
 from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
 
@@ -171,9 +171,9 @@ def forms_for_user(user_is_clerk, tally_id):
 
 
 class DashboardView(LoginRequiredMixin,
-                    mixins.GroupRequiredMixin,
-                    mixins.TallyAccessMixin,
-                    mixins.ReverseSuccessURLMixin,
+                    GroupRequiredMixin,
+                    TallyAccessMixin,
+                    ReverseSuccessURLMixin,
                     FormView):
     form_class = AuditForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
@@ -238,9 +238,9 @@ class DashboardView(LoginRequiredMixin,
 
 
 class ReviewView(LoginRequiredMixin,
-                 mixins.GroupRequiredMixin,
-                 mixins.TallyAccessMixin,
-                 mixins.ReverseSuccessURLMixin,
+                 GroupRequiredMixin,
+                 TallyAccessMixin,
+                 ReverseSuccessURLMixin,
                  FormView):
     form_class = AuditForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
@@ -317,8 +317,8 @@ class ReviewView(LoginRequiredMixin,
 
 
 class PrintCoverView(LoginRequiredMixin,
-                     mixins.TallyAccessMixin,
-                     mixins.GroupRequiredMixin,
+                     TallyAccessMixin,
+                     GroupRequiredMixin,
                      TemplateView):
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
     template_name = "audit/print_cover.html"
@@ -379,9 +379,9 @@ class PrintCoverView(LoginRequiredMixin,
 
 
 class CreateAuditView(LoginRequiredMixin,
-                      mixins.GroupRequiredMixin,
-                      mixins.TallyAccessMixin,
-                      mixins.ReverseSuccessURLMixin,
+                      GroupRequiredMixin,
+                      TallyAccessMixin,
+                      ReverseSuccessURLMixin,
                       FormView):
     form_class = BarcodeForm
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR]
@@ -440,8 +440,8 @@ class CreateAuditView(LoginRequiredMixin,
             return self.form_invalid(form)
 
 class AuditRecallRequestsCsvView(LoginRequiredMixin,
-                                 mixins.GroupRequiredMixin,
-                                 mixins.TallyAccessMixin,
+                                 GroupRequiredMixin,
+                                 TallyAccessMixin,
                                  View):
     group_required = [groups.AUDIT_CLERK, groups.AUDIT_SUPERVISOR,
                       groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]

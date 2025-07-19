@@ -18,9 +18,8 @@ from tally_ho.apps.tally.views.reports.administrative_areas_reports import \
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale, get_deployed_site_url)
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 def get_overvoted_forms_queryset(tally_id, data=None):
@@ -99,8 +98,8 @@ def get_overvoted_forms_queryset(tally_id, data=None):
 
 class OvervotedResultFormsDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = groups.TALLY_MANAGER
@@ -161,14 +160,14 @@ class OvervotedResultFormsDataView(
 
 class OvervotedResultFormsView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
+    GroupRequiredMixin,
+    DataTablesMixin,
     TemplateView,
 ):
     group_required = groups.TALLY_MANAGER
     template_name = "reports/overvoted_forms.html"
 
     def get(self, request, *args, **kwargs):
-        language_de = get_datatables_language_de_from_locale(self.request)
         columns = (
             "barcode",
             "center_code",
@@ -198,30 +197,5 @@ class OvervotedResultFormsView(
                 electrol_races.values_list("ballot_name", flat=True)
             ),
             "dt_columns": dt_columns,
-            "languageDE": language_de,
-            "deployedSiteUrl": get_deployed_site_url(),
-            'get_centers_stations_url': '/ajax/get-centers-stations/',
-            "candidates_list_download_url": ("/ajax/download-"
-                                "candidates-list/"),
-            "enable_scroll_x": True,
-            "enable_responsive": False,
-            "centers_and_stations_list_download_url": ("/ajax/download-"
-                                "centers-and-stations-list/"),
-            "sub_cons_list_download_url": "/ajax/download-sub-cons-list/",
-            "result_forms_download_url": "/ajax/download-result-forms/",
-            ("centers_stations_by_mun_candidates"
-                                "_votes_results_download_url"): (
-                "/ajax/download-centers-stations"
-                    "-by-mun-results-candidates-votes/"),
-            "centers_by_mun_candidate_votes_results_download_url": (
-                "/ajax/download-centers-"
-                    "by-mun-results-candidates-votes/"),
-            "get_export_url": "/ajax/get-export/",
-            "offices_list_download_url": "/ajax/download-offices-list/",
-            "regions_list_download_url": "/ajax/download-regions-list/",
-            "centers_by_mun_results_download_url": (
-                "/ajax/download-"
-                    "centers-by-mun-results/"),
-            "results_download_url": "/ajax/download-results/",
         }
         return self.render_to_response(self.get_context_data(**context_data))

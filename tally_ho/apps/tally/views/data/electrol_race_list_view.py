@@ -1,21 +1,19 @@
 from django.db.models import Q
-from django.views.generic import TemplateView
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.views.generic import TemplateView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
-)
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 class ElectrolRaceListDataView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       mixins.TallyAccessMixin,
+                       GroupRequiredMixin,
+                       TallyAccessMixin,
                        BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ElectrolRace
@@ -51,8 +49,9 @@ class ElectrolRaceListDataView(LoginRequiredMixin,
 
 
 class ElectrolRaceListView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
+                     DataTablesMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/electrol_races.html"
@@ -61,7 +60,6 @@ class ElectrolRaceListView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         reverse_url = 'electrol-race-list-data'
         report_title = _('Electrol Races List')
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse(
@@ -69,4 +67,4 @@ class ElectrolRaceListView(LoginRequiredMixin,
                 kwargs=kwargs),
             tally_id=tally_id,
             report_title=report_title,
-            languageDE=language_de))
+))

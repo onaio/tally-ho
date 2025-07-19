@@ -22,8 +22,10 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.verify.quarantine_checks import check_quarantine
-from tally_ho.libs.views import mixins
 from tally_ho.libs.views.form_state import form_in_state, safe_form_in_state
+from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+                                        ReverseSuccessURLMixin,
+                                        TallyAccessMixin)
 from tally_ho.libs.views.session import session_matches_post_result_form
 
 
@@ -79,9 +81,9 @@ def result_form_results(result_form, active=True, workflow_request_pk=None):
 
 class QualityControlView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = BarcodeForm
@@ -143,9 +145,9 @@ class QualityControlView(
 
 class QualityControlDashboardView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = BarcodeForm
@@ -238,8 +240,8 @@ class QualityControlDashboardView(
 
 class PrintView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = BarcodeForm
@@ -292,7 +294,7 @@ class PrintView(
 
 
 class ConfirmationView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, TemplateView
 ):
     template_name = "success.html"
     group_required = [
@@ -335,9 +337,9 @@ class ConfirmationView(
 
 class ConfirmFormResetView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     SuccessMessageMixin,
     FormView,
 ):

@@ -1,7 +1,6 @@
 from django.db.models import Q
 from django.urls import reverse
 from django.views.generic import TemplateView
-
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
@@ -9,15 +8,13 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
-)
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 class StationProgressListDataView(LoginRequiredMixin,
-                                  mixins.GroupRequiredMixin,
-                                  mixins.TallyAccessMixin,
+                                  GroupRequiredMixin,
+                                  TallyAccessMixin,
                                   BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station
@@ -59,8 +56,9 @@ class StationProgressListDataView(LoginRequiredMixin,
 
 
 class StationProgressListView(LoginRequiredMixin,
-                              mixins.GroupRequiredMixin,
-                              mixins.TallyAccessMixin,
+                              GroupRequiredMixin,
+                              TallyAccessMixin,
+                              DataTablesMixin,
                               TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station
@@ -68,9 +66,7 @@ class StationProgressListView(LoginRequiredMixin,
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('staion-progress-list-data', kwargs=kwargs),
-            tally_id=tally_id,
-            languageDE=language_de,))
+            tally_id=tally_id))

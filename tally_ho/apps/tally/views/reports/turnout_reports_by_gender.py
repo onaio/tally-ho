@@ -1,23 +1,22 @@
+from django.db.models import (Case, CharField, F, IntegerField, OuterRef,
+                              Subquery, Sum)
+from django.db.models import Value as V
+from django.db.models import When
+from django.db.models.functions import Coalesce
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.models import (
-    Station, ResultForm, Result, ReconciliationForm
-    )
-from tally_ho.libs.reports.list_base_data_view import \
-    NoneQsBaseDataView
+from tally_ho.apps.tally.models import (ReconciliationForm, Result, ResultForm,
+                                        Station)
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import \
-    get_datatables_language_de_from_locale
-from tally_ho.libs.views import mixins
-from django.db.models import (
-    IntegerField, Subquery, F, OuterRef, Sum, Case, When, Value as V, CharField
-)
-from django.db.models.functions import Coalesce
+from tally_ho.libs.reports.list_base_data_view import NoneQsBaseDataView
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
+
 
 def station_gender_query(
         tally_id, center_code_filter_name, station_number_filter_name):
@@ -177,7 +176,7 @@ def get_voters_by_gender(
     return voters
 
 class TurnoutReportByGenderAndAdminAreasDataView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, mixins.TallyAccessMixin,
+    LoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin,
     NoneQsBaseDataView
     ):
     group_required = groups.TALLY_MANAGER
@@ -273,7 +272,8 @@ def get_aggregate_data(data):
 
 class TurnoutReportByGenderAndAdminAreasView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
+    GroupRequiredMixin,
+    DataTablesMixin,
     TemplateView
     ):
     group_required = groups.TALLY_MANAGER
@@ -282,12 +282,10 @@ class TurnoutReportByGenderAndAdminAreasView(
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
         admin_level = kwargs.get('admin_level')
-        language_de = get_datatables_language_de_from_locale(request)
 
         context = {
             'tally_id': tally_id,
             "admin_level": admin_level,
-            'languageDE': language_de,
             "remote_url":
                 reverse(
                     'turnout-report-by-gender-data',

@@ -1,12 +1,12 @@
-from django.views.generic import TemplateView
 from django.http import HttpResponse
+from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports import progress as p
 from tally_ho.libs.reports.progress import get_office_candidates_ids
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import GroupRequiredMixin, TallyAccessMixin
 
 
 def getOverviews(tally_id):
@@ -27,8 +27,8 @@ def getOverviews(tally_id):
 
 
 class OfficesReportView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.TallyAccessMixin,
+                        GroupRequiredMixin,
+                        TallyAccessMixin,
                         TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'reports/offices.html'

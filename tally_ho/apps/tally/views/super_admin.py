@@ -58,12 +58,12 @@ from tally_ho.libs.utils.active_status import (disable_enable_ballot,
                                                disable_enable_electrol_race,
                                                disable_enable_entity)
 from tally_ho.libs.utils.collections import flatten
-from tally_ho.libs.utils.context_processors import \
-    get_datatables_language_de_from_locale
-from tally_ho.libs.views import mixins
 from tally_ho.libs.views.exports import (SPECIAL_BALLOTS, distinct_forms,
                                          get_result_export_response,
                                          valid_ballots)
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        ReverseSuccessURLMixin,
+                                        TallyAccessMixin)
 from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
 
@@ -239,7 +239,7 @@ def get_result_form_with_duplicate_results(
 
 
 class TalliesView(LoginRequiredMixin,
-                  mixins.GroupRequiredMixin,
+                  GroupRequiredMixin,
                   TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/tallies.html"
@@ -254,8 +254,8 @@ class TalliesView(LoginRequiredMixin,
 
 
 class DashboardView(LoginRequiredMixin,
-                    mixins.GroupRequiredMixin,
-                    mixins.TallyAccessMixin,
+                    GroupRequiredMixin,
+                    TallyAccessMixin,
                     TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/home.html"
@@ -286,9 +286,9 @@ class DashboardView(LoginRequiredMixin,
 
 
 class CreateResultFormView(LoginRequiredMixin,
-                           mixins.GroupRequiredMixin,
-                           mixins.TallyAccessMixin,
-                           mixins.ReverseSuccessURLMixin,
+                           GroupRequiredMixin,
+                           TallyAccessMixin,
+                           ReverseSuccessURLMixin,
                            SuccessMessageMixin,
                            CreateView):
     model = ResultForm
@@ -367,9 +367,9 @@ class CreateResultFormView(LoginRequiredMixin,
 
 
 class EditResultFormView(LoginRequiredMixin,
-                         mixins.GroupRequiredMixin,
-                         mixins.TallyAccessMixin,
-                         mixins.ReverseSuccessURLMixin,
+                         GroupRequiredMixin,
+                         TallyAccessMixin,
+                         ReverseSuccessURLMixin,
                          SuccessMessageMixin,
                          UpdateView):
     model = ResultForm
@@ -403,9 +403,9 @@ class EditResultFormView(LoginRequiredMixin,
 
 
 class RemoveResultFormConfirmationView(LoginRequiredMixin,
-                                       mixins.GroupRequiredMixin,
-                                       mixins.TallyAccessMixin,
-                                       mixins.ReverseSuccessURLMixin,
+                                       GroupRequiredMixin,
+                                       TallyAccessMixin,
+                                       ReverseSuccessURLMixin,
                                        SuccessMessageMixin,
                                        DeleteView):
     model = ResultForm
@@ -453,47 +453,43 @@ class RemoveResultFormConfirmationView(LoginRequiredMixin,
 
 
 class FormProgressView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       mixins.TallyAccessMixin,
+                       GroupRequiredMixin,
+                       TallyAccessMixin,
+                       DataTablesMixin,
                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_progress.html"
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-progress-data',
                                kwargs={'tally_id': tally_id}),
-            languageDE=language_de,
-            tally_id=tally_id,
-            enable_responsive=False,
-            enable_scroll_x=True))
+            tally_id=tally_id))
 
 
 class FormProgressByFormStateView(LoginRequiredMixin,
-                                  mixins.GroupRequiredMixin,
-                                  mixins.TallyAccessMixin,
+                                  GroupRequiredMixin,
+                                  TallyAccessMixin,
+                                  DataTablesMixin,
                                   TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_progress_by_form_state.html"
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        language_de = get_datatables_language_de_from_locale(self.request)
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-progress-by-form-state-data',
                                kwargs={'tally_id': tally_id}),
-            languageDE=language_de,
             tally_id=tally_id,
             enable_responsive=False,
             enable_scroll_x=True))
 
 
 class DuplicateResultTrackingView(LoginRequiredMixin,
-                                  mixins.GroupRequiredMixin,
-                                  mixins.TallyAccessMixin,
+                                  GroupRequiredMixin,
+                                  TallyAccessMixin,
                                   TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/duplicate_result_tracking.html"
@@ -508,8 +504,8 @@ class DuplicateResultTrackingView(LoginRequiredMixin,
 
 
 class DuplicateResultFormView(LoginRequiredMixin,
-                              mixins.GroupRequiredMixin,
-                              mixins.TallyAccessMixin,
+                              GroupRequiredMixin,
+                              TallyAccessMixin,
                               SuccessMessageMixin,
                               TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -610,62 +606,56 @@ class DuplicateResultFormView(LoginRequiredMixin,
 
 
 class FormDuplicatesView(LoginRequiredMixin,
-                         mixins.GroupRequiredMixin,
-                         mixins.TallyAccessMixin,
+                         GroupRequiredMixin,
+                         TallyAccessMixin,
+                         DataTablesMixin,
                          TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_duplicates.html"
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        language_de = get_datatables_language_de_from_locale(self.request)
-
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-duplicates-data',
                                kwargs={'tally_id': tally_id}),
-            languageDE=language_de,
             tally_id=tally_id))
 
 
 class FormClearanceView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.TallyAccessMixin,
+                        GroupRequiredMixin,
+                        TallyAccessMixin,
+                        DataTablesMixin,
                         TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_clearance.html"
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        language_de = get_datatables_language_de_from_locale(self.request)
-
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-clearance-data',
                                kwargs={'tally_id': tally_id}),
-            languageDE=language_de,
             tally_id=tally_id))
 
 
 class FormAuditView(LoginRequiredMixin,
-                    mixins.GroupRequiredMixin,
-                    mixins.TallyAccessMixin,
+                    GroupRequiredMixin,
+                    TallyAccessMixin,
+                    DataTablesMixin,
                     TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_audit.html"
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
-        language_de = get_datatables_language_de_from_locale(self.request)
-
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-audit-data',
                                kwargs={'tally_id': tally_id}),
-            languageDE=language_de,
             tally_id=tally_id))
 
 
 class FormResultsDuplicatesView(LoginRequiredMixin,
-                                mixins.GroupRequiredMixin,
-                                mixins.TallyAccessMixin,
+                                GroupRequiredMixin,
+                                TallyAccessMixin,
                                 TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_results_duplicates.html"
@@ -680,8 +670,8 @@ class FormResultsDuplicatesView(LoginRequiredMixin,
 
 
 class FormProgressDataView(LoginRequiredMixin,
-                           mixins.GroupRequiredMixin,
-                           mixins.TallyAccessMixin,
+                           GroupRequiredMixin,
+                           TallyAccessMixin,
                            BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
@@ -707,8 +697,8 @@ class FormProgressDataView(LoginRequiredMixin,
 
 
 class FormProgressByFormStateDataView(LoginRequiredMixin,
-                                      mixins.GroupRequiredMixin,
-                                      mixins.TallyAccessMixin,
+                                      GroupRequiredMixin,
+                                      TallyAccessMixin,
                                       BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
@@ -896,9 +886,9 @@ class FormClearanceDataView(FormProgressDataView):
 
 
 class FormActionView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
-                     mixins.ReverseSuccessURLMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
+                     ReverseSuccessURLMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_action.html"
@@ -941,9 +931,9 @@ class FormActionView(LoginRequiredMixin,
 
 
 class CreateCenterView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       mixins.TallyAccessMixin,
-                       mixins.ReverseSuccessURLMixin,
+                       GroupRequiredMixin,
+                       TallyAccessMixin,
+                       ReverseSuccessURLMixin,
                        SuccessMessageMixin,
                        CreateView):
     model = Center
@@ -981,8 +971,8 @@ class CreateCenterView(LoginRequiredMixin,
 
 
 class ResultExportView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       mixins.TallyAccessMixin,
+                       GroupRequiredMixin,
+                       TallyAccessMixin,
                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/result_export.html"
@@ -996,9 +986,9 @@ class ResultExportView(LoginRequiredMixin,
 
 
 class RemoveCenterView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       mixins.TallyAccessMixin,
-                       mixins.ReverseSuccessURLMixin,
+                       GroupRequiredMixin,
+                       TallyAccessMixin,
+                       ReverseSuccessURLMixin,
                        SuccessMessageMixin,
                        FormView):
     form_class = RemoveCenterForm
@@ -1035,9 +1025,9 @@ class RemoveCenterView(LoginRequiredMixin,
 
 
 class RemoveCenterConfirmationView(LoginRequiredMixin,
-                                   mixins.GroupRequiredMixin,
-                                   mixins.TallyAccessMixin,
-                                   mixins.ReverseSuccessURLMixin,
+                                   GroupRequiredMixin,
+                                   TallyAccessMixin,
+                                   ReverseSuccessURLMixin,
                                    SuccessMessageMixin,
                                    DeleteView):
     model = Center
@@ -1081,9 +1071,9 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
 
 
 class EditCenterView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
-                     mixins.ReverseSuccessURLMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
+                     ReverseSuccessURLMixin,
                      SuccessMessageMixin,
                      UpdateView):
     model = Center
@@ -1120,9 +1110,9 @@ class EditCenterView(LoginRequiredMixin,
 
 
 class DisableEntityView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.TallyAccessMixin,
-                        mixins.ReverseSuccessURLMixin,
+                        GroupRequiredMixin,
+                        TallyAccessMixin,
+                        ReverseSuccessURLMixin,
                         SuccessMessageMixin,
                         FormView):
     form_class = DisableEntityForm
@@ -1176,9 +1166,9 @@ class DisableEntityView(LoginRequiredMixin,
 
 
 class EnableEntityView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       mixins.TallyAccessMixin,
-                       mixins.ReverseSuccessURLMixin,
+                       GroupRequiredMixin,
+                       TallyAccessMixin,
+                       ReverseSuccessURLMixin,
                        SuccessMessageMixin,
                        TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -1201,9 +1191,9 @@ class EnableEntityView(LoginRequiredMixin,
 
 
 class CreateBallotView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
-                     mixins.ReverseSuccessURLMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
+                     ReverseSuccessURLMixin,
                      SuccessMessageMixin,
                      CreateView):
     model = Ballot
@@ -1240,9 +1230,9 @@ class CreateBallotView(LoginRequiredMixin,
 
 
 class EditBallotView(LoginRequiredMixin,
-                   mixins.GroupRequiredMixin,
-                   mixins.TallyAccessMixin,
-                   mixins.ReverseSuccessURLMixin,
+                   GroupRequiredMixin,
+                   TallyAccessMixin,
+                   ReverseSuccessURLMixin,
                    SuccessMessageMixin,
                    UpdateView):
     model = Ballot
@@ -1286,9 +1276,9 @@ class EditBallotView(LoginRequiredMixin,
 
 
 class CreateElectrolRaceView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
-                     mixins.ReverseSuccessURLMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
+                     ReverseSuccessURLMixin,
                      SuccessMessageMixin,
                      CreateView):
     model = ElectrolRace
@@ -1326,9 +1316,9 @@ class CreateElectrolRaceView(LoginRequiredMixin,
 
 
 class EditElectrolRaceView(LoginRequiredMixin,
-                   mixins.GroupRequiredMixin,
-                   mixins.TallyAccessMixin,
-                   mixins.ReverseSuccessURLMixin,
+                   GroupRequiredMixin,
+                   TallyAccessMixin,
+                   ReverseSuccessURLMixin,
                    SuccessMessageMixin,
                    UpdateView):
     model = ElectrolRace
@@ -1375,9 +1365,9 @@ class EditElectrolRaceView(LoginRequiredMixin,
 
 
 class DisableElectrolRaceView(LoginRequiredMixin,
-                      mixins.GroupRequiredMixin,
-                      mixins.TallyAccessMixin,
-                      mixins.ReverseSuccessURLMixin,
+                      GroupRequiredMixin,
+                      TallyAccessMixin,
+                      ReverseSuccessURLMixin,
                       SuccessMessageMixin,
                       FormView):
     form_class = DisableEntityForm
@@ -1429,9 +1419,9 @@ class DisableElectrolRaceView(LoginRequiredMixin,
 
 
 class EnableElectrolRaceView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
-                     mixins.ReverseSuccessURLMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
+                     ReverseSuccessURLMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     success_url = 'electrol-race-list'
@@ -1449,9 +1439,9 @@ class EnableElectrolRaceView(LoginRequiredMixin,
 
 
 class DisableBallotView(LoginRequiredMixin,
-                      mixins.GroupRequiredMixin,
-                      mixins.TallyAccessMixin,
-                      mixins.ReverseSuccessURLMixin,
+                      GroupRequiredMixin,
+                      TallyAccessMixin,
+                      ReverseSuccessURLMixin,
                       SuccessMessageMixin,
                       FormView):
     form_class = DisableEntityForm
@@ -1502,9 +1492,9 @@ class DisableBallotView(LoginRequiredMixin,
 
 
 class EnableBallotView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
-                     mixins.ReverseSuccessURLMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
+                     ReverseSuccessURLMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     success_url = 'ballot-list'
@@ -1523,9 +1513,9 @@ class EnableBallotView(LoginRequiredMixin,
 
 
 class CreateStationView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.TallyAccessMixin,
-                        mixins.ReverseSuccessURLMixin,
+                        GroupRequiredMixin,
+                        TallyAccessMixin,
+                        ReverseSuccessURLMixin,
                         SuccessMessageMixin,
                         FormView):
     model = Station
@@ -1567,9 +1557,9 @@ class CreateStationView(LoginRequiredMixin,
 
 
 class RemoveStationView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.TallyAccessMixin,
-                        mixins.ReverseSuccessURLMixin,
+                        GroupRequiredMixin,
+                        TallyAccessMixin,
+                        ReverseSuccessURLMixin,
                         SuccessMessageMixin,
                         FormView):
     form_class = RemoveStationForm
@@ -1605,7 +1595,7 @@ class RemoveStationView(LoginRequiredMixin,
 
 
 class QuarantineChecksListView(LoginRequiredMixin,
-                               mixins.GroupRequiredMixin,
+                               GroupRequiredMixin,
                                TemplateView):
     template_name = 'super_admin/quarantine_checks_list.html'
     group_required = groups.SUPER_ADMINISTRATOR
@@ -1627,8 +1617,8 @@ class QuarantineChecksListView(LoginRequiredMixin,
 
 
 class QuarantineChecksConfigView(LoginRequiredMixin,
-                                 mixins.GroupRequiredMixin,
-                                 mixins.ReverseSuccessURLMixin,
+                                 GroupRequiredMixin,
+                                 ReverseSuccessURLMixin,
                                  UpdateView):
     template_name = 'super_admin/quarantine_checks_config.html'
     group_required = groups.SUPER_ADMINISTRATOR
@@ -1654,9 +1644,9 @@ class QuarantineChecksConfigView(LoginRequiredMixin,
 
 
 class RemoveStationConfirmationView(LoginRequiredMixin,
-                                    mixins.GroupRequiredMixin,
-                                    mixins.TallyAccessMixin,
-                                    mixins.ReverseSuccessURLMixin,
+                                    GroupRequiredMixin,
+                                    TallyAccessMixin,
+                                    ReverseSuccessURLMixin,
                                     SuccessMessageMixin,
                                     DeleteView):
     model = Station
@@ -1720,9 +1710,9 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
 
 
 class EditStationView(LoginRequiredMixin,
-                      mixins.GroupRequiredMixin,
-                      mixins.TallyAccessMixin,
-                      mixins.ReverseSuccessURLMixin,
+                      GroupRequiredMixin,
+                      TallyAccessMixin,
+                      ReverseSuccessURLMixin,
                       SuccessMessageMixin,
                       UpdateView):
     model = Station
@@ -1757,9 +1747,9 @@ class EditStationView(LoginRequiredMixin,
 
 
 class EnableCandidateView(LoginRequiredMixin,
-                          mixins.GroupRequiredMixin,
-                          mixins.TallyAccessMixin,
-                          mixins.ReverseSuccessURLMixin,
+                          GroupRequiredMixin,
+                          TallyAccessMixin,
+                          ReverseSuccessURLMixin,
                           SuccessMessageMixin,
                           TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -1777,9 +1767,9 @@ class EnableCandidateView(LoginRequiredMixin,
 
 
 class DisableCandidateView(LoginRequiredMixin,
-                           mixins.GroupRequiredMixin,
-                           mixins.TallyAccessMixin,
-                           mixins.ReverseSuccessURLMixin,
+                           GroupRequiredMixin,
+                           TallyAccessMixin,
+                           ReverseSuccessURLMixin,
                            SuccessMessageMixin,
                            TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
@@ -1797,9 +1787,9 @@ class DisableCandidateView(LoginRequiredMixin,
 
 
 class EditUserView(LoginRequiredMixin,
-                   mixins.GroupRequiredMixin,
-                   mixins.TallyAccessMixin,
-                   mixins.ReverseSuccessURLMixin,
+                   GroupRequiredMixin,
+                   TallyAccessMixin,
+                   ReverseSuccessURLMixin,
                    SuccessMessageMixin,
                    UpdateView):
     model = UserProfile
@@ -1875,8 +1865,8 @@ class EditUserView(LoginRequiredMixin,
 
 
 class CreateUserView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
                      CreateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'tally_manager/edit_user_profile.html'

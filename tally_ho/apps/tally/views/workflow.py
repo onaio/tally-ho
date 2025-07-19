@@ -22,7 +22,7 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.request_status import RequestStatus
 from tally_ho.libs.models.enums.request_type import RequestType
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import TallyAccessMixin
 
 
 class AuditUserRequiredMixin(AccessMixin):
@@ -58,7 +58,7 @@ class WorkflowPermissionMixin(AccessMixin):
 # Archive Recall Views
 class InitiateRecallView(LoginRequiredMixin,
                          AuditUserRequiredMixin,
-                         mixins.TallyAccessMixin,
+                         TallyAccessMixin,
                          FormView):
     form_class = BarcodeForm
     template_name = 'barcode_verify.html'
@@ -121,7 +121,7 @@ class InitiateRecallView(LoginRequiredMixin,
 
 class CreateRecallRequestView(LoginRequiredMixin,
                               AuditUserRequiredMixin,
-                              mixins.TallyAccessMixin,
+                              TallyAccessMixin,
                               CreateView):
     model = WorkflowRequest
     form_class = RequestRecallForm
@@ -193,7 +193,7 @@ class CreateRecallRequestView(LoginRequiredMixin,
 
 
 class ViewResultFormDetailsView(LoginRequiredMixin,
-                                mixins.TallyAccessMixin,
+                                TallyAccessMixin,
                                 DetailView):
     """Displays Recon and Results details for a specific ResultForm."""
     model = ResultForm
@@ -262,7 +262,7 @@ class ViewResultFormDetailsView(LoginRequiredMixin,
 
 class RecallRequestDetailView(LoginRequiredMixin,
                               WorkflowPermissionMixin,
-                              mixins.TallyAccessMixin,
+                              TallyAccessMixin,
                               FormMixin, # For handling the approval form
                               DetailView):
     model = WorkflowRequest

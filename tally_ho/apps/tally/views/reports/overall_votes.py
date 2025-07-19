@@ -1,17 +1,17 @@
-from django.views.generic import TemplateView
 from django.db.models import Sum
 from django.utils.translation import gettext_lazy as _
+from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.apps.tally.models.result import Result
+from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import GroupRequiredMixin, TallyAccessMixin
 
 
 class OverallVotes(LoginRequiredMixin,
-                   mixins.GroupRequiredMixin,
-                   mixins.TallyAccessMixin,
+                   GroupRequiredMixin,
+                   TallyAccessMixin,
                    TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "reports/overall_votes.html"

@@ -41,11 +41,10 @@ from tally_ho.apps.tally.views.super_admin import \
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale, get_deployed_site_url)
 from tally_ho.libs.utils.numbers import parse_int
 from tally_ho.libs.utils.query_set_helpers import Round
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 report_types = {
     1: "turnout",
@@ -2544,8 +2543,8 @@ def get_sub_cons_list(request):
 
 class SummaryReportDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = groups.TALLY_MANAGER
@@ -2709,7 +2708,7 @@ class SummaryReportDataView(
 
 
 class SummaryReportView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, DataTablesMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
     model = ReconciliationForm
@@ -2719,7 +2718,6 @@ class SummaryReportView(
         tally_id = kwargs.get("tally_id")
         region_id = kwargs.get("region_id")
         constituency_id = kwargs.get("constituency_id")
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         try:
             region_name = (
@@ -2745,15 +2743,14 @@ class SummaryReportView(
                 tally_id=tally_id,
                 region_name=region_name,
                 constituency_name=constituency_name,
-                languageDE=language_de,
             )
         )
 
 
 class ProgressiveReportDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = groups.TALLY_MANAGER
@@ -2983,7 +2980,7 @@ class ProgressiveReportDataView(
 
 
 class ProgressiveReportView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, DataTablesMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
     model = Result
@@ -2993,7 +2990,6 @@ class ProgressiveReportView(
         tally_id = kwargs.get("tally_id")
         region_id = kwargs.get("region_id")
         constituency_id = kwargs.get("constituency_id")
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         try:
             region_name = (
@@ -3021,15 +3017,14 @@ class ProgressiveReportView(
                 tally_id=tally_id,
                 region_name=region_name,
                 constituency_name=constituency_name,
-                languageDE=language_de,
             )
         )
 
 
 class DiscrepancyReportDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = groups.TALLY_MANAGER
@@ -3467,14 +3462,13 @@ class DiscrepancyReportDataView(
 
 
 class DiscrepancyReportView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, DataTablesMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
     model = Station
     template_name = "reports/process_discrepancy_report.html"
 
     def get(self, request, *args, **kwargs):
-        language_de = get_datatables_language_de_from_locale(self.request)
         tally_id = kwargs.get("tally_id")
         region_id = kwargs.get("region_id")
         constituency_id = kwargs.get("constituency_id")
@@ -3522,7 +3516,6 @@ class DiscrepancyReportView(
                 region_name=region_name,
                 constituency_name=constituency_name,
                 report_type=report_type,
-                languageDE=language_de,
             )
         )
 
@@ -3620,7 +3613,7 @@ def generate_report(
 
 
 class RegionsReportsView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
     template_name = "reports/administrative_areas_reports.html"
@@ -3747,7 +3740,7 @@ class RegionsReportsView(
 
 
 class ConstituencyReportsView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
 
@@ -3896,7 +3889,7 @@ class ConstituencyReportsView(
 
 
 class SubConstituencyReportsView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
 
@@ -4056,8 +4049,8 @@ class SubConstituencyReportsView(
 
 class ResultFormResultsListDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = groups.TALLY_MANAGER
@@ -4170,7 +4163,7 @@ class ResultFormResultsListDataView(
 
 
 class ResultFormResultsListView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, DataTablesMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
     model = Result
@@ -4212,7 +4205,6 @@ class ResultFormResultsListView(
             {"name": "Active", "value": "active"},
             {"name": "In Active", "value": "inactive"},
         ]
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(
             self.get_context_data(
@@ -4230,14 +4222,6 @@ class ResultFormResultsListView(
                 ballot_status=ballot_status,
                 station_status=station_status,
                 candidate_status=candidate_status,
-                get_centers_stations_url="/ajax/get-centers-stations/",
-                export_url="/ajax/get-export/",
-                results_download_url="/ajax/download-results/",
-                centers_by_mun_results_download_url="/ajax/download-centers-by-mun-results/",
-                centers_by_mun_candidate_votes_results_download_url="/ajax/download-centers-by-mun-results-candidates-votes/",
-                centers_stations_by_mun_candidates_votes_results_download_url="/ajax/download-centers-stations-by-mun-results-candidates-votes/",
-                languageDE=language_de,
-                deployedSiteUrl=get_deployed_site_url(),
                 dt_columns=dt_columns,
             )
         )
@@ -4245,8 +4229,8 @@ class ResultFormResultsListView(
 
 class DuplicateResultsListDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = groups.TALLY_MANAGER
@@ -4317,7 +4301,7 @@ class DuplicateResultsListDataView(
 
 
 class DuplicateResultsListView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, DataTablesMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
     model = ResultForm
@@ -4328,7 +4312,6 @@ class DuplicateResultsListView(
         stations, centers, _unused = build_stations_centers_and_sub_cons_list(
             tally_id
         )
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(
             self.get_context_data(
@@ -4336,42 +4319,14 @@ class DuplicateResultsListView(
                 tally_id=tally_id,
                 stations=stations,
                 centers=centers,
-                get_centers_stations_url="/ajax/get-centers-stations/",
-                get_export_url="/ajax/get-export/",
-                languageDE=language_de,
-                **{
-
-            "deployedSiteUrl": get_deployed_site_url(),
-            "candidates_list_download_url": ("/ajax/download-"
-                                "candidates-list/"),
-            "enable_scroll_x": True,
-            "enable_responsive": False,
-            "centers_and_stations_list_download_url": ("/ajax/download-"
-                                "centers-and-stations-list/"),
-            "sub_cons_list_download_url": "/ajax/download-sub-cons-list/",
-            "result_forms_download_url": "/ajax/download-result-forms/",
-            ("centers_stations_by_mun_candidates"
-                                "_votes_results_download_url"): (
-                "/ajax/download-centers-stations"
-                    "-by-mun-results-candidates-votes/"),
-            "centers_by_mun_candidate_votes_results_download_url": (
-                "/ajax/download-centers-"
-                    "by-mun-results-candidates-votes/"),
-            "offices_list_download_url": "/ajax/download-offices-list/",
-            "regions_list_download_url": "/ajax/download-regions-list/",
-            "centers_by_mun_results_download_url": (
-                "/ajax/download-"
-                    "centers-by-mun-results/"),
-            "results_download_url": "/ajax/download-results/",
-                }
             )
         )
 
 
 class AllCandidatesVotesDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = groups.TALLY_MANAGER
@@ -4445,7 +4400,7 @@ class AllCandidatesVotesDataView(
 
 
 class AllCandidatesVotesListView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, DataTablesMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
     model = Station
@@ -4456,7 +4411,6 @@ class AllCandidatesVotesListView(
         stations, centers, _unused = build_stations_centers_and_sub_cons_list(
             tally_id
         )
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(
             self.get_context_data(
@@ -4466,17 +4420,14 @@ class AllCandidatesVotesListView(
                 centers=centers,
                 title=_("All Candidates Votes"),
                 export_file_name=_("all_candidates_votes"),
-                get_centers_stations_url="/ajax/get-centers-stations/",
-                get_export_url="/ajax/get-export/",
-                languageDE=language_de,
             )
         )
 
 
 class ActiveCandidatesVotesDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = groups.TALLY_MANAGER
@@ -4551,7 +4502,7 @@ class ActiveCandidatesVotesDataView(
 
 
 class ActiveCandidatesVotesListView(
-    LoginRequiredMixin, mixins.GroupRequiredMixin, TemplateView
+    LoginRequiredMixin, GroupRequiredMixin, DataTablesMixin, TemplateView
 ):
     group_required = groups.TALLY_MANAGER
     model = Station
@@ -4562,7 +4513,6 @@ class ActiveCandidatesVotesListView(
         stations, centers, _unused = build_stations_centers_and_sub_cons_list(
             tally_id
         )
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(
             self.get_context_data(
@@ -4574,16 +4524,14 @@ class ActiveCandidatesVotesListView(
                 centers=centers,
                 title=_("Active Candidates Votes"),
                 export_file_name=_("active_candidates_votes"),
-                get_centers_stations_url="/ajax/get-centers-stations/",
-                get_export_url="/ajax/get-export/",
-                languageDE=language_de,
             )
         )
 
 
 class ClearanceAuditSummaryReportView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
+    GroupRequiredMixin,
+    DataTablesMixin,
     TemplateView,
 ):
     group_required = [groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER]
@@ -4591,7 +4539,6 @@ class ClearanceAuditSummaryReportView(
 
     def get(self, request, *args, **kwargs):
         tally_id = self.kwargs.get("tally_id")
-        language_de = get_datatables_language_de_from_locale(self.request)
         columns = (
             "barcode",
             "center_code",
@@ -4624,39 +4571,14 @@ class ClearanceAuditSummaryReportView(
                 electrol_races.values_list("ballot_name", flat=True)
             ),
             "dt_columns": dt_columns,
-            "languageDE": language_de,
-            "deployedSiteUrl": get_deployed_site_url(),
-            "get_centers_stations_url": "/ajax/get-centers-stations/",
-            "candidates_list_download_url": ("/ajax/download-"
-                                "candidates-list/"),
-            "enable_scroll_x": True,
-            "enable_responsive": False,
-            "centers_and_stations_list_download_url": ("/ajax/download-"
-                                "centers-and-stations-list/"),
-            "sub_cons_list_download_url": "/ajax/download-sub-cons-list/",
-            "result_forms_download_url": "/ajax/download-result-forms/",
-            ("centers_stations_by_mun_candidates"
-                                "_votes_results_download_url"): (
-                "/ajax/download-centers-stations"
-                    "-by-mun-results-candidates-votes/"),
-            "centers_by_mun_candidate_votes_results_download_url": (
-                "/ajax/download-centers-"
-                    "by-mun-results-candidates-votes/"),
-            "get_export_url": "/ajax/get-export/",
-            "offices_list_download_url": "/ajax/download-offices-list/",
-            "regions_list_download_url": "/ajax/download-regions-list/",
-            "centers_by_mun_results_download_url": (
-                "/ajax/download-"
-                    "centers-by-mun-results/"),
-            "results_download_url": "/ajax/download-results/",
         }
         return self.render_to_response(self.get_context_data(**context_data))
 
 
 class ClearanceAuditSummaryReportDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = [groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER]

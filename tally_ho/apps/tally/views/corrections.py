@@ -22,11 +22,13 @@ from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views import mixins
 from tally_ho.libs.views.corrections import (
     get_matched_forms, result_form_candidate_results, save_final_results,
     save_form_results, update_result_form_entries_with_de_errors)
 from tally_ho.libs.views.form_state import form_in_state, safe_form_in_state
+from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+                                        ReverseSuccessURLMixin,
+                                        TallyAccessMixin)
 from tally_ho.libs.views.session import session_matches_post_result_form
 
 
@@ -227,9 +229,9 @@ def save_recon(post_data, user, result_form):
 
 class CorrectionView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = BarcodeForm
@@ -286,9 +288,9 @@ class CorrectionView(
 
 class CorrectionMatchView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = PassToQualityControlForm
@@ -347,9 +349,9 @@ class CorrectionMatchView(
 
 class CorrectionRequiredView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = PassToQualityControlForm
@@ -423,8 +425,8 @@ class CorrectionRequiredView(
 
 class ConfirmationView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     TemplateView,
 ):
     template_name = "success.html"

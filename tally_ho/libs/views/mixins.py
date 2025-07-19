@@ -5,12 +5,13 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
-from tally_ho.libs.utils.collections import listify
-from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.models.tally import Tally
-
+from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.utils.collections import listify
+from tally_ho.libs.utils.context_processors import (
+    get_datatables_language_de_from_locale, get_deployed_site_url)
 
 admin_groups = set((groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR))
 
@@ -124,3 +125,39 @@ class TallyAccessMixin(object):
             raise PermissionDenied
 
         return super(TallyAccessMixin, self).dispatch(request, *args, **kwargs)
+
+
+class DataTablesMixin(object):
+    """
+    Mixin that provides standard DataTables context variables.
+    Includes all static variables used by data/table.html template.
+    """
+
+    def get_context_data(self, **kwargs):
+        context = super(DataTablesMixin, self).get_context_data(**kwargs)
+
+        # Static variables (same across all views)
+        context.update({
+            'languageDE': get_datatables_language_de_from_locale(self.request),
+            'deployedSiteUrl': get_deployed_site_url(),
+            'enable_responsive': False,
+            'enable_scroll_x': True,
+            'regions_list_download_url': '/ajax/download-regions-list/',
+            'offices_list_download_url': '/ajax/download-offices-list/',
+            'get_centers_stations_url': '/ajax/get-centers-stations/',
+            'get_export_url': '/ajax/get-export/',
+            'results_download_url': '/ajax/download-results/',
+            'centers_by_mun_results_download_url':
+                '/ajax/download-centers-by-mun-results/',
+            'centers_by_mun_candidate_votes_results_download_url':
+                '/ajax/download-centers-by-mun-results-candidates-votes/',
+            'centers_stations_by_mun_candidates_votes_results_download_url':
+                '/ajax/download-centers-stations-by-mun-results-candidates-votes/',
+            'sub_cons_list_download_url': '/ajax/download-sub-cons-list/',
+            'result_forms_download_url': '/ajax/download-result-forms/',
+            'centers_and_stations_list_download_url':
+                '/ajax/download-centers-and-stations-list/',
+            'candidates_list_download_url': '/ajax/download-candidates-list/',
+        })
+
+        return context

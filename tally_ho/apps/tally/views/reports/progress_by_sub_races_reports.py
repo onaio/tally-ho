@@ -1,27 +1,25 @@
-from django.urls import reverse
+from django.db.models import F
 from django.http import JsonResponse
-
 from django.shortcuts import render
+from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
+
+from tally_ho.apps.tally.models.constituency import Constituency
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.region import Region
-from tally_ho.apps.tally.models.constituency import Constituency
-from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.apps.tally.models.electrol_race import ElectrolRace
-from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
-)
-from tally_ho.libs.views import mixins
-from django.db.models import F
+from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 class RegionsReportView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.TallyAccessMixin,
+                        GroupRequiredMixin,
+                        TallyAccessMixin,
                         BaseDatatableView):
     group_required = groups.TALLY_MANAGER
     model = ResultForm
@@ -125,8 +123,8 @@ class RegionsReportView(LoginRequiredMixin,
 
 
 class OfficesReportView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.TallyAccessMixin,
+                        GroupRequiredMixin,
+                        TallyAccessMixin,
                         BaseDatatableView):
     group_required = groups.TALLY_MANAGER
     model = ResultForm
@@ -231,8 +229,8 @@ class OfficesReportView(LoginRequiredMixin,
 
 
 class ConstituenciesReportView(LoginRequiredMixin,
-                               mixins.GroupRequiredMixin,
-                               mixins.TallyAccessMixin,
+                               GroupRequiredMixin,
+                               TallyAccessMixin,
                                BaseDatatableView):
     group_required = groups.TALLY_MANAGER
     model = ResultForm
@@ -340,8 +338,8 @@ class ConstituenciesReportView(LoginRequiredMixin,
 
 
 class SubConstituenciesReportView(LoginRequiredMixin,
-                                  mixins.GroupRequiredMixin,
-                                  mixins.TallyAccessMixin,
+                                  GroupRequiredMixin,
+                                  TallyAccessMixin,
                                   BaseDatatableView):
     group_required = groups.TALLY_MANAGER
     model = ResultForm
@@ -454,7 +452,9 @@ def progress_report(request, **kwargs):
     electoral_races = ElectrolRace.objects.filter(
         tally__id=tally_id).values_list('ballot_name', flat=True)
 
-    language_de = get_datatables_language_de_from_locale(request)
+    # Get DataTables context from mixin
+    mixin = DataTablesMixin()
+    datatables_context = mixin.get_context_data()
 
     dt_offices_columns = [{ "data": "office_name" }]
     html_table_offices_columns = ["Office"]
@@ -527,7 +527,7 @@ def progress_report(request, **kwargs):
             'constituencies-progress-report', kwargs=kwargs),
         'sub_constituencies_progress_report_url': reverse(
             'sub-constituencies-progress-report', kwargs=kwargs),
-        'languageDE': language_de,
+        **datatables_context,
         'dt_offices_columns': dt_offices_columns,
         'html_table_offices_columns': html_table_offices_columns,
         'dt_regions_columns': dt_regions_columns,
