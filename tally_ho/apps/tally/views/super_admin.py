@@ -58,6 +58,7 @@ from tally_ho.libs.utils.active_status import (disable_enable_ballot,
                                                disable_enable_electrol_race,
                                                disable_enable_entity)
 from tally_ho.libs.utils.collections import flatten
+from tally_ho.libs.utils.enum import get_matching_enum_values
 from tally_ho.libs.views.exports import (SPECIAL_BALLOTS, distinct_forms,
                                          get_result_export_response,
                                          valid_ballots)
@@ -466,7 +467,10 @@ class FormProgressView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-progress-data',
                                kwargs={'tally_id': tally_id}),
-            tally_id=tally_id))
+            tally_id=tally_id,
+            export_file_name='form-progress',
+            server_side=True,
+        ))
 
 
 class FormProgressByFormStateView(LoginRequiredMixin,
@@ -691,6 +695,27 @@ class FormProgressDataView(LoginRequiredMixin,
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
+        keyword = self.request.POST.get('search[value]')
+        if keyword:
+            # Get matching FormState enum values for case-insensitive search
+            matching_states = get_matching_enum_values(FormState, keyword)
+            form_state_q = Q(form_state__in=matching_states) \
+                if matching_states else Q()
+
+            qs = qs.filter(form_state_q |
+                           Q(barcode__icontains=keyword) |
+                           Q(center__code__contains=keyword) |
+                           Q(center__office__region__name__icontains=keyword) |
+                           Q(center__sub_constituency__name__icontains=keyword
+                             ) |
+                           Q(center__office__name__icontains=keyword) |
+                           Q(center__office__number__contains=keyword) |
+                           Q(station_number__contains=keyword) |
+                           Q(ballot__number__contains=keyword) |
+                           Q(
+                ballot__electrol_race__election_level__icontains=keyword) |
+                           Q(
+                ballot__electrol_race__ballot_name__icontains=keyword))
 
         qs = qs.filter(tally__id=tally_id)
         return qs.exclude(form_state=FormState.UNSUBMITTED)
