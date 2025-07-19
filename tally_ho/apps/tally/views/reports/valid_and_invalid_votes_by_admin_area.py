@@ -1,6 +1,5 @@
 from django.db.models import F, Q, Sum
 from django.db.models.functions import Coalesce
-from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
@@ -227,10 +226,15 @@ class ValidAndInvalidVotesByAdminAreasView(
                     'valid-and-invalid-votes-by-adminarea-data',
                     kwargs=kwargs
                 ),
+            "regions_turnout_report_url": reverse(
+                "turnout-list",
+                kwargs={"tally_id": tally_id, "admin_level": "region"},
+            ),
+            "offices_remote_url": reverse(
+                "turnout-list",
+                kwargs={"tally_id": tally_id, "admin_level": "office"},
+            ),
+            "export_file_name": "valid-and-invalid-votes-by-admin-area",
             }
 
-        return render(
-            request,
-            'reports/valid_and_invalid_votes_by_admin_area.html',
-            context
-        )
+        return self.render_to_response(self.get_context_data(**context))

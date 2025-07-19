@@ -3,7 +3,6 @@ from django.db.models import (Case, CharField, F, IntegerField, OuterRef,
 from django.db.models import Value as V
 from django.db.models import When
 from django.db.models.functions import Coalesce
-from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
@@ -291,10 +290,15 @@ class TurnoutReportByGenderAndAdminAreasView(
                     'turnout-report-by-gender-data',
                     kwargs=kwargs
                 ),
+            "regions_turnout_report_url": reverse(
+                "turnout-list",
+                kwargs={"tally_id": tally_id, "admin_level": "region"},
+            ),
+            "offices_remote_url": reverse(
+                "turnout-list",
+                kwargs={"tally_id": tally_id, "admin_level": "office"},
+            ),
+            "export_file_name": "turnout-report-by-gender-n-admin-areas",
             }
 
-        return render(
-            request,
-            'reports/turnout_report_by_gender_and_admin_area.html',
-            context
-        )
+        return self.render_to_response(self.get_context_data(**context))
