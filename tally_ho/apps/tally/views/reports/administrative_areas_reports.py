@@ -251,7 +251,7 @@ def stations_and_centers_queryset(tally_id, qs, data=None, **kwargs):
     ):
         parent_qs = qs
         for item in data:
-            region_id = item["region_id"]
+            item["region_id"]
 
             center_ids = (
                 item["select_2_ids"] if len(item["select_2_ids"]) else [0]
@@ -261,21 +261,21 @@ def stations_and_centers_queryset(tally_id, qs, data=None, **kwargs):
             )
 
             if report_type == stations_centers_under_investigation_report_type:
-                if admin_area_id and constituency_id:
-                    current_qs = parent_qs.filter(
-                        center__sub_constituency__id=region_id
-                    )
-                elif admin_area_id:
-                    current_qs = parent_qs.filter(
-                        center__constituency__id=region_id
-                    )
-                else:
-                    current_qs = parent_qs.filter(
-                        center__office__region__id=region_id
-                    )
+                # if admin_area_id and constituency_id:
+                #     current_qs = parent_qs.filter(
+                #         center__sub_constituency__id=region_id
+                #     )
+                # elif admin_area_id:
+                #     current_qs = parent_qs.filter(
+                #         center__constituency__id=region_id
+                #     )
+                # else:
+                #     current_qs = parent_qs.filter(
+                #         center__office__region__id=region_id
+                #     )
 
                 current_qs = (
-                    current_qs.filter(active=False)
+                    parent_qs.filter(active=False)
                     .annotate(
                         admin_area_name=F(column_name),
                         admin_area_id=F(column_id),
@@ -322,21 +322,21 @@ def stations_and_centers_queryset(tally_id, qs, data=None, **kwargs):
                 report_type
                 == stations_centers_excluded_after_investigation_report_type
             ):
-                if admin_area_id and constituency_id:
-                    current_qs = parent_qs.filter(
-                        center__sub_constituency__id=region_id
-                    )
-                elif admin_area_id:
-                    current_qs = parent_qs.filter(
-                        center__constituency__id=region_id
-                    )
-                else:
-                    current_qs = parent_qs.filter(
-                        center__office__region__id=region_id
-                    )
+                # if admin_area_id and constituency_id:
+                #     current_qs = parent_qs.filter(
+                #         center__sub_constituency__id=region_id
+                #     )
+                # elif admin_area_id:
+                #     current_qs = parent_qs.filter(
+                #         center__constituency__id=region_id
+                #     )
+                # else:
+                #     current_qs = parent_qs.filter(
+                #         center__office__region__id=region_id
+                #     )
 
                 current_qs = (
-                    current_qs.filter(
+                    parent_qs.filter(
                         Q(active=True, center__disable_reason__isnull=False)
                         | Q(active=True, disable_reason__isnull=False)
                     )
@@ -401,21 +401,21 @@ def stations_and_centers_queryset(tally_id, qs, data=None, **kwargs):
                     else [0]
                 )
 
-                if admin_area_id and constituency_id:
-                    current_qs = parent_qs.filter(
-                        center__sub_constituency__id=region_id
-                    )
-                elif admin_area_id:
-                    current_qs = parent_qs.filter(
-                        center__constituency__id=region_id
-                    )
-                else:
-                    current_qs = parent_qs.filter(
-                        center__office__region__id=region_id
-                    )
+                # if admin_area_id and constituency_id:
+                #     current_qs = parent_qs.filter(
+                #         center__sub_constituency__id=region_id
+                #     )
+                # elif admin_area_id:
+                #     current_qs = parent_qs.filter(
+                #         center__constituency__id=region_id
+                #     )
+                # else:
+                #     current_qs = parent_qs.filter(
+                #         center__office__region__id=region_id
+                #     )
 
                 current_qs = (
-                    current_qs.annotate(
+                    parent_qs.annotate(
                         admin_area_name=F(column_name),
                         admin_area_id=F(column_id),
                     )
@@ -1441,10 +1441,14 @@ def custom_queryset_filter(tally_id, qs, data=None, **kwargs):
     if constituency_id:
         qs = qs.filter(result_form__center__constituency__id=constituency_id)
 
+    qs = qs.filter(result_form__tally__id=tally_id,
+                   result_form__form_state=FormState.ARCHIVED,
+                   entry_version=EntryVersion.FINAL)
+
     if data:
         parent_qs = qs
         for item in data:
-            region_id = item["region_id"]
+            item["region_id"]
             constituency_ids = (
                 item["select_1_ids"] if len(item["select_1_ids"]) else [0]
             )
@@ -1461,25 +1465,26 @@ def custom_queryset_filter(tally_id, qs, data=None, **kwargs):
                 result_form__center__sub_constituency__id__in=subcn_ids
             )
 
-            if admin_area_id and constituency_id:
-                current_qs = parent_qs.get_registrants_and_votes_type().filter(
-                    result_form__center__sub_constituency__id=region_id
-                )
-            elif admin_area_id:
-                current_qs = parent_qs.get_registrants_and_votes_type().filter(
-                    result_form__center__constituency__id=region_id
-                )
-            else:
-                current_qs = parent_qs.get_registrants_and_votes_type().filter(
-                    result_form__center__office__region__id=region_id
-                )
+            # This seems to be already filtered out and the target
+            # seems not to be correct.
+            # if admin_area_id and constituency_id:
+            #     current_qs = parent_qs.get_registrants_and_votes_type().
+            #        filter(
+            #         result_form__center__sub_constituency__id=region_id
+            #     )
+            # elif admin_area_id:
+            #     current_qs = parent_qs.get_registrants_and_votes_type().
+            #     filter(
+            #         result_form__center__constituency__id=region_id
+            #     )
+            # else:
+            #     current_qs = parent_qs.get_registrants_and_votes_type()
+            #        .filter(
+            #         result_form__center__office__region__id=region_id
+            #     )
 
             current_qs = (
-                current_qs.filter(
-                    result_form__tally__id=tally_id,
-                    result_form__form_state=FormState.ARCHIVED,
-                    entry_version=EntryVersion.FINAL,
-                )
+                parent_qs.get_registrants_and_votes_type().filter()
                 .annotate(name=F(column_name), admin_area_id=F(column_id))
                 .values(
                     "name",
@@ -1624,11 +1629,7 @@ def custom_queryset_filter(tally_id, qs, data=None, **kwargs):
     else:
         qs = (
             qs.get_registrants_and_votes_type()
-            .filter(
-                result_form__tally__id=tally_id,
-                result_form__form_state=FormState.ARCHIVED,
-                entry_version=EntryVersion.FINAL,
-            )
+            .filter()
             .annotate(name=F(column_name), admin_area_id=F(column_id))
             .values(
                 "name",
