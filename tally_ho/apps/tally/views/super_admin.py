@@ -488,7 +488,9 @@ class FormProgressByFormStateView(LoginRequiredMixin,
                                kwargs={'tally_id': tally_id}),
             tally_id=tally_id,
             enable_responsive=False,
-            enable_scroll_x=True))
+            enable_scroll_x=True,
+            export_file_name='form-progress-by-form-state',
+            server_side=True))
 
 
 class DuplicateResultTrackingView(LoginRequiredMixin,
@@ -730,6 +732,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
     columns = (
         'sub_con_name',
         'sub_con_code',
+        'office',
         'election_level',
         'sub_race',
         'total_forms',
@@ -753,7 +756,11 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
 
         if keyword:
             qs = qs.filter(
-                Q(center__sub_constituency__code__contains=keyword))
+                Q(center__sub_constituency__code__contains=keyword) |
+                Q(center__sub_constituency__name__icontains=keyword) |
+                Q(center__office__name__icontains=keyword) |
+                Q(ballot__electrol_race__election_level__icontains=keyword) |
+                Q(ballot__electrol_race__ballot_name__icontains=keyword))
 
         count_by_form_state_queries = {}
         for state in FormState.__publicMembers__():
@@ -775,6 +782,7 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                 election_level=F("ballot__electrol_race__election_level"),
                 sub_race=F("ballot__electrol_race__ballot_name"),
                 total_forms=Count("barcode"),
+                office=F("center__office__name"),
                 **count_by_form_state_queries
             )
         return qs
