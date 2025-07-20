@@ -6,27 +6,21 @@ from django.test import RequestFactory
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.views.reports.turnout_reports_by_gender import (
     TurnoutReportByGenderAndAdminAreasDataView,
-    TurnoutReportByGenderAndAdminAreasView,
-)
+    TurnoutReportByGenderAndAdminAreasView)
 from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (
-    TestBase,
-    create_ballot,
-    create_candidate_result,
-    create_constituency,
-    create_electrol_race,
-    create_office,
-    create_reconciliation_form,
-    create_region,
-    create_result_form,
-    create_station,
-    create_sub_constituency,
-    create_tally,
-)
+from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
+                                           create_candidate_result,
+                                           create_constituency,
+                                           create_electrol_race, create_office,
+                                           create_reconciliation_form,
+                                           create_region, create_result_form,
+                                           create_station,
+                                           create_sub_constituency,
+                                           create_tally)
 
 
 class TestTurnoutByGenderReport(TestBase):
@@ -143,6 +137,7 @@ class TestTurnoutByGenderReport(TestBase):
         request.session = {}
         view = TurnoutReportByGenderAndAdminAreasView.as_view()
         response = view(request, tally_id=self.tally.pk, admin_level="region")
+        response.render()
         content = response.content.decode()
         self.assertEqual(response.status_code, 200)
 
@@ -173,6 +168,7 @@ class TestTurnoutByGenderReport(TestBase):
         request.session = {}
         view = TurnoutReportByGenderAndAdminAreasView.as_view()
         response = view(request, tally_id=self.tally.pk, admin_level="office")
+        response.render()
         content = response.content.decode()
         self.assertEqual(response.status_code, 200)
 
@@ -205,6 +201,7 @@ class TestTurnoutByGenderReport(TestBase):
         response = view(
             request, tally_id=self.tally.pk, admin_level="constituency"
         )
+        response.render()
         content = response.content.decode()
         self.assertEqual(response.status_code, 200)
 
@@ -237,6 +234,7 @@ class TestTurnoutByGenderReport(TestBase):
         response = view(
             request, tally_id=self.tally.pk, admin_level="sub_constituency"
         )
+        response.render()
         content = response.content.decode()
         self.assertEqual(response.status_code, 200)
 
