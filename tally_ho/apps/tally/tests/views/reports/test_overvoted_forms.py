@@ -230,7 +230,7 @@ class TestOvervotedFormsViews(TestBase):
         Test the data endpoint with no overvoted forms.
         """
         # Set ballots inside to less than registrants to remove overvote
-        self.recon_form.number_of_voter_cards_in_the_ballot_box = 10
+        self.recon_form.number_sorted_and_counted = 10
         self.recon_form.save()
         url = reverse(
             "overvoted-forms-data", kwargs={"tally_id": self.tally.pk}
