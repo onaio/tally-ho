@@ -68,5 +68,5 @@ class StationProgressListView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
 
         return self.render_to_response(self.get_context_data(
-            remote_url=reverse('staion-progress-list-data', kwargs=kwargs),
+            remote_url=reverse('station-progress-list-data', kwargs=kwargs),
             tally_id=tally_id))

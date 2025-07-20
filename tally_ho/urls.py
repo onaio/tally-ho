@@ -1283,15 +1283,15 @@ urlpatterns = [
         name="reports-races",
     ),
     re_path(
-        r"^reports/internal/staion-progress-list/(?P<tally_id>(\d+))/$",
+        r"^reports/internal/station-progress-list/(?P<tally_id>(\d+))/$",
         station_progress_report.StationProgressListView.as_view(),
-        name="staion-progress-list",
+        name="station-progress-list",
     ),
     re_path(
-        r"^reports/internal/staion-progress-list-data/(?P<tally_id>(\d+))"
+        r"^reports/internal/station-progress-list-data/(?P<tally_id>(\d+))"
         r"/$",
         station_progress_report.StationProgressListDataView.as_view(),
-        name="staion-progress-list-data",
+        name="station-progress-list-data",
     ),
     re_path(
         r"^reports/internal/station-votes-per-candidate/"
