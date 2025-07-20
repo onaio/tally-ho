@@ -72,6 +72,7 @@ def get_overvoted_forms_queryset(tally_id, data=None):
             sub_race=F("result_form__ballot__electrol_race__ballot_name"),
             municipality_name=F("result_form__center__sub_constituency__name"),
             municipality_code=F("result_form__center__sub_constituency__code"),
+            office=F("result_form__center__office__name"),
         )
     )
 
@@ -107,6 +108,7 @@ class OvervotedResultFormsDataView(
         "barcode",
         "center_code",
         "station_number",
+        "office",
         "ballots_inside",
         "station_registrants",
         "race",
@@ -172,6 +174,7 @@ class OvervotedResultFormsView(
             "barcode",
             "center_code",
             "station_number",
+            "office",
             "ballots_inside",
             "station_registrants",
             "race",
