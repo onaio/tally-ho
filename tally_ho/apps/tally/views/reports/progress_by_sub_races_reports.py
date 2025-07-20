@@ -536,6 +536,8 @@ def progress_report(request, **kwargs):
         'dt_sub_constituencies_columns': dt_sub_constituencies_columns,
         'html_table_sub_constituencies_columns':
             html_table_sub_constituencies_columns,
+        'export_file_name': 'progress_report_by_admin_area',
+        'remote_url': '/non-existent',
     }
     return render(
         request, 'reports/progress_report_by_admin_area.html', context)
