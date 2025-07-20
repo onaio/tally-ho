@@ -13,8 +13,8 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (GroupRequiredMixin, TallyAccessMixin,
+                                        get_datatables_context)
 
 
 class RegionsReportView(LoginRequiredMixin,
@@ -452,9 +452,8 @@ def progress_report(request, **kwargs):
     electoral_races = ElectrolRace.objects.filter(
         tally__id=tally_id).values_list('ballot_name', flat=True)
 
-    # Get DataTables context from mixin
-    mixin = DataTablesMixin()
-    datatables_context = mixin.get_context_data()
+    # Get DataTables context from helper function
+    datatables_context = get_datatables_context(request)
 
     dt_offices_columns = [{ "data": "office_name" }]
     html_table_offices_columns = ["Office"]
