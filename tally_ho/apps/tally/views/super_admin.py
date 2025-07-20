@@ -624,7 +624,8 @@ class FormDuplicatesView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-duplicates-data',
                                kwargs={'tally_id': tally_id}),
-            tally_id=tally_id))
+            tally_id=tally_id, export_file_name='form-duplicates',
+            server_side=True))
 
 
 class FormClearanceView(LoginRequiredMixin,
@@ -1845,6 +1846,7 @@ class EditUserView(LoginRequiredMixin,
         context['is_admin'] = False
         context['tally_id'] = self.kwargs.get('tally_id')
         context['role'] = role
+        context['user_id'] = self.request.user.id
         referer_url = self.request.META.get('HTTP_REFERER', None)
         url_name = None
         url_param = None
