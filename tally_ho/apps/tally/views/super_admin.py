@@ -641,7 +641,9 @@ class FormClearanceView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-clearance-data',
                                kwargs={'tally_id': tally_id}),
-            tally_id=tally_id))
+            tally_id=tally_id,
+            export_file_name='form-clearance',
+            server_side=True))
 
 
 class FormAuditView(LoginRequiredMixin,
@@ -657,7 +659,9 @@ class FormAuditView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-audit-data',
                                kwargs={'tally_id': tally_id}),
-            tally_id=tally_id))
+            tally_id=tally_id,
+            export_file_name='form-audit',
+            server_side=True))
 
 
 class FormResultsDuplicatesView(LoginRequiredMixin,
@@ -673,7 +677,7 @@ class FormResultsDuplicatesView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             remote_url=reverse('form-duplicates-data',
                                kwargs={'tally_id': tally_id}),
-            tally_id=tally_id))
+            tally_id=tally_id, server_side=False))
 
 
 class FormProgressDataView(LoginRequiredMixin,

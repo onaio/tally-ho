@@ -93,4 +93,6 @@ class VotesPerCandidateListView(LoginRequiredMixin,
             tally_id=tally_id,
             station_number=station_number,
             center_code=center_code,
-            report_name=report_name))
+            report_name=report_name,
+            export_file_name='votes-per-candidate',
+            server_side=True))

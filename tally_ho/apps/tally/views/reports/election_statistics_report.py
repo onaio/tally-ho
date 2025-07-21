@@ -483,4 +483,6 @@ class ElectionStatisticsReportView(LoginRequiredMixin,
             genders=[gender for gender in Gender],
             election_level=election_level,
             dt_columns=dt_columns,
+            export_file_name='elections-statistics-report',
+            server_side=True,
         ))
