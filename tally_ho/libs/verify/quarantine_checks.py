@@ -164,14 +164,14 @@ def pass_voter_cards_trigger(result_form):
         if qc.value != 0
         else (
             (qc.percentage / 100)
-            * recon_form.number_of_voter_cards_in_the_ballot_box
+            * recon_form.number_sorted_and_counted
         )
     )
 
     return (
         abs(
             (recon_form.number_valid_votes + recon_form.number_invalid_votes)
-            - recon_form.number_of_voter_cards_in_the_ballot_box
+            - recon_form.number_sorted_and_counted
         )
         <= allowed_tolerance
     )
@@ -199,14 +199,14 @@ def pass_ballot_papers_trigger(result_form):
         if qc.value != 0
         else (
             (qc.percentage / 100)
-            * (recon_form.number_of_voter_cards_in_the_ballot_box)
+            * (recon_form.number_sorted_and_counted)
         )
     )
 
     return (
         abs(
             recon_form.number_of_voters
-            - recon_form.number_of_voter_cards_in_the_ballot_box
+            - recon_form.number_sorted_and_counted
         )
         <= allowed_tolerance
     )
@@ -234,7 +234,7 @@ def pass_ballot_inside_box_trigger(result_form):
         if qc.value != 0
         else (
             (qc.percentage / 100)
-            * recon_form.number_of_voter_cards_in_the_ballot_box
+            * recon_form.number_sorted_and_counted
         )
     )
 
@@ -242,7 +242,7 @@ def pass_ballot_inside_box_trigger(result_form):
         abs(
             recon_form.number_invalid_votes
             + recon_form.number_valid_votes
-            - recon_form.number_of_voter_cards_in_the_ballot_box
+            - recon_form.number_sorted_and_counted
         )
         <= allowed_tolerance
     )

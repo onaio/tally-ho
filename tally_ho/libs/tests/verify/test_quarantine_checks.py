@@ -3,23 +3,15 @@ from unittest.mock import patch
 from django.conf import settings
 
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.tests.test_base import (
-    TestBase,
-    create_candidates,
-    create_center,
-    create_reconciliation_form,
-    create_result_form,
-    create_station,
-    create_tally,
-)
+from tally_ho.libs.tests.test_base import (TestBase, create_candidates,
+                                           create_center,
+                                           create_reconciliation_form,
+                                           create_result_form, create_station,
+                                           create_tally)
 from tally_ho.libs.verify.quarantine_checks import (
-    create_quarantine_checks,
-    pass_ballot_inside_box_trigger,
-    pass_ballot_papers_trigger,
-    pass_candidates_votes_trigger,
-    pass_registrants_trigger,
-    pass_voter_cards_trigger,
-)
+    create_quarantine_checks, pass_ballot_inside_box_trigger,
+    pass_ballot_papers_trigger, pass_candidates_votes_trigger,
+    pass_registrants_trigger, pass_voter_cards_trigger)
 
 
 class TestQuarantineChecks(TestBase):
@@ -90,14 +82,14 @@ class TestQuarantineChecks(TestBase):
             user=self.user,
             number_valid_votes=50,
             number_invalid_votes=0,
-            number_of_voter_cards_in_the_ballot_box=50,
+            number_sorted_and_counted=50,
         )
 
         # Test for equality
         self.assertTrue(pass_voter_cards_trigger(result_form))
 
         # Test for inequality
-        recon_form.number_of_voter_cards_in_the_ballot_box = 51
+        recon_form.number_sorted_and_counted = 51
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_voter_cards_trigger(result_form))
@@ -123,14 +115,14 @@ class TestQuarantineChecks(TestBase):
             result_form=result_form,
             user=self.user,
             number_of_voters=100,
-            number_of_voter_cards_in_the_ballot_box=100,
+            number_sorted_and_counted=100,
         )
 
         # Test for equality
         self.assertTrue(pass_ballot_papers_trigger(result_form))
 
         # Test for inequality
-        recon_form.number_of_voter_cards_in_the_ballot_box = 99
+        recon_form.number_sorted_and_counted = 99
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_ballot_papers_trigger(result_form))
@@ -157,14 +149,14 @@ class TestQuarantineChecks(TestBase):
             user=self.user,
             number_invalid_votes=20,
             number_valid_votes=50,
-            number_of_voter_cards_in_the_ballot_box=70,
+            number_sorted_and_counted=70,
         )
 
         # Test for equality
         self.assertTrue(pass_ballot_inside_box_trigger(result_form))
 
         # Test for inequality
-        recon_form.number_of_voter_cards_in_the_ballot_box = 99
+        recon_form.number_sorted_and_counted = 99
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_ballot_inside_box_trigger(result_form))
@@ -270,12 +262,12 @@ class TestQuarantineChecks(TestBase):
             user=self.user,
             number_valid_votes=100,
             number_invalid_votes=0,
-            number_of_voter_cards_in_the_ballot_box=100,
+            number_sorted_and_counted=100,
         )
         MockQC.objects.get.return_value.value = 5
         MockQC.objects.get.return_value.percentage = 0
         self.assertTrue(pass_voter_cards_trigger(result_form))
-        recon_form.number_of_voter_cards_in_the_ballot_box = 106
+        recon_form.number_sorted_and_counted = 106
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_voter_cards_trigger(result_form))
@@ -299,12 +291,12 @@ class TestQuarantineChecks(TestBase):
             user=self.user,
             number_valid_votes=100,
             number_invalid_votes=0,
-            number_of_voter_cards_in_the_ballot_box=100,
+            number_sorted_and_counted=100,
         )
         MockQC.objects.get.return_value.value = 0
         MockQC.objects.get.return_value.percentage = 10
         self.assertTrue(pass_voter_cards_trigger(result_form))
-        recon_form.number_of_voter_cards_in_the_ballot_box = 115
+        recon_form.number_sorted_and_counted = 115
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_voter_cards_trigger(result_form))
@@ -327,7 +319,7 @@ class TestQuarantineChecks(TestBase):
             result_form=result_form,
             user=self.user,
             number_of_voters=105,
-            number_of_voter_cards_in_the_ballot_box=100,
+            number_sorted_and_counted=100,
         )
         MockQC.objects.get.return_value.value = 5
         MockQC.objects.get.return_value.percentage = 0
@@ -357,7 +349,7 @@ class TestQuarantineChecks(TestBase):
             result_form=result_form,
             user=self.user,
             number_of_voters=110,
-            number_of_voter_cards_in_the_ballot_box=100,
+            number_sorted_and_counted=100,
         )
         MockQC.objects.get.return_value.value = 0
         MockQC.objects.get.return_value.percentage = 10
