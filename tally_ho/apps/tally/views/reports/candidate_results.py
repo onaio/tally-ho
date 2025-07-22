@@ -4,23 +4,17 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.generic import TemplateView
-from django_datatables_view.base_datatable_view import (
-    BaseDatatableView,
-)
+from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.apps.tally.views.reports.administrative_areas_reports import (
-    build_stations_centers_and_sub_cons_list,
-)
+from tally_ho.apps.tally.views.reports.administrative_areas_reports import \
+    build_stations_centers_and_sub_cons_list
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale,
-    get_deployed_site_url,
-)
-from tally_ho.libs.views.exports import build_candidate_results_output
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.exports import build_candidate_results_output
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 def get_candidate_results_queryset(tally_id, data=None):
@@ -77,8 +71,8 @@ def get_candidate_results_queryset(tally_id, data=None):
 
 class CandidateResultsDataView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     BaseDatatableView,
 ):
     group_required = groups.TALLY_MANAGER
@@ -97,10 +91,6 @@ class CandidateResultsDataView(
         'candidate_id',
         'votes',
         'invalid_ballots',
-        'unstamped_ballots',
-        'cancelled_ballots',
-        'spoilt_ballots',
-        'unused_ballots',
         'number_of_voter_cards_in_the_ballot_box',
         'received_ballots_papers',
         'valid_votes',
@@ -151,14 +141,14 @@ class CandidateResultsDataView(
 
 class CandidateResultsView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
+    GroupRequiredMixin,
+    DataTablesMixin,
     TemplateView,
 ):
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/candidate_results.html'
 
     def get(self, request, *args, **kwargs):
-        language_de = get_datatables_language_de_from_locale(self.request)
         columns = (
             'ballot',
             'race_number',
@@ -174,10 +164,6 @@ class CandidateResultsView(
             'candidate_id',
             'votes',
             'invalid_ballots',
-            'unstamped_ballots',
-            'cancelled_ballots',
-            'spoilt_ballots',
-            'unused_ballots',
             'number_of_voter_cards_in_the_ballot_box',
             'received_ballots_papers',
             'valid_votes',
@@ -202,8 +188,5 @@ class CandidateResultsView(
                 electrol_races.values_list('ballot_name', flat=True)
             ),
             'dt_columns': dt_columns,
-            'languageDE': language_de,
-            'deployedSiteUrl': get_deployed_site_url(),
-            'get_centers_stations_url': '/ajax/get-centers-stations/',
         }
         return self.render_to_response(self.get_context_data(**context_data))

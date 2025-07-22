@@ -2,52 +2,43 @@ import json
 import os
 import shutil
 
+from bs4 import BeautifulSoup
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.messages.storage import default_storage
 from django.core.exceptions import SuspiciousOperation
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.contrib.messages.storage import default_storage
-from django.conf import settings
 from django.test import RequestFactory
-from bs4 import BeautifulSoup
 
-from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.forms.create_result_form import CreateResultForm
+from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result import Result
+from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
-from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.apps.tally.forms.create_result_form import CreateResultForm
-from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
+from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views import super_admin as views
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
-from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (
-    configure_messages,
-    create_audit,
-    create_ballot,
-    create_candidate,
-    create_candidates,
-    create_electrol_race,
-    create_reconciliation_form,
-    create_result_form,
-    create_result,
-    create_center,
-    create_quarantine_checks,
-    create_station,
-    create_sub_constituency,
-    create_tally,
-    TestBase,
-    create_result_forms_per_form_state,
-)
-from tally_ho.libs.tests.fixtures.electrol_race_data import (
-    electrol_races
-)
+from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
+from tally_ho.libs.tests.test_base import (TestBase, configure_messages,
+                                           create_audit, create_ballot,
+                                           create_candidate, create_candidates,
+                                           create_center, create_electrol_race,
+                                           create_quarantine_checks,
+                                           create_reconciliation_form,
+                                           create_result, create_result_form,
+                                           create_result_forms_per_form_state,
+                                           create_station,
+                                           create_sub_constituency,
+                                           create_tally)
 
 
 class TestSuperAdmin(TestBase):
@@ -1504,7 +1495,8 @@ class TestSuperAdmin(TestBase):
         ths = [th.text for th in doc.findAll('th')]
         self.assertListEqual(
             ths,
-            ['Sub Con Name', 'Sub Con Code', 'Election Level', 'Sub Race',
+            ['Sub Con Name', 'Sub Con Code', 'Office','Election Level',
+             'Sub Race',
              'Total forms', 'Unsubmitted', 'Intake', 'DE1', 'DE2',
              'Corrections', 'Quality Control', 'Archived','Clearance',
              'Audit']
@@ -1528,7 +1520,8 @@ class TestSuperAdmin(TestBase):
         content = json.loads(response.content)
         data = content["data"]
         first_row = data[0]
-        sub_con_name, sub_con_code, election_level, sub_race, total_forms,\
+        sub_con_name, sub_con_code, office, election_level, sub_race, \
+            total_forms,\
             unsubmitted, intake, de1, de2, corrections, quality_control,\
                 archived, clearance, audit = first_row
         self.assertEqual(

@@ -17,8 +17,11 @@ from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
-from tally_ho.libs.views import mixins
 from tally_ho.libs.views.form_state import form_in_state, safe_form_in_state
+from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+                                        PrintedResultFormMixin,
+                                        ReverseSuccessURLMixin,
+                                        TallyAccessMixin)
 from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
 
@@ -129,9 +132,9 @@ def save_result_form_processing_stats(
 
 class DashboardView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = ClearanceForm
@@ -175,9 +178,9 @@ class DashboardView(
 
 class ReviewView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = ClearanceForm
@@ -241,8 +244,8 @@ class ReviewView(
 
 class PrintCoverView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     TemplateView,
 ):
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
@@ -294,8 +297,8 @@ class PrintCoverView(
 
 class CreateClearanceView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     FormView,
 ):
     form_class = BarcodeForm
@@ -363,9 +366,9 @@ class CreateClearanceView(
 
 class CheckCenterDetailsView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
-    mixins.ReverseSuccessURLMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
     FormView,
 ):
     form_class = BarcodeForm
@@ -404,8 +407,8 @@ class CheckCenterDetailsView(
 
 class AddClearanceFormView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.TallyAccessMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
     FormView,
 ):
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]
@@ -441,8 +444,8 @@ class AddClearanceFormView(
 
 class ClearancePrintedView(
     LoginRequiredMixin,
-    mixins.GroupRequiredMixin,
-    mixins.PrintedResultFormMixin,
+    GroupRequiredMixin,
+    PrintedResultFormMixin,
     TemplateView,
 ):
     group_required = [groups.CLEARANCE_CLERK, groups.CLEARANCE_SUPERVISOR]

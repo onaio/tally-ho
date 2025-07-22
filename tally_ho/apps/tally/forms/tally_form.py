@@ -1,11 +1,10 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.form import lower_case_form_data
-
 
 disable_copy_input = {
     'onCopy': 'return false;',
@@ -41,7 +40,7 @@ class TallyForm(forms.ModelForm):
                 admin.pk for admin in kwargs['instance'].administrators.all()]
 
         super(TallyForm, self).__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['name'].widget.attrs.update({'class_': 'form-control'})
 
         self.fields['print_cover_in_intake'].label =\
             _('Enable Cover Printing in Intake')

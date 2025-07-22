@@ -1,12 +1,11 @@
 import json
 
-from django.db.models import Q, Subquery, OuterRef, IntegerField, F
+from django.db.models import F, IntegerField, OuterRef, Q, Subquery
+from django.http import JsonResponse
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
-from django.urls import reverse
-from django.http import JsonResponse
-from django.utils import timezone
-
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
@@ -14,28 +13,24 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.views.constants import (
-    election_level_query_param,
-    sub_race_query_param,
-    sub_con_code_query_param,
-    pending_at_state_query_param, at_state_query_param
-)
+from tally_ho.apps.tally.views.constants import (at_state_query_param,
+                                                 election_level_query_param,
+                                                 pending_at_state_query_param,
+                                                 sub_con_code_query_param,
+                                                 sub_race_query_param)
 from tally_ho.libs.models.enums.form_state import (
-    FormState,
-    un_processed_states_at_state
-)
+    FormState, un_processed_states_at_state)
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
-)
-from tally_ho.libs.views import mixins
+from tally_ho.libs.utils.enum import get_matching_enum_values
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 ALL = '__all__'
 
 
 class FormListDataView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       mixins.TallyAccessMixin,
+                       GroupRequiredMixin,
+                       TallyAccessMixin,
                        BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
@@ -60,10 +55,11 @@ class FormListDataView(LoginRequiredMixin,
     def render_column(self, row, column):
         if column == 'modified_date':
             return row.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z')
+
         if column == 'action':
             return row.get_action_button
-        else:
-            return super(FormListDataView, self).render_column(row, column)
+
+        return super(FormListDataView, self).render_column(row, column)
 
     def filter_queryset(self, qs):
         ballot_number = self.request.POST.get('ballot[value]', None)
@@ -133,27 +129,34 @@ class FormListDataView(LoginRequiredMixin,
                 ballot__number__in=ballot.form_ballot_numbers)
 
         if keyword:
-            qs = qs.filter(Q(barcode__contains=keyword) |
+            # Get matching FormState enum values for case-insensitive search
+            matching_states = get_matching_enum_values(FormState, keyword)
+            form_state_q = Q(form_state__in=matching_states) \
+                if matching_states else Q()
+
+            qs = qs.filter(form_state_q |
+                           Q(barcode__icontains=keyword) |
                            Q(center__code__contains=keyword) |
                            Q(station_id__contains=keyword) |
-                           Q(center__office__region__name__contains=keyword) |
-                           Q(center__sub_constituency__name__contains=keyword
+                           Q(center__office__region__name__icontains=keyword) |
+                           Q(center__sub_constituency__name__icontains=keyword
                              ) |
-                           Q(center__office__name__contains=keyword) |
+                           Q(center__office__name__icontains=keyword) |
                            Q(center__office__number__contains=keyword) |
                            Q(station_number__contains=keyword) |
                            Q(ballot__number__contains=keyword) |
                            Q(
-                ballot__electrol_race__election_level__contains=keyword) |
+                ballot__electrol_race__election_level__icontains=keyword) |
                            Q(
-                ballot__electrol_race__ballot_name__contains=keyword))
+                ballot__electrol_race__ballot_name__icontains=keyword))
 
         return qs
 
 
 class FormListView(LoginRequiredMixin,
-                   mixins.GroupRequiredMixin,
-                   mixins.TallyAccessMixin,
+                   GroupRequiredMixin,
+                   TallyAccessMixin,
+                   DataTablesMixin,
                    TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/forms.html"
@@ -163,7 +166,6 @@ class FormListView(LoginRequiredMixin,
         tally_id = kwargs.get('tally_id')
 
         error = self.request.session.get('error_message')
-        language_de = get_datatables_language_de_from_locale(self.request)
         download_url = '/ajax/download-result-forms/'
 
         if error:
@@ -221,6 +223,9 @@ class FormListView(LoginRequiredMixin,
         if query_param_string:
             remote_data_url = f"{remote_data_url}?{query_param_string}"
 
+        additional_context = {
+            "export_file_name": "form-list"
+        }
         return self.render_to_response(
             self.get_context_data(header_text=_('Form List'),
                                   remote_url=remote_data_url,
@@ -228,9 +233,7 @@ class FormListView(LoginRequiredMixin,
                                   error_message=_(error) if error else None,
                                   show_create_form_button=True,
                                   result_forms_download_url=download_url,
-                                  languageDE=language_de,
-                                  enable_responsive=False,
-                                  enable_scroll_x=True))
+                                  **additional_context))
 
 
 class FormNotReceivedListView(FormListView):
@@ -239,7 +242,6 @@ class FormNotReceivedListView(FormListView):
     def get(self, *args, **kwargs):
         format_ = kwargs.get('format')
         tally_id = kwargs.get('tally_id')
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         if format_ == 'csv':
             form_list = ResultForm.forms_in_state(FormState.UNSUBMITTED,
@@ -252,10 +254,7 @@ class FormNotReceivedListView(FormListView):
                                   remote_url=reverse(
                                       'form-not-received-data',
                                       kwargs={'tally_id': tally_id}),
-                                  tally_id=tally_id,
-                                  languageDE=language_de,
-                                  enable_responsive=False,
-                                  enable_scroll_x=True))
+                                  tally_id=tally_id))
 
 
 class FormNotReceivedDataView(FormListDataView):
@@ -266,10 +265,16 @@ class FormNotReceivedDataView(FormListDataView):
             FormState.UNSUBMITTED,
             tally_id=tally_id)
         if keyword:
-            qs = qs.filter(Q(barcode__contains=keyword) |
+            # Get matching FormState enum values for case-insensitive search
+            matching_states = get_matching_enum_values(FormState, keyword)
+            form_state_q = Q(form_state__in=matching_states) \
+                if matching_states else Q()
+
+            qs = qs.filter(form_state_q |
+                           Q(barcode__icontains=keyword) |
                            Q(center__code__contains=keyword) |
-                           Q(center__office__region__name__contains=keyword) |
-                           Q(center__office__name__contains=keyword) |
+                           Q(center__office__region__name__icontains=keyword) |
+                           Q(center__office__name__icontains=keyword) |
                            Q(center__office__number__contains=keyword) |
                            Q(station_number__contains=keyword) |
                            Q(ballot__number__contains=keyword))
@@ -282,15 +287,13 @@ class FormsForRaceView(FormListView):
     def get(self, *args, **kwargs):
         ballot = kwargs.get('ballot')
         tally_id = kwargs.get('tally_id')
-        language_de = get_datatables_language_de_from_locale(self.request)
 
         return self.render_to_response(self.get_context_data(
-            header_text=_('Forms for Race %s' % ballot),
+            header_text=_('Forms for Race %(ballot)s') % {'ballot': ballot},
             none=True,
             tally_id=tally_id,
             remote_url=reverse('forms-for-race-data',
-                               args=[tally_id, ballot]),
-            languageDE=language_de))
+                               args=[tally_id, ballot])))
 
 
 def get_result_forms(request):

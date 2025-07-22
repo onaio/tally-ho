@@ -1,26 +1,22 @@
-from django.db.models import Q
+from django.db.models import F, Q, Sum
 from django.urls import reverse
-from django.views.generic import TemplateView
-
-from django.db.models import Sum, F
-from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.utils.html import escape
+from django.views.generic import TemplateView
+from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.models.result import Result
-from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.constituency import Constituency
+from tally_ho.apps.tally.models.region import Region
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
-)
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 class CandidateVotesListDataView(LoginRequiredMixin,
-                                 mixins.GroupRequiredMixin,
-                                 mixins.TallyAccessMixin,
+                                 GroupRequiredMixin,
+                                 TallyAccessMixin,
                                  BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Result
@@ -54,7 +50,7 @@ class CandidateVotesListDataView(LoginRequiredMixin,
         keyword = self.request.POST.get('search[value]')
 
         if keyword:
-            qs = qs.filter(Q(name__contains=keyword))
+            qs = qs.filter(Q(name__icontains=keyword))
         return qs
 
     def render_column(self, row, column):
@@ -70,15 +66,15 @@ class CandidateVotesListDataView(LoginRequiredMixin,
 
 
 class CandidateVotesListView(LoginRequiredMixin,
-                             mixins.GroupRequiredMixin,
-                             mixins.TallyAccessMixin,
+                             GroupRequiredMixin,
+                             TallyAccessMixin,
+                             DataTablesMixin,
                              TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Result
     template_name = "reports/candidate_list_by_votes.html"
 
     def get(self, request, *args, **kwargs):
-        language_de = get_datatables_language_de_from_locale(self.request)
         tally_id = kwargs.get('tally_id')
         region_id = kwargs.get('region_id')
         constituency_id = kwargs.get('constituency_id')
@@ -117,4 +113,4 @@ class CandidateVotesListView(LoginRequiredMixin,
             sub_constituency_code=sub_constituency_code,
             export_file_name='candidates-list-by-votes',
             ballot_report=ballot_report,
-            languageDE=language_de,))
+))

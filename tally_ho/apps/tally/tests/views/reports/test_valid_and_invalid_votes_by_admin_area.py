@@ -1,21 +1,24 @@
 import json
-from django.test import RequestFactory
-from bs4 import BeautifulSoup
 
-from tally_ho.libs.permissions import groups
-from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.entry_version import EntryVersion
-from tally_ho.apps.tally.views.reports.valid_and_invalid_votes_by_admin_area\
-    import (
+from bs4 import BeautifulSoup
+from django.test import RequestFactory
+
+from tally_ho.apps.tally.views.reports import (
     ValidAndInvalidVotesByAdminAreasDataView,
-    ValidAndInvalidVotesByAdminAreasView
-)
-from tally_ho.libs.tests.test_base import (
-    create_candidate_result, create_electrol_race, create_result_form,
-    create_station, create_reconciliation_form, create_sub_constituency,
-    create_tally, create_region, create_constituency, create_office,
-    TestBase, create_ballot, create_center
-)
+    ValidAndInvalidVotesByAdminAreasView)
+from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
+                                           create_candidate_result,
+                                           create_center, create_constituency,
+                                           create_electrol_race, create_office,
+                                           create_reconciliation_form,
+                                           create_region, create_result_form,
+                                           create_station,
+                                           create_sub_constituency,
+                                           create_tally)
+
 
 class TestValidAndInvalidVotesByAdminArea(TestBase):
     """
@@ -110,6 +113,7 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
         view = ValidAndInvalidVotesByAdminAreasView.as_view()
         response = view(request, tally_id=self.tally.pk, admin_level='region')
         self.assertEqual(response.status_code, 200)
+        response.render()
         headers = self._get_html_headers(response)
         self.assertEqual(
             headers, ['Region', 'Race Type', 'Valid Votes', 'Invalid Votes'])
@@ -130,6 +134,7 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
         view = ValidAndInvalidVotesByAdminAreasView.as_view()
         response = view(request, tally_id=self.tally.pk, admin_level='office')
         self.assertEqual(response.status_code, 200)
+        response.render()
         headers = self._get_html_headers(response)
         self.assertEqual(
             headers, ['Office', 'Race Type', 'Valid Votes', 'Invalid Votes'])
@@ -151,6 +156,7 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
         response =\
             view(request, tally_id=self.tally.pk, admin_level='constituency')
         self.assertEqual(response.status_code, 200)
+        response.render()
         headers = self._get_html_headers(response)
         self.assertEqual(
             headers,
@@ -182,6 +188,7 @@ class TestValidAndInvalidVotesByAdminArea(TestBase):
                 admin_level='sub_constituency'
             )
         self.assertEqual(response.status_code, 200)
+        response.render()
         headers = self._get_html_headers(response)
         self.assertEqual(
             headers,

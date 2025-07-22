@@ -1,34 +1,27 @@
 import json
 
-from django.test import RequestFactory
-from django.urls import reverse
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
+from django.test import RequestFactory
+from django.urls import reverse
 
-from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.center import Center
-from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.entry_version import EntryVersion
-from tally_ho.libs.models.enums.center_type import CenterType
-from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.apps.tally.views.reports.candidate_results import (
-    CandidateResultsView,
-    CandidateResultsDataView,
-)
-from tally_ho.libs.tests.test_base import (
-    create_candidate_result,
-    create_electrol_race,
-    create_result_form,
-    create_station,
-    create_reconciliation_form,
-    create_sub_constituency,
-    create_tally,
-    create_region,
-    create_constituency,
-    create_office,
-    TestBase,
-    create_ballot,
-)
+    CandidateResultsDataView, CandidateResultsView)
+from tally_ho.libs.models.enums.center_type import CenterType
+from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.gender import Gender
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
+                                           create_candidate_result,
+                                           create_constituency,
+                                           create_electrol_race, create_office,
+                                           create_reconciliation_form,
+                                           create_region, create_result_form,
+                                           create_station,
+                                           create_sub_constituency,
+                                           create_tally)
 
 
 class TestCandidateResultsViews(TestBase):
@@ -88,14 +81,9 @@ class TestCandidateResultsViews(TestBase):
         self.recon_form = create_reconciliation_form(
             result_form=self.result_form,
             user=self.user,
-            number_ballots_inside_box=60,
-            number_cancelled_ballots=0,
-            number_spoiled_ballots=0,
-            number_unstamped_ballots=0,
-            number_unused_ballots=40,
             number_valid_votes=55,
             number_invalid_votes=5,
-            number_ballots_received=100,
+            number_of_voters=100,
             entry_version=EntryVersion.FINAL,
         )
         create_candidate_result(
@@ -170,8 +158,7 @@ class TestCandidateResultsViews(TestBase):
             'ballot', 'race_number', 'center', 'station', 'gender', 'barcode',
             'election_level', 'sub_race_type', 'voting_district', 'order',
             'candidate_name', 'candidate_id', 'votes', 'invalid_ballots',
-            'unstamped_ballots', 'cancelled_ballots', 'spoilt_ballots',
-            'unused_ballots', 'number_of_voter_cards_in_the_ballot_box',
+            'number_of_voter_cards_in_the_ballot_box',
             'received_ballots_papers', 'valid_votes', 'number_registrants',
             'candidate_status',
         ]

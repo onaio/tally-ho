@@ -1,27 +1,29 @@
 import dateutil.parser
-from django.core.serializers.json import json, DjangoJSONEncoder
 from django.core.exceptions import SuspiciousOperation
+from django.core.serializers.json import DjangoJSONEncoder, json
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import FormView, TemplateView
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.views.generic import FormView, TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.forms.center_details_form import\
-    CenterDetailsForm
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
+from tally_ho.apps.tally.forms.center_details_form import CenterDetailsForm
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
-from tally_ho.libs.views.session import session_matches_post_result_form
-from tally_ho.libs.views import mixins
-from tally_ho.libs.views.form_state import form_in_intake_state,\
-    safe_form_in_state, form_in_state
 from tally_ho.libs.views.errors import add_generic_error
+from tally_ho.libs.views.form_state import (form_in_intake_state,
+                                            form_in_state, safe_form_in_state)
+from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+                                        PrintedResultFormMixin,
+                                        ReverseSuccessURLMixin,
+                                        TallyAccessMixin)
+from tally_ho.libs.views.session import session_matches_post_result_form
 
 INTAKE_DUPLICATE_ERROR_MESSAGE = _(
     'Duplicate of a form already entered into system.')
@@ -63,9 +65,9 @@ def states_for_form(user, states, result_form):
 
 
 class CenterDetailsView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.TallyAccessMixin,
-                        mixins.ReverseSuccessURLMixin,
+                        GroupRequiredMixin,
+                        TallyAccessMixin,
+                        ReverseSuccessURLMixin,
                         FormView):
     form_class = BarcodeForm
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
@@ -146,9 +148,9 @@ class CenterDetailsView(LoginRequiredMixin,
 
 
 class EnterCenterView(LoginRequiredMixin,
-                      mixins.GroupRequiredMixin,
-                      mixins.TallyAccessMixin,
-                      mixins.ReverseSuccessURLMixin,
+                      GroupRequiredMixin,
+                      TallyAccessMixin,
+                      ReverseSuccessURLMixin,
                       FormView):
     form_class = CenterDetailsForm
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
@@ -241,9 +243,9 @@ class EnterCenterView(LoginRequiredMixin,
 
 
 class CheckCenterDetailsView(LoginRequiredMixin,
-                             mixins.GroupRequiredMixin,
-                             mixins.TallyAccessMixin,
-                             mixins.ReverseSuccessURLMixin,
+                             GroupRequiredMixin,
+                             TallyAccessMixin,
+                             ReverseSuccessURLMixin,
                              FormView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     form_class = CenterDetailsForm
@@ -347,8 +349,8 @@ class CheckCenterDetailsView(LoginRequiredMixin,
 
 
 class PrintCoverView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
                      TemplateView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
     template_name = "intake/print_cover.html"
@@ -400,8 +402,8 @@ class PrintCoverView(LoginRequiredMixin,
 
 
 class ClearanceView(LoginRequiredMixin,
-                    mixins.GroupRequiredMixin,
-                    mixins.TallyAccessMixin,
+                    GroupRequiredMixin,
+                    TallyAccessMixin,
                     TemplateView):
     template_name = "intake/clearance.html"
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
@@ -435,8 +437,8 @@ class ClearanceView(LoginRequiredMixin,
 
 
 class ConfirmationView(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
-                       mixins.TallyAccessMixin,
+                       GroupRequiredMixin,
+                       TallyAccessMixin,
                        TemplateView):
     template_name = "intake_success.html"
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
@@ -493,8 +495,8 @@ class ConfirmationView(LoginRequiredMixin,
 
 
 class IntakePrintedView(LoginRequiredMixin,
-                        mixins.GroupRequiredMixin,
-                        mixins.PrintedResultFormMixin,
+                        GroupRequiredMixin,
+                        PrintedResultFormMixin,
                         TemplateView):
     group_required = [groups.INTAKE_CLERK, groups.INTAKE_SUPERVISOR]
 

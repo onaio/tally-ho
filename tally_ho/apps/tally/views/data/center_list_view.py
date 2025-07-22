@@ -1,29 +1,26 @@
 import json
 
-from django.db.models import Q, F
+from django.db.models import F, Q
+from django.http import JsonResponse
 from django.urls import reverse
+from django.utils import timezone
 from django.views.generic import TemplateView
-
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from djqscsv import render_to_csv_response
 from guardian.mixins import LoginRequiredMixin
-from django.http import JsonResponse
-from django.utils import timezone
 
-from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.constituency import Constituency
+from tally_ho.apps.tally.models.region import Region
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale
-)
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 class CenterListDataView(LoginRequiredMixin,
-                         mixins.GroupRequiredMixin,
-                         mixins.TallyAccessMixin,
+                         GroupRequiredMixin,
+                         TallyAccessMixin,
                          BaseDatatableView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station
@@ -61,11 +58,11 @@ class CenterListDataView(LoginRequiredMixin,
 
         if keyword:
             qs = qs.filter(Q(station_number__contains=keyword) |
-                           Q(center__office__name__contains=keyword) |
+                           Q(center__office__name__icontains=keyword) |
                            Q(center__code__contains=keyword) |
-                           Q(sub_constituency__name__contains=keyword) |
+                           Q(sub_constituency__name__icontains=keyword) |
                            Q(sub_constituency__code__contains=keyword) |
-                           Q(center__name__contains=keyword))
+                           Q(center__name__icontains=keyword))
         return qs
 
     def render_column(self, row, column):
@@ -76,8 +73,9 @@ class CenterListDataView(LoginRequiredMixin,
 
 
 class CenterListView(LoginRequiredMixin,
-                     mixins.GroupRequiredMixin,
-                     mixins.TallyAccessMixin,
+                     GroupRequiredMixin,
+                     TallyAccessMixin,
+                     DataTablesMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station
@@ -89,8 +87,6 @@ class CenterListView(LoginRequiredMixin,
         constituency_id = kwargs.get('constituency_id')
         sub_constituency_id = kwargs.get('sub_constituency_id')
         format_ = kwargs.get('format')
-        language_de = get_datatables_language_de_from_locale(self.request)
-        download_url = '/ajax/download-centers-and-stations-list/'
 
         try:
             region_name = region_id and Region.objects.get(
@@ -148,10 +144,6 @@ class CenterListView(LoginRequiredMixin,
             region_name=region_name,
             constituency_name=constituency_name,
             sub_constituency_code=sub_constituency_code,
-            centers_and_stations_list_download_url=download_url,
-            languageDE=language_de,
-            enable_responsive=False,
-            enable_scroll_x=True,
         ))
 
 

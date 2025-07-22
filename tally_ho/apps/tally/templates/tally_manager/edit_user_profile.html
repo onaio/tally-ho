@@ -4,11 +4,11 @@
 
 {% block content %}
 
-{% if is_admin and object.id %}
+{% if is_admin and object %}
 <h1>{% trans 'Edit Administrator' %}</h1>
-{% elif is_admin and not object.id %}
+{% elif is_admin and not object  %}
 <h1>{% trans 'Create Administrator' %}</h1>
-{% elif not is_admin and object.id %}
+{% elif not is_admin and object %}
 <h1>{% trans 'Edit User' %}</h1>
 {% else %}
 <h1>{% trans 'Create User' %}</h1>
@@ -28,14 +28,14 @@
     <a class="btn btn-small btn-danger" href="{% url url_name url_param %}" role="button">
         {% trans "Cancel" %}
     </a>
-    {% if tally_id %}
+    {% if tally_id and object %}
         {% if object.id %}
         <a class="btn btn-small btn-warning pull-right" href="{% url 'remove-user-confirmation' role tally_id object.id %}" role="button">
             {% trans "Delete" %}
         </a>
         {% endif %}
     {% else %}
-        {% if object.id %}
+        {% if object %}
         <a class="btn btn-small btn-warning pull-right" href="{% url 'remove-user-confirmation' role object.id %}" role="button">
             {% trans "Delete" %}
         </a>

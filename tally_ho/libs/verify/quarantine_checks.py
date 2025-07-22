@@ -5,14 +5,17 @@ from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 
 
 def create_quarantine_checks(quarantine_data=None):
-    quarantine_data =\
-        quarantine_data if quarantine_data is not None\
-                        else getattr(settings, 'QUARANTINE_DATA')
+    quarantine_data = (
+        quarantine_data
+        if quarantine_data is not None
+        else getattr(settings, "QUARANTINE_DATA")
+    )
     for quarantine_check in quarantine_data:
         try:
-            QuarantineCheck.objects.get(method=quarantine_check['method'])
+            QuarantineCheck.objects.get(method=quarantine_check["method"])
         except QuarantineCheck.DoesNotExist:
             QuarantineCheck.objects.create(**quarantine_check)
+
 
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
@@ -42,30 +45,27 @@ def get_total_candidates_votes(result_form):
 def quarantine_checks():
     """Return tuples of (QuarantineCheck, validation_function)."""
     all_methods = {
-                   'pass_registrants_trigger':
-                   pass_registrants_trigger,
-                   'pass_voter_cards_trigger':
-                   pass_voter_cards_trigger,
-                   'pass_ballot_papers_trigger':
-                   pass_ballot_papers_trigger,
-                   'pass_ballot_inside_box_trigger':
-                   pass_ballot_inside_box_trigger,
-                   'pass_candidates_votes_trigger':
-                   pass_candidates_votes_trigger,
-                }
+        "pass_registrants_trigger": pass_registrants_trigger,
+        "pass_voter_cards_trigger": pass_voter_cards_trigger,
+        "pass_ballot_papers_trigger": pass_ballot_papers_trigger,
+        "pass_ballot_inside_box_trigger": pass_ballot_inside_box_trigger,
+        "pass_candidates_votes_trigger": pass_candidates_votes_trigger,
+    }
     methods = []
 
-    quarantine_checks_methods =\
-        QuarantineCheck.objects.filter(
-            active=True).values_list('method', flat=True).order_by('pk')
+    quarantine_checks_methods = (
+        QuarantineCheck.objects.filter(active=True)
+        .values_list("method", flat=True)
+        .order_by("pk")
+    )
 
     for method_name in quarantine_checks_methods:
         methods.append(all_methods[method_name])
 
-    checks =\
-        QuarantineCheck.objects.filter(active=True).order_by('pk')
+    checks = QuarantineCheck.objects.filter(active=True).order_by("pk")
 
     return zip(methods, checks)
+
 
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
@@ -103,6 +103,7 @@ def pass_overvote(result_form):
 
     # return recon_form.number_ballots_used <= max_number_ballots
 
+
 def pass_registrants_trigger(result_form):
     """The number_valid_votes must be less than or equal to the number of
     registered voters at the station plus N persons to accommodate staff and
@@ -126,18 +127,20 @@ def pass_registrants_trigger(result_form):
     if not recon_form:
         return True
 
-    registrants = result_form.station.registrants if result_form.station\
-        else None
+    registrants = (
+        result_form.station.registrants if result_form.station else None
+    )
 
     if registrants is None:
         return True
 
-    qc = QuarantineCheck.objects.get(method='pass_registrants_trigger')
-    allowed_tolerance =\
-        (qc.value)\
-            if qc.value != 0 else ((qc.percentage / 100) * registrants)
+    qc = QuarantineCheck.objects.get(method="pass_registrants_trigger")
+    allowed_tolerance = (
+        (qc.value) if qc.value != 0 else ((qc.percentage / 100) * registrants)
+    )
 
     return recon_form.number_valid_votes <= allowed_tolerance + registrants
+
 
 def pass_voter_cards_trigger(result_form):
     """The total number of voter cards in the ballot box must be within N
@@ -155,17 +158,24 @@ def pass_voter_cards_trigger(result_form):
     if not recon_form:
         return True
 
-    qc = QuarantineCheck.objects.get(method='pass_voter_cards_trigger')
-    allowed_tolerance =\
-        (qc.value)\
-            if qc.value != 0 else (
-                (qc.percentage / 100) *\
-                    recon_form.number_of_voter_cards_in_the_ballot_box)
+    qc = QuarantineCheck.objects.get(method="pass_voter_cards_trigger")
+    allowed_tolerance = (
+        (qc.value)
+        if qc.value != 0
+        else (
+            (qc.percentage / 100)
+            * recon_form.number_sorted_and_counted
+        )
+    )
 
-    return abs(
-        recon_form.total_of_cancelled_ballots_and_ballots_inside_box -
-        recon_form.number_of_voter_cards_in_the_ballot_box
-    ) <= allowed_tolerance
+    return (
+        abs(
+            (recon_form.number_valid_votes + recon_form.number_invalid_votes)
+            - recon_form.number_sorted_and_counted
+        )
+        <= allowed_tolerance
+    )
+
 
 def pass_ballot_papers_trigger(result_form):
     """The total number of ballots received by the polling station must be
@@ -183,17 +193,24 @@ def pass_ballot_papers_trigger(result_form):
     if not recon_form:
         return True
 
-    qc = QuarantineCheck.objects.get(method='pass_ballot_papers_trigger')
-    allowed_tolerance =\
-        (qc.value)\
-            if qc.value != 0 else (
-                (qc.percentage / 100) *\
-                    recon_form.number_ballots_inside_and_outside_box)
+    qc = QuarantineCheck.objects.get(method="pass_ballot_papers_trigger")
+    allowed_tolerance = (
+        (qc.value)
+        if qc.value != 0
+        else (
+            (qc.percentage / 100)
+            * (recon_form.number_sorted_and_counted)
+        )
+    )
 
-    return abs(
-        recon_form.number_ballots_received -
-        recon_form.number_ballots_inside_and_outside_box
-    ) <= allowed_tolerance
+    return (
+        abs(
+            recon_form.number_of_voters
+            - recon_form.number_sorted_and_counted
+        )
+        <= allowed_tolerance
+    )
+
 
 def pass_ballot_inside_box_trigger(result_form):
     """The total number of ballots found inside the ballot box must be
@@ -211,19 +228,25 @@ def pass_ballot_inside_box_trigger(result_form):
     if not recon_form:
         return True
 
-    qc = QuarantineCheck.objects.get(method='pass_ballot_inside_box_trigger')
-    allowed_tolerance =\
-        (qc.value)\
-            if qc.value != 0 else (
-                (qc.percentage / 100) *\
-                    recon_form.number_ballots_inside_box)
+    qc = QuarantineCheck.objects.get(method="pass_ballot_inside_box_trigger")
+    allowed_tolerance = (
+        (qc.value)
+        if qc.value != 0
+        else (
+            (qc.percentage / 100)
+            * recon_form.number_sorted_and_counted
+        )
+    )
 
-    return abs(
-        recon_form.number_unstamped_ballots +
-        recon_form.number_invalid_votes +
-        recon_form.number_valid_votes -
-        recon_form.number_ballots_inside_box
-    ) <= allowed_tolerance
+    return (
+        abs(
+            recon_form.number_invalid_votes
+            + recon_form.number_valid_votes
+            - recon_form.number_sorted_and_counted
+        )
+        <= allowed_tolerance
+    )
+
 
 def pass_candidates_votes_trigger(result_form):
     """The total valid votes must be within N persons (tolerance) of the total
@@ -240,15 +263,18 @@ def pass_candidates_votes_trigger(result_form):
     if not recon_form:
         return True
 
-    qc = QuarantineCheck.objects.get(method='pass_candidates_votes_trigger')
+    qc = QuarantineCheck.objects.get(method="pass_candidates_votes_trigger")
     allowed_tolerance = (
         qc.value
-        if qc.value != 0 else
-        (qc.percentage / 100) * recon_form.number_valid_votes
+        if qc.value != 0
+        else (qc.percentage / 100) * recon_form.number_valid_votes
     )
 
-    return abs(result_form.num_votes - recon_form.number_valid_votes) <=\
-        allowed_tolerance
+    return (
+        abs(result_form.num_votes - recon_form.number_valid_votes)
+        <= allowed_tolerance
+    )
+
 
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
@@ -282,6 +308,7 @@ def pass_tampering(result_form):
 
     # return diff <= scaled_tolerance
 
+
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
 # confirms it is no longer required.
@@ -303,13 +330,14 @@ def pass_ballots_number_validation(result_form):
     # ballots_inside_and_outside_the_box = (
     #     recon_form.number_ballots_inside_the_box +
     #     recon_form.number_ballots_outside_the_box)
-    # number_ballots_received = recon_form.number_ballots_received
-    # diff = abs(number_ballots_received - ballots_inside_and_outside_the_box)
+    # number_of_voters = recon_form.number_of_voters
+    # diff = abs(number_of_voters - ballots_inside_and_outside_the_box)
     # qc = QuarantineCheck.objects.get(method='pass_ballots_number_validation')
     # scaled_tolerance = (qc.value / 100) * (
-    #     number_ballots_received + ballots_inside_and_outside_the_box) / 2
+    #     number_of_voters + ballots_inside_and_outside_the_box) / 2
 
     # return diff <= scaled_tolerance
+
 
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
@@ -344,6 +372,7 @@ def pass_signatures_validation(result_form):
     #                         cancelled_ballots_and_ballots_inside_the_box) / 2
 
     # return diff <= scaled_tolerance
+
 
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
@@ -383,6 +412,7 @@ def pass_ballots_inside_box_validation(result_form):
 
     # return diff <= scaled_tolerance
 
+
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
 # confirms it is no longer required.
@@ -414,6 +444,7 @@ def pass_sum_of_candidates_votes_validation(result_form):
 
     # return diff > 0
 
+
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
 # confirms it is no longer required.
@@ -442,6 +473,7 @@ def pass_invalid_ballots_percentage_validation(result_form):
     # allowed_invalid_ballots_percentage = qc.percentage
 
     # return invalid_ballots_percentage <= allowed_invalid_ballots_percentage
+
 
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
@@ -479,6 +511,7 @@ def pass_turnout_percentage_validation(result_form):
     # allowed_turnout_percentage = qc.percentage
 
     # return turnout_percentage <= allowed_turnout_percentage
+
 
 # Disabled: Awaiting client feedback for final removal.
 # This function is temporarily inactive; it will be removed if the client
@@ -533,8 +566,8 @@ def check_quarantine(result_form, user):
             if not passed_check(result_form):
                 if not audit:
                     audit = Audit.objects.create(
-                        user=user.userprofile,
-                        result_form=result_form)
+                        user=user.userprofile, result_form=result_form
+                    )
 
                 audit.quarantine_checks.add(check)
 

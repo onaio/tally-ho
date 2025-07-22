@@ -14,21 +14,15 @@ from tally_ho.apps.tally.views import quality_control as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
-from tally_ho.libs.tests.test_base import (
-    TestBase,
-    create_audit,
-    create_ballot,
-    create_candidates,
-    create_center,
-    create_electrol_race,
-    create_quality_control,
-    create_quarantine_checks,
-    create_recon_forms,
-    create_reconciliation_form,
-    create_result_form,
-    create_station,
-    create_tally,
-)
+from tally_ho.libs.tests.test_base import (TestBase, create_audit,
+                                           create_ballot, create_candidates,
+                                           create_center, create_electrol_race,
+                                           create_quality_control,
+                                           create_quarantine_checks,
+                                           create_recon_forms,
+                                           create_reconciliation_form,
+                                           create_result_form, create_station,
+                                           create_tally)
 
 
 class TestQualityControl(TestBase):
@@ -369,11 +363,18 @@ class TestQualityControl(TestBase):
         Test reconciliation get
         """
         barcode = "123456789"
+        center = create_center(tally=self.tally)
+        station = create_station(center=center)
         create_result_form(
-            barcode, form_state=FormState.QUALITY_CONTROL, tally=self.tally
+            barcode,
+            center=center,
+            station_number=station.station_number,
+            form_state=FormState.QUALITY_CONTROL,
+            tally=self.tally,
         )
         result_form = ResultForm.objects.get(barcode=barcode)
         create_reconciliation_form(result_form, self.user)
+        create_quality_control(result_form, self.user)
 
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
@@ -384,7 +385,8 @@ class TestQualityControl(TestBase):
         response.render()
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Reconciliation")
-        self.assertContains(response, "Total number of the sorted and counted")
+        self.assertContains(
+            response, "Total number of ballot papers in the box")
 
     def test_reconciliation_post_correct(self):
         """
@@ -548,6 +550,7 @@ class TestQualityControl(TestBase):
             form_state=FormState.QUALITY_CONTROL,
         )
         result_form = ResultForm.objects.get(barcode=barcode)
+        create_quality_control(result_form, self.user)
         name = "the candidate name"
         women_name = "women candidate name"
         votes = 123
@@ -723,12 +726,10 @@ class TestQualityControl(TestBase):
         recon_form = create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=0,
+            number_of_voters=50,
             number_invalid_votes=0,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=50,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
         )
         create_quality_control(result_form, self.user)
@@ -748,7 +749,7 @@ class TestQualityControl(TestBase):
 
         self.assertEqual(
             result_form.num_votes,
-            recon_form.total_of_cancelled_ballots_and_ballots_inside_box,
+            recon_form.number_of_voter_cards_in_the_ballot_box,
         )
         self.assertEqual(response.status_code, 302)
         self.assertNotEqual(result_form.form_state, FormState.AUDIT)
@@ -772,12 +773,10 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=0,
+            number_of_voters=50,
             number_invalid_votes=0,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=50,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
         )
         create_quality_control(result_form, self.user)
@@ -820,16 +819,14 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=0,
+            number_of_voters=50,
             number_invalid_votes=0,
-            number_valid_votes=50,
-            number_ballots_inside_box=50,
-            number_of_voter_cards_in_the_ballot_box=40,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
+            number_valid_votes=40,
+            number_of_voter_cards_in_the_ballot_box=50,
             number_sorted_and_counted=50,
         )
         create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=25, num_results=1)
+        create_candidates(result_form, self.user, votes=20, num_results=1)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {
@@ -848,7 +845,7 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.audited_count, 1)
         self.assertEqual(
             [c.method for c in result_form.audit.quarantine_checks.all()],
-            ["pass_voter_cards_trigger"],
+            ["pass_voter_cards_trigger", "pass_ballot_inside_box_trigger"],
         )
         self.assertIn("quality-control/print", response["location"])
 
@@ -868,15 +865,11 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=0,
             number_invalid_votes=0,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=50,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
-            number_ballots_received=49,
-            number_ballots_inside_and_outside_box=50,
+            number_of_voters=49,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=25, num_results=1)
@@ -919,15 +912,11 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_unstamped_ballots=1,
-            number_invalid_votes=0,
+            number_invalid_votes=5,
             number_valid_votes=50,
-            number_ballots_inside_box=50,
             number_of_voter_cards_in_the_ballot_box=50,
-            total_of_cancelled_ballots_and_ballots_inside_box=50,
             number_sorted_and_counted=50,
-            number_ballots_received=50,
-            number_ballots_inside_and_outside_box=50,
+            number_of_voters=50,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=25, num_results=1)
@@ -949,7 +938,7 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.audited_count, 1)
         self.assertEqual(
             [c.method for c in result_form.audit.quarantine_checks.all()],
-            ["pass_ballot_inside_box_trigger"],
+            ["pass_voter_cards_trigger", "pass_ballot_inside_box_trigger"],
         )
         self.assertIn("quality-control/print", response["location"])
 
@@ -986,10 +975,11 @@ class TestQualityControl(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(result_form.form_state, FormState.AUDIT)
         self.assertTrue(result_form.audit)
-        self.assertEqual(result_form.audit.quarantine_checks.count(), 2)
+        self.assertEqual(result_form.audit.quarantine_checks.count(), 3)
         self.assertEqual(
             [c.method for c in result_form.audit.quarantine_checks.all()],
             [
+                "pass_voter_cards_trigger",
                 "pass_ballot_inside_box_trigger",
                 "pass_candidates_votes_trigger",
             ],

@@ -1,12 +1,12 @@
+from django.db.models import Count, ExpressionWrapper, F, IntegerField, Q, Sum
+from django.db.models import Value as V
+from django.db.models.functions import Coalesce
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from django.db.models import Count, Q, Sum, F, ExpressionWrapper,\
-    IntegerField, Value as V
-from django.db.models.functions import Coalesce
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.mixins import GroupRequiredMixin
 
 
 def approvals_percentage(
@@ -35,7 +35,7 @@ def approvals_percentage(
 
 
 class StaffPerformanceMetricsView(LoginRequiredMixin,
-                                  mixins.GroupRequiredMixin,
+                                  GroupRequiredMixin,
                                   TemplateView):
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/staff_performance_metrics.html'
@@ -62,7 +62,7 @@ class StaffPerformanceMetricsView(LoginRequiredMixin,
 
 
 class SupervisorsApprovalsView(LoginRequiredMixin,
-                               mixins.GroupRequiredMixin,
+                               GroupRequiredMixin,
                                TemplateView):
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/supervisor_approvals.html'
@@ -152,7 +152,7 @@ class SupervisorsApprovalsView(LoginRequiredMixin,
 
 
 class TrackCorrections(LoginRequiredMixin,
-                       mixins.GroupRequiredMixin,
+                       GroupRequiredMixin,
                        TemplateView):
     group_required = groups.TALLY_MANAGER
     template_name = 'reports/corrections_statistics.html'

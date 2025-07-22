@@ -76,7 +76,7 @@
 {% if result_form.center %}
 <div class="form-summary-header">
     <h4>{% trans 'Station Summary' %} ({{ result_form.center.code }} / {{ result_form.station_number }})</h4>
-    <h5>{% trans 'Pending Intake:' %} {{ pending_station_count }}</h5>
+    <h5>{% trans 'Other forms in Station' %} {{ result_form.station_number }} {% trans 'Pending Intake:' %} {{ pending_station_count }}</h5>
     <h5>{% trans 'Intaken (Processed Past Intake):' %} {{ intaken_station_count }}</h5>
 </div>
 

@@ -1,22 +1,22 @@
-from django.conf import settings
-from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.verify.quarantine_checks import (
-    create_quarantine_checks,
-    pass_registrants_trigger,
-    pass_voter_cards_trigger,
-    pass_ballot_papers_trigger,
-    pass_ballot_inside_box_trigger,
-    pass_candidates_votes_trigger
-)
-from tally_ho.libs.tests.test_base import create_candidates,\
-    create_center, create_reconciliation_form, create_result_form,\
-    create_station, TestBase, create_tally
 from unittest.mock import patch
+
+from django.conf import settings
+
+from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.tests.test_base import (TestBase, create_candidates,
+                                           create_center,
+                                           create_reconciliation_form,
+                                           create_result_form, create_station,
+                                           create_tally)
+from tally_ho.libs.verify.quarantine_checks import (
+    create_quarantine_checks, pass_ballot_inside_box_trigger,
+    pass_ballot_papers_trigger, pass_candidates_votes_trigger,
+    pass_registrants_trigger, pass_voter_cards_trigger)
 
 
 class TestQuarantineChecks(TestBase):
     def setUp(self):
-        create_quarantine_checks(getattr(settings, 'QUARANTINE_DATA'))
+        create_quarantine_checks(getattr(settings, "QUARANTINE_DATA"))
         self._create_permission_groups()
         self._create_and_login_user()
 
@@ -29,21 +29,17 @@ class TestQuarantineChecks(TestBase):
         """
         # Setup
         center = create_center()
-        station = create_station(center=center,
-                       registrants=50)
+        station = create_station(center=center, registrants=50)
         result_form = create_result_form(
-            center=center,
-            station_number=station.station_number)
+            center=center, station_number=station.station_number
+        )
 
         # Test when there is no reconciliation form
         self.assertTrue(pass_registrants_trigger(result_form))
 
-        recon_form =\
-            create_reconciliation_form(
-                result_form=result_form,
-                user=self.user,
-                number_valid_votes=50
-            )
+        recon_form = create_reconciliation_form(
+            result_form=result_form, user=self.user, number_valid_votes=50
+        )
         # Test when registrants are equal
         self.assertTrue(pass_registrants_trigger(result_form))
         # Test when registrants are less
@@ -81,19 +77,19 @@ class TestQuarantineChecks(TestBase):
         # Test when there is no reconciliation form
         self.assertTrue(pass_voter_cards_trigger(result_form))
 
-        recon_form =\
-            create_reconciliation_form(
-                result_form=result_form,
-                user=self.user,
-                total_of_cancelled_ballots_and_ballots_inside_box=50,
-                number_of_voter_cards_in_the_ballot_box=50,
-            )
+        recon_form = create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_valid_votes=50,
+            number_invalid_votes=0,
+            number_sorted_and_counted=50,
+        )
 
         # Test for equality
         self.assertTrue(pass_voter_cards_trigger(result_form))
 
         # Test for inequality
-        recon_form.number_of_voter_cards_in_the_ballot_box = 51
+        recon_form.number_sorted_and_counted = 51
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_voter_cards_trigger(result_form))
@@ -112,22 +108,21 @@ class TestQuarantineChecks(TestBase):
             center=center,
             station_number=station.station_number,
         )
-         # Test when there is no reconciliation form
+        # Test when there is no reconciliation form
         self.assertTrue(pass_ballot_papers_trigger(result_form))
 
-        recon_form =\
-            create_reconciliation_form(
-                result_form=result_form,
-                user=self.user,
-                number_ballots_received=100,
-                number_ballots_inside_and_outside_box=100,
-            )
+        recon_form = create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_of_voters=100,
+            number_sorted_and_counted=100,
+        )
 
         # Test for equality
         self.assertTrue(pass_ballot_papers_trigger(result_form))
 
         # Test for inequality
-        recon_form.number_ballots_inside_and_outside_box = 99
+        recon_form.number_sorted_and_counted = 99
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_ballot_papers_trigger(result_form))
@@ -149,21 +144,19 @@ class TestQuarantineChecks(TestBase):
         # Test when there is no reconciliation form
         self.assertTrue(pass_ballot_inside_box_trigger(result_form))
 
-        recon_form =\
-            create_reconciliation_form(
-                result_form=result_form,
-                user=self.user,
-                number_unstamped_ballots=30,
-                number_invalid_votes=20,
-                number_valid_votes=50,
-                number_ballots_inside_box=100,
-            )
+        recon_form = create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_invalid_votes=20,
+            number_valid_votes=50,
+            number_sorted_and_counted=70,
+        )
 
         # Test for equality
         self.assertTrue(pass_ballot_inside_box_trigger(result_form))
 
         # Test for inequality
-        recon_form.number_ballots_inside_box = 99
+        recon_form.number_sorted_and_counted = 99
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_ballot_inside_box_trigger(result_form))
@@ -180,23 +173,25 @@ class TestQuarantineChecks(TestBase):
         result_form = create_result_form(
             center=center,
             station_number=station.station_number,
-            form_state=FormState.ARCHIVED
+            form_state=FormState.ARCHIVED,
         )
         # Test when there is no reconciliation form
         self.assertTrue(pass_candidates_votes_trigger(result_form))
 
-        recon_form =\
-            create_reconciliation_form(
-                result_form=result_form,
-                user=self.user,
-                number_valid_votes=200,
-            )
+        recon_form = create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_valid_votes=200,
+        )
         votes = 100
         tally = create_tally()
         tally.users.add(self.user)
         create_candidates(
-            result_form, votes=votes, user=self.user,
-            num_results=1, tally=tally
+            result_form,
+            votes=votes,
+            user=self.user,
+            num_results=1,
+            tally=tally,
         )
 
         # Test for equality
@@ -208,14 +203,16 @@ class TestQuarantineChecks(TestBase):
         result_form.reload()
         self.assertFalse(pass_candidates_votes_trigger(result_form))
 
-    @patch('tally_ho.libs.verify.quarantine_checks.QuarantineCheck')
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_registrants_trigger_with_tolerance_value(self, MockQC):
         center = create_center()
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
-            center=center, station_number=station.station_number)
+            center=center, station_number=station.station_number
+        )
         recon_form = create_reconciliation_form(
-            result_form=result_form, user=self.user, number_valid_votes=105)
+            result_form=result_form, user=self.user, number_valid_votes=105
+        )
         # Set tolerance value to 5
         MockQC.objects.get.return_value.value = 5
         MockQC.objects.get.return_value.percentage = 0
@@ -226,14 +223,16 @@ class TestQuarantineChecks(TestBase):
         result_form.reload()
         self.assertFalse(pass_registrants_trigger(result_form))
 
-    @patch('tally_ho.libs.verify.quarantine_checks.QuarantineCheck')
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_registrants_trigger_with_tolerance_percentage(self, MockQC):
         center = create_center()
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
-            center=center, station_number=station.station_number)
+            center=center, station_number=station.station_number
+        )
         recon_form = create_reconciliation_form(
-            result_form=result_form, user=self.user, number_valid_votes=109)
+            result_form=result_form, user=self.user, number_valid_votes=109
+        )
         # Set tolerance percentage to 10%
         MockQC.objects.get.return_value.value = 0
         MockQC.objects.get.return_value.percentage = 10
@@ -244,7 +243,7 @@ class TestQuarantineChecks(TestBase):
         result_form.reload()
         self.assertFalse(pass_registrants_trigger(result_form))
 
-    @patch('tally_ho.libs.verify.quarantine_checks.QuarantineCheck')
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_voter_cards_trigger_with_tolerance_value(self, MockQC):
         """Test the pass_voter_cards_trigger function with tolerance
         value.
@@ -256,22 +255,24 @@ class TestQuarantineChecks(TestBase):
         center = create_center()
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
-            center=center, station_number=station.station_number)
+            center=center, station_number=station.station_number
+        )
         recon_form = create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            total_of_cancelled_ballots_and_ballots_inside_box=105,
-            number_of_voter_cards_in_the_ballot_box=100
+            number_valid_votes=100,
+            number_invalid_votes=0,
+            number_sorted_and_counted=100,
         )
         MockQC.objects.get.return_value.value = 5
         MockQC.objects.get.return_value.percentage = 0
         self.assertTrue(pass_voter_cards_trigger(result_form))
-        recon_form.total_of_cancelled_ballots_and_ballots_inside_box = 106
+        recon_form.number_sorted_and_counted = 106
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_voter_cards_trigger(result_form))
 
-    @patch('tally_ho.libs.verify.quarantine_checks.QuarantineCheck')
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_voter_cards_trigger_with_tolerance_percentage(self, MockQC):
         """Test the pass_voter_cards_trigger function with tolerance
         percentage.
@@ -282,23 +283,25 @@ class TestQuarantineChecks(TestBase):
         """
         center = create_center()
         station = create_station(center=center, registrants=100)
-        result_form =\
-            create_result_form(
-                center=center, station_number=station.station_number)
+        result_form = create_result_form(
+            center=center, station_number=station.station_number
+        )
         recon_form = create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            total_of_cancelled_ballots_and_ballots_inside_box=110,
-            number_of_voter_cards_in_the_ballot_box=100)
+            number_valid_votes=100,
+            number_invalid_votes=0,
+            number_sorted_and_counted=100,
+        )
         MockQC.objects.get.return_value.value = 0
         MockQC.objects.get.return_value.percentage = 10
         self.assertTrue(pass_voter_cards_trigger(result_form))
-        recon_form.total_of_cancelled_ballots_and_ballots_inside_box = 112
+        recon_form.number_sorted_and_counted = 115
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_voter_cards_trigger(result_form))
 
-    @patch('tally_ho.libs.verify.quarantine_checks.QuarantineCheck')
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_ballot_papers_trigger_with_tolerance_value(self, MockQC):
         """Test the pass_ballot_papers_trigger function with tolerance
         value.
@@ -309,25 +312,27 @@ class TestQuarantineChecks(TestBase):
         """
         center = create_center()
         station = create_station(center=center, registrants=100)
-        result_form =\
-            create_result_form(
-                center=center, station_number=station.station_number)
+        result_form = create_result_form(
+            center=center, station_number=station.station_number
+        )
         recon_form = create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_ballots_received=105,
-            number_ballots_inside_and_outside_box=100)
+            number_of_voters=105,
+            number_sorted_and_counted=100,
+        )
         MockQC.objects.get.return_value.value = 5
         MockQC.objects.get.return_value.percentage = 0
         self.assertTrue(pass_ballot_papers_trigger(result_form))
-        recon_form.number_ballots_received = 106
+        recon_form.number_of_voters = 106
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_ballot_papers_trigger(result_form))
 
-    @patch('tally_ho.libs.verify.quarantine_checks.QuarantineCheck')
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_ballot_papers_trigger_with_tolerance_percentage(
-        self, MockQC):
+        self, MockQC
+    ):
         """Test the pass_ballot_papers_trigger function with tolerance
         percentage.
 
@@ -337,23 +342,24 @@ class TestQuarantineChecks(TestBase):
         """
         center = create_center()
         station = create_station(center=center, registrants=100)
-        result_form =\
-            create_result_form(
-                center=center, station_number=station.station_number)
+        result_form = create_result_form(
+            center=center, station_number=station.station_number
+        )
         recon_form = create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_ballots_received=110,
-            number_ballots_inside_and_outside_box=100)
+            number_of_voters=110,
+            number_sorted_and_counted=100,
+        )
         MockQC.objects.get.return_value.value = 0
         MockQC.objects.get.return_value.percentage = 10
         self.assertTrue(pass_ballot_papers_trigger(result_form))
-        recon_form.number_ballots_received = 112
+        recon_form.number_of_voters = 112
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_ballot_papers_trigger(result_form))
 
-    @patch('tally_ho.libs.verify.quarantine_checks.QuarantineCheck')
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_candidates_votes_trigger_with_tolerance_value(self, MockQC):
         """Test the pass_candidates_votes_trigger function with tolerance
         value.
@@ -364,13 +370,15 @@ class TestQuarantineChecks(TestBase):
         tally = create_tally()
         center = create_center()
         station = create_station(center=center, registrants=100)
-        result_form =\
-            create_result_form(
-                center=center, station_number=station.station_number)
+        result_form = create_result_form(
+            center=center, station_number=station.station_number
+        )
         create_candidates(
-            result_form, votes=50, user=self.user, num_results=1, tally=tally)
+            result_form, votes=50, user=self.user, num_results=1, tally=tally
+        )
         recon_form = create_reconciliation_form(
-            result_form=result_form, user=self.user, number_valid_votes=100)
+            result_form=result_form, user=self.user, number_valid_votes=100
+        )
         recon_form.number_valid_votes = 105
         recon_form.save()
         result_form.reload()
@@ -382,9 +390,10 @@ class TestQuarantineChecks(TestBase):
         result_form.reload()
         self.assertFalse(pass_candidates_votes_trigger(result_form))
 
-    @patch('tally_ho.libs.verify.quarantine_checks.QuarantineCheck')
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_candidates_votes_trigger_with_tolerance_percentage(
-        self, MockQC):
+        self, MockQC
+    ):
         """Test the pass_candidates_votes_trigger function with tolerance
         percentage.
 
@@ -394,13 +403,15 @@ class TestQuarantineChecks(TestBase):
         tally = create_tally()
         center = create_center()
         station = create_station(center=center, registrants=100)
-        result_form =\
-            create_result_form(
-                center=center, station_number=station.station_number)
+        result_form = create_result_form(
+            center=center, station_number=station.station_number
+        )
         create_candidates(
-            result_form, votes=50, user=self.user, num_results=1, tally=tally)
+            result_form, votes=50, user=self.user, num_results=1, tally=tally
+        )
         recon_form = create_reconciliation_form(
-            result_form=result_form, user=self.user, number_valid_votes=100)
+            result_form=result_form, user=self.user, number_valid_votes=100
+        )
         recon_form.number_valid_votes = 110
         recon_form.save()
         result_form.reload()

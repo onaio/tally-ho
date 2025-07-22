@@ -1,21 +1,19 @@
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.models.ballot import (
-    form_ballot_numbers,
-    race_type_name,
-    sub_constituency,
-    document_name,
-)
+from tally_ho.apps.tally.models.ballot import (document_name,
+                                               form_ballot_numbers,
+                                               race_type_name,
+                                               sub_constituency)
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
-from tally_ho.libs.views.exports import valid_ballots
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports import progress as p
-from tally_ho.libs.views import mixins
+from tally_ho.libs.views.exports import valid_ballots
+from tally_ho.libs.views.mixins import GroupRequiredMixin
 
 
 class RacesReportView(LoginRequiredMixin,
-                      mixins.GroupRequiredMixin,
+                      GroupRequiredMixin,
                       TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'reports/races.html'

@@ -1,7 +1,8 @@
-from locust import HttpUser, TaskSet, task
-from intake_barcodes import INTAKE_CODES
-from center_details import CENTER_DETAILS
 import time
+
+from center_details import CENTER_DETAILS
+from intake_barcodes import INTAKE_CODES
+from locust import HttpUser, TaskSet, task
 
 
 class UserLogin(TaskSet):
@@ -76,24 +77,11 @@ class UserLogin(TaskSet):
             {
                 'ballot_number_from': '1',
                 'ballot_number_to': '100',
-                'number_ballots_received': '100',
-                'number_unstamped_ballots': '10',
+                'number_of_voters': '100',
                 'number_invalid_votes': '5',
                 'number_valid_votes': '7',
                 'number_sorted_and_counted': '80',
-                'signature_polling_officer_1': 'on',
-                'signature_polling_officer_2': 'on',
-                'signature_polling_station_chair': 'on',
-                'signature_dated': 'on',
-                'is_stamped': 'on',
                 'number_of_voter_cards_in_the_ballot_box': '80',
-                'number_unused_ballots': '5',
-                'number_spoiled_ballots': '10',
-                'number_cancelled_ballots': '10',
-                'number_ballots_outside_box': '5',
-                'number_ballots_inside_box': '70',
-                'number_ballots_inside_and_outside_box': '100',
-                'total_of_cancelled_ballots_and_ballots_inside_box': '80',
                 'form-TOTAL_FORMS': '8',
                 'form-INITIAL_FORMS': '0',
                 'form-MIN_NUM_FORMS': '0',

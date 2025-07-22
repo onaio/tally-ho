@@ -112,3 +112,11 @@ def get_clearance_resolution_name(clearance_resolution_enum):
         pass
 
     return clearance_resolution_name
+
+@register.filter(name="get_bg_class_by_race_type")
+def get_bg_class_by_race_type(electrol_race):
+    """Get the class to use for results fields background
+    based on whether it is a list"""
+    if electrol_race.ballot_name.lower() == 'list':
+        return 'green-bg'
+    return 'blue-bg'
