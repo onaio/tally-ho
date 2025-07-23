@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Libya Tally\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-23 16:35+0000\n"
+"POT-Creation-Date: 2025-07-23 16:56+0000\n"
 "PO-Revision-Date: 2014-02-21 16:33+0000\n"
 "Last-Translator: MonaHago <missahmed230@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/libya-tally/"
@@ -1136,17 +1136,12 @@ msgid "previous"
 msgstr "السابق"
 
 #: tally_ho/apps/tally/templates/clearance/dashboard.html:90
+#: tally_ho/apps/tally/templates/includes/pagination.html:73
 #: tally_ho/apps/tally/templates/super_admin/form_results_duplicates.html:49
 #: tally_ho/apps/tally/templates/super_admin/quarantine_checks_list.html:49
 #, python-format
-msgid ""
-"\n"
-"            Page %(number)s of %(num_pages)s.\n"
-"            "
-msgstr ""
-"\n"
-"            الصفحة %(number)s من %(num_pages)s.\n"
-"            "
+msgid "Page %(number)s of %(num_pages)s."
+msgstr "الصفحة %(number)s من %(num_pages)s."
 
 #: tally_ho/apps/tally/templates/clearance/dashboard.html:96
 #: tally_ho/apps/tally/templates/super_admin/form_results_duplicates.html:56
@@ -1838,16 +1833,6 @@ msgstr "السابق"
 msgid "Next"
 msgstr "التالي"
 
-#: tally_ho/apps/tally/templates/includes/pagination.html:73
-#, python-format
-msgid ""
-"\n"
-"        Page %(number)s of %(num_pages)s.\n"
-"        "
-msgstr ""
-"\n"
-"        الصفحة %(number)s من %(num_pages)s.            "
-
 #: tally_ho/apps/tally/templates/intake/clearance.html:8
 msgid "Form Sent to Clearance. Pass to Supervisor"
 msgstr "تم إرسال النموذج إلى مرحلة التصحيح، يرجى تمريره إلى المشرف"
@@ -2380,10 +2365,9 @@ msgid "Stations Counted"
 msgstr "المحطات المعدودة"
 
 #: tally_ho/apps/tally/templates/reports/election_statistics_report.html:224
-#, fuzzy, python-format
-#| msgid "(%%) of Stations Counted"
+#, python-format
 msgid "(%%) of Stations Counted"
-msgstr "نسبة (%) من المحطات المعدودة"
+msgstr "نسبة (%%) من المحطات المعدودة"
 
 #: tally_ho/apps/tally/templates/reports/election_statistics_report.html:225
 #: tally_ho/apps/tally/templates/reports/turnout_report_by_admin_area.html:194
@@ -2395,10 +2379,9 @@ msgid "Voters in Counted Stations"
 msgstr "الناخبون في المحطات المعدودة"
 
 #: tally_ho/apps/tally/templates/reports/election_statistics_report.html:227
-#, fuzzy, python-format
-#| msgid "(%%) Turnout in Counted Stations"
+#, python-format
 msgid "(%%) Turnout in Counted Stations"
-msgstr "نسبة الإقبال (%) في المحطات المعدودة"
+msgstr "نسبة الإقبال (%%) في المحطات المعدودة"
 
 #: tally_ho/apps/tally/templates/reports/form_results.html:257
 msgid "Export Presidential Results in JSON"
@@ -4142,6 +4125,25 @@ msgstr "خطأ : بيانات ناقصة "
 #: tally_ho/libs/views/session.py:22
 msgid "Session result_form does not match submitted data."
 msgstr "البيانات الناتجة غير مطابقه للنمودج المداخل"
+
+#, python-format
+#~ msgid ""
+#~ "\n"
+#~ "        Page %(number)s of %(num_pages)s.\n"
+#~ "        "
+#~ msgstr ""
+#~ "\n"
+#~ "        الصفحة %(number)s من %(num_pages)s.            "
+
+#, python-format
+#~ msgid ""
+#~ "\n"
+#~ "            Page %(number)s of %(num_pages)s.\n"
+#~ "            "
+#~ msgstr ""
+#~ "\n"
+#~ "            الصفحة %(number)s من %(num_pages)s.\n"
+#~ "            "
 
 #~ msgid "Section (A) to be filled prior to opening the polling station"
 #~ msgstr "القسم (أ) يعبا قبل فتح المحطة"

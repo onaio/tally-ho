@@ -46,7 +46,7 @@
         {% endif %}
 
         <span class="current">
-            {% blocktrans with number=checks.number  num_pages=checks.paginator.num_pages %}
+            {% blocktrans trimmed with number=checks.number  num_pages=checks.paginator.num_pages %}
             Page {{ number }} of {{num_pages}}.
             {% endblocktrans %}
         </span>
