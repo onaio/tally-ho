@@ -664,22 +664,6 @@ class FormAuditView(LoginRequiredMixin,
             server_side=True))
 
 
-class FormResultsDuplicatesView(LoginRequiredMixin,
-                                GroupRequiredMixin,
-                                TallyAccessMixin,
-                                TemplateView):
-    group_required = groups.SUPER_ADMINISTRATOR
-    template_name = "super_admin/form_results_duplicates.html"
-
-    def get(self, *args, **kwargs):
-        tally_id = kwargs.get('tally_id')
-
-        return self.render_to_response(self.get_context_data(
-            remote_url=reverse('form-duplicates-data',
-                               kwargs={'tally_id': tally_id}),
-            tally_id=tally_id, server_side=False))
-
-
 class FormProgressDataView(LoginRequiredMixin,
                            GroupRequiredMixin,
                            TallyAccessMixin,

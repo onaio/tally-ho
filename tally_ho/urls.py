@@ -8,68 +8,43 @@ from django.views.static import serve
 
 from tally_ho.apps.tally.forms.login_form import LoginForm
 from tally_ho.apps.tally.forms.password_change import PasswordChangeForm
-from tally_ho.apps.tally.views import (
-    audit,
-    clearance,
-    corrections,
-    data_entry,
-    home,
-    intake,
-    profile,
-    quality_control,
-    super_admin,
-    tally_manager,
-)
-from tally_ho.apps.tally.views.data import (
-    ballot_list_view,
-    candidate_list_view,
-    center_list_view,
-    electrol_race_list_view,
-    form_list_view,
-    office_list_view,
-    region_list_view,
-    sub_constituency_list_view,
-    tally_list_view,
-    user_list_view,
-)
-from tally_ho.apps.tally.views.reports import (
-    administrative_areas_reports,
-    candidate_list_by_votes,
-    candidate_results,
-    election_statistics_report,
-    offices,
-    overall_votes,
-    progress_by_sub_races_reports,
-    races,
-    staff_performance_metrics,
-    station_progress_report,
-)
-from tally_ho.apps.tally.views.reports import (
-    valid_and_invalid_votes_by_admin_area as admin_area_reports,
-)
+from tally_ho.apps.tally.views import (audit, clearance, corrections,
+                                       data_entry, home, intake, profile,
+                                       quality_control, super_admin,
+                                       tally_manager)
+from tally_ho.apps.tally.views.data import (ballot_list_view,
+                                            candidate_list_view,
+                                            center_list_view,
+                                            electrol_race_list_view,
+                                            form_list_view, office_list_view,
+                                            region_list_view,
+                                            sub_constituency_list_view,
+                                            tally_list_view, user_list_view)
+from tally_ho.apps.tally.views.reports import (administrative_areas_reports,
+                                               candidate_list_by_votes,
+                                               candidate_results,
+                                               election_statistics_report,
+                                               offices, overall_votes,
+                                               progress_by_sub_races_reports,
+                                               races,
+                                               staff_performance_metrics,
+                                               station_progress_report)
+from tally_ho.apps.tally.views.reports import \
+    valid_and_invalid_votes_by_admin_area as admin_area_reports
 from tally_ho.apps.tally.views.reports import votes_per_candidate
 from tally_ho.apps.tally.views.reports.administrative_areas_reports import (
-    ClearanceAuditSummaryReportDataView,
-    ClearanceAuditSummaryReportView,
-)
+    ClearanceAuditSummaryReportDataView, ClearanceAuditSummaryReportView)
 from tally_ho.apps.tally.views.reports.overvoted_forms import (
-    OvervotedResultFormsDataView,
-    OvervotedResultFormsView,
-)
+    OvervotedResultFormsDataView, OvervotedResultFormsView)
 from tally_ho.apps.tally.views.reports.turnout_reports_by_admin_areas import (
-    TurnoutReportByAdminAreasDataView,
-    TurnoutReportByAdminAreasView,
-)
+    TurnoutReportByAdminAreasDataView, TurnoutReportByAdminAreasView)
 from tally_ho.apps.tally.views.reports.turnout_reports_by_gender import (
     TurnoutReportByGenderAndAdminAreasDataView,
-    TurnoutReportByGenderAndAdminAreasView,
-)
-from tally_ho.apps.tally.views.workflow import (
-    CreateRecallRequestView,
-    InitiateRecallView,
-    RecallRequestDetailView,
-    ViewResultFormDetailsView,
-)
+    TurnoutReportByGenderAndAdminAreasView)
+from tally_ho.apps.tally.views.workflow import (CreateRecallRequestView,
+                                                InitiateRecallView,
+                                                RecallRequestDetailView,
+                                                ViewResultFormDetailsView)
 
 admin.autodiscover()
 
@@ -581,11 +556,6 @@ urlpatterns = [
         r"^super-administrator/form-audit/(?P<tally_id>(\d+))/$",
         super_admin.FormAuditView.as_view(),
         name="form-audit",
-    ),
-    re_path(
-        r"^super-administrator/form-results-duplicates/(?P<tally_id>(\d+))/$",
-        super_admin.FormResultsDuplicatesView.as_view(),
-        name="form-results-duplicates",
     ),
     re_path(
         r"^super-administrator/form-action-list/(?P<tally_id>(\d+))/$",

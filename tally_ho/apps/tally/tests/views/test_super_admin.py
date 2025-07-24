@@ -1933,13 +1933,6 @@ class TestSuperAdmin(TestBase):
             tally_id=tally.id
         )
         self.assertEqual(response.status_code, 200)
-        # test FormResultsDuplicatesView
-        view = views.FormResultsDuplicatesView.as_view()
-        response = view(
-            request,
-            tally_id=tally.id
-        )
-        self.assertEqual(response.status_code, 200)
         # test FormAuditView
         view = views.FormAuditView.as_view()
         response = view(
