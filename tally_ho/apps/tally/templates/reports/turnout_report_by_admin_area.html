@@ -30,6 +30,8 @@ $(document).ready(() => {
     const dt_language = {{ languageDE|safe }}
     const offices_turnout_report_url = '{{ offices_remote_url }}'
     const regions_turnout_report_url = '{{ regions_turnout_report_url }}'
+    const enableResponsive = '{{ enable_responsive }}' ? $.parseJSON('{{ enable_responsive }}'.toLowerCase()) : true;
+    const enableScrollX = '{{ enable_scroll_x }}' ? $.parseJSON('{{ enable_scroll_x }}'.toLowerCase()) : false;
     const exportAction = function (e, dt, button, config) {
     const self = this;
     const oldStart = dt.settings()[0]._iDisplayStart;
@@ -132,8 +134,8 @@ $(document).ready(() => {
           },
         },
       ],
-      responsive: false,
-      scrollX: true,
+      responsive: enableResponsive,
+      scrollX: enableScrollX,
       footerCallback: function(row, data, start, end, display) {
         const api = this.api();
         const aggregate = api.ajax.json() && api.ajax.json().aggregate;
