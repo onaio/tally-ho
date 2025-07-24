@@ -634,6 +634,7 @@ class FormClearanceView(LoginRequiredMixin,
                         TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_clearance.html"
+    enable_scroll_x = True
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
@@ -652,6 +653,7 @@ class FormAuditView(LoginRequiredMixin,
                     TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_audit.html"
+    enable_scroll_x = True
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
