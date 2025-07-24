@@ -480,6 +480,7 @@ class FormProgressByFormStateView(LoginRequiredMixin,
                                   TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/form_progress_by_form_state.html"
+    enable_scroll_x = True
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
@@ -487,8 +488,6 @@ class FormProgressByFormStateView(LoginRequiredMixin,
             remote_url=reverse('form-progress-by-form-state-data',
                                kwargs={'tally_id': tally_id}),
             tally_id=tally_id,
-            enable_responsive=False,
-            enable_scroll_x=True,
             export_file_name='form-progress-by-form-state',
             server_side=True))
 

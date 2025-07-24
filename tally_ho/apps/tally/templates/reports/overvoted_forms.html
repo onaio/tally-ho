@@ -17,6 +17,8 @@
 $(document).ready(() => {
   const dt_language = {{ languageDE|safe }};
   const overvotedFormsReportUrl = '{{ remote_url }}';
+  const enableResponsive = '{{ enable_responsive }}' ? $.parseJSON('{{ enable_responsive }}'.toLowerCase()) : true;
+  const enableScrollX = '{{ enable_scroll_x }}' ? $.parseJSON('{{ enable_scroll_x }}'.toLowerCase()) : false;
   const buildTablePayload = (d, customPayloadObj=undefined) => {
     let payload = d;
     if (customPayloadObj) {
@@ -89,8 +91,8 @@ $(document).ready(() => {
           extend: "csv",
           filename: `overvoted_result_forms_${Date.now()}`,
         }],
-        responsive: false,
-        scrollX: true,
+        responsive: enableResponsive,
+        scrollX: enableScrollX,
     });
 
   $('#in-report').on('click', '#filter-in-report', function () {
