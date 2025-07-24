@@ -78,7 +78,10 @@ class UserListView(LoginRequiredMixin,
         return self.render_to_response(self.get_context_data(
             role=role,
             is_admin=is_admin,
-            remote_url=reverse('user-list-data', kwargs={'role': role})))
+            remote_url=reverse('user-list-data', kwargs={'role': role}),
+            export_file_name='user-list',
+            server_side=True,
+        ))
 
 
 class UserTallyListView(LoginRequiredMixin,
@@ -99,7 +102,10 @@ class UserTallyListView(LoginRequiredMixin,
             is_admin=is_admin,
             remote_url=reverse('user-tally-list-data',
                                kwargs={'tally_id': tally_id, 'role': role}),
-            tally_id=tally_id))
+            tally_id=tally_id,
+            export_file_name='user-list',
+            server_side=True,
+        ))
 
 
 class UserTallyListDataView(UserListDataView):

@@ -62,7 +62,9 @@ form{
 .main-container {
     background-color: #ffffff;
     padding:1em;
-	max-width:1000px;
+    min-width:1000px;
+    max-width:96%;
+    width:96%;
 }
 .locales{
 	font-size:.9em;
