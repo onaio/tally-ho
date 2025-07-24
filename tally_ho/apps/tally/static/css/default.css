@@ -13,51 +13,52 @@ body {
 }
 
 .large input[type=text], select{
-	border:1px solid #222222!important;
-	min-width:20em;
-	max-width: 20em;
+    border:1px solid #222222!important;
+    min-width:20em;
+    max-width: 20em;
 }
 
 table.mid tr td{
-	vertical-align:middle!important;
+    vertical-align:middle!important;
 }
 
 table.vert tr td{
-	vertical-align:text-top!important;
+    vertical-align:text-top!important;
 }
 
 span.bignum{}
 
 .hnec-logo{
-	margin-left:1em;
+    margin-left:1em;
 }
 
 .pinksd{
-	background:#F8ABAD;
+    background:#F8ABAD;
 }
 .greysd{
-	background:#D1D3D4;
+    background:#D1D3D4;
 }
 .bluesd{
-	background:#AFCCE5;
+    background:#AFCCE5;
 }
 
 form{
-	padding:.5em;
+    padding:.5em;
 }
 .righter{
-	float:right!important;
+    float:right!important;
 }
 .container{
-	padding:.3em;
+    padding:.3em;
 }
 
 .top-header{
     background-color: #ffffff;
-	border-bottom:1px solid #CFCFCF;
-	padding-bottom:.7em;
-	padding-left:1.2em;
-	padding-right:1.2em;
+    border-bottom:1px solid #CFCFCF;
+    padding-bottom:.7em;
+    padding-left:1.2em;
+    padding-right:1.2em;
+    max-width: 100%;
 }
 .main-container {
     background-color: #ffffff;
@@ -67,27 +68,27 @@ form{
     width:96%;
 }
 .locales{
-	font-size:.9em;
+    font-size:.9em;
 }
 .grid2{
-	width:48%;
-	float:left;
+    width:48%;
+    float:left;
 }
 .col-md-2.col-sm-1.grid2{
-	padding:0;
+    padding:0;
 }
 .infotable{
-	width:45%;
+    width:45%;
 }
 
 .border-top{
-	border-top:1px dashed #DFDFDF;
-	margin-top:1em;
-	padding-top:.6em;
+    border-top:1px dashed #DFDFDF;
+    margin-top:1em;
+    padding-top:.6em;
 }
 .blue-bg {
-	background:#AFCCE5;
-	border-color: light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
+    background:#AFCCE5;
+    border-color: light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
 }
 
 .blue-bg .form-control:focus {
@@ -96,21 +97,21 @@ form{
   box-shadow: light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
 }
 .gray-bg{
-	background:#D1D3D4;
-	border:1px solid #808080;
-	min-height:4em;
-	padding:1.4em;
-	text-align:center;
-	vertical-align:middle!important;
+    background:#D1D3D4;
+    border:1px solid #808080;
+    min-height:4em;
+    padding:1.4em;
+    text-align:center;
+    vertical-align:middle!important;
 }
 .pink-bg{
-	background:#FFDFDD;
+    background:#FFDFDD;
 }
 .green-bg{
-	background: linear-gradient(to right, #e2f0d9 0%, #e2f0d9 100%);
+    background: linear-gradient(to right, #e2f0d9 0%, #e2f0d9 100%);
 }
 .yellow-bg{
-	background:#FFFFC2;
+    background:#FFFFC2;
 }
 
 .warn {
@@ -127,11 +128,11 @@ td.thick-border-left {
 }
 
 h1.headertxt{
-	border-bottom:1px solid #CFCFCF;
-	font-weight:bold;
-	font-size:2em;
-	margin-bottom:1em;
-	padding-bottom:1em;
+    border-bottom:1px solid #CFCFCF;
+    font-weight:bold;
+    font-size:2em;
+    margin-bottom:1em;
+    padding-bottom:1em;
 }
 
 .underline {
@@ -140,16 +141,16 @@ h1.headertxt{
 }
 
 h4.headertxt{
-	color:#F67225;
-	font-size:1.5em;
+    color:#F67225;
+    font-size:1.5em;
 }
 .formtable tr td{
-	padding:.6em;
+    padding:.6em;
 }
 .formtable label{
-	display:block;
-	font-weight:bold;
-	text-align:right;
+    display:block;
+    font-weight:bold;
+    text-align:right;
 }
 
 .navbar {
@@ -175,8 +176,8 @@ label {
     font-weight:bold;
 }
 footer{
-	font-size:0.9em;
-	margin-top:5em;
+    font-size:0.9em;
+    margin-top:5em;
 }
 
 .errorlist{
@@ -211,23 +212,23 @@ table.select-max-width > tbody  > tr > td > select {
 }
 
 .dropdown-menu {
-	min-width: 16em !important;
+    min-width: 16em !important;
 }
 
 .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
-	width: 100% !important;
+    width: 100% !important;
 }
 
 table.results tbody tr:first-child td:first-child {
-	display: flex;
+    display: flex;
   margin-top: 0.7em;
 }
 
 table#report tbody tr.parent td:first-child {
-	display: flex;
+    display: flex;
   margin-top: 0.7em;
 }
 
 .bootstrap-select>.dropdown-toggle {
-	white-space: normal !important;
+    white-space: normal !important;
 }
