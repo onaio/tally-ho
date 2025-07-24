@@ -101,3 +101,27 @@ class TestDataTablesContext(TestBase):
         # Test with different locale
         context_ar = get_datatables_context(request)
         self.assertIn('languageDE', context_ar)
+
+    def test_get_datatables_context_enable_scroll_x_default(self):
+        """Test that enable_scroll_x defaults to True when not specified."""
+        request = self.factory.get('/')
+        request.LANGUAGE_CODE = 'en'
+
+        context = get_datatables_context(request)
+        self.assertTrue(context['enable_scroll_x'])
+
+    def test_get_datatables_context_enable_scroll_x_true(self):
+        """Test that enable_scroll_x can be set to True explicitly."""
+        request = self.factory.get('/')
+        request.LANGUAGE_CODE = 'en'
+
+        context = get_datatables_context(request, enable_scroll_x=True)
+        self.assertTrue(context['enable_scroll_x'])
+
+    def test_get_datatables_context_enable_scroll_x_false(self):
+        """Test that enable_scroll_x can be set to False."""
+        request = self.factory.get('/')
+        request.LANGUAGE_CODE = 'en'
+
+        context = get_datatables_context(request, enable_scroll_x=False)
+        self.assertFalse(context['enable_scroll_x'])

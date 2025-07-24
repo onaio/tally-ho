@@ -49,6 +49,7 @@ class OfficeListView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     model = Office
     template_name = "data/offices.html"
+    enable_scroll_x = False
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')

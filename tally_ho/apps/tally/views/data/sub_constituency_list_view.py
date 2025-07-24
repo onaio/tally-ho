@@ -80,6 +80,7 @@ class SubConstituencyListView(LoginRequiredMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/sub_cons_list.html"
+    enable_scroll_x = False
 
     def get(self, *args, **kwargs):
         tally_id = self.kwargs.get('tally_id')

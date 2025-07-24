@@ -55,6 +55,7 @@ class ElectrolRaceListView(LoginRequiredMixin,
                      TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/electrol_races.html"
+    enable_scroll_x = False
 
     def get(self, *args, **kwargs):
         tally_id = self.kwargs.get('tally_id')

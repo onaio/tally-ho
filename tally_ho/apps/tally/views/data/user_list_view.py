@@ -91,6 +91,7 @@ class UserTallyListView(LoginRequiredMixin,
                         TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/users.html"
+    enable_scroll_x = False
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get('tally_id')

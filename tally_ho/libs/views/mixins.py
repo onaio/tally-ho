@@ -14,15 +14,19 @@ from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale, get_deployed_site_url)
 
 
-def get_datatables_context(request):
+def get_datatables_context(request, enable_scroll_x=True):
     """
     Returns DataTables context variables.
+
+    :param request: The HTTP request object
+    :param enable_scroll_x: Whether to enable horizontal table scrolling
+    (default: True)
     """
     return {
         'languageDE': get_datatables_language_de_from_locale(request),
         'deployedSiteUrl': get_deployed_site_url(),
         'enable_responsive': False,
-        'enable_scroll_x': True,
+        'enable_scroll_x': enable_scroll_x,
         'regions_list_download_url': '/ajax/download-regions-list/',
         'offices_list_download_url': '/ajax/download-offices-list/',
         'get_centers_stations_url': '/ajax/get-centers-stations/',
@@ -161,7 +165,10 @@ class DataTablesMixin(object):
     Includes all static variables used by data/table.html template.
     """
 
+    enable_scroll_x = True
+
     def get_context_data(self, **kwargs):
         context = super(DataTablesMixin, self).get_context_data(**kwargs)
-        context.update(get_datatables_context(self.request))
+        context.update(
+            get_datatables_context(self.request, self.enable_scroll_x))
         return context

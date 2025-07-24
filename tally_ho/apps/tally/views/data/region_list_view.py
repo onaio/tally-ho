@@ -46,6 +46,7 @@ class RegionListView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     model = Region
     template_name = "data/regions.html"
+    enable_scroll_x = False
 
     def get(self, request, *args, **kwargs):
         tally_id = kwargs.get('tally_id')
