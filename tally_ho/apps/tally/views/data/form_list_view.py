@@ -238,6 +238,8 @@ class FormListView(LoginRequiredMixin,
 
 class FormNotReceivedListView(FormListView):
     group_required = groups.SUPER_ADMINISTRATOR
+    enable_scroll_x = True
+
 
     def get(self, *args, **kwargs):
         format_ = kwargs.get('format')
@@ -249,12 +251,17 @@ class FormNotReceivedListView(FormListView):
             return render_to_csv_response(form_list)
 
         return self.render_to_response(
-            self.get_context_data(header_text=_('Forms Not Received'),
-                                  custom=True,
-                                  remote_url=reverse(
-                                      'form-not-received-data',
-                                      kwargs={'tally_id': tally_id}),
-                                  tally_id=tally_id))
+            self.get_context_data(
+                header_text=_('Forms Not Received'),
+                custom=True,
+                remote_url=reverse(
+                    'form-not-received-data',
+                    kwargs={'tally_id': tally_id}),
+                tally_id=tally_id,
+                export_file_name='forms-not-received-list',
+                error_message="",
+                show_create_form_button=False,
+            ))
 
 
 class FormNotReceivedDataView(FormListDataView):
