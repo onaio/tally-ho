@@ -14,7 +14,7 @@ from tally_ho.libs.utils.context_processors import (
     get_datatables_language_de_from_locale, get_deployed_site_url)
 
 
-def get_datatables_context(request, enable_scroll_x=True):
+def get_datatables_context(request, enable_scroll_x=False):
     """
     Returns DataTables context variables.
 
@@ -165,7 +165,7 @@ class DataTablesMixin(object):
     Includes all static variables used by data/table.html template.
     """
 
-    enable_scroll_x = True
+    enable_scroll_x = False
 
     def get_context_data(self, **kwargs):
         context = super(DataTablesMixin, self).get_context_data(**kwargs)

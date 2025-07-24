@@ -68,4 +68,6 @@ class BallotListView(LoginRequiredMixin,
                 reverse_url,
                 kwargs=kwargs),
             tally_id=tally_id,
-            report_title=report_title))
+            report_title=report_title, export_file_name='ballots',
+            server_side=True,
+        ))
