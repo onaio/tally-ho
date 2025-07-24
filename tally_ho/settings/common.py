@@ -193,6 +193,7 @@ CELERY_ROUTES = {
         'queue': 'tally_data_import',
     }
 }
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # Quaritine trigger data
 QUARANTINE_DATA = [

@@ -1102,6 +1102,7 @@ def duplicate_results_queryset(tally_id, qs, data=None):
                 station_number=F("station_number"),
                 station_id=station_id_query,
                 votes=result_form_votes_registrants_query,
+                office=F('center__office__name'),
             )
             .distinct()
         )
@@ -1130,6 +1131,7 @@ def duplicate_results_queryset(tally_id, qs, data=None):
                 station_id=station_id_query,
                 station_number=F("station_number"),
                 votes=result_form_votes_registrants_query,
+                office=F('center__office__name'),
             )
             .distinct()
         )
@@ -4224,6 +4226,7 @@ class ResultFormResultsListView(
                 station_status=station_status,
                 candidate_status=candidate_status,
                 dt_columns=dt_columns,
+                export_url='/ajax/get-export/',
             )
         )
 
@@ -4239,6 +4242,7 @@ class DuplicateResultsListDataView(
     columns = (
         "ballot_number",
         "center_code",
+        "office",
         "barcode",
         "state",
         "station_number",

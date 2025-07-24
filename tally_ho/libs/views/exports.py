@@ -116,6 +116,7 @@ def build_candidate_results_output(result_form):
     output = {
         'ballot': result_form.ballot.number,
         'center': result_form.center.code,
+        'office': result_form.center.office.name,
         'station': result_form.station_number,
         'gender': result_form.gender_name,
         'barcode': result_form.barcode,
