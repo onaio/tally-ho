@@ -17,6 +17,8 @@
 $(document).ready(() => {
   const dt_language = {{ languageDE|safe }}
   const electionStatisticsReportUrl = '{{ remote_url }}'
+  const enableResponsive = '{{ enable_responsive }}' ? $.parseJSON('{{ enable_responsive }}'.toLowerCase()) : true;
+  const enableScrollX = '{{ enable_scroll_x }}' ? $.parseJSON('{{ enable_scroll_x }}'.toLowerCase()) : false;
   const buildTablePayload = (d, customPayloadObj=undefined) => {
     let payload = d;
     if (customPayloadObj) {
@@ -87,8 +89,8 @@ $(document).ready(() => {
           "<'row'<'col-sm-12'tr>>" +
           "<'row'<'col-sm-5'i><'col-sm-7'p>>",
         buttons: ['csv'],
-        responsive: false,
-        scrollX: true,
+        responsive: enableResponsive,
+        scrollX: enableScrollX,
     });
   
   $('#election-statistics-overview-section').on('click', '#filter-report', function () {
