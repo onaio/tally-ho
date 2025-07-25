@@ -160,6 +160,7 @@ class FormListView(LoginRequiredMixin,
                    TemplateView):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "data/forms.html"
+    enable_scroll_x = True
 
     def get(self, *args, **kwargs):
         form_state = kwargs.get('state')
