@@ -855,7 +855,7 @@ class TestQualityControl(TestBase):
         """
         create_quarantine_checks(self.quarantine_data)
         center = create_center()
-        station = create_station(center=center, registrants=40)
+        station = create_station(center=center, registrants=24)
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
             center=center,
@@ -866,9 +866,9 @@ class TestQualityControl(TestBase):
             result_form=result_form,
             user=self.user,
             number_invalid_votes=5,
-            number_valid_votes=50,
-            number_of_voter_cards_in_the_ballot_box=50,
-            number_sorted_and_counted=50,
+            number_valid_votes=25,
+            number_of_voter_cards_in_the_ballot_box=60,
+            number_sorted_and_counted=55,
             number_of_voters=50,
         )
         create_quality_control(result_form, self.user)
