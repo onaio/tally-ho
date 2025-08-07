@@ -12,7 +12,7 @@ from tally_ho.libs.verify.quarantine_checks import (
     create_quarantine_checks, pass_ballot_inside_box_trigger,
     pass_ballot_papers_trigger, pass_candidates_votes_trigger,
     pass_registrants_trigger, pass_voter_cards_trigger,
-    pass_reconciliation_check, pass_over_voting_check)
+    pass_reconciliation_check, pass_over_voting_check, pass_card_check)
 
 
 class TestQuarantineChecks(TestBase):
@@ -596,3 +596,78 @@ class TestQuarantineChecks(TestBase):
             recon_form.save()
             result_form.reload()
             self.assertFalse(pass_over_voting_check(result_form))
+
+    def test_pass_card_check(self):
+        """Test the pass_card_check function.
+
+        This test checks that the total number of ballot papers
+        (valid + invalid) does not exceed the number of voter cards plus
+        tolerance value.
+        """
+        # Setup
+        center = create_center()
+        station = create_station(center=center, registrants=100)
+        result_form = create_result_form(
+            center=center,
+            station_number=station.station_number,
+        )
+
+        # Test when there is no reconciliation form
+        self.assertTrue(pass_card_check(result_form))
+
+        # Create reconciliation form with valid numbers
+        # Voter cards: 100, Valid votes: 80, Invalid votes: 15
+        # Total ballot papers: 95, Max allowed: 100 + 5% = 105
+        recon_form = create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_valid_votes=80,  # Field 3
+            number_invalid_votes=15,  # Field 4
+            number_of_voter_cards_in_the_ballot_box=100,  # Field 2
+        )
+
+        # Test within limits: 95 <= 105
+        self.assertTrue(pass_card_check(result_form))
+
+        # Test at the limit: 105 <= 105
+        recon_form.number_valid_votes = 90
+        recon_form.save()
+        result_form.reload()
+        self.assertTrue(pass_card_check(result_form))
+
+        # Test exceeding limit: 106 > 105
+        recon_form.number_valid_votes = 91
+        recon_form.save()
+        result_form.reload()
+        self.assertFalse(pass_card_check(result_form))
+
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
+    def test_pass_card_check_with_custom_tolerance(self, MockQC):
+        """Test the pass_card_check function with custom tolerance."""
+        center = create_center()
+        station = create_station(center=center, registrants=100)
+        result_form = create_result_form(
+            center=center, station_number=station.station_number
+        )
+
+        # Create reconciliation form
+        recon_form = create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_valid_votes=80,
+            number_invalid_votes=15,
+            number_of_voter_cards_in_the_ballot_box=100,
+        )
+
+        # Set custom tolerance to 10%
+        MockQC.objects.get.return_value.percentage = 10
+        MockQC.objects.get.return_value.value = 0
+
+        # Test within limits: 95 <= 110
+        self.assertTrue(pass_card_check(result_form))
+
+        # Test exceeding limit: 111 > 110
+        recon_form.number_valid_votes = 96
+        recon_form.save()
+        result_form.reload()
+        self.assertFalse(pass_card_check(result_form))

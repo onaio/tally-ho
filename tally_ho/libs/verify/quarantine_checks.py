@@ -52,6 +52,7 @@ def quarantine_checks():
         "pass_candidates_votes_trigger": pass_candidates_votes_trigger,
         "pass_reconciliation_check": pass_reconciliation_check,
         "pass_over_voting_check": pass_over_voting_check,
+        "pass_card_check": pass_card_check,
     }
     methods = []
 
@@ -340,6 +341,36 @@ def pass_over_voting_check(result_form):
     max_allowed = registrants + tolerance
 
     return total_votes <= max_allowed
+
+
+def pass_card_check(result_form):
+    """Check that the number of cards collected matches the number of voters.
+
+    Field 3 (Number of valid ballot papers) + Field 4 (Number of Invalid
+    ballot papers including blank ones) must be <= Field 2 (Number of Voter
+    Cards in the Box) + 5% margin (percentage tolerance).
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    qc = QuarantineCheck.objects.get(method="pass_card_check")
+    tolerance_percentage = qc.percentage if qc.percentage != 0 else 5
+
+    total_ballot_papers = (
+        recon_form.number_valid_votes + recon_form.number_invalid_votes
+    )
+    voter_cards = recon_form.number_of_voter_cards_in_the_ballot_box
+    max_allowed = voter_cards + (voter_cards * tolerance_percentage / 100)
+
+    return total_ballot_papers <= max_allowed
 
 
 # Disabled: Awaiting client feedback for final removal.

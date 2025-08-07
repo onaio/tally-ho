@@ -272,6 +272,18 @@ QUARANTINE_DATA = [
      'value': 5,
      'percentage': 0
      },
+    {'name': 'Card Check',
+     'description':
+     str('To check that the number of cards collected matches the number of '
+         'voters. Field 3 (Number of valid ballot papers) + Field 4 (Number '
+         'of Invalid ballot papers including blank ones) must be <= Field 2 '
+         '(Number of Voter Cards in the Box) + 5% margin (percentage '
+         'tolerance).'),
+     'method': 'pass_card_check',
+     'active': True,
+     'value': 0,
+     'percentage': 5
+     },
 ]
 
 ELECTROL_RACES = [
