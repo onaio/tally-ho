@@ -909,9 +909,15 @@ class TestQualityControl(TestBase):
             station_number=1,
         )
         create_reconciliation_form(
-            result_form, self.user, number_valid_votes=2
+            result_form, self.user,
+            number_valid_votes=10,
+            number_invalid_votes=5,
+            number_sorted_and_counted=20,
+            number_of_voter_cards_in_the_ballot_box=5,
+            number_of_voters=10
         )
         create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user, votes=5, num_results=1)
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
         view = views.QualityControlDashboardView.as_view()
         data = {
