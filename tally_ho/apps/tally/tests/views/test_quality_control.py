@@ -757,55 +757,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.audited_count, 0)
         self.assertIn("quality-control/print", response["location"])
 
-    def test_quality_control_post_fails_registrants_quarantine_trigger(self):
+    def test_quality_control_post_fails_card_check_quarantine_trigger(self):
         """
-        Test quality control post fails registrants quarantine trigger
-        """
-        create_quarantine_checks(self.quarantine_data)
-        center = create_center()
-        station = create_station(center=center, registrants=40)
-        result_form = create_result_form(
-            form_state=FormState.QUALITY_CONTROL,
-            center=center,
-            tally=self.tally,
-            station_number=station.station_number,
-        )
-        create_reconciliation_form(
-            result_form=result_form,
-            user=self.user,
-            number_of_voters=50,
-            number_invalid_votes=0,
-            number_valid_votes=50,
-            number_of_voter_cards_in_the_ballot_box=50,
-            number_sorted_and_counted=50,
-        )
-        create_quality_control(result_form, self.user)
-        create_candidates(result_form, self.user, votes=25, num_results=1)
-        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
-        view = views.QualityControlDashboardView.as_view()
-        data = {
-            "correct": 1,
-            "result_form": result_form.pk,
-            "tally_id": self.tally.pk,
-        }
-        request = self.factory.post("/", data=data)
-        request.session = {"result_form": result_form.pk}
-        request.user = self.user
-        response = view(request, tally_id=self.tally.pk)
-        result_form.reload()
-
-        self.assertEqual(response.status_code, 302)
-        self.assertIsNotNone(result_form.audit)
-        self.assertEqual(result_form.audited_count, 1)
-        self.assertEqual(
-            [c.method for c in result_form.audit.quarantine_checks.all()],
-            ["pass_registrants_trigger"],
-        )
-        self.assertIn("quality-control/print", response["location"])
-
-    def test_quality_control_post_fails_voter_cards_quarantine_trigger(self):
-        """
-        Test quality control post fails voter cards quarantine trigger
+        Test quality control post fails card check quarantine trigger
         """
         create_quarantine_checks(self.quarantine_data)
         center = create_center()
@@ -819,11 +773,11 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_of_voters=50,
+            number_of_voters=40,
             number_invalid_votes=0,
             number_valid_votes=40,
-            number_of_voter_cards_in_the_ballot_box=50,
-            number_sorted_and_counted=50,
+            number_of_voter_cards_in_the_ballot_box=30,
+            number_sorted_and_counted=40,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=20, num_results=1)
@@ -845,13 +799,13 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.audited_count, 1)
         self.assertEqual(
             [c.method for c in result_form.audit.quarantine_checks.all()],
-            ["pass_voter_cards_trigger", "pass_ballot_inside_box_trigger"],
+            ["pass_card_check"],
         )
         self.assertIn("quality-control/print", response["location"])
 
-    def test_quality_control_post_fails_ballot_papers_quarantine_trigger(self):
+    def test_quality_control_post_fails_recon_check_quarantine_trigger(self):
         """
-        Test quality control post fails ballot papers quarantine trigger
+        Test quality control post fails recon check quarantine trigger
         """
         create_quarantine_checks(self.quarantine_data)
         center = create_center()
@@ -865,7 +819,7 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_invalid_votes=0,
+            number_invalid_votes=50,
             number_valid_votes=50,
             number_of_voter_cards_in_the_ballot_box=50,
             number_sorted_and_counted=50,
@@ -891,18 +845,17 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.audited_count, 1)
         self.assertEqual(
             [c.method for c in result_form.audit.quarantine_checks.all()],
-            ["pass_ballot_papers_trigger"],
+            ["pass_reconciliation_check"],
         )
         self.assertIn("quality-control/print", response["location"])
 
-    def test_quality_control_post_fails_ballot_inside_quarantine_trigger(self):
+    def test_quality_control_post_fails_voting_check_quarantine_trigger(self):
         """
-        Test quality control post fails ballot inside the box quarantine
-        trigger
+        Test quality control post fails over-voting check quarantine trigger
         """
         create_quarantine_checks(self.quarantine_data)
         center = create_center()
-        station = create_station(center=center, registrants=50)
+        station = create_station(center=center, registrants=40)
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
             center=center,
@@ -938,7 +891,7 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.audited_count, 1)
         self.assertEqual(
             [c.method for c in result_form.audit.quarantine_checks.all()],
-            ["pass_voter_cards_trigger", "pass_ballot_inside_box_trigger"],
+            ["pass_over_voting_check"],
         )
         self.assertIn("quality-control/print", response["location"])
 
@@ -979,9 +932,9 @@ class TestQualityControl(TestBase):
         self.assertEqual(
             [c.method for c in result_form.audit.quarantine_checks.all()],
             [
-                "pass_voter_cards_trigger",
-                "pass_ballot_inside_box_trigger",
-                "pass_candidates_votes_trigger",
+                "pass_reconciliation_check",
+                "pass_over_voting_check",
+                "pass_card_check",
             ],
         )
         self.assertEqual(result_form.audit.user, self.user)
