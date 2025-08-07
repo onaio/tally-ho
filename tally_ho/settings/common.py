@@ -261,6 +261,17 @@ QUARANTINE_DATA = [
      'value': 0,
      'percentage': 0
      },
+    {'name': 'Over-Voting Check',
+     'description':
+     str('Check that there are not more people voting than eligible '
+         'registered voters. Number of persons registered at station must be '
+         '>= Total Candidates Votes + Field 4 (Number of Invalid ballot '
+         'papers including blank ones) + 5 vote margin (tolerance value).'),
+     'method': 'pass_over_voting_check',
+     'active': True,
+     'value': 5,
+     'percentage': 0
+     },
 ]
 
 ELECTROL_RACES = [

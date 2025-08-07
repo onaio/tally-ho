@@ -51,6 +51,7 @@ def quarantine_checks():
         "pass_ballot_inside_box_trigger": pass_ballot_inside_box_trigger,
         "pass_candidates_votes_trigger": pass_candidates_votes_trigger,
         "pass_reconciliation_check": pass_reconciliation_check,
+        "pass_over_voting_check": pass_over_voting_check,
     }
     methods = []
 
@@ -300,6 +301,45 @@ def pass_reconciliation_check(result_form):
     actual_total = recon_form.number_sorted_and_counted
 
     return actual_total == expected_total
+
+
+def pass_over_voting_check(result_form):
+    """Check that there are not more people voting than eligible registered
+    voters.
+
+    Number of persons registered at station (as per database) must be >=
+    Total Candidates Votes (calculated from the summation by the tally software
+    of all votes in the results section) + Field 4 (Number of Invalid ballot
+    papers including blank ones) + 5 vote margin (tolerance value).
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    If the `station` for this `result_form` has an empty `registrants` field
+    this will always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    registrants = (
+        result_form.station.registrants if result_form.station else None
+    )
+
+    if registrants is None:
+        return True
+
+    qc = QuarantineCheck.objects.get(method="pass_over_voting_check")
+    tolerance = qc.value if qc.value != 0 else 5  # Default 5 vote margin
+
+    total_votes = result_form.num_votes + recon_form.number_invalid_votes
+    max_allowed = registrants + tolerance
+
+    return total_votes <= max_allowed
 
 
 # Disabled: Awaiting client feedback for final removal.

@@ -12,7 +12,7 @@ from tally_ho.libs.verify.quarantine_checks import (
     create_quarantine_checks, pass_ballot_inside_box_trigger,
     pass_ballot_papers_trigger, pass_candidates_votes_trigger,
     pass_registrants_trigger, pass_voter_cards_trigger,
-    pass_reconciliation_check)
+    pass_reconciliation_check, pass_over_voting_check)
 
 
 class TestQuarantineChecks(TestBase):
@@ -507,3 +507,92 @@ class TestQuarantineChecks(TestBase):
             recon_form.save()
             result_form.reload()
             self.assertFalse(pass_reconciliation_check(result_form))
+
+    def test_pass_over_voting_check(self):
+        """Test the pass_over_voting_check function.
+
+        This test checks that the total number of people who voted does not
+        exceed the number of registered voters plus tolerance for staff and
+        security.
+        """
+        # Setup
+        center = create_center()
+        station = create_station(center=center, registrants=100)
+        result_form = create_result_form(
+            center=center,
+            station_number=station.station_number,
+        )
+
+        # Test when there is no reconciliation form
+        self.assertTrue(pass_over_voting_check(result_form))
+
+        # Test when station has no registrants
+        station.registrants = None
+        station.save()
+        result_form.reload()
+        self.assertTrue(pass_over_voting_check(result_form))
+
+        # Reset registrants
+        station.registrants = 100
+        station.save()
+        result_form.reload()
+
+        # Create reconciliation form with valid voting numbers
+        # Total votes: 80 + 15 = 95, Max allowed: 100 + 5 = 105
+        recon_form = create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_invalid_votes=15,  # Field 4
+        )
+
+        with patch.object(
+            type(result_form), 'num_votes', PropertyMock(return_value=80)
+        ):
+            # Test within limits: 95 <= 105
+            self.assertTrue(pass_over_voting_check(result_form))
+
+            # Test at the limit: 105 <= 105
+            recon_form.number_invalid_votes = 20
+            recon_form.save()
+            result_form.reload()
+            self.assertTrue(pass_over_voting_check(result_form))
+
+            # Test exceeding limit: 101 > 105 (should pass since 101 <= 105)
+            # Let's test with a value that actually exceeds: 106 > 105
+            recon_form.number_invalid_votes = 26
+            recon_form.save()
+            result_form.reload()
+            self.assertFalse(pass_over_voting_check(result_form))
+
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
+    def test_pass_over_voting_check_with_custom_tolerance(self, MockQC):
+        """Test the pass_over_voting_check function with custom tolerance."""
+        center = create_center()
+        station = create_station(center=center, registrants=100)
+        result_form = create_result_form(
+            center=center, station_number=station.station_number
+        )
+
+        # Create reconciliation form
+        recon_form = create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_invalid_votes=10,
+        )
+
+        # Set custom tolerance to 10
+        MockQC.objects.get.return_value.value = 10
+        MockQC.objects.get.return_value.percentage = 0
+
+        with patch.object(
+            type(result_form), 'num_votes', PropertyMock(return_value=95)
+        ):
+            # Test within limits: 105 <= 110
+            self.assertTrue(pass_over_voting_check(result_form))
+
+            # Test exceeding limit: 106 <= 110 (should pass)
+            # Let's test with a value that actually exceeds: 111 > 110
+            recon_form.number_invalid_votes = 16
+            recon_form.save()
+            result_form.reload()
+            self.assertFalse(pass_over_voting_check(result_form))
