@@ -809,7 +809,7 @@ class TestQualityControl(TestBase):
         """
         create_quarantine_checks(self.quarantine_data)
         center = create_center()
-        station = create_station(center=center, registrants=50)
+        station = create_station(center=center, registrants=100)
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
             center=center,
@@ -819,11 +819,11 @@ class TestQualityControl(TestBase):
         create_reconciliation_form(
             result_form=result_form,
             user=self.user,
-            number_invalid_votes=50,
-            number_valid_votes=50,
-            number_of_voter_cards_in_the_ballot_box=50,
+            number_invalid_votes=20,
+            number_valid_votes=30,
+            number_of_voter_cards_in_the_ballot_box=60,
             number_sorted_and_counted=50,
-            number_of_voters=49,
+            number_of_voters=100,
         )
         create_quality_control(result_form, self.user)
         create_candidates(result_form, self.user, votes=25, num_results=1)
