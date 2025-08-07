@@ -249,6 +249,18 @@ QUARANTINE_DATA = [
      'value': 0,
      'percentage': 0
      },
+    {'name': 'Reconciliation Check',
+     'description':
+     str('Check for typos or addition issues. Field 5 (The number of ballot '
+         'papers in box) must equal Total Candidates Votes (calculated from '
+         'the summation by the tally software of all votes in the results '
+         'section) + Field 4 (Number of Invalid ballot papers including '
+         'blank ones).'),
+     'method': 'pass_reconciliation_check',
+     'active': True,
+     'value': 0,
+     'percentage': 0
+     },
 ]
 
 ELECTROL_RACES = [

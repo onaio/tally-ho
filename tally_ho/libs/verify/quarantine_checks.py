@@ -50,6 +50,7 @@ def quarantine_checks():
         "pass_ballot_papers_trigger": pass_ballot_papers_trigger,
         "pass_ballot_inside_box_trigger": pass_ballot_inside_box_trigger,
         "pass_candidates_votes_trigger": pass_candidates_votes_trigger,
+        "pass_reconciliation_check": pass_reconciliation_check,
     }
     methods = []
 
@@ -274,6 +275,31 @@ def pass_candidates_votes_trigger(result_form):
         abs(result_form.num_votes - recon_form.number_valid_votes)
         <= allowed_tolerance
     )
+
+
+def pass_reconciliation_check(result_form):
+    """Check for typos or addition issues in reconciliation.
+
+    Field 5 (The number of ballot papers in box) must equal:
+    Total Candidates Votes (calculated from the summation by the tally software
+    of all votes in the results section) + Field 4 (Number of Invalid ballot
+    papers including blank ones).
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    expected_total = result_form.num_votes + recon_form.number_invalid_votes
+    actual_total = recon_form.number_sorted_and_counted
+
+    return actual_total == expected_total
 
 
 # Disabled: Awaiting client feedback for final removal.
