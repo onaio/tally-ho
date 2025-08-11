@@ -18,6 +18,14 @@ class Command(BaseCommand):
         "        --corrections-count 9 \\\n"
         "        --tally-id 2 \\\n"
         "        --output users.csv\n"
+        "\n"
+        "    # Generate with tally ID in usernames (e.g., aud-2-01):\n"
+        "    python manage.py generate_users_csv \\\n"
+        "        --audit-count 3 \\\n"
+        "        --intake-count 5 \\\n"
+        "        --tally-id 2 \\\n"
+        "        --include-tally-in-username \\\n"
+        "        --output users_tally2.csv\n"
     )
 
     def create_parser(self, prog_name, subcommand, **kwargs):
@@ -83,6 +91,15 @@ class Command(BaseCommand):
             default="users.csv",
             help="Output CSV file path (default: users.csv)",
         )
+        parser.add_argument(
+            "--include-tally-in-username",
+            action="store_true",
+            help=(
+                "Include tally ID in username prefix. Changes username "
+                "pattern from 'prefix-XX' to 'prefix-N-XX' where N is the "
+                "tally ID. Example: tally-id 3 changes 'aud-01' to 'aud-3-01'"
+            ),
+        )
 
     def handle(self, *args, **options):
         audit_count = options["audit_count"]
@@ -94,6 +111,7 @@ class Command(BaseCommand):
         corrections_count = options["corrections_count"]
         tally_id = options["tally_id"]
         output_file = options["output"]
+        include_tally_in_username = options["include_tally_in_username"]
 
         # Role configurations
         role_configs = [
@@ -136,7 +154,11 @@ class Command(BaseCommand):
             count = config["count"]
 
             for i in range(1, count + 1):
-                username = f"{prefix}-{i:02d}"
+                # Include tally_id in username prefix if requested
+                if include_tally_in_username:
+                    username = f"{prefix}-{tally_id}-{i:02d}"
+                else:
+                    username = f"{prefix}-{i:02d}"
                 name = f"{role} {i:02d}"
                 users.append(
                     {

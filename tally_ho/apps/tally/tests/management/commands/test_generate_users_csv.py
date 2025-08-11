@@ -211,3 +211,121 @@ class TestGenerateUsersCSV(TestCase):
         # Verify file exists at the specified path
         self.assertTrue(os.path.exists(output_file))
         self.assertEqual(os.path.basename(output_file), custom_filename)
+
+    def test_include_tally_in_username_flag(self):
+        """Test the --include-tally-in-username flag functionality"""
+        output_file = os.path.join(self.temp_dir, "test_tally_usernames.csv")
+
+        # Generate with tally ID in usernames
+        call_command(
+            "generate_users_csv",
+            audit_count=2,
+            intake_count=1,
+            clearance_count=0,
+            quality_control_count=1,
+            data_entry_1_count=2,
+            data_entry_2_count=0,
+            corrections_count=0,
+            tally_id=5,
+            include_tally_in_username=True,
+            output=output_file,
+        )
+
+        with open(output_file, "r") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+            # Should have 6 users (2+1+0+1+2+0+0)
+            self.assertEqual(len(rows), 6)
+
+            # Check that usernames include tally ID
+            audit_users = [row for row in rows if row["role"] == "Audit Clerk"]
+            self.assertEqual(len(audit_users), 2)
+            self.assertEqual(audit_users[0]["username"], "aud-5-01")
+            self.assertEqual(audit_users[1]["username"], "aud-5-02")
+
+            intake_users = [
+                row for row in rows if row["role"] == "Intake Clerk"
+            ]
+            self.assertEqual(len(intake_users), 1)
+            self.assertEqual(intake_users[0]["username"], "intk-5-01")
+
+            qar_users = [
+                row for row in rows if row["role"] == "Quality Control Clerk"
+            ]
+            self.assertEqual(len(qar_users), 1)
+            self.assertEqual(qar_users[0]["username"], "qar-5-01")
+
+            de1_users = [
+                row for row in rows if row["role"] == "Data Entry 1 Clerk"
+            ]
+            self.assertEqual(len(de1_users), 2)
+            self.assertEqual(de1_users[0]["username"], "de1-5-01")
+            self.assertEqual(de1_users[1]["username"], "de1-5-02")
+
+    def test_username_without_tally_flag_default(self):
+        """Test default behavior remains unchanged (no tally in username)"""
+        output_file = os.path.join(self.temp_dir, "test_default_usernames.csv")
+
+        # Generate WITHOUT the flag (default behavior)
+        call_command(
+            "generate_users_csv",
+            audit_count=2,
+            intake_count=1,
+            tally_id=7,  # Even with high tally ID, shouldn't appear
+            output=output_file,
+        )
+
+        with open(output_file, "r") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+            # Check that usernames do NOT include tally ID (default behavior)
+            audit_users = [row for row in rows if row["role"] == "Audit Clerk"]
+            self.assertEqual(audit_users[0]["username"], "aud-01")
+            self.assertEqual(audit_users[1]["username"], "aud-02")
+
+            intake_users = [
+                row for row in rows if row["role"] == "Intake Clerk"
+            ]
+            self.assertEqual(intake_users[0]["username"], "intk-01")
+
+            # But tally_id should still be in the CSV field
+            for row in rows:
+                self.assertEqual(row["tally_id"], "7")
+
+    def test_tally_in_username_with_different_tally_ids(self):
+        """Test that different tally IDs work correctly in usernames"""
+        test_cases = [
+            {"tally_id": 1, "expected_prefix": "aud-1"},
+            {"tally_id": 10, "expected_prefix": "aud-10"},
+            {"tally_id": 999, "expected_prefix": "aud-999"},
+        ]
+
+        for i, case in enumerate(test_cases):
+            output_file = os.path.join(
+                self.temp_dir, f"test_tally_{case['tally_id']}.csv"
+            )
+
+            call_command(
+                "generate_users_csv",
+                audit_count=1,
+                intake_count=0,
+                clearance_count=0,
+                quality_control_count=0,
+                data_entry_1_count=0,
+                data_entry_2_count=0,
+                corrections_count=0,
+                tally_id=case["tally_id"],
+                include_tally_in_username=True,
+                output=output_file,
+            )
+
+            with open(output_file, "r") as f:
+                reader = csv.DictReader(f)
+                rows = list(reader)
+
+                self.assertEqual(len(rows), 1)
+                expected_username = f"{case['expected_prefix']}-01"
+                self.assertEqual(rows[0]["username"], expected_username)
+                self.assertEqual(rows[0]["tally_id"], str(case["tally_id"]))
