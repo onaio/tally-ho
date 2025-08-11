@@ -45,11 +45,9 @@ def get_total_candidates_votes(result_form):
 def quarantine_checks():
     """Return tuples of (QuarantineCheck, validation_function)."""
     all_methods = {
-        "pass_registrants_trigger": pass_registrants_trigger,
-        "pass_voter_cards_trigger": pass_voter_cards_trigger,
-        "pass_ballot_papers_trigger": pass_ballot_papers_trigger,
-        "pass_ballot_inside_box_trigger": pass_ballot_inside_box_trigger,
-        "pass_candidates_votes_trigger": pass_candidates_votes_trigger,
+        "pass_reconciliation_check": pass_reconciliation_check,
+        "pass_over_voting_check": pass_over_voting_check,
+        "pass_card_check": pass_card_check,
     }
     methods = []
 
@@ -104,20 +102,45 @@ def pass_overvote(result_form):
     # return recon_form.number_ballots_used <= max_number_ballots
 
 
-def pass_registrants_trigger(result_form):
-    """The number_valid_votes must be less than or equal to the number of
-    registered voters at the station plus N persons to accommodate staff and
-    security.
+def pass_reconciliation_check(result_form):
+    """Check for typos or addition issues in reconciliation.
+
+    Field 5 (The number of ballot papers in box) must equal:
+    Total Candidates Votes (calculated from the summation by the tally software
+    of all votes in the results section) + Field 4 (Number of Invalid ballot
+    papers including blank ones).
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return True
+
+    expected_total = result_form.num_votes + recon_form.number_invalid_votes
+    actual_total = recon_form.number_sorted_and_counted
+
+    return actual_total == expected_total
+
+
+def pass_over_voting_check(result_form):
+    """Check that there are not more people voting than eligible registered
+    voters.
+
+    Number of persons registered at station (as per database) must be >=
+    Total Candidates Votes (calculated from the summation by the tally software
+    of all votes in the results section) + Field 4 (Number of Invalid ballot
+    papers including blank ones) + 5 vote margin (tolerance value).
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
 
     If the `station` for this `result_form` has an empty `registrants` field
     this will always return True.
-
-    Fails if the summation of recon fields number_valid_votes exceeds the
-    number of potential voters which is the number of registered voters at the
-    station plus N persons to accommodate staff and security.
 
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
@@ -134,53 +157,21 @@ def pass_registrants_trigger(result_form):
     if registrants is None:
         return True
 
-    qc = QuarantineCheck.objects.get(method="pass_registrants_trigger")
-    allowed_tolerance = (
-        (qc.value) if qc.value != 0 else ((qc.percentage / 100) * registrants)
-    )
+    qc = QuarantineCheck.objects.get(method="pass_over_voting_check")
+    tolerance = qc.value if qc.value != 0 else 5  # Default 5 vote margin
 
-    return recon_form.number_valid_votes <= allowed_tolerance + registrants
+    total_votes = result_form.num_votes + recon_form.number_invalid_votes
+    max_allowed = registrants + tolerance
 
-
-def pass_voter_cards_trigger(result_form):
-    """The total number of voter cards in the ballot box must be within N
-    persons (tolerance) of the total number of ballots found inside and
-    outside the ballot box.
-
-    If the `result_form` does not have a `reconciliation_form` this will
-    always return True.
-
-    :param result_form: The result form to check.
-    :returns: A boolean of true if passed, otherwise false.
-    """
-    recon_form = result_form.reconciliationform
-
-    if not recon_form:
-        return True
-
-    qc = QuarantineCheck.objects.get(method="pass_voter_cards_trigger")
-    allowed_tolerance = (
-        (qc.value)
-        if qc.value != 0
-        else (
-            (qc.percentage / 100)
-            * recon_form.number_sorted_and_counted
-        )
-    )
-
-    return (
-        abs(
-            (recon_form.number_valid_votes + recon_form.number_invalid_votes)
-            - recon_form.number_sorted_and_counted
-        )
-        <= allowed_tolerance
-    )
+    return total_votes <= max_allowed
 
 
-def pass_ballot_papers_trigger(result_form):
-    """The total number of ballots received by the polling station must be
-    within N persons (tolerance) of the total number of ballots found inside
-    and outside the ballot box.
+def pass_card_check(result_form):
+    """Check that the number of cards collected matches the number of voters.
+
+    Field 3 (Number of valid ballot papers) + Field 4 (Number of Invalid
+    ballot papers including blank ones) must be <= Field 2 (Number of Voter
+    Cards in the Box) + 5% margin (percentage tolerance).
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -193,87 +184,16 @@ def pass_ballot_papers_trigger(result_form):
     if not recon_form:
         return True
 
-    qc = QuarantineCheck.objects.get(method="pass_ballot_papers_trigger")
-    allowed_tolerance = (
-        (qc.value)
-        if qc.value != 0
-        else (
-            (qc.percentage / 100)
-            * (recon_form.number_sorted_and_counted)
-        )
+    qc = QuarantineCheck.objects.get(method="pass_card_check")
+    tolerance_percentage = qc.percentage if qc.percentage != 0 else 5
+
+    total_ballot_papers = (
+        recon_form.number_valid_votes + recon_form.number_invalid_votes
     )
+    voter_cards = recon_form.number_of_voter_cards_in_the_ballot_box
+    max_allowed = voter_cards + (voter_cards * tolerance_percentage / 100)
 
-    return (
-        abs(
-            recon_form.number_of_voters
-            - recon_form.number_sorted_and_counted
-        )
-        <= allowed_tolerance
-    )
-
-
-def pass_ballot_inside_box_trigger(result_form):
-    """The total number of ballots found inside the ballot box must be
-    within N persons (tolerance) of the total number of ballots found inside
-    the ballot box.
-
-    If the `result_form` does not have a `reconciliation_form` this will
-    always return True.
-
-    :param result_form: The result form to check.
-    :returns: A boolean of true if passed, otherwise false.
-    """
-    recon_form = result_form.reconciliationform
-
-    if not recon_form:
-        return True
-
-    qc = QuarantineCheck.objects.get(method="pass_ballot_inside_box_trigger")
-    allowed_tolerance = (
-        (qc.value)
-        if qc.value != 0
-        else (
-            (qc.percentage / 100)
-            * recon_form.number_sorted_and_counted
-        )
-    )
-
-    return (
-        abs(
-            recon_form.number_invalid_votes
-            + recon_form.number_valid_votes
-            - recon_form.number_sorted_and_counted
-        )
-        <= allowed_tolerance
-    )
-
-
-def pass_candidates_votes_trigger(result_form):
-    """The total valid votes must be within N persons (tolerance) of the total
-    votes distributed among the candidates.
-
-    If the `result_form` does not have a `reconciliation_form` this will
-    always return True.
-
-    :param result_form: The result form to check.
-    :returns: A boolean of true if passed, otherwise false.
-    """
-    recon_form = result_form.reconciliationform
-
-    if not recon_form:
-        return True
-
-    qc = QuarantineCheck.objects.get(method="pass_candidates_votes_trigger")
-    allowed_tolerance = (
-        qc.value
-        if qc.value != 0
-        else (qc.percentage / 100) * recon_form.number_valid_votes
-    )
-
-    return (
-        abs(result_form.num_votes - recon_form.number_valid_votes)
-        <= allowed_tolerance
-    )
+    return total_ballot_papers <= max_allowed
 
 
 # Disabled: Awaiting client feedback for final removal.

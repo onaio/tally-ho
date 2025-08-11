@@ -197,57 +197,40 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # Quaritine trigger data
 QUARANTINE_DATA = [
-    {'name': 'Registrants trigger',
+    {'name': 'Reconciliation Check',
      'description':
-     str('Summation of the number of cancelled ballots and '
-         'the number of ballots inside the box must be less than or equal to '
-         'the number of potential voters which is the number of registered '
-         'voters at the station plus N persons to accommodate staff and '
-         'security.'),
-     'method': 'pass_registrants_trigger',
+     str('Check for typos or addition issues. Field 5 (The number of ballot '
+         'papers in box) must equal Total Candidates Votes (calculated from '
+         'the summation by the tally software of all votes in the results '
+         'section) + Field 4 (Number of Invalid ballot papers including '
+         'blank ones).'),
+     'method': 'pass_reconciliation_check',
      'active': True,
      'value': 0,
      'percentage': 0
      },
-    {'name': 'Voter cards trigger',
+    {'name': 'Over-Voting Check',
      'description':
-     str('Summation of the number of cancelled ballots and '
-         'the number of ballots inside the box must be equal to '
-         'the number of voter cards in the ballot box.'),
-     'method': 'pass_voter_cards_trigger',
+     str('Check that there are not more people voting than eligible '
+         'registered voters. Number of persons registered at station must be '
+         '>= Total Candidates Votes + Field 4 (Number of Invalid ballot '
+         'papers including blank ones) + 5 vote margin (tolerance value).'),
+     'method': 'pass_over_voting_check',
      'active': True,
-     'value': 0,
+     'value': 5,
      'percentage': 0
      },
-    {'name': 'Ballot papers trigger',
+    {'name': 'Card Check',
      'description':
-     str('The total number of ballots received by the polling station must be'
-         ' equal to total number of ballots found inside and outside the '
-         'ballot box.'),
-     'method': 'pass_ballot_papers_trigger',
+     str('To check that the number of cards collected matches the number of '
+         'voters. Field 3 (Number of valid ballot papers) + Field 4 (Number '
+         'of Invalid ballot papers including blank ones) must be <= Field 2 '
+         '(Number of Voter Cards in the Box) + 5% margin (percentage '
+         'tolerance).'),
+     'method': 'pass_card_check',
      'active': True,
      'value': 0,
-     'percentage': 0
-     },
-    {'name': 'Ballot inside the box trigger',
-     'description':
-     str('The total number of ballots found inside the ballot box must be '
-         'equal to the summation of the number of unstamped ballots and the '
-         'number of invalid votes (including the blanks) and '
-         'the number of valid votes.'),
-     'method': 'pass_ballot_inside_box_trigger',
-     'active': True,
-     'value': 0,
-     'percentage': 0
-     },
-    {'name': 'Candidates votes trigger',
-     'description':
-     str('The total valid votes must be equal to the total votes '
-         'distributed among the candidates.'),
-     'method': 'pass_candidates_votes_trigger',
-     'active': True,
-     'value': 0,
-     'percentage': 0
+     'percentage': 5
      },
 ]
 

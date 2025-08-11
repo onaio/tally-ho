@@ -40,6 +40,7 @@ def clearance_action(post_data, clearance, result_form, url):
     if "implement" in post_data:
         # take implementation action
         clearance.reviewed_supervisor = True
+        clearance.active = False
 
         if (
             clearance.resolution_recommendation

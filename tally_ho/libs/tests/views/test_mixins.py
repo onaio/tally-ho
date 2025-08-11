@@ -108,7 +108,7 @@ class TestDataTablesContext(TestBase):
         request.LANGUAGE_CODE = 'en'
 
         context = get_datatables_context(request)
-        self.assertTrue(context['enable_scroll_x'])
+        self.assertFalse(context['enable_scroll_x'])
 
     def test_get_datatables_context_enable_scroll_x_true(self):
         """Test that enable_scroll_x can be set to True explicitly."""
