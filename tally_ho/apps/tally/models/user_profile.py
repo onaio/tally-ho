@@ -1,5 +1,4 @@
 import reversion
-
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -11,43 +10,57 @@ from tally_ho.libs.utils.templates import get_edit_user_link
 class UserProfile(User):
     reset_password = models.BooleanField(default=True)
     administrated_tallies = models.ManyToManyField(
+        Tally, blank=True, default=None, related_name="administrators"
+    )
+    tally = models.ForeignKey(
         Tally,
         blank=True,
-        default=None,
-        related_name='administrators')
-    tally = models.ForeignKey(Tally,
-                              blank=True,
-                              null=True,
-                              related_name='users',
-                              on_delete=models.PROTECT)
+        null=True,
+        related_name="users",
+        on_delete=models.PROTECT,
+    )
 
     class Meta:
-        app_label = 'tally'
+        app_label = "tally"
 
     def save(self, *args, **kwargs):
         """For the user to set their password if `reset_password` is True.
-        """
 
-        if self.reset_password:
-            self.set_password(self.username)
+        Args:
+            password_suffix: If provided, append to username for password
+                           creation. Otherwise use username only (default).
+        """
+        # Extract our custom kwarg before passing to parent
+        password_suffix = kwargs.pop("password_suffix", "")
+        update_fields = kwargs.get("update_fields")
+
+        # Only reset password if we're doing a full save or password is being
+        # updated
+        if self.reset_password and (
+            update_fields is None or "password" in update_fields
+        ):
+            # Create password as username + optional suffix
+            password = f"{self.username}{password_suffix}"
+            self.set_password(password)
 
         super(UserProfile, self).save(*args, **kwargs)
 
     def get_edit_link(self, **kwargs):
-        role = kwargs.get('role', 'user')
+        role = kwargs.get("role", "user")
         return get_edit_user_link(self, role=role) if self else None
 
     def get_edit_tally_link(self, **kwargs):
-        role = kwargs.get('role', 'user')
+        role = kwargs.get("role", "user")
         return get_edit_user_link(self, True, role=role) if self else None
 
     @property
     def is_administrator(self):
         return groups.SUPER_ADMINISTRATOR in self.groups.values_list(
-            'name', flat=True)
+            "name", flat=True
+        )
 
     def __str__(self):
-        return '%s - %s %s' % (self.username, self.first_name, self.last_name)
+        return "%s - %s %s" % (self.username, self.first_name, self.last_name)
 
 
 reversion.register(UserProfile)
