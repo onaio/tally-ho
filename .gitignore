@@ -1,6 +1,7 @@
 *.bak
 *.log
 *.pyc
+*.csv
 .coverage
 .ruff_cache
 .DS_Store
