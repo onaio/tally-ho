@@ -1,10 +1,10 @@
 from datetime import datetime
 from importlib import import_module
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import TestCase, RequestFactory
-from mock import patch
+from django.test import RequestFactory, TestCase
 
 from tally_ho.libs.middleware.idle_timeout import IdleTimeout
 

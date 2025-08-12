@@ -2,11 +2,9 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.libs.models.dependencies import check_results_for_forms
 from tally_ho.libs.validators import MinLengthValidator
-
 
 disable_copy_input = {
     'onCopy': 'return false;',
@@ -26,10 +24,10 @@ class RemoveCenterForm(forms.Form):
 
     center_number = forms.IntegerField(
         error_messages={
-            'invalid': _(u"Expecting only numbers for center number")},
+            'invalid': _("Expecting only numbers for center number")},
         validators=validators,
         widget=forms.NumberInput(attrs=disable_copy_input),
-        label=_(u"Center Number"))
+        label=_("Center Number"))
 
     tally_id = forms.IntegerField(widget=forms.HiddenInput())
 

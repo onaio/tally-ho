@@ -1,18 +1,18 @@
 from django.contrib.auth.models import Group
 from django.forms import (
-    ModelForm,
-    TextInput,
-    ModelChoiceField,
-    ModelMultipleChoiceField,
-    HiddenInput,
     BooleanField,
     CheckboxInput,
     CheckboxSelectMultiple,
+    HiddenInput,
+    ModelChoiceField,
+    ModelForm,
+    ModelMultipleChoiceField,
+    TextInput,
 )
 from django.utils.translation import gettext_lazy as _
 
-from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.form import lower_case_form_data
 
@@ -53,7 +53,7 @@ class EditUserProfileForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        if 'instance' in kwargs and kwargs['instance']:
+        if kwargs.get('instance'):
             initial = kwargs.setdefault('initial', {})
             initial['group'] = kwargs['instance'].groups.first()
 

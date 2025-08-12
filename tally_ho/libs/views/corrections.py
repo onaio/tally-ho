@@ -5,9 +5,9 @@ from django.forms import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.candidate import Candidate
-from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import get_matched_results
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.permissions import groups
 
@@ -65,7 +65,7 @@ def get_matched_forms(result_form):
         entry_version=EntryVersion.DATA_ENTRY_2).values('candidate', 'votes')
 
     if not results_v1 or not results_v2:
-        raise Exception(_(u"Result Form has no double entries."))
+        raise Exception(_("Result Form has no double entries."))
 
     if results_v1.count() != results_v2.count():
         return False

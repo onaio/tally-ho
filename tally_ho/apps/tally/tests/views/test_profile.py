@@ -1,16 +1,16 @@
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.core.serializers.json import DjangoJSONEncoder, json
 from django.http import HttpResponse
 from django.test import RequestFactory
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.core.serializers.json import json, DjangoJSONEncoder
 from django.utils import timezone
 
-from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.apps.tally.views import profile as views
+from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
-    create_tally,
-    create_result_form,
     TestBase,
+    create_result_form,
+    create_tally,
 )
 
 

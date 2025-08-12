@@ -13,8 +13,11 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (GroupRequiredMixin, TallyAccessMixin,
-                                        get_datatables_context)
+from tally_ho.libs.views.mixins import (
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    get_datatables_context,
+)
 
 
 class RegionsReportView(LoginRequiredMixin,

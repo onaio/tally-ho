@@ -37,9 +37,9 @@ from tally_ho.libs.verify.quarantine_checks import (
 
 
 def configure_messages(request):
-    setattr(request, "session", "session")
+    request.session = "session"
     messages = FallbackStorage(request)
-    setattr(request, "_messages", messages)
+    request._messages = messages
 
 
 def create_audit(result_form, user, reviewed_team=False):

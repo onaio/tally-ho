@@ -42,10 +42,10 @@ class UserLogin(TaskSet):
     @task(5)
     def enter_barcode(self):
         response = self.client.get(
-            '/data-entry/{}/'.format(self.tally_id),
+            f'/data-entry/{self.tally_id}/',
             name="Get Enter Barcode CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/data-entry/{}/".format(self.tally_id),
+        self.client.post(f"/data-entry/{self.tally_id}/",
                          {'barcode': self.barcode,
                           'barcode_placeholder': self.placeholder,
                           'barcode_copy': self.barcode_copy,
@@ -54,11 +54,10 @@ class UserLogin(TaskSet):
                           'tally_id': self.tally_id,
                           'csrfmiddlewaretoken': csrftoken})
         response = self.client.get(
-            '/data-entry/enter-center-details/{}/'.format(self.tally_id),
+            f'/data-entry/enter-center-details/{self.tally_id}/',
             name="Get Center Details CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/data-entry/enter-center-details/{}/".format(
-            self.tally_id),
+        self.client.post(f"/data-entry/enter-center-details/{self.tally_id}/",
                          {'result-form': self.result_form,
                           'center_number': self.center_number,
                           'center-number-placeholder': self.placeholder,
@@ -70,7 +69,7 @@ class UserLogin(TaskSet):
                           'submit': '',
                           'csrfmiddlewaretoken': csrftoken})
         response = self.client.get(
-            '/data-entry/enter-results/{}/'.format(self.tally_id),
+            f'/data-entry/enter-results/{self.tally_id}/',
             name="Get Results CSRF")
         csrftoken = response.cookies['csrftoken']
         payload =\
@@ -98,7 +97,7 @@ class UserLogin(TaskSet):
                 'submit': '',
                 'csrfmiddlewaretoken': csrftoken
             }
-        self.client.post("/data-entry/enter-results/{}/".format(self.tally_id),
+        self.client.post(f"/data-entry/enter-results/{self.tally_id}/",
                          payload)
         while True:
             time.sleep(1)

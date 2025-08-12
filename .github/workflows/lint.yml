@@ -1,0 +1,58 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-lint-${{ hashFiles('**/requirements/dev.pip') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-lint-
+            ${{ runner.os }}-uv-
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Create virtual environment
+        run: uv venv .venv
+
+      - name: Install Python dependencies
+        run: uv pip install -r requirements/dev.pip
+
+      - name: Run ruff linting
+        run: |
+          source .venv/bin/activate
+          ruff check . --output-format=github --statistics
+
+      - name: Run ruff formatting check
+        run: |
+          source .venv/bin/activate
+          ruff format --check --diff .
+
+      - name: Check for trailing whitespace and other issues
+        run: |
+          source .venv/bin/activate
+          # Check for common issues
+          ruff check . --select=W291,W292,W293 --output-format=github
+

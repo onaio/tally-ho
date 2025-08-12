@@ -3,11 +3,11 @@ from django.test import RequestFactory
 from tally_ho.apps.tally.views.reports import offices
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
-    create_center,
+    TestBase,
     create_ballot,
+    create_center,
     create_result_form,
     create_tally,
-    TestBase,
 )
 
 

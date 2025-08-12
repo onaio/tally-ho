@@ -1,11 +1,14 @@
-from django.core.management.base import BaseCommand
 import csv
 import pathlib
+
+from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.utils.translation import gettext_lazy
+
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
-from django.utils.translation import gettext_lazy
+
 
 def generate_csv():
     # Retrieve the form state using the provided enum number

@@ -1,9 +1,10 @@
-from django.contrib.sessions.models import Session
-from tracking.models import Visitor
 from datetime import datetime
 
+from django.contrib.sessions.models import Session
+from tracking.models import Visitor
 
-class UserRestrictMiddleware(object):
+
+class UserRestrictMiddleware:
     """Prevents more than one user logging in at once from two different IPs.
     """
     def __init__(self, get_response):

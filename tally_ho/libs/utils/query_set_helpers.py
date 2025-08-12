@@ -1,16 +1,29 @@
-from django.contrib.postgres.aggregates.general import ArrayAgg
-from django.db import transaction, connection
-from django.db.models import ExpressionWrapper, Count, Q, F, FloatField,\
-    Func, Subquery, OuterRef, Case, IntegerField, When, Value as V
 from collections import defaultdict
-from django.apps import apps
 
-from tally_ho.apps.tally.models.result import Result
+from django.apps import apps
+from django.contrib.postgres.aggregates.general import ArrayAgg
+from django.db import connection, transaction
+from django.db.models import (
+    Case,
+    Count,
+    ExpressionWrapper,
+    F,
+    FloatField,
+    Func,
+    IntegerField,
+    OuterRef,
+    Q,
+    Subquery,
+    When,
+)
+from django.db.models import Value as V
+
 from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.utils.cache_model_instances_count_to_memcache import (
-    cache_model_instances_count_to_memcache
+    cache_model_instances_count_to_memcache,
 )
 
 
@@ -141,7 +154,7 @@ def refresh_all_candidates_votes_materiliazed_view():
             "REFRESH MATERIALIZED VIEW CONCURRENTLY tally_allcandidatesvotes")
 
 
-class BulkCreateManager(object):
+class BulkCreateManager:
     """
     This helper class keeps track of ORM objects to be created for multiple
     model classes, and automatically creates those objects with `bulk_create`
@@ -208,7 +221,7 @@ class BulkCreateManager(object):
                     objs=objs,
                     last_chunk=True)
 
-class BulkUpdateManyToManyManager(object):
+class BulkUpdateManyToManyManager:
     """
     This helper class keeps track of Model instances with many to many fields
     to be updated and automatically updates those instances when the number of

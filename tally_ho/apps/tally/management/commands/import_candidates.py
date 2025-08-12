@@ -1,7 +1,8 @@
-import duckdb
 import logging
 
+import duckdb
 from django.conf import settings
+
 from tally_ho.apps.tally.management.commands.utils import (
     build_generic_model_key_values_from_duckdb_row_tuple_data,
     check_for_missing_columns,
@@ -12,9 +13,9 @@ from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.tally import Tally
-from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
 from tally_ho.celeryapp import app
 from tally_ho.libs.utils.memcache import MemCache
+from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +50,7 @@ def create_candidates_from_candidates_file_data(
         candidate_foreign_key_fields =\
                     ['ballot', 'electrol_race']
         col_names_to_model_field_map =\
-            getattr(settings,
-                    'CANDIDATE_FILE_COLS_NAMES_TO_CANDIDATE_MODEL_FIELDS')
+            settings.CANDIDATE_FILE_COLS_NAMES_TO_CANDIDATE_MODEL_FIELDS
         candidates_cols_names_list =\
             list(col_names_to_model_field_map.keys())
         candidates_data =\
@@ -124,8 +124,7 @@ def build_candidate_id_by_ballot_order_dict(ballot_order_file_path):
     try:
         candidate_id_by_ballot_order = {}
         ballot_order_column_list =\
-                getattr(settings,
-                        'BALLOT_ORDER_COLUMN_NAMES')
+                settings.BALLOT_ORDER_COLUMN_NAMES
         duckdb_ballot_order_data =\
             duckdb.from_csv_auto(ballot_order_file_path, header=True).project(
                     ','.join(
@@ -156,8 +155,7 @@ def async_import_candidates_from_candidates_file(
         duckdb_candidates_data =\
             duckdb.from_csv_auto(candidates_file_path, header=True)
         candidate_col_names =\
-            getattr(settings,
-                    'CANDIDATE_COLUMN_NAMES')
+            settings.CANDIDATE_COLUMN_NAMES
         check_for_missing_columns(
             candidate_col_names,
             duckdb_candidates_data.columns,

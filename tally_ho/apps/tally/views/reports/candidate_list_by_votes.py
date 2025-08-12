@@ -10,8 +10,11 @@ from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 
 class CandidateVotesListDataView(LoginRequiredMixin,

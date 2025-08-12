@@ -5,7 +5,9 @@ from tally_ho.libs.models.enums.request_status import RequestStatus
 from tally_ho.libs.models.enums.request_type import RequestType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
-    TestBase, create_result_form, create_tally
+    TestBase,
+    create_result_form,
+    create_tally,
 )
 
 

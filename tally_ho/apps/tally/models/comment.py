@@ -1,5 +1,5 @@
-from django.db import models
 import reversion
+from django.db import models
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center

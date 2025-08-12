@@ -1,12 +1,16 @@
 import json
+
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.views.data import sub_constituency_list_view as views
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import TestBase
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
 from tally_ho.libs.tests.test_base import (
-    create_ballot, create_electrol_race, create_sub_constituency, create_tally
+    TestBase,
+    create_ballot,
+    create_electrol_race,
+    create_sub_constituency,
+    create_tally,
 )
 
 

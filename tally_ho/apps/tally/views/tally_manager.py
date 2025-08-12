@@ -15,29 +15,43 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.generic import (CreateView, DeleteView, FormView,
-                                  TemplateView, UpdateView)
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    FormView,
+    TemplateView,
+    UpdateView,
+)
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
-    EditAdminProfileForm, EditUserProfileForm)
+    EditAdminProfileForm,
+    EditUserProfileForm,
+)
 from tally_ho.apps.tally.forms.site_info_form import SiteInfoForm
 from tally_ho.apps.tally.forms.tally_files_form import TallyFilesForm
 from tally_ho.apps.tally.forms.tally_form import TallyForm
-from tally_ho.apps.tally.management.commands import \
-    import_electrol_races_and_ballots as ierb
-from tally_ho.apps.tally.management.commands.asign_ballots_to_sub_cons import \
-    async_asign_ballots_to_sub_cons_from_ballots_file
-from tally_ho.apps.tally.management.commands.import_candidates import \
-    async_import_candidates_from_candidates_file
-from tally_ho.apps.tally.management.commands.import_centers import \
-    async_import_centers_from_centers_file
-from tally_ho.apps.tally.management.commands.import_result_forms import \
-    async_import_results_forms_from_result_forms_file
-from tally_ho.apps.tally.management.commands.import_stations import \
-    async_import_stations_from_stations_file
-from tally_ho.apps.tally.management.commands.import_sub_cons_and_cons import \
-    async_import_sub_constituencies_and_constituencies_from_sub_cons_file
+from tally_ho.apps.tally.management.commands import (
+    import_electrol_races_and_ballots as ierb,
+)
+from tally_ho.apps.tally.management.commands.asign_ballots_to_sub_cons import (
+    async_asign_ballots_to_sub_cons_from_ballots_file,
+)
+from tally_ho.apps.tally.management.commands.import_candidates import (
+    async_import_candidates_from_candidates_file,
+)
+from tally_ho.apps.tally.management.commands.import_centers import (
+    async_import_centers_from_centers_file,
+)
+from tally_ho.apps.tally.management.commands.import_result_forms import (
+    async_import_results_forms_from_result_forms_file,
+)
+from tally_ho.apps.tally.management.commands.import_stations import (
+    async_import_stations_from_stations_file,
+)
+from tally_ho.apps.tally.management.commands.import_sub_cons_and_cons import (
+    async_import_sub_constituencies_and_constituencies_from_sub_cons_file,
+)
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
@@ -54,8 +68,10 @@ from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.memcache import MemCache
 from tally_ho.libs.utils.numbers import parse_int
-from tally_ho.libs.views.mixins import (GroupRequiredMixin,
-                                        ReverseSuccessURLMixin)
+from tally_ho.libs.views.mixins import (
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
+)
 
 BATCH_BLOCK_SIZE = 100
 UPLOADED_FILES_PATH = "data/uploaded/"
@@ -202,7 +218,7 @@ def process_batch_step(current_step, file_map, tally):
 
     return import_rows_batch(
         tally,
-        open(UPLOADED_FILES_PATH + file_map[file_name], "r"),
+        open(UPLOADED_FILES_PATH + file_map[file_name]),
         process_function,
         current_step,
     )
@@ -741,7 +757,7 @@ class SetUserTimeOutView(
             siteinfo = SiteInfo.objects.get(site__pk=self.object.pk)
             user_idle_timeout = siteinfo.user_idle_timeout
         except SiteInfo.DoesNotExist:
-            user_idle_timeout = getattr(settings, "DEFAULT_IDLE_TIMEOUT")
+            user_idle_timeout = settings.DEFAULT_IDLE_TIMEOUT
 
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -774,7 +790,7 @@ class SetUserTimeOutView(
             siteinfo = SiteInfo.objects.get(site__pk=self.object.pk)
             user_idle_timeout = siteinfo.user_idle_timeout
         except SiteInfo.DoesNotExist:
-            user_idle_timeout = getattr(settings, "DEFAULT_IDLE_TIMEOUT")
+            user_idle_timeout = settings.DEFAULT_IDLE_TIMEOUT
 
         return self.render_to_response(
             self.get_context_data(form=form, userIdleTimeout=user_idle_timeout)

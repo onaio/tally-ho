@@ -1,12 +1,12 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
+from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.comment import Comment
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.models.ballot import Ballot
 
 
 def disable_enable_entity(center_code,

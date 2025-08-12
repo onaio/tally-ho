@@ -1,13 +1,9 @@
 from django import forms
-
-from django.forms import (
-    ModelForm,
-    ModelChoiceField,
-    ValidationError
-)
+from django.forms import ModelChoiceField, ModelForm, ValidationError
 from django.utils.translation import gettext_lazy as _
-from tally_ho.apps.tally.models.station import Station
+
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 
 disable_copy_input = {

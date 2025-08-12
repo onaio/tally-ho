@@ -1,6 +1,6 @@
-from tally_ho.libs.tests.test_base import TestBase
-from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.apps.tally.forms.site_info_form import SiteInfoForm
+from tally_ho.apps.tally.models.site_info import SiteInfo
+from tally_ho.libs.tests.test_base import TestBase
 
 
 class SiteInfoFormTest(TestBase):

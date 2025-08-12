@@ -1,13 +1,16 @@
-from tally_ho.libs.tests.test_base import (
-    TestBase, create_tally, create_result_form
-)
 from tally_ho.apps.tally.forms.workflow_request_forms import (
-    RequestRecallForm, ApprovalForm
+    ApprovalForm,
+    RequestRecallForm,
 )
 from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
+from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.request_reason import RequestReason
 from tally_ho.libs.models.enums.request_type import RequestType
-from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_result_form,
+    create_tally,
+)
 
 
 class TestRequestRecallForm(TestBase):

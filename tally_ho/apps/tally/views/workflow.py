@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.mixins import AccessMixin
@@ -12,7 +11,9 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.forms.workflow_request_forms import (
-    ApprovalForm, RequestRecallForm)
+    ApprovalForm,
+    RequestRecallForm,
+)
 from tally_ho.apps.tally.models import ResultForm, WorkflowRequest
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm

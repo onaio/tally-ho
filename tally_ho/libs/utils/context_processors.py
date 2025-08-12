@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.utils import translation
@@ -52,9 +53,8 @@ def get_datatables_language_de_from_locale(request):
                 'tally',
                 'static',
                 'i18n',
-                '{}.json'.format(locale_val)
-            ),
-            'r'
+                f'{locale_val}.json'
+            )
         ) as f:
             language_de = json.load(f)
     except Exception:

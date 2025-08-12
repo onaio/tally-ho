@@ -1,10 +1,10 @@
+import reversion
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
 from django.db.models import Q, Sum
 from django.forms.models import model_to_dict
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
-import reversion
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
@@ -12,8 +12,8 @@ from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
-from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.utils.templates import get_result_form_edit_delete_links
 
@@ -48,14 +48,14 @@ def get_matched_results(result_form, results):
         .values('candidate', 'votes')
 
     if results and (not results_v1 or not results_v2):
-        raise SuspiciousOperation(_(u"Result Form has no double entries."))
+        raise SuspiciousOperation(_("Result Form has no double entries."))
 
     if results_v1.count() != results_v2.count():
         result_form.reject()
 
         raise SuspiciousOperation(_(
-            u"Unexpected number of results in form %(barcode)s, "
-            u"return result form to Data Entry 1." %
+            "Unexpected number of results in form %(barcode)s, "
+            "return result form to Data Entry 1." %
             {'barcode': result_form.barcode}))
 
     tuple_list = [i.items() for i in results_v1]
@@ -267,7 +267,7 @@ class ResultForm(BaseModel):
 
     @property
     def corrections_required_text(self):
-        return _(u"Corrections Required!")
+        return _("Corrections Required!")
 
     @property
     def results_match(self):

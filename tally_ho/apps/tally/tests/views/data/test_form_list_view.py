@@ -1,30 +1,29 @@
 import datetime
 import json
-from django.test import RequestFactory
+
 from django.contrib.auth.models import AnonymousUser
+from django.test import RequestFactory
 
 from tally_ho.apps.tally.views.constants import (
-    sub_con_code_query_param,
     election_level_query_param,
+    pending_at_state_query_param,
+    sub_con_code_query_param,
     sub_race_query_param,
-    pending_at_state_query_param
-    )
+)
 from tally_ho.apps.tally.views.data import form_list_view as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
 from tally_ho.libs.tests.test_base import (
-    create_ballot,
-    create_electrol_race,
-    create_tally,
     TestBase,
-    create_result_forms_per_form_state,
-    create_sub_constituency,
+    create_ballot,
     create_center,
-    create_station,
+    create_electrol_race,
     create_result_form,
-    )
-from tally_ho.libs.tests.fixtures.electrol_race_data import (
-    electrol_races
+    create_result_forms_per_form_state,
+    create_station,
+    create_sub_constituency,
+    create_tally,
 )
 
 

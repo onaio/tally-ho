@@ -1,11 +1,18 @@
 from django.test import RequestFactory
 
-from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.views.reports import overall_votes
 from tally_ho.libs.models.enums.entry_version import EntryVersion
-from tally_ho.libs.tests.test_base import create_result_form, create_ballot,\
-    create_candidates, create_result, create_tally, create_center,\
-    create_station, TestBase
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_ballot,
+    create_candidates,
+    create_center,
+    create_result,
+    create_result_form,
+    create_station,
+    create_tally,
+)
 
 
 class TestOverallVotes(TestBase):

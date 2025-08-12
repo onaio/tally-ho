@@ -1,14 +1,13 @@
+import reversion
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
-import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
-from tally_ho.libs.models.enums.clearance_resolution import\
-    ClearanceResolution
+from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
 from tally_ho.libs.utils.collections import keys_if_value
 
 

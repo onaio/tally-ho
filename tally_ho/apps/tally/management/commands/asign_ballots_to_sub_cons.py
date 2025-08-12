@@ -1,17 +1,18 @@
-import duckdb
 import logging
+
+import duckdb
 from django.conf import settings
+
 from tally_ho.apps.tally.management.commands.utils import (
-    check_for_missing_columns
+    check_for_missing_columns,
 )
 from tally_ho.apps.tally.models.ballot import Ballot
-
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
-from tally_ho.libs.utils.numbers import parse_int
-from tally_ho.libs.utils.query_set_helpers import BulkUpdateManyToManyManager
 from tally_ho.celeryapp import app
 from tally_ho.libs.utils.memcache import MemCache
+from tally_ho.libs.utils.numbers import parse_int
+from tally_ho.libs.utils.query_set_helpers import BulkUpdateManyToManyManager
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +51,12 @@ def set_sub_constituencies_ballots_from_sub_con_ballots_file_data(
                 Ballot.objects.filter(tally=tally)
             }
         sub_con_code_col_name =\
-            getattr(settings,
-                    'SUB_CONSTITUENCY_COD_COL_NAME_IN_SUB_CON_BALLOTS_FILE')
+            settings.SUB_CONSTITUENCY_COD_COL_NAME_IN_SUB_CON_BALLOTS_FILE
         sub_con_code_data =\
                     duckdb_sub_con_ballots_data.project(
             f"{sub_con_code_col_name}").distinct().fetchall()
         ballot_number_col_name =\
-            getattr(settings,
-                    'BALLOT_NUMBER_COL_NAME_IN_SUB_CON_BALLOTS_FILE')
+            settings.BALLOT_NUMBER_COL_NAME_IN_SUB_CON_BALLOTS_FILE
         bulk_mgr =\
             BulkUpdateManyToManyManager(
                 instances_count=len(sub_con_code_data),
@@ -126,8 +125,7 @@ def async_asign_ballots_to_sub_cons_from_ballots_file(
         duckdb_sub_con_ballots_data =\
             duckdb.from_csv_auto(file_path, header=True)
         sub_con_ballots_col_names =\
-            getattr(settings,
-                    'SUB_CONSTITUENCY_BALLOTS_COLUMN_NAMES')
+            settings.SUB_CONSTITUENCY_BALLOTS_COLUMN_NAMES
         check_for_missing_columns(
             sub_con_ballots_col_names,
             duckdb_sub_con_ballots_data.columns,

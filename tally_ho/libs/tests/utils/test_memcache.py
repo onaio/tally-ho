@@ -1,10 +1,12 @@
 """Test libs.utils.memcache module."""
-from django.test import TestCase
-from django.conf import settings
 from unittest.mock import patch
+
+from django.conf import settings
+from django.test import TestCase
 from pymemcache.client.base import PooledClient
 
 from tally_ho.libs.utils.memcache import MemCache
+
 
 class TestMemCache(TestCase):
 

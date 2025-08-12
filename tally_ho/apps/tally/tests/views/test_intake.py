@@ -11,11 +11,16 @@ from tally_ho.apps.tally.views import intake as views
 from tally_ho.apps.tally.views.intake import INTAKE_DUPLICATE_ERROR_MESSAGE
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
-                                           create_center, create_electrol_race,
-                                           create_result_form, create_station,
-                                           create_sub_constituency,
-                                           create_tally)
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_ballot,
+    create_center,
+    create_electrol_race,
+    create_result_form,
+    create_station,
+    create_sub_constituency,
+    create_tally,
+)
 
 
 class TestIntake(TestBase):
@@ -1060,7 +1065,7 @@ class TestIntake(TestBase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            str("Form not in INTAKE or UNSUBMITTED. Return form to Clearance"),
+            "Form not in INTAKE or UNSUBMITTED. Return form to Clearance",
         )
         result_form.refresh_from_db()
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)

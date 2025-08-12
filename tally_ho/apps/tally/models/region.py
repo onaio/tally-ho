@@ -1,5 +1,5 @@
-from django.db import models
 import reversion
+from django.db import models
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel

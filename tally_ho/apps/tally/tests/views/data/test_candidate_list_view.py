@@ -1,12 +1,18 @@
 import json
+
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.views.data import candidate_list_view as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import\
-    create_tally, create_office, create_ballot, create_result_form,\
-    create_candidate, TestBase
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_ballot,
+    create_candidate,
+    create_office,
+    create_result_form,
+    create_tally,
+)
 from tally_ho.libs.utils.numbers import parse_int
 
 

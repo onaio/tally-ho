@@ -1,5 +1,5 @@
-from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.views.home import HomeView, suspicious_error
+from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import TestBase, create_tally
 
 

@@ -1,20 +1,34 @@
-from django.db.models import (Case, CharField, F, IntegerField, OuterRef,
-                              Subquery, Sum)
+from django.db.models import (
+    Case,
+    CharField,
+    F,
+    IntegerField,
+    OuterRef,
+    Subquery,
+    Sum,
+    When,
+)
 from django.db.models import Value as V
-from django.db.models import When
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.models import (ReconciliationForm, Result, ResultForm,
-                                        Station)
+from tally_ho.apps.tally.models import (
+    ReconciliationForm,
+    Result,
+    ResultForm,
+    Station,
+)
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports.list_base_data_view import NoneQsBaseDataView
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 
 def station_gender_query(

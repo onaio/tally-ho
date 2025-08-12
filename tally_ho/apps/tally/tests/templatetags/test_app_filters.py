@@ -1,7 +1,8 @@
 from django.test import TestCase
 
-from tally_ho.apps.tally.templatetags.app_filters import \
-    forms_processed_per_hour
+from tally_ho.apps.tally.templatetags.app_filters import (
+    forms_processed_per_hour,
+)
 
 
 class TestAppFilters(TestCase):

@@ -1,10 +1,11 @@
-from tally_ho.libs.tests.test_base import TestBase
 from django.contrib.auth.models import Group
-from tally_ho.libs.permissions import groups
-from tally_ho.apps.tally.models.user_profile import UserProfile
+
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
-    EditUserProfileForm
+    EditUserProfileForm,
 )
+from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import TestBase
 
 
 class EditUserProfileFormTest(TestBase):

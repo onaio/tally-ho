@@ -1,12 +1,13 @@
+import reversion
 from django.db import models
-from django.db.models import Q, Sum, Value as V
+from django.db.models import Q, Sum
+from django.db.models import Value as V
 from django.db.models.functions import Coalesce
 from enumfields import EnumIntegerField
-import reversion
-from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
-from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.ballot import Ballot
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState

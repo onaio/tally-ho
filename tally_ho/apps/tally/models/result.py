@@ -1,14 +1,14 @@
-from django.db import models
-from enumfields import EnumIntegerField
 import reversion
+from django.db import models
 from django.utils.translation import gettext_lazy as _
+from enumfields import EnumIntegerField
 
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.entry_version import EntryVersion
-from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 
 
 class Result(BaseModel):

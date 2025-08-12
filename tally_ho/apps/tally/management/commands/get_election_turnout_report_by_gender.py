@@ -2,18 +2,27 @@ import csv
 import pathlib
 
 from django.core.management.base import BaseCommand
-from django.utils.translation import gettext_lazy
-from django.utils import timezone
 from django.db.models import (
-    F, IntegerField, Subquery, OuterRef, Sum, Case, When, Value as V, CharField
+    Case,
+    CharField,
+    F,
+    IntegerField,
+    OuterRef,
+    Subquery,
+    Sum,
+    When,
 )
+from django.db.models import Value as V
 from django.db.models.functions import Coalesce
+from django.utils import timezone
+from django.utils.translation import gettext_lazy
 
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+
 
 def generate_csv():
     tally_id = 1

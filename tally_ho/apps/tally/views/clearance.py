@@ -18,10 +18,12 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
 from tally_ho.libs.views.form_state import form_in_state, safe_form_in_state
-from tally_ho.libs.views.mixins import (GroupRequiredMixin,
-                                        PrintedResultFormMixin,
-                                        ReverseSuccessURLMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    GroupRequiredMixin,
+    PrintedResultFormMixin,
+    ReverseSuccessURLMixin,
+    TallyAccessMixin,
+)
 from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
 

@@ -1,25 +1,26 @@
-import duckdb
 import logging
+
+import duckdb
 from django.conf import settings
+
 from tally_ho.apps.tally.management.commands.utils import (
     build_generic_model_key_values_from_duckdb_row_tuple_data,
     check_for_missing_columns,
     get_constituency_by_name,
     get_office_by_office_name_and_region_name,
     get_region_by_name,
-    get_sub_constituency_by_code
+    get_sub_constituency_by_code,
 )
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.region import Region
-
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
-from tally_ho.libs.models.enums.center_type import CenterType
-from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
 from tally_ho.celeryapp import app
+from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.libs.utils.memcache import MemCache
+from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +40,7 @@ def create_regions_from_centers_file_data(
     :returns: None"""
     try:
         region_col_name =\
-            getattr(settings,
-                    'REGION_COL_NAME_IN_CENTERS_CSV_FILE')
+            settings.REGION_COL_NAME_IN_CENTERS_CSV_FILE
         regions_data =\
             duckdb_centers_data.project(
             f"{region_col_name}").distinct()
@@ -80,8 +80,7 @@ def create_offices_from_centers_file_data(
         office_foreign_key_fields =\
                     ['region']
         col_names_to_model_field_map =\
-            getattr(settings,
-                    'CENTERS_FILE_COLS_NAMES_TO_OFFICE_MODEL_FIELDS')
+            settings.CENTERS_FILE_COLS_NAMES_TO_OFFICE_MODEL_FIELDS
         office_cols_names_list =\
             list(col_names_to_model_field_map.keys())
         offices_data =\
@@ -165,8 +164,7 @@ def create_centers_from_centers_file_data(
                     ['region', 'office', 'constituency',
                      'sub_constituency', 'center_type']
         col_names_to_model_field_map =\
-            getattr(settings,
-                    'CENTERS_FILE_COLS_NAMES_TO_CENTER_MODEL_FIELDS')
+            settings.CENTERS_FILE_COLS_NAMES_TO_CENTER_MODEL_FIELDS
         center_cols_names_list =\
             list(col_names_to_model_field_map.keys())
         centers_data =\
@@ -270,8 +268,7 @@ def async_import_centers_from_centers_file(
         duckdb_centers_data =\
             duckdb.from_csv_auto(centers_file_path, header=True).distinct()
         center_col_names =\
-            getattr(settings,
-                    'CENTER_COLUMN_NAMES')
+            settings.CENTER_COLUMN_NAMES
         check_for_missing_columns(
             center_col_names,
             duckdb_centers_data.columns,

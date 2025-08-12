@@ -35,7 +35,7 @@ def path_with_timestamp(path):
 def save_csv_file_and_symlink(csv_file, path):
     new_path = path_with_timestamp(path)
     file_path =\
-        default_storage.save(new_path, File(open(csv_file.name, mode='r')))
+        default_storage.save(new_path, File(open(csv_file.name)))
     new_path = default_storage.path(file_path)
 
     try:
@@ -368,9 +368,9 @@ def export_candidate_votes(save_barcodes=False,
                               ballot.number, general_ballot.number))
                     output['stations completed'] = num_results
 
-            candidates_to_votes = OrderedDict((sorted(
+            candidates_to_votes = OrderedDict(sorted(
                 candidates_to_votes.items(), key=lambda t: t[1][0],
-                reverse=True)))
+                reverse=True))
 
             # Checks changes in candidates positions
             check_position_changes(candidates_to_votes)
@@ -402,12 +402,12 @@ def export_candidate_votes(save_barcodes=False,
 def check_position_changes(candidates_votes):
     """Order candidates by valid votes and all votes included quarantine
     """
-    sort_valid_votes = OrderedDict((sorted(
+    sort_valid_votes = OrderedDict(sorted(
         candidates_votes.items(), key=lambda t: t[1][0],
-        reverse=True)))
-    sort_all_votes = OrderedDict((sorted(
+        reverse=True))
+    sort_all_votes = OrderedDict(sorted(
         candidates_votes.items(), key=lambda t: t[1][1],
-        reverse=True)))
+        reverse=True))
 
     # Get first five candidates
     valid_votes = dict(enumerate(list(sort_valid_votes.keys())[0:5]))
@@ -462,15 +462,15 @@ def get_result_export_response(report, tally_id):
         response['Content-Type'] = 'text/csv; charset=utf-8'
 
         if path:
-            with open(path, 'r') as f:
+            with open(path) as f:
                 response.write(f.read())
         else:
-            raise Exception(_(u"File Not found!"))
+            raise Exception(_("File Not found!"))
 
     except Exception as e:
         if settings.DEBUG:
             raise e
-        response.write(_(u"Report not found."))
+        response.write(_("Report not found."))
         response.status_code = 404
 
     return response

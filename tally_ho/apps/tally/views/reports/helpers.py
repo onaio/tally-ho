@@ -1,10 +1,22 @@
-from django.db.models import When, Case, Count, Q, Sum, F, \
-    IntegerField, CharField, Value as V, Subquery, OuterRef
+from django.db.models import (
+    Case,
+    CharField,
+    Count,
+    F,
+    IntegerField,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    When,
+)
+from django.db.models import Value as V
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.libs.utils.query_set_helpers import Round
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.utils.query_set_helpers import Round
+
 
 def get_filtered_candidate_votes(
     tally_id,

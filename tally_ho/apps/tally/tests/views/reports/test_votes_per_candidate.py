@@ -1,13 +1,20 @@
 import json
+
 from django.test import RequestFactory
 
-from tally_ho.apps.tally.views.reports import votes_per_candidate as views
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.result import Result
+from tally_ho.apps.tally.views.reports import votes_per_candidate as views
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import\
-    create_tally, create_result_form, create_center, create_station,\
-    create_ballot, create_candidates, TestBase
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_ballot,
+    create_candidates,
+    create_center,
+    create_result_form,
+    create_station,
+    create_tally,
+)
 
 
 class TestVotesPerCandidateListView(TestBase):

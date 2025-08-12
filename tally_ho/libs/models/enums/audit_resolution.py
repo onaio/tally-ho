@@ -13,12 +13,12 @@ class AuditResolution(Enum):
 
     CHOICES = [
         (EMPTY, '----'),
-        (NO_PROBLEM_TO_DE_1, _(u"No Problem To Data Entry 1")),
+        (NO_PROBLEM_TO_DE_1, _("No Problem To Data Entry 1")),
         (CLARIFIED_FIGURES_TO_DE_1,
-         _(u"Clarified Figures To Data Entry 1")),
+         _("Clarified Figures To Data Entry 1")),
         (OTHER_CORRECTION_TO_DE_1,
-         _(u"Other Correction To Data Entry 1")),
+         _("Other Correction To Data Entry 1")),
         (MAKE_AVAILABLE_FOR_ARCHIVE,
-         _(u"Make Available For Archive")),
-        (SEND_TO_CLEARANCE, _(u"Send to Clearance"))
+         _("Make Available For Archive")),
+        (SEND_TO_CLEARANCE, _("Send to Clearance"))
     ]

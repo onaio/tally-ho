@@ -1,22 +1,22 @@
-import duckdb
 import logging
 
+import duckdb
 from django.conf import settings
 
 from tally_ho.apps.tally.management.commands.utils import (
     build_generic_model_key_values_from_duckdb_row_tuple_data,
     check_for_missing_columns,
     get_center_by_center_code,
-    get_sub_constituency_by_code
+    get_sub_constituency_by_code,
 )
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
-from tally_ho.libs.models.enums.gender import Gender
-from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
 from tally_ho.celeryapp import app
+from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.utils.memcache import MemCache
+from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +55,7 @@ def create_stations_from_stations_file_data(
         station_foreign_key_fields =\
                     ['center', 'sub_constituency', 'gender']
         col_names_to_model_field_map =\
-            getattr(settings,
-                    'STATIONS_FILE_COLS_NAMES_TO_STATION_MODEL_FIELDS')
+            settings.STATIONS_FILE_COLS_NAMES_TO_STATION_MODEL_FIELDS
         stations_cols_names_list =\
             list(col_names_to_model_field_map.keys())
         stations_data =\
@@ -141,8 +140,7 @@ def async_import_stations_from_stations_file(
         file_path = csv_file_path
         duckdb_stations_data = duckdb.from_csv_auto(file_path, header=True)
         stations_col_names =\
-            getattr(settings,
-                    'STATION_COLUMN_NAMES')
+            settings.STATION_COLUMN_NAMES
         check_for_missing_columns(
             stations_col_names,
             duckdb_stations_data.columns,

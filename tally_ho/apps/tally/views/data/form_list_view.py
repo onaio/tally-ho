@@ -13,17 +13,24 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.views.constants import (at_state_query_param,
-                                                 election_level_query_param,
-                                                 pending_at_state_query_param,
-                                                 sub_con_code_query_param,
-                                                 sub_race_query_param)
+from tally_ho.apps.tally.views.constants import (
+    at_state_query_param,
+    election_level_query_param,
+    pending_at_state_query_param,
+    sub_con_code_query_param,
+    sub_race_query_param,
+)
 from tally_ho.libs.models.enums.form_state import (
-    FormState, un_processed_states_at_state)
+    FormState,
+    un_processed_states_at_state,
+)
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.enum import get_matching_enum_values
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 ALL = '__all__'
 
@@ -207,8 +214,7 @@ class FormListView(LoginRequiredMixin,
                 'form_state': 'form state',
             }
             report_name =\
-                '{}_form_list'.format(
-                    form_state if form_state == ALL else form_state.name)
+                f'{form_state if form_state == ALL else form_state.name}_form_list'
 
             return render_to_csv_response(
                 form_list,

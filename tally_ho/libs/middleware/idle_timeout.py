@@ -1,12 +1,13 @@
-from time import time
 from datetime import datetime, timedelta
+from time import time
+
 from django.conf import settings
 
-from tally_ho.apps.tally.views.profile import session_expiry_logout_view
 from tally_ho.apps.tally.models.site_info import SiteInfo
+from tally_ho.apps.tally.views.profile import session_expiry_logout_view
 
 
-class IdleTimeout(object):
+class IdleTimeout:
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -19,7 +20,7 @@ class IdleTimeout(object):
             try:
                 siteinfo = SiteInfo.objects.get(site__pk=site_id)
             except SiteInfo.DoesNotExist:
-                IDLE_TIMEOUT = getattr(settings, 'DEFAULT_IDLE_TIMEOUT')
+                IDLE_TIMEOUT = settings.DEFAULT_IDLE_TIMEOUT
             else:
                 IDLE_TIMEOUT = siteinfo.user_idle_timeout
 

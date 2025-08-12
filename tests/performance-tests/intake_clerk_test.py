@@ -1,6 +1,7 @@
-from locust import HttpUser, TaskSet, task
-from intake_barcodes import INTAKE_CODES
 import time
+
+from intake_barcodes import INTAKE_CODES
+from locust import HttpUser, TaskSet, task
 
 
 class UserLogin(TaskSet):
@@ -30,10 +31,10 @@ class UserLogin(TaskSet):
     @task(5)
     def enter_barcode(self):
         response = self.client.get(
-            '/intake/center-details/{}/'.format(self.tally_id),
+            f'/intake/center-details/{self.tally_id}/',
             name="Get Enter Barcode CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/intake/center-details/{}/".format(self.tally_id),
+        self.client.post(f"/intake/center-details/{self.tally_id}/",
                          {'barcode': self.barcode,
                           'barcode_placeholder': self.barcode_placeholder,
                           'barcode_copy': self.barcode_copy,
@@ -42,11 +43,10 @@ class UserLogin(TaskSet):
                           'tally_id': self.tally_id,
                           'csrfmiddlewaretoken': csrftoken})
         response = self.client.get(
-            '/intake/check-center-details/{}/'.format(self.tally_id),
+            f'/intake/check-center-details/{self.tally_id}/',
             name="Get Form State CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/intake/check-center-details/{}/".format(
-            self.tally_id),
+        self.client.post(f"/intake/check-center-details/{self.tally_id}/",
                          {
                             'result_form': self.result_form_id,
                             'is_match': 'true',
@@ -54,10 +54,10 @@ class UserLogin(TaskSet):
                             'csrfmiddlewaretoken': csrftoken
                         })
         response = self.client.get(
-            '/intake/printcover/{}/'.format(self.tally_id),
+            f'/intake/printcover/{self.tally_id}/',
             name="Get Intaken CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/intake/printcover/{}/".format(self.tally_id),
+        self.client.post(f"/intake/printcover/{self.tally_id}/",
                          {'csrfmiddlewaretoken': csrftoken,
                           'submit_cover_form': '',
                           'result_form': self.result_form_id})

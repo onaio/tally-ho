@@ -3,25 +3,25 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory
 
-from tally_ho.apps.tally.views import workflow as views
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
+from tally_ho.apps.tally.views import workflow as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.request_reason import RequestReason
 from tally_ho.libs.models.enums.request_status import RequestStatus
 from tally_ho.libs.models.enums.request_type import RequestType
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (
+    TestBase,
     create_ballot,
     create_candidate,
     create_center,
     create_electrol_race,
+    create_reconciliation_form,
     create_result,
     create_result_form,
-    create_reconciliation_form,
     create_station,
     create_tally,
-    TestBase
 )
 
 
@@ -498,6 +498,6 @@ class TestWorkflow(TestBase):
         self.assertIn(b'Result Form Details Results Section', response.content)
 
 def configure_messages(request):
-    setattr(request, 'session', 'session')
+    request.session = 'session'
     messages = FallbackStorage(request)
-    setattr(request, '_messages', messages)
+    request._messages = messages

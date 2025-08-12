@@ -1,7 +1,7 @@
 import os
+
 from tally_ho.settings.common import *  # noqa
 from tally_ho.settings.common import INSTALLED_APPS, MIDDLEWARE
-
 
 INSTALLED_APPS += ('django_extensions',)
 

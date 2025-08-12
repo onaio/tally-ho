@@ -6,8 +6,12 @@ from tally_ho.apps.tally.models.site_info import SiteInfo
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views import tally_manager as views
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (TestBase, configure_messages,
-                                           create_site_info, create_tally)
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    configure_messages,
+    create_site_info,
+    create_tally,
+)
 
 
 class TestTallyManager(TestBase):
@@ -50,7 +54,7 @@ class TestTallyManager(TestBase):
             siteinfo = SiteInfo.objects.get(site__pk=site_id)
             user_idle_timeout = siteinfo.user_idle_timeout
         except SiteInfo.DoesNotExist:
-            user_idle_timeout = getattr(settings, 'DEFAULT_IDLE_TIMEOUT')
+            user_idle_timeout = settings.DEFAULT_IDLE_TIMEOUT
 
         self.assertIn(
             str('Current user idle timeout: '

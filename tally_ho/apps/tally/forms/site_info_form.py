@@ -1,11 +1,7 @@
 
-from django.forms import (
-    ModelForm,
-    TextInput,
-    IntegerField
-)
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.forms import IntegerField, ModelForm, TextInput
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.site_info import SiteInfo
@@ -18,7 +14,7 @@ class SiteInfoForm(ModelForm):
 
     user_idle_timeout = IntegerField(
         widget=TextInput(attrs={'size': 50}),
-        label=_(u"User idle timeout"))
+        label=_("User idle timeout"))
 
     def __init__(self, *args, **kwargs):
         super(SiteInfoForm, self).__init__(*args, **kwargs)

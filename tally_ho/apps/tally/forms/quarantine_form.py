@@ -3,7 +3,6 @@ from django.forms import ModelForm
 
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 
-
 disable_copy_input = {
     'onCopy': 'return false;',
     'onDrag': 'return false;',

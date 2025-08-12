@@ -1,15 +1,25 @@
-from datetime import datetime
-from django.urls import reverse
-from tally_ho.libs.tests.test_base import (
-    TestBase, create_ballot, create_candidate, create_result,
-    create_result_form, create_electrol_race, create_center,
-    create_office, create_sub_constituency)
-from django.http import JsonResponse
 import json
-from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_tally
+from datetime import datetime
+
+from django.http import JsonResponse
+from django.urls import reverse
 from django.utils import timezone
+
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_ballot,
+    create_candidate,
+    create_center,
+    create_electrol_race,
+    create_office,
+    create_result,
+    create_result_form,
+    create_sub_constituency,
+    create_tally,
+)
+
 
 class GetJSONResultsTest(TestBase):
     def setUp(self):

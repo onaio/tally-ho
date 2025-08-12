@@ -1,4 +1,5 @@
 from django.forms import ModelForm
+
 from tally_ho.apps.tally.models.station import Station
 
 disable_copy_input = {

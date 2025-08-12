@@ -1,7 +1,6 @@
-from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_tally,\
-    create_region, TestBase
 from tally_ho.apps.tally.models.region import Region
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import TestBase, create_region, create_tally
 
 
 class TestRegion(TestBase):

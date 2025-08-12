@@ -1,17 +1,16 @@
 from django import forms
-
 from django.forms import (
+    ModelChoiceField,
     ModelForm,
     ValidationError,
-    ModelChoiceField,
 )
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models import ResultForm
-from tally_ho.apps.tally.models.station import Station
+from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
-from tally_ho.apps.tally.models.ballot import Ballot
+from tally_ho.apps.tally.models.station import Station
 
 
 class CreateResultForm(ModelForm):
@@ -82,8 +81,8 @@ class CreateResultForm(ModelForm):
                 tally__id=tally.pk)
             if result_form:
                 raise ValidationError(
-                    _(u"A result form with the selected center,"
-                      u" station number and ballot already exists"))
+                    _("A result form with the selected center,"
+                      " station number and ballot already exists"))
         except ResultForm.DoesNotExist:
             pass
 

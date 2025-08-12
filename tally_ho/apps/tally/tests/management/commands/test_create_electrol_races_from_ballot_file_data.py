@@ -1,19 +1,19 @@
-from django.conf import settings
 import duckdb
-
+from django.conf import settings
 from django.test import TestCase
-from tally_ho.apps.tally.management.commands.import_electrol_races_and_ballots\
-    import create_electrol_races_from_ballot_file_data
 
+from tally_ho.apps.tally.management.commands.import_electrol_races_and_ballots import (
+    create_electrol_races_from_ballot_file_data,
+)
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.libs.tests.test_base import create_tally
+
 
 class TestCreateElectrolRacesFromBallotFileData(TestCase):
     def setUp(self):
         self.tally = create_tally()
         col_names_to_model_field_map =\
-            getattr(settings,
-                    'BALLOT_COLS_TO_ELECTROL_RACE_MODEL_FIELDS_MAPPING')
+            settings.BALLOT_COLS_TO_ELECTROL_RACE_MODEL_FIELDS_MAPPING
         electrol_races_cols_list =\
             list(col_names_to_model_field_map.keys())
         self.duckdb_ballots_data = duckdb.from_csv_auto(

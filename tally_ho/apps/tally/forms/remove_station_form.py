@@ -7,7 +7,6 @@ from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.dependencies import check_results_for_forms
 from tally_ho.libs.validators import MinLengthValidator
 
-
 disable_copy_input = {
     'onCopy': 'return false;',
     'onDrag': 'return false;',
@@ -26,16 +25,16 @@ class RemoveStationForm(forms.Form):
 
     center_number = forms.IntegerField(
         error_messages={
-            'invalid': _(u"Expecting only numbers for center number")},
+            'invalid': _("Expecting only numbers for center number")},
         validators=validators,
         widget=forms.NumberInput(attrs=disable_copy_input),
-        label=_(u"Center Number"))
+        label=_("Center Number"))
 
     station_number = forms.IntegerField(min_value=min_station_value,
                                         max_value=max_station_value,
                                         widget=forms.TextInput(
                                             attrs=disable_copy_input),
-                                        label=_(u"Station Number"))
+                                        label=_("Station Number"))
 
     tally_id = forms.IntegerField(widget=forms.HiddenInput())
 

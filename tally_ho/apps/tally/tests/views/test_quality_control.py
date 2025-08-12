@@ -14,15 +14,21 @@ from tally_ho.apps.tally.views import quality_control as views
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
-from tally_ho.libs.tests.test_base import (TestBase, create_audit,
-                                           create_ballot, create_candidates,
-                                           create_center, create_electrol_race,
-                                           create_quality_control,
-                                           create_quarantine_checks,
-                                           create_recon_forms,
-                                           create_reconciliation_form,
-                                           create_result_form, create_station,
-                                           create_tally)
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_audit,
+    create_ballot,
+    create_candidates,
+    create_center,
+    create_electrol_race,
+    create_quality_control,
+    create_quarantine_checks,
+    create_recon_forms,
+    create_reconciliation_form,
+    create_result_form,
+    create_station,
+    create_tally,
+)
 
 
 class TestQualityControl(TestBase):
@@ -35,7 +41,7 @@ class TestQualityControl(TestBase):
         self.encoded_result_form_qa_control_start_time = json.loads(
             json.dumps(timezone.now(), cls=DjangoJSONEncoder)
         )
-        self.quarantine_data = getattr(settings, "QUARANTINE_DATA")
+        self.quarantine_data = settings.QUARANTINE_DATA
         self.electrol_race = create_electrol_race(
             self.tally, **electrol_races[0]
         )

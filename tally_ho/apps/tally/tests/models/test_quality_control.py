@@ -1,6 +1,9 @@
 from tally_ho.apps.tally.models.quality_control import QualityControl
-from tally_ho.libs.tests.test_base import create_candidates,\
-    create_result_form, TestBase
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_candidates,
+    create_result_form,
+)
 
 
 class TestQualityControl(TestBase):

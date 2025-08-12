@@ -1,9 +1,9 @@
 import os
 
 from django.test import TestCase
-from tally_ho.apps.tally.management.commands.utils import (
-    check_duplicates
-)
+
+from tally_ho.apps.tally.management.commands.utils import check_duplicates
+
 
 class CheckDuplicatesTestCase(TestCase):
     def setUp(self):
