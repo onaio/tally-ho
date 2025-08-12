@@ -32,8 +32,8 @@ class TestGenerateUsersCSV(TestCase):
             reader = csv.DictReader(f)
             rows = list(reader)
 
-            # Should have 7 users (1 per role)
-            self.assertEqual(len(rows), 7)
+            # Should have 13 users (7 clerks + 4 supervisors + 2 admin roles)
+            self.assertEqual(len(rows), 13)
 
             # Verify headers
             self.assertEqual(
@@ -48,10 +48,15 @@ class TestGenerateUsersCSV(TestCase):
             self.assertEqual(rows[0]["admin"], "No")
             self.assertEqual(rows[0]["tally_id"], "1")
 
-            # Check last user (Correction Clerk)
-            self.assertEqual(rows[6]["name"], "Correction Clerk 01")
+            # Check Corrections Clerk (7th user)
+            self.assertEqual(rows[6]["name"], "Corrections Clerk 01")
             self.assertEqual(rows[6]["username"], "cor-01")
-            self.assertEqual(rows[6]["role"], "Correction Clerk")
+            self.assertEqual(rows[6]["role"], "Corrections Clerk")
+
+            # Check last user (Tally Manager)
+            self.assertEqual(rows[12]["name"], "Tally Manager 01")
+            self.assertEqual(rows[12]["username"], "tally_mgr-01")
+            self.assertEqual(rows[12]["role"], "Tally Manager")
 
     def test_generate_with_custom_values(self):
         """Test generating CSV with custom counts and tally_id"""
@@ -66,6 +71,13 @@ class TestGenerateUsersCSV(TestCase):
             data_entry_1_count=4,
             data_entry_2_count=4,
             corrections_count=2,
+            # Set supervisor and admin counts to 0 for predictable test
+            audit_supervisor_count=0,
+            intake_supervisor_count=0,
+            clearance_supervisor_count=0,
+            quality_control_supervisor_count=0,
+            super_administrator_count=0,
+            tally_manager_count=0,
             tally_id=5,
             output=output_file,
         )
@@ -141,7 +153,7 @@ class TestGenerateUsersCSV(TestCase):
             reader = csv.DictReader(f)
             rows = list(reader)
 
-            # Verify each role type
+            # Verify each role type (now 13 roles total)
             expected_roles = [
                 ("Audit Clerk", "aud-01"),
                 ("Intake Clerk", "intk-01"),
@@ -149,9 +161,16 @@ class TestGenerateUsersCSV(TestCase):
                 ("Quality Control Clerk", "qar-01"),
                 ("Data Entry 1 Clerk", "de1-01"),
                 ("Data Entry 2 Clerk", "de2-01"),
-                ("Correction Clerk", "cor-01"),
+                ("Corrections Clerk", "cor-01"),
+                ("Audit Supervisor", "aud_sup-01"),
+                ("Intake Supervisor", "intk_sup-01"),
+                ("Clearance Supervisor", "clr_sup-01"),
+                ("Quality Control Supervisor", "qar_sup-01"),
+                ("Super Administrator", "super_admin-01"),
+                ("Tally Manager", "tally_mgr-01"),
             ]
 
+            self.assertEqual(len(rows), 13)  # All 13 roles
             for i, (role, username) in enumerate(expected_roles):
                 self.assertEqual(rows[i]["role"], role)
                 self.assertEqual(rows[i]["username"], username)
@@ -169,6 +188,13 @@ class TestGenerateUsersCSV(TestCase):
             data_entry_1_count=30,
             data_entry_2_count=30,
             corrections_count=9,
+            # Set supervisor and admin counts to 0 for predictable test
+            audit_supervisor_count=0,
+            intake_supervisor_count=0,
+            clearance_supervisor_count=0,
+            quality_control_supervisor_count=0,
+            super_administrator_count=0,
+            tally_manager_count=0,
             tally_id=2,
             output=output_file,
         )
@@ -177,7 +203,7 @@ class TestGenerateUsersCSV(TestCase):
             reader = csv.DictReader(f)
             rows = list(reader)
 
-            # Should have 104 users total
+            # Should have 104 users total (clerks only in this test)
             self.assertEqual(len(rows), 104)
 
             # Verify counts per role
@@ -192,7 +218,7 @@ class TestGenerateUsersCSV(TestCase):
             self.assertEqual(role_counts["Quality Control Clerk"], 10)
             self.assertEqual(role_counts["Data Entry 1 Clerk"], 30)
             self.assertEqual(role_counts["Data Entry 2 Clerk"], 30)
-            self.assertEqual(role_counts["Correction Clerk"], 9)
+            self.assertEqual(role_counts["Corrections Clerk"], 9)
 
             # Check last Data Entry 2 user has correct username
             de2_users = [
@@ -226,6 +252,13 @@ class TestGenerateUsersCSV(TestCase):
             data_entry_1_count=2,
             data_entry_2_count=0,
             corrections_count=0,
+            # Set supervisor and admin counts to 0 for predictable test
+            audit_supervisor_count=0,
+            intake_supervisor_count=0,
+            clearance_supervisor_count=0,
+            quality_control_supervisor_count=0,
+            super_administrator_count=0,
+            tally_manager_count=0,
             tally_id=5,
             include_tally_in_username=True,
             output=output_file,
@@ -316,6 +349,13 @@ class TestGenerateUsersCSV(TestCase):
                 data_entry_1_count=0,
                 data_entry_2_count=0,
                 corrections_count=0,
+                # Set supervisor and admin counts to 0 for predictable test
+                audit_supervisor_count=0,
+                intake_supervisor_count=0,
+                clearance_supervisor_count=0,
+                quality_control_supervisor_count=0,
+                super_administrator_count=0,
+                tally_manager_count=0,
                 tally_id=case["tally_id"],
                 include_tally_in_username=True,
                 output=output_file,
@@ -329,3 +369,71 @@ class TestGenerateUsersCSV(TestCase):
                 expected_username = f"{case['expected_prefix']}-01"
                 self.assertEqual(rows[0]["username"], expected_username)
                 self.assertEqual(rows[0]["tally_id"], str(case["tally_id"]))
+
+    def test_supervisor_and_admin_roles(self):
+        """Test generation of supervisor and admin roles"""
+        output_file = os.path.join(self.temp_dir, "test_supervisors.csv")
+
+        call_command(
+            "generate_users_csv",
+            # Set all clerk counts to 0
+            audit_count=0,
+            intake_count=0,
+            clearance_count=0,
+            quality_control_count=0,
+            data_entry_1_count=0,
+            data_entry_2_count=0,
+            corrections_count=0,
+            # Set supervisor and admin counts
+            audit_supervisor_count=2,
+            intake_supervisor_count=1,
+            clearance_supervisor_count=1,
+            quality_control_supervisor_count=2,
+            super_administrator_count=1,
+            tally_manager_count=2,
+            tally_id=3,
+            output=output_file,
+        )
+
+        with open(output_file, "r") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+            # Should have 9 users (2+1+1+2+1+2)
+            self.assertEqual(len(rows), 9)
+
+            # Check Audit Supervisors
+            audit_sups = [
+                row for row in rows if row["role"] == "Audit Supervisor"
+            ]
+            self.assertEqual(len(audit_sups), 2)
+            self.assertEqual(audit_sups[0]["username"], "aud_sup-01")
+            self.assertEqual(audit_sups[1]["username"], "aud_sup-02")
+
+            # Check Super Administrator
+            super_admins = [
+                row for row in rows if row["role"] == "Super Administrator"
+            ]
+            self.assertEqual(len(super_admins), 1)
+            self.assertEqual(super_admins[0]["username"], "super_admin-01")
+            # Super Administrator should have admin privileges
+            self.assertEqual(super_admins[0]["admin"], "Yes")
+
+            # Check Tally Managers
+            tally_mgrs = [
+                row for row in rows if row["role"] == "Tally Manager"
+            ]
+            self.assertEqual(len(tally_mgrs), 2)
+            self.assertEqual(tally_mgrs[0]["username"], "tally_mgr-01")
+            self.assertEqual(tally_mgrs[1]["username"], "tally_mgr-02")
+            # Tally Manager should NOT have admin privileges
+            self.assertEqual(tally_mgrs[0]["admin"], "No")
+
+            # Verify all have correct tally_id
+            for row in rows:
+                self.assertEqual(row["tally_id"], "3")
+                # Verify admin field is correct
+                if row["role"] == "Super Administrator":
+                    self.assertEqual(row["admin"], "Yes")
+                else:
+                    self.assertEqual(row["admin"], "No")

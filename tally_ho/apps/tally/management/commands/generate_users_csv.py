@@ -77,7 +77,50 @@ class Command(BaseCommand):
             "--corrections-count",
             type=int,
             default=1,
-            help="Number of Correction Clerk users to generate (default: 1)",
+            help="Number of Corrections Clerk users to generate (default: 1)",
+        )
+        parser.add_argument(
+            "--audit-supervisor-count",
+            type=int,
+            default=1,
+            help="Number of Audit Supervisor users to generate (default: 1)",
+        )
+        parser.add_argument(
+            "--intake-supervisor-count",
+            type=int,
+            default=1,
+            help="Number of Intake Supervisor users to generate (default: 1)",
+        )
+        parser.add_argument(
+            "--clearance-supervisor-count",
+            type=int,
+            default=1,
+            help=(
+                "Number of Clearance Supervisor users to generate (default: 1)"
+            ),
+        )
+        parser.add_argument(
+            "--quality-control-supervisor-count",
+            type=int,
+            default=1,
+            help=(
+                "Number of Quality Control Supervisor users to generate "
+                "(default: 1)"
+            ),
+        )
+        parser.add_argument(
+            "--super-administrator-count",
+            type=int,
+            default=1,
+            help=(
+                "Number of Super Administrator users to generate (default: 1)"
+            ),
+        )
+        parser.add_argument(
+            "--tally-manager-count",
+            type=int,
+            default=1,
+            help="Number of Tally Manager users to generate (default: 1)",
         )
         parser.add_argument(
             "--tally-id",
@@ -109,6 +152,14 @@ class Command(BaseCommand):
         data_entry_1_count = options["data_entry_1_count"]
         data_entry_2_count = options["data_entry_2_count"]
         corrections_count = options["corrections_count"]
+        audit_supervisor_count = options["audit_supervisor_count"]
+        intake_supervisor_count = options["intake_supervisor_count"]
+        clearance_supervisor_count = options["clearance_supervisor_count"]
+        quality_control_supervisor_count = options[
+            "quality_control_supervisor_count"
+        ]
+        super_administrator_count = options["super_administrator_count"]
+        tally_manager_count = options["tally_manager_count"]
         tally_id = options["tally_id"]
         output_file = options["output"]
         include_tally_in_username = options["include_tally_in_username"]
@@ -138,9 +189,39 @@ class Command(BaseCommand):
                 "count": data_entry_2_count,
             },
             {
-                "role": "Correction Clerk",
+                "role": "Corrections Clerk",
                 "prefix": "cor",
                 "count": corrections_count,
+            },
+            {
+                "role": "Audit Supervisor",
+                "prefix": "aud_sup",
+                "count": audit_supervisor_count,
+            },
+            {
+                "role": "Intake Supervisor",
+                "prefix": "intk_sup",
+                "count": intake_supervisor_count,
+            },
+            {
+                "role": "Clearance Supervisor",
+                "prefix": "clr_sup",
+                "count": clearance_supervisor_count,
+            },
+            {
+                "role": "Quality Control Supervisor",
+                "prefix": "qar_sup",
+                "count": quality_control_supervisor_count,
+            },
+            {
+                "role": "Super Administrator",
+                "prefix": "super_admin",
+                "count": super_administrator_count,
+            },
+            {
+                "role": "Tally Manager",
+                "prefix": "tally_mgr",
+                "count": tally_manager_count,
             },
         ]
 
@@ -160,12 +241,14 @@ class Command(BaseCommand):
                 else:
                     username = f"{prefix}-{i:02d}"
                 name = f"{role} {i:02d}"
+                # Super Administrator should have admin privileges
+                is_admin = "Yes" if role == "Super Administrator" else "No"
                 users.append(
                     {
                         "name": name,
                         "username": username,
                         "role": role,
-                        "admin": "No",
+                        "admin": is_admin,
                         "tally_id": tally_id,
                     }
                 )
