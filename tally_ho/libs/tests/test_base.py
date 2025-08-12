@@ -262,6 +262,7 @@ def create_reconciliation_form(
     number_valid_votes=1,
     number_invalid_votes=1,
     number_of_voter_cards_in_the_ballot_box=1,
+    notes="",
 ):
     return ReconciliationForm.objects.create(
         result_form=result_form,
@@ -274,6 +275,7 @@ def create_reconciliation_form(
         number_sorted_and_counted=number_sorted_and_counted,
         entry_version=entry_version,
         user=user,
+        notes=notes,
     )
 
 
@@ -281,12 +283,12 @@ def create_quarantine_checks(quarantine_data):
     create_quarantine_checks_fn(quarantine_data=quarantine_data)
 
 
-def create_recon_forms(result_form, user):
-    recon1 = create_reconciliation_form(result_form, user)
+def create_recon_forms(result_form, user, de1_notes="", de2_notes=""):
+    recon1 = create_reconciliation_form(result_form, user, notes=de1_notes)
     recon1.entry_version = EntryVersion.DATA_ENTRY_1
     recon1.save()
 
-    recon2 = create_reconciliation_form(result_form, user)
+    recon2 = create_reconciliation_form(result_form, user, notes=de2_notes)
     recon2.entry_version = EntryVersion.DATA_ENTRY_2
     recon2.save()
 

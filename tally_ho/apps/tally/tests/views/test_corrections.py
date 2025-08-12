@@ -275,7 +275,115 @@ class TestCorrections(TestBase):
             updated_result_form.form_state, FormState.DATA_ENTRY_1
         )
 
-    def test_corrections_post_with_corrections(self):
+    def test_corrections_post_with_note_corrections(self):
+        view = views.CorrectionRequiredView.as_view()
+        result_form = create_result_form(
+            form_state=FormState.CORRECTION,
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
+        create_recon_forms(
+            result_form, self.user, de1_notes="", de2_notes="100"
+        )
+
+        data_entry_2_user = self._create_user("data_entry_2", "password")
+        self._add_user_to_group(data_entry_2_user, groups.DATA_ENTRY_2_CLERK)
+
+        start_time = timezone.now()
+        minutes = 65.5
+        end_time = start_time + timezone.timedelta(minutes=minutes)
+
+        form_processing_time_in_seconds = (
+            end_time - start_time
+        ).total_seconds()
+
+        result_form_stat = create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_2_user,
+            result_form=result_form,
+        )
+
+        create_results(result_form, vote1=2, vote2=2)
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2
+        )
+        session = {"result_form": result_form.pk}
+        post_data = {
+            "notes": "100",
+            "result_form": result_form.pk,
+            "submit_corrections": "submit corrections",
+        }
+        request = self.factory.post("/", post_data)
+        request.session = session
+        request.user = self.user
+        response = view(request, tally_id=self.tally.pk)
+
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(
+            updated_result_form.form_state, FormState.QUALITY_CONTROL
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("corrections/success", response["location"])
+
+        result_form_stat.reload()
+        self.assertEqual(result_form_stat.data_entry_errors, 1)
+
+    def test_corrections_post_with_blank_note_corrections(self):
+        view = views.CorrectionRequiredView.as_view()
+        result_form = create_result_form(
+            form_state=FormState.CORRECTION,
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
+        create_recon_forms(
+            result_form, self.user, de1_notes="", de2_notes="100"
+        )
+
+        data_entry_2_user = self._create_user("data_entry_2", "password")
+        self._add_user_to_group(data_entry_2_user, groups.DATA_ENTRY_2_CLERK)
+
+        start_time = timezone.now()
+        minutes = 65.5
+        end_time = start_time + timezone.timedelta(minutes=minutes)
+
+        form_processing_time_in_seconds = (
+            end_time - start_time
+        ).total_seconds()
+
+        result_form_stat = create_result_form_stats(
+            processing_time=form_processing_time_in_seconds,
+            user=data_entry_2_user,
+            result_form=result_form,
+        )
+
+        create_results(result_form, vote1=2, vote2=2)
+        self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
+        self.assertEqual(
+            Result.objects.filter(result_form=result_form).count(), 2
+        )
+        session = {"result_form": result_form.pk}
+        post_data = {
+            "notes": "",
+            "result_form": result_form.pk,
+            "submit_corrections": "submit corrections",
+        }
+        request = self.factory.post("/", post_data)
+        request.session = session
+        request.user = self.user
+        response = view(request, tally_id=self.tally.pk)
+
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(
+            updated_result_form.form_state, FormState.QUALITY_CONTROL
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("corrections/success", response["location"])
+
+        result_form_stat.reload()
+        self.assertEqual(result_form_stat.data_entry_errors, 1)
+
+    def tespt_corrections_post_with_corrections(self):
         view = views.CorrectionRequiredView.as_view()
         prefix = str(
             f"{self.electrol_race.election_level.lower()}"
