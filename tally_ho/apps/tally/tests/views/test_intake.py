@@ -789,20 +789,34 @@ class TestIntake(TestBase):
         tally = create_tally()
         tally.users.add(self.user)
         result_form = create_result_form(tally=tally)
+        # Set the result form to INTAKE state before testing
+        result_form.form_state = FormState.INTAKE
+        result_form.save()
+
         view = views.CheckCenterDetailsView.as_view()
         post_data = {"result_form": result_form.pk, "is_not_match": "true"}
         request = self.factory.post("/", data=post_data)
         request.user = self.user
         request.session = {"result_form": result_form.pk}
-        with self.assertRaises(Exception):
-            response = view(request)
-        result_form.form_state = FormState.INTAKE
-        result_form.save()
+
         response = view(request, tally_id=tally.pk)
+
+        # Verify redirect to clearance
         self.assertEqual(response.status_code, 302)
         self.assertIn("/intake/clearance", response["location"])
+
+        # Verify result form state change
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state, FormState.CLEARANCE)
+
+        # Verify Clearance object was created
+        from tally_ho.apps.tally.models.clearance import Clearance
+        clearance = Clearance.objects.get(result_form=result_form)
+        self.assertEqual(clearance.user, self.user.userprofile)
+
+        # Verify reject reason was set
+        self.assertIn("Form rejected during intake: Details Incorrect.",
+                     updated_result_form.reject_reason)
 
     def test_print_cover_invalid_state(self):
         self._create_or_login_intake_clerk()

@@ -11,6 +11,7 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.forms.center_details_form import CenterDetailsForm
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.form_state import FormState
@@ -333,8 +334,18 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             url = 'intake-printcover'
 
         elif 'is_not_match' in post_data:
-            # send to clearance
-            result_form.form_state = FormState.CLEARANCE
+            error_message = _(
+                    str(
+                        "Form rejected during intake: Details Incorrect."
+                    )
+                )
+            result_form.previous_form_state = result_form.form_state
+            result_form.reject(
+                new_state=FormState.CLEARANCE, reject_reason=error_message
+            )
+            Clearance.objects.create(
+                result_form=result_form, user=self.request.user.userprofile
+            )
             url = 'intake-clearance'
         else:
             del self.request.session['result_form']
