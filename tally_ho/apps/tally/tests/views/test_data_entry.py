@@ -327,6 +327,11 @@ class TestDataEntry(TestBase):
             ),
         )
 
+        # Verify Clearance record was created
+        from tally_ho.apps.tally.models.clearance import Clearance
+        clearance = Clearance.objects.get(result_form=result_form)
+        self.assertEqual(clearance.user, self.user.userprofile)
+
     def test_enter_results_success_data_entry_one(self):
         self._create_and_login_user()
         tally = create_tally()
