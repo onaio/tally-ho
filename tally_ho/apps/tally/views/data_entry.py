@@ -17,6 +17,7 @@ from tally_ho.apps.tally.forms.center_details_form import CenterDetailsForm
 from tally_ho.apps.tally.forms.create_result_form import CreateResultForm
 from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
@@ -399,6 +400,9 @@ class EnterResultsView(
 
                 result_form.reject(
                     new_state=FormState.CLEARANCE, reject_reason=error_message
+                )
+                Clearance.objects.create(
+                    result_form=result_form, user=self.request.user.userprofile
                 )
                 self.request.session["clearance_error"] = str(error_message)
                 return redirect(self.success_url, tally_id=tally_id)
