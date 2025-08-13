@@ -4555,7 +4555,7 @@ class ClearanceAuditSummaryReportView(
             "action_prior",
             "recommendation",
             "decision",
-            "issue_reason",
+            "reject_reason",
             "supervisor",
             "last_modified",
         )
@@ -4598,7 +4598,7 @@ class ClearanceAuditSummaryReportDataView(
         "action_prior",
         "recommendation",
         "decision",
-        "issue_reason",
+        "reject_reason",
         "supervisor",
         "last_modified",
     ]
@@ -4669,7 +4669,7 @@ class ClearanceAuditSummaryReportDataView(
                     else getattr(form, "audit_recommendation", "")
                 ),
                 "decision": getattr(form, "decision", ""),
-                "issue_reason": getattr(form, "issue_reason", ""),
+                "reject_reason": getattr(form, "reject_reason", ""),
                 "supervisor": getattr(form, "supervisor", ""),
                 "last_modified": getattr(form, "modified_date_formatted", ""),
             }

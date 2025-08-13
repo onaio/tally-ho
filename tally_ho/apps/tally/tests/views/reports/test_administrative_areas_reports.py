@@ -723,7 +723,7 @@ class TestClearanceAuditSummaryReportViews(TestBase):
             "action_prior",
             "recommendation",
             "decision",
-            "issue_reason",
+            "reject_reason",
             "supervisor",
             "last_modified",
         ]
