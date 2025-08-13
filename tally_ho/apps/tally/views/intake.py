@@ -126,15 +126,21 @@ class CenterDetailsView(LoginRequiredMixin,
                 self.request.session[
                     'intake-error'] = INTAKE_DUPLICATE_ERROR_MESSAGE
                 if result_form.form_state != FormState.CLEARANCE:
+                    result_form.previous_form_state = result_form.form_state
+                    result_form.user = self.request.user.userprofile
                     result_form.send_to_clearance()
 
                 for oneDuplicatedForm in duplicated_forms:
                     if oneDuplicatedForm.form_state != FormState.CLEARANCE:
+                        oneDuplicatedForm.previous_form_state =\
+                            oneDuplicatedForm.form_state
+                        oneDuplicatedForm.user = self.request.user.userprofile
                         oneDuplicatedForm.send_to_clearance()
 
                 return redirect('intake-clearance', tally_id=self.tally_id)
 
             if result_form.form_state != FormState.DATA_ENTRY_1:
+                result_form.previous_form_state = result_form.form_state
                 result_form.form_state = FormState.INTAKE
                 result_form.duplicate_reviewed = False
                 result_form.user = user.userprofile
@@ -225,10 +231,14 @@ class EnterCenterView(LoginRequiredMixin,
                 self.request.session[
                     'intake-error'] = INTAKE_DUPLICATE_ERROR_MESSAGE
                 if result_form.form_state != FormState.CLEARANCE:
+                    result_form.previous_form_state = result_form.form_state
+                    result_form.user = self.request.user.userprofile
                     result_form.send_to_clearance()
 
                 for form in duplicated_forms:
                     if form.form_state != FormState.CLEARANCE:
+                        form.previous_form_state = form.form_state
+                        form.user = self.request.user.userprofile
                         form.send_to_clearance()
 
                 return redirect('intake-clearance', tally_id=tally_id)
@@ -340,6 +350,7 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                     )
                 )
             result_form.previous_form_state = result_form.form_state
+            result_form.user = self.request.user.userprofile
             result_form.reject(
                 new_state=FormState.CLEARANCE, reject_reason=error_message
             )
@@ -349,7 +360,9 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             url = 'intake-clearance'
         else:
             del self.request.session['result_form']
+            result_form.previous_form_state = result_form.form_state
             result_form.form_state = FormState.UNSUBMITTED
+            result_form.user = self.request.user.userprofile
             result_form.duplicate_reviewed = False
             url = 'intake'
 
@@ -378,7 +391,9 @@ class PrintCoverView(LoginRequiredMixin,
         # Check if cover printing is enabled for intake
         if not result_form.tally.print_cover_in_intake:
             # If printing is disabled, move directly to next state
+            result_form.previous_form_state = result_form.form_state
             result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.user = self.request.user.userprofile
             result_form.duplicate_reviewed = False
             result_form.save()
             return redirect('intaken', tally_id=tally_id)
@@ -402,7 +417,9 @@ class PrintCoverView(LoginRequiredMixin,
             possible_states = states_for_form(self.request.user,
                                               [FormState.INTAKE], result_form)
             form_in_state(result_form, possible_states)
+            result_form.previous_form_state = result_form.form_state
             result_form.form_state = FormState.DATA_ENTRY_1
+            result_form.user = self.request.user.userprofile
             result_form.duplicate_reviewed = False
             result_form.save()
 

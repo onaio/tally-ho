@@ -323,6 +323,8 @@ class RecallRequestDetailView(LoginRequiredMixin,
                                 self.get_success_url(tally_id=tally_id))
 
                 workflow_request.status = RequestStatus.APPROVED
+                result_form.previous_form_state = result_form.form_state
+                result_form.user = self.request.user.userprofile
                 # Move form back to Audit
                 result_form.reject(
                     new_state=FormState.AUDIT,

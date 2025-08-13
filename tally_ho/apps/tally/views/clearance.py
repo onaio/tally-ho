@@ -219,6 +219,8 @@ class ReviewView(
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.CLEARANCE)
         form = self.get_form(form_class)
+        result_form.previous_form_state = result_form.form_state
+        result_form.user = self.request.user.userprofile
 
         encoded_start_time = self.request.session.get(
             "encoded_result_form_clearance_start_time"
@@ -423,10 +425,22 @@ class AddClearanceFormView(
         accept_submit_text_in_post_data = "accept_submit" in post_data
 
         if accept_submit_text_in_post_data:
-            result_form.reject(FormState.CLEARANCE)
+            reject_reason = _(
+                    str(
+                        "Clearance case created by user: "
+                        f"{self.request.user.userprofile.username}"
+                    )
+                )
+
+            result_form.previous_form_state = result_form.form_state
+            result_form.user = self.request.user.userprofile
+            result_form.reject(
+                new_state=FormState.CLEARANCE, reject_reason=reject_reason
+            )
             Clearance.objects.create(
                 result_form=result_form, user=self.request.user.userprofile
             )
+            result_form.save()
 
         result_form.date_seen = now()
         result_form.save()

@@ -371,6 +371,8 @@ class EnterResultsView(
             CandidateForm, extra=len(candidates), formset=BaseCandidateFormSet
         )
         formset = CandidateFormSet(post_data)
+        result_form.previous_form_state = result_form.form_state
+        result_form.user = self.request.user.userprofile
 
         if result_form.form_state == FormState.DATA_ENTRY_1:
             all_zero = True
