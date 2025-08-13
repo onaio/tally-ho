@@ -124,7 +124,14 @@ def pass_reconciliation_check(result_form):
     expected_total = result_form.num_votes + recon_form.number_invalid_votes
     actual_total = recon_form.number_sorted_and_counted
 
-    return actual_total == expected_total
+    qc = QuarantineCheck.objects.get(method="pass_reconciliation_check")
+    allowed_tolerance = (
+        (qc.value)
+        if qc.value != 0
+        else ((qc.percentage / 100) * expected_total)
+    )
+
+    return abs(actual_total - expected_total) <= allowed_tolerance
 
 
 def pass_over_voting_check(result_form):
@@ -158,10 +165,14 @@ def pass_over_voting_check(result_form):
         return True
 
     qc = QuarantineCheck.objects.get(method="pass_over_voting_check")
-    tolerance = qc.value if qc.value != 0 else 5  # Default 5 vote margin
+    allowed_tolerance = (
+        (qc.value)
+        if qc.value != 0
+        else ((qc.percentage / 100) * registrants)
+    )
 
     total_votes = result_form.num_votes + recon_form.number_invalid_votes
-    max_allowed = registrants + tolerance
+    max_allowed = registrants + allowed_tolerance
 
     return total_votes <= max_allowed
 
@@ -185,13 +196,17 @@ def pass_card_check(result_form):
         return True
 
     qc = QuarantineCheck.objects.get(method="pass_card_check")
-    tolerance_percentage = qc.percentage if qc.percentage != 0 else 5
+    voter_cards = recon_form.number_of_voter_cards_in_the_ballot_box
+    allowed_tolerance = (
+        (qc.value)
+        if qc.value != 0
+        else ((qc.percentage / 100) * voter_cards)
+    )
 
     total_ballot_papers = (
         recon_form.number_valid_votes + recon_form.number_invalid_votes
     )
-    voter_cards = recon_form.number_of_voter_cards_in_the_ballot_box
-    max_allowed = voter_cards + (voter_cards * tolerance_percentage / 100)
+    max_allowed = voter_cards + allowed_tolerance
 
     return total_ballot_papers <= max_allowed
 

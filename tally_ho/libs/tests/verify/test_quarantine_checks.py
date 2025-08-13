@@ -103,6 +103,92 @@ class TestQuarantineChecks(TestBase):
             result_form.reload()
             self.assertFalse(pass_reconciliation_check(result_form))
 
+    @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
+    def test_pass_reconciliation_check_with_tolerance(self, MockQC):
+        """Test the pass_reconciliation_check function with tolerance."""
+        center = create_center()
+        station = create_station(center=center, registrants=100)
+        result_form = create_result_form(
+            center=center, station_number=station.station_number
+        )
+
+        # Create reconciliation form
+        recon_form = create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_invalid_votes=20,
+            number_sorted_and_counted=100,
+        )
+
+        # Test 1: Value tolerance
+        # Set tolerance to 5 votes
+        MockQC.objects.get.return_value.value = 5
+        MockQC.objects.get.return_value.percentage = 0
+
+        with patch.object(
+            type(result_form), 'num_votes', PropertyMock(return_value=80)
+        ):
+            # Test exact match: 100 = 80 + 20
+            self.assertTrue(pass_reconciliation_check(result_form))
+
+            # Test within tolerance: |105 - 100| = 5 <= 5
+            recon_form.number_sorted_and_counted = 105
+            recon_form.save()
+            result_form.reload()
+            self.assertTrue(pass_reconciliation_check(result_form))
+
+            # Test other direction: |95 - 100| = 5 <= 5
+            recon_form.number_sorted_and_counted = 95
+            recon_form.save()
+            result_form.reload()
+            self.assertTrue(pass_reconciliation_check(result_form))
+
+            # Test exceeding tolerance: |106 - 100| = 6 > 5
+            recon_form.number_sorted_and_counted = 106
+            recon_form.save()
+            result_form.reload()
+            self.assertFalse(pass_reconciliation_check(result_form))
+
+        # Test 2: Percentage tolerance
+        # Set 10% tolerance on expected total (100)
+        MockQC.objects.get.return_value.value = 0
+        MockQC.objects.get.return_value.percentage = 10
+
+        with patch.object(
+            type(result_form), 'num_votes', PropertyMock(return_value=80)
+        ):
+            # Expected total = 80 + 20 = 100, tolerance = 10% of 100 = 10
+            # Test within tolerance: |110 - 100| = 10 <= 10
+            recon_form.number_sorted_and_counted = 110
+            recon_form.save()
+            result_form.reload()
+            self.assertTrue(pass_reconciliation_check(result_form))
+
+            # Test exceeding tolerance: |111 - 100| = 11 > 10
+            recon_form.number_sorted_and_counted = 111
+            recon_form.save()
+            result_form.reload()
+            self.assertFalse(pass_reconciliation_check(result_form))
+
+        # Test 3: Value takes priority over percentage
+        MockQC.objects.get.return_value.value = 3
+        MockQC.objects.get.return_value.percentage = 20  # Would be 20
+
+        with patch.object(
+            type(result_form), 'num_votes', PropertyMock(return_value=80)
+        ):
+            # Test at value limit: |103 - 100| = 3 <= 3
+            recon_form.number_sorted_and_counted = 103
+            recon_form.save()
+            result_form.reload()
+            self.assertTrue(pass_reconciliation_check(result_form))
+
+            # Test exceeding value but within percentage: |104 - 100| = 4 > 3
+            recon_form.number_sorted_and_counted = 104
+            recon_form.save()
+            result_form.reload()
+            self.assertFalse(pass_reconciliation_check(result_form))
+
     def test_pass_over_voting_check(self):
         """Test the pass_over_voting_check function.
 
@@ -175,6 +261,7 @@ class TestQuarantineChecks(TestBase):
             number_invalid_votes=10,
         )
 
+        # Test 1: Value tolerance
         # Set custom tolerance to 10
         MockQC.objects.get.return_value.value = 10
         MockQC.objects.get.return_value.percentage = 0
@@ -188,6 +275,48 @@ class TestQuarantineChecks(TestBase):
             # Test exceeding limit: 106 <= 110 (should pass)
             # Let's test with a value that actually exceeds: 111 > 110
             recon_form.number_invalid_votes = 16
+            recon_form.save()
+            result_form.reload()
+            self.assertFalse(pass_over_voting_check(result_form))
+
+        # Test 2: Percentage tolerance
+        # Set 10% tolerance on 100 registrants = 10 tolerance
+        MockQC.objects.get.return_value.value = 0
+        MockQC.objects.get.return_value.percentage = 10
+
+        recon_form.number_invalid_votes = 10
+        recon_form.save()
+        result_form.reload()
+
+        with patch.object(
+            type(result_form), 'num_votes', PropertyMock(return_value=95)
+        ):
+            # Test within limits: 105 <= 110 (100 + 10% of 100)
+            self.assertTrue(pass_over_voting_check(result_form))
+
+            # Test exceeding limit: 111 > 110
+            recon_form.number_invalid_votes = 16
+            recon_form.save()
+            result_form.reload()
+            self.assertFalse(pass_over_voting_check(result_form))
+
+        # Test 3: Value takes priority over percentage
+        # Set both value and percentage, value should be used
+        MockQC.objects.get.return_value.value = 5
+        MockQC.objects.get.return_value.percentage = 20  # Would be 20
+
+        recon_form.number_invalid_votes = 0
+        recon_form.save()
+        result_form.reload()
+
+        with patch.object(
+            type(result_form), 'num_votes', PropertyMock(return_value=100)
+        ):
+            # Test at limit: 100 <= 105 (using value=5, not percentage=20)
+            self.assertTrue(pass_over_voting_check(result_form))
+
+            # Test exceeding value tolerance but within percentage: 106 > 105
+            recon_form.number_invalid_votes = 6
             recon_form.save()
             result_form.reload()
             self.assertFalse(pass_over_voting_check(result_form))
@@ -254,6 +383,7 @@ class TestQuarantineChecks(TestBase):
             number_of_voter_cards_in_the_ballot_box=100,
         )
 
+        # Test 1: Percentage tolerance
         # Set custom tolerance to 10%
         MockQC.objects.get.return_value.percentage = 10
         MockQC.objects.get.return_value.value = 0
@@ -263,6 +393,44 @@ class TestQuarantineChecks(TestBase):
 
         # Test exceeding limit: 111 > 110
         recon_form.number_valid_votes = 96
+        recon_form.save()
+        result_form.reload()
+        self.assertFalse(pass_card_check(result_form))
+
+        # Test 2: Value tolerance
+        # Set custom tolerance to 8 votes
+        MockQC.objects.get.return_value.value = 8
+        MockQC.objects.get.return_value.percentage = 0
+
+        recon_form.number_valid_votes = 88
+        recon_form.number_invalid_votes = 15
+        recon_form.save()
+        result_form.reload()
+
+        # Test within limits: 103 <= 108 (100 + 8)
+        self.assertTrue(pass_card_check(result_form))
+
+        # Test exceeding limit: 109 > 108
+        recon_form.number_valid_votes = 94
+        recon_form.save()
+        result_form.reload()
+        self.assertFalse(pass_card_check(result_form))
+
+        # Test 3: Value takes priority over percentage
+        # Set both value and percentage, value should be used
+        MockQC.objects.get.return_value.value = 5
+        MockQC.objects.get.return_value.percentage = 15  # Would be 15
+
+        recon_form.number_valid_votes = 90
+        recon_form.number_invalid_votes = 15
+        recon_form.save()
+        result_form.reload()
+
+        # Test at limit: 105 <= 105 (using value=5, not percentage=15)
+        self.assertTrue(pass_card_check(result_form))
+
+        # Test exceeding value tolerance but within percentage: 106 > 105
+        recon_form.number_valid_votes = 91
         recon_form.save()
         result_form.reload()
         self.assertFalse(pass_card_check(result_form))
