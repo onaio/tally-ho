@@ -20,8 +20,8 @@ class ReconForm(ModelForm):
         fields = localized_fields = [
             "number_of_voters",
             "number_of_voter_cards_in_the_ballot_box",
-            "number_invalid_votes",
             "number_valid_votes",
+            "number_invalid_votes",
             "number_sorted_and_counted",
             "notes",
         ]
@@ -54,8 +54,8 @@ class ReconForm(ModelForm):
         recon_fields = [
             "number_of_voters",
             "number_of_voter_cards_in_the_ballot_box",
-            "number_invalid_votes",
             "number_valid_votes",
+            "number_invalid_votes",
             "number_sorted_and_counted",
         ]
 

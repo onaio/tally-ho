@@ -57,6 +57,10 @@
             <td>
                 {{ field1.label }}
             </td>
+	    <td>
+	     {% if field1.name != 'notes' %}
+	        {{ forloop.counter  }}</td>
+             {% endif %}
         </tr>
         {% endfor %}
     </table>
