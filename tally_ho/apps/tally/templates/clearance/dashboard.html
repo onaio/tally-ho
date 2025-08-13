@@ -47,6 +47,7 @@
         <th>{% trans 'Center Name' %}</th>
         <th>{% trans 'Center ID' %}</th>
         <th>{% trans 'Station' %}</th>
+        <th>{% trans 'Reject Reason' %}</th>
         <th>{% trans 'Reviewed?' %}</th>
         <th>{% trans 'Supervisor Reviewed?' %}</th>
         <th>{% trans 'Modified' %}</th>
@@ -59,6 +60,7 @@
         <td>{{ form.center.name }}</td>
         <td>{{ form.center.code }}</td>
         <td>{{ form.station_number }}</td>
+        <td>{{ form.reject_reason }}</td>
         <td>{{ form.clearance_team_reviewed }}</td>
         <td>{{ form.clearance_supervisor_reviewed }}</td>
         <td>{{ form.modified_date }}</td>
