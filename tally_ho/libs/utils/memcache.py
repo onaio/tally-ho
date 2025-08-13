@@ -1,13 +1,14 @@
 from django.conf import settings
 from pymemcache.client.base import PooledClient
 
-class MemCache(object):
+
+class MemCache:
     """
     This helper class is used to create a memcache.
     """
 
     def __init__(self):
-        self.client_url = getattr(settings, 'CLIENT_URL')
+        self.client_url = settings.CLIENT_URL
         self.client = self._set_client()
 
     def _set_client(self):

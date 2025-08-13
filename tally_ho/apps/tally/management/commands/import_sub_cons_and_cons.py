@@ -1,17 +1,18 @@
-import duckdb
 import logging
+
+import duckdb
 from django.conf import settings
-from tally_ho.apps.tally.models.constituency import Constituency
 
 from tally_ho.apps.tally.management.commands.utils import (
     build_generic_model_key_values_from_duckdb_row_tuple_data,
     check_for_missing_columns,
 )
+from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
-from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
 from tally_ho.celeryapp import app
 from tally_ho.libs.utils.memcache import MemCache
+from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +36,7 @@ def create_sub_constituencies_from_sub_con_file_data(
     :returns: None."""
     try:
         col_names_to_model_field_map =\
-            getattr(settings,
-                        'SUB_CON_FILE_COLS_NAMES_TO_SUB_CON_MODEL_FIELDS')
+            settings.SUB_CON_FILE_COLS_NAMES_TO_SUB_CON_MODEL_FIELDS
         sub_con_cols_names_list = list(col_names_to_model_field_map.keys())
         sub_cons_data =\
                     duckdb_sub_con_data.project(
@@ -91,8 +91,7 @@ def create_constituencies_from_sub_con_file_data(
     :returns: None."""
     try:
         constituency_column_name =\
-            getattr(settings,
-                    'CONSTITUENCY_COLUMN_NAME_IN_SUB_CONSTITUENCY_FILE')
+            settings.CONSTITUENCY_COLUMN_NAME_IN_SUB_CONSTITUENCY_FILE
         constitiencies_names_list =\
             duckdb_sub_con_data.project(
             constituency_column_name).distinct().fetchall()
@@ -140,8 +139,7 @@ def async_import_sub_constituencies_and_constituencies_from_sub_cons_file(
         memcache_client.delete(instances_count_memcache_key)
         duckdb_sub_con_data = duckdb.from_csv_auto(csv_file_path, header=True)
         sub_cons_col_names =\
-            getattr(settings,
-                    'SUB_CONSTITUENCY_COLUMN_NAMES')
+            settings.SUB_CONSTITUENCY_COLUMN_NAMES
         check_for_missing_columns(
             sub_cons_col_names,
             duckdb_sub_con_data.columns,

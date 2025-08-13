@@ -11,7 +11,9 @@ from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.collections import listify
 from tally_ho.libs.utils.context_processors import (
-    get_datatables_language_de_from_locale, get_deployed_site_url)
+    get_datatables_language_de_from_locale,
+    get_deployed_site_url,
+)
 
 
 def get_datatables_context(request, enable_scroll_x=False):
@@ -66,7 +68,7 @@ def check_membership(allowed_groups, user):
 
 
 # from django-braces
-class GroupRequiredMixin(object):
+class GroupRequiredMixin:
     group_required = None
 
     def get_group_required(self):
@@ -92,7 +94,7 @@ class GroupRequiredMixin(object):
             request, *args, **kwargs)
 
 
-class ReverseSuccessURLMixin(object):
+class ReverseSuccessURLMixin:
     def get_success_url(self):
         if self.success_url:
             if hasattr(self, 'tally_id'):
@@ -104,7 +106,7 @@ class ReverseSuccessURLMixin(object):
         return super(ReverseSuccessURLMixin, self).get_success_url()
 
 
-class PrintedResultFormMixin(object):
+class PrintedResultFormMixin:
     def render_to_response(self, context, **response_kwargs):
         del context['view']
         return HttpResponse(
@@ -129,19 +131,13 @@ class PrintedResultFormMixin(object):
         pass
 
 
-class TallyAccessMixin(object):
+class TallyAccessMixin:
     def has_tally_access(self, userprofile, tally):
         user_groups = groups.user_groups(userprofile)
 
         has_access = False
-        if groups.TALLY_MANAGER in user_groups:
-            has_access = True
-
-        elif groups.SUPER_ADMINISTRATOR in user_groups and \
-                userprofile.administrated_tallies.filter(id=tally.id):
-            has_access = True
-
-        elif userprofile.tally == tally:
+        if groups.TALLY_MANAGER in user_groups or (groups.SUPER_ADMINISTRATOR in user_groups and \
+                userprofile.administrated_tallies.filter(id=tally.id)) or userprofile.tally == tally:
             has_access = True
 
         return has_access
@@ -159,7 +155,7 @@ class TallyAccessMixin(object):
         return super(TallyAccessMixin, self).dispatch(request, *args, **kwargs)
 
 
-class DataTablesMixin(object):
+class DataTablesMixin:
     """
     Mixin that provides standard DataTables context variables.
     Includes all static variables used by data/table.html template.

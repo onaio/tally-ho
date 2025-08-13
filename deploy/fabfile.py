@@ -1,6 +1,6 @@
 import os
-from subprocess import call
 import sys
+from subprocess import call
 
 from fabric.api import cd, env, prefix, run
 

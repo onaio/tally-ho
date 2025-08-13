@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 """Test libs.utils.context_processors module."""
 from django.test import RequestFactory, TestCase
-
 
 from tally_ho.libs.utils.context_processors import (
     is_superadmin,

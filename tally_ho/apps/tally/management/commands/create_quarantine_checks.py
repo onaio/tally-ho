@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.utils.translation import gettext_lazy
+
 from tally_ho.libs.verify.quarantine_checks import create_quarantine_checks
 
 

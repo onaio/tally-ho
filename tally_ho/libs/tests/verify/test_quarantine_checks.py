@@ -1,21 +1,25 @@
-from unittest.mock import patch, PropertyMock
+from unittest.mock import PropertyMock, patch
 
 from django.conf import settings
 
-from tally_ho.libs.tests.test_base import (TestBase, create_center,
-                                           create_reconciliation_form,
-                                           create_result_form, create_station)
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_center,
+    create_reconciliation_form,
+    create_result_form,
+    create_station,
+)
 from tally_ho.libs.verify.quarantine_checks import (
     create_quarantine_checks,
-    pass_reconciliation_check,
+    pass_card_check,
     pass_over_voting_check,
-    pass_card_check
+    pass_reconciliation_check,
 )
 
 
 class TestQuarantineChecks(TestBase):
     def setUp(self):
-        create_quarantine_checks(getattr(settings, "QUARANTINE_DATA"))
+        create_quarantine_checks(settings.QUARANTINE_DATA)
         self._create_permission_groups()
         self._create_and_login_user()
 

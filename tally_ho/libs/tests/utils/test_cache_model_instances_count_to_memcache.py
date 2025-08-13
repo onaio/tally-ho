@@ -1,11 +1,13 @@
-from django.test import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from django.conf import settings
+from django.test import TestCase
 
 from tally_ho.libs.utils.cache_model_instances_count_to_memcache import (
-    cache_model_instances_count_to_memcache
+    cache_model_instances_count_to_memcache,
 )
 from tally_ho.libs.utils.memcache import MemCache
+
 
 class TestCacheModelInstancesCount(TestCase):
 

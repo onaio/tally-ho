@@ -3,13 +3,14 @@ import json
 from django.test import TestCase
 
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
-from tally_ho.libs.tests.test_base import create_tally, create_ballot
+from tally_ho.libs.tests.fixtures.sub_con_data import sub_cons
+from tally_ho.libs.tests.test_base import create_ballot, create_tally
 from tally_ho.libs.utils.memcache import MemCache
-from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
-from tally_ho.libs.utils.query_set_helpers import BulkUpdateManyToManyManager
-from tally_ho.libs.tests.fixtures.sub_con_data import (
-    sub_cons
+from tally_ho.libs.utils.query_set_helpers import (
+    BulkCreateManager,
+    BulkUpdateManyToManyManager,
 )
+
 
 class TestBulkUpdateManyToManyManager(TestCase):
     def setUp(self):

@@ -1,6 +1,6 @@
+import reversion
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.user_profile import UserProfile

@@ -1,10 +1,12 @@
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.models.ballot import (document_name,
-                                               form_ballot_numbers,
-                                               race_type_name,
-                                               sub_constituency)
+from tally_ho.apps.tally.models.ballot import (
+    document_name,
+    form_ballot_numbers,
+    race_type_name,
+    sub_constituency,
+)
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports import progress as p

@@ -2,14 +2,15 @@ import csv
 import pathlib
 
 from django.core.management.base import BaseCommand
-from django.utils.translation import gettext_lazy
+from django.db.models import F, IntegerField, OuterRef, Subquery
 from django.utils import timezone
-from django.db.models import F, IntegerField, Subquery, OuterRef
+from django.utils.translation import gettext_lazy
 
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+
 
 def generate_csv():
     tally_id = 1
@@ -27,7 +28,7 @@ def generate_csv():
         Subquery(
             Station.objects.filter(
                 tally__id=tally_id,
-                id=OuterRef(('station_id_num')))
+                id=OuterRef('station_id_num'))
             .values('registrants')[:1],
             output_field=IntegerField())
     recon_forms =\

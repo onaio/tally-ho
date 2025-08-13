@@ -11,8 +11,8 @@ class ClearanceResolution(Enum):
 
     CHOICES = [
         (EMPTY, '----'),
-        (PENDING_FIELD_INPUT, _(u"Pending Field Input")),
+        (PENDING_FIELD_INPUT, _("Pending Field Input")),
         (PASS_TO_ADMINISTRATOR,
-            _(u"Pass To Administrator")),
-        (RESET_TO_PREINTAKE, _(u"Reset To Preintake"))
+            _("Pass To Administrator")),
+        (RESET_TO_PREINTAKE, _("Reset To Preintake"))
     ]

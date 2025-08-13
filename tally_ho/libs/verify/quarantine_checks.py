@@ -8,7 +8,7 @@ def create_quarantine_checks(quarantine_data=None):
     quarantine_data = (
         quarantine_data
         if quarantine_data is not None
-        else getattr(settings, "QUARANTINE_DATA")
+        else settings.QUARANTINE_DATA
     )
     for quarantine_check in quarantine_data:
         try:
@@ -84,7 +84,6 @@ def pass_overvote(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    pass
     # recon_form = result_form.reconciliationform
 
     # if not recon_form:

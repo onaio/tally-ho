@@ -1,10 +1,16 @@
 import ast
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import (Case, CharField, F, IntegerField, OuterRef,
-                              Subquery)
+from django.db.models import (
+    Case,
+    CharField,
+    F,
+    IntegerField,
+    OuterRef,
+    Subquery,
+    When,
+)
 from django.db.models import Value as V
-from django.db.models import When
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.generic import TemplateView
@@ -13,13 +19,17 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.views.reports.administrative_areas_reports import \
-    build_stations_centers_and_sub_cons_list
+from tally_ho.apps.tally.views.reports.administrative_areas_reports import (
+    build_stations_centers_and_sub_cons_list,
+)
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 
 def get_overvoted_forms_queryset(tally_id, data=None):

@@ -24,11 +24,15 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views.errors import add_generic_error
-from tally_ho.libs.views.form_state import (form_in_data_entry_state,
-                                            safe_form_in_state)
-from tally_ho.libs.views.mixins import (GroupRequiredMixin,
-                                        ReverseSuccessURLMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.form_state import (
+    form_in_data_entry_state,
+    safe_form_in_state,
+)
+from tally_ho.libs.views.mixins import (
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
+    TallyAccessMixin,
+)
 from tally_ho.libs.views.session import session_matches_post_result_form
 
 
@@ -248,7 +252,7 @@ class CenterDetailsView(
         context = super().get_context_data(**kwargs)
 
         if hasattr(self, "_result_form") and "result_form" not in kwargs:
-            context["result_form"] = getattr(self, "_result_form")
+            context["result_form"] = self._result_form
             context["header_text"] = get_header_text(context["result_form"])
 
         return context

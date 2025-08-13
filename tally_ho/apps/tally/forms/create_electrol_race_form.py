@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
-from tally_ho.apps.tally.forms.fields import RestrictedFileField
 
+from tally_ho.apps.tally.forms.fields import RestrictedFileField
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
 

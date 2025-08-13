@@ -2,19 +2,19 @@ from datetime import timedelta
 
 import reversion
 from django.db import models
-from enumfields import EnumIntegerField
 from django.utils import timezone
+from enumfields import EnumIntegerField
 
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.dependencies import check_results_for_forms
+from tally_ho.libs.models.enums.disable_reason import DisableReason
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.utils.numbers import rounded_safe_div_percent
 from tally_ho.libs.utils.templates import get_edits_link
-from tally_ho.libs.models.enums.disable_reason import DisableReason
 
 
 def status_to_str(status):
@@ -51,7 +51,7 @@ class Station(BaseModel):
     disable_reason = EnumIntegerField(DisableReason, null=True)
 
     def __str__(self):
-        return u'%s - %s' % (self.center.code, self.station_number)
+        return '%s - %s' % (self.center.code, self.station_number)
 
     @property
     def center_code(self):

@@ -7,8 +7,11 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 
 class UserListDataView(LoginRequiredMixin,

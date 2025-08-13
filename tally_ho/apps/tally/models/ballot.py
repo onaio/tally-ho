@@ -1,19 +1,19 @@
+import os
+import pathlib
+import uuid
+
+import reversion
 from django.db import models
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
-import reversion
-import os
-import uuid
-import pathlib
-from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 
+from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
-from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.models.enums.disable_reason import DisableReason
+from tally_ho.libs.models.enums.race_type import RaceType
 from tally_ho.libs.utils.templates import get_ballot_link
-
 
 COMPONENT_TO_BALLOTS = {
     55: [26, 27, 28],
@@ -24,7 +24,7 @@ COMPONENT_TO_BALLOTS = {
 
 
 def is_component(number):
-    return number in COMPONENT_TO_BALLOTS.keys()
+    return number in COMPONENT_TO_BALLOTS
 
 
 def form_ballot_numbers(number):
@@ -48,7 +48,7 @@ def document_name(document_path):
 
 def ballot_document_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/ballot_<unique_id>/<filename>
-    return 'ballot_{0}/{1}'.format(instance.unique_uuid, filename)
+    return f'ballot_{instance.unique_uuid}/{filename}'
 
 
 class Ballot(BaseModel):
@@ -122,7 +122,7 @@ class Ballot(BaseModel):
         return get_ballot_link(self) if self else None
 
     def __str__(self):
-        return u'%s - %s' % (self.number, self.race_type_name)
+        return '%s - %s' % (self.number, self.race_type_name)
 
 
 @receiver(models.signals.pre_save, sender=Ballot, dispatch_uid="ballot_update")

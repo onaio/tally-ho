@@ -23,9 +23,11 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.verify.quarantine_checks import check_quarantine
 from tally_ho.libs.views.form_state import form_in_state, safe_form_in_state
-from tally_ho.libs.views.mixins import (GroupRequiredMixin,
-                                        ReverseSuccessURLMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
+    TallyAccessMixin,
+)
 from tally_ho.libs.views.session import session_matches_post_result_form
 
 

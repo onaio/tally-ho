@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
+import reversion
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
-import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.user_profile import UserProfile
@@ -69,8 +68,8 @@ class WorkflowRequest(BaseModel):
         :return: bool
         """
         from tally_ho.libs.permissions import groups
-        return user.is_authenticated and\
-            groups.is_tally_manager(user) or\
+        return (user.is_authenticated and\
+            groups.is_tally_manager(user)) or\
                 groups.is_super_administrator(user)
 
     def can_be_viewed_by(self, user):

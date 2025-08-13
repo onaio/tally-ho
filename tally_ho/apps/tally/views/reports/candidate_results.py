@@ -8,13 +8,17 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.apps.tally.views.reports.administrative_areas_reports import \
-    build_stations_centers_and_sub_cons_list
+from tally_ho.apps.tally.views.reports.administrative_areas_reports import (
+    build_stations_centers_and_sub_cons_list,
+)
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views.exports import build_candidate_results_output
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 
 def get_candidate_results_queryset(tally_id, data=None):

@@ -1,8 +1,8 @@
-from django.db import models
 import reversion
+from django.db import models
 
-from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.region import Region
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 
 
@@ -26,7 +26,7 @@ class Office(BaseModel):
                                on_delete=models.PROTECT)
 
     def __str__(self):
-        return u'%s - %s' % (self.number, self.name)
+        return '%s - %s' % (self.number, self.name)
 
 
 reversion.register(Office)

@@ -1,11 +1,13 @@
 from django import forms
-from django.core.validators import MinLengthValidator, MaxLengthValidator,\
-    RegexValidator
+from django.core.validators import (
+    MaxLengthValidator,
+    MinLengthValidator,
+    RegexValidator,
+)
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
-
 
 disable_copy_input = {
     'onCopy': 'return false;',
@@ -21,13 +23,13 @@ barcode_scan_input_attributes.update({'id': 'id_scanned_barcode'})
 
 
 class BarcodeForm(forms.Form):
-    error_messages = {'invalid': _(u"Expecting only numbers for barcodes")}
+    error_messages = {'invalid': _("Expecting only numbers for barcodes")}
     validators = [
         MaxLengthValidator(255),
         MinLengthValidator(1),
         RegexValidator(
             regex=r'^[0-9]*$',
-            message=_(u"Expecting only numbers for barcodes")
+            message=_("Expecting only numbers for barcodes")
         ),
     ]
 

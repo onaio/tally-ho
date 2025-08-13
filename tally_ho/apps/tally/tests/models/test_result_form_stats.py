@@ -1,10 +1,14 @@
 from django.utils import timezone
 
-from tally_ho.libs.permissions import groups
-from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.tests.test_base import create_result_form,\
-    create_result_form_stats, create_tally, TestBase
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
+from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_result_form,
+    create_result_form_stats,
+    create_tally,
+)
 
 
 class TestResultFormStats(TestBase):

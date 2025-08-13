@@ -1,9 +1,9 @@
 from django.contrib.postgres.aggregates import ArrayAgg
-
-from django.db.models import Sum, When, Case, Value as V
-from django.db.models.query import QuerySet
-from django.db.models.functions import Coalesce
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Case, Sum, When
+from django.db.models import Value as V
+from django.db.models.functions import Coalesce
+from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.result_form import ResultForm
@@ -63,7 +63,7 @@ def get_office_candidates_ids(office_id, tally_id):
     return candidate_ids
 
 
-class ProgressReport(object):
+class ProgressReport:
 
     def __init__(self, tally_id):
         self.tally_id = tally_id
@@ -73,14 +73,14 @@ class ProgressReport(object):
     def get_queryset(self):
         if self.queryset is None or not isinstance(self.queryset, QuerySet):
             raise ImproperlyConfigured(
-                u"queryset needs to be of instance QuerySet")
+                "queryset needs to be of instance QuerySet")
 
         return self.queryset
 
     def get_filtered_queryset(self):
         if not isinstance(self.filtered_queryset, QuerySet):
             raise ImproperlyConfigured(
-                u"queryset needs to be of instance QuerySet")
+                "queryset needs to be of instance QuerySet")
 
         return self.filtered_queryset
 
@@ -102,7 +102,7 @@ class ProgressReport(object):
 
     def percentage_value(self, queryset=None, filtered_queryset=None):
         if self.denominator(queryset) <= 0:
-            return _(u"No results")
+            return _("No results")
 
         return rounded_percent(self.numerator(filtered_queryset),
                                self.denominator(queryset))
@@ -123,7 +123,7 @@ class ProgressReport(object):
         denominator = queryset.count()
         number = filtered_queryset.count()
         percentage = rounded_percent(number, denominator) if denominator > 0\
-            else _(u"No results")
+            else _("No results")
 
         return {'denominator': denominator,
                 'number': number,
@@ -151,7 +151,7 @@ class ProgressReport(object):
 
 
 class ExpectedProgressReport(ProgressReport):
-    label = _(u"Expected")
+    label = _("Expected")
 
     def __init__(self, tally_id):
         super(ExpectedProgressReport, self).__init__(tally_id)
@@ -160,7 +160,7 @@ class ExpectedProgressReport(ProgressReport):
 
 
 class IntakenProgressReport(ProgressReport):
-    label = _(u"Intaken")
+    label = _("Intaken")
 
     def __init__(self, tally_id):
         super(IntakenProgressReport, self).__init__(tally_id)
@@ -172,7 +172,7 @@ class IntakenProgressReport(ProgressReport):
 
 
 class ArchivedProgressReport(ProgressReport):
-    label = _(u"Archived")
+    label = _("Archived")
 
     def __init__(self, tally_id):
         super(ArchivedProgressReport, self).__init__(tally_id)
@@ -182,7 +182,7 @@ class ArchivedProgressReport(ProgressReport):
 
 
 class IntakeProgressReport(ProgressReport):
-    label = _(u"Intake")
+    label = _("Intake")
 
     def __init__(self, tally_id):
         super(IntakeProgressReport, self).__init__(tally_id)
@@ -192,7 +192,7 @@ class IntakeProgressReport(ProgressReport):
 
 
 class ClearanceProgressReport(ProgressReport):
-    label = _(u"Clearance")
+    label = _("Clearance")
 
     def __init__(self, tally_id):
         super(ClearanceProgressReport, self).__init__(tally_id)
@@ -202,7 +202,7 @@ class ClearanceProgressReport(ProgressReport):
 
 
 class DataEntry1ProgressReport(ProgressReport):
-    label = _(u"Data Entry 1")
+    label = _("Data Entry 1")
 
     def __init__(self, tally_id):
         super(DataEntry1ProgressReport, self).__init__(tally_id)
@@ -212,7 +212,7 @@ class DataEntry1ProgressReport(ProgressReport):
 
 
 class DataEntry2ProgressReport(ProgressReport):
-    label = _(u"Data Entry 2")
+    label = _("Data Entry 2")
 
     def __init__(self, tally_id):
         super(DataEntry2ProgressReport, self).__init__(tally_id)
@@ -222,7 +222,7 @@ class DataEntry2ProgressReport(ProgressReport):
 
 
 class CorrectionProgressReport(ProgressReport):
-    label = _(u"Correction")
+    label = _("Correction")
 
     def __init__(self, tally_id):
         super(CorrectionProgressReport, self).__init__(tally_id)
@@ -232,7 +232,7 @@ class CorrectionProgressReport(ProgressReport):
 
 
 class QualityControlProgressReport(ProgressReport):
-    label = _(u"Quality Control")
+    label = _("Quality Control")
 
     def __init__(self, tally_id):
         super(QualityControlProgressReport, self).__init__(tally_id)
@@ -242,7 +242,7 @@ class QualityControlProgressReport(ProgressReport):
 
 
 class AuditProgressReport(ProgressReport):
-    label = _(u"Audit")
+    label = _("Audit")
 
     def __init__(self, tally_id):
         super(AuditProgressReport, self).__init__(tally_id)
@@ -252,7 +252,7 @@ class AuditProgressReport(ProgressReport):
 
 
 class NotRecievedProgressReport(ProgressReport):
-    label = _(u"Not Received")
+    label = _("Not Received")
 
     def __init__(self, tally_id):
         super(NotRecievedProgressReport, self).__init__(tally_id)
@@ -262,7 +262,7 @@ class NotRecievedProgressReport(ProgressReport):
 
 
 class ValidVotesProgressReport(ProgressReport):
-    label = _(u"Valid Votes")
+    label = _("Valid Votes")
 
     def __init__(self, tally_id):
         super(ValidVotesProgressReport, self).__init__(tally_id)

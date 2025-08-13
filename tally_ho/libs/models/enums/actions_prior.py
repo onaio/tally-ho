@@ -12,9 +12,9 @@ class ActionsPrior(Enum):
 
     CHOICES = [
         (EMPTY, '----'),
-        (REQUEST_COPY_FROM_FIELD, _(u"Request Copy From Field")),
+        (REQUEST_COPY_FROM_FIELD, _("Request Copy From Field")),
         (REQUEST_AUDIT_ACTION_FROM_FIELD,
-         _(u"Request Audit Action From Field")),
-        (PENDING_ADVICE, _(u"Pending Advice")),
-        (NONE_REQUIRED, _(u"None Required"))
+         _("Request Audit Action From Field")),
+        (PENDING_ADVICE, _("Pending Advice")),
+        (NONE_REQUIRED, _("None Required"))
     ]

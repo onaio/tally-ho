@@ -1,9 +1,13 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
-from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_site_info,\
-    create_tally, TestBase
+
 from tally_ho.apps.tally.models.site_info import SiteInfo
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_site_info,
+    create_tally,
+)
 
 
 class TestSiteInfo(TestBase):

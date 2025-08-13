@@ -4,8 +4,10 @@ from django.views.generic.base import View
 
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import TestBase
-from tally_ho.libs.views.mixins import (GroupRequiredMixin,
-                                        get_datatables_context)
+from tally_ho.libs.views.mixins import (
+    GroupRequiredMixin,
+    get_datatables_context,
+)
 
 
 class ViewGroupRequiredNoGroups(GroupRequiredMixin, View):

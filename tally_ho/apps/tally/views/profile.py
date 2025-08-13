@@ -1,12 +1,13 @@
 from functools import wraps
+
 from django.conf import settings
 from django.contrib.auth import views as auth_views
-
 from django.shortcuts import redirect
+
 from tally_ho.apps.tally.models.user_profile import UserProfile
 
 
-class PersistSessionVars(object):
+class PersistSessionVars:
     """The logout view, will reset all session state.
     However, we occasionally want to persist some of those session variables,
     for example incase a session expires in the middle of data entry.
@@ -65,7 +66,7 @@ def login(request, *args, **kwargs):
     return response
 
 
-@PersistSessionVars(getattr(settings, "SESSION_VARS"))
+@PersistSessionVars(settings.SESSION_VARS)
 def session_expiry_logout_view(request, *args, **kwargs):
     view = auth_views.LogoutView.as_view()
     response = view(request, *args, **kwargs)

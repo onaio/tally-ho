@@ -9,8 +9,11 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports.list_base_data_view import NoneQsBaseDataView
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 
 def valid_votes_query(

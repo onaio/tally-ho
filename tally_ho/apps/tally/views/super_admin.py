@@ -18,19 +18,22 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.create_ballot_form import CreateBallotForm
 from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
-from tally_ho.apps.tally.forms.create_electrol_race_form import \
-    CreateElectrolRaceForm
+from tally_ho.apps.tally.forms.create_electrol_race_form import (
+    CreateElectrolRaceForm,
+)
 from tally_ho.apps.tally.forms.create_result_form import CreateResultForm
 from tally_ho.apps.tally.forms.create_station_form import CreateStationForm
 from tally_ho.apps.tally.forms.disable_entity_form import DisableEntityForm
 from tally_ho.apps.tally.forms.edit_ballot_form import EditBallotForm
 from tally_ho.apps.tally.forms.edit_center_form import EditCenterForm
-from tally_ho.apps.tally.forms.edit_electrol_race_form import \
-    EditElectrolRaceForm
+from tally_ho.apps.tally.forms.edit_electrol_race_form import (
+    EditElectrolRaceForm,
+)
 from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
-from tally_ho.apps.tally.forms.edit_user_profile_form import \
-    EditUserProfileForm
+from tally_ho.apps.tally.forms.edit_user_profile_form import (
+    EditUserProfileForm,
+)
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
@@ -44,27 +47,39 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
-from tally_ho.apps.tally.views.constants import (at_state_query_param,
-                                                 election_level_query_param,
-                                                 pending_at_state_query_param,
-                                                 sub_con_code_query_param,
-                                                 sub_race_query_param)
+from tally_ho.apps.tally.views.constants import (
+    at_state_query_param,
+    election_level_query_param,
+    pending_at_state_query_param,
+    sub_con_code_query_param,
+    sub_race_query_param,
+)
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.form_state import (
-    FormState, un_processed_states_at_state)
+    FormState,
+    un_processed_states_at_state,
+)
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.utils.active_status import (disable_enable_ballot,
-                                               disable_enable_candidate,
-                                               disable_enable_electrol_race,
-                                               disable_enable_entity)
+from tally_ho.libs.utils.active_status import (
+    disable_enable_ballot,
+    disable_enable_candidate,
+    disable_enable_electrol_race,
+    disable_enable_entity,
+)
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.enum import get_matching_enum_values
-from tally_ho.libs.views.exports import (SPECIAL_BALLOTS, distinct_forms,
-                                         get_result_export_response,
-                                         valid_ballots)
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        ReverseSuccessURLMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.exports import (
+    SPECIAL_BALLOTS,
+    distinct_forms,
+    get_result_export_response,
+    valid_ballots,
+)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    ReverseSuccessURLMixin,
+    TallyAccessMixin,
+)
 from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
 
@@ -321,10 +336,10 @@ class CreateResultFormView(LoginRequiredMixin,
         context['tally_id'] = tally_id
         context['barcode'] = self.barcode
         if self.clearance_result_form:
-            context['title'] = _(u'Clearance: New Result Form')
+            context['title'] = _('Clearance: New Result Form')
             context['route_name'] = 'clearance'
         else:
-            context['title'] = _(u'New Form')
+            context['title'] = _('New Form')
             context['route_name'] = 'form-list'
 
         return context
@@ -356,7 +371,7 @@ class CreateResultFormView(LoginRequiredMixin,
                                 initial=self.initial)
         form.save()
         self.success_message = _(
-            u"Successfully Created form %(form)s"
+            "Successfully Created form %(form)s"
             % {'form': form.data['barcode']})
 
         return super(CreateResultFormView, self).form_valid(form)
@@ -377,7 +392,7 @@ class EditResultFormView(LoginRequiredMixin,
     form_class = EditResultForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/edit_result_form.html'
-    success_message = _(u'Form Successfully Updated')
+    success_message = _('Form Successfully Updated')
 
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id')
@@ -412,7 +427,7 @@ class RemoveResultFormConfirmationView(LoginRequiredMixin,
     model = ResultForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/remove_result_form_confirmation.html"
-    success_message = _(u'Form Successfully Deleted')
+    success_message = _('Form Successfully Deleted')
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -552,7 +567,7 @@ class DuplicateResultFormView(LoginRequiredMixin,
                 results_form_duplicate.save()
 
             self.success_message = _(
-                u"Successfully marked forms as duplicate reviewed")
+                "Successfully marked forms as duplicate reviewed")
 
             messages.add_message(
                 self.request, messages.INFO, self.success_message)
@@ -568,7 +583,7 @@ class DuplicateResultFormView(LoginRequiredMixin,
                 result_form.save()
 
                 self.success_message = \
-                    _(u"Form successfully sent to clearance")
+                    _("Form successfully sent to clearance")
 
                 messages.add_message(
                     self.request, messages.INFO, self.success_message)
@@ -577,7 +592,7 @@ class DuplicateResultFormView(LoginRequiredMixin,
             else:
                 messages.error(
                     self.request,
-                    _(u"Archived form can not be sent to clearance."))
+                    _("Archived form can not be sent to clearance."))
                 return HttpResponseRedirect(self.request.path_info)
         elif 'send_all_clearance' in post_data:
             archived_forms_barcodes = []
@@ -593,13 +608,13 @@ class DuplicateResultFormView(LoginRequiredMixin,
             if archived_forms_barcodes:
                 messages.error(
                     self.request,
-                    _(u"Archived form(s) (%(barcodes)s) "
+                    _("Archived form(s) (%(barcodes)s) "
                       "can not be sent to clearance.") %
                       {'barcodes':(', '.join(archived_forms_barcodes))})
                 return HttpResponseRedirect(self.request.path_info)
             else:
                 self.success_message = _(
-                    u"All forms successfully sent to clearance")
+                    "All forms successfully sent to clearance")
 
                 messages.add_message(
                     self.request, messages.INFO, self.success_message)
@@ -974,7 +989,7 @@ class CreateCenterView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         context = super(CreateCenterView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
-        context['title'] = _(u'New Center')
+        context['title'] = _('New Center')
         context['route_name'] = 'center-list'
 
         return context
@@ -982,7 +997,7 @@ class CreateCenterView(LoginRequiredMixin,
     def form_valid(self, form):
         center = form.save()
         self.success_message = _(
-            u"Successfully Created Center %(center)s"
+            "Successfully Created Center %(center)s"
             % {'center': center.code})
 
         return super(CreateCenterView, self).form_valid(form)
@@ -1017,7 +1032,7 @@ class RemoveCenterView(LoginRequiredMixin,
     form_class = RemoveCenterForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/remove_center.html"
-    success_message = _(u"Center Successfully Removed.")
+    success_message = _("Center Successfully Removed.")
 
     def get_context_data(self, **kwargs):
         context = super(RemoveCenterView, self).get_context_data(**kwargs)
@@ -1038,7 +1053,7 @@ class RemoveCenterView(LoginRequiredMixin,
         if form.is_valid():
             center = form.save()
             self.success_message = _(
-                u"Successfully removed center %(center)s"
+                "Successfully removed center %(center)s"
                 % {'center': center.code})
             self.success_url = reverse('remove-center-confirmation',
                                        kwargs={'center_code': center.code,
@@ -1056,7 +1071,7 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
     model = Center
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/remove_center_confirmation.html"
-    success_message = _(u"Center Successfully Removed.")
+    success_message = _("Center Successfully Removed.")
     slug_url_kwarg = 'center_code'
     success_url = 'center-list'
     slug_field = 'code'
@@ -1087,7 +1102,7 @@ class RemoveCenterConfirmationView(LoginRequiredMixin,
                                                                       **kwargs)
             except ProtectedError:
                 request.session['error_message'] = \
-                    str(_(u"This center is tied to 1 or more stations"))
+                    str(_("This center is tied to 1 or more stations"))
                 return redirect(
                     next_url,
                     tally_id=self.kwargs['tally_id'])
@@ -1103,7 +1118,7 @@ class EditCenterView(LoginRequiredMixin,
     form_class = EditCenterForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/edit_center.html'
-    success_message = _(u'Center Successfully Updated')
+    success_message = _('Center Successfully Updated')
 
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id')
@@ -1154,8 +1169,8 @@ class DisableEntityView(LoginRequiredMixin,
             'station_number_input': station_number
         }
 
-        entity_name = _(u'Center') if not station_number else _(u'Station')
-        self.success_message = _(u"%(entity_name)s Successfully Disabled.") % {
+        entity_name = _('Center') if not station_number else _('Station')
+        self.success_message = _("%(entity_name)s Successfully Disabled.") % {
             'entity_name': entity_name}
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -1175,11 +1190,11 @@ class DisableEntityView(LoginRequiredMixin,
 
             if isinstance(entity, Center):
                 self.success_message = _(
-                    u"Successfully disabled center %(center)s"
+                    "Successfully disabled center %(center)s"
                     % {'center': entity.code})
             else:
                 self.success_message = _(
-                    u"Successfully disabled station %(station_number)s"
+                    "Successfully disabled station %(station_number)s"
                     % {'station_number': entity.station_number})
 
             return redirect(self.success_url, tally_id=tally_id)
@@ -1202,8 +1217,8 @@ class EnableEntityView(LoginRequiredMixin,
         center_code = kwargs.get('center_code')
         tally_id = kwargs.get('tally_id')
 
-        entity_name = _(u'Center') if not station_number else _(u'Station')
-        self.success_message = _(u"%(entity_name)s Successfully enabled.") % {
+        entity_name = _('Center') if not station_number else _('Station')
+        self.success_message = _("%(entity_name)s Successfully enabled.") % {
             'entity_name': entity_name}
 
         disable_enable_entity(center_code, station_number, tally_id=tally_id)
@@ -1223,7 +1238,7 @@ class CreateBallotView(LoginRequiredMixin,
     form_class = CreateBallotForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/form.html'
-    success_message = _(u'Ballot Successfully Created')
+    success_message = _('Ballot Successfully Created')
 
     def get_initial(self):
         initial = super(CreateBallotView, self).get_initial()
@@ -1235,7 +1250,7 @@ class CreateBallotView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         context = super(CreateBallotView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
-        context['title'] = _(u'New Ballot')
+        context['title'] = _('New Ballot')
         context['route_name'] = 'ballot-list'
 
         return context
@@ -1262,7 +1277,7 @@ class EditBallotView(LoginRequiredMixin,
     form_class = EditBallotForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/edit_ballot.html'
-    success_message = _(u'Ballot Successfully Updated')
+    success_message = _('Ballot Successfully Updated')
 
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id')
@@ -1308,7 +1323,7 @@ class CreateElectrolRaceView(LoginRequiredMixin,
     form_class = CreateElectrolRaceForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/form.html'
-    success_message = _(u'Electrol Race Successfully Created')
+    success_message = _('Electrol Race Successfully Created')
 
     def get_initial(self):
         initial = super(CreateElectrolRaceView, self).get_initial()
@@ -1321,7 +1336,7 @@ class CreateElectrolRaceView(LoginRequiredMixin,
         context =\
             super(CreateElectrolRaceView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
-        context['title'] = _(u'New Electrol Race')
+        context['title'] = _('New Electrol Race')
         context['route_name'] = 'electrol-race-list'
 
         return context
@@ -1348,7 +1363,7 @@ class EditElectrolRaceView(LoginRequiredMixin,
     form_class = EditElectrolRaceForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/edit_electrol_race.html'
-    success_message = _(u'Electrol Race Successfully Updated')
+    success_message = _('Electrol Race Successfully Updated')
 
     def get_context_data(self, **kwargs):
         tally_id = self.kwargs.get('tally_id')
@@ -1416,7 +1431,7 @@ class DisableElectrolRaceView(LoginRequiredMixin,
             'electrol_race_id_input': electrol_race_id,
         }
 
-        self.success_message = _(u"Electrol Race Successfully Disabled.")
+        self.success_message = _("Electrol Race Successfully Disabled.")
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
@@ -1433,7 +1448,7 @@ class DisableElectrolRaceView(LoginRequiredMixin,
         if form.is_valid():
             form.save()
 
-            self.success_message = _(u"Electrol Race Successfully disabled")
+            self.success_message = _("Electrol Race Successfully disabled")
 
             return self.form_valid(form)
 
@@ -1456,7 +1471,7 @@ class EnableElectrolRaceView(LoginRequiredMixin,
 
         messages.add_message(self.request,
                              messages.INFO,
-                             _(u"Electrol Race Successfully enabled."))
+                             _("Electrol Race Successfully enabled."))
 
         return redirect(self.success_url, tally_id=tally_id)
 
@@ -1489,7 +1504,7 @@ class DisableBallotView(LoginRequiredMixin,
             'ballot_id_input': ballot_id,
         }
 
-        self.success_message = _(u"Ballot Successfully Disabled.")
+        self.success_message = _("Ballot Successfully Disabled.")
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
@@ -1506,7 +1521,7 @@ class DisableBallotView(LoginRequiredMixin,
         if form.is_valid():
             form.save()
 
-            self.success_message = _(u"Ballot Successfully disabled")
+            self.success_message = _("Ballot Successfully disabled")
 
             return self.form_valid(form)
 
@@ -1530,7 +1545,7 @@ class EnableBallotView(LoginRequiredMixin,
 
         messages.add_message(self.request,
                              messages.INFO,
-                             _(u"Ballot Successfully enabled."))
+                             _("Ballot Successfully enabled."))
 
         return redirect(self.success_url, tally_id=tally_id)
 
@@ -1544,7 +1559,7 @@ class CreateStationView(LoginRequiredMixin,
     model = Station
     form_class = CreateStationForm
     group_required = groups.SUPER_ADMINISTRATOR
-    success_message = _(u"Station Successfully Created")
+    success_message = _("Station Successfully Created")
     template_name = 'super_admin/form.html'
 
     def get_initial(self):
@@ -1557,7 +1572,7 @@ class CreateStationView(LoginRequiredMixin,
         tally_id = self.kwargs.get('tally_id')
         context = super(CreateStationView, self).get_context_data(**kwargs)
         context['tally_id'] = tally_id
-        context['title'] = _(u'New Station')
+        context['title'] = _('New Station')
         context['route_name'] = 'center-list'
 
         return context
@@ -1569,7 +1584,7 @@ class CreateStationView(LoginRequiredMixin,
         if form.is_valid():
             station = form.save()
             self.success_message = _(
-                u"Successfully created station %(center)s"
+                "Successfully created station %(center)s"
                 % {'center': station.center.code})
             messages.add_message(
                 self.request, messages.INFO, self.success_message)
@@ -1588,7 +1603,7 @@ class RemoveStationView(LoginRequiredMixin,
     form_class = RemoveStationForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/remove_station.html"
-    success_message = _(u"Station Successfully Removed.")
+    success_message = _("Station Successfully Removed.")
 
     def get_context_data(self, **kwargs):
         context = super(RemoveStationView, self).get_context_data(**kwargs)
@@ -1676,7 +1691,7 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/remove_station_confirmation.html"
     success_url = 'center-list'
-    success_message = _(u"Station Successfully Removed.")
+    success_message = _("Station Successfully Removed.")
     tally_id = None
 
     def delete(self, request, *args, **kwargs):
@@ -1715,8 +1730,8 @@ class RemoveStationConfirmationView(LoginRequiredMixin,
             try:
                 station = self.get_object(station_id)
                 self.success_message = _(
-                    u"Successfully removed station %(station)s from "
-                    u"center %(center)s." % {
+                    "Successfully removed station %(station)s from "
+                    "center %(center)s." % {
                         'center': station.center.code,
                         'station': station.station_number
                     })
@@ -1742,7 +1757,7 @@ class EditStationView(LoginRequiredMixin,
     form_class = EditStationForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = 'super_admin/edit_station.html'
-    success_message = _(u'Station Successfully Updated')
+    success_message = _('Station Successfully Updated')
 
     def get_context_data(self, **kwargs):
         context = super(EditStationView, self).get_context_data(**kwargs)
@@ -1782,7 +1797,7 @@ class EnableCandidateView(LoginRequiredMixin,
         candidate_id = kwargs.get('candidateId')
         tally_id = kwargs.get('tally_id')
 
-        self.success_message = _(u"Candidate successfully enabled.")
+        self.success_message = _("Candidate successfully enabled.")
 
         disable_enable_candidate(candidate_id)
 
@@ -1802,7 +1817,7 @@ class DisableCandidateView(LoginRequiredMixin,
         candidate_id = kwargs.get('candidateId')
         tally_id = kwargs.get('tally_id')
 
-        self.success_message = _(u"Candidate successfully disabled.")
+        self.success_message = _("Candidate successfully disabled.")
 
         disable_enable_candidate(candidate_id)
 

@@ -1,12 +1,16 @@
 import os
 import shutil
-from django.core.files.uploadedfile import SimpleUploadedFile
+
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.models.signals import pre_save
 
 from tally_ho.apps.tally.models.ballot import (
-    Ballot, auto_delete_document, document_name)
-from tally_ho.libs.tests.test_base import create_ballot, create_tally, TestBase
+    Ballot,
+    auto_delete_document,
+    document_name,
+)
+from tally_ho.libs.tests.test_base import TestBase, create_ballot, create_tally
 
 
 class TestBallot(TestBase):

@@ -1,25 +1,25 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
+from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.libs.models.enums.disable_reason import DisableReason
 from tally_ho.libs.utils.active_status import (
+    disable_enable_ballot,
     disable_enable_electrol_race,
     disable_enable_entity,
-    disable_enable_ballot,
 )
 
 
 class DisableEntityForm(forms.Form):
     disable_reason = forms.TypedChoiceField(
         choices=DisableReason.choices(),
-        error_messages={'invalid': _(u"Expecting one option selected")},
+        error_messages={'invalid': _("Expecting one option selected")},
         widget=forms.RadioSelect(
             attrs={'class': '', 'autofocus': 'on'}),
-        label=_(u"Select a reason"),
+        label=_("Select a reason"),
         coerce=int,
         empty_value=None,
     )

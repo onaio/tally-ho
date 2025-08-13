@@ -1,6 +1,8 @@
-from locust import HttpUser, TaskSet, task
-from data import RESULT_FORMS_DATA, RESULTS
 import time
+
+from locust import HttpUser, TaskSet, task
+
+from data import RESULT_FORMS_DATA, RESULTS
 
 
 class UserLogin(TaskSet):
@@ -34,10 +36,10 @@ class UserLogin(TaskSet):
     def process_result_form(self):
         # Fill barcode
         response = self.client.get(
-            '/intake/center-details/{}/'.format(self.tally_id),
+            f'/intake/center-details/{self.tally_id}/',
             name="Get Enter Barcode page CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/intake/center-details/{}/".format(self.tally_id),
+        self.client.post(f"/intake/center-details/{self.tally_id}/",
                          {'barcode': self.barcode,
                           'barcode_placeholder': self.place_holder,
                           'barcode_copy': self.barcode_copy,
@@ -48,11 +50,10 @@ class UserLogin(TaskSet):
                           })
         # Confirm Center and Station Details
         response = self.client.get(
-            '/intake/check-center-details/{}/'.format(self.tally_id),
+            f'/intake/check-center-details/{self.tally_id}/',
             name="Get check center and station details page CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/intake/check-center-details/{}/".format(
-            self.tally_id),
+        self.client.post(f"/intake/check-center-details/{self.tally_id}/",
                          {
                             'result_form': self.result_form_id,
                             'is_match': 'true',
@@ -61,10 +62,10 @@ class UserLogin(TaskSet):
                         })
         # Print cover
         response = self.client.get(
-            '/intake/printcover/{}/'.format(self.tally_id),
+            f'/intake/printcover/{self.tally_id}/',
             name="Get CSRF for Print Cover Letter page")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/intake/printcover/{}/".format(self.tally_id),
+        self.client.post(f"/intake/printcover/{self.tally_id}/",
                          {'csrfmiddlewaretoken': csrftoken,
                           'submit_cover_form': '',
                           'result_form': self.result_form_id})
@@ -84,10 +85,10 @@ class UserLogin(TaskSet):
                           'next': '/'})
         # Fill barcode
         response = self.client.get(
-            '/data-entry/{}/'.format(self.tally_id),
+            f'/data-entry/{self.tally_id}/',
             name="Get Enter Barcode page CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/data-entry/{}/".format(self.tally_id),
+        self.client.post(f"/data-entry/{self.tally_id}/",
                          {'barcode': self.barcode,
                           'barcode_placeholder': self.place_holder,
                           'barcode_copy': self.barcode_copy,
@@ -97,11 +98,10 @@ class UserLogin(TaskSet):
                           'csrfmiddlewaretoken': csrftoken})
         # Fill Center and Station details
         response = self.client.get(
-            '/data-entry/enter-center-details/{}/'.format(self.tally_id),
+            f'/data-entry/enter-center-details/{self.tally_id}/',
             name="Get Center and Station details page CSRF")
         csrf_token = response.cookies['csrftoken']
-        self.client.post("/data-entry/enter-center-details/{}/".format(
-            self.tally_id),
+        self.client.post(f"/data-entry/enter-center-details/{self.tally_id}/",
                          {'result_form': self.result_form_id,
                           'center_number': self.center_code,
                           'center_number_placeholder': self.place_holder,
@@ -114,12 +114,12 @@ class UserLogin(TaskSet):
                           'csrfmiddlewaretoken': csrf_token})
         # Fill results
         response = self.client.get(
-            '/data-entry/enter-results/{}/'.format(self.tally_id),
+            f'/data-entry/enter-results/{self.tally_id}/',
             name="Get results page CSRF")
         csrf_token = response.cookies['csrftoken']
         RESULTS['result_form'] = self.result_form_id,
         RESULTS['csrfmiddlewaretoken'] = csrf_token
-        self.client.post("/data-entry/enter-results/{}/".format(self.tally_id),
+        self.client.post(f"/data-entry/enter-results/{self.tally_id}/",
                          RESULTS)
         # Logout User
         self.client.get("/accounts/logout", name="Logout Data Entry 1 Clerk")
@@ -137,10 +137,10 @@ class UserLogin(TaskSet):
                           'next': '/'})
         # Fill barcode
         response = self.client.get(
-            '/data-entry/{}/'.format(self.tally_id),
+            f'/data-entry/{self.tally_id}/',
             name="Get Enter Barcode page CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/data-entry/{}/".format(self.tally_id),
+        self.client.post(f"/data-entry/{self.tally_id}/",
                          {'barcode': self.barcode,
                           'barcode_placeholder': self.place_holder,
                           'barcode_copy': self.barcode_copy,
@@ -150,11 +150,10 @@ class UserLogin(TaskSet):
                           'csrfmiddlewaretoken': csrftoken})
         # Fill Center and Station details
         response = self.client.get(
-            '/data-entry/enter-center-details/{}/'.format(self.tally_id),
+            f'/data-entry/enter-center-details/{self.tally_id}/',
             name="Get Center and Station details page CSRF")
         csrf_token = response.cookies['csrftoken']
-        self.client.post("/data-entry/enter-center-details/{}/".format(
-            self.tally_id),
+        self.client.post(f"/data-entry/enter-center-details/{self.tally_id}/",
                          {'result_form': self.result_form_id,
                           'center_number': self.center_code,
                           'center_number_placeholder': self.place_holder,
@@ -167,12 +166,12 @@ class UserLogin(TaskSet):
                           'csrfmiddlewaretoken': csrf_token})
         # Fill results
         response = self.client.get(
-            '/data-entry/enter-results/{}/'.format(self.tally_id),
+            f'/data-entry/enter-results/{self.tally_id}/',
             name="Get results page CSRF")
         csrf_token = response.cookies['csrftoken']
         RESULTS['result_form'] = self.result_form_id,
         RESULTS['csrfmiddlewaretoken'] = csrf_token
-        self.client.post("/data-entry/enter-results/{}/".format(self.tally_id),
+        self.client.post(f"/data-entry/enter-results/{self.tally_id}/",
                          RESULTS)
         # Logout User
         self.client.get("/accounts/logout", name="Logout Data Entry 2 Clerk")
@@ -190,10 +189,10 @@ class UserLogin(TaskSet):
                           'next': '/'})
         # Fill barcode
         response = self.client.get(
-            '/corrections/{}/'.format(self.tally_id),
+            f'/corrections/{self.tally_id}/',
             name="GET Reconciliation Form Page CSRF   ")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/corrections/{}/".format(self.tally_id),
+        self.client.post(f"/corrections/{self.tally_id}/",
                          {'barcode': self.barcode,
                           'barcode_placeholder': self.place_holder,
                           'barcode_copy': self.barcode_copy,
@@ -203,10 +202,10 @@ class UserLogin(TaskSet):
                           'csrfmiddlewaretoken': csrftoken})
         # Submit corrections details
         response = self.client.get(
-            '/corrections/required/{}/'.format(self.tally_id),
+            f'/corrections/required/{self.tally_id}/',
             name="Get Corrections Page")
         csrf_token = response.cookies['csrftoken']
-        self.client.post("/corrections/required/{}/".format(self.tally_id),
+        self.client.post(f"/corrections/required/{self.tally_id}/",
                          {'result_form': self.result_form_id,
                           'submit_corrections': 'submit corrections',
                           'csrfmiddlewaretoken': csrf_token})
@@ -226,10 +225,10 @@ class UserLogin(TaskSet):
                           'next': '/'})
         # Fill barcode
         response = self.client.get(
-            '/quality-control/home/{}/'.format(self.tally_id),
+            f'/quality-control/home/{self.tally_id}/',
             name="GET Quality Control Page CSRF")
         csrftoken = response.cookies['csrftoken']
-        self.client.post("/quality-control/home/{}/".format(self.tally_id),
+        self.client.post(f"/quality-control/home/{self.tally_id}/",
                          {'barcode': self.barcode,
                           'barcode_placeholder': self.place_holder,
                           'barcode_copy': self.barcode_copy,
@@ -239,20 +238,19 @@ class UserLogin(TaskSet):
                           'csrfmiddlewaretoken': csrftoken})
         # Review Reconciliation details
         response = self.client.get(
-            '/quality-control/dashboard/{}/'.format(self.tally_id),
+            f'/quality-control/dashboard/{self.tally_id}/',
             name="Get Reconciliation Page")
         csrf_token = response.cookies['csrftoken']
-        self.client.post("/quality-control/dashboard/{}/".format(
-            self.tally_id),
+        self.client.post(f"/quality-control/dashboard/{self.tally_id}/",
                          {'result_form': self.result_form_id,
                           'correct': '',
                           'csrfmiddlewaretoken': csrf_token})
         # Submit Quality Control Form
         response = self.client.get(
-            '/quality-control/print/{}/'.format(self.tally_id),
+            f'/quality-control/print/{self.tally_id}/',
             name="Get Print Page")
         csrf_token = response.cookies['csrftoken']
-        self.client.post("/quality-control/print/{}/".format(self.tally_id),
+        self.client.post(f"/quality-control/print/{self.tally_id}/",
                          {'result_form': self.result_form_id,
                           'submit_cover_form': '',
                           'csrfmiddlewaretoken': csrf_token})

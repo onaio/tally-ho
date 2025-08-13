@@ -1,12 +1,10 @@
-from django.urls import reverse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.generic import TemplateView
-
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models import UserProfile
-
+from tally_ho.libs.permissions import groups
 
 GROUP_URLS = {
     groups.AUDIT_CLERK: "audit_dashboard",

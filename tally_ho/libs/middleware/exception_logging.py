@@ -1,6 +1,6 @@
-from django.conf import settings
 import logging
 
+from django.conf import settings
 
 logger = logging.getLogger('tally')
 handler = logging.FileHandler(getattr(settings,
@@ -12,7 +12,7 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 
-class ExceptionLoggingMiddleware(object):
+class ExceptionLoggingMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 

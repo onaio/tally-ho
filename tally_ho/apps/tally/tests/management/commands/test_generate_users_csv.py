@@ -28,7 +28,7 @@ class TestGenerateUsersCSV(TestCase):
         self.assertTrue(os.path.exists(output_file))
 
         # Read and verify CSV content
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -83,7 +83,7 @@ class TestGenerateUsersCSV(TestCase):
         )
 
         # Read and verify CSV content
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -117,7 +117,7 @@ class TestGenerateUsersCSV(TestCase):
             output=output_file,
         )
 
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -149,7 +149,7 @@ class TestGenerateUsersCSV(TestCase):
             output=output_file,
         )
 
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -199,7 +199,7 @@ class TestGenerateUsersCSV(TestCase):
             output=output_file,
         )
 
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -264,7 +264,7 @@ class TestGenerateUsersCSV(TestCase):
             output=output_file,
         )
 
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -309,7 +309,7 @@ class TestGenerateUsersCSV(TestCase):
             output=output_file,
         )
 
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -361,7 +361,7 @@ class TestGenerateUsersCSV(TestCase):
                 output=output_file,
             )
 
-            with open(output_file, "r") as f:
+            with open(output_file) as f:
                 reader = csv.DictReader(f)
                 rows = list(reader)
 
@@ -395,7 +395,7 @@ class TestGenerateUsersCSV(TestCase):
             output=output_file,
         )
 
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 

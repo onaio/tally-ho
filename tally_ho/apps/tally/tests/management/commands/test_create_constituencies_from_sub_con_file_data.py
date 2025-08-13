@@ -1,14 +1,15 @@
 import duckdb
-
 from django.test import TestCase
-from tally_ho.apps.tally.management.commands.import_sub_cons_and_cons\
-    import create_constituencies_from_sub_con_file_data
-from tally_ho.apps.tally.management.commands.import_electrol_races_and_ballots\
-    import (
-        async_import_electrol_races_and_ballots_from_ballots_file as async_tsk
-    )
+
+from tally_ho.apps.tally.management.commands.import_electrol_races_and_ballots import (
+    async_import_electrol_races_and_ballots_from_ballots_file as async_tsk,
+)
+from tally_ho.apps.tally.management.commands.import_sub_cons_and_cons import (
+    create_constituencies_from_sub_con_file_data,
+)
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.libs.tests.test_base import create_tally
+
 
 class TestCreateConstituenciesFromSubConsFileData(TestCase):
     def setUp(self):

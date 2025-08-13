@@ -1,29 +1,31 @@
-from django.test import TransactionTestCase
 from celery.contrib.testing.worker import start_worker
+from django.test import TransactionTestCase
 
-from tally_ho.apps.tally.management.commands.import_electrol_races_and_ballots\
-    import (
-        async_import_electrol_races_and_ballots_from_ballots_file as\
-            async_impt_electrol_races_ballots_tsk,
-    )
-from tally_ho.apps.tally.management.commands.import_sub_cons_and_cons\
-    import (
-        async_import_sub_constituencies_and_constituencies_from_sub_cons_file\
-            as async_impt_sub_cons_and_cons_tsk,
-    )
-from tally_ho.apps.tally.management.commands.asign_ballots_to_sub_cons\
-    import async_asign_ballots_to_sub_cons_from_ballots_file
-from tally_ho.apps.tally.management.commands.import_centers\
-    import async_import_centers_from_centers_file
-from tally_ho.apps.tally.management.commands.import_stations\
-    import async_import_stations_from_stations_file
-from tally_ho.apps.tally.management.commands.import_candidates\
-    import async_import_candidates_from_candidates_file
-from tally_ho.apps.tally.management.commands.import_result_forms\
-    import async_import_results_forms_from_result_forms_file
+from tally_ho.apps.tally.management.commands.asign_ballots_to_sub_cons import (
+    async_asign_ballots_to_sub_cons_from_ballots_file,
+)
+from tally_ho.apps.tally.management.commands.import_candidates import (
+    async_import_candidates_from_candidates_file,
+)
+from tally_ho.apps.tally.management.commands.import_centers import (
+    async_import_centers_from_centers_file,
+)
+from tally_ho.apps.tally.management.commands.import_electrol_races_and_ballots import (
+    async_import_electrol_races_and_ballots_from_ballots_file as async_impt_electrol_races_ballots_tsk,
+)
+from tally_ho.apps.tally.management.commands.import_result_forms import (
+    async_import_results_forms_from_result_forms_file,
+)
+from tally_ho.apps.tally.management.commands.import_stations import (
+    async_import_stations_from_stations_file,
+)
+from tally_ho.apps.tally.management.commands.import_sub_cons_and_cons import (
+    async_import_sub_constituencies_and_constituencies_from_sub_cons_file as async_impt_sub_cons_and_cons_tsk,
+)
 from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.libs.tests.test_base import create_tally
 from tally_ho.celeryapp import app
+from tally_ho.libs.tests.test_base import create_tally
+
 
 class AsyncImportResultFormsTestCase(TransactionTestCase):
     @classmethod

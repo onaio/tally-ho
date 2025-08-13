@@ -1,5 +1,5 @@
-from django.db import models
 import reversion
+from django.db import models
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.user_profile import UserProfile

@@ -32,10 +32,10 @@ class NoneQsBaseDataView(BaseDatatableView):
             except ValueError:
                 sorting_cols = 0
         else:
-            sort_key = "order[{0}][column]".format(sorting_cols)
+            sort_key = f"order[{sorting_cols}][column]"
             while sort_key in self._querydict:
                 sorting_cols += 1
-                sort_key = "order[{0}][column]".format(sorting_cols)
+                sort_key = f"order[{sorting_cols}][column]"
 
         order = []
         order_columns = self.get_order_columns()
@@ -45,16 +45,16 @@ class NoneQsBaseDataView(BaseDatatableView):
             try:
                 if self.pre_camel_case_notation:
                     sort_col = int(
-                        self._querydict.get("iSortCol_{0}".format(i))
+                        self._querydict.get(f"iSortCol_{i}")
                         )
                     # sorting order
-                    sort_dir = self._querydict.get("sSortDir_{0}".format(i))
+                    sort_dir = self._querydict.get(f"sSortDir_{i}")
                 else:
                     sort_col = int(
-                        self._querydict.get("order[{0}][column]".format(i))
+                        self._querydict.get(f"order[{i}][column]")
                         )
                     # sorting order
-                    sort_dir = self._querydict.get("order[{0}][dir]".format(i))
+                    sort_dir = self._querydict.get(f"order[{i}][dir]")
             except ValueError:
                 sort_col = 0
 

@@ -7,10 +7,20 @@ from io import BytesIO
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import (Case, CharField, Count, ExpressionWrapper, F,
-                              IntegerField, OuterRef, Q, Subquery, Sum)
+from django.db.models import (
+    Case,
+    CharField,
+    Count,
+    ExpressionWrapper,
+    F,
+    IntegerField,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    When,
+)
 from django.db.models import Value as V
-from django.db.models import When
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
@@ -34,17 +44,22 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
-from tally_ho.apps.tally.views.reports.helpers import \
-    get_filtered_candidate_votes
-from tally_ho.apps.tally.views.super_admin import \
-    get_result_form_with_duplicate_results
+from tally_ho.apps.tally.views.reports.helpers import (
+    get_filtered_candidate_votes,
+)
+from tally_ho.apps.tally.views.super_admin import (
+    get_result_form_with_duplicate_results,
+)
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.numbers import parse_int
 from tally_ho.libs.utils.query_set_helpers import Round
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 report_types = {
     1: "turnout",
@@ -1717,7 +1732,7 @@ def custom_queryset_filter(tally_id, qs, data=None, **kwargs):
 def build_select_options(qs, ids=None):
     if ids is None:
         ids = []
-    select = str('selected="selected"')
+    select = 'selected="selected"'
 
     return [
         str(
@@ -1826,7 +1841,7 @@ def create_ppt_export(qs, tally_id=None, limit=None):
     )
 
     powerpoint_data = []
-    race_bg_img_root_path = getattr(settings, "MEDIA_ROOT")
+    race_bg_img_root_path = settings.MEDIA_ROOT
 
     races_ids_to_total_votes_mapping = {}
     for electral_race_id in filtered_electrol_races.values_list(
@@ -1921,9 +1936,7 @@ def create_results_power_point_cover_page(prs):
     # Set the cover page
     slide_layout = prs.slide_layouts[0]
     slide = prs.slides.add_slide(slide_layout)
-    background_image = getattr(
-        settings, "CANDIDATE_RESULTS_PPT_COVER_PAGE_BCK_IMG_PATH"
-    )
+    background_image = settings.CANDIDATE_RESULTS_PPT_COVER_PAGE_BCK_IMG_PATH
 
     # Set background image if provided
     if background_image:
@@ -3181,7 +3194,7 @@ class DiscrepancyReportDataView(
             if region_id and not constituency_id:
                 url_part_1 = "sub-cons-stations-and-centers-excluded"
                 url_part_2 = "-after-investigation"
-                reverse_url = "{}{}".format(url_part_1, url_part_2)
+                reverse_url = f"{url_part_1}{url_part_2}"
                 button_text_1 = "Sub Constituency Station and Centers"
                 button_text_2 = " excluded after investigation"
                 child_report_button_text = _(
@@ -3729,15 +3742,9 @@ class RegionsReportsView(
                 centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 regions_report_url="regions-discrepancy-report",
                 child_summary_report_url="constituency-summary-report",
-                child_discrepancy_report_url=str(
-                    "constituency-discrepancy-report"
-                ),
-                child_progressive_report_url=str(
-                    "constituency-progressive-report"
-                ),
-                admin_area_votes_per_candidate_report_url=str(
-                    "region-votes-per-candidate"
-                ),
+                child_discrepancy_report_url="constituency-discrepancy-report",
+                child_progressive_report_url="constituency-progressive-report",
+                admin_area_votes_per_candidate_report_url="region-votes-per-candidate",
             )
         )
 
@@ -3859,34 +3866,18 @@ class ConstituencyReportsView(
                 administrative_area_child_report_name=_("Sub Constituencies"),
                 turn_out_report_download_url="constituencies-turnout-csv",
                 summary_report_download_url="constituencies-summary-csv",
-                progressive_report_download_url=str(
-                    "constituencies-progressive-csv"
-                ),
-                discrepancy_report_download_url=str(
-                    "constituencies-discrepancy-csv"
-                ),
+                progressive_report_download_url="constituencies-progressive-csv",
+                discrepancy_report_download_url="constituencies-discrepancy-csv",
                 centers_stations_under_invg=centers_stations_under_invg,
                 centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 region_name=region_name,
                 child_summary_report_url="sub-constituency-summary-report",
-                child_progressive_report_url=str(
-                    "sub-constituency-progressive-report"
-                ),
-                admin_area_votes_per_candidate_report_url=str(
-                    "constituency-votes-per-candidate"
-                ),
-                constituency_discrepancy_report_url=str(
-                    "constituency-discrepancy-report"
-                ),
-                child_discrepancy_report_url=str(
-                    "sub-constituency-discrepancy-report"
-                ),
-                child_admin_area_under_investigation_report_url=str(
-                    "sub-constituencies-under-investigation-report"
-                ),
-                child_admin_area_excluded_after_investigation_report_url=str(
-                    "sub-constituencies-excluded-after-investigation-report"
-                ),
+                child_progressive_report_url="sub-constituency-progressive-report",
+                admin_area_votes_per_candidate_report_url="constituency-votes-per-candidate",
+                constituency_discrepancy_report_url="constituency-discrepancy-report",
+                child_discrepancy_report_url="sub-constituency-discrepancy-report",
+                child_admin_area_under_investigation_report_url="sub-constituencies-under-investigation-report",
+                child_admin_area_excluded_after_investigation_report_url="sub-constituencies-excluded-after-investigation-report",
             )
         )
 
@@ -4029,23 +4020,15 @@ class SubConstituencyReportsView(
                 constituency_id=constituency_id,
                 turn_out_report_download_url="sub-constituencies-turnout-csv",
                 summary_report_download_url="sub-constituencies-summary-csv",
-                progressive_report_download_url=str(
-                    "sub-constituencies-progressive-csv"
-                ),
-                admin_area_votes_per_candidate_report_url=str(
-                    "sub-constituency-votes-per-candidate"
-                ),
-                discrepancy_report_download_url=str(
-                    "sub-constituencies-discrepancy-csv"
-                ),
+                progressive_report_download_url="sub-constituencies-progressive-csv",
+                admin_area_votes_per_candidate_report_url="sub-constituency-votes-per-candidate",
+                discrepancy_report_download_url="sub-constituencies-discrepancy-csv",
                 centers_stations_under_invg=centers_stations_under_invg,
                 centers_stations_ex_after_invg=centers_stations_ex_after_invg,
                 administrative_area_name=_("Sub Constituencies"),
                 region_name=region_name,
                 constituency_name=constituency_name,
-                sub_constituency_discrepancy_report_url=str(
-                    "sub-constituency-discrepancy-report"
-                ),
+                sub_constituency_discrepancy_report_url="sub-constituency-discrepancy-report",
             )
         )
 

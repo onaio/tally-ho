@@ -1,14 +1,15 @@
-import reversion
-from django.db import models
-from enumfields import EnumIntegerField
 import os
 
+import reversion
+from django.db import models
 from django.dispatch import receiver
+from enumfields import EnumIntegerField
 
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.disable_reason import DisableReason
 from tally_ho.libs.utils.templates import get_electrol_race_link
-from tally_ho.apps.tally.models.tally import Tally
+
 
 def bck_grnd_img_directory_path(instance, filename):
     # file will be uploaded to
@@ -40,7 +41,7 @@ class ElectrolRace(BaseModel):
                                         default="")
 
     def __str__(self):
-        return u'%s - %s' % (self.election_level, self.ballot_name)
+        return '%s - %s' % (self.election_level, self.ballot_name)
 
     @property
     def get_action_button(self):

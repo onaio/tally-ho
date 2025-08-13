@@ -17,12 +17,17 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
 from tally_ho.libs.views.errors import add_generic_error
-from tally_ho.libs.views.form_state import (form_in_intake_state,
-                                            form_in_state, safe_form_in_state)
-from tally_ho.libs.views.mixins import (GroupRequiredMixin,
-                                        PrintedResultFormMixin,
-                                        ReverseSuccessURLMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.form_state import (
+    form_in_intake_state,
+    form_in_state,
+    safe_form_in_state,
+)
+from tally_ho.libs.views.mixins import (
+    GroupRequiredMixin,
+    PrintedResultFormMixin,
+    ReverseSuccessURLMixin,
+    TallyAccessMixin,
+)
 from tally_ho.libs.views.session import session_matches_post_result_form
 
 INTAKE_DUPLICATE_ERROR_MESSAGE = _(
@@ -208,8 +213,8 @@ class EnterCenterView(LoginRequiredMixin,
 
             if is_error:
                 form = add_generic_error(center_form,
-                                         _(u"Ballot number do not match for "
-                                           u"center and form"))
+                                         _("Ballot number do not match for "
+                                           "center and form"))
                 return self.render_to_response(self.get_context_data(
                     form=form, header_text=_('Intake'),
                     result_form=result_form,

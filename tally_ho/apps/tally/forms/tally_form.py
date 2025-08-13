@@ -34,7 +34,7 @@ class TallyForm(forms.ModelForm):
         label=_('Administrators'),)
 
     def __init__(self, *args, **kwargs):
-        if 'instance' in kwargs and kwargs['instance']:
+        if kwargs.get('instance'):
             initial = kwargs.setdefault('initial', {})
             initial['administrators'] = [
                 admin.pk for admin in kwargs['instance'].administrators.all()]

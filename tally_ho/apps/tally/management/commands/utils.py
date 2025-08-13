@@ -1,5 +1,6 @@
-import duckdb
 from gettext import ngettext
+
+import duckdb
 from django.conf import settings
 from django.db import transaction
 
@@ -57,8 +58,7 @@ def generate_duckdb_electrol_race_str_query(electrol_race=None):
     :param electrol_race: electrol race queryset.
     :returns: string query."""
     col_names_to_model_field_map =\
-            getattr(settings,
-                    'BALLOT_COLS_TO_ELECTROL_RACE_MODEL_FIELDS_MAPPING')
+            settings.BALLOT_COLS_TO_ELECTROL_RACE_MODEL_FIELDS_MAPPING
     str_query = None
     for column_name in\
             list(col_names_to_model_field_map.keys()):
@@ -266,13 +266,13 @@ def check_duplicates(csv_file_path: str, field: str) -> None:
     """
     con = duckdb.connect()
 
-    query = """
+    query = f"""
         SELECT {field}, COUNT(*) AS cnt
         FROM read_csv_auto(?)
         WHERE {field} IS NOT NULL
         GROUP BY {field}
         HAVING cnt > 1
-    """.format(field=field)
+    """
 
     result = con.execute(query, [csv_file_path]).fetchall()
     con.close()

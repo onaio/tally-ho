@@ -1,12 +1,12 @@
+import reversion
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
-import reversion
 
-from tally_ho.apps.tally.models.tally import Tally
-from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.constituency import Constituency
+from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.dependencies import check_results_for_forms
 from tally_ho.libs.models.enums.center_type import CenterType
@@ -67,7 +67,7 @@ class Center(BaseModel):
             'Special')
 
     def __str__(self):
-        return u'%s - %s' % (self.code, self.name)
+        return '%s - %s' % (self.code, self.name)
 
     @property
     def status(self):

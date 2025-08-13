@@ -1,16 +1,11 @@
 from django import forms
-
-from django.forms import (
-    ModelForm,
-    ValidationError,
-    ModelChoiceField
-)
+from django.forms import ModelChoiceField, ModelForm, ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models import ResultForm
+from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
-from tally_ho.apps.tally.models.ballot import Ballot
 
 
 class EditResultForm(ModelForm):

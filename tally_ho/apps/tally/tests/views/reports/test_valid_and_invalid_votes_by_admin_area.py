@@ -5,19 +5,26 @@ from django.test import RequestFactory
 
 from tally_ho.apps.tally.views.reports import (
     ValidAndInvalidVotesByAdminAreasDataView,
-    ValidAndInvalidVotesByAdminAreasView)
+    ValidAndInvalidVotesByAdminAreasView,
+)
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
-                                           create_candidate_result,
-                                           create_center, create_constituency,
-                                           create_electrol_race, create_office,
-                                           create_reconciliation_form,
-                                           create_region, create_result_form,
-                                           create_station,
-                                           create_sub_constituency,
-                                           create_tally)
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_ballot,
+    create_candidate_result,
+    create_center,
+    create_constituency,
+    create_electrol_race,
+    create_office,
+    create_reconciliation_form,
+    create_region,
+    create_result_form,
+    create_station,
+    create_sub_constituency,
+    create_tally,
+)
 
 
 class TestValidAndInvalidVotesByAdminArea(TestBase):

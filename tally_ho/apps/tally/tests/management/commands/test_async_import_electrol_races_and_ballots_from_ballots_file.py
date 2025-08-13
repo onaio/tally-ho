@@ -1,14 +1,14 @@
-from django.test import TransactionTestCase
 from celery.contrib.testing.worker import start_worker
+from django.test import TransactionTestCase
 
+from tally_ho.apps.tally.management.commands.import_electrol_races_and_ballots import (
+    async_import_electrol_races_and_ballots_from_ballots_file as async_tsk,
+)
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
-from tally_ho.apps.tally.management.commands.import_electrol_races_and_ballots\
-    import (
-        async_import_electrol_races_and_ballots_from_ballots_file as async_tsk
-    )
-from tally_ho.libs.tests.test_base import create_tally
 from tally_ho.celeryapp import app
+from tally_ho.libs.tests.test_base import create_tally
+
 
 class ImportElectrolRacesAndBallotsTestCase(TransactionTestCase):
     @classmethod

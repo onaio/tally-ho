@@ -1,15 +1,13 @@
 name: Django CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  build-amd64:
+  test:
     runs-on: ubuntu-latest
 
     services:
-      # Label used to access the service container
       postgres:
-        # Docker Hub postgres image
         image: postgres:15-alpine
         env:
           POSTGRES_USER: postgres
@@ -17,59 +15,75 @@ jobs:
           POSTGRES_DB: tally
         ports:
           - 5432:5432
-        # Set health checks to wait until postgres has started
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    
     env:
-      # Connect Postgres service with custom container image
-      # https://github.community/t/connect-postgres-service-with-custom-container-image/189994
       POSTGRES_HOST: 127.0.0.1
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Python 3.9
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: Cache Dependencies
-        uses: actions/cache@v3
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/dev.pip') }}
-          path: ./venv
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('**/requirements/dev.pip') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
 
-      - name: Install Memcached
-        run: sudo apt-get update && sudo apt-get install -y memcached
-
-      - name: Start Memcached
-        run: sudo service memcached start
-
-      - name: Install Redis
-        run: sudo apt-get install -y redis-server
-  
-      - name: Start Redis
-        run: sudo service redis-server start
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y memcached redis-server
+          sudo service memcached start
+          sudo service redis-server start
 
       - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-        # Add uv to the PATH
-      - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
 
-      - name: Generate Report
+      - name: Create virtual environment
+        run: uv venv .venv
+
+      - name: Install Python dependencies
+        run: uv pip install -r requirements/dev.pip
+
+      - name: Run code quality checks
         run: |
-          uv venv
           source .venv/bin/activate
-          uv pip install -r requirements/dev.pip
-          python -m ruff check . --exit-non-zero-on-fix
-          python -m pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
-          coverage xml
-          ls -al
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          ruff check . --output-format=github
+          ruff format --check .
 
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Run tests with coverage
+        run: |
+          source .venv/bin/activate
+          python -m pytest tally_ho --doctest-modules --junitxml=junit.xml --cov=tally_ho --cov-report=xml --cov-report=html
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tally
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: junit.xml
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
           fail_ci_if_error: true

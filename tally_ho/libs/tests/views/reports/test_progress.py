@@ -2,10 +2,17 @@ from django.core.exceptions import ImproperlyConfigured
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.tests.test_base import create_result_form, \
-    create_center, create_tally, create_reconciliation_form, create_office,\
-    create_ballot, create_candidate, TestBase
 from tally_ho.libs.reports import progress
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_ballot,
+    create_candidate,
+    create_center,
+    create_office,
+    create_reconciliation_form,
+    create_result_form,
+    create_tally,
+)
 
 
 class TestProgress(TestBase):

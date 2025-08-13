@@ -28,17 +28,24 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
-from tally_ho.libs.tests.test_base import (TestBase, configure_messages,
-                                           create_audit, create_ballot,
-                                           create_candidate, create_candidates,
-                                           create_center, create_electrol_race,
-                                           create_quarantine_checks,
-                                           create_reconciliation_form,
-                                           create_result, create_result_form,
-                                           create_result_forms_per_form_state,
-                                           create_station,
-                                           create_sub_constituency,
-                                           create_tally)
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    configure_messages,
+    create_audit,
+    create_ballot,
+    create_candidate,
+    create_candidates,
+    create_center,
+    create_electrol_race,
+    create_quarantine_checks,
+    create_reconciliation_form,
+    create_result,
+    create_result_form,
+    create_result_forms_per_form_state,
+    create_station,
+    create_sub_constituency,
+    create_tally,
+)
 
 
 class TestSuperAdmin(TestBase):
@@ -201,7 +208,7 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         request.session = {}
         response = view(request, tally_id=tally.pk)
-        self.assertContains(response, u"Results exist for barcodes")
+        self.assertContains(response, "Results exist for barcodes")
         self.assertContains(response, result_form.barcode)
 
     def test_remove_center_link(self):
@@ -324,7 +331,7 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         request.session = {}
         response = view(request, tally_id=tally.pk)
-        self.assertContains(response, u"Results exist for barcodes")
+        self.assertContains(response, "Results exist for barcodes")
         self.assertContains(response, result_form.barcode)
 
     def test_remove_station_link(self):
@@ -476,16 +483,16 @@ class TestSuperAdmin(TestBase):
         self.assertFalse(response.context_data['form'].is_valid())
         self.assertEqual(
             response.context_data['form'].errors['center'][0],
-            str('This field is required.'))
+            'This field is required.')
         self.assertEqual(
             response.context_data['form'].errors['station_number'][0],
-            str('This field is required.'))
+            'This field is required.')
         self.assertEqual(
             response.context_data['form'].errors['gender'][0],
-            str('This field is required.'))
+            'This field is required.')
         self.assertEqual(
             response.context_data['form'].errors['sub_constituency'][0],
-            str('This field is required.'))
+            'This field is required.')
 
     def test_create_station_valid(self):
         tally = create_tally()
@@ -516,7 +523,7 @@ class TestSuperAdmin(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
             response['location'],
-            str('/data/center-list/{}/').format(tally.pk))
+            f'/data/center-list/{tally.pk}/')
 
     def test_disable_entity_view_post_station_invalid(self):
         tally = create_tally()
@@ -1741,7 +1748,7 @@ class TestSuperAdmin(TestBase):
 
     def test_quarantine_checks_config_list_view(self):
         tally = create_tally()
-        quarantine_data = getattr(settings, 'QUARANTINE_DATA')
+        quarantine_data = settings.QUARANTINE_DATA
         create_quarantine_checks(quarantine_data)
         quarantine_check = QuarantineCheck.objects.get(
             method='pass_card_check')

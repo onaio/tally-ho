@@ -1,7 +1,8 @@
-import duckdb
 import logging
 
+import duckdb
 from django.conf import settings
+
 from tally_ho.apps.tally.management.commands.utils import (
     build_generic_model_key_values_from_duckdb_row_tuple_data,
     check_duplicates,
@@ -16,12 +17,12 @@ from tally_ho.apps.tally.models.office import Office
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.celeryapp import app
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
+from tally_ho.libs.utils.memcache import MemCache
 from tally_ho.libs.utils.numbers import parse_int
 from tally_ho.libs.utils.query_set_helpers import BulkCreateManager
-from tally_ho.celeryapp import app
-from tally_ho.libs.utils.memcache import MemCache
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +91,7 @@ def create_result_forms_result_form_file_data(
         result_form_foreign_key_fields =\
                     ['center', 'office', 'ballot', 'gender']
         col_names_to_model_field_map =\
-            getattr(settings,
-                    'RESULT_FORM_FILE_COLS_NAMES_TO_RESULT_FORM_MODEL_FIELDS')
+            settings.RESULT_FORM_FILE_COLS_NAMES_TO_RESULT_FORM_MODEL_FIELDS
         result_forms_cols_names_list =\
             list(col_names_to_model_field_map.keys())
         result_forms_data =\
@@ -190,8 +190,7 @@ def async_import_results_forms_from_result_forms_file(
         file_path = csv_file_path
         duckdb_result_forms_data = duckdb.from_csv_auto(file_path, header=True)
         result_forms_col_names =\
-            getattr(settings,
-                    'RESULT_FORM_COLUMN_NAMES')
+            settings.RESULT_FORM_COLUMN_NAMES
         check_for_missing_columns(
             result_forms_col_names,
             duckdb_result_forms_data.columns,

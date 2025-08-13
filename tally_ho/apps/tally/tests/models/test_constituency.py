@@ -1,7 +1,10 @@
-from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import create_tally,\
-    create_constituency, TestBase
 from tally_ho.apps.tally.models.constituency import Constituency
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.test_base import (
+    TestBase,
+    create_constituency,
+    create_tally,
+)
 
 
 class TestConstituency(TestBase):

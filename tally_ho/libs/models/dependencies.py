@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 def check_results_for_forms(resultforms):
-    if list((resultforms.aggregate(Count('results')).values()))[0] > 0:
+    if list(resultforms.aggregate(Count('results')).values())[0] > 0:
         barcodes_with_results = [r.barcode for r in resultforms
                                  if r.results.count()]
 

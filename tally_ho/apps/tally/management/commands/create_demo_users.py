@@ -1,5 +1,4 @@
-from django.contrib.auth.models import Group
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import IntegrityError
 from django.utils.translation import gettext_lazy

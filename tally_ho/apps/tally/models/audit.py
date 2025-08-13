@@ -1,7 +1,7 @@
+import reversion
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
-import reversion
 
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm

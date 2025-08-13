@@ -27,7 +27,7 @@ class Tally(BaseModel):
         help_text='Enable/disable cover printing in Audit stage')
 
     def __str__(self):
-        return u'%d - %s' % (self.id, self.name)
+        return '%d - %s' % (self.id, self.name)
 
     @property
     def administer_button(self):

@@ -1,5 +1,6 @@
 import json
 
+
 def cache_model_instances_count_to_memcache(
         cache_key, instances_count, done=False, memcache_client=None):
     try:
