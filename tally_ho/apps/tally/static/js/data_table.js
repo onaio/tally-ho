@@ -130,6 +130,25 @@ $(document).ready(function () {
       ],
       responsive: enableResponsive,
       scrollX: enableScrollX,
+      /**
+       * Disables automatic column width calculations.
+       */
+      autoWidth: false,
+
+      /**
+       * Adjusts column widths on initial load.
+       */
+      initComplete: function(settings, json) {
+        $(this.api().table().container()).find('table').DataTable().columns.adjust();
+      },
+
+      /**
+       * Adjusts column widths on every redraw.
+       */
+      drawCallback: function(settings) {
+        $(this.api().table().container()).find('table').DataTable().columns.adjust();
+      }
+
     });
     return table;
   }
