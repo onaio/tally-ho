@@ -1990,3 +1990,135 @@ class TestSuperAdmin(TestBase):
             tally_id=tally.id
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_tuple_column_sorting_no_error(self):
+        """Test that sorting by tuple columns doesn't cause AttributeError."""
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
+        view = views.FormProgressByFormStateDataView.as_view()
+
+        # Test sorting by a tuple column (intake - column 7)
+        request = self.factory.post('/', {
+            'order[0][column]': '7',  # intake tuple column
+            'order[0][dir]': 'asc',
+            'start': '0',
+            'length': '10'
+        })
+        request.user = self.user
+        request.session = {}
+
+        # This should not raise AttributeError: 'tuple' object has no
+        # attribute 'replace'
+        response = view(request, tally_id=self.tally.pk)
+        self.assertEqual(response.status_code, 200)
+
+        # Test sorting by another tuple column (data_entry_1 - column 8)
+        request = self.factory.post('/', {
+            'order[0][column]': '8',
+            'order[0][dir]': 'desc',
+            'start': '0',
+            'length': '10'
+        })
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, tally_id=self.tally.pk)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_order_columns_maps_tuples_correctly(self):
+        """Test that get_order_columns properly maps tuple columns to sort
+        fields."""
+        view = views.FormProgressByFormStateDataView()
+        order_columns = view.get_order_columns()
+
+        # Check that we have the right number of columns
+        self.assertEqual(len(order_columns), len(view.columns))
+
+        # Test specific tuple column mappings
+        expected_mappings = {
+            7: 'intake_sort_ratio',
+            8: 'data_entry_1_sort_ratio',
+            9: 'data_entry_2_sort_ratio',
+            10: 'correction_sort_ratio',
+            11: 'quality_control_sort_ratio',
+            12: 'archived_sort_ratio'
+        }
+
+        for index, expected_field in expected_mappings.items():
+            self.assertEqual(order_columns[index], expected_field)
+            # Verify the original column is indeed a tuple
+            self.assertIsInstance(view.columns[index], tuple)
+
+        # Test that string columns remain unchanged
+        string_column_indices = [0, 1, 2, 3, 4, 5, 6, 13, 14]
+        for index in string_column_indices:
+            self.assertEqual(order_columns[index], view.columns[index])
+            self.assertIsInstance(view.columns[index], str)
+
+    def test_string_column_sorting_still_works(self):
+        """Test that sorting by string columns continues to work correctly."""
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
+        view = views.FormProgressByFormStateDataView.as_view()
+
+        # Test sorting by string columns (sub_con_name - column 0)
+        request = self.factory.post('/', {
+            'order[0][column]': '0',
+            'order[0][dir]': 'asc',
+            'start': '0',
+            'length': '10'
+        })
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, tally_id=self.tally.pk)
+        self.assertEqual(response.status_code, 200)
+
+        # Test sorting by another string column (office - column 2)
+        request = self.factory.post('/', {
+            'order[0][column]': '2',
+            'order[0][dir]': 'desc',
+            'start': '0',
+            'length': '10'
+        })
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, tally_id=self.tally.pk)
+        self.assertEqual(response.status_code, 200)
+
+    def test_tuple_sort_ratio_annotations_created(self):
+        """Test that tuple sort ratio annotations are properly created in
+        queryset."""
+        create_result_forms_per_form_state(
+            tally=self.tally,
+            electrol_race=self.electrol_race,
+        )
+
+        view = views.FormProgressByFormStateDataView()
+        view.kwargs = {'tally_id': self.tally.pk}
+        view.request = self.factory.get('/')
+        view.request.POST = {}
+
+        # Get the queryset and verify annotations exist
+        qs = view.get_initial_queryset()
+        filtered_qs = view.filter_queryset(qs)
+
+        # Check that the queryset has our tuple sort ratio annotations
+        expected_annotations = [
+            'intake_sort_ratio',
+            'data_entry_1_sort_ratio',
+            'data_entry_2_sort_ratio',
+            'correction_sort_ratio',
+            'quality_control_sort_ratio',
+            'archived_sort_ratio'
+        ]
+
+        # Get the SQL query to check for our annotations
+        query_str = str(filtered_qs.query)
+        for annotation in expected_annotations:
+            self.assertIn(annotation, query_str)
