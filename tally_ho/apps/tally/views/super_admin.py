@@ -5,8 +5,9 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import SuspiciousOperation
-from django.db.models import Count, F, Q
+from django.db.models import Case, Count, F, FloatField, Q, Value, When
 from django.db.models.deletion import ProtectedError
+from django.db.models.functions import Cast
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -764,6 +765,23 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                     f"{state.name.lower()}_unprocessed"] = Count(
                     'barcode', filter=Q(form_state__in=unprocessed_states))
 
+        # Add custom annotations for tuple column sorting
+        # Find all tuple columns and create sort ratio annotations
+        tuple_annotations = {}
+        for column in self.columns:
+            if isinstance(column, tuple) and len(column) == 2:
+                field_name = f"{column[0]}_sort_ratio"
+                # Calculate ratio: first_value / (second_value + 1) to avoid
+                # division by zero
+                # Adding 1 to denominator ensures we never divide by zero
+                tuple_annotations[field_name] = Case(
+                    When(**{f"{column[1]}__gt": 0},
+                         then=Cast(column[0], FloatField()) /
+                         (Cast(column[1], FloatField()) + Value(1.0))),
+                    default=Cast(column[0], FloatField()),
+                    output_field=FloatField()
+                )
+
         qs = qs.annotate(
             sub_con_code=F("center__sub_constituency__code")).values(
             'sub_con_code') \
@@ -773,9 +791,27 @@ class FormProgressByFormStateDataView(LoginRequiredMixin,
                 sub_race=F("ballot__electrol_race__ballot_name"),
                 total_forms=Count("barcode"),
                 office=F("center__office__name"),
-                **count_by_form_state_queries
+                **count_by_form_state_queries,
+                **tuple_annotations
             )
         return qs
+
+    def get_order_columns(self):
+        """
+        Override to handle tuple columns that cause AttributeError in ordering.
+        Convert tuple columns to their corresponding sort ratio field names.
+        """
+        order_columns = []
+        for column in self.columns:
+            if isinstance(column, tuple) and len(column) == 2:
+                # Use the sort ratio field name for tuple columns
+                field_name = f"{column[0]}_sort_ratio"
+                order_columns.append(field_name)
+            else:
+                # Use the original column name for string columns
+                order_columns.append(column)
+        return order_columns
+
 
     def render_column(self, row, column):
         tally_id = self.kwargs.get('tally_id')
