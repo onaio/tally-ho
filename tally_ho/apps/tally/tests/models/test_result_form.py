@@ -1,29 +1,28 @@
 from django.utils.translation import gettext_lazy as _
-from tally_ho.apps.tally.models.result import Result
-from tally_ho.apps.tally.models.result_form import \
-    sanity_check_final_results
+
+from tally_ho.apps.tally.models import ResultForm, Station, WorkflowRequest
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
-from tally_ho.libs.models.enums.entry_version import EntryVersion
-from tally_ho.libs.tests.test_base import (
-    create_reconciliation_form,
-    create_result_form, create_result, create_candidates, create_audit,
-    create_tally, create_center, create_station, create_ballot,
-    create_electrol_race, create_candidate, create_clearance,
-    create_sub_constituency, create_office, create_region,
-    TestBase
-    )
-from tally_ho.apps.tally.models import (
-    ResultForm, Station, WorkflowRequest
-)
-from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.gender import Gender
+from tally_ho.apps.tally.models.result import Result
+from tally_ho.apps.tally.models.result_form import sanity_check_final_results
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
+from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.models.enums.request_reason import RequestReason
 from tally_ho.libs.models.enums.request_type import RequestType
-
+from tally_ho.libs.tests.test_base import (TestBase, create_audit,
+                                           create_ballot, create_candidate,
+                                           create_candidates, create_center,
+                                           create_clearance,
+                                           create_electrol_race, create_office,
+                                           create_reconciliation_form,
+                                           create_region, create_result,
+                                           create_result_form, create_station,
+                                           create_sub_constituency,
+                                           create_tally)
 
 
 class TestResultForm(TestBase):
@@ -366,6 +365,64 @@ class TestResultForm(TestBase):
             candidate=candidate2,
             entry_version=EntryVersion.DATA_ENTRY_2).update(votes=25)
         self.assertFalse(result_form.results_match)
+
+    def test_get_matched_results_tracks_previous_state_on_count_mismatch(self):
+        """Test get_matched_results tracks previous_form_state on mismatch."""
+        from django.core.exceptions import SuspiciousOperation
+
+        from tally_ho.apps.tally.models.result import Result
+        from tally_ho.apps.tally.models.result_form import get_matched_results
+
+        result_form = create_result_form(
+            form_state=FormState.CORRECTION,
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number
+        )
+        initial_state = result_form.form_state
+
+        # Create mismatched result counts (2 for DE1, 1 for DE2)
+        candidate1 = create_candidate(self.ballot, "cand1", tally=self.tally)
+        candidate2 = create_candidate(self.ballot, "cand2", tally=self.tally)
+
+        Result.objects.create(
+            result_form=result_form,
+            user=self.user,
+            candidate=candidate1,
+            votes=10,
+            entry_version=EntryVersion.DATA_ENTRY_1
+        )
+        Result.objects.create(
+            result_form=result_form,
+            user=self.user,
+            candidate=candidate2,
+            votes=20,
+            entry_version=EntryVersion.DATA_ENTRY_1
+        )
+        Result.objects.create(
+            result_form=result_form,
+            user=self.user,
+            candidate=candidate1,
+            votes=10,
+            entry_version=EntryVersion.DATA_ENTRY_2
+        )
+        # Missing second DATA_ENTRY_2 result - count mismatch!
+
+        results = result_form.results.all()
+
+        # Should raise exception due to count mismatch
+        with self.assertRaises(SuspiciousOperation) as cm:
+            get_matched_results(result_form, results)
+
+        # Verify the exception message
+        self.assertIn("Unexpected number of results", str(cm.exception))
+
+        # Reload and verify tracking
+        result_form.refresh_from_db()
+        self.assertEqual(result_form.previous_form_state, initial_state)
+        # reject() sets form_state to DATA_ENTRY_1
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
 
     def test_corrections_passed_property(self):
         """Test the corrections_passed property under various conditions."""

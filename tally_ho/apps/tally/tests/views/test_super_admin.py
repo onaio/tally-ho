@@ -109,6 +109,9 @@ class TestSuperAdmin(TestBase):
         result_form.reload()
         self.assertFalse(audit.active)
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        # Verify user tracking
+        self.assertEqual(result_form.previous_form_state, FormState.AUDIT)
+        self.assertEqual(result_form.user, self.user.userprofile)
         self.assertTrue(result_form.skip_quarantine_checks)
 
         self.assertEqual(len(result_form.results.all()), 20)
@@ -1291,6 +1294,8 @@ class TestSuperAdmin(TestBase):
             barcode=barcode,
             center=center,
             station_number=station.station_number)
+        # Store initial state for tracking verification
+        initial_state = result_form.form_state
         votes = 12
         create_candidates(result_form, votes=votes, user=self.user,
                           num_results=1)
@@ -1308,7 +1313,15 @@ class TestSuperAdmin(TestBase):
         self.assertIn(
             "/super-administrator/duplicate-result-tracking", response.url)
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+        # Verify previous_form_state and user tracking
+        self.assertEqual(result_form.previous_form_state, initial_state)
+        self.assertEqual(result_form.user, self.user.userprofile)
         self.assertTrue(result_form.duplicate_reviewed)
+
+        # Verify Clearance was created
+        from tally_ho.apps.tally.models.clearance import Clearance
+        clearance = Clearance.objects.get(result_form=result_form)
+        self.assertEqual(clearance.user, self.user.userprofile)
 
         # check archived form is not sent to clearance
         result_form_2 = create_result_form(
@@ -1350,6 +1363,8 @@ class TestSuperAdmin(TestBase):
             ballot=ballot,
             center=center,
             station_number=station.station_number)
+        # Store initial states for tracking verification
+        initial_state_1 = result_form_1.form_state
         result_form_2 = create_result_form(
             ballot=ballot,
             barcode=barcode,
@@ -1361,6 +1376,7 @@ class TestSuperAdmin(TestBase):
             gender=Gender.MALE,
             is_replacement=False,
             tally=tally,)
+        initial_state_2 = result_form_2.form_state
         votes = 12
         create_candidates(result_form_1, votes=votes, user=self.user,
                           num_results=1)
@@ -1383,9 +1399,22 @@ class TestSuperAdmin(TestBase):
         self.assertIn(
             "/super-administrator/duplicate-result-tracking", response.url)
         self.assertEqual(result_form_1.form_state, FormState.CLEARANCE)
+        # Verify previous_form_state and user tracking for form 1
+        self.assertEqual(result_form_1.previous_form_state, initial_state_1)
+        self.assertEqual(result_form_1.user, self.user.userprofile)
         self.assertTrue(result_form_1.duplicate_reviewed)
         self.assertEqual(result_form_2.form_state, FormState.CLEARANCE)
+        # Verify previous_form_state and user tracking for form 2
+        self.assertEqual(result_form_2.previous_form_state, initial_state_2)
+        self.assertEqual(result_form_2.user, self.user.userprofile)
         self.assertTrue(result_form_2.duplicate_reviewed)
+
+        # Verify Clearance was created for both forms
+        from tally_ho.apps.tally.models.clearance import Clearance
+        clearance_1 = Clearance.objects.get(result_form=result_form_1)
+        self.assertEqual(clearance_1.user, self.user.userprofile)
+        clearance_2 = Clearance.objects.get(result_form=result_form_2)
+        self.assertEqual(clearance_2.user, self.user.userprofile)
 
     def test_duplicate_archived_result_forms_send_all_clearance_post(self):
         tally = create_tally()

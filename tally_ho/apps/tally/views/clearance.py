@@ -26,7 +26,7 @@ from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
 
 
-def clearance_action(post_data, clearance, result_form, url):
+def clearance_action(post_data, clearance, result_form, url, user):
     if "forward" in post_data:
         # forward to supervisor
         clearance.reviewed_team = True
@@ -54,6 +54,9 @@ def clearance_action(post_data, clearance, result_form, url):
             == ClearanceResolution.RESET_TO_PREINTAKE
         ):
             clearance.active = False
+            # Track previous state and user before changing form state
+            result_form.previous_form_state = result_form.form_state
+            result_form.user = user.userprofile
             result_form.form_state = FormState.UNSUBMITTED
             result_form.duplicate_reviewed = False
             if result_form.is_replacement:
@@ -231,7 +234,7 @@ class ReviewView(
         if form.is_valid():
             clearance = get_clearance(result_form, post_data, user, form)
             url = clearance_action(
-                post_data, clearance, result_form, self.success_url
+                post_data, clearance, result_form, self.success_url, user
             )
 
             return redirect(url, tally_id=tally_id)
@@ -423,10 +426,22 @@ class AddClearanceFormView(
         accept_submit_text_in_post_data = "accept_submit" in post_data
 
         if accept_submit_text_in_post_data:
-            result_form.reject(FormState.CLEARANCE)
+            reject_reason = _(
+                    str(
+                        "Clearance case created by user: "
+                        f"{self.request.user.userprofile.username}"
+                    )
+                )
+
+            result_form.previous_form_state = result_form.form_state
+            result_form.user = self.request.user.userprofile
+            result_form.reject(
+                new_state=FormState.CLEARANCE, reject_reason=reject_reason
+            )
             Clearance.objects.create(
                 result_form=result_form, user=self.request.user.userprofile
             )
+            result_form.save()
 
         result_form.date_seen = now()
         result_form.save()

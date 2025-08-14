@@ -16,6 +16,7 @@ from tally_ho.apps.tally.forms.audit_form import AuditForm
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
@@ -95,7 +96,18 @@ def audit_action(audit, post_data, result_form, url):
         elif audit.resolution_recommendation ==\
                 AuditResolution.SEND_TO_CLEARANCE:
             audit.active = False
-            result_form.reject(new_state=FormState.CLEARANCE)
+            reject_reason = _(
+                str(
+                    "Audit action send to clearance by user: "
+                    f"{result_form.user.username}"
+                )
+            )
+            result_form.reject(
+                new_state=FormState.CLEARANCE, reject_reason=reject_reason
+            )
+            Clearance.objects.create(
+                result_form=result_form, user=result_form.user
+            )
         elif audit.action_prior_to_recommendation in\
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
                  ActionsPrior.REQUEST_COPY_FROM_FIELD]:
@@ -287,6 +299,8 @@ class ReviewView(LoginRequiredMixin,
 
         if form.is_valid():
             user = self.request.user
+            result_form.user = user.userprofile
+            result_form.previous_form_state = result_form.form_state
             audit = create_or_get_audit(post_data,
                                         user.userprofile,
                                         result_form,
@@ -428,7 +442,18 @@ class CreateAuditView(LoginRequiredMixin,
             if form:
                 return self.form_invalid(form)
 
-            result_form.reject(new_state=FormState.AUDIT)
+            result_form.previous_form_state = result_form.form_state
+            result_form.user = self.request.user.userprofile
+            reject_reason = _(
+                str(
+                    "Audit case created by user: "
+                    f"{self.request.user.userprofile.username}"
+                )
+            )
+            result_form.reject(
+                new_state=FormState.AUDIT,
+                reject_reason=reject_reason,
+            )
             result_form.audited_count += 1
             result_form.save()
 

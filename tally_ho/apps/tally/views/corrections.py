@@ -334,8 +334,9 @@ class CorrectionMatchView(
 
             save_final_results(result_form, self.request.user)
             save_unchanged_final_recon_form(result_form, self.request.user)
-
+            result_form.previous_form_state = result_form.form_state
             result_form.form_state = FormState.QUALITY_CONTROL
+            result_form.user = self.request.user.userprofile
             result_form.save()
 
             encoded_start_time = self.request.session.get(
@@ -420,6 +421,8 @@ class CorrectionRequiredView(
 
                 return redirect(self.failed_url, tally_id=tally_id)
             else:
+                result_form.previous_form_state = result_form.form_state
+                result_form.user = self.request.user.userprofile
                 result_form.form_state = FormState.QUALITY_CONTROL
                 result_form.save()
 

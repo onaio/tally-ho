@@ -51,6 +51,7 @@ def get_matched_results(result_form, results):
         raise SuspiciousOperation(_(u"Result Form has no double entries."))
 
     if results_v1.count() != results_v2.count():
+        result_form.previous_form_state = result_form.form_state
         result_form.reject()
 
         raise SuspiciousOperation(_(

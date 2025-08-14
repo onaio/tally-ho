@@ -1,15 +1,16 @@
-from django.core.exceptions import PermissionDenied
-from django.core.serializers.json import json, DjangoJSONEncoder
-from django.contrib.auth.models import AnonymousUser
-from django.test import RequestFactory
-from django.utils import timezone
 import csv
 
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
+from django.core.serializers.json import DjangoJSONEncoder, json
+from django.test import RequestFactory
+from django.utils import timezone
+
+from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
+from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 from tally_ho.apps.tally.views import audit as views
-from tally_ho.apps.tally.models.audit import Audit
-from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
-from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.form_state import FormState
@@ -17,15 +18,11 @@ from tally_ho.libs.models.enums.request_reason import RequestReason
 from tally_ho.libs.models.enums.request_status import RequestStatus
 from tally_ho.libs.models.enums.request_type import RequestType
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (
-    create_audit,
-    create_result_form,
-    create_recon_forms,
-    create_candidates,
-    create_reconciliation_form,
-    create_tally,
-    TestBase
-)
+from tally_ho.libs.tests.test_base import (TestBase, create_audit,
+                                           create_candidates,
+                                           create_recon_forms,
+                                           create_reconciliation_form,
+                                           create_result_form, create_tally)
 
 
 class TestAudit(TestBase):
@@ -198,6 +195,8 @@ class TestAudit(TestBase):
         tally.users.add(self.user)
         result_form = create_result_form(form_state=FormState.AUDIT,
                                          tally=tally)
+        # Store initial state for tracking verification
+        initial_state = result_form.form_state
 
         view = views.ReviewView.as_view()
         data = {'result_form': result_form.pk,
@@ -209,6 +208,13 @@ class TestAudit(TestBase):
         response = view(request, tally_id=tally.pk)
 
         self.assertEqual(response.status_code, 302)
+
+        # Reload to get updated values
+        result_form.refresh_from_db()
+
+        # Verify tracking - ReviewView sets user and previous_form_state
+        self.assertEqual(result_form.user, self.user.userprofile)
+        self.assertEqual(result_form.previous_form_state, initial_state)
 
         audit = result_form.audit
         self.assertEqual(audit.user, self.user)
@@ -657,6 +663,9 @@ class TestAudit(TestBase):
 
             self.assertEqual(response.status_code, 302)
             self.assertEqual(result_form.form_state, FormState.AUDIT)
+            # Verify previous_form_state and user tracking
+            self.assertEqual(result_form.previous_form_state, form_state)
+            self.assertEqual(result_form.user, self.user.userprofile)
             self.assertEqual(result_form.audited_count, 1)
             self.assertEqual(result_form.audit.user, self.user)
 
@@ -723,6 +732,9 @@ class TestAudit(TestBase):
 
             self.assertEqual(response.status_code, 302)
             self.assertEqual(result_form.form_state, FormState.AUDIT)
+            # Verify previous_form_state and user tracking
+            self.assertEqual(result_form.previous_form_state, form_state)
+            self.assertEqual(result_form.user, self.user.userprofile)
             self.assertEqual(result_form.audited_count, 1)
             self.assertEqual(result_form.audit.user, self.user)
 
@@ -810,6 +822,99 @@ class TestAudit(TestBase):
         self.assertNotIn('result_form', request.session)
         self.assertTrue(ResultFormStats.objects.filter(
             result_form=result_form, user=self.user.userprofile).exists())
+
+    def test_audit_action_send_to_clearance(self):
+        """Test audit_action creates Clearance when SEND_TO_CLEARANCE."""
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_SUPERVISOR)
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        # Create a result form in AUDIT state
+        result_form = create_result_form(
+            form_state=FormState.AUDIT,
+            tally=tally
+        )
+        create_reconciliation_form(result_form, self.user)
+        create_candidates(result_form, self.user)
+
+        # Store initial state
+        initial_state = result_form.form_state
+
+        # Create audit with SEND_TO_CLEARANCE resolution
+        audit = create_audit(result_form, self.user, reviewed_team=True)
+        audit.resolution_recommendation = AuditResolution.SEND_TO_CLEARANCE
+        audit.reviewed_supervisor = True
+        audit.save()
+
+        # Import Clearance model to check creation
+        from tally_ho.apps.tally.models.clearance import Clearance
+
+        # Verify no clearance exists yet
+        self.assertEqual(
+            Clearance.objects.filter(result_form=result_form).count(), 0
+        )
+
+        # Prepare the view and data for ReviewView which calls audit_action
+        view = views.ReviewView.as_view()
+        data = {
+            'result_form': result_form.pk,
+            'action_prior_to_recommendation': 0,  # No action prior
+            'resolution_recommendation': 5,  # SEND_TO_CLEARANCE
+            'implement': 1,  # Implement the resolution
+            'tally_id': tally.pk,
+        }
+
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        data['encoded_result_form_audit_start_time'] = (
+            self.encoded_result_form_audit_start_time
+        )
+        request.session = data
+
+        # Execute the view which triggers audit_action
+        response = view(request, tally_id=tally.pk)
+
+        # Verify response is redirect
+        self.assertEqual(response.status_code, 302)
+
+        # Reload result form to get updated state
+        result_form.refresh_from_db()
+
+        # Verify form state changed to CLEARANCE
+        self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+
+        # Verify previous_form_state tracking
+        self.assertEqual(result_form.previous_form_state, initial_state)
+
+        # Verify user tracking
+        self.assertEqual(result_form.user, self.user.userprofile)
+
+        # Verify reject_reason was set
+        self.assertIn(
+            "Audit action send to clearance", result_form.reject_reason
+        )
+        self.assertIn(self.user.username, result_form.reject_reason)
+
+        # Verify Clearance was created
+        clearances = Clearance.objects.filter(result_form=result_form)
+        self.assertEqual(clearances.count(), 1)
+
+        # Verify clearance details
+        clearance = clearances.first()
+        self.assertEqual(clearance.user, self.user.userprofile)
+        self.assertTrue(clearance.active)
+
+        # Verify audit is deactivated
+        audit.refresh_from_db()
+        self.assertFalse(audit.active)
+
+        # Verify results and recon forms are deactivated (due to reject)
+        for result in result_form.results.all():
+            self.assertFalse(result.active)
+
+        for recon in result_form.reconciliationform_set.all():
+            self.assertFalse(recon.active)
 
 
 class TestAuditRecallRequestsCsvView(TestBase):

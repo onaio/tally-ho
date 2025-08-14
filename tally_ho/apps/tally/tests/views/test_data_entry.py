@@ -11,17 +11,11 @@ from tally_ho.apps.tally.views import data_entry as views
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (
-    TestBase,
-    center_data,
-    create_candidate,
-    create_center,
-    create_result_form,
-    create_station,
-    create_tally,
-    result_form_data,
-    result_form_data_blank,
-)
+from tally_ho.libs.tests.test_base import (TestBase, center_data,
+                                           create_candidate, create_center,
+                                           create_result_form, create_station,
+                                           create_tally, result_form_data,
+                                           result_form_data_blank)
 
 
 class TestDataEntry(TestBase):
@@ -332,6 +326,14 @@ class TestDataEntry(TestBase):
         clearance = Clearance.objects.get(result_form=result_form)
         self.assertEqual(clearance.user, self.user.userprofile)
 
+        # Verify previous_form_state and user tracking
+        result_form.refresh_from_db()
+        self.assertEqual(
+            result_form.previous_form_state, FormState.DATA_ENTRY_1
+        )
+        self.assertEqual(result_form.user, self.user.userprofile)
+        self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+
     def test_enter_results_success_data_entry_one(self):
         self._create_and_login_user()
         tally = create_tally()
@@ -359,6 +361,11 @@ class TestDataEntry(TestBase):
         self.assertIn("data-entry", response["location"])
         result_form.reload()
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_2)
+        # Verify previous_form_state and user tracking
+        self.assertEqual(
+            result_form.previous_form_state, FormState.DATA_ENTRY_1
+        )
+        self.assertEqual(result_form.user, self.user.userprofile)
 
         reconciliation_forms = result_form.reconciliationform_set.all()
         self.assertEqual(len(reconciliation_forms), 1)
@@ -402,6 +409,11 @@ class TestDataEntry(TestBase):
         self.assertIn("data-entry", response["location"])
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state, FormState.CORRECTION)
+        # Verify previous_form_state and user tracking
+        self.assertEqual(
+            updated_result_form.previous_form_state, FormState.DATA_ENTRY_2
+        )
+        self.assertEqual(updated_result_form.user, self.user.userprofile)
 
         reconciliation_forms = updated_result_form.reconciliationform_set.all()
         self.assertEqual(len(reconciliation_forms), 1)

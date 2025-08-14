@@ -578,6 +578,8 @@ class TestIntake(TestBase):
                 self.assertEqual(
                     oneDuplicateForm.form_state, FormState.CLEARANCE
                 )
+                # Verify user tracking
+                self.assertEqual(oneDuplicateForm.user, self.user.userprofile)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
             replacement_result_form.previous_form_state, FormState.INTAKE
@@ -585,6 +587,8 @@ class TestIntake(TestBase):
         self.assertEqual(
             replacement_result_form.form_state, FormState.CLEARANCE
         )
+        # Verify user tracking
+        self.assertEqual(replacement_result_form.user, self.user.userprofile)
         self.assertEqual(
             replacement_result_form.station_number, station.station_number
         )
@@ -616,10 +620,14 @@ class TestIntake(TestBase):
                 self.assertEqual(
                     oneDuplicateForm.form_state, FormState.CLEARANCE
                 )
+                # Verify user tracking
+                self.assertEqual(oneDuplicateForm.user, self.user.userprofile)
         self.assertEqual(
             result_form.previous_form_state, FormState.DATA_ENTRY_1
         )
         self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+        # Verify user tracking
+        self.assertEqual(result_form.user, self.user.userprofile)
 
     def test_check_center_details(self):
         self._create_and_login_user()
@@ -780,6 +788,12 @@ class TestIntake(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/intake", response["location"])
 
+        # Verify result form state change to UNSUBMITTED
+        updated_result_form = ResultForm.objects.get(pk=result_form.pk)
+        self.assertEqual(updated_result_form.form_state, FormState.UNSUBMITTED)
+        # Verify user tracking
+        self.assertEqual(updated_result_form.user, self.user.userprofile)
+
     def _create_or_login_intake_clerk(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
@@ -808,6 +822,8 @@ class TestIntake(TestBase):
         # Verify result form state change
         updated_result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(updated_result_form.form_state, FormState.CLEARANCE)
+        # Verify user tracking
+        self.assertEqual(updated_result_form.user, self.user.userprofile)
 
         # Verify Clearance object was created
         from tally_ho.apps.tally.models.clearance import Clearance
@@ -902,6 +918,8 @@ class TestIntake(TestBase):
         self.assertEqual(
             updated_result_form.form_state, FormState.DATA_ENTRY_1
         )
+        # Verify user tracking
+        self.assertEqual(updated_result_form.user, self.user.userprofile)
         self.assertEqual(request.session.get("result_form"), result_form.pk)
 
     def test_print_cover_get_with_no_print_cover_in_intake(self):
@@ -927,6 +945,8 @@ class TestIntake(TestBase):
         self.assertEqual(
             updated_result_form.form_state, FormState.DATA_ENTRY_1
         )
+        # Verify user tracking
+        self.assertEqual(updated_result_form.user, self.user.userprofile)
         self.assertFalse(updated_result_form.duplicate_reviewed)
         self.assertEqual(request.session.get("result_form"), result_form.pk)
 

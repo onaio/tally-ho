@@ -209,6 +209,8 @@ class QualityControlDashboardView(
                 quality_control.passed_qc = False
                 quality_control.passed_reconciliation = False
                 quality_control.active = False
+                result_form.previous_form_state = result_form.form_state
+                result_form.user = self.request.user.userprofile
                 result_form.reject()
 
                 url = "quality-control-reject"
@@ -263,9 +265,11 @@ class PrintView(
         # Check if cover printing is enabled for quality control
         if not result_form.tally.print_cover_in_quality_control:
             # If printing is disabled, move directly to next state
+            result_form.previous_form_state = result_form.form_state
             result_form.form_state = (
                 FormState.AUDIT if result_form.audit else FormState.ARCHIVED
             )
+            result_form.user = self.request.user.userprofile
             result_form.save()
             return redirect(self.success_url, tally_id=result_form.tally.id)
 
@@ -285,9 +289,11 @@ class PrintView(
         form_in_state(result_form, FormState.QUALITY_CONTROL)
         tally_id = kwargs.get("tally_id")
 
+        result_form.previous_form_state = result_form.form_state
         result_form.form_state = (
             FormState.AUDIT if result_form.audit else FormState.ARCHIVED
         )
+        result_form.user = self.request.user.userprofile
         result_form.save()
 
         return redirect(self.success_url, tally_id=tally_id)
@@ -364,6 +370,8 @@ class ConfirmFormResetView(
             quality_control.passed_qc = False
             quality_control.passed_reconciliation = False
             quality_control.active = False
+            result_form.previous_form_state = result_form.form_state
+            result_form.user = self.request.user.userprofile
             result_form.reject(reject_reason=reject_reason)
             quality_control.save()
 

@@ -37,6 +37,7 @@ from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result import Result
@@ -563,8 +564,21 @@ class DuplicateResultFormView(LoginRequiredMixin,
             result_form = get_object_or_404(
                 ResultForm, pk=pk, tally__id=tally_id)
             if result_form.form_state != FormState.ARCHIVED:
+                reject_reason = _(
+                    str(
+                        "Form has duplicate results."
+                    )
+                )
+
+                result_form.previous_form_state = result_form.form_state
+                result_form.user = self.request.user.userprofile
+                result_form.reject(
+                    new_state=FormState.CLEARANCE, reject_reason=reject_reason
+                )
                 result_form.duplicate_reviewed = True
-                result_form.form_state = FormState.CLEARANCE
+                Clearance.objects.create(
+                    result_form=result_form, user=self.request.user.userprofile
+                )
                 result_form.save()
 
                 self.success_message = \
@@ -583,8 +597,25 @@ class DuplicateResultFormView(LoginRequiredMixin,
             archived_forms_barcodes = []
             for results_form_duplicate in results_form_duplicates:
                 if results_form_duplicate.form_state != FormState.ARCHIVED:
+                    reject_reason = _(
+                        str(
+                            "Form has duplicate results."
+                        )
+                    )
+
+                    results_form_duplicate.previous_form_state =\
+                        results_form_duplicate.form_state
+                    results_form_duplicate.user =\
+                        self.request.user.userprofile
+                    results_form_duplicate.reject(
+                        new_state=FormState.CLEARANCE,
+                        reject_reason=reject_reason
+                    )
                     results_form_duplicate.duplicate_reviewed = True
-                    results_form_duplicate.form_state = FormState.CLEARANCE
+                    Clearance.objects.create(
+                        result_form=results_form_duplicate,
+                        user=self.request.user.userprofile
+                    )
                     results_form_duplicate.save()
                 else:
                     archived_forms_barcodes.append(
@@ -940,6 +971,8 @@ class FormActionView(LoginRequiredMixin,
         if 'review' in post_data:
             return redirect('audit-review', tally_id=tally_id)
         elif 'confirm' in post_data:
+            result_form.previous_form_state = result_form.form_state
+            result_form.user = self.request.user.userprofile
             result_form.reject()
             result_form.skip_quarantine_checks = True
             result_form.save()

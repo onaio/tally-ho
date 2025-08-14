@@ -19,22 +19,15 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
-from tally_ho.libs.tests.test_base import (
-    TestBase,
-    create_ballot,
-    create_candidates,
-    create_center,
-    create_clearance,
-    create_constituency,
-    create_electrol_race,
-    create_office,
-    create_recon_forms,
-    create_region,
-    create_result_form,
-    create_station,
-    create_sub_constituency,
-    create_tally,
-)
+from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
+                                           create_candidates, create_center,
+                                           create_clearance,
+                                           create_constituency,
+                                           create_electrol_race, create_office,
+                                           create_recon_forms, create_region,
+                                           create_result_form, create_station,
+                                           create_sub_constituency,
+                                           create_tally)
 
 SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 
@@ -461,11 +454,14 @@ class TestClearance(TestBase):
         self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
         tally.users.add(self.user)
 
+        # Store the current state before implementing resolution
+        initial_state = result_form.form_state
+
         view = views.ReviewView.as_view()
         data = {
             "result_form": result_form.pk,
             "action_prior_to_recommendation": 1,
-            "resolution_recommendation": 3,
+            "resolution_recommendation": 3,  # RESET_TO_PREINTAKE
             "implement": 1,
             "tally_id": tally.pk,
         }
@@ -491,6 +487,11 @@ class TestClearance(TestBase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+        # Verify tracking fields set when implementing RESET_TO_PREINTAKE
+        self.assertEqual(result_form.previous_form_state, initial_state)
+        self.assertEqual(result_form.user, self.user.userprofile)
+
         self.assertEqual(result_form.center, center)
         self.assertEqual(result_form.station_number, station_number)
 
@@ -792,6 +793,9 @@ class TestClearance(TestBase):
                 tally=tally,
                 serial_number=serial_number,
             )
+            # Store initial state for tracking verification
+            initial_state = result_form.form_state
+
             create_recon_forms(result_form, self.user)
             create_candidates(result_form, self.user)
             view = views.AddClearanceFormView.as_view()
@@ -811,6 +815,17 @@ class TestClearance(TestBase):
 
             self.assertEqual(response.status_code, 302)
             self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+
+            # Verify tracking fields added in commit b2393aa2
+            self.assertEqual(result_form.previous_form_state, initial_state)
+            self.assertEqual(result_form.user, self.user.userprofile)
+            # Verify reject_reason was set with descriptive text
+            self.assertIsNotNone(result_form.reject_reason)
+            self.assertIn(
+                "Clearance case created by user", result_form.reject_reason
+            )
+            self.assertIn(self.user.username, result_form.reject_reason)
+
             self.assertIsNotNone(result_form.clearance)
             self.assertEqual(result_form.clearance.user, self.user)
 
@@ -877,6 +892,9 @@ class TestClearance(TestBase):
                 tally=tally,
                 serial_number=serial_number,
             )
+            # Store initial state for tracking verification
+            initial_state = result_form.form_state
+
             create_recon_forms(result_form, self.user)
             create_candidates(result_form, self.user)
             view = views.AddClearanceFormView.as_view()
@@ -896,6 +914,17 @@ class TestClearance(TestBase):
 
             self.assertEqual(response.status_code, 302)
             self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+
+            # Verify tracking fields added in commit b2393aa2
+            self.assertEqual(result_form.previous_form_state, initial_state)
+            self.assertEqual(result_form.user, self.user.userprofile)
+            # Verify reject_reason was set with descriptive text
+            self.assertIsNotNone(result_form.reject_reason)
+            self.assertIn(
+                "Clearance case created by user", result_form.reject_reason
+            )
+            self.assertIn(self.user.username, result_form.reject_reason)
+
             self.assertIsNotNone(result_form.clearance)
             self.assertEqual(result_form.clearance.user, self.user)
 
