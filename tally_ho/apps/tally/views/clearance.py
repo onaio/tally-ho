@@ -26,7 +26,7 @@ from tally_ho.libs.views.pagination import paging
 from tally_ho.libs.views.session import session_matches_post_result_form
 
 
-def clearance_action(post_data, clearance, result_form, url):
+def clearance_action(post_data, clearance, result_form, url, user):
     if "forward" in post_data:
         # forward to supervisor
         clearance.reviewed_team = True
@@ -54,6 +54,9 @@ def clearance_action(post_data, clearance, result_form, url):
             == ClearanceResolution.RESET_TO_PREINTAKE
         ):
             clearance.active = False
+            # Track previous state and user before changing form state
+            result_form.previous_form_state = result_form.form_state
+            result_form.user = user.userprofile
             result_form.form_state = FormState.UNSUBMITTED
             result_form.duplicate_reviewed = False
             if result_form.is_replacement:
@@ -219,8 +222,6 @@ class ReviewView(
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.CLEARANCE)
         form = self.get_form(form_class)
-        result_form.previous_form_state = result_form.form_state
-        result_form.user = self.request.user.userprofile
 
         encoded_start_time = self.request.session.get(
             "encoded_result_form_clearance_start_time"
@@ -233,7 +234,7 @@ class ReviewView(
         if form.is_valid():
             clearance = get_clearance(result_form, post_data, user, form)
             url = clearance_action(
-                post_data, clearance, result_form, self.success_url
+                post_data, clearance, result_form, self.success_url, user
             )
 
             return redirect(url, tally_id=tally_id)

@@ -564,7 +564,6 @@ class DuplicateResultFormView(LoginRequiredMixin,
             result_form = get_object_or_404(
                 ResultForm, pk=pk, tally__id=tally_id)
             if result_form.form_state != FormState.ARCHIVED:
-                result_form.duplicate_reviewed = True
                 reject_reason = _(
                     str(
                         "Form has duplicate results."
@@ -576,6 +575,7 @@ class DuplicateResultFormView(LoginRequiredMixin,
                 result_form.reject(
                     new_state=FormState.CLEARANCE, reject_reason=reject_reason
                 )
+                result_form.duplicate_reviewed = True
                 Clearance.objects.create(
                     result_form=result_form, user=self.request.user.userprofile
                 )
@@ -597,7 +597,6 @@ class DuplicateResultFormView(LoginRequiredMixin,
             archived_forms_barcodes = []
             for results_form_duplicate in results_form_duplicates:
                 if results_form_duplicate.form_state != FormState.ARCHIVED:
-                    results_form_duplicate.duplicate_reviewed = True
                     reject_reason = _(
                         str(
                             "Form has duplicate results."
@@ -605,15 +604,16 @@ class DuplicateResultFormView(LoginRequiredMixin,
                     )
 
                     results_form_duplicate.previous_form_state =\
-                        result_form.form_state
+                        results_form_duplicate.form_state
                     results_form_duplicate.user =\
                         self.request.user.userprofile
                     results_form_duplicate.reject(
                         new_state=FormState.CLEARANCE,
                         reject_reason=reject_reason
                     )
+                    results_form_duplicate.duplicate_reviewed = True
                     Clearance.objects.create(
-                        result_form=result_form,
+                        result_form=results_form_duplicate,
                         user=self.request.user.userprofile
                     )
                     results_form_duplicate.save()

@@ -398,6 +398,9 @@ class TestWorkflow(TestBase):
         self.assertEqual(
             workflow_request.approval_comment, 'Approved for correction')
         self.assertEqual(result_form.form_state, FormState.AUDIT)
+        # Verify user tracking
+        self.assertEqual(result_form.previous_form_state, FormState.ARCHIVED)
+        self.assertEqual(result_form.user, self.user.userprofile)
 
         # Check that an Audit record was created
         audit = Audit.objects.get(result_form=result_form)

@@ -14,18 +14,13 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
-from tally_ho.libs.tests.test_base import (
-    TestBase,
-    create_candidate,
-    create_center,
-    create_electrol_race,
-    create_recon_forms,
-    create_reconciliation_form,
-    create_result_form,
-    create_result_form_stats,
-    create_station,
-    create_tally,
-)
+from tally_ho.libs.tests.test_base import (TestBase, create_candidate,
+                                           create_center, create_electrol_race,
+                                           create_recon_forms,
+                                           create_reconciliation_form,
+                                           create_result_form,
+                                           create_result_form_stats,
+                                           create_station, create_tally)
 
 
 def create_results(result_form, vote1=1, vote2=1, num=1):
@@ -195,6 +190,9 @@ class TestCorrections(TestBase):
         result_form = create_result_form(
             form_state=FormState.CORRECTION, tally=self.tally
         )
+        # Store initial state for tracking verification
+        initial_state = result_form.form_state
+
         create_recon_forms(result_form, self.user)
         create_results(result_form, vote1=3, vote2=3)
         self._add_user_to_group(self.user, groups.CORRECTIONS_CLERK)
@@ -238,6 +236,12 @@ class TestCorrections(TestBase):
             updated_result_form.form_state, FormState.QUALITY_CONTROL
         )
 
+        # Verify tracking fields
+        self.assertEqual(
+            updated_result_form.previous_form_state, initial_state
+        )
+        self.assertEqual(updated_result_form.user, self.user.userprofile)
+
         result_form_stat = ResultFormStats.objects.get(result_form=result_form)
         self.assertEqual(result_form_stat.approved_by_supervisor, False)
         self.assertEqual(result_form_stat.reviewed_by_supervisor, False)
@@ -274,6 +278,10 @@ class TestCorrections(TestBase):
         self.assertEqual(
             updated_result_form.form_state, FormState.DATA_ENTRY_1
         )
+        # Verify previous_form_state tracking from get_matched_results
+        self.assertEqual(
+            updated_result_form.previous_form_state, FormState.CORRECTION
+        )
 
     def test_corrections_post_with_note_corrections(self):
         view = views.CorrectionRequiredView.as_view()
@@ -282,6 +290,9 @@ class TestCorrections(TestBase):
             tally=self.tally,
             electrol_race=self.electrol_race,
         )
+        # Store initial state for tracking verification
+        initial_state = result_form.form_state
+
         create_recon_forms(
             result_form, self.user, de1_notes="", de2_notes="100"
         )
@@ -323,6 +334,13 @@ class TestCorrections(TestBase):
         self.assertEqual(
             updated_result_form.form_state, FormState.QUALITY_CONTROL
         )
+
+        # Verify tracking fields
+        self.assertEqual(
+            updated_result_form.previous_form_state, initial_state
+        )
+        self.assertEqual(updated_result_form.user, self.user.userprofile)
+
         self.assertEqual(response.status_code, 302)
         self.assertIn("corrections/success", response["location"])
 
@@ -336,6 +354,9 @@ class TestCorrections(TestBase):
             tally=self.tally,
             electrol_race=self.electrol_race,
         )
+        # Store initial state for tracking verification
+        initial_state = result_form.form_state
+
         create_recon_forms(
             result_form, self.user, de1_notes="", de2_notes="100"
         )
@@ -377,6 +398,13 @@ class TestCorrections(TestBase):
         self.assertEqual(
             updated_result_form.form_state, FormState.QUALITY_CONTROL
         )
+
+        # Verify tracking fields
+        self.assertEqual(
+            updated_result_form.previous_form_state, initial_state
+        )
+        self.assertEqual(updated_result_form.user, self.user.userprofile)
+
         self.assertEqual(response.status_code, 302)
         self.assertIn("corrections/success", response["location"])
 
@@ -394,6 +422,8 @@ class TestCorrections(TestBase):
             tally=self.tally,
             electrol_race=self.electrol_race,
         )
+        # Store initial state for tracking verification
+        initial_state = result_form.form_state
 
         data_entry_2_user = self._create_user("data_entry_2", "password")
         self._add_user_to_group(data_entry_2_user, groups.DATA_ENTRY_2_CLERK)
@@ -433,6 +463,13 @@ class TestCorrections(TestBase):
         self.assertEqual(
             updated_result_form.form_state, FormState.QUALITY_CONTROL
         )
+
+        # Verify tracking fields
+        self.assertEqual(
+            updated_result_form.previous_form_state, initial_state
+        )
+        self.assertEqual(updated_result_form.user, self.user.userprofile)
+
         self.assertEqual(response.status_code, 302)
         self.assertIn("corrections/success", response["location"])
 

@@ -402,8 +402,6 @@ class CorrectionRequiredView(
         pk = session_matches_post_result_form(post_data, self.request)
         result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
         form_in_state(result_form, FormState.CORRECTION)
-        result_form.user = self.request.user.userprofile
-        result_form.previous_form_state = result_form.form_state
 
         if "submit_corrections" in post_data:
             user = self.request.user
@@ -423,6 +421,8 @@ class CorrectionRequiredView(
 
                 return redirect(self.failed_url, tally_id=tally_id)
             else:
+                result_form.previous_form_state = result_form.form_state
+                result_form.user = self.request.user.userprofile
                 result_form.form_state = FormState.QUALITY_CONTROL
                 result_form.save()
 

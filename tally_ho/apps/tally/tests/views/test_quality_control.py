@@ -181,6 +181,15 @@ class TestQualityControl(TestBase):
 
         self.assertEqual(response.status_code, 302)
         self.assertIn("quality-control/reject", response["location"])
+
+        # Verify result form state and user tracking
+        result_form.refresh_from_db()
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertEqual(
+            result_form.previous_form_state, FormState.QUALITY_CONTROL
+        )
+        self.assertEqual(result_form.user, self.user.userprofile)
+
         quality_control = result_form.qualitycontrol_set.all()[0]
         self.assertFalse(quality_control.active)
         self.assertEqual(request.session, {})
@@ -349,6 +358,11 @@ class TestQualityControl(TestBase):
         self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
         self.assertEqual(result_form.rejected_count, 1)
         self.assertEqual(result_form.reject_reason, reject_reason)
+        # Verify user tracking
+        self.assertEqual(
+            result_form.previous_form_state, FormState.QUALITY_CONTROL
+        )
+        self.assertEqual(result_form.user, self.user.userprofile)
         self.assertFalse(quality_control.active)
         self.assertFalse(quality_control.passed_reconciliation)
 
@@ -1022,6 +1036,11 @@ class TestQualityControl(TestBase):
 
         result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+        # Verify user tracking
+        self.assertEqual(
+            result_form.previous_form_state, FormState.QUALITY_CONTROL
+        )
+        self.assertEqual(result_form.user, self.user.userprofile)
 
     def test_print_cover_get_with_no_print_cover_in_quality_control(self):
         self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
@@ -1042,6 +1061,11 @@ class TestQualityControl(TestBase):
 
         result_form = ResultForm.objects.get(pk=result_form.pk)
         self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+        # Verify user tracking
+        self.assertEqual(
+            result_form.previous_form_state, FormState.QUALITY_CONTROL
+        )
+        self.assertEqual(result_form.user, self.user.userprofile)
 
     def test_confirmation_get(self):
         """
