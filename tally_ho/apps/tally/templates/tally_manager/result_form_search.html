@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Result Form History Search" %}{% endblock title %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">{% trans "Result Form History Search" %}</h3>
+            </div>
+            <div class="panel-body">
+                <p>{% trans "Enter a barcode to view the complete history of a result form." %}</p>
+                
+                <form method="get" 
+                      action="{% if tally_id %}{% url 'result-form-history' tally_id=tally_id %}{% else %}{% url 'result-form-history-global' %}{% endif %}">
+                    <div class="form-group">
+                        <label for="barcode">{% trans "Barcode" %}</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="barcode" 
+                               name="barcode" 
+                               placeholder="{% trans 'Enter result form barcode' %}"
+                               required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        {% trans "View History" %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

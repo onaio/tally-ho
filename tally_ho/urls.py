@@ -1419,6 +1419,26 @@ urlpatterns = [
         name="get-import-progress",
     ),
     re_path(
+        r"^tally-manager/result-form-search$",
+        tally_manager.ResultFormSearchView.as_view(),
+        name="result-form-search-global",
+    ),
+    re_path(
+        r"^tally-manager/result-form-search/(?P<tally_id>(\d+))/$",
+        tally_manager.ResultFormSearchView.as_view(),
+        name="result-form-search",
+    ),
+    re_path(
+        r"^tally-manager/result-form-history$",
+        tally_manager.ResultFormHistoryView.as_view(),
+        name="result-form-history-global",
+    ),
+    re_path(
+        r"^tally-manager/result-form-history/(?P<tally_id>(\d+))/$",
+        tally_manager.ResultFormHistoryView.as_view(),
+        name="result-form-history",
+    ),
+    re_path(
         r"^tally-manager/data/tally-list-data$",
         tally_list_view.TallyListDataView.as_view(),
         name="tally-list-data",

@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Result Form History" %}{% endblock title %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    {% trans "Result Form History" %}{% if barcode %}: {{ barcode }}{% endif %}
+                </h3>
+            </div>
+            <div class="panel-body">
+                {% if error %}
+                    <div class="alert alert-danger">
+                        <strong>{% trans "Error:" %}</strong> {{ error }}
+                    </div>
+                    <a href="{% if tally_id %}{% url 'result-form-search' tally_id=tally_id %}{% else %}{% url 'result-form-search-global' %}{% endif %}" 
+                       class="btn btn-default">
+                        {% trans "Search Again" %}
+                    </a>
+                {% else %}
+                    {% if result_form %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>{% trans "Form Details" %}</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>{% trans "Barcode" %}</th>
+                                        <td>{{ result_form.barcode }}</td>
+                                    </tr>
+                                    {% if result_form.center %}
+                                    <tr>
+                                        <th>{% trans "Center" %}</th>
+                                        <td>{{ result_form.center.name }} ({{ result_form.center.code }})</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if result_form.station_number %}
+                                    <tr>
+                                        <th>{% trans "Station" %}</th>
+                                        <td>{{ result_form.station_number }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if result_form.ballot %}
+                                    <tr>
+                                        <th>{% trans "Ballot" %}</th>
+                                        <td>{{ result_form.ballot.number }} - {{ result_form.ballot.electrol_race.ballot_name }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <th>{% trans "Current State" %}</th>
+                                        <td><span class="label label-info">{{ result_form.form_state.name }}</span></td>
+                                    </tr>
+                                    {% if result_form.tally %}
+                                    <tr>
+                                        <th>{% trans "Tally" %}</th>
+                                        <td>{{ result_form.tally.name }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h4>{% trans "State Transition History" %}</h4>
+                                <p class="text-muted">
+                                    {% trans "History is shown from oldest to newest. Duration shows time spent in the previous state." %}
+                                </p>
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>{% trans "Timestamp" %}</th>
+                                                <th>{% trans "User" %}</th>
+                                                <th>{% trans "Previous State" %}</th>
+                                                <th>{% trans "New State" %}</th>
+                                                <th>{% trans "Duration in Previous" %}</th>
+                                                <th>{% trans "Version" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for entry in history_data %}
+                                            <tr>
+                                                <td>
+                                                    {% if entry.timestamp %}
+                                                        {{ entry.timestamp|date:"Y-m-d H:i:s" }}
+                                                    {% else %}
+                                                        {% trans "Unknown" %}
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ entry.user }}</td>
+                                                <td>
+                                                    {% if entry.previous_state != "None" %}
+                                                        <span class="label label-default">{{ entry.previous_state }}</span>
+                                                    {% else %}
+                                                        <em>{% trans "Initial" %}</em>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="label label-primary">{{ entry.current_state }}</span>
+                                                </td>
+                                                <td>
+                                                    {% if entry.duration_in_previous_state %}
+                                                        {% with entry.duration_in_previous_state as duration %}
+                                                            {% if duration.days > 0 %}
+                                                                {{ duration.days }}d {{ duration.seconds|floatformat:0 }}s
+                                                            {% elif duration.seconds > 3600 %}
+                                                                {{ duration.seconds|floatformat:0|add:3600|floatformat:0 }}h
+                                                            {% elif duration.seconds > 60 %}
+                                                                {{ duration.seconds|floatformat:0|add:60|floatformat:0 }}m
+                                                            {% else %}
+                                                                {{ duration.seconds|floatformat:0 }}s
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">{{ entry.version_id }}</small>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <p class="text-info">
+                                            <strong>{% trans "Total history entries:" %}</strong> {{ history_data|length }}
+                                        </p>
+                                        
+                                        <div class="btn-group">
+                                            <a href="{% if tally_id %}{% url 'result-form-search' tally_id=tally_id %}{% else %}{% url 'result-form-search-global' %}{% endif %}" 
+                                               class="btn btn-default">
+                                                {% trans "Search Another Form" %}
+                                            </a>
+                                            <a href="{% if tally_id %}{% url 'tally-manager' %}{% else %}{% url 'tally-manager' %}{% endif %}" 
+                                               class="btn btn-primary">
+                                                {% trans "Back to Dashboard" %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

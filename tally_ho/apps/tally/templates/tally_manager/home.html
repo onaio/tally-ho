@@ -20,6 +20,30 @@
 </ul>
 
 
+<h3>{% trans 'Result Form History' %}</h3>
+<div class="panel panel-default">
+    <div class="panel-body">
+        <p>{% trans 'Search for the complete history of a result form by entering its barcode.' %}</p>
+        <form method="get" action="{% url 'result-form-history-global' %}" class="form-inline">
+            <div class="form-group">
+                <label class="sr-only" for="barcode-search">{% trans 'Barcode' %}</label>
+                <input type="text" 
+                       class="form-control" 
+                       id="barcode-search" 
+                       name="barcode" 
+                       placeholder="{% trans 'Enter barcode' %}"
+                       required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="glyphicon glyphicon-search"></i> {% trans 'View History' %}
+            </button>
+            <a href="{% url 'result-form-search-global' %}" class="btn btn-default">
+                {% trans 'Advanced Search' %}
+            </a>
+        </form>
+    </div>
+</div>
+
 <h3>{% trans 'Other Operations' %}</h3>
 <ul>
     <li><a href="{% url 'create-tally' %}">{% trans 'Create a Tally' %}</a></li>
