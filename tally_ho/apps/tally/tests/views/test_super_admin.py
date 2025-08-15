@@ -2122,3 +2122,155 @@ class TestSuperAdmin(TestBase):
         query_str = str(filtered_qs.query)
         for annotation in expected_annotations:
             self.assertIn(annotation, query_str)
+
+    def test_result_form_search_view_get(self):
+        """Test ResultFormSearchView GET request renders form"""
+        view = views.ResultFormSearchView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        
+        response = view(request, tally_id=self.tally.pk)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Result Form History')
+        self.assertContains(response, 'Barcode')
+
+    def test_result_form_search_view_post_valid(self):
+        """Test ResultFormSearchView POST with valid barcode"""
+        result_form = create_result_form(
+            form_state=FormState.INTAKE,
+            tally=self.tally,
+            barcode='12345'
+        )
+        
+        view = views.ResultFormSearchView.as_view()
+        request = self.factory.post('/', {'barcode': '12345', 'tally_id': self.tally.pk})
+        request.user = self.user
+        request.session = {}
+        
+        response = view(request, tally_id=self.tally.pk)
+        
+        self.assertEqual(response.status_code, 302)  # Redirect
+        self.assertEqual(request.session['result_form'], result_form.pk)
+
+    def test_result_form_search_view_post_invalid(self):
+        """Test ResultFormSearchView POST with invalid barcode"""
+        view = views.ResultFormSearchView.as_view()
+        request = self.factory.post('/', {'barcode': 'nonexistent', 'tally_id': self.tally.pk})
+        request.user = self.user
+        request.session = {}
+        
+        response = view(request, tally_id=self.tally.pk)
+        
+        self.assertEqual(response.status_code, 200)  # Form redisplay
+        self.assertContains(response, 'Result form with this barcode does not exist')
+
+    def test_result_form_history_view_with_session(self):
+        """Test ResultFormHistoryView with valid session"""
+        from reversion import revisions
+        
+        # Create result form with revision history
+        with revisions.create_revision():
+            result_form = create_result_form(
+                form_state=FormState.INTAKE,
+                tally=self.tally,
+                barcode='12345'
+            )
+            revisions.set_comment("Test revision")
+        
+        view = views.ResultFormHistoryView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        
+        response = view(request, tally_id=self.tally.pk)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Result Form History')
+        self.assertContains(response, '12345')
+        self.assertContains(response, 'State Transition History')
+
+    def test_result_form_history_view_without_session(self):
+        """Test ResultFormHistoryView without session shows error"""
+        view = views.ResultFormHistoryView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        
+        response = view(request, tally_id=self.tally.pk)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'No result form selected')
+        self.assertContains(response, 'Back to Search')
+
+    def test_result_form_history_view_duration_display(self):
+        """Test ResultFormHistoryView shows duration correctly"""
+        from reversion import revisions
+        
+        # Create result form with multiple revisions
+        with revisions.create_revision():
+            result_form = create_result_form(
+                form_state=FormState.UNSUBMITTED,
+                tally=self.tally,
+                barcode='12345'
+            )
+            revisions.set_comment("Initial")
+            
+        # Add second revision
+        with revisions.create_revision():
+            result_form.form_state = FormState.INTAKE
+            result_form.save()
+            revisions.set_comment("To intake")
+        
+        view = views.ResultFormHistoryView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        
+        response = view(request, tally_id=self.tally.pk)
+        
+        self.assertEqual(response.status_code, 200)
+        # Should contain history data with current state highlighted
+        self.assertContains(response, 'current-state-row')
+        # Check that duration is displayed (might be None for first entry)
+        context = response.context_data
+        history_data = context.get('history_data', [])
+        self.assertTrue(len(history_data) > 0)
+        
+        # First entry (newest) should be marked as current
+        if history_data:
+            self.assertTrue(history_data[0]['is_current'])
+
+    def test_result_form_history_view_no_history(self):
+        """Test ResultFormHistoryView with form that has no version history"""
+        # Create result form without revisions
+        result_form = ResultForm.objects.create(
+            barcode='nohistory',
+            tally=self.tally,
+            form_state=FormState.UNSUBMITTED
+        )
+        
+        view = views.ResultFormHistoryView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+        
+        response = view(request, tally_id=self.tally.pk)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'No version history found for result form {result_form.barcode}')
+
+    def test_result_form_history_view_permissions(self):
+        """Test ResultFormHistoryView requires SUPER_ADMINISTRATOR permission"""
+        # Create user without super admin permissions
+        self._create_and_login_user(username='regular_user')
+        
+        view = views.ResultFormHistoryView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        
+        # Should redirect due to permission check
+        response = view(request, tally_id=self.tally.pk)
+        self.assertEqual(response.status_code, 302)

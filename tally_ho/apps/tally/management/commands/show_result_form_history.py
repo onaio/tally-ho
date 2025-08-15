@@ -44,7 +44,20 @@ class Command(BaseCommand):
                     tally__id=tally_id
                 )
             else:
-                result_form = ResultForm.objects.get(barcode=barcode)
+                result_forms = ResultForm.objects.filter(barcode=barcode)
+                if result_forms.count() > 1:
+                    raise CommandError(
+                        f'Multiple result forms found with barcode "{barcode}".\n'
+                        f'Please specify --tally-id. Found in tallies:\n' +
+                        '\n'.join([f'  - Tally {rf.tally.id}: {rf.tally.name}' 
+                                  for rf in result_forms])
+                    )
+                elif result_forms.count() == 0:
+                    raise CommandError(
+                        f'Result form with barcode "{barcode}" does not exist'
+                    )
+                else:
+                    result_form = result_forms.first()
         except ResultForm.DoesNotExist:
             raise CommandError(
                 f'Result form with barcode "{barcode}" does not exist'
