@@ -172,7 +172,8 @@ def forms_for_user(user_is_clerk, tally_id):
     """
     form_list = ResultForm.objects.filter(
         form_state=FormState.AUDIT, audit__reviewed_supervisor=False,
-        audit__active=True, tally__id=tally_id).distinct('barcode')
+        audit__active=True, tally__id=tally_id).distinct('barcode')\
+        .order_by('barcode')
 
     if user_is_clerk:
         form_list = form_list.filter(

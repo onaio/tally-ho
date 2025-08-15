@@ -151,7 +151,7 @@ class DashboardView(
         tally_id = kwargs.get("tally_id")
         form_list = ResultForm.objects.filter(
             form_state=FormState.CLEARANCE, tally__id=tally_id
-        )
+        ).order_by('barcode')
 
         if format_ == "csv":
             return render_to_csv_response(form_list)
