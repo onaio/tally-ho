@@ -32,6 +32,7 @@ from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import \
     EditUserProfileForm
+from tally_ho.apps.tally.forms.barcode_form import ResultFormSearchBarcodeForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
@@ -2023,15 +2024,33 @@ class ResultFormSearchView(
     LoginRequiredMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
-    TemplateView,
+    FormView,
 ):
+    form_class = ResultFormSearchBarcodeForm
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/result_form_search.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tally_id'] = self.kwargs.get('tally_id')
+        context['header_text'] = _('Result Form History')
+        context['form_action'] = ''
         return context
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['tally_id'] = self.kwargs.get('tally_id')
+        return initial
+
+    def form_valid(self, form):
+        barcode = form.cleaned_data['barcode']
+        tally_id = self.kwargs.get('tally_id')
+        
+        from django.urls import reverse
+        from django.http import HttpResponseRedirect
+        
+        url = reverse('result-form-history', kwargs={'tally_id': tally_id})
+        return HttpResponseRedirect(f'{url}?barcode={barcode}')
 
 
 class ResultFormHistoryView(

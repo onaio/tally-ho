@@ -5,38 +5,36 @@
 
 {% block content %}
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">{% trans "Result Form History Search" %}</h3>
-            </div>
-            <div class="panel-body">
-                <p>{% trans "Enter a barcode to view the complete history of a result form." %}</p>
-                
-                <form method="get" action="{% url 'result-form-history' tally_id=tally_id %}">
-                    <div class="form-group">
-                        <label for="barcode">{% trans "Barcode" %}</label>
-                        <input type="text" 
-                               class="form-control" 
-                               id="barcode" 
-                               name="barcode" 
-                               placeholder="{% trans 'Enter result form barcode' %}"
-                               autocomplete="off"
-                               required>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="glyphicon glyphicon-search"></i> {% trans "View History" %}
-                        </button>
-                        <a href="{% url 'super-administrator' tally_id=tally_id %}" class="btn btn-default">
-                            {% trans "Back to Dashboard" %}
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
+<h1>{{ header_text }}</h1>
+
+<div class="form-instructions">{% trans 'Scan or enter barcode to search' %}</div>
+
+<form id="result_form" method="post" action="{{ form_action }}">
+    {% if form.non_field_errors %}
+    <div class="text-danger">
+        {{ form.non_field_errors }}<br/>
     </div>
-</div>
+    {% endif %}
+    <table class="formtable">
+        <tr>
+            <td><label>{% trans 'Barcode' %}</label></td>
+            <td>{{ form.barcode.errors }}
+                {{ form.barcode }}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><button type="submit" name="submit" class="btn btn-success">{% trans "Search" %}</button>
+                <a href="{% url 'super-administrator' tally_id=tally_id %}" class="btn btn-default">
+                    {% trans "Back to Dashboard" %}
+                </a>
+            </td>
+        </tr>
+    </table>
+    {% if form.tally_id and form.tally_id.errors %}
+    Tally ID: {{ form.tally_id.errors }}
+    {% endif %}
+    {{ form.tally_id }}
+    {% csrf_token %}
+</form>
 
 {% endblock content %}

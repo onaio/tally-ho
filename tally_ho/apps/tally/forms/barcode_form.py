@@ -99,3 +99,28 @@ class BarcodeForm(forms.Form):
                                 _('Ballot disabled.'))
 
             return cleaned_data
+
+
+class ResultFormSearchBarcodeForm(forms.Form):
+    error_messages = {'invalid': _(u"Expecting only numbers for barcodes")}
+    validators = [
+        MaxLengthValidator(255),
+        MinLengthValidator(1),
+        RegexValidator(
+            regex=r'^[0-9]*$',
+            message=_(u"Expecting only numbers for barcodes")
+        ),
+    ]
+
+    barcode = forms.CharField(
+        error_messages=error_messages,
+        validators=validators,
+        required=True,
+        widget=forms.NumberInput(
+            attrs=disable_copy_input))
+
+    tally_id = forms.IntegerField(widget=forms.HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        super(ResultFormSearchBarcodeForm, self).__init__(*args, **kwargs)
+        self.fields['barcode'].widget.attrs['autofocus'] = 'on'
