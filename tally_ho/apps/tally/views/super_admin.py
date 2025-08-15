@@ -2081,6 +2081,7 @@ class ResultFormHistoryView(
         pk = self.request.session.get('result_form')
         
         context['tally_id'] = tally_id
+        context['error'] = None  # Initialize error to prevent template variable errors
         
         if not pk:
             context['error'] = 'No result form selected'
@@ -2096,7 +2097,7 @@ class ResultFormHistoryView(
         versions = Version.objects.get_for_object(result_form).order_by('pk')
         
         if not versions:
-            context['error'] = f'No version history found for result form {barcode}'
+            context['error'] = f'No version history found for result form {result_form.barcode}'
             return context
         
         # Process history data
