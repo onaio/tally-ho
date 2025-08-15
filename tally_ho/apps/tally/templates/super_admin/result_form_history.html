@@ -3,6 +3,19 @@
 
 {% block title %}{% trans "Result Form History" %}{% endblock title %}
 
+{% block styles %}
+{{ block.super }}
+<style>
+    .current-state-row {
+        background-color: #d1ecf1 !important;
+        border-color: #bee5eb !important;
+    }
+    .current-state-row td {
+        border-color: #bee5eb !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="row">
@@ -10,7 +23,7 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">
-                    {% trans "Result Form History" %}{% if barcode %}: {{ barcode }}{% endif %}
+                    {% trans "Result Form History" %}{% if result_form %}: {{ result_form.barcode }}{% endif %}
                 </h3>
             </div>
             <div class="panel-body">
@@ -24,51 +37,16 @@
                     </a>
                 {% else %}
                     {% if result_form %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h4>{% trans "Form Details" %}</h4>
-                                <table class="table table-bordered">
-                                    <tr>
-                                        <th>{% trans "Barcode" %}</th>
-                                        <td>{{ result_form.barcode }}</td>
-                                    </tr>
-                                    {% if result_form.center %}
-                                    <tr>
-                                        <th>{% trans "Center" %}</th>
-                                        <td>{{ result_form.center.name }} ({{ result_form.center.code }})</td>
-                                    </tr>
-                                    {% endif %}
-                                    {% if result_form.station_number %}
-                                    <tr>
-                                        <th>{% trans "Station" %}</th>
-                                        <td>{{ result_form.station_number }}</td>
-                                    </tr>
-                                    {% endif %}
-                                    {% if result_form.ballot %}
-                                    <tr>
-                                        <th>{% trans "Ballot" %}</th>
-                                        <td>{{ result_form.ballot.number }} - {{ result_form.ballot.electrol_race.ballot_name }}</td>
-                                    </tr>
-                                    {% endif %}
-                                    <tr>
-                                        <th>{% trans "Current State" %}</th>
-                                        <td><span class="label label-info">{{ result_form.form_state.name }}</span></td>
-                                    </tr>
-                                    {% if result_form.tally %}
-                                    <tr>
-                                        <th>{% trans "Tally" %}</th>
-                                        <td>{{ result_form.tally.name }}</td>
-                                    </tr>
-                                    {% endif %}
-                                </table>
-                            </div>
+                        <div class="container">
+                            {% include 'center_details.html' %}
                         </div>
+
 
                         <div class="row">
                             <div class="col-md-12">
                                 <h4>{% trans "State Transition History" %}</h4>
                                 <p class="text-muted">
-                                    {% trans "History is shown from oldest to newest. Duration shows time spent in the previous state." %}
+                                    {% trans "History is shown from oldest to newest. Duration shows time spent in the previous state. The highlighted row represents the current state." %}
                                 </p>
                                 
                                 <div class="table-responsive">
@@ -84,7 +62,7 @@
                                         </thead>
                                         <tbody>
                                             {% for entry in history_data %}
-                                            <tr>
+                                            <tr{% if entry.is_current %} class="current-state-row"{% endif %}>
                                                 <td>
                                                     {% if entry.timestamp %}
                                                         {{ entry.timestamp|date:"Y-m-d H:i:s" }}

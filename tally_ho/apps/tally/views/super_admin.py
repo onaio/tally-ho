@@ -2046,11 +2046,19 @@ class ResultFormSearchView(
         barcode = form.cleaned_data['barcode']
         tally_id = self.kwargs.get('tally_id')
         
-        from django.urls import reverse
-        from django.http import HttpResponseRedirect
+        try:
+            result_form = ResultForm.objects.get(
+                barcode=barcode,
+                tally__id=tally_id
+            )
+        except ResultForm.DoesNotExist:
+            form.add_error('barcode', _('Result form with this barcode does not exist in this tally.'))
+            return self.form_invalid(form)
         
-        url = reverse('result-form-history', kwargs={'tally_id': tally_id})
-        return HttpResponseRedirect(f'{url}?barcode={barcode}')
+        # Store result form pk in session
+        self.request.session['result_form'] = result_form.pk
+        
+        return redirect('result-form-history', tally_id=tally_id)
 
 
 class ResultFormHistoryView(
@@ -2068,22 +2076,19 @@ class ResultFormHistoryView(
         from tally_ho.libs.models.enums.form_state import FormState
         
         context = super().get_context_data(**kwargs)
-        barcode = self.request.GET.get('barcode')
         tally_id = self.kwargs.get('tally_id')
+        pk = self.request.session.get('result_form')
         
         context['tally_id'] = tally_id
         
-        if not barcode:
-            context['error'] = 'No barcode provided'
+        if not pk:
+            context['error'] = 'No result form selected'
             return context
             
         try:
-            result_form = ResultForm.objects.get(
-                barcode=barcode, 
-                tally__id=tally_id
-            )
-        except ResultForm.DoesNotExist:
-            context['error'] = f'Result form with barcode "{barcode}" does not exist in this tally'
+            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
+        except:
+            context['error'] = 'Result form not found'
             return context
         
         # Get version history
@@ -2144,15 +2149,19 @@ class ResultFormHistoryView(
                 'current_state': current_state_name,
                 'previous_state': previous_state_name,
                 'version_id': version.pk,
-                'duration_in_previous_state': duration
+                'duration_in_previous_state': duration,
+                'is_current': False
             })
             
             previous_timestamp = timestamp
         
+        # Mark the last entry as current state
+        if history_data:
+            history_data[-1]['is_current'] = True
+        
         context.update({
             'result_form': result_form,
             'history_data': history_data,
-            'barcode': barcode,
         })
         
         return context
