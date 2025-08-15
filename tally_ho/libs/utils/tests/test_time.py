@@ -1,4 +1,5 @@
 from datetime import timedelta
+
 from django.test import TestCase
 
 from tally_ho.libs.utils.time import format_duration_human_readable
@@ -38,7 +39,8 @@ class TestTimeUtils(TestCase):
         """Test minutes with remaining seconds"""
         duration = timedelta(minutes=2, seconds=30)
         result = format_duration_human_readable(duration)
-        self.assertEqual(result, "2m")  # Seconds are ignored when minutes exist
+        # Seconds are ignored when minutes exist
+        self.assertEqual(result, "2m")
 
     def test_format_duration_exactly_one_hour(self):
         """Test exactly one hour"""
@@ -74,7 +76,8 @@ class TestTimeUtils(TestCase):
         """Test days with all time units"""
         duration = timedelta(days=1, hours=2, minutes=30, seconds=45)
         result = format_duration_human_readable(duration)
-        self.assertEqual(result, "1d 2h 30m")  # Seconds ignored when days exist
+        # Seconds ignored when days exist
+        self.assertEqual(result, "1d 2h 30m")
 
     def test_format_duration_large_values(self):
         """Test large duration values"""

@@ -2,6 +2,7 @@ from collections import defaultdict
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import SuspiciousOperation
@@ -11,12 +12,15 @@ from django.db.models.functions import Cast
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView, TemplateView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
+from reversion.models import Version
 
+from tally_ho.apps.tally.forms.barcode_form import ResultFormSearchBarcodeForm
 from tally_ho.apps.tally.forms.create_ballot_form import CreateBallotForm
 from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
 from tally_ho.apps.tally.forms.create_electrol_race_form import \
@@ -32,7 +36,6 @@ from tally_ho.apps.tally.forms.edit_result_form import EditResultForm
 from tally_ho.apps.tally.forms.edit_station_form import EditStationForm
 from tally_ho.apps.tally.forms.edit_user_profile_form import \
     EditUserProfileForm
-from tally_ho.apps.tally.forms.barcode_form import ResultFormSearchBarcodeForm
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
@@ -2046,19 +2049,25 @@ class ResultFormSearchView(
     def form_valid(self, form):
         barcode = form.cleaned_data['barcode']
         tally_id = self.kwargs.get('tally_id')
-        
+
         try:
             result_form = ResultForm.objects.get(
                 barcode=barcode,
                 tally__id=tally_id
             )
         except ResultForm.DoesNotExist:
-            form.add_error('barcode', _('Result form with this barcode does not exist in this tally.'))
+            form.add_error(
+                'barcode',
+                _(
+                    'Result form with this barcode does not exist '
+                    'in this tally.'
+                )
+            )
             return self.form_invalid(form)
-        
+
         # Store result form pk in session
         self.request.session['result_form'] = result_form.pk
-        
+
         return redirect('result-form-history', tally_id=tally_id)
 
 
@@ -2072,41 +2081,42 @@ class ResultFormHistoryView(
     template_name = "super_admin/result_form_history.html"
 
     def get_context_data(self, **kwargs):
-        from django.contrib.auth.models import User
-        from reversion.models import Version
-        from tally_ho.libs.models.enums.form_state import FormState
-        
         context = super().get_context_data(**kwargs)
         tally_id = self.kwargs.get('tally_id')
         pk = self.request.session.get('result_form')
-        
+
         context['tally_id'] = tally_id
-        context['error'] = None  # Initialize error to prevent template variable errors
-        
+        context['error'] = None  # Initialize error to prevent template errors
+
         if not pk:
             context['error'] = 'No result form selected'
             return context
-            
+
         try:
-            result_form = get_object_or_404(ResultForm, pk=pk, tally__id=tally_id)
-        except:
+            result_form = get_object_or_404(
+                ResultForm, pk=pk, tally__id=tally_id
+            )
+        except Exception:
             context['error'] = 'Result form not found'
             return context
-        
+
         # Get version history
         versions = Version.objects.get_for_object(result_form).order_by('pk')
-        
+
         if not versions:
-            context['error'] = f'No version history found for result form {result_form.barcode}'
+            context['error'] = (
+                f'No version history found for result form '
+                f'{result_form.barcode}'
+            )
             return context
-        
+
         # Process history data
         history_data = []
         previous_timestamp = None
-        
+
         for version in versions:
             version_data = version.field_dict
-            
+
             # Get user info
             user_name = "Unknown"
             if 'user_id' in version_data and version_data['user_id']:
@@ -2121,7 +2131,6 @@ class ResultFormHistoryView(
             timestamp = None
             if modified_date:
                 if isinstance(modified_date, str):
-                    from django.utils.dateparse import parse_datetime
                     timestamp = parse_datetime(modified_date)
                 else:
                     timestamp = modified_date
@@ -2129,7 +2138,7 @@ class ResultFormHistoryView(
             # Get form states
             current_state = version_data.get('form_state')
             previous_state = version_data.get('previous_form_state')
-            
+
             if current_state:
                 current_state_name = FormState(current_state).name
             else:
@@ -2146,7 +2155,7 @@ class ResultFormHistoryView(
             if previous_timestamp and timestamp:
                 duration = timestamp - previous_timestamp
                 duration_display = format_duration_human_readable(duration)
-                
+
             history_data.append({
                 'user': user_name,
                 'timestamp': timestamp,
@@ -2157,17 +2166,17 @@ class ResultFormHistoryView(
                 'duration_display': duration_display,
                 'is_current': False
             })
-            
+
             previous_timestamp = timestamp
-        
+
         # Reverse to show newest first, then mark first entry as current
         history_data.reverse()
         if history_data:
             history_data[0]['is_current'] = True
-        
+
         context.update({
             'result_form': result_form,
             'history_data': history_data,
         })
-        
+
         return context

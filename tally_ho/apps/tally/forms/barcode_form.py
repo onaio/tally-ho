@@ -1,11 +1,10 @@
 from django import forms
-from django.core.validators import MinLengthValidator, MaxLengthValidator,\
-    RegexValidator
+from django.core.validators import (MaxLengthValidator, MinLengthValidator,
+                                    RegexValidator)
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
-
 
 disable_copy_input = {
     'onCopy': 'return false;',

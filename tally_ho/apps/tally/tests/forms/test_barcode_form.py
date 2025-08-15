@@ -67,7 +67,7 @@ class TestResultFormSearchBarcodeForm(TestCase):
         """Test barcode field has autofocus attribute"""
         form = ResultFormSearchBarcodeForm()
         self.assertEqual(
-            form.fields['barcode'].widget.attrs.get('autofocus'), 
+            form.fields['barcode'].widget.attrs.get('autofocus'),
             'on'
         )
 
@@ -75,7 +75,7 @@ class TestResultFormSearchBarcodeForm(TestCase):
         """Test barcode field has security attributes"""
         form = ResultFormSearchBarcodeForm()
         attrs = form.fields['barcode'].widget.attrs
-        
+
         self.assertEqual(attrs.get('onCopy'), 'return false;')
         self.assertEqual(attrs.get('onPaste'), 'return false;')
         self.assertEqual(attrs.get('autocomplete'), 'off')

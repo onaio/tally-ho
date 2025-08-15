@@ -1,11 +1,12 @@
 import csv
 import pathlib
-from datetime import datetime
-from django.core.management.base import BaseCommand, CommandError
+
 from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _, gettext
+from django.utils.dateparse import parse_datetime
 from reversion.models import Version
+
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.utils.time import format_duration_human_readable
@@ -41,17 +42,21 @@ class Command(BaseCommand):
             # Find the result form
             if tally_id:
                 result_form = ResultForm.objects.get(
-                    barcode=barcode, 
+                    barcode=barcode,
                     tally__id=tally_id
                 )
             else:
                 result_forms = ResultForm.objects.filter(barcode=barcode)
                 if result_forms.count() > 1:
+                    tallies_info = '\n'.join([
+                        f'  - Tally {rf.tally.id}: {rf.tally.name}'
+                        for rf in result_forms
+                    ])
                     raise CommandError(
-                        f'Multiple result forms found with barcode "{barcode}".\n'
-                        f'Please specify --tally-id. Found in tallies:\n' +
-                        '\n'.join([f'  - Tally {rf.tally.id}: {rf.tally.name}' 
-                                  for rf in result_forms])
+                        f'Multiple result forms found with barcode '
+                        f'"{barcode}".\n'
+                        f'Please specify --tally-id. Found in tallies:\n'
+                        f'{tallies_info}'
                     )
                 elif result_forms.count() == 0:
                     raise CommandError(
@@ -89,10 +94,10 @@ class Command(BaseCommand):
         # Prepare history data (same logic as the view)
         history_data = []
         previous_timestamp = None
-        
+
         for version in versions:
             version_data = version.field_dict
-            
+
             # Get user info
             user_name = "Unknown"
             if 'user_id' in version_data and version_data['user_id']:
@@ -107,15 +112,14 @@ class Command(BaseCommand):
             timestamp = None
             if modified_date:
                 if isinstance(modified_date, str):
-                    from django.utils.dateparse import parse_datetime
                     timestamp = parse_datetime(modified_date)
                 else:
                     timestamp = modified_date
-            
+
             # Get form states
             current_state = version_data.get('form_state')
             previous_state = version_data.get('previous_form_state')
-            
+
             if current_state:
                 current_state_name = FormState(current_state).name
             else:
@@ -140,7 +144,7 @@ class Command(BaseCommand):
                 'duration_display': duration_display,
                 'is_current': False
             })
-            
+
             previous_timestamp = timestamp
 
         # Reverse to show newest first, then mark first entry as current
@@ -160,16 +164,19 @@ class Command(BaseCommand):
         for entry in history_data:
             # Format timestamp for display
             if entry['timestamp']:
-                timestamp_str = entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+                timestamp_str = entry['timestamp'].strftime(
+                    '%Y-%m-%d %H:%M:%S'
+                )
             else:
                 timestamp_str = "Unknown"
-            
+
             # Format duration
-            duration_str = entry['duration_display'] if entry['duration_display'] else "-"
-            
+            duration_str = (entry['duration_display']
+                            if entry['duration_display'] else "-")
+
             # Current status indicator
             status_str = "(current)" if entry['is_current'] else ""
-            
+
             self.stdout.write(
                 f"{entry['user']:<20} {timestamp_str:<25} "
                 f"{entry['previous_state']:<15} {entry['current_state']:<15} "
@@ -184,7 +191,7 @@ class Command(BaseCommand):
 
             with open(csv_filepath, mode='w', newline='') as file:
                 fieldnames = [
-                    'barcode', 'user', 'timestamp', 'previous_state', 
+                    'barcode', 'user', 'timestamp', 'previous_state',
                     'current_state', 'duration_in_previous', 'is_current'
                 ]
                 writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -194,10 +201,13 @@ class Command(BaseCommand):
                     writer.writerow({
                         'barcode': barcode,
                         'user': entry['user'],
-                        'timestamp': entry['timestamp'].isoformat() if entry['timestamp'] else '',
+                        'timestamp': (entry['timestamp'].isoformat()
+                                      if entry['timestamp'] else ''),
                         'previous_state': entry['previous_state'],
                         'current_state': entry['current_state'],
-                        'duration_in_previous': entry['duration_display'] if entry['duration_display'] else '',
+                        'duration_in_previous': (entry['duration_display']
+                                                 if entry['duration_display']
+                                                 else ''),
                         'is_current': 'Yes' if entry['is_current'] else 'No',
                     })
 
