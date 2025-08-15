@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.messages.storage import default_storage
-from django.core.exceptions import SuspiciousOperation
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory
 from reversion import revisions
@@ -2161,7 +2161,7 @@ class TestSuperAdmin(TestBase):
         """Test ResultFormSearchView POST with invalid barcode"""
         view = views.ResultFormSearchView.as_view()
         request = self.factory.post(
-            '/', {'barcode': 'nonexistent', 'tally_id': self.tally.pk}
+            '/', {'barcode': '99999999', 'tally_id': self.tally.pk}
         )
         request.user = self.user
         request.session = {}
@@ -2279,6 +2279,6 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         request.session = {}
 
-        # Should redirect due to permission check
-        response = view(request, tally_id=self.tally.pk)
-        self.assertEqual(response.status_code, 302)
+        # Should raise PermissionDenied due to permission check
+        with self.assertRaises(PermissionDenied):
+            view(request, tally_id=self.tally.pk)
