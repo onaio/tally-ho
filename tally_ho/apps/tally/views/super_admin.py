@@ -724,7 +724,7 @@ class FormProgressDataView(LoginRequiredMixin,
 
     def render_column(self, row, column):
         if column == 'modified_date':
-            # Format the date for display while keeping the field name for sorting
+            # Format the date for display while keeping field name for sorting
             return row.modified_date_formatted
         return super().render_column(row, column)
 

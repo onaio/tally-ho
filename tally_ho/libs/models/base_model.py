@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class BaseModel(models.Model):
@@ -10,7 +11,9 @@ class BaseModel(models.Model):
 
     @property
     def modified_date_formatted(self):
-        return self.modified_date.strftime('%a, %d %b %Y %H:%M:%S %Z')
+        # Convert UTC datetime to the configured timezone
+        local_dt = timezone.localtime(self.modified_date)
+        return local_dt.strftime('%a, %d %b %Y %H:%M:%S %Z')
 
     def reload(self):
         new_self = self.__class__.objects.get(pk=self.pk)
