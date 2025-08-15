@@ -46,7 +46,7 @@
                             <div class="col-md-12">
                                 <h4>{% trans "State Transition History" %}</h4>
                                 <p class="text-muted">
-                                    {% trans "History is shown from oldest to newest. Duration shows time spent in the previous state. The highlighted row represents the current state." %}
+                                    {% trans "History is shown from newest to oldest. Duration shows time spent in the previous state. The highlighted row represents the current state." %}
                                 </p>
                                 
                                 <div class="table-responsive">
@@ -82,18 +82,8 @@
                                                     <span class="label label-primary">{{ entry.current_state }}</span>
                                                 </td>
                                                 <td>
-                                                    {% if entry.duration_in_previous_state %}
-                                                        {% with entry.duration_in_previous_state as duration %}
-                                                            {% if duration.days > 0 %}
-                                                                {{ duration.days }}d {{ duration.seconds|floatformat:0 }}s
-                                                            {% elif duration.seconds > 3600 %}
-                                                                {{ duration.seconds|floatformat:0|add:3600|floatformat:0 }}h
-                                                            {% elif duration.seconds > 60 %}
-                                                                {{ duration.seconds|floatformat:0|add:60|floatformat:0 }}m
-                                                            {% else %}
-                                                                {{ duration.seconds|floatformat:0 }}s
-                                                            {% endif %}
-                                                        {% endwith %}
+                                                    {% if entry.duration_display %}
+                                                        {{ entry.duration_display }}
                                                     {% else %}
                                                         -
                                                     {% endif %}

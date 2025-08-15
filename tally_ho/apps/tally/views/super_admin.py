@@ -62,6 +62,7 @@ from tally_ho.libs.utils.active_status import (disable_enable_ballot,
                                                disable_enable_entity)
 from tally_ho.libs.utils.collections import flatten
 from tally_ho.libs.utils.enum import get_matching_enum_values
+from tally_ho.libs.utils.time import format_duration_human_readable
 from tally_ho.libs.views.exports import (SPECIAL_BALLOTS, distinct_forms,
                                          get_result_export_response,
                                          valid_ballots)
@@ -2140,8 +2141,10 @@ class ResultFormHistoryView(
 
             # Calculate duration in previous state
             duration = None
+            duration_display = None
             if previous_timestamp and timestamp:
                 duration = timestamp - previous_timestamp
+                duration_display = format_duration_human_readable(duration)
                 
             history_data.append({
                 'user': user_name,
@@ -2150,14 +2153,16 @@ class ResultFormHistoryView(
                 'previous_state': previous_state_name,
                 'version_id': version.pk,
                 'duration_in_previous_state': duration,
+                'duration_display': duration_display,
                 'is_current': False
             })
             
             previous_timestamp = timestamp
         
-        # Mark the last entry as current state
+        # Reverse to show newest first, then mark first entry as current
+        history_data.reverse()
         if history_data:
-            history_data[-1]['is_current'] = True
+            history_data[0]['is_current'] = True
         
         context.update({
             'result_form': result_form,
