@@ -2,23 +2,23 @@ import json
 
 from django.test import RequestFactory
 
-from tally_ho.libs.permissions import groups
 from tally_ho.apps.tally.models.center import Center
-from tally_ho.libs.models.enums.form_state import FormState
-from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.apps.tally.views.reports import election_statistics_report
 from tally_ho.libs.models.enums.center_type import CenterType
-from tally_ho.apps.tally.views.reports import (
-    election_statistics_report
-)
-from tally_ho.libs.tests.test_base import (
-    create_electrol_race, create_result_form, create_station, \
-    create_reconciliation_form, create_sub_constituency, create_tally, \
-    create_region, create_constituency, create_office, create_result, \
-    create_candidates, TestBase, create_ballot
-)
-from tally_ho.libs.tests.fixtures.electrol_race_data import (
-    electrol_races
-)
+from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.gender import Gender
+from tally_ho.libs.permissions import groups
+from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
+from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
+                                           create_candidates,
+                                           create_constituency,
+                                           create_electrol_race, create_office,
+                                           create_reconciliation_form,
+                                           create_region, create_result,
+                                           create_result_form, create_station,
+                                           create_sub_constituency,
+                                           create_tally)
 
 
 class TestElectionStatisticsReports(TestBase):
@@ -54,6 +54,15 @@ class TestElectionStatisticsReports(TestBase):
             constituency=self.constituency)
         self.station = create_station(
             center=self.center, registrants=20, tally=self.tally)
+        self.male_station = create_station(
+            center=self.center, registrants=15, gender=Gender.MALE,
+            station_number='002', tally=self.tally)
+        self.female_station = create_station(
+            center=self.center, registrants=25, gender=Gender.FEMALE,
+            station_number='003', tally=self.tally)
+        self.unisex_station = create_station(
+            center=self.center, registrants=30, gender=Gender.UNISEX,
+            station_number='004', tally=self.tally)
         self.result_form = create_result_form(
             tally=self.tally,
             form_state=FormState.ARCHIVED,
@@ -125,7 +134,15 @@ class TestElectionStatisticsReports(TestBase):
             self.assertIn(field, election_stats.keys())
         self.assertEqual(election_stats['forms_expected'], 1)
         self.assertEqual(election_stats['forms_counted'], 1)
-        self.assertEqual(election_stats['stations_expected'], 1)
+        self.assertEqual(election_stats['stations_expected'], 4)
+        # Test that unisex and female statistics are both zero initially
+        # (since we only have result forms for the main station)
+        self.assertEqual(
+            election_stats['unisex_voters_in_counted_stations'], 0
+        )
+        self.assertEqual(
+            election_stats['female_voters_in_counted_stations'], 0
+        )
         create_result_form(
             barcode='012345678',
             tally=self.tally,
@@ -161,6 +178,84 @@ class TestElectionStatisticsReports(TestBase):
                 self.tally.id, 'Presidential')
         self.assertDictEqual(election_stats[0], data)
 
+    def test_election_statistics_data_view_with_gender_filter(self):
+        """
+        Test ElectionStatisticsDataView with gender filter
+        """
+        view = election_statistics_report.ElectionStatisticsDataView.as_view()
+        request = self.factory.post(
+            '/reports/internal/election-statistics-data',
+            data={'data': json.dumps({'gender_value': Gender.MALE.value})})
+        request.user = self.user
+        response = view(
+            request, tally_id=self.tally.id, election_level='Presidential')
+        data = json.loads(response.content.decode())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('data', data)
+
+    def test_generate_overview_election_statistics_with_mixed_genders(self):
+        """
+        Test overview election statistics with different gender stations
+        """
+        # Create result forms for additional stations
+        male_result_form = create_result_form(
+            barcode='012345679',
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+            office=self.office,
+            center=self.center,
+            station_number=self.male_station.station_number,
+            ballot=self.ballot,
+            serial_number=2
+        )
+        unisex_result_form = create_result_form(
+            barcode='012345680',
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+            office=self.office,
+            center=self.center,
+            station_number=self.unisex_station.station_number,
+            ballot=self.ballot,
+            serial_number=3
+        )
+
+        # Create results for male station
+        create_candidates(male_result_form, votes=10, user=self.user,
+                          num_results=1, tally=self.tally)
+        for result in male_result_form.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+
+        # Create results for unisex station
+        create_candidates(unisex_result_form, votes=15, user=self.user,
+                          num_results=1, tally=self.tally)
+        for result in unisex_result_form.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+
+        election_stats = \
+            election_statistics_report.generate_overview_election_statistics(
+                self.tally.id, 'Presidential')
+
+        # Verify that unisex values are not equal to female values
+        self.assertNotEqual(
+            election_stats['unisex_voters_in_counted_stations'],
+            election_stats['female_voters_in_counted_stations']
+        )
+        self.assertNotEqual(
+            election_stats['unisex_total_registrants_in_counted_stations'],
+            election_stats['female_total_registrants_in_counted_stations']
+        )
+
+        # Verify that male statistics are properly calculated
+        self.assertGreater(
+            election_stats['male_voters_in_counted_stations'], 0
+        )
+        self.assertGreater(
+            election_stats['male_total_registrants_in_counted_stations'], 0
+        )
+
     def test_election_statistics_report_view(self):
         """
         Test ElectionStatisticsReportView
@@ -174,3 +269,20 @@ class TestElectionStatisticsReports(TestBase):
             request, tally_id=self.tally.id, election_level='Presidential')
 
         self.assertEqual(response.status_code, 200)
+
+    def test_generate_election_statistics_with_no_archived_forms(self):
+        """
+        Test election statistics when no forms are archived
+        """
+        # Change result form state to unsubmitted
+        self.result_form.form_state = FormState.UNSUBMITTED
+        self.result_form.save()
+
+        election_stats = \
+            election_statistics_report.generate_election_statistics(
+                self.tally.id, 'Presidential')
+
+        # Should return statistics with zero counts
+        for stat in election_stats:
+            self.assertEqual(stat['stations_counted'], 0)
+            self.assertEqual(stat['voters_in_counted_stations'], 0)

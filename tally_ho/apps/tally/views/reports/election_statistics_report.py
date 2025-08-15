@@ -53,8 +53,9 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                 ).annotate(
                     form_state=F('center__resultform__form_state'),
                     ballot_id=F('center__resultform__ballot__id')
-                        ).distinct(
-        'station_number', 'center', 'tally').only(
+                        ).order_by(
+        'station_number', 'center_id', 'tally_id').distinct(
+        'station_number', 'center_id', 'tally_id').only(
             'id', 'station_number', 'center', 'form_state', 'ballot_id',
             'gender', 'registrants'
         ).values_list(
@@ -79,8 +80,10 @@ def generate_election_statistics(tally_id, election_level, gender=None):
                 ResultForm.objects.filter(
                     tally__id=tally_id,
                     ballot__electrol_race__election_level=election_level,
-                ).distinct(
-                'center', 'station_number', 'ballot', 'tally').only(
+                ).order_by(
+                'center_id', 'station_number', 'ballot_id',
+                'tally_id').distinct(
+                'center_id', 'station_number', 'ballot_id', 'tally_id').only(
                 'id', 'station_number', 'center', 'form_state', 'ballot',
         ).values_list(
         'id', 'station_number', 'center', 'form_state', 'ballot', named=True
@@ -265,7 +268,8 @@ def generate_overview_election_statistics(tally_id, election_level):
                 election_level,
         )
     election_statistics['stations_expected'] =\
-        qs.distinct('station_number', 'center', 'tally').count()
+        qs.order_by('station_number', 'center_id', 'tally_id').distinct(
+        'station_number', 'center_id', 'tally_id').count()
 
     station_ids_by_races = qs.filter(
         center__resultform__form_state=FormState.ARCHIVED,
@@ -273,7 +277,7 @@ def generate_overview_election_statistics(tally_id, election_level):
         number=F('station_number'),
         station_gender=F('gender'),
         num_registrants=F('registrants')
-    ).distinct()
+    ).order_by('id').distinct()
     voters = 0
     male_voters = 0
     female_voters = 0
@@ -387,9 +391,9 @@ def generate_overview_election_statistics(tally_id, election_level):
                   2) if total_female_registrants_in_counted_stations else 0.0
         # Unisex station statistics
         election_statistics['unisex_voters_in_counted_stations'] =\
-            female_voters
+            unisex_voters
         election_statistics['unisex_total_registrants_in_counted_stations'] =\
-            total_female_registrants_in_counted_stations
+            total_unisex_registrants_in_counted_stations
         election_statistics['unisex_projected_turnout_percentage'] =\
             round(100 *\
                   unisex_voters / total_unisex_registrants_in_counted_stations,
