@@ -80,7 +80,6 @@
                                                 <th>{% trans "Previous State" %}</th>
                                                 <th>{% trans "New State" %}</th>
                                                 <th>{% trans "Duration in Previous" %}</th>
-                                                <th>{% trans "Version" %}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -120,9 +119,6 @@
                                                     {% else %}
                                                         -
                                                     {% endif %}
-                                                </td>
-                                                <td>
-                                                    <small class="text-muted">{{ entry.version_id }}</small>
                                                 </td>
                                             </tr>
                                             {% endfor %}

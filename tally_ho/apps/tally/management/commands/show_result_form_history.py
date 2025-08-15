@@ -115,23 +115,21 @@ class Command(BaseCommand):
                 'timestamp': timestamp,
                 'current_state': current_state_name,
                 'previous_state': previous_state_name,
-                'version_id': version.pk
             })
 
         # Display history
         self.stdout.write("History (oldest to newest):")
-        self.stdout.write("-" * 100)
+        self.stdout.write("-" * 90)
         self.stdout.write(
             f"{'User':<20} {'Timestamp':<25} {'Previous State':<20} "
-            f"{'Current State':<20} {'Version':<10}"
+            f"{'Current State':<20}"
         )
-        self.stdout.write("-" * 100)
+        self.stdout.write("-" * 90)
 
         for entry in history_data:
             self.stdout.write(
                 f"{entry['user']:<20} {entry['timestamp']:<25} "
-                f"{entry['previous_state']:<20} {entry['current_state']:<20} "
-                f"{entry['version_id']:<10}"
+                f"{entry['previous_state']:<20} {entry['current_state']:<20}"
             )
 
         # Export to CSV if requested
@@ -143,7 +141,7 @@ class Command(BaseCommand):
             with open(csv_filepath, mode='w', newline='') as file:
                 fieldnames = [
                     'barcode', 'user', 'timestamp', 'previous_state', 
-                    'current_state', 'version_id'
+                    'current_state'
                 ]
                 writer = csv.DictWriter(file, fieldnames=fieldnames)
                 writer.writeheader()
@@ -155,7 +153,6 @@ class Command(BaseCommand):
                         'timestamp': entry['timestamp'],
                         'previous_state': entry['previous_state'],
                         'current_state': entry['current_state'],
-                        'version_id': entry['version_id']
                     })
 
             self.stdout.write(
