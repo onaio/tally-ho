@@ -85,6 +85,7 @@
 <ul>
     <li><a href="{% url 'remove-center' tally_id=tally_id %}">{% trans 'Remove a Center' %}</a></li>
     <li><a href="{% url 'remove-station' tally_id=tally_id %}">{% trans 'Remove a Station' %}</a></li>
+    <li><a href="{% url 'result-form-search' tally_id=tally_id %}">{% trans 'Result Form History' %}</a></li>
 </ul>
 
 <h3>{% trans 'Staff Performance Metrics' %}</h3>
@@ -103,7 +104,6 @@
     <li><a href="{% url 'supervisors-approvals' tally_id=tally_id %}">{% trans 'Supervisors Approvals' %}</a></li>
     <li><a href="{% url 'track-corrections' tally_id=tally_id %}">{% trans 'Track Corrections' %}</a></li>
 </ul>
-
 {% if debug %}
 <h3>{% trans 'Users and groups' %}</h3>
 

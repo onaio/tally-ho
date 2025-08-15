@@ -14,8 +14,7 @@
             <div class="panel-body">
                 <p>{% trans "Enter a barcode to view the complete history of a result form." %}</p>
                 
-                <form method="get" 
-                      action="{% if tally_id %}{% url 'result-form-history' tally_id=tally_id %}{% else %}{% url 'result-form-history-global' %}{% endif %}">
+                <form method="get" action="{% url 'result-form-history' tally_id=tally_id %}">
                     <div class="form-group">
                         <label for="barcode">{% trans "Barcode" %}</label>
                         <input type="text" 
@@ -25,9 +24,14 @@
                                placeholder="{% trans 'Enter result form barcode' %}"
                                required>
                     </div>
-                    <button type="submit" class="btn btn-primary">
-                        {% trans "View History" %}
-                    </button>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="glyphicon glyphicon-search"></i> {% trans "View History" %}
+                        </button>
+                        <a href="{% url 'super-administrator' tally_id=tally_id %}" class="btn btn-default">
+                            {% trans "Back to Dashboard" %}
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>

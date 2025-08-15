@@ -2017,3 +2017,123 @@ class CreateUserView(LoginRequiredMixin,
 
         return reverse(url_name,
                        kwargs={url_keyword: url_param})
+
+
+class ResultFormSearchView(
+    LoginRequiredMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    TemplateView,
+):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/result_form_search.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tally_id'] = self.kwargs.get('tally_id')
+        return context
+
+
+class ResultFormHistoryView(
+    LoginRequiredMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    TemplateView,
+):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/result_form_history.html"
+
+    def get_context_data(self, **kwargs):
+        from django.contrib.auth.models import User
+        from reversion.models import Version
+        from tally_ho.libs.models.enums.form_state import FormState
+        
+        context = super().get_context_data(**kwargs)
+        barcode = self.request.GET.get('barcode')
+        tally_id = self.kwargs.get('tally_id')
+        
+        context['tally_id'] = tally_id
+        
+        if not barcode:
+            context['error'] = 'No barcode provided'
+            return context
+            
+        try:
+            result_form = ResultForm.objects.get(
+                barcode=barcode, 
+                tally__id=tally_id
+            )
+        except ResultForm.DoesNotExist:
+            context['error'] = f'Result form with barcode "{barcode}" does not exist in this tally'
+            return context
+        
+        # Get version history
+        versions = Version.objects.get_for_object(result_form).order_by('pk')
+        
+        if not versions:
+            context['error'] = f'No version history found for result form {barcode}'
+            return context
+        
+        # Process history data
+        history_data = []
+        previous_timestamp = None
+        
+        for version in versions:
+            version_data = version.field_dict
+            
+            # Get user info
+            user_name = "Unknown"
+            if 'user_id' in version_data and version_data['user_id']:
+                try:
+                    user = User.objects.get(pk=version_data['user_id'])
+                    user_name = user.username
+                except User.DoesNotExist:
+                    user_name = f"User ID {version_data['user_id']}"
+
+            # Format timestamp
+            modified_date = version_data.get('modified_date')
+            timestamp = None
+            if modified_date:
+                if isinstance(modified_date, str):
+                    from django.utils.dateparse import parse_datetime
+                    timestamp = parse_datetime(modified_date)
+                else:
+                    timestamp = modified_date
+
+            # Get form states
+            current_state = version_data.get('form_state')
+            previous_state = version_data.get('previous_form_state')
+            
+            if current_state:
+                current_state_name = FormState(current_state).name
+            else:
+                current_state_name = "Unknown"
+
+            if previous_state:
+                previous_state_name = FormState(previous_state).name
+            else:
+                previous_state_name = "None"
+
+            # Calculate duration in previous state
+            duration = None
+            if previous_timestamp and timestamp:
+                duration = timestamp - previous_timestamp
+                
+            history_data.append({
+                'user': user_name,
+                'timestamp': timestamp,
+                'current_state': current_state_name,
+                'previous_state': previous_state_name,
+                'version_id': version.pk,
+                'duration_in_previous_state': duration
+            })
+            
+            previous_timestamp = timestamp
+        
+        context.update({
+            'result_form': result_form,
+            'history_data': history_data,
+            'barcode': barcode,
+        })
+        
+        return context

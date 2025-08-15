@@ -18,9 +18,9 @@
                     <div class="alert alert-danger">
                         <strong>{% trans "Error:" %}</strong> {{ error }}
                     </div>
-                    <a href="{% if tally_id %}{% url 'result-form-search' tally_id=tally_id %}{% else %}{% url 'result-form-search-global' %}{% endif %}" 
+                    <a href="{% url 'super-administrator' tally_id=tally_id %}" 
                        class="btn btn-default">
-                        {% trans "Search Again" %}
+                        {% trans "Back to Dashboard" %}
                     </a>
                 {% else %}
                     {% if result_form %}
@@ -137,11 +137,7 @@
                                         </p>
                                         
                                         <div class="btn-group">
-                                            <a href="{% if tally_id %}{% url 'result-form-search' tally_id=tally_id %}{% else %}{% url 'result-form-search-global' %}{% endif %}" 
-                                               class="btn btn-default">
-                                                {% trans "Search Another Form" %}
-                                            </a>
-                                            <a href="{% if tally_id %}{% url 'tally-manager' %}{% else %}{% url 'tally-manager' %}{% endif %}" 
+                                            <a href="{% url 'super-administrator' tally_id=tally_id %}" 
                                                class="btn btn-primary">
                                                 {% trans "Back to Dashboard" %}
                                             </a>
