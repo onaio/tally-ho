@@ -94,7 +94,7 @@ class TestShowResultFormHistory(TestBase):
         
         output = out.getvalue()
         # Should contain CSV headers
-        self.assertIn('Timestamp,User,Previous State,Current State', output)
+        self.assertIn('barcode,user,timestamp,previous_state,current_state,duration_in_previous,is_current', output)
         
     def test_command_with_no_version_history(self):
         """Test command with result form that has no version history"""

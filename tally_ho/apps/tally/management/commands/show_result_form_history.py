@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _, gettext
 from reversion.models import Version
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.utils.time import format_duration_human_readable
 
 
 class Command(BaseCommand):
@@ -85,8 +86,10 @@ class Command(BaseCommand):
             self.stdout.write(f'Tally: {result_form.tally.name}')
         self.stdout.write(f'Current State: {result_form.form_state.name}\n')
 
-        # Prepare history data
+        # Prepare history data (same logic as the view)
         history_data = []
+        previous_timestamp = None
+        
         for version in versions:
             version_data = version.field_dict
             
@@ -101,14 +104,14 @@ class Command(BaseCommand):
 
             # Format timestamp
             modified_date = version_data.get('modified_date')
+            timestamp = None
             if modified_date:
                 if isinstance(modified_date, str):
-                    timestamp = modified_date
+                    from django.utils.dateparse import parse_datetime
+                    timestamp = parse_datetime(modified_date)
                 else:
-                    timestamp = modified_date.isoformat()
-            else:
-                timestamp = "Unknown"
-
+                    timestamp = modified_date
+            
             # Get form states
             current_state = version_data.get('form_state')
             previous_state = version_data.get('previous_form_state')
@@ -123,26 +126,54 @@ class Command(BaseCommand):
             else:
                 previous_state_name = "None"
 
+            # Calculate duration in previous state
+            duration_display = None
+            if previous_timestamp and timestamp:
+                duration = timestamp - previous_timestamp
+                duration_display = format_duration_human_readable(duration)
+
             history_data.append({
                 'user': user_name,
                 'timestamp': timestamp,
                 'current_state': current_state_name,
                 'previous_state': previous_state_name,
+                'duration_display': duration_display,
+                'is_current': False
             })
+            
+            previous_timestamp = timestamp
+
+        # Reverse to show newest first, then mark first entry as current
+        history_data.reverse()
+        if history_data:
+            history_data[0]['is_current'] = True
 
         # Display history
-        self.stdout.write("History (oldest to newest):")
-        self.stdout.write("-" * 90)
+        self.stdout.write("History (newest to oldest):")
+        self.stdout.write("-" * 110)
         self.stdout.write(
-            f"{'User':<20} {'Timestamp':<25} {'Previous State':<20} "
-            f"{'Current State':<20}"
+            f"{'User':<20} {'Timestamp':<25} {'Previous State':<15} "
+            f"{'Current State':<15} {'Duration':<15} {'Status':<10}"
         )
-        self.stdout.write("-" * 90)
+        self.stdout.write("-" * 110)
 
         for entry in history_data:
+            # Format timestamp for display
+            if entry['timestamp']:
+                timestamp_str = entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                timestamp_str = "Unknown"
+            
+            # Format duration
+            duration_str = entry['duration_display'] if entry['duration_display'] else "-"
+            
+            # Current status indicator
+            status_str = "(current)" if entry['is_current'] else ""
+            
             self.stdout.write(
-                f"{entry['user']:<20} {entry['timestamp']:<25} "
-                f"{entry['previous_state']:<20} {entry['current_state']:<20}"
+                f"{entry['user']:<20} {timestamp_str:<25} "
+                f"{entry['previous_state']:<15} {entry['current_state']:<15} "
+                f"{duration_str:<15} {status_str:<10}"
             )
 
         # Export to CSV if requested
@@ -154,7 +185,7 @@ class Command(BaseCommand):
             with open(csv_filepath, mode='w', newline='') as file:
                 fieldnames = [
                     'barcode', 'user', 'timestamp', 'previous_state', 
-                    'current_state'
+                    'current_state', 'duration_in_previous', 'is_current'
                 ]
                 writer = csv.DictWriter(file, fieldnames=fieldnames)
                 writer.writeheader()
@@ -163,9 +194,11 @@ class Command(BaseCommand):
                     writer.writerow({
                         'barcode': barcode,
                         'user': entry['user'],
-                        'timestamp': entry['timestamp'],
+                        'timestamp': entry['timestamp'].isoformat() if entry['timestamp'] else '',
                         'previous_state': entry['previous_state'],
                         'current_state': entry['current_state'],
+                        'duration_in_previous': entry['duration_display'] if entry['duration_display'] else '',
+                        'is_current': 'Yes' if entry['is_current'] else 'No',
                     })
 
             self.stdout.write(
