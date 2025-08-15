@@ -2282,3 +2282,141 @@ class TestSuperAdmin(TestBase):
         # Should raise PermissionDenied due to permission check
         with self.assertRaises(PermissionDenied):
             view(request, tally_id=self.tally.pk)
+
+    def test_form_progress_data_view_modified_date_sorting(self):
+        """Test that modified_date column can be used for sorting without FieldError."""
+        # Create result forms 
+        result_form1 = create_result_form(
+            form_state=FormState.DATA_ENTRY_1, 
+            tally=self.tally,
+            barcode='123456789',
+            serial_number=1
+        )
+        result_form2 = create_result_form(
+            form_state=FormState.DATA_ENTRY_2, 
+            tally=self.tally,
+            barcode='123456790',
+            serial_number=2
+        )
+        
+        # Test that the view can be instantiated and has correct columns
+        view = views.FormProgressDataView()
+        self.assertIn('modified_date', view.columns)
+        self.assertNotIn('modified_date_formatted', view.columns)
+        
+        # Test direct queryset ordering to ensure modified_date works
+        view.kwargs = {'tally_id': self.tally.pk}
+        qs = view.get_initial_queryset()
+        
+        # This should not raise FieldError about modified_date_formatted
+        try:
+            ordered_qs = qs.order_by('modified_date')
+            list(ordered_qs)  # Force evaluation
+        except Exception as e:
+            self.fail(f"Ordering by modified_date failed: {e}")
+        
+        # Test reverse ordering
+        try:
+            ordered_qs = qs.order_by('-modified_date')
+            list(ordered_qs)  # Force evaluation
+        except Exception as e:
+            self.fail(f"Reverse ordering by modified_date failed: {e}")
+
+    def test_form_progress_data_view_modified_date_display(self):
+        """Test that modified_date column displays formatted date."""
+        # Create a result form
+        result_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1, 
+            tally=self.tally,
+            barcode='123456791',
+            serial_number=3
+        )
+        
+        view = views.FormProgressDataView()
+        
+        # Test render_column method formats the date correctly
+        formatted_date = view.render_column(result_form, 'modified_date')
+        expected_format = result_form.modified_date_formatted
+        
+        self.assertEqual(formatted_date, expected_format)
+        
+        # Test that other columns are not affected
+        barcode_value = view.render_column(result_form, 'barcode')
+        # render_column should call super() for non-modified_date columns
+        # Since we can't easily test the exact super() result, just ensure it returns something
+        self.assertIsNotNone(barcode_value)
+
+    def test_form_audit_data_view_modified_date_sorting(self):
+        """Test that FormAuditDataView inherits sorting fix."""
+        # Create audit result form
+        result_form = create_result_form(
+            form_state=FormState.AUDIT, 
+            tally=self.tally,
+            barcode='123456792',
+            serial_number=4
+        )
+        
+        # Test that the view can be instantiated and has correct columns
+        view = views.FormAuditDataView()
+        self.assertIn('modified_date', view.columns)
+        self.assertNotIn('modified_date_formatted', view.columns)
+        
+        # Test that inherited render_column method works for modified_date
+        formatted_date = view.render_column(result_form, 'modified_date')
+        expected_format = result_form.modified_date_formatted
+        self.assertEqual(formatted_date, expected_format)
+
+    def test_form_clearance_data_view_modified_date_sorting(self):
+        """Test that FormClearanceDataView inherits sorting fix."""
+        # Create clearance result form
+        result_form = create_result_form(
+            form_state=FormState.CLEARANCE, 
+            tally=self.tally,
+            barcode='123456793',
+            serial_number=5
+        )
+        
+        # Test that the view can be instantiated and has correct columns
+        view = views.FormClearanceDataView()
+        self.assertIn('modified_date', view.columns)
+        self.assertNotIn('modified_date_formatted', view.columns)
+        
+        # Test that inherited render_column method works for modified_date
+        formatted_date = view.render_column(result_form, 'modified_date')
+        expected_format = result_form.modified_date_formatted
+        self.assertEqual(formatted_date, expected_format)
+
+    def test_datatables_original_fix_verification(self):
+        """Test that original FieldError is fixed for modified_date_formatted."""
+        # Create result forms
+        for i in range(3):
+            create_result_form(
+                form_state=FormState.DATA_ENTRY_1, 
+                tally=self.tally,
+                barcode=f'12345679{4+i}',
+                serial_number=6+i
+            )
+        
+        # Test that we no longer have modified_date_formatted in columns
+        view = views.FormProgressDataView()
+        for column in view.columns:
+            self.assertNotEqual(column, 'modified_date_formatted',
+                              "modified_date_formatted should not be in columns")
+        
+        # Test that all three affected views have been fixed
+        views_to_test = [
+            views.FormProgressDataView,
+            views.FormAuditDataView, 
+            views.FormClearanceDataView
+        ]
+        
+        for view_class in views_to_test:
+            view = view_class()
+            self.assertNotIn('modified_date_formatted', view.columns,
+                           f"{view_class.__name__} should not have modified_date_formatted")
+            self.assertIn('modified_date', view.columns,
+                        f"{view_class.__name__} should have modified_date")
+            
+            # Test that render_column method exists and works for modified_date
+            self.assertTrue(hasattr(view, 'render_column'),
+                          f"{view_class.__name__} should have render_column method")

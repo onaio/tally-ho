@@ -719,8 +719,14 @@ class FormProgressDataView(LoginRequiredMixin,
         'ballot.electrol_race.ballot_name',
         'center.office.number',
         'rejected_count',
-        'modified_date_formatted',
+        'modified_date',
     )
+
+    def render_column(self, row, column):
+        if column == 'modified_date':
+            # Format the date for display while keeping the field name for sorting
+            return row.modified_date_formatted
+        return super().render_column(row, column)
 
     def filter_queryset(self, qs):
         tally_id = self.kwargs['tally_id']
@@ -945,7 +951,7 @@ class FormAuditDataView(FormProgressDataView):
         'center.office.name',
         'center.office.number',
         'rejected_count',
-        'modified_date_formatted',
+        'modified_date',
     )
 
     def filter_queryset(self, qs):
@@ -973,7 +979,7 @@ class FormClearanceDataView(FormProgressDataView):
         'center.office.name',
         'center.office.number',
         'rejected_count',
-        'modified_date_formatted',
+        'modified_date',
     )
 
     def filter_queryset(self, qs):
