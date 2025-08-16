@@ -43,5 +43,10 @@ class Result(BaseModel):
                         "deactivation of this result record."))
     )
 
+    def save(self, *args, **kwargs):
+        if not self.tally_id and self.result_form_id:
+            self.tally_id = self.result_form.tally_id
+        super().save(*args, **kwargs)
+
 
 reversion.register(Result)

@@ -18,5 +18,10 @@ class Archive(BaseModel):
                               related_name='archives')
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
 
+    def save(self, *args, **kwargs):
+        if not self.tally_id and self.result_form_id:
+            self.tally_id = self.result_form.tally_id
+        super().save(*args, **kwargs)
+
 
 reversion.register(Archive)

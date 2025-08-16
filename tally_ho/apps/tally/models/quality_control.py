@@ -43,5 +43,10 @@ class QualityControl(BaseModel):
         return _('Reviews Completed') if self.reviews_passed else\
             _('Reviews Required')
 
+    def save(self, *args, **kwargs):
+        if not self.tally_id and self.result_form_id:
+            self.tally_id = self.result_form.tally_id
+        super().save(*args, **kwargs)
+
 
 reversion.register(QualityControl)
