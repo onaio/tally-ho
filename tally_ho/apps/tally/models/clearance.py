@@ -21,7 +21,6 @@ class Clearance(BaseModel):
                                     on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
                               on_delete=models.PROTECT,
-                              default=1,
                               related_name='clearances')
     supervisor = models.ForeignKey(UserProfile, null=True,
                                    on_delete=models.PROTECT,

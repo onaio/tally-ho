@@ -44,7 +44,6 @@ class ReconciliationForm(BaseModel):
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
                               on_delete=models.PROTECT,
-                              default=1,
                               related_name='reconciliation_forms')
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
 

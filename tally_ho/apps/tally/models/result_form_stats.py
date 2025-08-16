@@ -16,7 +16,6 @@ class ResultFormStats(BaseModel):
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
                               on_delete=models.PROTECT,
-                              default=1,
                               related_name='result_form_stats')
     approved_by_supervisor = models.BooleanField(default=False)
     reviewed_by_supervisor = models.BooleanField(default=False)

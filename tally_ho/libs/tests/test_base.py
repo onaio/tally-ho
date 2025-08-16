@@ -171,6 +171,8 @@ def create_result_form(
     electrol_race=None,
 ):
     if force_ballot and not ballot:
+        if tally is None:
+            tally = create_tally()
         ballot = create_ballot(tally, electrol_race=electrol_race)
 
     result_form, _ = ResultForm.objects.get_or_create(
@@ -228,6 +230,8 @@ def create_center(
     sub_constituency=None,
     constituency=None,
 ):
+    if tally is None:
+        tally = create_tally()
     region = create_region(tally=tally)
     return Center.objects.get_or_create(
         code=code,

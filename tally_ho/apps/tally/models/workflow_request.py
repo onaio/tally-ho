@@ -33,7 +33,6 @@ class WorkflowRequest(BaseModel):
         related_name='workflow_requests')
     tally = models.ForeignKey(Tally,
                               on_delete=models.PROTECT,
-                              default=1,
                               related_name='workflow_requests')
     requester = models.ForeignKey(
         UserProfile,
