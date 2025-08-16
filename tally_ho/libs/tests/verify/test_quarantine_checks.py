@@ -66,8 +66,11 @@ class TestQuarantineChecks(TestBase):
             result_form.reload()
             self.assertFalse(pass_reconciliation_check(result_form))
 
-    def test_pass_reconciliation_check_exact_match(self):
-        """Test the pass_reconciliation_check function requires exact match."""
+    def test_pass_reconciliation_check_with_default_tolerance(self):
+        """Test the pass_reconciliation_check function
+
+        This test checks that the pass_reconciliation_check function
+        with default 3% tolerance."""
         center = create_center()
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
@@ -79,7 +82,7 @@ class TestQuarantineChecks(TestBase):
             result_form=result_form,
             user=self.user,
             number_invalid_votes=20,
-            number_sorted_and_counted=101,  # 1 more than expected
+            number_sorted_and_counted=100,
         )
 
         with patch.object(
@@ -91,14 +94,33 @@ class TestQuarantineChecks(TestBase):
             result_form.reload()
             self.assertTrue(pass_reconciliation_check(result_form))
 
-            # Test even 1 difference fails: 101 vs 80 + 20 = 100
+            # Test within 3% tolerance: |101 - 100| = 1 <= 3% of 100 = 3
             recon_form.number_sorted_and_counted = 101
+            recon_form.save()
+            result_form.reload()
+            self.assertTrue(pass_reconciliation_check(result_form))
+
+            # Test within 3% tolerance: |99 - 100| = 1 <= 3% of 100 = 3
+            recon_form.number_sorted_and_counted = 99
+            recon_form.save()
+            result_form.reload()
+            self.assertTrue(pass_reconciliation_check(result_form))
+
+            # Test at 3% tolerance limit: |103 - 100| = 3 <= 3% of 100 = 3
+            recon_form.number_sorted_and_counted = 103
+            recon_form.save()
+            result_form.reload()
+            self.assertTrue(pass_reconciliation_check(result_form))
+
+            # Test exceeding 3% tolerance: |104 - 100| = 4 > 3% of 100 = 3
+            recon_form.number_sorted_and_counted = 104
             recon_form.save()
             result_form.reload()
             self.assertFalse(pass_reconciliation_check(result_form))
 
-            # Test another difference: 99 vs 80 + 20 = 100
-            recon_form.number_sorted_and_counted = 99
+            # Test other direction exceeding tolerance:
+            # |96 - 100| = 4 > 3% of 100 = 3
+            recon_form.number_sorted_and_counted = 96
             recon_form.save()
             result_form.reload()
             self.assertFalse(pass_reconciliation_check(result_form))
