@@ -5,6 +5,7 @@ from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.request_reason import RequestReason
@@ -30,6 +31,10 @@ class WorkflowRequest(BaseModel):
         ResultForm,
         on_delete=models.PROTECT,
         related_name='workflow_requests')
+    tally = models.ForeignKey(Tally,
+                              on_delete=models.PROTECT,
+                              default=1,
+                              related_name='workflow_requests')
     requester = models.ForeignKey(
         UserProfile,
         on_delete=models.PROTECT,

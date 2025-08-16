@@ -5,6 +5,7 @@ import reversion
 
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
@@ -18,6 +19,10 @@ class Audit(BaseModel):
 
     quarantine_checks = models.ManyToManyField(QuarantineCheck)
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
+    tally = models.ForeignKey(Tally,
+                              on_delete=models.PROTECT,
+                              default=1,
+                              related_name='audits')
     supervisor = models.ForeignKey(UserProfile,
                                    related_name='audit_user',
                                    null=True,

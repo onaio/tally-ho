@@ -4,6 +4,7 @@ from enumfields import EnumIntegerField
 import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
@@ -18,6 +19,10 @@ class Clearance(BaseModel):
 
     result_form = models.ForeignKey(ResultForm, related_name='clearances',
                                     on_delete=models.PROTECT)
+    tally = models.ForeignKey(Tally,
+                              on_delete=models.PROTECT,
+                              default=1,
+                              related_name='clearances')
     supervisor = models.ForeignKey(UserProfile, null=True,
                                    on_delete=models.PROTECT,
                                    related_name='clearance_user')

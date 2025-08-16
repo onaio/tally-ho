@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 import reversion
 
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 
@@ -12,6 +13,10 @@ class QualityControl(BaseModel):
         app_label = 'tally'
 
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
+    tally = models.ForeignKey(Tally,
+                              on_delete=models.PROTECT,
+                              default=1,
+                              related_name='quality_controls')
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
 
     active = models.BooleanField(default=True)
