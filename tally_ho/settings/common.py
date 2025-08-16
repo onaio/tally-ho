@@ -207,7 +207,7 @@ QUARANTINE_DATA = [
      'method': 'pass_reconciliation_check',
      'active': True,
      'value': 0,
-     'percentage': 0
+     'percentage': 3
      },
     {'name': 'Over-Voting Check',
      'description':
