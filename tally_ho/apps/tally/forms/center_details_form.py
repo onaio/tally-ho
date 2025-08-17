@@ -94,7 +94,7 @@ class CenterDetailsForm(forms.Form):
                     raise forms.ValidationError(_('Station is disabled'))
                 elif station.sub_constituency:
                     ballots = station.sub_constituency.get_ballots()
-                    if False in [ballot.active for ballot in ballots]:
+                    if not any(ballot.active for ballot in ballots):
                         raise forms.ValidationError(_('Race is disabled.'))
 
             except Center.DoesNotExist:
