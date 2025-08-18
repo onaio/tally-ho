@@ -460,7 +460,10 @@ class TestIntake(TestBase):
         tally = create_tally()
         tally.users.add(self.user)
         center = create_center(code="11111", tally=tally)
-        create_station(center)
+        station = create_station(center)
+        # Add active ballot to station's sub_constituency so validation passes
+        ballot = create_ballot(tally=tally)
+        station.sub_constituency.ballots.add(ballot)
         result_form = create_result_form(
             form_state=FormState.INTAKE, tally=tally
         )
@@ -489,6 +492,8 @@ class TestIntake(TestBase):
         center = create_center(code="11111", tally=tally)
         station = create_station(center)
         ballot = create_ballot(tally=tally)
+        # Add ballot to station's sub_constituency so validation passes
+        station.sub_constituency.ballots.add(ballot)
         barcode = "123456789"
         replacement_barcode = "012345678"
         create_result_form(
@@ -535,6 +540,8 @@ class TestIntake(TestBase):
         center = create_center(code="11111", tally=tally)
         station = create_station(center)
         ballot = create_ballot(tally=tally)
+        # Add ballot to station's sub_constituency so validation passes
+        station.sub_constituency.ballots.add(ballot)
         barcode = "123456789"
         replacement_barcode = "012345678"
         create_result_form(
@@ -1144,6 +1151,63 @@ class TestIntake(TestBase):
         self.assertContains(
             response, "Ballot number do not match for center and form"
         )
+
+    def test_enter_center_post_all_municipality_races_disabled(self):
+        """Test POST when all municipality races are disabled."""
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        # Create center and station with sub_constituency
+        sub_constituency = create_sub_constituency(tally=tally)
+        center = create_center(code="11111", tally=tally,
+                              sub_constituency=sub_constituency)
+        station = create_station(center=center, station_number=1)
+        station.sub_constituency = sub_constituency
+        station.save()
+
+        # Create both List and Individual races as inactive
+        list_race = create_electrol_race(
+            tally=tally,
+            election_level="Municipality",
+            ballot_name="List"
+        )
+        individual_race = create_electrol_race(
+            tally=tally,
+            election_level="Municipality",
+            ballot_name="Individual"
+        )
+        list_ballot = create_ballot(
+            tally=tally, electrol_race=list_race, active=False
+        )
+        individual_ballot = create_ballot(
+            tally=tally, electrol_race=individual_race, active=False
+        )
+        sub_constituency.ballots.add(list_ballot, individual_ballot)
+
+        # Create result form
+        result_form = create_result_form(
+            form_state=FormState.INTAKE, tally=tally
+        )
+
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        view = views.EnterCenterView.as_view()
+        data = {
+            "result_form": result_form.pk,
+            "center_number": center.code,
+            "center_number_copy": center.code,
+            "station_number": station.station_number,
+            "station_number_copy": station.station_number,
+            "tally_id": tally.pk,
+        }
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        request.session = {"result_form": result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        # Should return form with validation error
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Race is disabled.")
 
     def test_clearance_get_context_and_session(self):
         """Test context data and session cleanup in ClearanceView GET."""
