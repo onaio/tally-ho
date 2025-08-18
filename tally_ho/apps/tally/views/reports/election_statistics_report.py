@@ -251,7 +251,8 @@ def generate_overview_election_statistics(tally_id, election_level):
     result_forms_expected = ResultForm.objects.filter(
                 tally__id=tally_id,
                 ballot__electrol_race__election_level=\
-                election_level).distinct()
+                election_level,
+                ballot__active=True).distinct()
     forms_expected = result_forms_expected.count()
     election_statistics['forms_expected'] = forms_expected
     forms_counted =\
