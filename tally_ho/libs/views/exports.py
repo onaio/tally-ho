@@ -100,6 +100,8 @@ def build_result_and_recon_output(result_form):
             recon.number_of_voter_cards_in_the_ballot_box,
             'received ballots papers': recon.number_of_voters,
             'valid votes': recon.number_valid_votes,
+            'total number of ballot papers in the box':
+            recon.number_sorted_and_counted,
         })
 
     return output
@@ -179,6 +181,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'number of voter cards in the ballot box',
             'received ballots papers',
             'valid votes',
+            'total number of ballot papers in the box',
             'number registrants',
             'candidate status',
         ]

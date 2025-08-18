@@ -12,9 +12,10 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (TestBase, center_data,
-                                           create_candidate, create_center,
-                                           create_result_form, create_station,
-                                           create_tally, result_form_data,
+                                           create_ballot, create_candidate,
+                                           create_center, create_result_form,
+                                           create_station, create_tally,
+                                           result_form_data,
                                            result_form_data_blank)
 
 
@@ -154,8 +155,13 @@ class TestDataEntry(TestBase):
         station_number = 1
         center = create_center(code, tally=tally)
         other_center = create_center(other_code, tally=tally)
-        create_station(center)
-        create_station(other_center)
+        station = create_station(center)
+        other_station = create_station(other_center)
+        # Add separate ballots to each station for validation
+        ballot1 = create_ballot(tally=tally)
+        ballot2 = create_ballot(tally=tally)
+        station.sub_constituency.ballots.add(ballot1)
+        other_station.sub_constituency.ballots.add(ballot2)
         result_form = create_result_form(
             form_state=FormState.DATA_ENTRY_1,
             center=center,
@@ -213,7 +219,10 @@ class TestDataEntry(TestBase):
         code = "12345"
         station_number = 1
         center = create_center(code, tally=tally)
-        create_station(center)
+        station = create_station(center)
+        # Add ballot to station so validation passes the race check
+        ballot = create_ballot(tally=tally)
+        station.sub_constituency.ballots.add(ballot)
         result_form = create_result_form(
             form_state=FormState.DATA_ENTRY_1,
             center=center,
