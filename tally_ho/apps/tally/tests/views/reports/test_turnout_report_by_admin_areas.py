@@ -353,3 +353,117 @@ class TestTurnoutInAdminAreasReport(TestBase):
         self.assertEqual(registrants, '<td class="center">20</td>')
         self.assertEqual(voters, '<td class="center">8</td>')
         self.assertEqual(turnout, '<td class="center">40.0</td>')
+
+
+    def test_turnout_data_excludes_inactive_ballots(self):
+        """
+        Test that turnout data only includes votes from active ballots
+        """
+        # Create an inactive ballot
+        inactive_electrol_race = create_electrol_race(
+            self.tally, **electrol_races[1]
+        )
+        inactive_ballot = create_ballot(
+            self.tally, electrol_race=inactive_electrol_race, active=False
+        )
+
+        # Create a new station for the inactive ballot
+        inactive_station = create_station(
+            center=self.result_form.center, registrants=50,
+            station_number='007', tally=self.tally
+        )
+
+        # Create result form with inactive ballot
+        inactive_result_form = create_result_form(
+            barcode='987654321',
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+            office=self.result_form.office,
+            center=self.result_form.center,
+            station_number=inactive_station.station_number,
+            ballot=inactive_ballot,
+            serial_number=99
+        )
+
+        # Add reconciliation form for inactive ballot
+        create_reconciliation_form(
+            result_form=inactive_result_form,
+            user=self.user,
+            number_valid_votes=30,
+            number_invalid_votes=0,
+            number_of_voters=30,
+        )
+
+        # Create candidates and results for inactive ballot
+        votes = 30
+        create_candidates(
+            inactive_result_form,
+            votes=votes,
+            user=self.user,
+            num_results=1,
+            tally=self.tally,
+        )
+        for result in inactive_result_form.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            create_result(
+                inactive_result_form, result.candidate, self.user, votes
+            )
+
+        # Test turnout data should only include active ballot data
+        request = RequestFactory().get(
+            f"/data/turnout-list-data/{self.tally.pk}/region/"
+        )
+        request.user = self.user
+        request.session = {}
+        view = TurnoutReportByAdminAreasDataView.as_view()
+        response = view(request, tally_id=self.tally.pk, admin_level="region")
+        content = json.loads(response.content.decode())
+        self.assertEqual(response.status_code, 200)
+
+        (
+            area_name,
+            stations_expected,
+            stations_processed,
+            progress,
+            registrants,
+            voters,
+            turnout,
+        ) = content.get("data")[0]
+
+        # Both stations show as processed since both have archived result forms
+        # But votes should only come from active ballot
+        self.assertEqual(area_name, '<td class="center">Region</td>')
+        # Original station + new inactive ballot station
+        self.assertEqual(stations_expected, '<td class="center">2</td>')
+        # Both stations have archived result forms
+        self.assertEqual(stations_processed, '<td class="center">2</td>')
+        self.assertEqual(progress, '<td class="center">100.0</td>')  # 2/2
+        # 20 from active + 50 from inactive
+        self.assertEqual(registrants, '<td class="center">70</td>')
+        # Only from active ballot (inactive votes filtered out)
+        self.assertEqual(voters, '<td class="center">8</td>')
+        self.assertEqual(turnout, '<td class="center">11.43</td>')  # 8/70
+
+        # Check aggregate data too
+        (
+            area_name,
+            stations_expected,
+            stations_processed,
+            progress,
+            registrants,
+            voters,
+            turnout,
+        ) = content.get("aggregate")[0]
+
+        self.assertEqual(area_name, '<td class="center">Total</td>')
+        # Original station + new inactive ballot station
+        self.assertEqual(stations_expected, '<td class="center">2</td>')
+        # Both stations have archived result forms
+        self.assertEqual(stations_processed, '<td class="center">2</td>')
+        self.assertEqual(progress, '<td class="center">100.0</td>')  # 2/2
+        # 20 from active + 50 from inactive
+        self.assertEqual(registrants, '<td class="center">70</td>')
+        # Only from active ballot (inactive votes filtered out)
+        self.assertEqual(voters, '<td class="center">8</td>')
+        self.assertEqual(turnout, '<td class="center">11.43</td>')  # 8/70

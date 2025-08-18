@@ -16,11 +16,8 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.numbers import parse_int
-from tally_ho.libs.views.mixins import (
-    DataTablesMixin,
-    GroupRequiredMixin,
-    TallyAccessMixin,
-)
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 def generate_election_statistics(tally_id, election_level, gender=None):

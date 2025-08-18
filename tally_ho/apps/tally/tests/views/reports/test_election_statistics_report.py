@@ -286,3 +286,110 @@ class TestElectionStatisticsReports(TestBase):
         for stat in election_stats:
             self.assertEqual(stat['stations_counted'], 0)
             self.assertEqual(stat['voters_in_counted_stations'], 0)
+
+    def test_generate_election_statistics_excludes_inactive_ballots(self):
+        """
+        Test that election statistics only include data from active ballots
+        """
+        # Create an inactive ballot with its own result form
+        inactive_electrol_race = create_electrol_race(
+            self.tally,
+            **electrol_races[1]
+        )
+        inactive_ballot = create_ballot(
+            self.tally, electrol_race=inactive_electrol_race, active=False)
+
+        # Create a new station for the inactive ballot
+        inactive_station = create_station(
+            center=self.center, registrants=30,
+            station_number='005', tally=self.tally)
+
+        # Create result form for inactive ballot
+        inactive_result_form = create_result_form(
+            barcode='987654321',
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+            office=self.office,
+            center=self.center,
+            station_number=inactive_station.station_number,
+            ballot=inactive_ballot,
+            serial_number=99
+        )
+
+        # Add votes to inactive ballot result form
+        votes = 15
+        create_candidates(inactive_result_form, votes=votes, user=self.user,
+                          num_results=1, tally=self.tally)
+        for result in inactive_result_form.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+
+        # Generate election statistics - should only include active ballot
+        election_stats = \
+            election_statistics_report.generate_election_statistics(
+                self.tally.id, 'Presidential')
+
+        # Should have only one ballot (the active one)
+        self.assertEqual(len(election_stats), 1)
+
+        # Statistics should only reflect the active ballot
+        stat = election_stats[0]
+        self.assertEqual(stat['ballot_number'], self.ballot.number)
+        self.assertEqual(stat['stations_counted'], 1)
+        # 4 results * 20 votes each
+        self.assertEqual(stat['voters_in_counted_stations'], 80)
+
+    def test_generate_overview_election_statistics_excludes_inactive_ballots(
+        self
+    ):
+        """
+        Test overview election statistics exclude data from inactive ballots
+        """
+        # Create an inactive ballot with its own result form
+        inactive_electrol_race = create_electrol_race(
+            self.tally,
+            **electrol_races[1]
+        )
+        inactive_ballot = create_ballot(
+            self.tally, electrol_race=inactive_electrol_race, active=False)
+
+        # Create a new station for the inactive ballot
+        inactive_station = create_station(
+            center=self.center, registrants=30,
+            station_number='006', tally=self.tally)
+
+        # Create result form for inactive ballot
+        inactive_result_form = create_result_form(
+            barcode='987654322',
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+            office=self.office,
+            center=self.center,
+            station_number=inactive_station.station_number,
+            ballot=inactive_ballot,
+            serial_number=100
+        )
+
+        # Add votes to inactive ballot result form
+        votes = 25
+        create_candidates(inactive_result_form, votes=votes, user=self.user,
+                          num_results=1, tally=self.tally)
+        for result in inactive_result_form.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+
+        # Generate overview election statistics
+        election_stats = \
+            election_statistics_report.generate_overview_election_statistics(
+                self.tally.id, 'Presidential')
+
+        # Should only count the active ballot's form
+        self.assertEqual(election_stats['forms_expected'], 1)
+        self.assertEqual(election_stats['forms_counted'], 1)
+
+        # Should only count stations with active ballots
+        # (5 original stations including the new one)
+        self.assertEqual(election_stats['stations_expected'], 5)
+
+        # Should only include voters from active ballot
+        self.assertEqual(election_stats['voters_in_counted_stations'], 80)
