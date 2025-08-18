@@ -13,7 +13,9 @@ from tally_ho.apps.tally.forms.clearance_form import ClearanceForm
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
-from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
+from tally_ho.libs.models.enums.clearance_resolution import (
+    ClearanceResolution as ClrcResolution
+)
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.time import now
@@ -44,14 +46,14 @@ def clearance_action(post_data, clearance, result_form, url, user):
 
         if (
             clearance.resolution_recommendation
-            == ClearanceResolution.PENDING_FIELD_INPUT
+            == ClrcResolution.PENDING_FIELD_INPUT
         ):
             clearance.active = True
             clearance.reviewed_supervisor = False
 
         if (
             clearance.resolution_recommendation
-            == ClearanceResolution.RESET_TO_PREINTAKE
+            == ClrcResolution.RESET_TO_PREINTAKE
         ):
             clearance.active = False
             # Track previous state and user before changing form state
@@ -62,6 +64,22 @@ def clearance_action(post_data, clearance, result_form, url, user):
             if result_form.is_replacement:
                 result_form.center = None
                 result_form.station_number = None
+            result_form.save()
+
+        if (
+            clearance.resolution_recommendation
+            == ClrcResolution.RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK
+        ):
+            clearance.active = False
+            # Track previous state and user before changing form state
+            result_form.previous_form_state = result_form.form_state
+            result_form.user = user.userprofile
+            result_form.form_state = FormState.UNSUBMITTED
+            result_form.duplicate_reviewed = False
+            if result_form.is_replacement:
+                result_form.center = None
+                result_form.station_number = None
+            result_form.skip_all_zero_votes_check = True
             result_form.save()
 
     clearance.save()

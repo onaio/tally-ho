@@ -501,6 +501,99 @@ class TestClearance(TestBase):
         self.assertEqual(result_form_stat.user, self.user)
         self.assertEqual(result_form_stat.result_form, result_form)
 
+    def test_review_post_supervisor_implement_skip_all_zero_votes_check(self):
+        """Test that implementing
+        RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK resolution sets the
+        skip_all_zero_votes_check flag to True."""
+        # save clearance as clerk
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(tally=tally)
+        station_number = 2
+        result_form = create_result_form(
+            form_state=FormState.CLEARANCE,
+            center=center,
+            tally=tally,
+            station_number=station_number,
+        )
+        self.assertEqual(result_form.center, center)
+        self.assertEqual(result_form.station_number, station_number)
+
+        view = views.ReviewView.as_view()
+        data = {
+            "result_form": result_form.pk,
+            "action_prior_to_recommendation": 1,
+            "resolution_recommendation": 0,
+            "forward": 1,
+            "tally_id": tally.pk,
+        }
+        request = self.factory.post("/", data=data)
+        data["encoded_result_form_clearance_start_time"] = (
+            self.encoded_result_form_clearance_start_time
+        )
+        request.user = self.user
+        request.session = data
+        response = view(request, tally_id=tally.pk)
+
+        # save as supervisor
+        self._create_and_login_user(username="alice")
+        self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
+        tally.users.add(self.user)
+
+        # Store the current state before implementing resolution
+        initial_state = result_form.form_state
+
+        view = views.ReviewView.as_view()
+        data = {
+            "result_form": result_form.pk,
+            "action_prior_to_recommendation": 1,
+            # RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK
+            "resolution_recommendation": 4,
+            "implement": 1,
+            "tally_id": tally.pk,
+        }
+        request = self.factory.post("/", data=data)
+        data["encoded_result_form_clearance_start_time"] = (
+            self.encoded_result_form_clearance_start_time
+        )
+        request.user = self.user
+        request.session = data
+        response = view(request, tally_id=tally.pk)
+
+        clearance = result_form.clearances.all()[0]
+        result_form.reload()
+
+        self.assertEqual(clearance.supervisor, self.user)
+        self.assertFalse(clearance.active)
+        self.assertTrue(clearance.reviewed_supervisor)
+        self.assertTrue(clearance.reviewed_team)
+        self.assertEqual(
+            clearance.action_prior_to_recommendation,
+            ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+        # Verify tracking fields set when implementing
+        # RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK
+        self.assertEqual(result_form.previous_form_state, initial_state)
+        self.assertEqual(result_form.user, self.user.userprofile)
+
+        # Verify the skip_all_zero_votes_check flag is set to True
+        self.assertTrue(result_form.skip_all_zero_votes_check)
+
+        self.assertEqual(result_form.center, center)
+        self.assertEqual(result_form.station_number, station_number)
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor, False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor, False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
+
     def test_review_post_supervisor_implement_replacement_form(self):
         # save clearance as clerk
         self._create_and_login_user()
@@ -573,6 +666,95 @@ class TestClearance(TestBase):
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
         self.assertIsNone(result_form.center)
         self.assertIsNone(result_form.station_number)
+
+        result_form_stat = ResultFormStats.objects.get(user=self.user)
+        self.assertEqual(result_form_stat.approved_by_supervisor, False)
+        self.assertEqual(result_form_stat.reviewed_by_supervisor, False)
+        self.assertEqual(result_form_stat.user, self.user)
+        self.assertEqual(result_form_stat.result_form, result_form)
+
+    def test_post_implement_replacement_form_skip_all_zero_votes_check(
+        self
+    ):
+        """Test that implementing
+        RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK resolution on
+        replacement forms sets the skip_all_zero_votes_check flag and clears
+        center/station data."""
+        # save clearance as clerk
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(tally=tally)
+        result_form = create_result_form(
+            form_state=FormState.CLEARANCE,
+            is_replacement=True,
+            center=center,
+            tally=tally,
+            station_number=2,
+        )
+        self.assertEqual(result_form.center, center)
+        self.assertEqual(result_form.station_number, 2)
+        self.assertTrue(result_form.is_replacement)
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+
+        view = views.ReviewView.as_view()
+        data = {
+            "result_form": result_form.pk,
+            "action_prior_to_recommendation": 1,
+            "resolution_recommendation": 0,
+            "forward": 1,
+            "tally_id": tally.pk,
+        }
+        request = self.factory.post("/", data=data)
+        data["encoded_result_form_clearance_start_time"] = (
+            self.encoded_result_form_clearance_start_time
+        )
+        request.user = self.user
+        request.session = data
+        response = view(request, tally_id=tally.pk)
+
+        # save as supervisor
+        self._create_and_login_user(username="alice")
+        self._add_user_to_group(self.user, groups.CLEARANCE_SUPERVISOR)
+        tally.users.add(self.user)
+
+        view = views.ReviewView.as_view()
+        data = {
+            "result_form": result_form.pk,
+            "action_prior_to_recommendation": 1,
+            # RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK
+            "resolution_recommendation": 4,
+            "implement": 1,
+            "tally_id": tally.pk,
+        }
+        request = self.factory.post("/", data=data)
+        data["encoded_result_form_clearance_start_time"] = (
+            self.encoded_result_form_clearance_start_time
+        )
+        request.user = self.user
+        request.session = data
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 302)
+
+        clearance = result_form.clearances.all()[0]
+        result_form.reload()
+
+        self.assertEqual(clearance.supervisor, self.user)
+        self.assertFalse(clearance.active)
+        self.assertTrue(clearance.reviewed_supervisor)
+        self.assertTrue(clearance.reviewed_team)
+        self.assertEqual(
+            clearance.action_prior_to_recommendation,
+            ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
+        )
+
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+        # Verify center and station are cleared for replacement forms
+        self.assertIsNone(result_form.center)
+        self.assertIsNone(result_form.station_number)
+        # Verify the skip_all_zero_votes_check flag is set to True
+        self.assertTrue(result_form.skip_all_zero_votes_check)
 
         result_form_stat = ResultFormStats.objects.get(user=self.user)
         self.assertEqual(result_form_stat.approved_by_supervisor, False)
