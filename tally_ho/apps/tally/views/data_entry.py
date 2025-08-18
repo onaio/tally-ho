@@ -386,7 +386,11 @@ class EnterResultsView(
                     if int(votes) > 0:
                         all_zero = False
                         break
-            has_vote_data_error = not has_votes or all_zero
+            has_vote_data_error = (
+                False
+                if result_form.skip_all_zero_votes_check
+                else not has_votes or all_zero
+            )
             has_invalid_recon_form = (
                 result_form.has_recon and not recon_form.is_valid()
             )

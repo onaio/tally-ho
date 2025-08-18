@@ -496,6 +496,172 @@ class TestDataEntry(TestBase):
             self.assertEqual(result.user, self.user)
             self.assertNotEqual(result.user, data_entry_1)
 
+    def test_enter_results_skip_all_zero_votes_check_success(self):
+        """Test that forms with skip_all_zero_votes_check=True are not flagged
+        for clearance when they have valid reconciliation data but zero votes.
+        """
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = "12345"
+        center = create_center(code, tally=tally)
+        station = create_station(center)
+        result_form = create_result_form(
+            center=center,
+            form_state=FormState.DATA_ENTRY_1,
+            station_number=station.station_number,
+            tally=tally,
+        )
+
+        # Set the skip_all_zero_votes_check flag to True
+        result_form.skip_all_zero_votes_check = True
+        result_form.save()
+
+        ballot = result_form.ballot
+        candidate_name = "candidate name 1"
+        create_candidate(ballot, candidate_name)
+        candidate_name = "candidate name 2"
+        create_candidate(ballot, candidate_name)
+
+        view = views.EnterResultsView.as_view()
+
+        # Create data with valid reconciliation form but zero votes
+        # This simulates the scenario: valid votes = 0, invalid votes = 1
+        data = {
+            "result_form": result_form.pk,
+            "tally_id": result_form.tally.pk,
+            "number_of_voters": ["3"],
+            "number_of_voter_cards_in_the_ballot_box": ["3"],
+            "number_valid_votes": ["0"],  # Zero valid votes
+            "number_invalid_votes": ["1"],  # One invalid vote
+            "number_sorted_and_counted": ["1"],
+            "notes": [""],
+            "form-TOTAL_FORMS": ["2"],
+            "form-INITIAL_FORMS": ["0"],
+            "form-MIN_NUM_FORMS": ["0"],
+            "form-MAX_NUM_FORMS": ["1000"],
+            "form-0-votes": ["0"],  # Zero votes for candidate 1
+            "form-1-votes": ["0"],  # Zero votes for candidate 2
+        }
+
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        request.session = {"result_form": result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        # Should succeed and not be flagged for clearance
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("data-entry", response["location"])
+
+        # Verify no clearance error was set
+        self.assertIsNone(request.session.get("clearance_error"))
+
+        # Verify the form state was updated to DATA_ENTRY_2
+        result_form.refresh_from_db()
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_2)
+
+        # Verify previous_form_state and user tracking
+        self.assertEqual(
+            result_form.previous_form_state, FormState.DATA_ENTRY_1
+        )
+        self.assertEqual(result_form.user, self.user.userprofile)
+
+        # Verify reconciliation form was created
+        reconciliation_forms = result_form.reconciliationform_set.all()
+        self.assertEqual(len(reconciliation_forms), 1)
+        self.assertEqual(
+            reconciliation_forms[0].entry_version, EntryVersion.DATA_ENTRY_1
+        )
+
+        # Verify results were created with zero votes
+        results = result_form.results.all()
+        self.assertEqual(len(results), 2)
+
+        for result in results:
+            self.assertEqual(result.entry_version, EntryVersion.DATA_ENTRY_1)
+            self.assertEqual(result.user, self.user)
+            self.assertEqual(result.votes, 0)
+
+    def test_enter_results_skip_all_zero_votes_check_false_clearance(self):
+        """Test that forms with skip_all_zero_votes_check=False (default)
+        are still flagged for clearance when they have zero votes, even with
+        valid reconciliation data."""
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = "12345"
+        center = create_center(code, tally=tally)
+        station = create_station(center)
+        result_form = create_result_form(
+            center=center,
+            form_state=FormState.DATA_ENTRY_1,
+            station_number=station.station_number,
+            tally=tally,
+        )
+
+        # Ensure skip_all_zero_votes_check is False (default)
+        result_form.skip_all_zero_votes_check = False
+        result_form.save()
+
+        ballot = result_form.ballot
+        candidate_name = "candidate name 1"
+        create_candidate(ballot, candidate_name)
+        candidate_name = "candidate name 2"
+        create_candidate(ballot, candidate_name)
+
+        view = views.EnterResultsView.as_view()
+
+        # Create data with valid reconciliation form but zero votes
+        # This should still trigger clearance when skip_all_zero_votes_check
+        # is False
+        data = {
+            "result_form": result_form.pk,
+            "tally_id": result_form.tally.pk,
+            "number_of_voters": ["3"],
+            "number_of_voter_cards_in_the_ballot_box": ["3"],
+            "number_valid_votes": ["0"],  # Zero valid votes
+            "number_invalid_votes": ["1"],  # One invalid vote
+            "number_sorted_and_counted": ["1"],
+            "notes": [""],
+            "form-TOTAL_FORMS": ["2"],
+            "form-INITIAL_FORMS": ["0"],
+            "form-MIN_NUM_FORMS": ["0"],
+            "form-MAX_NUM_FORMS": ["1000"],
+            "form-0-votes": ["0"],  # Zero votes for candidate 1
+            "form-1-votes": ["0"],  # Zero votes for candidate 2
+        }
+
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        request.session = {"result_form": result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        # Should be flagged for clearance
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("data-entry", response["location"])
+
+        # Verify clearance error was set
+        self.assertIsNotNone(request.session.get("clearance_error"))
+        self.assertIn("Form rejected: All candidate votes",
+                     request.session.get("clearance_error"))
+
+        # Verify the form state was changed to CLEARANCE
+        result_form.refresh_from_db()
+        self.assertEqual(result_form.form_state, FormState.CLEARANCE)
+
+        # Verify previous_form_state and user tracking
+        self.assertEqual(
+            result_form.previous_form_state, FormState.DATA_ENTRY_1
+        )
+        self.assertEqual(result_form.user, self.user.userprofile)
+
+        # Verify Clearance record was created
+        from tally_ho.apps.tally.models.clearance import Clearance
+        clearance = Clearance.objects.get(result_form=result_form)
+        self.assertEqual(clearance.user, self.user.userprofile)
+
     def test_confirmation_get(self):
         self._create_and_login_user()
         self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
