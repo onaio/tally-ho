@@ -4,15 +4,24 @@ from django.urls import reverse
 from django.views.generic import TemplateView
 from guardian.mixins import LoginRequiredMixin
 
-from tally_ho.apps.tally.models import (Constituency, Region, Result,
-                                        ResultForm, Station, SubConstituency)
+from tally_ho.apps.tally.models import (
+    Constituency,
+    Region,
+    Result,
+    ResultForm,
+    Station,
+    SubConstituency,
+)
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports.list_base_data_view import NoneQsBaseDataView
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 
 def get_regions(tally_id):
@@ -121,6 +130,7 @@ def get_station_votes_in_admin_area(
             result_form__center__stations__id=station_id,
             result_form__station_number=station_number,
             result_form__ballot__electrol_race_id__in=station_races,
+            result_form__ballot__active=True,
             entry_version=EntryVersion.FINAL,
             active=True,
         )
