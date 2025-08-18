@@ -181,6 +181,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'number of voter cards in the ballot box',
             'received ballots papers',
             'valid votes',
+            'total number of ballot papers in the box',
             'number registrants',
             'candidate status',
         ]
