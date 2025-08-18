@@ -169,6 +169,7 @@ class ResultForm(BaseModel):
     reject_reason = models.TextField(null=True, blank=True)
     serial_number = models.BigIntegerField(null=True)
     skip_quarantine_checks = models.BooleanField(default=False)
+    skip_all_zero_votes_check = models.BooleanField(default=False)
     station_number = models.PositiveSmallIntegerField(blank=True, null=True)
     is_replacement = models.BooleanField(default=False)
     intake_printed = models.BooleanField(default=False)
