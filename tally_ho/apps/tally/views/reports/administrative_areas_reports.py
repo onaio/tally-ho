@@ -4068,6 +4068,16 @@ class ResultFormResultsListDataView(
         "order",
         "ballot_number",
     )
+    order_columns = (
+        "candidate_name",
+        "total_votes",
+        "valid_votes",
+        "candidate_status",
+        "election_level",
+        "sub_race_type",
+        "order",
+        "ballot_number",
+    )
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_initial_queryset()
@@ -4081,10 +4091,15 @@ class ResultFormResultsListDataView(
             page_size = parse_int(data.get("export_number"))
             total_records = parse_int(data.get("export_number"))
 
+        # Apply ordering before pagination
+        ordered_queryset = self.ordering(queryset)
+
         if page_size == "-1":
-            page_records = queryset
+            page_records = ordered_queryset
         else:
-            page_records = queryset[int(page) : int(page) + int(page_size)]
+            page_records = ordered_queryset[
+                int(page) : int(page) + int(page_size)
+            ]
 
         response_data = JsonResponse(
             {
@@ -4096,6 +4111,41 @@ class ResultFormResultsListDataView(
         )
 
         return response_data
+
+    def ordering(self, qs):
+        """
+        Apply ordering to the queryset/list based on DataTables parameters.
+        """
+        # Get the first sort column and direction
+        sort_col_raw = self.request.POST.get("order[0][column]")
+        sort_dir = self.request.POST.get("order[0][dir]")
+
+        if not sort_col_raw:
+            # Default ordering by total_votes descending
+            return sorted(qs, key=lambda x: -x["total_votes"])
+
+        # Determine column name (handle both index and name)
+        try:
+            sort_col = int(sort_col_raw)
+            column_name = (
+                self.order_columns[sort_col]
+                if 0 <= sort_col < len(self.order_columns)
+                else "total_votes"
+            )
+        except (ValueError, IndexError):
+            column_name = (
+                sort_col_raw
+                if sort_col_raw in self.order_columns
+                else "total_votes"
+            )
+
+        # Sort by the specified column
+        reverse = sort_dir == "desc"
+        return sorted(
+            qs,
+            key=lambda x: x.get(column_name, ""),
+            reverse=reverse,
+        )
 
     def get_initial_queryset(self):
         """
@@ -4158,11 +4208,7 @@ class ResultFormResultsListDataView(
             for result in qs
         ]
 
-        sorted_results_report = sorted(
-            results, key=lambda x: -x["total_votes"]
-        )
-
-        return sorted_results_report
+        return results
 
 
 class ResultFormResultsListView(
