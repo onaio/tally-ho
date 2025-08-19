@@ -3917,6 +3917,10 @@ msgstr "أرسل إلى المشرف"
 msgid "Reset To Preintake"
 msgstr "إعادة النموذج إلى ما قبل الاستلام"
 
+#: tally_ho/libs/models/enums/clearance_resolution.py:20
+msgid "Reset To Preintake And Skip All Zero Votes Check"
+msgstr "إعادة الضبط إلى مرحلة ما قبل الإدخال مع إلغاء التحقق من القيمة الصفرية (0) للاصوات"
+
 #: tally_ho/libs/models/enums/disable_reason.py:17
 msgid "Not opened"
 msgstr "لم يتم فتحه"
