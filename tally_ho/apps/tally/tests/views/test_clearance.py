@@ -503,7 +503,7 @@ class TestClearance(TestBase):
 
     def test_review_post_supervisor_implement_skip_all_zero_votes_check(self):
         """Test that implementing
-        RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK resolution sets the
+        RESET_PREINTAKE_SKIP_ZERO_CHECK resolution sets the
         skip_all_zero_votes_check flag to True."""
         # save clearance as clerk
         self._create_and_login_user()
@@ -549,7 +549,7 @@ class TestClearance(TestBase):
         data = {
             "result_form": result_form.pk,
             "action_prior_to_recommendation": 1,
-            # RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK
+            # RESET_PREINTAKE_SKIP_ZERO_CHECK
             "resolution_recommendation": 4,
             "implement": 1,
             "tally_id": tally.pk,
@@ -578,7 +578,7 @@ class TestClearance(TestBase):
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
 
         # Verify tracking fields set when implementing
-        # RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK
+        # RESET_PREINTAKE_SKIP_ZERO_CHECK
         self.assertEqual(result_form.previous_form_state, initial_state)
         self.assertEqual(result_form.user, self.user.userprofile)
 
@@ -677,7 +677,7 @@ class TestClearance(TestBase):
         self
     ):
         """Test that implementing
-        RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK resolution on
+        RESET_PREINTAKE_SKIP_ZERO_CHECK resolution on
         replacement forms sets the skip_all_zero_votes_check flag and clears
         center/station data."""
         # save clearance as clerk
@@ -722,7 +722,7 @@ class TestClearance(TestBase):
         data = {
             "result_form": result_form.pk,
             "action_prior_to_recommendation": 1,
-            # RESET_TO_PREINTAKE_AND_SKIP_ALL_ZERO_VOTES_CHECK
+            # RESET_PREINTAKE_SKIP_ZERO_CHECK
             "resolution_recommendation": 4,
             "implement": 1,
             "tally_id": tally.pk,
