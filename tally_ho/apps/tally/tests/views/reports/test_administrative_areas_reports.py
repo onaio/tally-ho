@@ -248,6 +248,115 @@ class TestAdministrativeAreasReports(TestBase):
         response = self.apply_filter(data)
         self.assertEqual(len(json.loads(response.content.decode())["data"]), 2)
 
+    def test_result_form_result_list_data_view_ordering(self):
+        """
+        Test ResultFormResultsListDataView ordering functionality
+        """
+        # Test default ordering (should be by total_votes descending)
+        data = {}
+        response = self.apply_filter(data)
+        response_data = json.loads(response.content.decode())
+        self.assertEqual(len(response_data["data"]), 2)
+
+        # Check that results are ordered by total_votes descending
+        results = response_data["data"]
+        self.assertGreaterEqual(
+            results[0]["total_votes"], results[1]["total_votes"]
+        )
+
+        # Test sorting by candidate_name ascending
+        data = {
+            "order[0][column]": "0",  # candidate_name column
+            "order[0][dir]": "asc"
+        }
+        response = self.apply_filter(data)
+        response_data = json.loads(response.content.decode())
+        results = response_data["data"]
+
+        # Check that results are ordered by candidate_name ascending (A-Z)
+        candidate_names = [result["candidate_name"] for result in results]
+        self.assertEqual(candidate_names, sorted(candidate_names))
+
+        # Test sorting by candidate_name descending
+        data = {
+            "order[0][column]": "0",  # candidate_name column
+            "order[0][dir]": "desc"
+        }
+        response = self.apply_filter(data)
+        response_data = json.loads(response.content.decode())
+        results = response_data["data"]
+
+        # Check that results are ordered by candidate_name descending (Z-A)
+        candidate_names = [result["candidate_name"] for result in results]
+        self.assertEqual(
+            candidate_names, sorted(candidate_names, reverse=True)
+        )
+
+        # Test sorting by total_votes ascending
+        data = {
+            "order[0][column]": "1",  # total_votes column
+            "order[0][dir]": "asc"
+        }
+        response = self.apply_filter(data)
+        response_data = json.loads(response.content.decode())
+        results = response_data["data"]
+
+        # Check that results are ordered by total_votes ascending
+        total_votes = [result["total_votes"] for result in results]
+        self.assertEqual(total_votes, sorted(total_votes))
+
+        # Test sorting by election_level ascending
+        data = {
+            "order[0][column]": "4",  # election_level column
+            "order[0][dir]": "asc"
+        }
+        response = self.apply_filter(data)
+        response_data = json.loads(response.content.decode())
+        results = response_data["data"]
+
+        # Check that results are ordered by election_level ascending
+        election_levels = [result["election_level"] for result in results]
+        self.assertEqual(election_levels, sorted(election_levels))
+
+        # Test sorting by column name instead of index
+        data = {
+            "order[0][column]": "candidate_name",  # column name
+            "order[0][dir]": "asc"
+        }
+        response = self.apply_filter(data)
+        response_data = json.loads(response.content.decode())
+        results = response_data["data"]
+
+        # Check that results are ordered by candidate_name ascending
+        candidate_names = [result["candidate_name"] for result in results]
+        self.assertEqual(candidate_names, sorted(candidate_names))
+
+        # Test invalid column index (should fall back to default ordering)
+        data = {
+            "order[0][column]": "999",  # invalid column index
+            "order[0][dir]": "asc"
+        }
+        response = self.apply_filter(data)
+        response_data = json.loads(response.content.decode())
+        results = response_data["data"]
+
+        # Should fall back to default ordering (total_votes descending)
+        total_votes = [result["total_votes"] for result in results]
+        self.assertGreaterEqual(total_votes[0], total_votes[1])
+
+        # Test invalid column name (should fall back to default ordering)
+        data = {
+            "order[0][column]": "invalid_column",  # invalid column name
+            "order[0][dir]": "asc"
+        }
+        response = self.apply_filter(data)
+        response_data = json.loads(response.content.decode())
+        results = response_data["data"]
+
+        # Should fall back to default ordering (total_votes descending)
+        total_votes = [result["total_votes"] for result in results]
+        self.assertGreaterEqual(total_votes[0], total_votes[1])
+
     def test_administrative_areas_reports_views(self):
         # test ActiveCandidatesVotesListView
         tally = create_tally()
