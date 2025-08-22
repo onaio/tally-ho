@@ -1074,8 +1074,8 @@ def duplicate_results_queryset(tally_id, qs, data=None):
         )
 
         qs = qs.annotate(station_ids=station_id_query).filter(
-            ~Q(center__id__in=selected_center_ids)
-            & ~Q(station_ids__in=selected_station_ids)
+            Q(center__id__in=selected_center_ids)
+            & Q(station_ids__in=selected_station_ids)
         )
 
         result_form_votes_registrants_query = Subquery(
