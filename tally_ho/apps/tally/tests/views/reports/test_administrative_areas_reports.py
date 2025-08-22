@@ -727,22 +727,18 @@ class TestAdministrativeAreasReports(TestBase):
         )
 
         # Create results for the second form with the same votes as the
-        # first form
+        # first form - use the same candidates from the first form
         votes = 20
-        create_candidates(
-            result_form2,
-            votes=votes,
-            user=self.user,
-            num_results=1,
-            tally=self.tally,
-        )
+        # Use the same candidates from the ballot for both forms
+        for candidate in self.result_form.ballot.candidates.all():
+            # Create result with the same votes for the second form
+            create_result(result_form2, candidate, self.user, votes)
 
-        # Set results to final version
-        for result in result_form2.results.all():
-            result.entry_version = EntryVersion.FINAL
-            result.save()
-            # Create duplicate final results
-            create_result(result_form2, result.candidate, self.user, votes)
+        # Ensure both forms have duplicate_reviewed = False
+        self.result_form.duplicate_reviewed = False
+        self.result_form.save()
+        result_form2.duplicate_reviewed = False
+        result_form2.save()
 
         # Test that the view returns results from both forms (same ballot,
         # duplicate results)
