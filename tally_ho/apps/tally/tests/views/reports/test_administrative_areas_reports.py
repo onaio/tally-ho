@@ -561,15 +561,31 @@ class TestAdministrativeAreasReports(TestBase):
     def test_duplicate_results_queryset(self):
         qs = ResultForm.objects.all()
         self.assertEqual(qs.count(), 1)
-        data = {"select_1_ids": [1, 2], "select_2_ids": [1, 2]}
+
+        # Test without filtering data - should return all duplicate results
         duplicate_qs = admin_reports.duplicate_results_queryset(
             tally_id=self.tally.id, qs=qs
         )
         self.assertEqual(duplicate_qs.count(), 1)
+
+        # Test with filtering data - should include only selected
+        # centers/stations
+        data = {"select_1_ids": [self.result_form.center.id],
+                "select_2_ids": [self.station.id]}
         duplicate_qs = admin_reports.duplicate_results_queryset(
             tally_id=self.tally.id, qs=qs, data=data
         )
+        # Should return 1 result since we're filtering to include only
+        # the center and station that have our result form
         self.assertEqual(duplicate_qs.count(), 1)
+
+        # Test with non-matching center/station IDs - should return 0
+        data = {"select_1_ids": [999], "select_2_ids": [999]}
+        duplicate_qs = admin_reports.duplicate_results_queryset(
+            tally_id=self.tally.id, qs=qs, data=data
+        )
+        # Should return 0 since no result forms match these IDs
+        self.assertEqual(duplicate_qs.count(), 0)
 
     def test_generate_progressive_report_queryset(self):
         qs = Result.objects.all()
