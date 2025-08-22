@@ -175,75 +175,77 @@ def get_results_duplicates(tally_id):
 
     return result_forms_founds
 
-def all_candidates_have_duplicates(candidate_id_to_votes_array_map):
-    for votes in candidate_id_to_votes_array_map.values():
-        # Check if all items in the list are the same
-        if len(set(votes)) != 1:
-            return False
-    return True
-
 def get_result_form_with_duplicate_results(
         ballot=None,
         tally_id=None,
-        qs=None):
-    """Build a list of result forms sorted by ballot of results forms for
-    which there are more than 1 result form in the same ballot with the same
-    number of votes per candidate, and the `duplicate_reviewed`
-    column is false.
+        qs=None
+    ):
+    """Find result forms that have duplicate results within the same ballot.
 
-    :returns A list of result forms in the system with duplicate results.
+    This function identifies result forms where there are multiple forms in the
+    same ballot with identical vote counts for all candidates, and the
+    duplicate_reviewed column is False.
+
+    Args:
+        tally_id: The ID of the tally to search within
+        ballot: Optional ballot number to filter by specific ballot
+        qs: Optional QuerySet of ResultForm objects to search within
+    Returns:
+        QuerySet of ResultForm objects with duplicate results,
+        ordered by ballot
     """
-    qs =\
-        ResultForm.objects.filter(
-            tally_id=tally_id,
-            duplicate_reviewed=False) if not qs else qs
-    qs = qs.exclude(results=None)
+    # Get result forms that haven't been reviewed for duplicates
+    base_qs = qs if qs else ResultForm.objects.filter(
+        tally_id=tally_id,
+        duplicate_reviewed=False
+    ).exclude(results=None)
+
     if ballot:
-        qs = qs.filter(ballot__number=ballot)
-    result_forms_barcodes_grouped_by_ballot =\
-        qs.values('ballot').annotate(barcodes=ArrayAgg('barcode'))
-    result_forms_with_ballot =\
-        [
-            b for b in result_forms_barcodes_grouped_by_ballot\
-                if len(b.get('barcodes')) > 1
-        ]
-    result_form_barcodes_with_duplicate_results = []
-    for ballot_result_form_dict in result_forms_with_ballot:
-        candidate_id_to_votes_array_map = {}
-        if ballot_result_form_dict.get('barcodes'):
-            for barcode in ballot_result_form_dict.get('barcodes'):
-                candidate_results_qs =\
-                    Result.objects.filter(
-                    result_form__tally__id=tally_id,
-                    active=True,
-                    result_form__barcode=barcode,
-                ).values('candidate_id', 'votes')
-                for candidate_result in candidate_results_qs:
-                    candidate_id = candidate_result.get('candidate_id')
-                    candidate_votes = candidate_result.get('votes')
-                    if candidate_id_to_votes_array_map.get(candidate_id):
-                        candidate_id_to_votes_array_map.get(
-                            candidate_id).append(candidate_votes)
-                        continue
-                    candidate_id_to_votes_array_map.setdefault(
-                            candidate_id, []).append(candidate_votes)
+        base_qs = base_qs.filter(ballot__number=ballot)
 
-            if len(candidate_id_to_votes_array_map.values()):
-                # Check for duplicate results
-                duplicates_found =\
-                    all_candidates_have_duplicates(
-                        candidate_id_to_votes_array_map)
-                if duplicates_found:
-                    result_form_barcodes_with_duplicate_results.extend(
-                        ballot_result_form_dict.get('barcodes')
-                    )
+    # Group result forms by ballot and get barcodes
+    ballot_groups = base_qs.values('ballot').annotate(
+        barcodes=ArrayAgg('barcode')
+    ).filter(barcodes__len__gt=1)
 
-    results_form_duplicates = \
-        qs.filter(
-            barcode__in=result_form_barcodes_with_duplicate_results
-        ).order_by('ballot')
+    duplicate_barcodes = []
 
-    return results_form_duplicates
+    for ballot_group in ballot_groups:
+        barcodes = ballot_group['barcodes']
+
+        # Get all results for forms in this ballot
+        ballot_results = Result.objects.filter(
+            result_form__tally__id=tally_id,
+            result_form__barcode__in=barcodes,
+            active=True
+        ).values('result_form__barcode', 'candidate_id', 'votes')
+
+        # Group results by barcode and candidate
+        form_votes = {}
+        for result in ballot_results:
+            barcode = result['result_form__barcode']
+            candidate_id = result['candidate_id']
+            votes = result['votes']
+
+            if barcode not in form_votes:
+                form_votes[barcode] = {}
+            form_votes[barcode][candidate_id] = votes
+
+        # Check if any forms have identical vote patterns
+        barcode_list = list(form_votes.keys())
+        for i, barcode1 in enumerate(barcode_list):
+            for barcode2 in barcode_list[i+1:]:
+                if form_votes[barcode1] == form_votes[barcode2]:
+                    # Found duplicate results, add both barcodes
+                    if barcode1 not in duplicate_barcodes:
+                        duplicate_barcodes.append(barcode1)
+                    if barcode2 not in duplicate_barcodes:
+                        duplicate_barcodes.append(barcode2)
+
+    # Return the result forms with duplicate results
+    return base_qs.filter(
+        barcode__in=duplicate_barcodes
+    ).order_by('ballot')
 
 
 class TalliesView(LoginRequiredMixin,
