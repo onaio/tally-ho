@@ -691,6 +691,91 @@ class TestAdministrativeAreasReports(TestBase):
         response = admin_reports.get_export(request)
         self.assertEqual(response.status_code, 200)
 
+    def test_duplicate_results_list_data_view_duplicate_forms_visible(self):
+        """
+        Test that DuplicateResultsListDataView shows duplicate forms when
+        multiple result forms from the same ballot have been processed past
+        data entry 1 with duplicate results.
+        """
+        # Create a second result form with the same ballot but different
+        # barcode
+        result_form2 = create_result_form(
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+            office=self.result_form.office,
+            center=self.result_form.center,
+            station_number=self.station.station_number,
+            ballot=self.result_form.ballot,  # Same ballot
+            barcode="123456790",  # Different barcode
+            serial_number=1,
+        )
+
+        # Create results for the second form with the same votes as the
+        # first form
+        votes = 20
+        create_candidates(
+            result_form2,
+            votes=votes,
+            user=self.user,
+            num_results=1,
+            tally=self.tally,
+        )
+
+        # Set results to final version
+        for result in result_form2.results.all():
+            result.entry_version = EntryVersion.FINAL
+            result.save()
+            # Create duplicate final results
+            create_result(result_form2, result.candidate, self.user, votes)
+
+        # Test that the view returns results from both forms (same ballot,
+        # duplicate results)
+        view = admin_reports.DuplicateResultsListDataView.as_view()
+        request = self.factory.post("/")
+        request.user = self.user
+        response = view(request, tally_id=self.tally.id)
+
+        self.assertEqual(response.status_code, 200)
+
+        # Parse the JSON response to check actual table data
+        content = json.loads(response.content.decode())
+
+        # The view should return data for both result forms with duplicates
+        self.assertIn("data", content)
+        data = content["data"]
+
+        # We should have at least 2 records (both result forms)
+        self.assertGreaterEqual(len(data), 2)
+
+        # Extract barcodes from the returned data to verify both forms
+        # are present
+        returned_barcodes = []
+        for row in data:
+            # The barcode is in the row data - need to extract it
+            if isinstance(row, dict) and "barcode" in row:
+                barcode_value = row["barcode"]
+            elif isinstance(row, list) and len(row) > 3:
+                # If it's a list, barcode might be at a specific index
+                # Check the view's columns order to determine position
+                barcode_value = row[3]  # Assuming barcode is 4th column
+            else:
+                continue
+
+            # Extract barcode from HTML if it's wrapped in <td> tags
+            if (isinstance(barcode_value, str) and
+                    barcode_value.startswith('<td')):
+                # Extract the content between <td> tags
+                import re
+                match = re.search(r'<td[^>]*>([^<]+)</td>', barcode_value)
+                if match:
+                    barcode_value = match.group(1)
+
+            returned_barcodes.append(barcode_value)
+
+        # Both result forms should be in the results
+        self.assertIn(self.result_form.barcode, returned_barcodes)
+        self.assertIn(result_form2.barcode, returned_barcodes)
+
 
 class TestClearanceAuditSummaryReportViews(TestBase):
     def setUp(self):
