@@ -1079,7 +1079,7 @@ class TestSuperAdmin(TestBase):
         tally = create_tally()
         tally.users.add(self.user)
         ballot_1 = create_ballot(tally=tally)
-        barcode = '1234',
+        barcode = '1234'
         center = create_center('12345', tally=tally)
         station = create_station(center)
         result_form_1 = create_result_form(
@@ -1098,6 +1098,13 @@ class TestSuperAdmin(TestBase):
             gender=Gender.MALE,
             is_replacement=False,
             tally=tally,)
+
+        # Ensure duplicate_reviewed is False for both forms
+        result_form_1.duplicate_reviewed = False
+        result_form_1.save()
+        result_form_2.duplicate_reviewed = False
+        result_form_2.save()
+
         votes = 12
         create_candidates(result_form_1, votes=votes, user=self.user,
                           num_results=1)
@@ -1146,6 +1153,13 @@ class TestSuperAdmin(TestBase):
             gender=Gender.MALE,
             is_replacement=False,
             tally=tally,)
+
+        # Ensure duplicate_reviewed is False for ballot 2 forms
+        result_form_3.duplicate_reviewed = False
+        result_form_3.save()
+        result_form_4.duplicate_reviewed = False
+        result_form_4.save()
+
         create_candidates(result_form_3, votes=votes, user=self.user,
                           num_results=1)
 
@@ -1155,11 +1169,9 @@ class TestSuperAdmin(TestBase):
             # create duplicate final results
             create_result(result_form_4, result.candidate, self.user, votes)
         ballot_1_duplicates = views.get_result_form_with_duplicate_results(
-            ballot=ballot_1.number,
-            tally_id=tally.pk)
+            tally_id=tally.pk, ballot=ballot_1.number)
         ballot_2_duplicates = views.get_result_form_with_duplicate_results(
-            ballot=ballot_2.number,
-            tally_id=tally.pk)
+            tally_id=tally.pk, ballot=ballot_2.number)
         all_duplicates = views.get_result_form_with_duplicate_results(
             tally_id=tally.pk)
 
@@ -1183,6 +1195,17 @@ class TestSuperAdmin(TestBase):
         self.assertIn(result_form_2, all_duplicates)
         self.assertIn(result_form_3, all_duplicates)
         self.assertIn(result_form_4, all_duplicates)
+
+        # Test that forms with duplicate_reviewed=True are not included
+        result_form_1.duplicate_reviewed = True
+        result_form_1.save()
+        result_form_2.duplicate_reviewed = True
+        result_form_2.save()
+
+        filtered_duplicates = views.get_result_form_with_duplicate_results(
+            tally_id=tally.pk, ballot=ballot_1.number)
+        self.assertNotIn(result_form_1, filtered_duplicates)
+        self.assertNotIn(result_form_2, filtered_duplicates)
 
     def test_duplicate_result_form_view_get(self):
         tally = create_tally()

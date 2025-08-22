@@ -1074,8 +1074,8 @@ def duplicate_results_queryset(tally_id, qs, data=None):
         )
 
         qs = qs.annotate(station_ids=station_id_query).filter(
-            ~Q(center__id__in=selected_center_ids)
-            & ~Q(station_ids__in=selected_station_ids)
+            Q(center__id__in=selected_center_ids)
+            & Q(station_ids__in=selected_station_ids)
         )
 
         result_form_votes_registrants_query = Subquery(
@@ -4301,7 +4301,7 @@ class DuplicateResultsListDataView(
         data = self.request.POST.get("data")
         keyword = self.request.POST.get("search[value]")
 
-        qs = qs.filter(tally__id=tally_id, form_state=FormState.UNSUBMITTED)
+        qs = qs.filter(tally__id=tally_id)
 
         duplicate_result_forms = get_result_form_with_duplicate_results(
             tally_id=tally_id, qs=qs
