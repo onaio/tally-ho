@@ -12,11 +12,8 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports.progress import get_office_candidates_ids
-from tally_ho.libs.views.mixins import (
-    DataTablesMixin,
-    GroupRequiredMixin,
-    TallyAccessMixin,
-)
+from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+                                        TallyAccessMixin)
 
 
 class CandidateListDataView(
@@ -51,6 +48,11 @@ class CandidateListDataView(
 
         # Optimize queryset with select_related to reduce N+1 queries
         qs = qs.select_related("ballot", "ballot__electrol_race", "tally")
+
+        # Check for show_inactive parameter
+        show_inactive = self.request.GET.get("show_inactive")
+        if not show_inactive or show_inactive.lower() != "true":
+            qs = qs.filter(ballot__active=True)
 
         if tally_id:
             if office_id:
@@ -87,13 +89,22 @@ class CandidateListView(
         reverse_url = "candidate-list-data"
         report_title = _("Candidate List")
 
+        # Get show_inactive parameter
+        show_inactive = self.request.GET.get("show_inactive", "false")
+
         if office_id:
             reverse_url = "candidate-list-data-per-office"
             report_title = _("Candidate List Per Office")
 
+        # Build remote URL with query parameters
+        query_param_string = self.request.GET.urlencode()
+        remote_url = reverse(reverse_url, kwargs=kwargs)
+        if query_param_string:
+            remote_url = f"{remote_url}?{query_param_string}"
+
         return self.render_to_response(
             self.get_context_data(
-                remote_url=reverse(reverse_url, kwargs=kwargs),
+                remote_url=remote_url,
                 tally_id=tally_id,
                 report_title=report_title,
                 candidates_list_download_url="/ajax/download-candidates-list/",
@@ -101,6 +112,7 @@ class CandidateListView(
                 enable_scroll_x=True,
                 export_file_name="candidate-list",
                 server_side=True,
+                show_inactive=show_inactive,
             )
         )
 
@@ -114,23 +126,31 @@ def get_candidates_list(request):
     returns: A JSON response of candidates list
     """
     tally_id = json.loads(request.GET.get("data")).get("tally_id")
+
+    # Check for show_inactive parameter
+    show_inactive = request.GET.get("show_inactive")
+
     candidates_list = (
         Candidate.objects.filter(tally__id=tally_id)
         .select_related("ballot", "ballot__electrol_race", "tally")
-        .annotate(
-            ballot_number=F("ballot__number"),
-            election_level=F("ballot__electrol_race__election_level"),
-            sub_race_type=F("ballot__electrol_race__ballot_name"),
-        )
-        .values(
-            "candidate_id",
-            "full_name",
-            "active",
-            "order",
-            "ballot_number",
-            "election_level",
-            "sub_race_type",
-        )
+    )
+
+    # Apply active ballot filter
+    if not show_inactive or show_inactive.lower() != "true":
+        candidates_list = candidates_list.filter(ballot__active=True)
+
+    candidates_list = candidates_list.annotate(
+        ballot_number=F("ballot__number"),
+        election_level=F("ballot__electrol_race__election_level"),
+        sub_race_type=F("ballot__electrol_race__ballot_name"),
+    ).values(
+        "candidate_id",
+        "full_name",
+        "active",
+        "order",
+        "ballot_number",
+        "election_level",
+        "sub_race_type",
     )
 
     return JsonResponse(
