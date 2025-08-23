@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load i18n %}
+{% load i18n static %}
 
 {% block content %}
 
@@ -13,6 +13,13 @@
     {% endfor %}
 </ul>
 {% endif %}
+
+<div class="form-group" style="margin-bottom: 20px; clear: both;">
+    <label class="checkbox-inline">
+        <input type="checkbox" id="show-inactive-ballots" {% if show_inactive == 'true' %}checked{% endif %}>
+        {% trans 'Show inactive ballots' %}
+    </label>
+</div>
 
 <ul>
     {% for form in results_form_duplicates %}
@@ -50,4 +57,9 @@
 </a>
 {% csrf_token %}
 
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static "js/jquery-3.6.0.min.js" %}"></script>
+<script src="{% static "js/ballot_filter.js" %}"></script>
 {% endblock %}

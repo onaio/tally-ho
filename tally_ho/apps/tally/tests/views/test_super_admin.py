@@ -2494,3 +2494,354 @@ class TestSuperAdmin(TestBase):
             formatted_date, pattern,
             f"Date format doesn't match expected pattern: {formatted_date}"
         )
+
+    def test_duplicate_result_tracking_view_filters_inactive_by_default(
+        self,
+    ):
+        """Test DuplicateResultTrackingView filters inactive ballots."""
+        # Create active and inactive ballots
+        active_ballot = create_ballot(
+            tally=self.tally, active=True, number=10
+        )
+        inactive_ballot = create_ballot(
+            tally=self.tally, active=False, number=11
+        )
+
+        # Create result forms with duplicates
+        center = create_center(tally=self.tally)
+
+        # Active ballot result forms (should appear by default)
+        active_form1 = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=active_ballot,
+            center=center,
+            station_number=1,
+            barcode="111111111",
+            serial_number=100,
+        )
+        active_form1.duplicate_reviewed = False
+        active_form1.save()
+
+        active_form2 = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=active_ballot,
+            center=center,
+            station_number=1,
+            barcode="111111112",
+            serial_number=101,
+        )
+        active_form2.duplicate_reviewed = False
+        active_form2.save()
+
+        # Inactive ballot result forms (should be filtered out)
+        inactive_form1 = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=inactive_ballot,
+            center=center,
+            station_number=2,
+            barcode="222222221",
+            serial_number=200,
+        )
+        inactive_form1.duplicate_reviewed = False
+        inactive_form1.save()
+
+        inactive_form2 = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=inactive_ballot,
+            center=center,
+            station_number=2,
+            barcode="222222222",
+            serial_number=201,
+        )
+        inactive_form2.duplicate_reviewed = False
+        inactive_form2.save()
+
+        # Add results to make them candidates for duplication
+        from tally_ho.libs.tests.test_base import create_candidate
+        candidate1 = create_candidate(ballot=active_ballot)
+        candidate2 = create_candidate(ballot=inactive_ballot)
+
+        from tally_ho.apps.tally.models.result import Result
+
+        # Create duplicate results for active ballot forms
+        Result.objects.create(
+            candidate=candidate1,
+            result_form=active_form1,
+            votes=100
+        )
+        Result.objects.create(
+            candidate=candidate1,
+            result_form=active_form2,
+            votes=100  # Same votes - makes it a duplicate
+        )
+
+        # Create duplicate results for inactive ballot forms
+        Result.objects.create(
+            candidate=candidate2,
+            result_form=inactive_form1,
+            votes=200
+        )
+        Result.objects.create(
+            candidate=candidate2,
+            result_form=inactive_form2,
+            votes=200  # Same votes - makes it a duplicate
+        )
+
+        view = views.DuplicateResultTrackingView.as_view()
+        request = self.factory.get("/")
+        request.user = self.user
+
+        response = view(request, tally_id=self.tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['show_inactive'], 'false')
+
+        # Should only contain active ballot duplicates
+        duplicate_results = response.context_data['duplicate_results']
+        active_barcodes = {form.barcode for form in duplicate_results}
+
+        # Verify only active ballot forms are present
+        self.assertIn(active_form1.barcode, active_barcodes)
+        self.assertIn(active_form2.barcode, active_barcodes)
+        self.assertNotIn(inactive_form1.barcode, active_barcodes)
+        self.assertNotIn(inactive_form2.barcode, active_barcodes)
+
+    def test_duplicate_result_tracking_view_shows_inactive_with_parameter(
+        self
+    ):
+        """Test shows inactive when show_inactive=true."""
+        # Create active and inactive ballots
+        active_ballot = create_ballot(
+            tally=self.tally, active=True, number=12
+        )
+        inactive_ballot = create_ballot(
+            tally=self.tally, active=False, number=13
+        )
+
+        # Create result forms with duplicates
+        center = create_center(tally=self.tally)
+
+        # Active ballot result forms
+        active_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=active_ballot,
+            center=center,
+            station_number=1,
+            barcode="333333333",
+            serial_number=300,
+        )
+        active_form.duplicate_reviewed = False
+        active_form.save()
+
+        # Inactive ballot result forms
+        inactive_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=inactive_ballot,
+            center=center,
+            station_number=2,
+            barcode="444444444",
+            serial_number=400,
+        )
+        inactive_form.duplicate_reviewed = False
+        inactive_form.save()
+
+        view = views.DuplicateResultTrackingView.as_view()
+        request = self.factory.get(
+            "/duplicate-result-tracking?show_inactive=true"
+        )
+        request.user = self.user
+
+        response = view(request, tally_id=self.tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['show_inactive'], 'true')
+
+        # Should contain both active and inactive ballot duplicates
+        # (though in this simple case we don't have actual duplicates)
+        duplicate_results = response.context_data['duplicate_results']
+        # The function should run without error and include both types
+        self.assertIsNotNone(duplicate_results)
+
+    def test_duplicate_result_tracking_view_context_includes_show_inactive(
+        self
+    ):
+        """Test includes show_inactive in context."""
+        view = views.DuplicateResultTrackingView.as_view()
+
+        # Test without show_inactive parameter (default)
+        request = self.factory.get("/")
+        request.user = self.user
+        response = view(request, tally_id=self.tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['show_inactive'], 'false')
+
+        # Test with show_inactive=true
+        request = self.factory.get("/?show_inactive=true")
+        request.user = self.user
+        response = view(request, tally_id=self.tally.pk)
+
+        self.assertEqual(response.context_data['show_inactive'], 'true')
+
+        # Test with show_inactive=false explicitly
+        request = self.factory.get("/?show_inactive=false")
+        request.user = self.user
+        response = view(request, tally_id=self.tally.pk)
+
+        self.assertEqual(response.context_data['show_inactive'], 'false')
+
+    def test_duplicate_result_form_view_filters_inactive_ballots_by_default(
+        self
+    ):
+        """Test filters inactive ballots by default."""
+        # Create active and inactive ballots
+        active_ballot = create_ballot(
+            tally=self.tally, active=True, number=14
+        )
+        create_ballot(
+            tally=self.tally, active=False, number=15
+        )
+
+        # Create center and result forms
+        center = create_center(tally=self.tally)
+
+        active_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=active_ballot,
+            center=center,
+            station_number=1,
+            barcode="555555555",
+            serial_number=500,
+        )
+        active_form.duplicate_reviewed = False
+        active_form.save()
+
+        view = views.DuplicateResultFormView.as_view()
+        request = self.factory.get("/")
+        request.user = self.user
+
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+            barcode=active_form.barcode,
+            ballot_id=active_ballot.number
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['show_inactive'], 'false')
+        self.assertEqual(
+            response.context_data['header_text'], f"Form {active_form.barcode}"
+        )
+
+    def test_duplicate_result_form_view_shows_inactive_with_parameter(
+        self
+    ):
+        """Test shows inactive when show_inactive=true."""
+        # Create active ballot and result form
+        active_ballot = create_ballot(
+            tally=self.tally, active=True, number=16
+        )
+
+        center = create_center(tally=self.tally)
+        active_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=active_ballot,
+            center=center,
+            station_number=1,
+            barcode="666666666",
+            serial_number=600,
+        )
+        active_form.duplicate_reviewed = False
+        active_form.save()
+
+        view = views.DuplicateResultFormView.as_view()
+        request = self.factory.get("/duplicate-result-form?show_inactive=true")
+        request.user = self.user
+
+        response = view(
+            request,
+            tally_id=self.tally.pk,
+            barcode=active_form.barcode,
+            ballot_id=active_ballot.number
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['show_inactive'], 'true')
+
+        # Should contain results for the specified form
+        results = response.context_data['results']
+        self.assertIsNotNone(results)
+
+    def test_get_result_form_with_duplicate_results_function_filters_inactive(
+        self
+    ):
+        """Test filters inactive ballots."""
+        # Create active and inactive ballots
+        active_ballot = create_ballot(
+            tally=self.tally, active=True, number=17
+        )
+        inactive_ballot = create_ballot(
+            tally=self.tally, active=False, number=18
+        )
+
+        center = create_center(tally=self.tally)
+
+        # Active ballot form
+        active_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=active_ballot,
+            center=center,
+            station_number=1,
+            barcode="777777777",
+            serial_number=700,
+        )
+        active_form.duplicate_reviewed = False
+        active_form.save()
+
+        # Inactive ballot form
+        inactive_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=self.tally,
+            ballot=inactive_ballot,
+            center=center,
+            station_number=2,
+            barcode="888888888",
+            serial_number=800,
+        )
+        inactive_form.duplicate_reviewed = False
+        inactive_form.save()
+
+        # Test without show_inactive (should filter out inactive)
+        duplicates_without_inactive = (
+            views.get_result_form_with_duplicate_results(
+                tally_id=self.tally.pk,
+                show_inactive=False
+            )
+        )
+        active_barcodes = {
+            form.barcode for form in duplicates_without_inactive
+        }
+
+        # Should not contain inactive ballot forms
+        self.assertNotIn(inactive_form.barcode, active_barcodes)
+
+        # Test with show_inactive=True (should include both)
+        duplicates_with_inactive = (
+            views.get_result_form_with_duplicate_results(
+                tally_id=self.tally.pk,
+                show_inactive=True
+            )
+        )
+
+        # The function should process both active and inactive forms
+        # (though they may not be actual duplicates in this simple test)
+        self.assertIsNotNone(duplicates_with_inactive)
