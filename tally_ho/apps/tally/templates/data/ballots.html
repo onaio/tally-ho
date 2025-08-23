@@ -11,6 +11,20 @@
 
 {% block javascript %}
 {% include "data/table.html" with remote_url=remote_url languageDE=languageDE %}
+<script src="{% static "js/ballot_filter.js" %}"></script>
+<script>
+$(document).ready(function() {
+    // Make Actions column header non-clickable after DataTable initialization
+    $('.datatable').on('init.dt', function() {
+        // Remove sorting classes and click handlers from Actions column header (last column)
+        var $actionsHeader = $(this).find('thead th:last-child');
+        $actionsHeader.removeClass('sorting sorting_asc sorting_desc');
+        $actionsHeader.addClass('sorting_disabled');
+        $actionsHeader.off('click.DT');
+        $actionsHeader.css('cursor', 'default');
+    });
+});
+</script>
 {% endblock %}
 
 {% block content %}
@@ -31,6 +45,13 @@
             {% trans 'New Ballot' %}
         </button>
     </form>
+</div>
+
+<div class="form-group" style="margin-bottom: 20px; clear: both;">
+    <label class="checkbox-inline">
+        <input type="checkbox" id="show-inactive-ballots" {% if show_inactive == 'true' %}checked{% endif %}>
+        {% trans 'Show inactive ballots' %}
+    </label>
 </div>
 
 <table class="datatable">
