@@ -11,6 +11,7 @@
 
 {% block javascript %}
 {% include "data/table.html" with remote_url=remote_url result_forms_download_url=result_forms_download_url languageDE=languageDE enable_responsive=enable_responsive enable_scroll_x=enable_scroll_x  server_side=True%}
+<script src="{% static "js/ballot_filter.js" %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -55,6 +56,14 @@
 {% if error_message %}
     <p class="text-danger">{{ error_message }}</p>
 {% endif %}
+
+<div class="form-group" style="margin-bottom: 20px;">
+    <label class="checkbox-inline">
+        <input type="checkbox" id="show-inactive-ballots" {% if show_inactive == 'true' %}checked{% endif %}>
+        {% trans 'Show inactive ballots' %}
+    </label>
+</div>
+
 <br/>
 
 <table class="display datatable reduce-size">
