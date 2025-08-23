@@ -192,7 +192,9 @@ class FormListView(
         if error:
             del self.request.session["error_message"]
 
-        show_inactive = self.request.GET.get(show_inactive_query_param)
+        show_inactive = self.request.GET.get(
+            show_inactive_query_param, "false"
+        )
         if form_state:
             if form_state == ALL:
                 form_list = ResultForm.objects.filter(tally__id=tally_id)
@@ -275,7 +277,9 @@ class FormNotReceivedListView(FormListView):
         format_ = kwargs.get("format")
         tally_id = kwargs.get("tally_id")
 
-        show_inactive = self.request.GET.get(show_inactive_query_param)
+        show_inactive = self.request.GET.get(
+            show_inactive_query_param, "false"
+        )
         if format_ == "csv":
             form_list = ResultForm.forms_in_state(
                 FormState.UNSUBMITTED, tally_id=tally_id
