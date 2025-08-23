@@ -53,6 +53,16 @@ class FormListDataView(
         "action",
     )
 
+    def get_order_columns(self):
+        """
+        Return list of columns that can be ordered.
+        Replace 'action' column with empty string since it's virtual and cannot
+        be sorted.
+        """
+        # Keep the same list structure but replace 'action' with empty string
+        # This maintains index positions for DataTables
+        return [col if col != 'action' else '' for col in self.columns]
+
     def render_column(self, row, column):
         if column == "modified_date":
             return row.modified_date.strftime("%a, %d %b %Y %H:%M:%S %Z")

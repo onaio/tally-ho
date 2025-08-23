@@ -12,6 +12,19 @@
 {% block javascript %}
 {% include "data/table.html" with remote_url=remote_url result_forms_download_url=result_forms_download_url languageDE=languageDE enable_responsive=enable_responsive enable_scroll_x=enable_scroll_x  server_side=True%}
 <script src="{% static "js/ballot_filter.js" %}"></script>
+<script>
+$(document).ready(function() {
+    // Make Actions column header non-clickable after DataTable initialization
+    $('.datatable').on('init.dt', function() {
+        // Remove sorting classes and click handlers from Actions column header (last column)
+        var $actionsHeader = $(this).find('thead th:last-child');
+        $actionsHeader.removeClass('sorting sorting_asc sorting_desc');
+        $actionsHeader.addClass('sorting_disabled');
+        $actionsHeader.off('click.DT');
+        $actionsHeader.css('cursor', 'default');
+    });
+});
+</script>
 {% endblock %}
 
 {% block content %}
