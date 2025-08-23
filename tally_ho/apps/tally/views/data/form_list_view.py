@@ -14,18 +14,25 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
-from tally_ho.apps.tally.views.constants import (at_state_query_param,
-                                                 election_level_query_param,
-                                                 pending_at_state_query_param,
-                                                 show_inactive_query_param,
-                                                 sub_con_code_query_param,
-                                                 sub_race_query_param)
+from tally_ho.apps.tally.views.constants import (
+    at_state_query_param,
+    election_level_query_param,
+    pending_at_state_query_param,
+    show_inactive_query_param,
+    sub_con_code_query_param,
+    sub_race_query_param,
+)
 from tally_ho.libs.models.enums.form_state import (
-    FormState, un_processed_states_at_state)
+    FormState,
+    un_processed_states_at_state,
+)
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.enum import get_matching_enum_values
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (
+    DataTablesMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+)
 
 ALL = "__all__"
 
@@ -61,7 +68,7 @@ class FormListDataView(
         """
         # Keep the same list structure but replace 'action' with empty string
         # This maintains index positions for DataTables
-        return [col if col != 'action' else '' for col in self.columns]
+        return [col if col != "action" else "" for col in self.columns]
 
     def render_column(self, row, column):
         if column == "modified_date":
@@ -74,7 +81,7 @@ class FormListDataView(
 
     def filter_queryset(self, qs):
         show_inactive = self.request.GET.get(show_inactive_query_param)
-        if not show_inactive or show_inactive.lower() != 'true':
+        if not show_inactive or show_inactive.lower() != "true":
             qs = qs.filter(ballot__active=True)
 
         ballot_number = self.request.POST.get("ballot[value]", None)
@@ -85,9 +92,7 @@ class FormListDataView(
         pending_in_form_state = self.request.GET.get(
             pending_at_state_query_param
         )
-        requested_election_level = self.request.GET.get(
-            election_level_query_param
-        )
+        election_level = self.request.GET.get(election_level_query_param)
         requested_sub_race = self.request.GET.get(sub_race_query_param)
         requested_sub_con_code = self.request.GET.get(sub_con_code_query_param)
 
@@ -97,13 +102,12 @@ class FormListDataView(
                 requested_state = FormState[state_enum_key]
                 qs = qs.filter(form_state=requested_state)
 
-        if requested_election_level and requested_sub_race:
+        if election_level and requested_sub_race:
             filters = {
-                "ballot__electrol_race__election_level":
-                    requested_election_level,
+                "ballot__electrol_race__election_level": election_level,
                 "ballot__electrol_race__ballot_name": requested_sub_race,
             }
-            if not show_inactive or show_inactive.lower() != 'true':
+            if not show_inactive or show_inactive.lower() != "true":
                 filters["ballot__active"] = True
             qs = qs.filter(**filters)
 
@@ -138,7 +142,7 @@ class FormListDataView(
 
         if ballot_number:
             ballot_filters = {"number": ballot_number, "tally__id": tally_id}
-            if not show_inactive or show_inactive.lower() != 'true':
+            if not show_inactive or show_inactive.lower() != "true":
                 ballot_filters["active"] = True
             ballot = get_object_or_404(Ballot, **ballot_filters)
             qs = qs.filter(ballot__number__in=ballot.form_ballot_numbers)
@@ -188,18 +192,18 @@ class FormListView(
         if error:
             del self.request.session["error_message"]
 
+        show_inactive = self.request.GET.get(show_inactive_query_param)
         if form_state:
-            show_inactive = self.request.GET.get(show_inactive_query_param)
             if form_state == ALL:
                 form_list = ResultForm.objects.filter(tally__id=tally_id)
-                if not show_inactive or show_inactive.lower() != 'true':
+                if not show_inactive or show_inactive.lower() != "true":
                     form_list = form_list.filter(ballot__active=True)
             else:
                 form_state = FormState[form_state.upper()]
                 form_list = ResultForm.forms_in_state(
                     form_state.value, tally_id=tally_id
                 )
-                if not show_inactive or show_inactive.lower() != 'true':
+                if not show_inactive or show_inactive.lower() != "true":
                     form_list = form_list.filter(ballot__active=True)
             form_list = form_list.values(
                 "barcode",
@@ -248,9 +252,6 @@ class FormListView(
         if query_param_string:
             remote_data_url = f"{remote_data_url}?{query_param_string}"
 
-        show_inactive = self.request.GET.get(
-            show_inactive_query_param, 'false'
-        )
         additional_context = {"export_file_name": "form-list"}
         return self.render_to_response(
             self.get_context_data(
@@ -274,34 +275,50 @@ class FormNotReceivedListView(FormListView):
         format_ = kwargs.get("format")
         tally_id = kwargs.get("tally_id")
 
+        show_inactive = self.request.GET.get(show_inactive_query_param)
         if format_ == "csv":
             form_list = ResultForm.forms_in_state(
                 FormState.UNSUBMITTED, tally_id=tally_id
             )
+            if not show_inactive or show_inactive.lower() != "true":
+                form_list = form_list.filter(ballot__active=True)
             return render_to_csv_response(form_list)
+
+        query_param_string = self.request.GET.urlencode()
+        remote_data_url = reverse(
+            "form-not-received-data", kwargs={"tally_id": tally_id}
+        )
+        if query_param_string:
+            remote_data_url = f"{remote_data_url}?{query_param_string}"
 
         return self.render_to_response(
             self.get_context_data(
                 header_text=_("Forms Not Received"),
                 custom=True,
-                remote_url=reverse(
-                    "form-not-received-data", kwargs={"tally_id": tally_id}
-                ),
+                remote_url=remote_data_url,
                 tally_id=tally_id,
                 export_file_name="forms-not-received-list",
                 error_message="",
                 show_create_form_button=False,
+                show_inactive=show_inactive,
             )
         )
 
 
 class FormNotReceivedDataView(FormListDataView):
     def filter_queryset(self, qs):
+        show_inactive = self.request.GET.get(show_inactive_query_param)
         tally_id = self.kwargs.get("tally_id")
         keyword = self.request.POST.get("search[value]")
+
         qs = ResultForm.forms_in_state(
             FormState.UNSUBMITTED, tally_id=tally_id
         )
+
+        # Apply active ballot filter
+        if not show_inactive or show_inactive.lower() != "true":
+            qs = qs.filter(ballot__active=True)
+
         if keyword:
             # Get matching FormState enum values for case-insensitive search
             matching_states = get_matching_enum_values(FormState, keyword)

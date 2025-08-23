@@ -110,6 +110,188 @@ class TestFormListView(TestBase):
         response = view(request, format="csv", tally_id=tally.pk)
         self.assertContains(response, "barcode")
 
+    def test_form_not_received_list_view_with_show_inactive_context(self):
+        """Test that FormNotReceivedListView includes show_inactive context"""
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.FormNotReceivedListView.as_view()
+
+        # Test without show_inactive parameter (default)
+        request = self.factory.get("/")
+        request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=tally.pk)
+        self.assertContains(response, "Forms Not Received")
+        self.assertEqual(response.context_data['show_inactive'], 'false')
+
+        # Test with show_inactive=true
+        request = self.factory.get(f"/?{show_inactive_query_param}=true")
+        request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=tally.pk)
+        self.assertEqual(response.context_data['show_inactive'], 'true')
+
+    def test_form_not_received_data_view_filters_inactive_default(self):
+        """Test FormNotReceivedDataView filters inactive ballots by default"""
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        # Create ballots - one active, one inactive with different numbers
+        electrol_race = create_electrol_race(tally, **electrol_races[0])
+        active_ballot = create_ballot(
+            tally, electrol_race, active=True, number=1
+        )
+        inactive_ballot = create_ballot(
+            tally, electrol_race, active=False, number=2
+        )
+
+        # Create centers and stations
+        sub_con = create_sub_constituency(code=12345, tally=tally)
+        center = create_center("12345", tally=tally, sub_constituency=sub_con)
+        station = create_station(center)
+
+        # Create result forms with UNSUBMITTED state
+        active_result_form = create_result_form(
+            ballot=active_ballot,
+            barcode="123450011",
+            form_state=FormState.UNSUBMITTED,
+            center=center,
+            station_number=station.station_number,
+            tally=tally,
+            serial_number=1,
+        )
+        inactive_result_form = create_result_form(
+            ballot=inactive_ballot,
+            barcode="123450012",
+            form_state=FormState.UNSUBMITTED,
+            center=center,
+            station_number=station.station_number,
+            tally=tally,
+            serial_number=2,
+        )
+
+        view = views.FormNotReceivedDataView.as_view()
+
+        # Test without show_inactive (should filter out inactive ballots)
+        request = self.factory.post("/")
+        request.user = self.user
+        response = view(request, tally_id=tally.pk)
+        response_data = json.loads(response.content)
+        form_barcodes = [form[0] for form in response_data['data']]
+
+        self.assertIn(active_result_form.barcode, form_barcodes)
+        self.assertNotIn(inactive_result_form.barcode, form_barcodes)
+
+    def test_form_not_received_data_view_includes_inactive_requested(self):
+        """Test FormNotReceivedDataView includes inactive when requested"""
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        # Create ballots - one active, one inactive with different numbers
+        electrol_race = create_electrol_race(tally, **electrol_races[0])
+        active_ballot = create_ballot(
+            tally, electrol_race, active=True, number=1
+        )
+        inactive_ballot = create_ballot(
+            tally, electrol_race, active=False, number=2
+        )
+
+        # Create centers and stations
+        sub_con = create_sub_constituency(code=12345, tally=tally)
+        center = create_center("12345", tally=tally, sub_constituency=sub_con)
+        station = create_station(center)
+
+        # Create result forms with UNSUBMITTED state
+        active_result_form = create_result_form(
+            ballot=active_ballot,
+            barcode="123450011",
+            form_state=FormState.UNSUBMITTED,
+            center=center,
+            station_number=station.station_number,
+            tally=tally,
+            serial_number=3,
+        )
+        inactive_result_form = create_result_form(
+            ballot=inactive_ballot,
+            barcode="123450012",
+            form_state=FormState.UNSUBMITTED,
+            center=center,
+            station_number=station.station_number,
+            tally=tally,
+            serial_number=4,
+        )
+
+        view = views.FormNotReceivedDataView.as_view()
+
+        # Test with show_inactive=true (should include inactive ballots)
+        request = self.factory.post(f"/?{show_inactive_query_param}=true")
+        request.user = self.user
+        response = view(request, tally_id=tally.pk)
+        response_data = json.loads(response.content)
+        form_barcodes = [form[0] for form in response_data['data']]
+
+        self.assertIn(active_result_form.barcode, form_barcodes)
+        self.assertIn(inactive_result_form.barcode, form_barcodes)
+
+    def test_form_not_received_list_csv_with_active_ballot_filter(self):
+        """Test CSV export respects the active ballot filter"""
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        # Create ballots - one active, one inactive with different numbers
+        electrol_race = create_electrol_race(tally, **electrol_races[0])
+        active_ballot = create_ballot(
+            tally, electrol_race, active=True, number=1
+        )
+        inactive_ballot = create_ballot(
+            tally, electrol_race, active=False, number=2
+        )
+
+        # Create centers and stations
+        sub_con = create_sub_constituency(code=12345, tally=tally)
+        center = create_center("12345", tally=tally, sub_constituency=sub_con)
+        station = create_station(center)
+
+        # Create result forms with UNSUBMITTED state
+        active_result_form = create_result_form(
+            ballot=active_ballot,
+            barcode="123450011",
+            form_state=FormState.UNSUBMITTED,
+            center=center,
+            station_number=station.station_number,
+            tally=tally,
+            serial_number=5,
+        )
+        inactive_result_form = create_result_form(
+            ballot=inactive_ballot,
+            barcode="123450012",
+            form_state=FormState.UNSUBMITTED,
+            center=center,
+            station_number=station.station_number,
+            tally=tally,
+            serial_number=6,
+        )
+
+        view = views.FormNotReceivedListView.as_view()
+
+        # Test CSV without show_inactive (should exclude inactive ballots)
+        request = self.factory.get("/")
+        request.user = self.user
+        response = view(request, format="csv", tally_id=tally.pk)
+        content = b"".join(response.streaming_content).decode("utf-8")
+
+        self.assertIn(active_result_form.barcode, content)
+        self.assertNotIn(inactive_result_form.barcode, content)
+
+        # Test CSV with show_inactive=true (should include inactive ballots)
+        request = self.factory.get(f"/?{show_inactive_query_param}=true")
+        request.user = self.user
+        response = view(request, format="csv", tally_id=tally.pk)
+        content = b"".join(response.streaming_content).decode("utf-8")
+
+        self.assertIn(active_result_form.barcode, content)
+        self.assertIn(inactive_result_form.barcode, content)
+
     def test_forms_for_race(self):
         tally = create_tally()
         tally.users.add(self.user)
