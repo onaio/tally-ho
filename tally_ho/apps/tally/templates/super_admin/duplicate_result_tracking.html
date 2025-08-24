@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load i18n static %}
+{% load tz %}
 
 {% block content %}
 
@@ -45,7 +46,7 @@
                 <td>{{ duplicate_result.ballot.electrol_race.election_level }}</td>
                 <td>{{ duplicate_result.ballot.electrol_race.ballot_name }}</td>
                 <td>{{ duplicate_result.form_state_name }}</td>
-                <td>{{ duplicate_result.modified_date }}</td>
+                <td>{{ duplicate_result.modified_date|localtime }}</td>
                 <td>
                     <a class="btn btn-small btn-default" href="{% url 'duplicate_result_form' tally_id duplicate_result.barcode duplicate_result.ballot.number %}" role="button">
                         {% trans "View" %}

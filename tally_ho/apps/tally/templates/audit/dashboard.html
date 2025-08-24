@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load tz %}
 
 {% block content %}
 
@@ -147,7 +148,7 @@
                     <td>{{ request.result_form.ballot.electrol_race.ballot_name }}</td>
                     <td>{{ request.get_request_reason_display }}</td>
                     <td>{{ request.requester.username }}</td>
-                    <td>{{ request.created_date|date:"Y-m-d H:i" }}</td>
+                    <td>{{ request.created_date|localtime|date:"Y-m-d H:i" }}</td>
                     <td>{{ request.get_status_display }}</td>
                     <td>
                         <a href="{% url 'recall_request_detail' tally_id request.pk %}" class="btn btn-default btn-small">{% trans "View Details" %}</a>

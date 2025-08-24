@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load tz %}
 
 {% block title %}{% trans "Result Form History" %}{% endblock title %}
 
@@ -65,7 +66,7 @@
                                             <tr{% if entry.is_current %} class="current-state-row"{% endif %}>
                                                 <td>
                                                     {% if entry.timestamp %}
-                                                        {{ entry.timestamp|date:"Y-m-d H:i:s" }}
+                                                        {{ entry.timestamp|localtime|date:"Y-m-d H:i:s" }}
                                                     {% else %}
                                                         {% trans "Unknown" %}
                                                     {% endif %}
