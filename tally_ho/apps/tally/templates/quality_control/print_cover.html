@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load tz %}
 
 {% block content %}
 
@@ -46,7 +47,7 @@
     </tr>
     <tr>
         <td>{% trans 'Date/Time:' %}</td>
-        <td>{{ result_form.modified_date }}</td>
+        <td>{{ result_form.modified_date|localtime }}</td>
     </tr>
     <tr>
         {% if result_form.audit %}

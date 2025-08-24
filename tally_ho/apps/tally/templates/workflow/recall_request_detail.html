@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load tz %}
 
 {% block content %}
 
@@ -20,10 +21,10 @@
             <tr><th>{% trans "Reason" %}</th><td>{{ workflow_request.get_request_reason_display }}</td></tr>
             <tr><th>{% trans "Request Comment" %}</th><td>{{ workflow_request.request_comment|linebreaksbr }}</td></tr>
             <tr><th>{% trans "Requested By" %}</th><td>{{ workflow_request.requester.username }}</td></tr>
-            <tr><th>{% trans "Requested On" %}</th><td>{{ workflow_request.created_date }}</td></tr>
+            <tr><th>{% trans "Requested On" %}</th><td>{{ workflow_request.created_date|localtime }}</td></tr>
             {% if not workflow_request.is_pending %}
             <tr><th>{% trans "Actioned By" %}</th><td>{{ workflow_request.approver.username }}</td></tr>
-            <tr><th>{% trans "Actioned On" %}</th><td>{{ workflow_request.resolved_date }}</td></tr>
+            <tr><th>{% trans "Actioned On" %}</th><td>{{ workflow_request.resolved_date|localtime }}</td></tr>
             <tr><th>{% trans "Action Comment" %}</th><td>{{ workflow_request.approval_comment|linebreaksbr }}</td></tr>
             {% endif %}
         </table>

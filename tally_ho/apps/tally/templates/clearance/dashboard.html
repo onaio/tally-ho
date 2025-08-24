@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load tz %}
 
 {% block content %}
 
@@ -63,7 +64,7 @@
         <td>{{ form.reject_reason }}</td>
         <td>{{ form.clearance_team_reviewed }}</td>
         <td>{{ form.clearance_supervisor_reviewed }}</td>
-        <td>{{ form.modified_date }}</td>
+        <td>{{ form.modified_date|localtime }}</td>
         {% if form.previous_form_state %}
         <td>{{ form.previous_form_state.label }}</td>
         {% else %}

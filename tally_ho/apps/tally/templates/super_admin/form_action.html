@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load tz %}
 
 {% block content %}
 
@@ -31,7 +32,7 @@
         <td>{{ audit.result_form.ballot.electrol_race.ballot_name }}</td>
         <td>{{ audit.result_form.form_state_name }}</td>
         <td>{{ audit.action_prior_name }}</td>
-        <td>{{ audit.result_form.modified_date }}</td>
+        <td>{{ audit.result_form.modified_date|localtime }}</td>
         <td>
             <form name="review_form_{{ forloop.counter }}" method="post" action="">
                 <input type="hidden" name="result_form" value="{{ audit.result_form.pk }}">

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load i18n %}
+{% load tz %}
 
 {% block content %}
 
@@ -27,7 +28,7 @@
 {% for check in checks %}
     <tr>
         <td>{{ check.name }}</td>
-        <td>{{ check.modified_date | date:"Y-m-d h:m" }}</td>
+        <td>{{ check.modified_date|localtime|date:"Y-m-d h:m" }}</td>
         <td>{{ check.value }}</td>
         <td>{{ check.description }}</td>
         <td>{{ check.percentage }}</td>
