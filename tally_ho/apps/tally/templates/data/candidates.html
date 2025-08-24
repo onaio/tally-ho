@@ -11,6 +11,7 @@
 
 {% block javascript %}
 {% include "data/table.html" with remote_url=remote_url candidates_list_download_url=candidates_list_download_url languageDE=languageDE enable_responsive=enable_responsive enable_scroll_x=enable_scroll_x %}
+<script src="{% static "js/ballot_filter.js" %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -24,6 +25,13 @@
     {% endfor %}
 </ul>
 {% endif %}
+
+<div class="form-group" style="margin-bottom: 20px; clear: both;">
+    <label class="checkbox-inline">
+        <input type="checkbox" id="show-inactive-ballots" {% if show_inactive == 'true' %}checked{% endif %}>
+        {% trans 'Show inactive ballots' %}
+    </label>
+</div>
 
 <div class="pull-left" id="candidates-list-report">
     <button style="margin-bottom: 2em; margin-top: 2em;" id="export-candidates-list" class="btn btn-default btn-small">json</button>
