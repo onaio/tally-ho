@@ -11,11 +11,19 @@
 
 {% block javascript %}
 {% include "data/table.html" with remote_url=remote_url languageDE=languageDE enable_responsive=enable_responsive enable_scroll_x=enable_scroll_x %}
+<script src="{% static "js/ballot_filter.js" %}"></script>
 {% endblock %}
 
 {% block content %}
 
 <h1>{% trans 'Form Progress List' %}</h1>
+
+<div class="form-group" style="margin-bottom: 20px; clear: both;">
+    <label class="checkbox-inline">
+        <input type="checkbox" id="show-inactive-ballots" {% if show_inactive == 'true' %}checked{% endif %}>
+        {% trans 'Show inactive ballots' %}
+    </label>
+</div>
 
 <table class="datatable">
     <thead>

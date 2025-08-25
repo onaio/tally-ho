@@ -527,15 +527,25 @@ class FormProgressView(
 
     def get(self, *args, **kwargs):
         tally_id = kwargs.get("tally_id")
+        # Get show_inactive parameter
+        show_inactive = self.request.GET.get(
+            show_inactive_query_param, "false"
+        )
+
+        # Construct remote_url with show_inactive parameter if needed
+        remote_url = reverse(
+            "form-progress-data", kwargs={"tally_id": tally_id}
+        )
+        if show_inactive.lower() == "true":
+            remote_url += "?show_inactive=true"
 
         return self.render_to_response(
             self.get_context_data(
-                remote_url=reverse(
-                    "form-progress-data", kwargs={"tally_id": tally_id}
-                ),
+                remote_url=remote_url,
                 tally_id=tally_id,
                 export_file_name="form-progress",
                 server_side=True,
+                show_inactive=show_inactive,
             )
         )
 
@@ -850,6 +860,8 @@ class FormProgressDataView(
     def filter_queryset(self, qs):
         tally_id = self.kwargs["tally_id"]
         keyword = self.request.POST.get("search[value]")
+        show_inactive = self.request.GET.get("show_inactive")
+
         if keyword:
             # Get matching FormState enum values for case-insensitive search
             matching_states = get_matching_enum_values(FormState, keyword)
@@ -870,6 +882,9 @@ class FormProgressDataView(
                 | Q(ballot__electrol_race__election_level__icontains=keyword)
                 | Q(ballot__electrol_race__ballot_name__icontains=keyword)
             )
+
+        if not show_inactive or show_inactive.lower() != "true":
+            qs = qs.filter(ballot__active=True)
 
         qs = qs.filter(tally__id=tally_id)
         return qs.exclude(form_state=FormState.UNSUBMITTED)
