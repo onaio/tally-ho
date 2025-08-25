@@ -10,8 +10,8 @@ from tally_ho.apps.tally.forms.login_form import LoginForm
 from tally_ho.apps.tally.forms.password_change import PasswordChangeForm
 from tally_ho.apps.tally.views import (audit, clearance, corrections,
                                        data_entry, home, intake, profile,
-                                       quality_control, super_admin,
-                                       tally_manager)
+                                       quality_control, result_form_search,
+                                       super_admin, tally_manager)
 from tally_ho.apps.tally.views.data import (ballot_list_view,
                                             candidate_list_view,
                                             center_list_view,
@@ -1420,12 +1420,12 @@ urlpatterns = [
     ),
     re_path(
         r"^super-administrator/result-form-search/(?P<tally_id>(\d+))/$",
-        super_admin.ResultFormSearchView.as_view(),
+        result_form_search.ResultFormSearchView.as_view(),
         name="result-form-search",
     ),
     re_path(
         r"^super-administrator/result-form-history/(?P<tally_id>(\d+))/$",
-        super_admin.ResultFormHistoryView.as_view(),
+        result_form_search.ResultFormHistoryView.as_view(),
         name="result-form-history",
     ),
     re_path(
