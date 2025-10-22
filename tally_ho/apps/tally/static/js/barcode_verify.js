@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
     barcodeScanInputField.setAttribute("required", "true");
     barcodeManualEntryInputField.removeAttribute("required");
     barcodeCopyManualEntryInputField.removeAttribute("required");
+
+    // Initialize auto-detection for manual typing in scan mode
+    setup_scan_mode_typing_detection(barcodeScanInputField);
 });
 
 // Utility functions for showing and hiding placeholders
@@ -77,4 +80,48 @@ function change_barcode_entry_mode(barcodeEntryMode) {
         scannedEntryButton.hidden = true;
         barcode_scanner(barcodeScanInputField);
     }
+}
+
+// Auto-detect manual typing vs barcode scanning
+function setup_scan_mode_typing_detection(inputField) {
+    let lastKeystrokeTime = 0;
+    const TYPING_THRESHOLD_MS = 100; // If keystrokes are slower than 100ms apart, it's human typing
+    let keystrokeCount = 0;
+
+    inputField.addEventListener("keydown", () => {
+        const currentTime = Date.now();
+        const timeSinceLastKeystroke = currentTime - lastKeystrokeTime;
+
+        keystrokeCount++;
+
+        // If this is the second keystroke and it's slower than threshold, switch to manual mode
+        // We check on the second keystroke to avoid switching on the first character
+        if (keystrokeCount >= 2 && timeSinceLastKeystroke > TYPING_THRESHOLD_MS) {
+            // Clear the scan field
+            inputField.value = "";
+
+            // Switch to manual mode
+            change_barcode_entry_mode("manual");           
+
+            // Reset detection for next time
+            keystrokeCount = 0;
+            lastKeystrokeTime = 0;
+            return;
+        }
+
+        lastKeystrokeTime = currentTime;
+    });
+
+    // Reset detection when field is cleared or loses focus
+    inputField.addEventListener("blur", () => {
+        keystrokeCount = 0;
+        lastKeystrokeTime = 0;
+    });
+
+    inputField.addEventListener("input", (event) => {
+        if (event.target.value === "") {
+            keystrokeCount = 0;
+            lastKeystrokeTime = 0;
+        }
+    });
 }
