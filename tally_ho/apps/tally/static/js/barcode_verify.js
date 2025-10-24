@@ -82,6 +82,13 @@ function change_barcode_entry_mode(barcodeEntryMode) {
     }
 }
 
+function show_error_msg() {
+    var form = document.getElementById("result_form");
+    var div = document.createElement("div");
+    div.classList.add("text-danger");
+    div.appendChild(document.createTextNode("Typing the barcode is not allowed. Please proceed to the manual entry form by clicking the Enter barcode manually button"));
+    form.insertBefore(div, form.firstChild);
+}
 // Auto-detect manual typing vs barcode scanning
 function setup_scan_mode_typing_detection(inputField) {
     let lastKeystrokeTime = 0;
@@ -99,9 +106,9 @@ function setup_scan_mode_typing_detection(inputField) {
         if (keystrokeCount >= 2 && timeSinceLastKeystroke > TYPING_THRESHOLD_MS) {
             // Clear the scan field
             inputField.value = "";
-
-            // Switch to manual mode
-            change_barcode_entry_mode("manual");           
+            
+            // show error message
+            show_error_msg();
 
             // Reset detection for next time
             keystrokeCount = 0;
