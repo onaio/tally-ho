@@ -82,18 +82,58 @@ function change_barcode_entry_mode(barcodeEntryMode) {
     }
 }
 
-function show_error_msg() {
+function show_error_msg(errorMessage) {    
     var form = document.getElementById("result_form");
-    var div = document.createElement("div");
-    div.classList.add("text-danger");
-    div.appendChild(document.createTextNode("Typing the barcode is not allowed. Please proceed to the manual entry form by clicking the Enter barcode manually button"));
-    form.insertBefore(div, form.firstChild);
+    // Check if there's already an existing error div (from Django or previous JS call)
+    var existingErrorDiv = form.querySelector(".text-danger");
+
+    if(existingErrorDiv) {
+        // Reuse existing div - only update if it doesn't already have our message
+        // Check if the error message exists in any li element within the error div
+        var existingErrorItems = existingErrorDiv.querySelectorAll("ul.errorlist li");
+        var messageExists = Array.from(existingErrorItems).some(li => li.textContent === errorMessage);
+
+        if(!messageExists) {
+            // Clear any existing error lists before adding the new one
+            var existingErrorLists = existingErrorDiv.querySelectorAll("ul.errorlist");
+            existingErrorLists.forEach(list => list.remove());
+
+            var errorList = document.createElement("ul");
+            errorList.className = "errorlist nonfield";
+            var errorItem = document.createElement("li");
+            errorItem.textContent = errorMessage;
+            errorList.appendChild(errorItem);
+            existingErrorDiv.appendChild(errorList);
+        }
+        return;
+    }
+
+    // No existing error div found, create a new one
+    var errorMsgDiv = document.createElement("div");
+    errorMsgDiv.classList.add("text-danger");
+    var errorList = document.createElement("ul");
+    errorList.className ="errorlist nonfield";
+    var errorItem = document.createElement("li"); 
+    errorItem.textContent = errorMessage;
+    errorList.appendChild(errorItem);
+    errorMsgDiv.appendChild(errorList);
+    form.insertBefore(errorMsgDiv, form.firstChild);
 }
+
+function hide_error_msg(errorMessage) {
+    var form = document.getElementById("result_form");
+    var errorDiv = form.querySelector(".text-danger");
+    if (errorDiv && errorDiv.textContent.includes(errorMessage)) {
+        errorDiv.remove();
+    }
+}
+
 // Auto-detect manual typing vs barcode scanning
 function setup_scan_mode_typing_detection(inputField) {
     let lastKeystrokeTime = 0;
     const TYPING_THRESHOLD_MS = 100; // If keystrokes are slower than 100ms apart, it's human typing
     let keystrokeCount = 0;
+    const errorMessage = "Barcode scan does not accept manual entry. Click on the Enter barcode manually button to go to the manual entry form";
 
     inputField.addEventListener("keydown", () => {
         const currentTime = Date.now();
@@ -108,7 +148,7 @@ function setup_scan_mode_typing_detection(inputField) {
             inputField.value = "";
             
             // show error message
-            show_error_msg();
+            show_error_msg(errorMessage);
 
             // Reset detection for next time
             keystrokeCount = 0;
@@ -123,12 +163,14 @@ function setup_scan_mode_typing_detection(inputField) {
     inputField.addEventListener("blur", () => {
         keystrokeCount = 0;
         lastKeystrokeTime = 0;
+        hide_error_msg(errorMessage)
     });
 
     inputField.addEventListener("input", (event) => {
         if (event.target.value === "") {
             keystrokeCount = 0;
             lastKeystrokeTime = 0;
+            hide_error_msg(errorMessage)
         }
     });
 }
