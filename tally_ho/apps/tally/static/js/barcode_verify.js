@@ -102,6 +102,7 @@ function change_barcode_entry_mode(barcodeEntryMode) {
         scannedEntryButton.hidden = false;
         input_validation();
         check_submit_button_state();
+        hide_error_msg();
     } else if (barcodeEntryMode === "scan") {
         idFormInstructions.innerText = "Scan Barcode to proceed";
         barcodeManualEntry.hidden = true;
@@ -160,7 +161,6 @@ function setup_scan_mode_typing_detection(inputField) {
     inputField.addEventListener("blur", () => {
         keystrokeCount = 0;
         lastKeystrokeTime = 0;
-        hide_error_msg();
     });
 
     inputField.addEventListener("input", (event) => {
