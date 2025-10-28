@@ -133,8 +133,7 @@ function setup_scan_mode_typing_detection(inputField) {
     let lastKeystrokeTime = 0;
     const TYPING_THRESHOLD_MS = 100; // If keystrokes are slower than 100ms apart, it's human typing
     let keystrokeCount = 0;
-    const errorMessage = "Barcode scan does not accept manual entry. Click on the Enter barcode manually button to go to the manual entry form";
-
+    const errorMessage = document.getElementById("error_msg_text").textContent;
     inputField.addEventListener("keydown", () => {
         const currentTime = Date.now();
         const timeSinceLastKeystroke = currentTime - lastKeystrokeTime;
