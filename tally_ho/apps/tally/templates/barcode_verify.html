@@ -9,6 +9,15 @@
 <div class="form-instructions" id="id_form_instructions">{% trans 'Scan Barcode to proceed' %}</div>
 
 <form id="result_form" method="post" action="{{ form_action }}">
+    <div id="manual_entry_error_msg" class="text-danger" style="display: none;">
+        <ul class="errorlist nonfield">
+            <li>
+                {% trans "Detected Manual barcode entry. Use" %}
+                <a onclick="return change_barcode_entry_mode('manual')"> {% trans "Enter barcode manually" %}</a>
+            </li>
+        </ul><br>
+    </div>
+    
     {% if form.non_field_errors %}
     <div class="text-danger">
         {{ form.non_field_errors }}<br/>

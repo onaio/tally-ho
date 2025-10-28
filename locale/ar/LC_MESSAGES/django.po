@@ -929,13 +929,17 @@ msgstr "نسخة الباركود"
 msgid "Submit"
 msgstr "إرسال"
 
-#: tally_ho/apps/tally/templates/barcode_verify.html:44
+#: tally_ho/apps/tally/templates/barcode_verify.html:53
 msgid "Enter barcode manually"
 msgstr "أدخل الباركود يدويًا"
 
-#: tally_ho/apps/tally/templates/barcode_verify.html:48
+#: tally_ho/apps/tally/templates/barcode_verify.html:57
 msgid "Use barcode reader"
 msgstr "استخدم قارئ الباركود"
+
+#: tally_ho/apps/tally/templates/barcode_verify.html:15
+msgid "Detected Manual barcode entry. Use"
+msgstr "تم اكتشاف إدخال الباركود يدويًا. استخدم"
 
 #: tally_ho/apps/tally/templates/center_details.html:5
 msgid "Polling Center Details"
