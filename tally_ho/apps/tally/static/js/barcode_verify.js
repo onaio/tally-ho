@@ -2,14 +2,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const barcodeScanInputField = document.getElementById("id_scanned_barcode");
     const barcodeManualEntryInputField = document.getElementById("id_barcode");
     const barcodeCopyManualEntryInputField = document.getElementById("id_barcode_copy");
+    const submitButton = document.querySelector('button[type="submit"]');
+
     // Set or remove required attributes based on form mode
     barcodeScanInputField.setAttribute("required", "true");
     barcodeManualEntryInputField.removeAttribute("required");
     barcodeCopyManualEntryInputField.removeAttribute("required");
 
+    // Initialize submit button state check
+    check_submit_button_state();
+
+    // Add input event listeners to check barcode length
+    barcodeScanInputField.addEventListener("input", check_submit_button_state);
+    barcodeManualEntryInputField.addEventListener("input", check_submit_button_state);
+    barcodeCopyManualEntryInputField.addEventListener("input", check_submit_button_state);
+
     // Initialize auto-detection for manual typing in scan mode
     setup_scan_mode_typing_detection(barcodeScanInputField);
 });
+
+// Check submit button state based on barcode length
+function check_submit_button_state() {
+    const barcodeScanInputField = document.getElementById("id_scanned_barcode");
+    const barcodeManualEntryInputField = document.getElementById("id_barcode");
+    const barcodeCopyManualEntryInputField = document.getElementById("id_barcode_copy");
+    const submitButton = document.querySelector('button[type="submit"]');
+    const barcodeScanEntry = document.getElementById("barcode_scan_entry");
+    const barcodeManualEntry = document.getElementById("barcode_manual_entry");
+    const validBarcodeLength = 11; 
+    if (!submitButton) return;
+
+    // Check which mode we're in and validate accordingly
+    if (barcodeScanEntry && !barcodeScanEntry.hidden) {
+        // Scan mode: check if scanned barcode is at least 11 characters
+        const barcodeLength = barcodeScanInputField.value.length;
+        submitButton.disabled = barcodeLength < validBarcodeLength;
+    } else if (barcodeManualEntry && !barcodeManualEntry.hidden) {
+        // Manual entry mode: check if both barcode fields are at least 11 characters
+        const barcodeLength = barcodeManualEntryInputField.value.length;
+        const barcodeCopyLength = barcodeCopyManualEntryInputField.value.length;
+        submitButton.disabled = barcodeLength < validBarcodeLength || barcodeCopyLength < validBarcodeLength;
+    }
+}
 
 // Utility functions for showing and hiding placeholders
 function show_barcode_hide_placeholder() {
@@ -67,6 +101,7 @@ function change_barcode_entry_mode(barcodeEntryMode) {
         manualEntryButton.hidden = true;
         scannedEntryButton.hidden = false;
         input_validation();
+        check_submit_button_state();
     } else if (barcodeEntryMode === "scan") {
         idFormInstructions.innerText = "Scan Barcode to proceed";
         barcodeManualEntry.hidden = true;
@@ -79,53 +114,16 @@ function change_barcode_entry_mode(barcodeEntryMode) {
         manualEntryButton.hidden = false;
         scannedEntryButton.hidden = true;
         barcode_scanner(barcodeScanInputField);
+        check_submit_button_state();
     }
 }
 
-function show_error_msg(errorMessage) {    
-    var form = document.getElementById("result_form");
-    // Check if there's already an existing error div (from Django or previous JS call)
-    var existingErrorDiv = form.querySelector(".text-danger");
-
-    if(existingErrorDiv) {
-        // Reuse existing div - only update if it doesn't already have our message
-        // Check if the error message exists in any li element within the error div
-        var existingErrorItems = existingErrorDiv.querySelectorAll("ul.errorlist li");
-        var messageExists = Array.from(existingErrorItems).some(li => li.textContent === errorMessage);
-
-        if(!messageExists) {
-            // Clear any existing error lists before adding the new one
-            var existingErrorLists = existingErrorDiv.querySelectorAll("ul.errorlist");
-            existingErrorLists.forEach(list => list.remove());
-
-            var errorList = document.createElement("ul");
-            errorList.className = "errorlist nonfield";
-            var errorItem = document.createElement("li");
-            errorItem.textContent = errorMessage;
-            errorList.appendChild(errorItem);
-            existingErrorDiv.appendChild(errorList);
-        }
-        return;
-    }
-
-    // No existing error div found, create a new one
-    var errorMsgDiv = document.createElement("div");
-    errorMsgDiv.classList.add("text-danger");
-    var errorList = document.createElement("ul");
-    errorList.className ="errorlist nonfield";
-    var errorItem = document.createElement("li"); 
-    errorItem.textContent = errorMessage;
-    errorList.appendChild(errorItem);
-    errorMsgDiv.appendChild(errorList);
-    form.insertBefore(errorMsgDiv, form.firstChild);
+function show_error_msg() {
+    jQuery("#manual_entry_error_msg").show();
 }
 
-function hide_error_msg(errorMessage) {
-    var form = document.getElementById("result_form");
-    var errorDiv = form.querySelector(".text-danger");
-    if (errorDiv && errorDiv.textContent.includes(errorMessage)) {
-        errorDiv.remove();
-    }
+function hide_error_msg() {
+    jQuery("#manual_entry_error_msg").hide();
 }
 
 // Auto-detect manual typing vs barcode scanning
@@ -133,7 +131,7 @@ function setup_scan_mode_typing_detection(inputField) {
     let lastKeystrokeTime = 0;
     const TYPING_THRESHOLD_MS = 100; // If keystrokes are slower than 100ms apart, it's human typing
     let keystrokeCount = 0;
-    const errorMessage = document.getElementById("error_msg_text").textContent;
+
     inputField.addEventListener("keydown", () => {
         const currentTime = Date.now();
         const timeSinceLastKeystroke = currentTime - lastKeystrokeTime;
@@ -145,9 +143,9 @@ function setup_scan_mode_typing_detection(inputField) {
         if (keystrokeCount >= 2 && timeSinceLastKeystroke > TYPING_THRESHOLD_MS) {
             // Clear the scan field
             inputField.value = "";
-            
+
             // show error message
-            show_error_msg(errorMessage);
+            show_error_msg();
 
             // Reset detection for next time
             keystrokeCount = 0;
@@ -162,14 +160,14 @@ function setup_scan_mode_typing_detection(inputField) {
     inputField.addEventListener("blur", () => {
         keystrokeCount = 0;
         lastKeystrokeTime = 0;
-        hide_error_msg(errorMessage)
+        hide_error_msg();
     });
 
     inputField.addEventListener("input", (event) => {
         if (event.target.value === "") {
             keystrokeCount = 0;
             lastKeystrokeTime = 0;
-            hide_error_msg(errorMessage)
+            hide_error_msg();
         }
     });
 }
