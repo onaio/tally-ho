@@ -42,6 +42,7 @@ from tally_ho.apps.tally.forms.edit_user_profile_form import (
 from tally_ho.apps.tally.forms.quarantine_form import QuarantineCheckForm
 from tally_ho.apps.tally.forms.remove_center_form import RemoveCenterForm
 from tally_ho.apps.tally.forms.remove_station_form import RemoveStationForm
+from tally_ho.apps.tally.forms.reset_form_form import ResetFormForm
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
@@ -1330,6 +1331,103 @@ class RemoveCenterConfirmationView(
                     _("This center is tied to 1 or more stations")
                 )
                 return redirect(next_url, tally_id=self.kwargs["tally_id"])
+
+
+class ResetFormView(
+    LoginRequiredMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
+    SuccessMessageMixin,
+    FormView,
+):
+    form_class = ResetFormForm
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/reset_form.html"
+    success_message = _("Form Successfully Reset.")
+
+    def get_context_data(self, **kwargs):
+        context = super(ResetFormView, self).get_context_data(**kwargs)
+        context["tally_id"] = self.kwargs.get("tally_id")
+
+        return context
+
+    def get_initial(self):
+        initial = super(ResetFormView, self).get_initial()
+        initial["tally_id"] = self.kwargs.get("tally_id")
+
+        return initial
+
+    def post(self, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        if form.is_valid():
+            result_form = form.save()
+            self.success_url = reverse(
+                "reset-form-confirmation",
+                kwargs={
+                    "form_id": result_form.pk,
+                    "tally_id": result_form.tally.id,
+                },
+            )
+            return redirect(self.success_url)
+        return self.form_invalid(form)
+
+
+class ResetFormConfirmationView(
+    LoginRequiredMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    ReverseSuccessURLMixin,
+    SuccessMessageMixin,
+    TemplateView,
+):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "super_admin/reset_form_confirmation.html"
+    success_message = _("Form Successfully Reset to Unsubmitted.")
+
+    def get_context_data(self, **kwargs):
+        context = super(ResetFormConfirmationView, self).get_context_data(
+            **kwargs
+        )
+        form_id = self.kwargs.get("form_id")
+        context["result_form"] = ResultForm.objects.get(pk=form_id)
+        context["tally_id"] = self.kwargs.get("tally_id")
+        context["next"] = self.request.META.get("HTTP_REFERER", None)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        tally_id = kwargs["tally_id"]
+        form_id = kwargs["form_id"]
+        next_url = request.POST.get("next", None)
+
+        if "abort_submit" in request.POST:
+            return redirect(
+                next_url or "super-administrator", tally_id=tally_id
+            )
+
+        result_form = ResultForm.objects.get(pk=form_id)
+        barcode = result_form.barcode
+
+        try:
+            result_form.reset_to_unsubmitted()
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                _("Form %(barcode)s successfully reset to Unsubmitted")
+                % {"barcode": barcode},
+            )
+        except Exception as e:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                _("Error resetting form %(barcode)s: %(error)s")
+                % {"barcode": barcode, "error": str(e)},
+            )
+
+        return redirect("super-administrator", tally_id=tally_id)
 
 
 class EditCenterView(
