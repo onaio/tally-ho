@@ -422,6 +422,44 @@ class ResultForm(BaseModel):
         self.reject_reason = reject_reason
         self.save()
 
+    def reset_to_unsubmitted(self):
+        """Reset form to UNSUBMITTED state and deactivate all related records.
+
+        This method deactivates all results, reconciliation forms, audits,
+        clearances, and quality control records associated with this form,
+        then sets the form state to UNSUBMITTED.
+        """
+        # Deactivate all results
+        for result in self.results.all():
+            result.active = False
+            result.save()
+
+        # Deactivate all reconciliation forms
+        for recon in self.reconciliationform_set.all():
+            recon.active = False
+            recon.save()
+
+        # Deactivate all audits
+        for audit in self.audit_set.all():
+            audit.active = False
+            audit.save()
+
+        # Deactivate all clearances
+        for clearance in self.clearances.all():
+            clearance.active = False
+            clearance.save()
+
+        # Deactivate all quality control records
+        for qc in self.qualitycontrol_set.all():
+            qc.active = False
+            qc.save()
+
+        # TODO deactivate archives ?
+
+        # Reset form state to UNSUBMITTED
+        self.form_state = FormState.UNSUBMITTED
+        self.save()
+
     @property
     def center_code(self):
         return self.center.code if self.center else None
