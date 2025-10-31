@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Reset Form to Unsubmitted' %}</h1>
+
+<div class="alert alert-warning">
+    <strong>{% trans 'Warning!' %}</strong>
+    {% trans 'This will reset the form to UNSUBMITTED state and deactivate all related records (results, reconciliation forms, audits, clearances, and quality control records).' %}
+</div>
+
+<form name="reset-form-confirmation-form" method="post" action="">
+    <table class="table table-bordered infotable">
+        <tr>
+            <th>{% trans 'Barcode:' %}</th>
+            <td>{{ result_form.barcode }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Center Code:' %}</th>
+            <td>{{ result_form.center.code }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Station Number:' %}</th>
+            <td>{{ result_form.station_number }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Office:' %}</th>
+            <td>{{ result_form.center.office.name }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Office Number:' %}</th>
+            <td>{{ result_form.center.office.number }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Voting District:' %}</th>
+            <td>{{ result_form.ballot.number }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Election Level:' %}</th>
+            <td>{{ result_form.ballot.electrol_race.election_level }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Sub Race Type:' %}</th>
+            <td>{{ result_form.ballot.electrol_race.ballot_name }}</td>
+        </tr>
+        <tr>
+            <th>{% trans 'Current Form State:' %}</th>
+            <td><strong>{{ result_form.form_state.name }}</strong></td>
+        </tr>
+    </table>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" name="reset_submit" class="btn btn-small btn-warning">{% trans "Reset to Unsubmitted" %}</button>
+    <button type="submit" name="abort_submit" class="btn btn-small btn-default">{% trans "Cancel" %}</button>
+    {% csrf_token %}
+</form>
+
+{% endblock %}

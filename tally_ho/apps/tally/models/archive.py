@@ -16,6 +16,7 @@ class Archive(BaseModel):
                               on_delete=models.PROTECT,
                               related_name='archives')
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
+    active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         if not self.tally_id and self.result_form_id:
