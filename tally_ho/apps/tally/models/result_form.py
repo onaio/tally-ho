@@ -454,7 +454,10 @@ class ResultForm(BaseModel):
             qc.active = False
             qc.save()
 
-        # TODO deactivate archives ?
+        # Deactivate all archives
+        for archive in self.archive_set.all():
+            archive.active = False
+            archive.save()
 
         # Reset form state to UNSUBMITTED
         self.form_state = FormState.UNSUBMITTED
