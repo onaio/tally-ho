@@ -50,6 +50,17 @@
             <td><strong>{{ result_form.form_state.name }}</strong></td>
         </tr>
     </table>
+
+    <div class="form-group">
+        {{ form.reason.label_tag }}
+        {{ form.reason }}
+        {% if form.reason.errors %}
+            <div class="alert alert-danger">
+                {{ form.reason.errors }}
+            </div>
+        {% endif %}
+    </div>
+
     <input type="hidden" name="next" value="{{ next }}">
     <button type="submit" name="reset_submit" class="btn btn-small btn-warning">{% trans "Reset to Unsubmitted" %}</button>
     <button type="submit" name="abort_submit" class="btn btn-small btn-default">{% trans "Cancel" %}</button>

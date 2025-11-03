@@ -21,6 +21,7 @@ from guardian.mixins import LoginRequiredMixin
 from reversion.models import Version
 
 from tally_ho.apps.tally.forms.barcode_form import ResultFormSearchBarcodeForm
+from tally_ho.apps.tally.forms.confirm_reset_form import ConfirmResetForm
 from tally_ho.apps.tally.forms.create_ballot_form import CreateBallotForm
 from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
 from tally_ho.apps.tally.forms.create_electrol_race_form import (
@@ -1381,10 +1382,11 @@ class ResetFormConfirmationView(
     TallyAccessMixin,
     ReverseSuccessURLMixin,
     SuccessMessageMixin,
-    TemplateView,
+    FormView,
 ):
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/reset_form_confirmation.html"
+    form_class = ConfirmResetForm
     success_message = _("Form Successfully Reset to Unsubmitted.")
 
     def get_context_data(self, **kwargs):
@@ -1408,11 +1410,17 @@ class ResetFormConfirmationView(
                 next_url or "super-administrator", tally_id=tally_id
             )
 
+        form = self.get_form()
+        if not form.is_valid():
+            return self.form_invalid(form)
+
         result_form = ResultForm.objects.get(pk=form_id)
         barcode = result_form.barcode
+        reason = form.cleaned_data.get("reason")
+        user = request.user.userprofile
 
         try:
-            result_form.reset_to_unsubmitted()
+            result_form.reset_to_unsubmitted(user=user, reason=reason)
             messages.add_message(
                 request,
                 messages.SUCCESS,

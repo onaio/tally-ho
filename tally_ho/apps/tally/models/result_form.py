@@ -16,6 +16,7 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.utils.templates import get_result_form_edit_delete_links
+from tally_ho.apps.tally.models.result_form_reset import ResultFormReset
 
 male_local = _('Male')
 female_local = _('Female')
@@ -422,13 +423,18 @@ class ResultForm(BaseModel):
         self.reject_reason = reject_reason
         self.save()
 
-    def reset_to_unsubmitted(self):
+    def reset_to_unsubmitted(self, user=None, reason=None):
         """Reset form to UNSUBMITTED state and deactivate all related records.
 
         This method deactivates all results, reconciliation forms, audits,
         clearances, and quality control records associated with this form,
         then sets the form state to UNSUBMITTED.
+
+        Args:
+            user: UserProfile object of the user performing the reset
+            reason: Text reason for resetting the form
         """
+
         # Deactivate all results
         for result in self.results.all():
             result.active = False
@@ -462,6 +468,15 @@ class ResultForm(BaseModel):
         # Reset form state to UNSUBMITTED
         self.form_state = FormState.UNSUBMITTED
         self.save()
+
+        # Create a ResultFormReset record
+        if user:
+            ResultFormReset.objects.create(
+                user=user,
+                result_form=self,
+                tally=self.tally,
+                reason=reason
+            )
 
     @property
     def center_code(self):
