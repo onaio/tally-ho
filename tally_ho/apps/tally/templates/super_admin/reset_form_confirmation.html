@@ -11,6 +11,8 @@
     {% trans 'This will reset the form to UNSUBMITTED state and deactivate all related records (results, reconciliation forms, audits, clearances, and quality control records).' %}
 </div>
 
+<a href="{% url 'result-form-history' tally_id=tally_id %}" >{% trans "View Result Form History" %}</a>
+
 <form name="reset-form-confirmation-form" method="post" action="">
     <table class="table table-bordered infotable">
         <tr>
