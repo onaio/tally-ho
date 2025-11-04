@@ -20,11 +20,11 @@
 <a href="{% url 'result-form-history' tally_id=tally_id %}" >{% trans "View Result Form History" %}</a>
 
     <div class="form-group">
-        {{ form.reason.label_tag }}
-        {{ form.reason }}
+        {% trans form.reject_reason.label %}
+        {{ form.reject_reason }}
         {% if form.reason.errors %}
             <div class="alert alert-danger">
-                {{ form.reason.errors }}
+                {{ form.reject_reason.errors }}
             </div>
         {% endif %}
     </div>
