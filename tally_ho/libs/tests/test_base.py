@@ -103,7 +103,7 @@ def create_clearance(result_form, user, reviewed_team=False):
 
 
 def create_result(result_form, candidate, user, votes):
-    Result.objects.create(
+    return Result.objects.create(
         result_form=result_form,
         user=user,
         candidate=candidate,

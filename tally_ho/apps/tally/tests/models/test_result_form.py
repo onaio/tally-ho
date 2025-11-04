@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models import ResultForm, Station, WorkflowRequest
+from tally_ho.apps.tally.models.archive import Archive
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result import Result
@@ -1094,3 +1095,271 @@ class TestResultForm(TestBase):
             self.tally.id, 99999
         )
         self.assertFalse(intaken_qs_bad_center.exists())
+
+    def test_reset_to_unsubmitted_sets_state(self):
+        """Test reset_to_unsubmitted() sets form state to UNSUBMITTED."""
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.ARCHIVED
+        )
+
+        self.assertEqual(result_form.form_state, FormState.ARCHIVED)
+
+        result_form.reset_to_unsubmitted()
+
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_to_unsubmitted_deactivates_results(self):
+        """Test reset_to_unsubmitted() deactivates all Result records."""
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.QUALITY_CONTROL
+        )
+        candidate = create_candidate(self.ballot, "cand1", tally=self.tally)
+
+        result1 = create_result(result_form, candidate, self.user, votes=10)
+        result2 = Result.objects.create(
+            result_form=result_form,
+            user=self.user,
+            candidate=candidate,
+            votes=15,
+            entry_version=EntryVersion.DATA_ENTRY_1
+        )
+
+        self.assertTrue(result1.active)
+        self.assertTrue(result2.active)
+
+        result_form.reset_to_unsubmitted()
+
+        result1.refresh_from_db()
+        result2.refresh_from_db()
+
+        self.assertFalse(result1.active)
+        self.assertFalse(result2.active)
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_to_unsubmitted_deactivates_reconciliation_forms(self):
+        """Test reset_to_unsubmitted() deactivates
+        ReconciliationForm records."""
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.DATA_ENTRY_2
+        )
+
+        recon1 = create_reconciliation_form(
+            result_form, self.user, entry_version=EntryVersion.DATA_ENTRY_1
+        )
+        recon2 = create_reconciliation_form(
+            result_form, self.user, entry_version=EntryVersion.DATA_ENTRY_2
+        )
+
+        self.assertTrue(recon1.active)
+        self.assertTrue(recon2.active)
+
+        result_form.reset_to_unsubmitted()
+
+        recon1.refresh_from_db()
+        recon2.refresh_from_db()
+
+        self.assertFalse(recon1.active)
+        self.assertFalse(recon2.active)
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_to_unsubmitted_deactivates_audits(self):
+        """Test reset_to_unsubmitted() deactivates Audit records."""
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.AUDIT
+        )
+
+        audit = create_audit(result_form, self.user)
+        self.assertTrue(audit.active)
+
+        result_form.reset_to_unsubmitted()
+
+        audit.refresh_from_db()
+        self.assertFalse(audit.active)
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_to_unsubmitted_deactivates_clearances(self):
+        """Test reset_to_unsubmitted() deactivates Clearance records."""
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.CLEARANCE
+        )
+
+        clearance = create_clearance(result_form, self.user)
+        self.assertTrue(clearance.active)
+
+        result_form.reset_to_unsubmitted()
+
+        clearance.refresh_from_db()
+        self.assertFalse(clearance.active)
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_to_unsubmitted_deactivates_quality_control(self):
+        """Test reset_to_unsubmitted() deactivates QualityControl records."""
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.QUALITY_CONTROL
+        )
+
+        qc = QualityControl.objects.create(
+            result_form=result_form, user=self.user, active=True
+        )
+        self.assertTrue(qc.active)
+
+        result_form.reset_to_unsubmitted()
+
+        qc.refresh_from_db()
+        self.assertFalse(qc.active)
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_to_unsubmitted_deactivates_archives(self):
+        """Test reset_to_unsubmitted() deactivates Archive records."""
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.ARCHIVED
+        )
+
+        archive1 = Archive.objects.create(
+            result_form=result_form, tally=self.tally, user=self.user
+        )
+        archive2 = Archive.objects.create(
+            result_form=result_form, tally=self.tally, user=self.user
+        )
+
+        self.assertTrue(archive1.active)
+        self.assertTrue(archive2.active)
+
+        result_form.reset_to_unsubmitted()
+
+        archive1.refresh_from_db()
+        archive2.refresh_from_db()
+
+        self.assertFalse(archive1.active)
+        self.assertFalse(archive2.active)
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_to_unsubmitted_deactivates_all_related_records(self):
+        """Test reset_to_unsubmitted() deactivates all related records."""
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.ARCHIVED
+        )
+
+        candidate = create_candidate(self.ballot, "cand1", tally=self.tally)
+        result = create_result(result_form, candidate, self.user, votes=10)
+        recon = create_reconciliation_form(result_form, self.user)
+        audit = create_audit(result_form, self.user)
+        clearance = create_clearance(result_form, self.user)
+        qc = QualityControl.objects.create(
+            result_form=result_form, user=self.user, active=True
+        )
+        archive = Archive.objects.create(
+            result_form=result_form, tally=self.tally, user=self.user
+        )
+
+        # Verify all are active
+        self.assertTrue(result.active)
+        self.assertTrue(recon.active)
+        self.assertTrue(audit.active)
+        self.assertTrue(clearance.active)
+        self.assertTrue(qc.active)
+        self.assertTrue(archive.active)
+
+        result_form.reset_to_unsubmitted()
+
+        # Refresh all from database
+        result.refresh_from_db()
+        recon.refresh_from_db()
+        audit.refresh_from_db()
+        clearance.refresh_from_db()
+        qc.refresh_from_db()
+        archive.refresh_from_db()
+
+        # Verify all are now inactive
+        self.assertFalse(result.active)
+        self.assertFalse(recon.active)
+        self.assertFalse(audit.active)
+        self.assertFalse(clearance.active)
+        self.assertFalse(qc.active)
+        self.assertFalse(archive.active)
+
+        # Verify form state is UNSUBMITTED
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_to_unsubmitted_from_various_states(self):
+        """Test reset_to_unsubmitted() works from various form states."""
+        states_to_test = [
+            FormState.INTAKE,
+            FormState.DATA_ENTRY_1,
+            FormState.DATA_ENTRY_2,
+            FormState.CORRECTION,
+            FormState.QUALITY_CONTROL,
+            FormState.AUDIT,
+            FormState.CLEARANCE,
+            FormState.ARCHIVED
+        ]
+
+        for state in states_to_test:
+            with self.subTest(state=state):
+                result_form = create_result_form(
+                    tally=self.tally,
+                    ballot=self.ballot,
+                    center=self.center,
+                    station_number=self.station.station_number,
+                    form_state=state,
+                    barcode=f'test{state.value}',
+                    serial_number=state.value
+                )
+
+                self.assertEqual(result_form.form_state, state)
+
+                result_form.reset_to_unsubmitted()
+
+                self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_to_unsubmitted_with_no_related_records(self):
+        """Test reset_to_unsubmitted() works when no related records exist."""
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            form_state=FormState.INTAKE
+        )
+
+        # No related records created
+        self.assertEqual(result_form.results.count(), 0)
+        self.assertEqual(result_form.reconciliationform_set.count(), 0)
+        self.assertEqual(result_form.audit_set.count(), 0)
+
+        # Should not raise an error
+        result_form.reset_to_unsubmitted()
+
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
