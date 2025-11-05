@@ -1416,7 +1416,7 @@ class ResetFormConfirmationView(
 
         result_form = ResultForm.objects.get(pk=form_id)
         barcode = result_form.barcode
-        reason = form.cleaned_data.get("reason")
+        reason = form.cleaned_data.get("reject_reason")
         user = request.user.userprofile
 
         try:

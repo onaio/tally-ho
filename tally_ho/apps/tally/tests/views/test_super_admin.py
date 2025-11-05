@@ -21,6 +21,7 @@ from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_reset import ResultFormReset
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
@@ -2918,3 +2919,198 @@ class TestSuperAdmin(TestBase):
         # The function should process both active and inactive forms
         # (though they may not be actual duplicates in this simple test)
         self.assertIsNotNone(duplicates_with_inactive)
+
+    def test_reset_form_confirmation_view_get(self):
+        """Test GET request to ResetFormConfirmationView
+         displays form correctly."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1, tally=tally
+        )
+
+        view = views.ResetFormConfirmationView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        configure_messages(request)
+
+        response = view(
+            request,
+            tally_id=tally.pk,
+            form_id=result_form.pk
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data["tally_id"], tally.pk)
+        self.assertIn('reject_reason', response.context_data["form"].fields)
+
+    def test_reset_form_confirmation_view_post_valid(self):
+        """Test POST request with valid data creates
+        ResultFormReset record."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1, tally=tally
+        )
+
+        view = views.ResetFormConfirmationView.as_view()
+        data = {
+            'reject_reason': 'Test reason for reset',
+            'reset_submit': 'Reset to Unsubmitted'
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+        configure_messages(request)
+
+        response = view(
+            request,
+            tally_id=tally.pk,
+            form_id=result_form.pk
+        )
+
+        # Should redirect
+        self.assertEqual(response.status_code, 302)
+
+        # Verify form state was reset
+        result_form.refresh_from_db()
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+        # Verify ResultFormReset record was created
+        reset_records = ResultFormReset.objects.filter(
+            result_form=result_form
+        )
+        self.assertEqual(reset_records.count(), 1)
+        reset_record = reset_records.first()
+        self.assertEqual(reset_record.user, self.user.userprofile)
+        self.assertEqual(reset_record.tally, tally)
+        self.assertEqual(reset_record.reason, 'Test reason for reset')
+
+    def test_reset_form_confirmation_view_post_invalid(self):
+        """Test POST request with invalid data
+        (missing reason) shows errors."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1, tally=tally
+        )
+
+        view = views.ResetFormConfirmationView.as_view()
+        data = {
+            'reject_reason': '',  # Empty reason should fail validation
+            'reset_submit': 'Reset to Unsubmitted'
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+        configure_messages(request)
+
+        response = view(
+            request,
+            tally_id=tally.pk,
+            form_id=result_form.pk
+        )
+
+        # Should return form with errors (200 status)
+        self.assertEqual(response.status_code, 200)
+
+        # Verify form state was NOT reset
+        result_form.refresh_from_db()
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+
+        # Verify NO ResultFormReset record was created
+        reset_records = ResultFormReset.objects.filter(
+            result_form=result_form
+        )
+        self.assertEqual(reset_records.count(), 0)
+
+    def test_reset_form_confirmation_view_post_abort(self):
+        """Test POST request with abort_submit redirects without resetting."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1, tally=tally
+        )
+
+        view = views.ResetFormConfirmationView.as_view()
+        data = {
+            'reject_reason': 'Test reason',
+            'abort_submit': 'Cancel'
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+        configure_messages(request)
+
+        response = view(
+            request,
+            tally_id=tally.pk,
+            form_id=result_form.pk
+        )
+
+        # Should redirect
+        self.assertEqual(response.status_code, 302)
+
+        # Verify form state was NOT reset
+        result_form.refresh_from_db()
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+
+        # Verify NO ResultFormReset record was created
+        reset_records = ResultFormReset.objects.filter(
+            result_form=result_form
+        )
+        self.assertEqual(reset_records.count(), 0)
+
+    def test_reset_form_confirmation_view_deactivates_related_records(self):
+        """Test that reset deactivates all related records."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            form_state=FormState.AUDIT, tally=tally
+        )
+
+        # Create various related records
+        #create_result(result_form, self.user)
+        create_reconciliation_form(result_form, self.user)
+        create_audit(result_form, self.user)
+        clearance = Clearance.objects.create(
+            result_form=result_form,
+            user=self.user.userprofile
+        )
+
+        view = views.ResetFormConfirmationView.as_view()
+        data = {
+            'reject_reason': 'Deactivate all related records',
+            'reset_submit': 'Reset to Unsubmitted'
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+        configure_messages(request)
+
+        view(
+            request,
+            tally_id=tally.pk,
+            form_id=result_form.pk
+        )
+
+        # Verify all results are inactive
+        for result in result_form.results.all():
+            self.assertFalse(result.active)
+
+        # Verify all reconciliation forms are inactive
+        for recon in result_form.reconciliationform_set.all():
+            self.assertFalse(recon.active)
+
+        # Verify all audits are inactive
+        for audit in result_form.audit_set.all():
+            self.assertFalse(audit.active)
+
+        # Verify all clearances are inactive
+        for clearance in result_form.clearances.all():
+            self.assertFalse(clearance.active)
+
+        # Verify form state was reset
+        result_form.refresh_from_db()
+        self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
