@@ -424,7 +424,7 @@ class ResultForm(BaseModel):
         self.save()
 
     @transaction.atomic
-    def reset_to_unsubmitted(self, user=None, reason=None):
+    def reset_to_unsubmitted(self, user, reason):
         """Reset form to UNSUBMITTED state and deactivate all related records.
 
         This method deactivates all results, reconciliation forms, audits,

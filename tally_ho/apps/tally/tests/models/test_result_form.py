@@ -1108,7 +1108,8 @@ class TestResultForm(TestBase):
 
         self.assertEqual(result_form.form_state, FormState.ARCHIVED)
 
-        result_form.reset_to_unsubmitted()
+        reason = "Test reason for reset"
+        result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
 
@@ -1135,7 +1136,8 @@ class TestResultForm(TestBase):
         self.assertTrue(result1.active)
         self.assertTrue(result2.active)
 
-        result_form.reset_to_unsubmitted()
+        reason = "Test reason for reset"
+        result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         result1.refresh_from_db()
         result2.refresh_from_db()
@@ -1165,7 +1167,8 @@ class TestResultForm(TestBase):
         self.assertTrue(recon1.active)
         self.assertTrue(recon2.active)
 
-        result_form.reset_to_unsubmitted()
+        reason = "Test reason for reset"
+        result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         recon1.refresh_from_db()
         recon2.refresh_from_db()
@@ -1187,7 +1190,8 @@ class TestResultForm(TestBase):
         audit = create_audit(result_form, self.user)
         self.assertTrue(audit.active)
 
-        result_form.reset_to_unsubmitted()
+        reason = "Test reason for reset"
+        result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         audit.refresh_from_db()
         self.assertFalse(audit.active)
@@ -1206,7 +1210,8 @@ class TestResultForm(TestBase):
         clearance = create_clearance(result_form, self.user)
         self.assertTrue(clearance.active)
 
-        result_form.reset_to_unsubmitted()
+        reason = "Test reason for reset"
+        result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         clearance.refresh_from_db()
         self.assertFalse(clearance.active)
@@ -1227,7 +1232,8 @@ class TestResultForm(TestBase):
         )
         self.assertTrue(qc.active)
 
-        result_form.reset_to_unsubmitted()
+        reason = "Test reason for reset"
+        result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         qc.refresh_from_db()
         self.assertFalse(qc.active)
@@ -1253,7 +1259,8 @@ class TestResultForm(TestBase):
         self.assertTrue(archive1.active)
         self.assertTrue(archive2.active)
 
-        result_form.reset_to_unsubmitted()
+        reason = "Test reason for reset"
+        result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         archive1.refresh_from_db()
         archive2.refresh_from_db()
@@ -1292,7 +1299,8 @@ class TestResultForm(TestBase):
         self.assertTrue(qc.active)
         self.assertTrue(archive.active)
 
-        result_form.reset_to_unsubmitted()
+        reason = "Test reason for reset"
+        result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         # Refresh all from database
         result.refresh_from_db()
@@ -1340,7 +1348,8 @@ class TestResultForm(TestBase):
 
                 self.assertEqual(result_form.form_state, state)
 
-                result_form.reset_to_unsubmitted()
+                reason = "Test reason for reset"
+                result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
                 self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
 
@@ -1360,6 +1369,7 @@ class TestResultForm(TestBase):
         self.assertEqual(result_form.audit_set.count(), 0)
 
         # Should not raise an error
-        result_form.reset_to_unsubmitted()
+        reason = "Test reason for reset"
+        result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
