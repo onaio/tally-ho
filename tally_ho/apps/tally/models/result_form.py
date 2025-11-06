@@ -1,5 +1,5 @@
 from django.core.exceptions import SuspiciousOperation
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q, Sum
 from django.forms.models import model_to_dict
 from django.utils.translation import gettext_lazy as _
@@ -423,6 +423,7 @@ class ResultForm(BaseModel):
         self.reject_reason = reject_reason
         self.save()
 
+    @transaction.atomic
     def reset_to_unsubmitted(self, user=None, reason=None):
         """Reset form to UNSUBMITTED state and deactivate all related records.
 

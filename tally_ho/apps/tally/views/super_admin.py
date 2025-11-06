@@ -1419,20 +1419,28 @@ class ResetFormConfirmationView(
         reason = form.cleaned_data.get("reject_reason")
         user = request.user.userprofile
 
-        try:
-            result_form.reset_to_unsubmitted(user=user, reason=reason)
-            messages.add_message(
-                request,
-                messages.SUCCESS,
-                _("Form %(barcode)s successfully reset to Unsubmitted")
-                % {"barcode": barcode},
-            )
-        except Exception as e:
+        if user:
+            try:
+                result_form.reset_to_unsubmitted(user=user, reason=reason)
+                messages.add_message(
+                    request,
+                    messages.SUCCESS,
+                    _("Form %(barcode)s successfully reset to Unsubmitted")
+                    % {"barcode": barcode},
+                )
+            except Exception as e:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    _("Error resetting form %(barcode)s: %(error)s")
+                    % {"barcode": barcode, "error": str(e)},
+                )
+        else:
             messages.add_message(
                 request,
                 messages.ERROR,
                 _("Error resetting form %(barcode)s: %(error)s")
-                % {"barcode": barcode, "error": str(e)},
+                % {"barcode": barcode, "error": "User not found"},
             )
 
         return redirect("super-administrator", tally_id=tally_id)
