@@ -2,6 +2,7 @@ from django.core.exceptions import SuspiciousOperation
 from django.db import models, transaction
 from django.db.models import Q, Sum
 from django.forms.models import model_to_dict
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
 import reversion
@@ -436,48 +437,48 @@ class ResultForm(BaseModel):
             reason: Text reason for resetting the form
         """
 
-        # Deactivate all results
-        for result in self.results.all():
-            result.active = False
-            result.save()
+        modified_date = timezone.now()
+        # Deactivate active results
+        self.results.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
 
-        # Deactivate all reconciliation forms
-        for recon in self.reconciliationform_set.all():
-            recon.active = False
-            recon.save()
+        # Deactivate active reconciliation forms
+        self.reconciliationform_set.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
 
-        # Deactivate all audits
-        for audit in self.audit_set.all():
-            audit.active = False
-            audit.save()
+        # Deactivate active audits
+        self.audit_set.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
 
-        # Deactivate all clearances
-        for clearance in self.clearances.all():
-            clearance.active = False
-            clearance.save()
+        # Deactivate active clearances
+        self.clearances.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
 
-        # Deactivate all quality control records
-        for qc in self.qualitycontrol_set.all():
-            qc.active = False
-            qc.save()
+        # Deactivate active quality control records
+        self.qualitycontrol_set.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
 
-        # Deactivate all archives
-        for archive in self.archive_set.all():
-            archive.active = False
-            archive.save()
+        # Deactivate active archives
+        self.archive_set.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
 
         # Reset form state to UNSUBMITTED
         self.form_state = FormState.UNSUBMITTED
         self.save()
 
         # Create a ResultFormReset record
-        if user:
-            ResultFormReset.objects.create(
-                user=user,
-                result_form=self,
-                tally=self.tally,
-                reason=reason
-            )
+        ResultFormReset.objects.create(
+            user=user,
+            result_form=self,
+            tally=self.tally,
+            reason=reason
+        )
 
     @property
     def center_code(self):

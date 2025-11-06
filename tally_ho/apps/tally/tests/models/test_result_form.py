@@ -1189,12 +1189,16 @@ class TestResultForm(TestBase):
 
         audit = create_audit(result_form, self.user)
         self.assertTrue(audit.active)
+        audit2 = create_audit(result_form, self.user)
+        self.assertTrue(audit2.active)
 
         reason = "Test reason for reset"
         result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
         audit.refresh_from_db()
         self.assertFalse(audit.active)
+        audit2.refresh_from_db()
+        self.assertFalse(audit2.active)
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
 
     def test_reset_to_unsubmitted_deactivates_clearances(self):
