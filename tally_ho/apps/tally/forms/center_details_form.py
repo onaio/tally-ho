@@ -2,20 +2,10 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from tally_ho.apps.tally.forms.constants import DISABLE_COPY_INPUT
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.validators import MinLengthValidator
-
-
-disable_copy_input = {
-    'onCopy': 'return false;',
-    'onDrag': 'return false;',
-    'onDrop': 'return false;',
-    'onPaste': 'return false;',
-    'autocomplete': 'off',
-    'class': 'form-control'
-}
-
 
 min_station_value = settings.MIN_STATION_VALUE
 max_station_value = settings.MAX_STATION_VALUE
@@ -23,35 +13,38 @@ max_station_value = settings.MAX_STATION_VALUE
 
 class CenterDetailsForm(forms.Form):
     validators = [MinLengthValidator(5)]
-    center_error_messages = {
-        'invalid': _(u"Expecting only numbers for center number")}
+    center_error_messages = {"invalid": _("Expecting only numbers for center number")}
 
     center_number = forms.IntegerField(
         error_messages=center_error_messages,
         validators=validators,
-        widget=forms.NumberInput(attrs=disable_copy_input),
-        label=_(u"Center Number"))
+        widget=forms.NumberInput(attrs=DISABLE_COPY_INPUT),
+        label=_("Center Number"),
+    )
     center_number_copy = forms.IntegerField(
         error_messages=center_error_messages,
         validators=validators,
-        widget=forms.NumberInput(attrs=disable_copy_input),
-        label=_(u"Center Number Copy"))
-    station_number = forms.IntegerField(min_value=min_station_value,
-                                        max_value=max_station_value,
-                                        widget=forms.TextInput(
-                                            attrs=disable_copy_input),
-                                        label=_(u"Station Number"))
-    station_number_copy = forms.IntegerField(min_value=min_station_value,
-                                             max_value=max_station_value,
-                                             widget=forms.TextInput(
-                                                 attrs=disable_copy_input),
-                                             label=_(u"Station Number Copy"))
+        widget=forms.NumberInput(attrs=DISABLE_COPY_INPUT),
+        label=_("Center Number Copy"),
+    )
+    station_number = forms.IntegerField(
+        min_value=min_station_value,
+        max_value=max_station_value,
+        widget=forms.TextInput(attrs=DISABLE_COPY_INPUT),
+        label=_("Station Number"),
+    )
+    station_number_copy = forms.IntegerField(
+        min_value=min_station_value,
+        max_value=max_station_value,
+        widget=forms.TextInput(attrs=DISABLE_COPY_INPUT),
+        label=_("Station Number Copy"),
+    )
 
     tally_id = forms.IntegerField(widget=forms.HiddenInput)
 
     def __init__(self, *args, **kwargs):
         super(CenterDetailsForm, self).__init__(*args, **kwargs)
-        self.fields['center_number'].widget.attrs['autofocus'] = 'on'
+        self.fields["center_number"].widget.attrs["autofocus"] = "on"
 
     def clean(self):
         """Ensure that the center number and center number copy match, as well
@@ -61,46 +54,48 @@ class CenterDetailsForm(forms.Form):
         """
         if self.is_valid():
             cleaned_data = super(CenterDetailsForm, self).clean()
-            center_number = cleaned_data.get('center_number')
-            center_number_copy = cleaned_data.get('center_number_copy')
-            station_number = cleaned_data.get('station_number')
-            station_number_copy = cleaned_data.get('station_number_copy')
-            tally_id = cleaned_data.get('tally_id')
+            center_number = cleaned_data.get("center_number")
+            center_number_copy = cleaned_data.get("center_number_copy")
+            station_number = cleaned_data.get("station_number")
+            station_number_copy = cleaned_data.get("station_number_copy")
+            tally_id = cleaned_data.get("tally_id")
 
             if center_number != center_number_copy:
-                raise forms.ValidationError(_('Center Numbers do not match'))
+                raise forms.ValidationError(_("Center Numbers do not match"))
 
             if station_number != station_number_copy:
-                raise forms.ValidationError(_('Station Numbers do not match'))
+                raise forms.ValidationError(_("Station Numbers do not match"))
 
             try:
-                center = Center.objects.get(code=center_number,
-                                            tally__id=tally_id)
+                center = Center.objects.get(code=center_number, tally__id=tally_id)
                 valid_station_numbers = [
-                    list(d.values())[0] for d in
-                    center.stations.values('station_number')]
+                    list(d.values())[0]
+                    for d in center.stations.values("station_number")
+                ]
 
                 if int(station_number) not in valid_station_numbers:
-                    raise forms.ValidationError(_(
-                        'Invalid Station Number for this Center'))
+                    raise forms.ValidationError(
+                        _("Invalid Station Number for this Center")
+                    )
 
                 if not center.active:
-                    raise forms.ValidationError(_('Center is disabled'))
+                    raise forms.ValidationError(_("Center is disabled"))
 
-                station = Station.objects.get(center=center,
-                                              station_number=station_number)
+                station = Station.objects.get(
+                    center=center, station_number=station_number
+                )
 
                 if not station.active:
-                    raise forms.ValidationError(_('Station is disabled'))
+                    raise forms.ValidationError(_("Station is disabled"))
                 elif station.sub_constituency:
                     ballots = station.sub_constituency.get_ballots()
                     if not any(ballot.active for ballot in ballots):
-                        raise forms.ValidationError(_('Race is disabled.'))
+                        raise forms.ValidationError(_("Race is disabled."))
 
             except Center.DoesNotExist:
-                raise forms.ValidationError(_('Center Number does not exist'))
+                raise forms.ValidationError(_("Center Number does not exist"))
 
             except Station.DoesNotExist:
-                raise forms.ValidationError(_('Station Number does not exist'))
+                raise forms.ValidationError(_("Station Number does not exist"))
 
             return cleaned_data
