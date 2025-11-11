@@ -1,17 +1,13 @@
 from django import forms
 
-
-disable_copy_input = {
-    'onCopy': 'return false;',
-    'onDrag': 'return false;',
-    'onDrop': 'return false;',
-    'onPaste': 'return false;',
-    'autocomplete': 'off',
-    'class': 'form-control required'
-}
+from tally_ho.apps.tally.forms.constants import DISABLE_COPY_INPUT
 
 
 class CandidateForm(forms.Form):
+    # Extend the DISABLE_COPY_INPUT attrs to include 'required' class
+    votes_attrs = DISABLE_COPY_INPUT.copy()
+    votes_attrs["class"] = "form-control required"
+
     votes = forms.IntegerField(
-        min_value=0, required=True, widget=forms.TextInput(
-            attrs=disable_copy_input), label=u"")
+        min_value=0, required=True, widget=forms.TextInput(attrs=votes_attrs), label=""
+    )

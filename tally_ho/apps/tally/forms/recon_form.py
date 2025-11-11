@@ -2,16 +2,8 @@ from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
+from tally_ho.apps.tally.forms.constants import DISABLE_COPY_INPUT
 from tally_ho.apps.tally.models import ReconciliationForm
-
-disable_copy_input = {
-    "onCopy": "return false;",
-    "onDrag": "return false;",
-    "onDrop": "return false;",
-    "onPaste": "return false;",
-    "autocomplete": "off",
-    "class": "form-control",
-}
 
 
 class ReconForm(ModelForm):
@@ -31,7 +23,7 @@ class ReconForm(ModelForm):
         super(ReconForm, self).__init__(*args, **kwargs)
 
         for field in self.fields:
-            for k, v in list(disable_copy_input.items()):
+            for k, v in list(DISABLE_COPY_INPUT.items()):
                 self.fields[field].widget.attrs[k] = v
 
             class_str = ""
