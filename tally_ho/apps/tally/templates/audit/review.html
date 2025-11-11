@@ -15,11 +15,54 @@
 <h1>{% trans 'Quarantined Form' %}</h1>
 <hr>
 {% for check in result_form.audit.quarantine_checks.all %}
-<p>
-    {% trans 'Failed quarantine check:' %}
-    <b>{{ check.local_name }}</b>
-</p>
-<br>
+<div class="quarantine-check-details" style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;">
+    <p style="margin: 0 0 10px 0;">
+        {% trans 'Failed quarantine check:' %}
+        <b>{{ check.local_name }}</b>
+    </p>
+
+    {% with details=result_form.audit|get_quarantine_details:check %}
+    {% if details %}
+        {% if check.method == 'pass_reconciliation_check' %}
+        <div style="margin-left: 20px;">
+            <p><strong>{% trans 'Reconciliation Check Details:' %}</strong></p>
+            <ul style="list-style-type: none; padding-left: 0;">
+                <li>{% trans 'Total Valid Votes:' %} {{ details.num_votes }}</li>
+                <li>{% trans 'Total Invalid Votes:' %} {{ details.invalid_votes }}</li>
+                <li>{% trans 'Expected Total (Valid + Invalid):' %} <strong>{{ details.expected_total }}</strong></li>
+                <li>{% trans 'Actual Sorted and Counted:' %} <strong>{{ details.actual_total }}</strong></li>
+                <li>{% trans 'Difference:' %} <span style="color: red;"><strong>{{ details.difference }}</strong></span></li>
+                <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
+            </ul>
+        </div>
+        {% elif check.method == 'pass_over_voting_check' %}
+        <div style="margin-left: 20px;">
+            <p><strong>{% trans 'Over-Voting Check Details:' %}</strong></p>
+            <ul style="list-style-type: none; padding-left: 0;">
+                <li>{% trans 'Registered Voters:' %} {{ details.registrants }}</li>
+                <li>{% trans 'Total Valid Votes:' %} {{ details.num_votes }}</li>
+                <li>{% trans 'Total Invalid Votes:' %} {{ details.invalid_votes }}</li>
+                <li>{% trans 'Total Votes Cast:' %} <strong>{{ details.total_votes }}</strong></li>
+                <li>{% trans 'Maximum Allowed (Registrants + Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>
+                <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
+            </ul>
+        </div>
+        {% elif check.method == 'pass_card_check' %}
+        <div style="margin-left: 20px;">
+            <p><strong>{% trans 'Voter Card Check Details:' %}</strong></p>
+            <ul style="list-style-type: none; padding-left: 0;">
+                <li>{% trans 'Voter Cards in Ballot Box:' %} {{ details.voter_cards }}</li>
+                <li>{% trans 'Total Valid Votes:' %} {{ details.valid_votes }}</li>
+                <li>{% trans 'Total Invalid Votes:' %} {{ details.invalid_votes }}</li>
+                <li>{% trans 'Total Ballot Papers:' %} <strong>{{ details.total_ballot_papers }}</strong></li>
+                <li>{% trans 'Maximum Allowed (Cards + Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>
+                <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
+            </ul>
+        </div>
+        {% endif %}
+    {% endif %}
+    {% endwith %}
+</div>
 {% endfor %}
 {% endif %}
 

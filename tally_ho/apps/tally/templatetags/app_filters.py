@@ -120,3 +120,16 @@ def get_bg_class_by_race_type(electrol_race):
     if electrol_race.ballot_name.lower() == 'list':
         return 'green-bg'
     return 'blue-bg'
+
+@register.filter(name="get_quarantine_details")
+def get_quarantine_details(audit, check):
+    """Get quarantine check details for a specific check.
+
+    :param audit: The Audit instance
+    :param check: The QuarantineCheck instance
+
+    :returns: A dictionary with check details and actual values
+    """
+    if audit and check:
+        return audit.get_quarantine_check_details(check)
+    return None
