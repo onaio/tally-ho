@@ -22,7 +22,9 @@ from tally_ho.libs.tests.test_base import (TestBase, create_audit,
                                            create_candidates,
                                            create_recon_forms,
                                            create_reconciliation_form,
-                                           create_result_form, create_tally)
+                                           create_result_form, create_tally,
+                                           create_center, create_station,
+                                           create_region)
 
 
 class TestAudit(TestBase):
@@ -972,3 +974,276 @@ class TestAuditRecallRequestsCsvView(TestBase):
         self.assertEqual(data_rows[0][3], result_form2.barcode)
         self.assertEqual(data_rows[1][3], result_form1.barcode)
         self.assertEqual(data_rows[1][2], 'Pending')
+
+    def test_review_view_displays_quarantine_check_details_reconciliation(self):
+        """Test that review view displays quarantine check
+          details for reconciliation check."""
+        self._create_and_login_user(username="audit_clerk")
+        tally = create_tally()
+        tally.users.add(self.user)
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+
+        # Create result form with reconciliation form
+        result_form = create_result_form(
+            form_state=FormState.AUDIT,
+            tally=tally
+        )
+        create_reconciliation_form(
+            result_form,
+            self.user,
+            number_invalid_votes=10,
+            number_sorted_and_counted=110,
+            number_valid_votes=80
+        )
+        
+        create_candidates(
+            result_form=result_form,
+            user=result_form.user,
+            votes=20,
+            num_results=2
+        )
+        
+        result_form.save()
+
+        # Create audit with quarantine check
+        audit = create_audit(result_form, self.user)
+        check = QuarantineCheck.objects.create(
+            name="Reconciliation Check",
+            method="pass_reconciliation_check",
+            value=5,
+            percentage=0
+        )
+        audit.quarantine_checks.add(check)
+
+        view = views.ReviewView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        content = response.rendered_content
+
+        # Check that quarantine check name is displayed
+        self.assertIn(check.name, content)
+
+        # Check that actual values are displayed
+        self.assertIn('<li>Total Valid Votes: 80</li>', content) 
+        self.assertIn('<li>Total Invalid Votes: 10</li>', content)
+        self.assertIn('<li>Expected Total (Valid + Invalid):'
+        ' <strong>90</strong></li>', content
+        )
+        self.assertIn('<li>Actual Sorted and Counted:'
+        ' <strong>110</strong></li>', content
+        )
+        self.assertIn('<li>Allowed Tolerance: 5</li>', content)
+
+    def test_review_view_displays_quarantine_check_details_over_voting(self):
+        """Test that review view displays quarantine check details 
+        for over voting check."""
+        
+        self._create_and_login_user(username="audit_clerk")
+        tally = create_tally()
+        tally.users.add(self.user)
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+
+        # Create station with registrants
+        create_region(tally=tally)
+        
+        center = create_center("12345", tally=tally)
+        station = create_station(registrants=80, tally=tally, center=center)
+
+        # Create result form with reconciliation form
+        result_form = create_result_form(
+            form_state=FormState.AUDIT,
+            tally=tally,
+            center=center,
+            station_number=station.station_number
+        )
+        create_reconciliation_form(
+            result_form,
+            self.user,
+            number_invalid_votes=20
+        )
+        result_form.save()
+
+        create_candidates(
+            result_form=result_form,
+            user=result_form.user,
+            votes=20,
+            num_results=2
+        )
+
+        # Create audit with over voting check
+        audit = create_audit(result_form, self.user)
+        check = QuarantineCheck.objects.create(
+            name="Over Voting Check",
+            method="pass_over_voting_check",
+            value=10,
+            percentage=0
+        )
+        audit.quarantine_checks.add(check)
+
+        view = views.ReviewView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        content = response.rendered_content
+
+        # Check that quarantine check name is displayed
+        self.assertIn(check.name, content)
+
+        # Check that actual values are displayed        
+        self.assertIn('<li>Total Valid Votes: 80</li>', content)
+        self.assertIn('<li>Total Invalid Votes: 20</li>', content)
+        self.assertIn(
+            '<li>Total Votes Cast: <strong>100</strong></li>',
+              content
+        )
+        self.assertIn('<li>Registered Voters: 80</li>', content)
+        self.assertIn('<li>Allowed Tolerance: 10</li>', content)
+        self.assertIn(
+            '<li>Maximum Allowed (Registrants + Tolerance):'
+            ' <strong>90</strong></li>',
+            content
+        )  # total_votes and max_allowed
+
+    def test_review_view_displays_quarantine_check_details_card_check(self):
+        """Test that review view displays quarantine check 
+        details for card check."""
+        self._create_and_login_user("audit_clerk")
+        tally = create_tally()
+        tally.users.add(self.user)
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+
+        # Create result form with reconciliation form
+        result_form = create_result_form(
+            form_state=FormState.AUDIT,
+            tally=tally
+        )
+        create_reconciliation_form(
+            result_form,
+            self.user,
+            number_valid_votes=200,
+            number_invalid_votes=15,
+            number_of_voter_cards_in_the_ballot_box=210
+        )
+
+        # Create audit with card check
+        audit = create_audit(result_form, self.user)
+        check = QuarantineCheck.objects.create(
+            name="Card Check",
+            method="pass_card_check",
+            value=8,
+            percentage=0
+        )
+        audit.quarantine_checks.add(check)
+
+        view = views.ReviewView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        content = response.rendered_content
+
+        # Check that quarantine check name is displayed
+        self.assertIn(check.name, content)
+
+        # Check that actual values are displayed
+        self.assertIn(
+            '<li>Voter Cards in Ballot Box: 210</li>',
+            content
+        )
+        self.assertIn(
+            '<li>Total Valid Votes: 200</li>',
+            content
+        )
+        self.assertIn(
+            '<li>Total Invalid Votes: 15</li>',
+            content
+        )
+        self.assertIn(
+            '<li>Total Ballot Papers: <strong>215</strong></li>',
+            content
+        )
+
+    def test_review_view_multiple_quarantine_checks(self):
+        """Test that review view displays details for 
+        multiple quarantine checks."""
+        self._create_and_login_user("audit_clerk")
+        tally = create_tally()
+        tally.users.add(self.user)
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+
+        # Create result form with reconciliation form
+        result_form = create_result_form(
+            form_state=FormState.AUDIT,
+            tally=tally
+        )
+        create_reconciliation_form(
+            result_form,
+            self.user,
+            number_valid_votes=90,
+            number_invalid_votes=10,
+            number_sorted_and_counted=110,
+            number_of_voter_cards_in_the_ballot_box=110
+        )
+
+        result_form.save()
+
+        create_candidates(
+            result_form=result_form,
+            user=result_form.user,
+            votes=20,
+            num_results=2
+        )
+
+        # Create audit with multiple checks
+        audit = create_audit(result_form, self.user)
+
+        check1 = QuarantineCheck.objects.create(
+            name="Reconciliation Check",
+            method="pass_reconciliation_check",
+            value=5,
+            percentage=0
+        )
+        check2 = QuarantineCheck.objects.create(
+            name="Card Check",
+            method="pass_card_check",
+            value=8,
+            percentage=0
+        )
+
+        audit.quarantine_checks.add(check1, check2)
+
+        view = views.ReviewView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {'result_form': result_form.pk}
+
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        content = response.rendered_content
+
+        # Check that both quarantine check names are displayed
+        self.assertIn(check1.name, content)
+        self.assertIn(check2.name, content)
+
+        # Check that details for both checks are displayed
+        self.assertIn('<li>Total Valid Votes: 80</li>',
+                      content
+                      ) 
+        self.assertIn('<li>Actual Sorted and Counted: '
+        '<strong>110</strong></li>', content)
+        self.assertIn('<li>Total Invalid Votes: 10</li>', 
+                      content
+                      )  # voter_cards from card check
