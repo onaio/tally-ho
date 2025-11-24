@@ -1394,9 +1394,14 @@ class ResetFormConfirmationView(
             **kwargs
         )
         form_id = self.kwargs.get("form_id")
-        context["result_form"] = ResultForm.objects.get(pk=form_id)
+        result_form = ResultForm.objects.get(pk=form_id)
+        context["result_form"] = result_form
         context["tally_id"] = self.kwargs.get("tally_id")
         context["next"] = self.request.META.get("HTTP_REFERER", None)
+        context["is_already_unsubmitted"] = (
+            result_form.form_state == FormState.UNSUBMITTED
+        )
+        context["current_state"] = result_form.form_state.name
 
         return context
 

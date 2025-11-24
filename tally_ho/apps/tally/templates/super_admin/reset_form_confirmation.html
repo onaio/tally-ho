@@ -19,17 +19,28 @@
 
 <form name="reset-form-confirmation-form" method="post" action="">
 
-<div class="alert alert-warning">
-    <strong>{% trans 'Warning!' %}</strong>
-    {% trans 'This will reset the form to UNSUBMITTED state and deactivate all related records (results, reconciliation forms, audits, clearances, and quality control records).' %}
+<div class="alert alert-info">
+    <strong>{% trans 'Current Form State:' %}</strong> {{ current_state }}
 </div>
+
+{% if is_already_unsubmitted %}
+    <div class="alert alert-warning">
+        <strong>{% trans 'Notice:' %}</strong>
+        {% trans 'This form is already in UNSUBMITTED state. Form Reset is not required' %}
+    </div>
+{% else %}
+    <div class="alert alert-warning">
+        <strong>{% trans 'Warning!' %}</strong>
+        {% trans 'This will reset the form to UNSUBMITTED state and deactivate all related records (results, reconciliation forms, audits, clearances, and quality control records).' %}
+    </div>
+{% endif %}
 
 <div class="container">
     {% include 'center_details.html' %}
 </div>
-
 <a href="{% url 'result-form-history' tally_id=tally_id %}" >{% trans "View Result Form History" %}</a>
 
+{% if not is_already_unsubmitted %}
     <div class="form-group">
         {% trans form.reject_reason.label %}
         {{ form.reject_reason }}
@@ -42,8 +53,9 @@
 
     <input type="hidden" name="next" value="{{ next }}">
     <button type="submit" name="reset_submit" class="btn btn-small btn-warning">{% trans "Reset to Unsubmitted" %}</button>
-    <button type="submit" name="abort_submit" class="btn btn-small btn-default">{% trans "Cancel" %}</button>
+    <button type="submit" name="abort_submit" class="btn btn-small btn-default">{% trans "Cancel" %}</button>    
     {% csrf_token %}
+{% endif %}
 </form>
 
 {% endblock %}
