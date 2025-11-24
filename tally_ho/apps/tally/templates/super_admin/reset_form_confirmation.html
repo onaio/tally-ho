@@ -20,13 +20,13 @@
 <form name="reset-form-confirmation-form" method="post" action="">
 
 <div class="alert alert-info">
-    <strong>{% trans 'Current Form State:' %}</strong> {{ current_state }}
+    <strong>{% trans 'Form State' %}:</strong> {{ current_state }}
 </div>
 
 {% if is_already_unsubmitted %}
     <div class="alert alert-warning">
         <strong>{% trans 'Notice:' %}</strong>
-        {% trans 'This form is already in UNSUBMITTED state. Form Reset is not required' %}
+        {% trans 'This form is already in UNSUBMITTED state. Form Reset is not required.' %}
     </div>
 {% else %}
     <div class="alert alert-warning">

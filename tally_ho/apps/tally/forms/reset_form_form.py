@@ -1,19 +1,8 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-
+from tally_ho.apps.tally.forms.constants import DISABLE_COPY_INPUT
 from tally_ho.apps.tally.models.result_form import ResultForm
-
-
-disable_copy_input = {
-    'onCopy': 'return false;',
-    'onDrag': 'return false;',
-    'onDrop': 'return false;',
-    'onPaste': 'return false;',
-    'autocomplete': 'off',
-    'class': 'form-control'
-}
-
 
 class ResetFormForm(forms.Form):
     barcode = forms.CharField(
@@ -21,7 +10,7 @@ class ResetFormForm(forms.Form):
         error_messages={
             'required': _("Barcode is required")
         },
-        widget=forms.TextInput(attrs=disable_copy_input),
+        widget=forms.TextInput(attrs=DISABLE_COPY_INPUT),
         label=_("Form Barcode")
     )
 

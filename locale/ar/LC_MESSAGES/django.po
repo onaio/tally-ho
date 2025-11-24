@@ -4110,6 +4110,10 @@ msgstr "البيانات الناتجة غير مطابقه للنمودج ال�
 #~ msgid "Import staff list."
 #~ msgstr "استيراد قائمة العاملين"
 
-#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:14
-msgid "View Result Form History"
-msgstr "عرض سجل نموذج النتيجة"
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:29
+msgid "This form is already in UNSUBMITTED state. Form Reset is not required."
+msgstr "هذا النموذج في حالة "غير مُرسَل". لا حاجة لإعادة ضبط النموذج."
+
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:34
+msgid "This will reset the form to UNSUBMITTED state and deactivate all related records (results, reconciliation forms, audits, clearances, and quality control records)."
+msgstr "سيؤدي هذا إلى إعادة تعيين النموذج إلى حالة "غير مرسل" وإلغاء تنشيط جميع السجلات ذات الصلة (النتائج، ونماذج المصالحة، والتدقيقات، والمخالصات، وسجلات مراقبة الجودة)."
