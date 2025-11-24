@@ -19,9 +19,7 @@
 
 <form name="reset-form-confirmation-form" method="post" action="">
 
-<div class="alert alert-info">
-    <strong>{% trans 'Form State' %}:</strong> {{ current_state }}
-</div>
+<h4><strong>{% trans 'Form State' %}:</strong> {{ current_state }}</h4>
 
 {% if is_already_unsubmitted %}
     <div class="alert alert-warning">
@@ -44,7 +42,7 @@
     <div class="form-group">
         {% trans form.reject_reason.label %}
         {{ form.reject_reason }}
-        {% if form.reason.errors %}
+        {% if form.reject_reason.errors %}
             <div class="alert alert-danger">
                 {{ form.reject_reason.errors }}
             </div>
