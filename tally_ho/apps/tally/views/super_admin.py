@@ -1395,6 +1395,10 @@ class ResetFormConfirmationView(
         )
         form_id = self.kwargs.get("form_id")
         result_form = ResultForm.objects.get(pk=form_id)
+
+        # Store result form ID in session
+        self.request.session["result_form"] = result_form.pk
+
         context["result_form"] = result_form
         context["tally_id"] = self.kwargs.get("tally_id")
         context["next"] = self.request.META.get("HTTP_REFERER", None)
