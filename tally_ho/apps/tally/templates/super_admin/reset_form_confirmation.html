@@ -6,6 +6,17 @@
 
 <h1>{% trans 'Reset Form to Unsubmitted' %}</h1>
 
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade in" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
 <form name="reset-form-confirmation-form" method="post" action="">
 
 <div class="alert alert-warning">

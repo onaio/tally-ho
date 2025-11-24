@@ -1428,12 +1428,22 @@ class ResetFormConfirmationView(
                     _("Form %(barcode)s successfully reset to Unsubmitted")
                     % {"barcode": barcode},
                 )
+                return redirect(
+                    "reset-form-confirmation",
+                    tally_id=tally_id,
+                    form_id=form_id,
+                )
             except Exception as e:
                 messages.add_message(
                     request,
                     messages.ERROR,
                     _("Error resetting form %(barcode)s: %(error)s")
                     % {"barcode": barcode, "error": str(e)},
+                )
+                return redirect(
+                    "reset-form-confirmation",
+                    tally_id=tally_id,
+                    form_id=form_id,
                 )
         else:
             messages.add_message(
@@ -1442,8 +1452,11 @@ class ResetFormConfirmationView(
                 _("Error resetting form %(barcode)s: %(error)s")
                 % {"barcode": barcode, "error": "User not found"},
             )
-
-        return redirect("super-administrator", tally_id=tally_id)
+            return redirect(
+                "reset-form-confirmation",
+                tally_id=tally_id,
+                form_id=form_id,
+            )
 
 
 class EditCenterView(
