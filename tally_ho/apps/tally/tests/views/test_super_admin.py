@@ -2933,7 +2933,6 @@ class TestSuperAdmin(TestBase):
         request = self.factory.get('/')
         request.user = self.user
         request.session = {}
-        configure_messages(request)
 
         response = view(
             request,
@@ -3004,7 +3003,6 @@ class TestSuperAdmin(TestBase):
         request = self.factory.post('/', data=data)
         request.user = self.user
         request.session = {}
-        configure_messages(request)
 
         response = view(
             request,
