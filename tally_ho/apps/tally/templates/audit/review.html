@@ -35,8 +35,11 @@
                 <li>{% trans 'Allowed Tolerance:' %} <strong>{{ details.allowed_tolerance|floatformat:0 }}</strong></li>
             </ul>
 
-            <p>passed = absolute(Total number of ballot papers in the box - Total Votes Cast (Total Valid Votes + Number of invalid ballot papers)) &lt;= Allowed Tolerance</p>
-            <p>passed = absolute( {{ details.actual_total }} - ({{ details.num_votes }} + {{ details.invalid_votes }})) &lt;= {{ details.allowed_tolerance|floatformat:0 }} </p>
+            <div>
+                <p><strong>{% trans 'Pass Condition:' %}</strong></p>
+                <p class="formula">|{% trans 'Total Ballot Papers' %} - {% trans 'Total Votes Cast' %}| ≤ {% trans 'Allowed Tolerance' %}</p>
+                <p class="formula-values">|{{ details.actual_total }} - ({{ details.num_votes }} + {{ details.invalid_votes }})| ≤ {{ details.allowed_tolerance|floatformat:0 }}</p>
+            </div>
         </div>
         {% elif check.method == 'pass_over_voting_check' %}
         <div style="margin-left: 20px;">
@@ -49,8 +52,11 @@
                 <li>{% trans 'Allowed Tolerance:' %} <strong>{{ details.allowed_tolerance|floatformat:0 }}</strong></li> 
                 <li>{% trans 'Maximum Allowed (Registered Voters + Allowed Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>               
             </ul>
-            <p>passed = Total Votes Cast (Total Valid Votes + Number of invalid ballot papers) &lt;= Maximum Allowed (Registered Voters + Allowed Tolerance) </p>
-            <p>passed = ({{ details.num_votes }} + {{ details.invalid_votes }}) &lt;= ({{ details.registrants }} + {{ details.allowed_tolerance|floatformat:0 }}) </p>
+            <div>
+                <p><strong>{% trans 'Pass Condition:' %}</strong></p>
+                <p class="formula">{% trans 'Total Votes Cast' %} ≤ {% trans 'Registered Voters' %} + {% trans 'Allowed Tolerance' %}</p>
+                <p class="formula-values">({{ details.num_votes }} + {{ details.invalid_votes }}) ≤ {{ details.registrants }} + {{ details.allowed_tolerance|floatformat:0 }}</p>                
+            </div>
         </div>
         {% elif check.method == 'pass_card_check' %}
         <div style="margin-left: 20px;">
@@ -63,6 +69,11 @@
                 <li>{% trans 'Maximum Allowed (Cards + Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>
                 <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
             </ul>
+            <div>
+                <p><strong>{% trans 'Pass Condition:' %}</strong></p>
+                <p class="formula">{% trans 'Total Ballot Papers' %} ≤ {% trans 'Voter Cards' %} + {% trans 'Allowed Tolerance' %}</p>
+                <p class="formula-values">({{ details.valid_votes }} + {{ details.invalid_votes }}) ≤ {{ details.voter_cards }} + {{ details.allowed_tolerance|floatformat:0 }}</p>
+            </div>
         </div>
         {% endif %}
     {% endif %}
