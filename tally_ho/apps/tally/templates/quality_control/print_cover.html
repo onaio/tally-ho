@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load tz %}
+{% load app_filters %}
 
 {% block content %}
 
@@ -29,14 +30,65 @@
         <td colspan="2" class="failed-checks-cell">
             <div class="failed-checks-section">
                 <h4 class="failed-checks-title">{% trans 'Failed Quarantine Checks:' %}</h4>
-                <ul class="failed-checks-list">
-                    {% for check in result_form.audit.quarantine_checks.all %}
-                    <li>
+                {% for check in result_form.audit.quarantine_checks.all %}
+                <div class="quarantine-check-details">
+                    <p style="margin: 0 0 10px 0;">
                         <span class="check-icon">❗</span>
-                        <span class="check-name">{{ check.local_name }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
+                        <strong>{{ check.local_name }}</strong>
+                    </p>
+
+                    {% with details=result_form.audit|get_quarantine_details:check %}
+                    {% if details %}
+                        {% if check.method == 'pass_reconciliation_check' %}
+                        <div class="check-details-content">
+                            <ul class="details-list">
+                                <li>{% trans 'Total Valid Votes:' %} {{ details.num_votes }}</li>
+                                <li>{% trans 'Total Invalid Votes:' %} {{ details.invalid_votes }}</li>
+                                <li>{% trans 'Expected Total (Valid + Invalid):' %} <strong>{{ details.expected_total }}</strong></li>
+                                <li>{% trans 'Actual Sorted and Counted:' %} <strong>{{ details.actual_total }}</strong></li>
+                                <li>{% trans 'Difference:' %} <span class="difference-value"><strong>{{ details.difference }}</strong></span></li>
+                                <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
+                            </ul>
+                            <p><strong>{% trans 'Reconciliation Check Details:' %}</strong></p>
+                            <p>expected_total = Total votes cast for all candidates + Number of invalid ballot papers</p>
+                            <p>expected_total = {{ details.num_votes }} + {{ details.invalid_votes }}</p>
+                            <p>actual_total = Total number of ballot papers in the box</p>
+                            <p>actual_total = {{ details.actual_total }}</p>
+                            <p>allowed_tolerance = If Quarantine check value is not zero the use the value. Else use ((quarantine check percentage / 100) * expected_total)</p>
+                            <p>allowed_tolerance = {{ details.allowed_tolerance|floatformat:0 }}</p>
+                            <p>passed = abs(actual_total - expected_total) greaterThanOrEqual allowed_tolerance</p>
+                            <p>passed = abs( {{ details.actual_total }} - ({{ details.num_votes }} + {{ details.invalid_votes }}) &lt;= {{ details.allowed_tolerance|floatformat:0 }} )</p>
+
+                        </div>
+                        {% elif check.method == 'pass_over_voting_check' %}
+                        <div class="check-details-content">
+                            <p><strong>{% trans 'Over-Voting Check Details:' %}</strong></p>
+                            <ul class="details-list">
+                                <li>{% trans 'Registered Voters:' %} {{ details.registrants }}</li>
+                                <li>{% trans 'Total Valid Votes:' %} {{ details.num_votes }}</li>
+                                <li>{% trans 'Total Invalid Votes:' %} {{ details.invalid_votes }}</li>
+                                <li>{% trans 'Total Votes Cast:' %} <strong>{{ details.total_votes }}</strong></li>
+                                <li>{% trans 'Maximum Allowed (Registrants + Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>
+                                <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
+                            </ul>
+                        </div>
+                        {% elif check.method == 'pass_card_check' %}
+                        <div class="check-details-content">
+                            <p><strong>{% trans 'Voter Card Check Details:' %}</strong></p>
+                            <ul class="details-list">
+                                <li>{% trans 'Voter Cards in Ballot Box:' %} {{ details.voter_cards }}</li>
+                                <li>{% trans 'Total Valid Votes:' %} {{ details.valid_votes }}</li>
+                                <li>{% trans 'Total Invalid Votes:' %} {{ details.invalid_votes }}</li>
+                                <li>{% trans 'Total Ballot Papers:' %} <strong>{{ details.total_ballot_papers }}</strong></li>
+                                <li>{% trans 'Maximum Allowed (Cards + Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>
+                                <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                {% endfor %}
             </div>
         </td>
     </tr>
@@ -225,6 +277,37 @@
         font-weight: bold;
     }
 
+    .quarantine-check-details {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        background-color: #ffffff;
+        border-radius: 4px;
+    }
+
+    .quarantine-check-details:last-child {
+        margin-bottom: 0;
+    }
+
+    .check-details-content {
+        margin-left: 30px;
+    }
+
+    .details-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin: 5px 0;
+    }
+
+    .details-list li {
+        padding: 4px 0;
+        font-size: 1em;
+    }
+
+    .difference-value {
+        color: #b30000;
+    }
+
     [dir="rtl"] .failed-checks-list {
         padding-left: initial; /* Reset for RTL */
         padding-right: 0;     /* Standard RTL padding */
@@ -233,6 +316,11 @@
     [dir="rtl"] .check-icon {
         margin-right: 0;
         margin-left: 10px;
+    }
+
+    [dir="rtl"] .check-details-content {
+        margin-left: 0;
+        margin-right: 30px;
     }
     /* End Styles for Failed Quarantine Checks */
     /* Print-specific styles */

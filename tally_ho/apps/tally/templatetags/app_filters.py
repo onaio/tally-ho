@@ -4,6 +4,7 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
+from tally_ho.libs.verify import quarantine_checks
 
 register = template.Library()
 
@@ -131,5 +132,7 @@ def get_quarantine_details(audit, check):
     :returns: A dictionary with check details and actual values
     """
     if audit and check:
-        return audit.get_quarantine_check_details(check)
+        return quarantine_checks.get_quarantine_check_details(
+            audit.result_form, check
+        )
     return None
