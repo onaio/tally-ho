@@ -1030,14 +1030,20 @@ class TestAuditRecallRequestsCsvView(TestBase):
 
         # Check that actual values are displayed
         self.assertIn('<li>Total Valid Votes: 80</li>', content) 
-        self.assertIn('<li>Total Invalid Votes: 10</li>', content)
-        self.assertIn('<li>Expected Total (Valid + Invalid):'
+        self.assertIn('<li>Number of invalid ballot papers: '
+                       '<strong>10</strong></li>',
+                       content
+        )
+        self.assertIn('<li>Total Votes Cast '
+        '(Total Valid Votes + Number of invalid ballot papers):'
         ' <strong>90</strong></li>', content
         )
-        self.assertIn('<li>Actual Sorted and Counted:'
+        self.assertIn('<li>Total number of ballot papers in the box:'
         ' <strong>110</strong></li>', content
         )
-        self.assertIn('<li>Allowed Tolerance: 5</li>', content)
+        self.assertIn('<li>Allowed Tolerance: <strong>5</strong></li>',
+                       content
+        )
 
     def test_review_view_displays_quarantine_check_details_over_voting(self):
         """Test that review view displays quarantine check details 
@@ -1099,16 +1105,26 @@ class TestAuditRecallRequestsCsvView(TestBase):
         self.assertIn(check.name, content)
 
         # Check that actual values are displayed        
-        self.assertIn('<li>Total Valid Votes: 80</li>', content)
-        self.assertIn('<li>Total Invalid Votes: 20</li>', content)
         self.assertIn(
-            '<li>Total Votes Cast: <strong>100</strong></li>',
+            '<li>Registered Voters: <strong>80</strong></li>',
+            content
+        )
+        self.assertIn(
+            '<li>Number of invalid ballot papers: '
+            '<strong>20</strong></li>',
+            content
+        )
+        self.assertIn(
+            '<li>Total Votes Cast (Total Valid Votes + ' \
+            'Number of invalid ballot papers): <strong>100</strong></li>',
               content
         )
-        self.assertIn('<li>Registered Voters: 80</li>', content)
-        self.assertIn('<li>Allowed Tolerance: 10</li>', content)
         self.assertIn(
-            '<li>Maximum Allowed (Registrants + Tolerance):'
+            '<li>Allowed Tolerance: <strong>10</strong></li>', 
+            content
+        )
+        self.assertIn(
+            '<li>Maximum Allowed (Registered Voters + Allowed Tolerance):'
             ' <strong>90</strong></li>',
             content
         )  # total_votes and max_allowed
@@ -1242,8 +1258,13 @@ class TestAuditRecallRequestsCsvView(TestBase):
         self.assertIn('<li>Total Valid Votes: 80</li>',
                       content
                       ) 
-        self.assertIn('<li>Actual Sorted and Counted: '
-        '<strong>110</strong></li>', content)
-        self.assertIn('<li>Total Invalid Votes: 10</li>', 
-                      content
-                      )  # voter_cards from card check
+        self.assertIn(
+            '<li>Total number of ballot papers in the box:'
+            ' <strong>110</strong></li>', 
+            content
+        )
+        self.assertIn(
+            '<li>Number of invalid ballot papers: '
+            '<strong>10</strong></li>', 
+            content
+        )
