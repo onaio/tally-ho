@@ -15,106 +15,15 @@
 <h1>{% trans 'Quarantined Form' %}</h1>
 <hr>
 {% for check in result_form.audit.quarantine_checks.all %}
-<div class="quarantine-check-details" >
+<div class="quarantine-check-details">
     <p style="margin: 0 0 10px 0;">
         {% trans 'Failed quarantine check:' %}
         <b>{{ check.local_name }}</b>
     </p>
 
-    {% with details=result_form|get_quarantine_details:check %}
-    {% if details %}
-        {% if check.method == 'pass_reconciliation_check' %}
-        <div style="margin-left: 20px;">
-            <p><strong>{% trans 'Reconciliation Check Details:' %}</strong></p>
-            <ul class="details-list">
-                <li>{% trans 'Total Valid Votes:' %} {{ details.num_votes }}</li>
-                <li>{% trans 'Number of invalid ballot papers:' %} <strong>{{ details.invalid_votes }}</strong></li>
-                <li>{% trans 'Total Votes Cast (Total Valid Votes + Number of invalid ballot papers):' %} <strong>{{ details.expected_total }}</strong></li>
-                <li>{% trans 'Total number of ballot papers in the box:' %} <strong>{{ details.actual_total }}</strong></li>
-                <li>{% trans 'Difference (Total number of ballot papers in the box - Expected Total):' %} <span class="difference-value"><strong>{{ details.difference }}</strong></span></li>
-                <li>{% trans 'Allowed Tolerance:' %} <strong>{{ details.allowed_tolerance|floatformat:0 }}</strong></li>
-            </ul>
-
-            <div>
-                <p><strong>{% trans 'Allowed Tolerance Calculation:' %}</strong></p>
-                {% if details.tolerance_value != 0 %}
-                <p class="formula-values">{% trans 'Tolerance' %} = {{ details.tolerance_value|floatformat:0 }} ({% trans 'fixed value' %})</p>
-                {% else %}
-                <p class="formula">{% trans 'Tolerance' %} = ({{ details.tolerance_percentage }}% ÷ 100) × {% trans 'Expected Total' %}</p>
-                <p class="formula-values">{% trans 'Tolerance' %} = ({{ details.tolerance_percentage }} ÷ 100) × {{ details.expected_total }}</p>
-                <p class="formula-result">{% trans 'Tolerance' %} = {{ details.allowed_tolerance|floatformat:0 }}</p>
-                {% endif %}
-            </div>
-
-            <div>
-                <p><strong>{% trans 'Pass Condition:' %}</strong></p>
-                <p class="formula">|{% trans 'Total Ballot Papers' %} - {% trans 'Total Votes Cast' %}| ≤ {% trans 'Allowed Tolerance' %}</p>
-                <p class="formula-values">|{{ details.actual_total }} - ({{ details.num_votes }} + {{ details.invalid_votes }})| ≤ {{ details.allowed_tolerance|floatformat:0 }}</p>
-                <p class="formula-values">|{{ details.actual_total }} - {{ details.expected_total }}| ≤ {{ details.allowed_tolerance|floatformat:0 }}</p>
-                <p class="formula-result">{{ details.difference }} ≤ {{ details.allowed_tolerance|floatformat:0 }}</p>
-            </div>
-        </div>
-        {% elif check.method == 'pass_over_voting_check' %}
-        <div style="margin-left: 20px;">
-            <p><strong>{% trans 'Over-Voting Check Details:' %}</strong></p>
-            <ul class="details-list">
-                <li>{% trans 'Registered Voters:' %} <strong>{{ details.registrants }}</strong></li>
-                <li>{% trans 'Total Valid Votes:' %} <strong>{{ details.num_votes }}</strong></li>
-                <li>{% trans 'Number of invalid ballot papers:' %} <strong>{{ details.invalid_votes }}</strong></li>
-                <li>{% trans 'Total Votes Cast (Total Valid Votes + Number of invalid ballot papers):' %} <strong>{{ details.total_votes }}</strong></li>                                
-                <li>{% trans 'Allowed Tolerance:' %} <strong>{{ details.allowed_tolerance|floatformat:0 }}</strong></li> 
-                <li>{% trans 'Maximum Allowed (Registered Voters + Allowed Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>               
-            </ul>
-            <div>
-                <p><strong>{% trans 'Allowed Tolerance Calculation:' %}</strong></p>
-                {% if details.tolerance_value != 0 %}
-                <p class="formula-values">{% trans 'Tolerance' %} = {{ details.tolerance_value|floatformat:0 }} ({% trans 'fixed value' %})</p>
-                {% else %}
-                <p class="formula">{% trans 'Tolerance' %} = ({{ details.tolerance_percentage }}% ÷ 100) × {% trans 'Registered Voters' %}</p>
-                <p class="formula-values">{% trans 'Tolerance' %} = ({{ details.tolerance_percentage }} ÷ 100) × {{ details.registrants }}</p>
-                <p class="formula-result">{% trans 'Tolerance' %} = {{ details.allowed_tolerance|floatformat:0 }}</p>
-                {% endif %}
-            </div>
-
-            <div>
-                <p><strong>{% trans 'Pass Condition:' %}</strong></p>
-                <p class="formula">{% trans 'Total Votes Cast' %} ≤ {% trans 'Registered Voters' %} + {% trans 'Allowed Tolerance' %}</p>
-                <p class="formula-values">({{ details.num_votes }} + {{ details.invalid_votes }}) ≤ {{ details.registrants }} + {{ details.allowed_tolerance|floatformat:0 }}</p>
-                <p class="formula-result">{{ details.total_votes }} ≤ {{ details.max_allowed|floatformat:0 }}</p>
-            </div>
-        </div>
-        {% elif check.method == 'pass_card_check' %}
-        <div style="margin-left: 20px;">
-            <p><strong>{% trans 'Voter Card Check Details:' %}</strong></p>
-            <ul style="list-style-type: none; padding-left: 0;">
-                <li>{% trans 'Voter Cards in Ballot Box:' %} {{ details.voter_cards }}</li>
-                <li>{% trans 'Total Valid Votes:' %} {{ details.valid_votes }}</li>
-                <li>{% trans 'Total Invalid Votes:' %} {{ details.invalid_votes }}</li>
-                <li>{% trans 'Total Ballot Papers:' %} <strong>{{ details.total_ballot_papers }}</strong></li>
-                <li>{% trans 'Maximum Allowed (Cards + Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>
-                <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
-            </ul>
-            <div>
-                <p><strong>{% trans 'Allowed Tolerance Calculation:' %}</strong></p>
-                {% if details.tolerance_value != 0 %}
-                <p class="formula-values">{% trans 'Tolerance' %} = {{ details.tolerance_value|floatformat:0 }} ({% trans 'fixed value' %})</p>
-                {% else %}
-                <p class="formula">{% trans 'Tolerance' %} = ({{ details.tolerance_percentage }}% ÷ 100) × {% trans 'Voter Cards' %}</p>
-                <p class="formula-values">{% trans 'Tolerance' %} = ({{ details.tolerance_percentage }} ÷ 100) × {{ details.voter_cards }}</p>
-                <p class="formula-result">{% trans 'Tolerance' %} = {{ details.allowed_tolerance|floatformat:0 }}</p>
-                {% endif %}
-            </div>
-
-            <div>
-                <p><strong>{% trans 'Pass Condition:' %}</strong></p>
-                <p class="formula">{% trans 'Total Ballot Papers' %} ≤ {% trans 'Voter Cards' %} + {% trans 'Allowed Tolerance' %}</p>
-                <p class="formula-values">({{ details.valid_votes }} + {{ details.invalid_votes }}) ≤ {{ details.voter_cards }} + {{ details.allowed_tolerance|floatformat:0 }}</p>
-                <p class="formula-result">{{ details.total_ballot_papers }} ≤ {{ details.max_allowed|floatformat:0 }}</p>
-            </div>
-        </div>
-        {% endif %}
-    {% endif %}
-    {% endwith %}
+    <div style="margin-left: 20px;">
+        {% include "quarantine_check_details.html" with result_form=result_form check=check %}
+    </div>
 </div>
 {% endfor %}
 {% endif %}
