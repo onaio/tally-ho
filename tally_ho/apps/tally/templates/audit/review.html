@@ -15,37 +15,42 @@
 <h1>{% trans 'Quarantined Form' %}</h1>
 <hr>
 {% for check in result_form.audit.quarantine_checks.all %}
-<div class="quarantine-check-details" style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;">
+<div class="quarantine-check-details" >
     <p style="margin: 0 0 10px 0;">
         {% trans 'Failed quarantine check:' %}
         <b>{{ check.local_name }}</b>
     </p>
 
-    {% with details=result_form.audit|get_quarantine_details:check %}
+    {% with details=result_form|get_quarantine_details:check %}
     {% if details %}
         {% if check.method == 'pass_reconciliation_check' %}
         <div style="margin-left: 20px;">
             <p><strong>{% trans 'Reconciliation Check Details:' %}</strong></p>
-            <ul style="list-style-type: none; padding-left: 0;">
+            <ul class="details-list">
                 <li>{% trans 'Total Valid Votes:' %} {{ details.num_votes }}</li>
-                <li>{% trans 'Total Invalid Votes:' %} {{ details.invalid_votes }}</li>
-                <li>{% trans 'Expected Total (Valid + Invalid):' %} <strong>{{ details.expected_total }}</strong></li>
-                <li>{% trans 'Actual Sorted and Counted:' %} <strong>{{ details.actual_total }}</strong></li>
-                <li>{% trans 'Difference:' %} <span style="color: red;"><strong>{{ details.difference }}</strong></span></li>
-                <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
+                <li>{% trans 'Number of invalid ballot papers:' %} <strong>{{ details.invalid_votes }}</strong></li>
+                <li>{% trans 'Total Votes Cast (Total Valid Votes + Number of invalid ballot papers):' %} <strong>{{ details.expected_total }}</strong></li>
+                <li>{% trans 'Total number of ballot papers in the box:' %} <strong>{{ details.actual_total }}</strong></li>
+                <li>{% trans 'Difference (Total number of ballot papers in the box - Expected Total):' %} <span class="difference-value"><strong>{{ details.difference }}</strong></span></li>
+                <li>{% trans 'Allowed Tolerance:' %} <strong>{{ details.allowed_tolerance|floatformat:0 }}</strong></li>
             </ul>
+
+            <p>passed = absolute(Total number of ballot papers in the box - Total Votes Cast (Total Valid Votes + Number of invalid ballot papers)) &lt;= Allowed Tolerance</p>
+            <p>passed = absolute( {{ details.actual_total }} - ({{ details.num_votes }} + {{ details.invalid_votes }})) &lt;= {{ details.allowed_tolerance|floatformat:0 }} </p>
         </div>
         {% elif check.method == 'pass_over_voting_check' %}
         <div style="margin-left: 20px;">
             <p><strong>{% trans 'Over-Voting Check Details:' %}</strong></p>
-            <ul style="list-style-type: none; padding-left: 0;">
-                <li>{% trans 'Registered Voters:' %} {{ details.registrants }}</li>
-                <li>{% trans 'Total Valid Votes:' %} {{ details.num_votes }}</li>
-                <li>{% trans 'Total Invalid Votes:' %} {{ details.invalid_votes }}</li>
-                <li>{% trans 'Total Votes Cast:' %} <strong>{{ details.total_votes }}</strong></li>
-                <li>{% trans 'Maximum Allowed (Registrants + Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>
-                <li>{% trans 'Allowed Tolerance:' %} {{ details.allowed_tolerance|floatformat:0 }}</li>
+            <ul class="details-list">
+                <li>{% trans 'Registered Voters:' %} <strong>{{ details.registrants }}</strong></li>
+                <li>{% trans 'Total Valid Votes:' %} <strong>{{ details.num_votes }}</strong></li>
+                <li>{% trans 'Number of invalid ballot papers:' %} <strong>{{ details.invalid_votes }}</strong></li>
+                <li>{% trans 'Total Votes Cast (Total Valid Votes + Number of invalid ballot papers):' %} <strong>{{ details.total_votes }}</strong></li>                                
+                <li>{% trans 'Allowed Tolerance:' %} <strong>{{ details.allowed_tolerance|floatformat:0 }}</strong></li> 
+                <li>{% trans 'Maximum Allowed (Registered Voters + Allowed Tolerance):' %} <strong>{{ details.max_allowed|floatformat:0 }}</strong></li>               
             </ul>
+            <p>passed = Total Votes Cast (Total Valid Votes + Number of invalid ballot papers) &lt;= Maximum Allowed (Registered Voters + Allowed Tolerance) </p>
+            <p>passed = ({{ details.num_votes }} + {{ details.invalid_votes }}) &lt;= ({{ details.registrants }} + {{ details.allowed_tolerance|floatformat:0 }}) </p>
         </div>
         {% elif check.method == 'pass_card_check' %}
         <div style="margin-left: 20px;">

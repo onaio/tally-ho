@@ -123,16 +123,16 @@ def get_bg_class_by_race_type(electrol_race):
     return 'blue-bg'
 
 @register.filter(name="get_quarantine_details")
-def get_quarantine_details(audit, check):
+def get_quarantine_details(result_form, check):
     """Get quarantine check details for a specific check.
 
-    :param audit: The Audit instance
+    :param result_form: The ResultForm instance
     :param check: The QuarantineCheck instance
 
     :returns: A dictionary with check details and actual values
     """
-    if audit and check:
+    if result_form and check:
         return quarantine_checks.get_quarantine_check_details(
-            audit.result_form, check
+            result_form, check
         )
     return None

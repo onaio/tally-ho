@@ -6,7 +6,6 @@ from tally_ho.apps.tally.templatetags.app_filters import \
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.tests.test_base import (
     TestBase,
-    create_audit,
     create_reconciliation_form,
     create_result_form,
     create_station,
@@ -29,8 +28,8 @@ class TestGetQuarantineDetails(TestBase):
         self.tally = create_tally()
         self.tally.users.add(self.user)
 
-    def test_get_quarantine_details_returns_none_when_no_audit(self):
-        """Test filter returns None when audit is None."""
+    def test_get_quarantine_details_returns_none_when_no_result_form(self):
+        """Test filter returns None when result_form is None."""
         check = QuarantineCheck.objects.create(
             name="Test Check",
             method="pass_reconciliation_check",
@@ -48,15 +47,14 @@ class TestGetQuarantineDetails(TestBase):
             form_state=FormState.AUDIT,
             tally=self.tally
         )
-        audit = create_audit(result_form, self.user)
 
-        result = get_quarantine_details(audit, None)
+        result = get_quarantine_details(result_form, None)
 
         self.assertIsNone(result)
 
-    def test_get_quarantine_details_calls_audit_method(self):
-        """Test filter correctly calls 
-        audit.get_quarantine_check_details()."""
+    def test_get_quarantine_details_calls_quarantine_checks_method(self):
+        """Test filter correctly calls
+        quarantine_checks.get_quarantine_check_details()."""
         result_form = create_result_form(
             form_state=FormState.AUDIT,
             tally=self.tally
@@ -77,8 +75,6 @@ class TestGetQuarantineDetails(TestBase):
         )
         result_form.save()
 
-        audit = create_audit(result_form, self.user)
-
         check = QuarantineCheck.objects.create(
             name="Reconciliation Check",
             method="pass_reconciliation_check",
@@ -86,7 +82,7 @@ class TestGetQuarantineDetails(TestBase):
             percentage=0
         )
 
-        details = get_quarantine_details(audit, check)
+        details = get_quarantine_details(result_form, check)
 
         self.assertIsNotNone(details)
         self.assertEqual(details['num_votes'], 92)
@@ -122,8 +118,6 @@ class TestGetQuarantineDetails(TestBase):
         )
         result_form.save()
 
-        audit = create_audit(result_form, self.user)
-
         check = QuarantineCheck.objects.create(
             name="Over Voting Check",
             method="pass_over_voting_check",
@@ -131,7 +125,7 @@ class TestGetQuarantineDetails(TestBase):
             percentage=0
         )
 
-        details = get_quarantine_details(audit, check)
+        details = get_quarantine_details(result_form, check)
 
         self.assertIsNotNone(details)
         self.assertEqual(details['registrants'], 500)
@@ -153,8 +147,6 @@ class TestGetQuarantineDetails(TestBase):
             number_of_voter_cards_in_the_ballot_box=210
         )
 
-        audit = create_audit(result_form, self.user)
-
         check = QuarantineCheck.objects.create(
             name="Card Check",
             method="pass_card_check",
@@ -162,7 +154,7 @@ class TestGetQuarantineDetails(TestBase):
             percentage=0
         )
 
-        details = get_quarantine_details(audit, check)
+        details = get_quarantine_details(result_form, check)
 
         self.assertIsNotNone(details)
         self.assertEqual(details['voter_cards'], 210)
