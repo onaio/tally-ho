@@ -18,17 +18,7 @@
         <tr>
             <td><label>{% trans form.barcode.label %}</label></td>
             <td>{{ form.barcode.errors }}
-                <input type="text" name="barcode"
-                       minlength="11"
-                       maxlength="255"
-                       pattern="[0-9]{11,}"
-                       title="{% trans 'Please enter at least 11 numbers' %}"
-                       class="form-control"
-                       id="id_barcode"
-                       inputmode="numeric"
-                       required
-                       autofocus
-                       oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                {{ form.barcode }}
             </td>
         </tr>
         <tr>

@@ -1,12 +1,30 @@
 from django import forms
+from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 
-from tally_ho.apps.tally.forms.constants import DISABLE_COPY_INPUT
 from tally_ho.apps.tally.models.result_form import ResultForm
 
 class ResetFormForm(forms.Form):
-    barcode = forms.CharField(        
-        widget=forms.TextInput(attrs=DISABLE_COPY_INPUT),
+    barcode = forms.CharField( 
+        min_length=11,
+        max_length=11,
+        required=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[0-9]{11}$',
+                message=_('Please enter exactly 11 numbers'),
+            ),
+        ],       
+        widget=forms.NumberInput(attrs={
+        'class': 'form-control',
+        'title': _('Please enter exactly 11 numbers'),
+        'autofocus': True,
+        'oninput': "this.value = this.value.replace(/[^0-9]/g, '')",
+        'oncopy': 'return false;',
+        'ondrag': 'return false;',
+        'ondrop': 'return false;',
+        'onpaste': 'return false;',
+        }),
         label=_("Form Barcode")
     )
 
