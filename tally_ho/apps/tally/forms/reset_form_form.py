@@ -24,6 +24,7 @@ class ResetFormForm(forms.Form):
         'ondrag': 'return false;',
         'ondrop': 'return false;',
         'onpaste': 'return false;',
+        "autocomplete": "off",
         }),
         label=_("Form Barcode")
     )
