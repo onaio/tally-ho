@@ -51,6 +51,9 @@ jobs:
       - name: Start Redis
         run: sudo service redis-server start
 
+      - name: Install gettext
+        run: sudo apt-get install -y gettext
+
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
         # Add uv to the PATH
