@@ -5,11 +5,7 @@ from tally_ho.apps.tally.forms.constants import DISABLE_COPY_INPUT
 from tally_ho.apps.tally.models.result_form import ResultForm
 
 class ResetFormForm(forms.Form):
-    barcode = forms.CharField(
-        max_length=255,
-        error_messages={
-            'required': _("Barcode is required")
-        },
+    barcode = forms.CharField(        
         widget=forms.TextInput(attrs=DISABLE_COPY_INPUT),
         label=_("Form Barcode")
     )
