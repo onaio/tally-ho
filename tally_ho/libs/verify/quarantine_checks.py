@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
@@ -129,6 +130,8 @@ def get_reconciliation_check_details(result_form):
 
     passed = abs(actual_total - expected_total) <= allowed_tolerance
 
+    difference = abs(actual_total - expected_total)
+
     return {
         "passed": passed,
         "name": qc.local_name(),
@@ -137,10 +140,57 @@ def get_reconciliation_check_details(result_form):
         "expected_total": expected_total,
         "actual_total": actual_total,
         "allowed_tolerance": allowed_tolerance,
-        "difference": abs(actual_total - expected_total),
+        "difference": difference,
         "num_votes": result_form.num_votes,
         "invalid_votes": recon_form.number_invalid_votes,
         "sorted_and_counted": recon_form.number_sorted_and_counted,
+        "display": {
+            "title": _("Reconciliation Check Details"),
+            "input_rows": [
+                {
+                    "label": _("Total Valid Votes"),
+                    "value": result_form.num_votes,
+                },
+                {
+                    "label": _("Number of Invalid Ballot Papers"),
+                    "value": recon_form.number_invalid_votes,
+                },
+                {
+                    "label": _("Total Number of Ballot Papers in the Box"),
+                    "value": actual_total,
+                },
+            ],
+            "calc_rows": [
+                {
+                    "label": _("Total Votes Cast"),
+                    "formula": _("Total Valid Votes")
+                    + " + "
+                    + _("Invalid Ballot Papers"),
+                    "values": f"{result_form.num_votes} + "
+                    f"{recon_form.number_invalid_votes}",
+                    "result": expected_total,
+                },
+                {
+                    "label": _("Difference"),
+                    "formula": "|"
+                    + _("Total Ballot Papers")
+                    + " - "
+                    + _("Total Votes Cast")
+                    + "|",
+                    "values": f"|{actual_total} - {expected_total}|",
+                    "result": difference,
+                },
+            ],
+            "tolerance_calc": {
+                "base_label": _("Total Votes Cast"),
+                "base_value": expected_total,
+            },
+            "pass_condition": {
+                "formula": _("Difference") + " ≤ " + _("Tolerance"),
+                "left_value": difference,
+                "right_value": allowed_tolerance,
+            },
+        },
     }
 
 
@@ -202,6 +252,49 @@ def get_over_voting_check_details(result_form):
         "allowed_tolerance": allowed_tolerance,
         "num_votes": result_form.num_votes,
         "invalid_votes": recon_form.number_invalid_votes,
+        "display": {
+            "title": _("Over Voting Check Details"),
+            "input_rows": [
+                {
+                    "label": _("Registered Voters"),
+                    "value": registrants,
+                },
+                {
+                    "label": _("Total Valid Votes"),
+                    "value": result_form.num_votes,
+                },
+                {
+                    "label": _("Number of Invalid Ballot Papers"),
+                    "value": recon_form.number_invalid_votes,
+                },
+            ],
+            "calc_rows": [
+                {
+                    "label": _("Total Votes Cast"),
+                    "formula": _("Total Valid Votes")
+                    + " + "
+                    + _("Invalid Ballot Papers"),
+                    "values": f"{result_form.num_votes} + "
+                    f"{recon_form.number_invalid_votes}",
+                    "result": total_votes,
+                },
+                {
+                    "label": _("Maximum Allowed"),
+                    "formula": _("Registered Voters") + " + " + _("Tolerance"),
+                    "values": f"{registrants} + {allowed_tolerance:.0f}",
+                    "result": max_allowed,
+                },
+            ],
+            "tolerance_calc": {
+                "base_label": _("Registered Voters"),
+                "base_value": registrants,
+            },
+            "pass_condition": {
+                "formula": _("Total Votes Cast") + " ≤ " + _("Maximum Allowed"),
+                "left_value": total_votes,
+                "right_value": max_allowed,
+            },
+        },
     }
 
 
@@ -264,6 +357,47 @@ def get_card_check_details(result_form):
         "allowed_tolerance": allowed_tolerance,
         "valid_votes": recon_form.number_valid_votes,
         "invalid_votes": recon_form.number_invalid_votes,
+        "display": {
+            "title": _("Card Check Details"),
+            "input_rows": [
+                {
+                    "label": _("Voter Cards in Ballot Box"),
+                    "value": voter_cards,
+                },
+                {
+                    "label": _("Total Valid Votes"),
+                    "value": recon_form.number_valid_votes,
+                },
+                {
+                    "label": _("Total Invalid Votes"),
+                    "value": recon_form.number_invalid_votes,
+                },
+            ],
+            "calc_rows": [
+                {
+                    "label": _("Total Ballot Papers"),
+                    "formula": _("Valid Votes") + " + " + _("Invalid Votes"),
+                    "values": f"{recon_form.number_valid_votes} + "
+                    f"{recon_form.number_invalid_votes}",
+                    "result": total_ballot_papers,
+                },
+                {
+                    "label": _("Maximum Allowed"),
+                    "formula": _("Voter Cards") + " + " + _("Tolerance"),
+                    "values": f"{voter_cards} + {allowed_tolerance:.0f}",
+                    "result": max_allowed,
+                },
+            ],
+            "tolerance_calc": {
+                "base_label": _("Voter Cards"),
+                "base_value": voter_cards,
+            },
+            "pass_condition": {
+                "formula": _("Total Ballot Papers") + " ≤ " + _("Maximum Allowed"),
+                "left_value": total_ballot_papers,
+                "right_value": max_allowed,
+            },
+        },
     }
 
 
