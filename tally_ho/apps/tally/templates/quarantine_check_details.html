@@ -6,7 +6,11 @@
 
 <style>
     .check-details-content {
-        margin-top: 10px;
+        background: white;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px;
+        border: 1px solid #ddd;
     }
 
     .check-details-content .section-title {
@@ -47,7 +51,7 @@
     }
 
     .check-details-content .calc-column {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: 'Courier New', monospace;
         font-size: 14px;
     }
 
@@ -57,7 +61,7 @@
     }
 
     .check-details-content .result-column {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: 'Courier New', monospace;
         font-weight: 600;
         text-align: center;
         min-width: 80px;
@@ -65,11 +69,15 @@
 
     .check-details-content .result-row {
         background: #f9f9f9;
-        font-weight: 600;
     }
 
-    .check-details-content .result-row td {
-        background: #f9f9f9;
+    .check-details-content .final-result {
+        margin-top: 20px;
+        padding: 15px;
+        border: 2px solid #333;
+        font-weight: 600;
+        text-align: center;
+        font-size: 18px;
     }
 </style>
 
@@ -151,6 +159,10 @@
                 </tr>
             </tbody>
         </table>
+
+        <div class="final-result">
+            {% trans 'Result: FAILED' %}
+        </div>
     </div>
     {% elif check.method == 'pass_over_voting_check' %}
     <div class="check-details-content">
@@ -228,6 +240,10 @@
                 </tr>
             </tbody>
         </table>
+
+        <div class="final-result">
+            {% trans 'Result: FAILED' %}
+        </div>
     </div>
     {% elif check.method == 'pass_card_check' %}
     <div class="check-details-content">
@@ -305,6 +321,10 @@
                 </tr>
             </tbody>
         </table>
+
+        <div class="final-result">
+            {% trans 'Result: FAILED' %}
+        </div>
     </div>
     {% endif %}
 {% endif %}
