@@ -119,11 +119,7 @@
         background: white;
     }
 </style>
-<script>
-    function toggleAccordion(element) {
-        element.classList.toggle('active');
-    }
-</script>
+
 {% with details=result_form|get_quarantine_details:check %}
 {% if details %}
     {% if check.method == 'pass_reconciliation_check' %}
@@ -399,3 +395,6 @@
     {% endif %}
 {% endif %}
 {% endwith %}
+
+{% load static %}
+<script src="{% static 'js/accordion.js' %}"></script>
