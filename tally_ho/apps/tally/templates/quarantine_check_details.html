@@ -123,7 +123,7 @@
 {% with details=result_form|get_quarantine_details:check %}
 {% if details %}
     {% if check.method == 'pass_reconciliation_check' %}
-    <div class="check-details-content active" onclick="toggleAccordion(this)">
+    <div class="check-details-content" onclick="toggleAccordion(this)">
             <div class="accordion-header">
                 <span>Reconciliation Check Details</span>
                 <span class="accordion-icon">▼</span>
@@ -213,7 +213,7 @@
             </div>     
     </div>
     {% elif check.method == 'pass_over_voting_check' %}
-    <div class="check-details-content active" onclick="toggleAccordion(this)">
+    <div class="check-details-content" onclick="toggleAccordion(this)">
         <div class="accordion-header">
             <span>Over Voting Check Details</span>
             <span class="accordion-icon">▼</span>
@@ -303,7 +303,7 @@
         </div>   
     </div>
     {% elif check.method == 'pass_card_check' %}
-    <div class="check-details-content active" onclick="toggleAccordion(this)">
+    <div class="check-details-content" onclick="toggleAccordion(this)">
         <div class="accordion-header">
             <span>Card Check Details</span>
             <span class="accordion-icon">▼</span>
