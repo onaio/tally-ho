@@ -124,25 +124,23 @@ def get_reconciliation_check_details(result_form):
 
     qc = QuarantineCheck.objects.get(method="pass_reconciliation_check")
     allowed_tolerance = (
-        (qc.value)
-        if qc.value != 0
-        else ((qc.percentage / 100) * expected_total)
+        (qc.value) if qc.value != 0 else ((qc.percentage / 100) * expected_total)
     )
 
     passed = abs(actual_total - expected_total) <= allowed_tolerance
 
     return {
-        'passed': passed,
-        'name': qc.local_name(),
-        'tolerance_value': qc.value,
-        'tolerance_percentage': qc.percentage,
-        'expected_total': expected_total,
-        'actual_total': actual_total,
-        'allowed_tolerance': allowed_tolerance,
-        'difference': abs(actual_total - expected_total),
-        'num_votes': result_form.num_votes,
-        'invalid_votes': recon_form.number_invalid_votes,
-        'sorted_and_counted': recon_form.number_sorted_and_counted,
+        "passed": passed,
+        "name": qc.local_name(),
+        "tolerance_value": qc.value,
+        "tolerance_percentage": qc.percentage,
+        "expected_total": expected_total,
+        "actual_total": actual_total,
+        "allowed_tolerance": allowed_tolerance,
+        "difference": abs(actual_total - expected_total),
+        "num_votes": result_form.num_votes,
+        "invalid_votes": recon_form.number_invalid_votes,
+        "sorted_and_counted": recon_form.number_sorted_and_counted,
     }
 
 
@@ -158,7 +156,7 @@ def pass_reconciliation_check(result_form):
     details = get_reconciliation_check_details(result_form)
     if details is None:
         return True
-    return details['passed']
+    return details["passed"]
 
 
 def get_over_voting_check_details(result_form):
@@ -178,18 +176,14 @@ def get_over_voting_check_details(result_form):
     if not recon_form:
         return None
 
-    registrants = (
-        result_form.station.registrants if result_form.station else None
-    )
+    registrants = result_form.station.registrants if result_form.station else None
 
     if registrants is None:
         return None
 
     qc = QuarantineCheck.objects.get(method="pass_over_voting_check")
     allowed_tolerance = (
-        (qc.value)
-        if qc.value != 0
-        else ((qc.percentage / 100) * registrants)
+        (qc.value) if qc.value != 0 else ((qc.percentage / 100) * registrants)
     )
 
     total_votes = result_form.num_votes + recon_form.number_invalid_votes
@@ -198,16 +192,16 @@ def get_over_voting_check_details(result_form):
     passed = total_votes <= max_allowed
 
     return {
-        'passed': passed,
-        'name': qc.local_name(),
-        'tolerance_value': qc.value,
-        'tolerance_percentage': qc.percentage,
-        'registrants': registrants,
-        'total_votes': total_votes,
-        'max_allowed': max_allowed,
-        'allowed_tolerance': allowed_tolerance,
-        'num_votes': result_form.num_votes,
-        'invalid_votes': recon_form.number_invalid_votes,
+        "passed": passed,
+        "name": qc.local_name(),
+        "tolerance_value": qc.value,
+        "tolerance_percentage": qc.percentage,
+        "registrants": registrants,
+        "total_votes": total_votes,
+        "max_allowed": max_allowed,
+        "allowed_tolerance": allowed_tolerance,
+        "num_votes": result_form.num_votes,
+        "invalid_votes": recon_form.number_invalid_votes,
     }
 
 
@@ -227,7 +221,7 @@ def pass_over_voting_check(result_form):
     details = get_over_voting_check_details(result_form)
     if details is None:
         return True
-    return details['passed']
+    return details["passed"]
 
 
 def get_card_check_details(result_form):
@@ -249,9 +243,7 @@ def get_card_check_details(result_form):
     qc = QuarantineCheck.objects.get(method="pass_card_check")
     voter_cards = recon_form.number_of_voter_cards_in_the_ballot_box
     allowed_tolerance = (
-        (qc.value)
-        if qc.value != 0
-        else ((qc.percentage / 100) * voter_cards)
+        (qc.value) if qc.value != 0 else ((qc.percentage / 100) * voter_cards)
     )
 
     total_ballot_papers = (
@@ -262,16 +254,16 @@ def get_card_check_details(result_form):
     passed = total_ballot_papers <= max_allowed
 
     return {
-        'passed': passed,
-        'name': qc.local_name(),
-        'tolerance_value': qc.value,
-        'tolerance_percentage': qc.percentage,
-        'voter_cards': voter_cards,
-        'total_ballot_papers': total_ballot_papers,
-        'max_allowed': max_allowed,
-        'allowed_tolerance': allowed_tolerance,
-        'valid_votes': recon_form.number_valid_votes,
-        'invalid_votes': recon_form.number_invalid_votes,
+        "passed": passed,
+        "name": qc.local_name(),
+        "tolerance_value": qc.value,
+        "tolerance_percentage": qc.percentage,
+        "voter_cards": voter_cards,
+        "total_ballot_papers": total_ballot_papers,
+        "max_allowed": max_allowed,
+        "allowed_tolerance": allowed_tolerance,
+        "valid_votes": recon_form.number_valid_votes,
+        "invalid_votes": recon_form.number_invalid_votes,
     }
 
 
@@ -287,7 +279,7 @@ def pass_card_check(result_form):
     details = get_card_check_details(result_form)
     if details is None:
         return True
-    return details['passed']
+    return details["passed"]
 
 
 # Disabled: Awaiting client feedback for final removal.
@@ -575,9 +567,9 @@ def get_quarantine_check_details(result_form, check):
               or None if no reconciliation form.
     """
     detail_methods = {
-        'pass_reconciliation_check': get_reconciliation_check_details,
-        'pass_over_voting_check': get_over_voting_check_details,
-        'pass_card_check': get_card_check_details,
+        "pass_reconciliation_check": get_reconciliation_check_details,
+        "pass_over_voting_check": get_over_voting_check_details,
+        "pass_card_check": get_card_check_details,
     }
 
     detail_function = detail_methods.get(check.method)

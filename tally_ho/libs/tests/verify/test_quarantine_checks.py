@@ -267,6 +267,13 @@ class TestQuarantineChecks(TestBase):
             result_form.reload()
             self.assertFalse(pass_over_voting_check(result_form))
 
+        # Test when station has no registrants BUT reconciliation form exists
+        # This should return True (check passes/skipped)
+        station.registrants = None
+        station.save()
+        result_form.reload()
+        self.assertTrue(pass_over_voting_check(result_form))
+
     @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_over_voting_check_with_custom_tolerance(self, MockQC):
         """Test the pass_over_voting_check function with custom tolerance."""
