@@ -3112,3 +3112,157 @@ class TestSuperAdmin(TestBase):
         # Verify form state was reset
         result_form.refresh_from_db()
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_reset_form_view_get(self):
+        """Test GET request to ResetFormView displays form correctly."""
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        view = views.ResetFormView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data["tally_id"], tally.pk)
+        self.assertIn('barcode', response.context_data["form"].fields)
+        self.assertIn('tally_id', response.context_data["form"].fields)
+
+    def test_reset_form_view_get_initial_tally_id(self):
+        """Test GET request sets initial tally_id in form."""
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        view = views.ResetFormView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context_data["form"].initial["tally_id"],
+            tally.pk
+        )
+
+    def test_reset_form_view_post_valid_barcode(self):
+        """Test POST with valid barcode redirects to confirmation."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '12345678901'
+        result_form = create_result_form(
+            barcode=barcode,
+            form_state=FormState.DATA_ENTRY_1,
+            tally=tally
+        )
+
+        view = views.ResetFormView.as_view()
+        data = {
+            'barcode': barcode,
+            'tally_id': tally.pk
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+        configure_messages(request)
+
+        response = view(request, tally_id=tally.pk)
+
+        # Should redirect to confirmation page
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('reset-form-confirmation', response.url)
+        self.assertIn(str(result_form.pk), response.url)
+        self.assertIn(str(tally.pk), response.url)
+
+    def test_reset_form_view_post_invalid_barcode(self):
+        """Test POST with invalid barcode shows errors."""
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        view = views.ResetFormView.as_view()
+        data = {
+            'barcode': 'invalid',
+            'tally_id': tally.pk
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, tally_id=tally.pk)
+
+        # Should return form with errors (200 status)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'Please enter exactly 11 numbers'
+        )
+
+    def test_reset_form_view_post_empty_barcode(self):
+        """Test POST with empty barcode shows required error."""
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        view = views.ResetFormView.as_view()
+        data = {
+            'barcode': '',
+            'tally_id': tally.pk
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, tally_id=tally.pk)
+
+        # Should return form with errors (200 status)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Please enter exactly 11 numbers")
+
+    def test_reset_form_view_requires_super_admin(self):
+        """Test ResetFormView requires 
+        SUPER_ADMINISTRATOR permission."""
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        # Remove user from super admin group
+        self.user.groups.clear()
+
+        view = views.ResetFormView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        with self.assertRaises(PermissionDenied):
+            view(request, tally_id=tally.pk)
+
+    def test_reset_form_view_success_url_generation(self):
+        """Test success URL is correctly generated with
+          form and tally IDs."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        barcode = '11111111111'
+        result_form = create_result_form(
+            barcode=barcode,
+            tally=tally
+        )
+
+        view = views.ResetFormView.as_view()
+        data = {
+            'barcode': barcode,
+            'tally_id': tally.pk
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = {}
+        configure_messages(request)
+
+        response = view(request, tally_id=tally.pk)
+
+        # Verify the URL contains correct IDs
+        expected_form_id = str(result_form.pk)
+        expected_tally_id = str(tally.pk)
+
+        self.assertIn(expected_form_id, response.url)
+        self.assertIn(expected_tally_id, response.url)
