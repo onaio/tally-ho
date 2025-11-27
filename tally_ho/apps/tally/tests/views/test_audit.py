@@ -1029,21 +1029,24 @@ class TestAuditRecallRequestsCsvView(TestBase):
         self.assertIn(check.name, content)
 
         # Check that actual values are displayed
-        self.assertIn('<li>Total Valid Votes: 80</li>', content) 
-        self.assertIn('<li>Number of invalid ballot papers: '
-                       '<strong>10</strong></li>',
-                       content
+        self.assertIn('<td>Total Valid Votes</td>', content)
+        self.assertIn('<td class="result-column">80</td>', content)
+        self.assertIn(
+            '<td>Number of Invalid Ballot Papers</td>', 
+            content
         )
-        self.assertIn('<li>Total Votes Cast '
-        '(Total Valid Votes + Number of invalid ballot papers):'
-        ' <strong>90</strong></li>', content
+        self.assertIn('<td class="result-column">10</td>', content)
+        self.assertIn(
+            '<td>Total Number of Ballot Papers in the Box</td>',
+             content
         )
-        self.assertIn('<li>Total number of ballot papers in the box:'
-        ' <strong>110</strong></li>', content
+        self.assertIn('<td class="result-column">110</td>', content)
+        self.assertIn('<td>Tolerance Percentage</td>', content)
+        self.assertIn(
+            '<td class="result-column">5 (fixed value)</td>', 
+            content
         )
-        self.assertIn('<li>Allowed Tolerance: <strong>5</strong></li>',
-                       content
-        )
+        
 
     def test_review_view_displays_quarantine_check_details_over_voting(self):
         """Test that review view displays quarantine check details 
@@ -1106,28 +1109,33 @@ class TestAuditRecallRequestsCsvView(TestBase):
 
         # Check that actual values are displayed        
         self.assertIn(
-            '<li>Registered Voters: <strong>80</strong></li>',
+            '<td>Registered Voters</td>',
             content
         )
         self.assertIn(
-            '<li>Number of invalid ballot papers: '
-            '<strong>20</strong></li>',
+            '<td class="result-column">80</td>',
             content
         )
         self.assertIn(
-            '<li>Total Votes Cast (Total Valid Votes + ' \
-            'Number of invalid ballot papers): <strong>100</strong></li>',
+            '<td>Total Valid Votes</td>',
               content
         )
         self.assertIn(
-            '<li>Allowed Tolerance: <strong>10</strong></li>', 
+            '<td>Number of Invalid Ballot Papers</td>', 
             content
         )
         self.assertIn(
-            '<li>Maximum Allowed (Registered Voters + Allowed Tolerance):'
-            ' <strong>90</strong></li>',
+            '<td class="result-column">20</td>',
             content
-        )  # total_votes and max_allowed
+        )
+        self.assertIn(
+            '<td>Tolerance Percentage</td>',
+            content
+        )
+        self.assertIn(
+            '<td class="result-column">10 (fixed value)</td>',
+            content
+        )
 
     def test_review_view_displays_quarantine_check_details_card_check(self):
         """Test that review view displays quarantine check 
@@ -1175,19 +1183,35 @@ class TestAuditRecallRequestsCsvView(TestBase):
 
         # Check that actual values are displayed
         self.assertIn(
-            '<li>Voter Cards in Ballot Box: 210</li>',
+            '<td>Voter Cards in Ballot Box</td>',
             content
         )
         self.assertIn(
-            '<li>Total Valid Votes: 200</li>',
+            '<td class="result-column">210</td>',
             content
         )
         self.assertIn(
-            '<li>Total Invalid Votes: 15</li>',
+            '<td>Total Valid Votes</td>',
             content
         )
         self.assertIn(
-            '<li>Total Ballot Papers: <strong>215</strong></li>',
+            '<td class="result-column">200</td>',
+            content
+        )
+        self.assertIn(
+            '<td>Total Invalid Votes</td>',
+            content
+        )
+        self.assertIn(
+            '<td class="result-column">15</td>',
+            content
+        )
+        self.assertIn(
+            '<td>Tolerance Percentage</td>',
+            content
+        )
+        self.assertIn(
+            '<td class="result-column">8 (fixed value)</td>',
             content
         )
 
@@ -1254,17 +1278,37 @@ class TestAuditRecallRequestsCsvView(TestBase):
         self.assertIn(check1.name, content)
         self.assertIn(check2.name, content)
 
-        # Check that details for both checks are displayed
-        self.assertIn('<li>Total Valid Votes: 80</li>',
-                      content
-                      ) 
+        # Check that details for both checks are displayed       
         self.assertIn(
-            '<li>Total number of ballot papers in the box:'
-            ' <strong>110</strong></li>', 
+            '<td>Voter Cards in Ballot Box</td>', 
             content
         )
         self.assertIn(
-            '<li>Number of invalid ballot papers: '
-            '<strong>10</strong></li>', 
+            '<td class="result-column">110</td>', 
             content
         )
+        self.assertIn(
+            '<td>Total Valid Votes</td>', 
+            content
+        )
+        self.assertIn(
+            '<td class="result-column">90</td>', 
+            content
+        )
+        self.assertIn(
+            '<td>Total Invalid Votes</td>', 
+            content
+        )
+        self.assertIn(
+            '<td class="result-column">10</td>', 
+            content
+        )
+        self.assertIn(
+            '<td>Tolerance Percentage</td>', 
+            content
+        )
+        self.assertIn(
+            '<td class="result-column">8 (fixed value)</td>', 
+            content
+        )
+
