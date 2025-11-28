@@ -31,7 +31,7 @@ jobs:
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
       - name: Cache Dependencies
         uses: actions/cache@v3
@@ -47,9 +47,12 @@ jobs:
 
       - name: Install Redis
         run: sudo apt-get install -y redis-server
-  
+
       - name: Start Redis
         run: sudo service redis-server start
+
+      - name: Install gettext
+        run: sudo apt-get install -y gettext
 
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -63,6 +66,7 @@ jobs:
           uv pip install -r requirements/dev.pip
           python -m ruff check . --exit-non-zero-on-fix
           python -m pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
+          python manage.py compilemessages -l ar
           coverage xml
           ls -al
         env:

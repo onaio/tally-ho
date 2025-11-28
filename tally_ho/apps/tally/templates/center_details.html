@@ -1,56 +1,60 @@
 {% load i18n %}
 
 
-<div class="container">
-    <h3>{% trans 'Polling Center Details' %}</h3>
-    <hr>
+<h3>{% trans 'Polling Center Details' %}</h3>
+<hr>
 
-    <table class="table table-bordered pull-left infotable">
-    <tr>
-        <td width="40%">
-            {% trans 'Barcode:' %}
-        </td>
-        <td>
-            {{ result_form.barcode }}
-        </td>
-    </tr>
-    <tr>
-        <td width="40%">{% trans 'Region Name:' %}</td>
-        <td width="">{{ result_form.center.office.region.name }}</td>
-    </tr>
-    <tr>
-        <td width="40%">{% trans 'Office Name:' %}</td>
-        <td width="">{{ result_form.center.office.name }}</td>
-    </tr>
-    <tr>
-        <td>{% trans 'Center Name:' %}</td>
-        <td>{{ result_form.center.name }}</td>
-    </tr>
-    <tr>
-        <td>{% trans 'Election Level:' %}</td>
-        <td>{{ result_form.ballot.electrol_race.election_level }}</td>
-    </tr>
-    <tr>
-        <td>{% trans 'Sub Race Type:' %}</td>
-        <td>{{ result_form.ballot.electrol_race.ballot_name }}</td>
-    </tr>
-    </table>
-    <table class="table table-bordered pull-right infotable">
-    <tr>
-        <td width="40%">
-            {% trans 'Voting District:' %}
-        </td>
-        <td>
-            {{ result_form.center.sc_code }}
-        </td>
-    </tr>
-    <tr>
-        <td width="40%">{% trans 'Center Code:' %}</td>
-        <td>{{ result_form.center.code }}</td>
-    </tr>
-    <tr>
-        <td>{% trans 'Station Code:' %}</td>
-        <td>{{ result_form.station_number }}</td>
-    </tr>
-    </table>
+<div class="row">
+    <div class="col-sm-6">
+        <table class="table table-bordered infotable">
+        <tr>
+            <td style="width: 40%;">
+                {% trans 'Barcode:' %}
+            </td>
+            <td>
+                {{ result_form.barcode }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans 'Region Name:' %}</td>
+            <td>{{ result_form.center.office.region.name }}</td>
+        </tr>
+        <tr>
+            <td>{% trans 'Office Name:' %}</td>
+            <td>{{ result_form.center.office.name }}</td>
+        </tr>
+        <tr>
+            <td>{% trans 'Center Name:' %}</td>
+            <td>{{ result_form.center.name }}</td>
+        </tr>
+        <tr>
+            <td>{% trans 'Election Level:' %}</td>
+            <td>{{ result_form.ballot.electrol_race.election_level }}</td>
+        </tr>
+        <tr>
+            <td>{% trans 'Sub Race Type:' %}</td>
+            <td>{{ result_form.ballot.electrol_race.ballot_name }}</td>
+        </tr>
+        </table>
+    </div>
+    <div class="col-sm-6">
+        <table class="table table-bordered infotable">
+        <tr>
+            <td style="width: 40%;">
+                {% trans 'Voting District:' %}
+            </td>
+            <td>
+                {{ result_form.center.sc_code }}
+            </td>
+        </tr>
+        <tr>
+            <td>{% trans 'Center Code:' %}</td>
+            <td>{{ result_form.center.code }}</td>
+        </tr>
+        <tr>
+            <td>{% trans 'Station Code:' %}</td>
+            <td>{{ result_form.station_number }}</td>
+        </tr>
+        </table>
+    </div>
 </div>

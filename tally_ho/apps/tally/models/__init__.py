@@ -21,3 +21,4 @@ from tally_ho.apps.tally.models.region import Region
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
+from tally_ho.apps.tally.models.result_form_reset import ResultFormReset

@@ -1,7 +1,8 @@
 from django.core.exceptions import SuspiciousOperation
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q, Sum
 from django.forms.models import model_to_dict
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
 import reversion
@@ -16,6 +17,7 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.utils.templates import get_result_form_edit_delete_links
+from tally_ho.apps.tally.models.result_form_reset import ResultFormReset
 
 male_local = _('Male')
 female_local = _('Female')
@@ -421,6 +423,62 @@ class ResultForm(BaseModel):
         self.duplicate_reviewed = False
         self.reject_reason = reject_reason
         self.save()
+
+    @transaction.atomic
+    def reset_to_unsubmitted(self, user, reason):
+        """Reset form to UNSUBMITTED state and deactivate all related records.
+
+        This method deactivates all results, reconciliation forms, audits,
+        clearances, and quality control records associated with this form,
+        then sets the form state to UNSUBMITTED.
+
+        Args:
+            user: UserProfile object of the user performing the reset
+            reason: Text reason for resetting the form
+        """
+
+        modified_date = timezone.now()
+        # Deactivate active results
+        self.results.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
+
+        # Deactivate active reconciliation forms
+        self.reconciliationform_set.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
+
+        # Deactivate active audits
+        self.audit_set.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
+
+        # Deactivate active clearances
+        self.clearances.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
+
+        # Deactivate active quality control records
+        self.qualitycontrol_set.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
+
+        # Deactivate active archives
+        self.archive_set.filter(active=True).update(
+            active=False, modified_date=modified_date
+        )
+
+        # Reset form state to UNSUBMITTED
+        self.form_state = FormState.UNSUBMITTED
+        self.save()
+
+        # Create a ResultFormReset record
+        ResultFormReset.objects.create(
+            user=user,
+            result_form=self,
+            tally=self.tally,
+            reason=reason
+        )
 
     @property
     def center_code(self):
