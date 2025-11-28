@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 
-{% load i18n %}
-{% load tz %}
-{% load app_filters %}
+{% load i18n tz static app_filters %}
 
 {% block content %}
 
@@ -35,6 +33,9 @@
                     <p style="margin: 0 0 10px 0;">
                         <span class="check-icon">❗</span>
                         <strong>{{ check.local_name }}</strong>
+                        <a class="btn btn-xs btn-link" data-toggle="collapse" href="#check-details-{{ check.pk }}">
+                            {% trans 'View Details' %}
+                        </a>
                     </p>
 
                     {% include "quarantine_check_details.html" with result_form=result_form check=check %}
@@ -100,6 +101,7 @@
 {% block javascript %}
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/print_button_check.js"></script>
+<script src="{% static "js/bootstrap.min.js" %}"></script>
 {% endblock %}
 
 {% block extra_css %}
@@ -228,37 +230,6 @@
         font-weight: bold;
     }
 
-    .quarantine-check-details {
-        margin-bottom: 20px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        background-color: #ffffff;
-        border-radius: 4px;
-    }
-
-    .quarantine-check-details:last-child {
-        margin-bottom: 0;
-    }
-
-    .check-details-content {
-        margin-left: 30px;
-    }
-
-    .details-list {
-        list-style-type: none;
-        padding-left: 0;
-        margin: 5px 0;
-    }
-
-    .details-list li {
-        padding: 4px 0;
-        font-size: 1em;
-    }
-
-    .difference-value {
-        color: #b30000;
-    }
-
     [dir="rtl"] .failed-checks-list {
         padding-left: initial; /* Reset for RTL */
         padding-right: 0;     /* Standard RTL padding */
@@ -269,10 +240,6 @@
         margin-left: 10px;
     }
 
-    [dir="rtl"] .check-details-content {
-        margin-left: 0;
-        margin-right: 30px;
-    }
     /* End Styles for Failed Quarantine Checks */
     /* Print-specific styles */
     @media print {
