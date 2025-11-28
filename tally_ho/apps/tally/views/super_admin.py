@@ -1427,45 +1427,18 @@ class ResetFormConfirmationView(
         barcode = result_form.barcode
         reason = form.cleaned_data.get("reject_reason")
         user = request.user.userprofile
-
-        if user:
-            try:
-                result_form.reset_to_unsubmitted(user=user, reason=reason)
-                messages.add_message(
-                    request,
-                    messages.SUCCESS,
-                    _("Form %(barcode)s successfully reset to Unsubmitted")
-                    % {"barcode": barcode},
-                )
-                return redirect(
-                    "reset-form-confirmation",
-                    tally_id=tally_id,
-                    form_id=form_id,
-                )
-            except Exception as e:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    _("Error resetting form %(barcode)s: %(error)s")
-                    % {"barcode": barcode, "error": str(e)},
-                )
-                return redirect(
-                    "reset-form-confirmation",
-                    tally_id=tally_id,
-                    form_id=form_id,
-                )
-        else:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                _("Error resetting form %(barcode)s: %(error)s")
-                % {"barcode": barcode, "error": "User not found"},
-            )
-            return redirect(
-                "reset-form-confirmation",
-                tally_id=tally_id,
-                form_id=form_id,
-            )
+        result_form.reset_to_unsubmitted(user=user, reason=reason)
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            _("Form %(barcode)s successfully reset to Unsubmitted")
+            % {"barcode": barcode},
+        )
+        return redirect(
+            "reset-form-confirmation",
+            tally_id=tally_id,
+            form_id=form_id,
+        )
 
 
 class EditCenterView(

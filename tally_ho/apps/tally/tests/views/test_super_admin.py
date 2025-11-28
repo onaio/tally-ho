@@ -3285,68 +3285,6 @@ class TestSuperAdmin(TestBase):
         self.assertIn(expected_form_id, response.url)
         self.assertIn(expected_tally_id, response.url)
 
-    def test_reset_form_confirmation_view_exception_handling(self):
-        """Test ResetFormConfirmationView handles exceptions
-        during reset gracefully."""
-        tally = create_tally()
-        tally.users.add(self.user)
-        result_form = create_result_form(
-            form_state=FormState.DATA_ENTRY_1, tally=tally
-        )
-
-        view = views.ResetFormConfirmationView.as_view()
-        data = {
-            'reject_reason': 'Test exception handling',
-            'reset_submit': 'Reset to Unsubmitted'
-        }
-        request = self.factory.post('/', data=data)
-        request.user = self.user
-        request.session = {}
-        configure_messages(request)
-
-        # Mock the reset_to_unsubmitted to raise an exception
-        original_method = ResultForm.reset_to_unsubmitted
-
-        def mock_reset_error(*args, **kwargs):
-            raise Exception("Simulated reset error")
-
-        ResultForm.reset_to_unsubmitted = mock_reset_error
-
-        try:
-            response = view(
-                request,
-                tally_id=tally.pk,
-                form_id=result_form.pk
-            )
-
-            # Should redirect even on error
-            self.assertEqual(response.status_code, 302)
-
-            # Verify error message was added
-            message_list = list(messages.get_messages(request))
-            self.assertTrue(any(
-                'Error resetting form' in str(msg)
-                for msg in message_list
-            ))
-            self.assertTrue(any(
-                'Simulated reset error' in str(msg)
-                for msg in message_list
-            ))
-
-            # Verify barcode is in error message
-            self.assertTrue(any(
-                result_form.barcode in str(msg)
-                for msg in message_list
-            ))
-
-            # Form state should NOT be reset
-            result_form.refresh_from_db()
-            self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
-
-        finally:
-            # Restore original method
-            ResultForm.reset_to_unsubmitted = original_method
-      
     def test_reset_form_confirmation_view_success_message(self):
         """Test success message is displayed when reset succeeds."""
         tally = create_tally()
