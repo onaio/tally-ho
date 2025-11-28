@@ -3113,6 +3113,24 @@ class TestSuperAdmin(TestBase):
         result_form.refresh_from_db()
         self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
 
+    def test_result_form_reset_auto_populates_tally(self):
+        """Test that ResultFormReset.save() auto-populates tally
+        from result_form when tally is not explicitly provided."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(tally=tally)
+
+        # Create ResultFormReset without explicitly passing tally
+        reset_record = ResultFormReset(
+            user=self.user.userprofile,
+            result_form=result_form,
+            reason="Test reason"
+        )
+        reset_record.save()
+
+        # Verify tally was auto-populated from result_form
+        self.assertEqual(reset_record.tally_id, tally.pk)
+
     def test_reset_form_view_get(self):
         """Test GET request to ResetFormView displays form correctly."""
         tally = create_tally()
