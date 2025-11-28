@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 
-{% load i18n %}
-{% load app_filters %}
+{% load i18n static app_filters %}
+
+{% block javascript %}
+<script src="{% static "js/jquery-3.6.0.min.js" %}"></script>
+<script src="{% static "js/bootstrap.min.js" %}"></script>
+{% endblock %}
 
 {% block content %}
 
@@ -11,22 +15,30 @@
 </div>
 {% include 'center_details.html' %}
 
+<div class="row">
 {% if result_form.audit %}
 <h1>{% trans 'Quarantined Form' %}</h1>
 <hr>
+</div>
 {% for check in result_form.audit.quarantine_checks.all %}
-<p>
-    {% trans 'Failed quarantine check:' %}
-    <b>{{ check.local_name }}</b>
-</p>
-<br>
+<div class="row">
+    <p>
+        {% trans 'Failed quarantine check:' %}
+        <b>{{ check.local_name }}</b>
+        <a class="btn btn-xs btn-link" data-toggle="collapse" href="#check-details-{{ check.pk }}">
+            {% trans 'View Details' %}
+        </a>
+    </p>
+
+    {% include "quarantine_check_details.html" with result_form=result_form check=check %}
+</div>
 {% endfor %}
 {% endif %}
 
 
 <div class="row audit-form border-top">
 	<form name="audit" method="post" action="">
-        <div class="row" style="padding: 1em;">
+        <div class="row">
             <div class="col-md-2 col-sm-1 grid2">
                 {% if form.blank_reconciliation.value or form.blank_results.value or form.unclear_figures.value or form.damaged_form.value or form.other.value %}
                 <h3 style="margin-top: 0;">{% trans "Problem" %}</h3>

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
@@ -102,13 +103,99 @@ def pass_overvote(result_form):
     # return recon_form.number_ballots_used <= max_number_ballots
 
 
-def pass_reconciliation_check(result_form):
-    """Check for typos or addition issues in reconciliation.
+def get_reconciliation_check_details(result_form):
+    """Get details for the reconciliation check.
 
     Field 5 (The number of ballot papers in box) must equal:
     Total Candidates Votes (calculated from the summation by the tally software
     of all votes in the results section) + Field 4 (Number of Invalid ballot
     papers including blank ones).
+
+    :param result_form: The result form to check.
+    :returns: A dictionary with check details and 'passed' status,
+              or None if no reconciliation form.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return None
+
+    expected_total = result_form.num_votes + recon_form.number_invalid_votes
+    actual_total = recon_form.number_sorted_and_counted
+
+    qc = QuarantineCheck.objects.get(method="pass_reconciliation_check")
+    allowed_tolerance = (
+        (qc.value) if qc.value != 0 else ((qc.percentage / 100) * expected_total)
+    )
+
+    passed = abs(actual_total - expected_total) <= allowed_tolerance
+
+    difference = abs(actual_total - expected_total)
+
+    return {
+        "passed": passed,
+        "name": qc.local_name(),
+        "tolerance_value": qc.value,
+        "tolerance_percentage": qc.percentage,
+        "expected_total": expected_total,
+        "actual_total": actual_total,
+        "allowed_tolerance": allowed_tolerance,
+        "difference": difference,
+        "num_votes": result_form.num_votes,
+        "invalid_votes": recon_form.number_invalid_votes,
+        "sorted_and_counted": recon_form.number_sorted_and_counted,
+        "display": {
+            "title": _("Reconciliation Check Details"),
+            "input_rows": [
+                {
+                    "label": _("Total Valid Votes"),
+                    "value": result_form.num_votes,
+                },
+                {
+                    "label": _("Number of Invalid Ballot Papers"),
+                    "value": recon_form.number_invalid_votes,
+                },
+                {
+                    "label": _("Total Number of Ballot Papers in the Box"),
+                    "value": actual_total,
+                },
+            ],
+            "calc_rows": [
+                {
+                    "label": _("Total Votes Cast"),
+                    "formula": _("Total Valid Votes")
+                    + " + "
+                    + _("Invalid Ballot Papers"),
+                    "values": f"{result_form.num_votes} + "
+                    f"{recon_form.number_invalid_votes}",
+                    "result": expected_total,
+                },
+                {
+                    "label": _("Difference"),
+                    "formula": "|"
+                    + _("Total Ballot Papers")
+                    + " - "
+                    + _("Total Votes Cast")
+                    + "|",
+                    "values": f"|{actual_total} - {expected_total}|",
+                    "result": difference,
+                },
+            ],
+            "tolerance_calc": {
+                "base_label": _("Total Votes Cast"),
+                "base_value": expected_total,
+            },
+            "pass_condition": {
+                "formula": _("Difference") + " ≤ " + _("Tolerance"),
+                "left_value": difference,
+                "right_value": allowed_tolerance,
+            },
+        },
+    }
+
+
+def pass_reconciliation_check(result_form):
+    """Check for typos or addition issues in reconciliation.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -116,32 +203,104 @@ def pass_reconciliation_check(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
-
-    if not recon_form:
+    details = get_reconciliation_check_details(result_form)
+    if details is None:
         return True
-
-    expected_total = result_form.num_votes + recon_form.number_invalid_votes
-    actual_total = recon_form.number_sorted_and_counted
-
-    qc = QuarantineCheck.objects.get(method="pass_reconciliation_check")
-    allowed_tolerance = (
-        (qc.value)
-        if qc.value != 0
-        else ((qc.percentage / 100) * expected_total)
-    )
-
-    return abs(actual_total - expected_total) <= allowed_tolerance
+    return details["passed"]
 
 
-def pass_over_voting_check(result_form):
-    """Check that there are not more people voting than eligible registered
-    voters.
+def get_over_voting_check_details(result_form):
+    """Get details for the over voting check.
 
     Number of persons registered at station (as per database) must be >=
     Total Candidates Votes (calculated from the summation by the tally software
     of all votes in the results section) + Field 4 (Number of Invalid ballot
     papers including blank ones) + 5 vote margin (tolerance value).
+
+    :param result_form: The result form to check.
+    :returns: A dictionary with check details and 'passed' status,
+              or None if no reconciliation form or no registrants.
+    """
+    recon_form = result_form.reconciliationform
+
+    if not recon_form:
+        return None
+
+    registrants = result_form.station.registrants if result_form.station else None
+
+    if registrants is None:
+        return None
+
+    qc = QuarantineCheck.objects.get(method="pass_over_voting_check")
+    allowed_tolerance = (
+        (qc.value) if qc.value != 0 else ((qc.percentage / 100) * registrants)
+    )
+
+    total_votes = result_form.num_votes + recon_form.number_invalid_votes
+    max_allowed = registrants + allowed_tolerance
+
+    passed = total_votes <= max_allowed
+
+    return {
+        "passed": passed,
+        "name": qc.local_name(),
+        "tolerance_value": qc.value,
+        "tolerance_percentage": qc.percentage,
+        "registrants": registrants,
+        "total_votes": total_votes,
+        "max_allowed": max_allowed,
+        "allowed_tolerance": allowed_tolerance,
+        "num_votes": result_form.num_votes,
+        "invalid_votes": recon_form.number_invalid_votes,
+        "display": {
+            "title": _("Over Voting Check Details"),
+            "input_rows": [
+                {
+                    "label": _("Registered Voters"),
+                    "value": registrants,
+                },
+                {
+                    "label": _("Total Valid Votes"),
+                    "value": result_form.num_votes,
+                },
+                {
+                    "label": _("Number of Invalid Ballot Papers"),
+                    "value": recon_form.number_invalid_votes,
+                },
+            ],
+            "calc_rows": [
+                {
+                    "label": _("Total Votes Cast"),
+                    "formula": _("Total Valid Votes")
+                    + " + "
+                    + _("Invalid Ballot Papers"),
+                    "values": f"{result_form.num_votes} + "
+                    f"{recon_form.number_invalid_votes}",
+                    "result": total_votes,
+                },
+                {
+                    "label": _("Maximum Allowed"),
+                    "formula": _("Registered Voters") + " + " + _("Tolerance"),
+                    "values": f"{registrants} + {allowed_tolerance:.0f}",
+                    "result": max_allowed,
+                },
+            ],
+            "tolerance_calc": {
+                "base_label": _("Registered Voters"),
+                "base_value": registrants,
+            },
+            "pass_condition": {
+                "formula": _("Total Votes Cast") + " ≤ " + _("Maximum Allowed"),
+                "left_value": total_votes,
+                "right_value": max_allowed,
+            },
+        },
+    }
+
+
+def pass_over_voting_check(result_form):
+    """Check that there are not more people voting than eligible registered
+    voters.
 
     If the `result_form` does not have a `reconciliation_form` this will
     always return True.
@@ -152,55 +311,32 @@ def pass_over_voting_check(result_form):
     :param result_form: The result form to check.
     :returns: A boolean of true if passed, otherwise false.
     """
-    recon_form = result_form.reconciliationform
-
-    if not recon_form:
+    details = get_over_voting_check_details(result_form)
+    if details is None:
         return True
-
-    registrants = (
-        result_form.station.registrants if result_form.station else None
-    )
-
-    if registrants is None:
-        return True
-
-    qc = QuarantineCheck.objects.get(method="pass_over_voting_check")
-    allowed_tolerance = (
-        (qc.value)
-        if qc.value != 0
-        else ((qc.percentage / 100) * registrants)
-    )
-
-    total_votes = result_form.num_votes + recon_form.number_invalid_votes
-    max_allowed = registrants + allowed_tolerance
-
-    return total_votes <= max_allowed
+    return details["passed"]
 
 
-def pass_card_check(result_form):
-    """Check that the number of cards collected matches the number of voters.
+def get_card_check_details(result_form):
+    """Get details for the card check.
 
     Field 3 (Number of valid ballot papers) + Field 4 (Number of Invalid
     ballot papers including blank ones) must be <= Field 2 (Number of Voter
     Cards in the Box) + 5% margin (percentage tolerance).
 
-    If the `result_form` does not have a `reconciliation_form` this will
-    always return True.
-
     :param result_form: The result form to check.
-    :returns: A boolean of true if passed, otherwise false.
+    :returns: A dictionary with check details and 'passed' status,
+              or None if no reconciliation form.
     """
     recon_form = result_form.reconciliationform
 
     if not recon_form:
-        return True
+        return None
 
     qc = QuarantineCheck.objects.get(method="pass_card_check")
     voter_cards = recon_form.number_of_voter_cards_in_the_ballot_box
     allowed_tolerance = (
-        (qc.value)
-        if qc.value != 0
-        else ((qc.percentage / 100) * voter_cards)
+        (qc.value) if qc.value != 0 else ((qc.percentage / 100) * voter_cards)
     )
 
     total_ballot_papers = (
@@ -208,7 +344,76 @@ def pass_card_check(result_form):
     )
     max_allowed = voter_cards + allowed_tolerance
 
-    return total_ballot_papers <= max_allowed
+    passed = total_ballot_papers <= max_allowed
+
+    return {
+        "passed": passed,
+        "name": qc.local_name(),
+        "tolerance_value": qc.value,
+        "tolerance_percentage": qc.percentage,
+        "voter_cards": voter_cards,
+        "total_ballot_papers": total_ballot_papers,
+        "max_allowed": max_allowed,
+        "allowed_tolerance": allowed_tolerance,
+        "valid_votes": recon_form.number_valid_votes,
+        "invalid_votes": recon_form.number_invalid_votes,
+        "display": {
+            "title": _("Card Check Details"),
+            "input_rows": [
+                {
+                    "label": _("Voter Cards in Ballot Box"),
+                    "value": voter_cards,
+                },
+                {
+                    "label": _("Total Valid Votes"),
+                    "value": recon_form.number_valid_votes,
+                },
+                {
+                    "label": _("Total Invalid Votes"),
+                    "value": recon_form.number_invalid_votes,
+                },
+            ],
+            "calc_rows": [
+                {
+                    "label": _("Total Ballot Papers"),
+                    "formula": _("Valid Votes") + " + " + _("Invalid Votes"),
+                    "values": f"{recon_form.number_valid_votes} + "
+                    f"{recon_form.number_invalid_votes}",
+                    "result": total_ballot_papers,
+                },
+                {
+                    "label": _("Maximum Allowed"),
+                    "formula": _("Voter Cards") + " + " + _("Tolerance"),
+                    "values": f"{voter_cards} + {allowed_tolerance:.0f}",
+                    "result": max_allowed,
+                },
+            ],
+            "tolerance_calc": {
+                "base_label": _("Voter Cards"),
+                "base_value": voter_cards,
+            },
+            "pass_condition": {
+                "formula": _("Total Ballot Papers") + " ≤ " + _("Maximum Allowed"),
+                "left_value": total_ballot_papers,
+                "right_value": max_allowed,
+            },
+        },
+    }
+
+
+def pass_card_check(result_form):
+    """Check that the number of cards collected matches the number of voters.
+
+    If the `result_form` does not have a `reconciliation_form` this will
+    always return True.
+
+    :param result_form: The result form to check.
+    :returns: A boolean of true if passed, otherwise false.
+    """
+    details = get_card_check_details(result_form)
+    if details is None:
+        return True
+    return details["passed"]
 
 
 # Disabled: Awaiting client feedback for final removal.
@@ -485,6 +690,28 @@ def pass_percentage_of_votes_per_candidate_validation(result_form):
     #         return False
 
     # return True
+
+
+def get_quarantine_check_details(result_form, check):
+    """Get the details of a quarantine check including actual values.
+
+    :param result_form: The result form to check.
+    :param check: The QuarantineCheck instance.
+    :returns: A dictionary with check details and actual values,
+              or None if no reconciliation form.
+    """
+    detail_methods = {
+        "pass_reconciliation_check": get_reconciliation_check_details,
+        "pass_over_voting_check": get_over_voting_check_details,
+        "pass_card_check": get_card_check_details,
+    }
+
+    detail_function = detail_methods.get(check.method)
+
+    if detail_function:
+        return detail_function(result_form)
+
+    return None
 
 
 def check_quarantine(result_form, user):

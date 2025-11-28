@@ -1,0 +1,91 @@
+{% load i18n %}
+{% load app_filters %}
+
+{# Reusable template for displaying quarantine check details #}
+{# Expected context: result_form, check #}
+
+{% with details=result_form|get_quarantine_details:check %}
+{% if details and details.display %}
+{% with d=details.display %}
+<div id="check-details-{{ check.pk }}" class="collapse hidden-print">
+    <div class="well" style="background-color: #fff;">
+        {# Input Values Table #}
+        <h4>{% trans 'Input Values' %}</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>{% trans 'Item' %}</th>
+                    <th>{% trans 'Value' %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in d.input_rows %}
+                <tr>
+                    <td>{{ row.label }}</td>
+                    <td class="text-center"><code>{{ row.value }}</code></td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td>{% trans 'Tolerance' %}</td>
+                    <td class="text-center">
+                        <code>{% if details.tolerance_value != 0 %}{{ details.tolerance_value|floatformat:0 }} ({% trans 'fixed value' %}){% else %}{{ details.tolerance_percentage }}%{% endif %}</code>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        {# Calculations Table #}
+        <h4>{% trans 'Calculations' %}</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>{% trans 'Item' %}</th>
+                    <th>{% trans 'Calculation' %}</th>
+                    <th>{% trans 'Result' %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in d.calc_rows %}
+                <tr>
+                    <td>{{ row.label }}</td>
+                    <td>
+                        <code>= {{ row.formula }}</code><br>
+                        <code>= {{ row.values }}</code>
+                    </td>
+                    <td class="text-center"><code>{{ row.result }}</code></td>
+                </tr>
+                {% endfor %}
+
+                {% if details.tolerance_value == 0 and d.tolerance_calc %}
+                <tr>
+                    <td>{% trans 'Tolerance' %}</td>
+                    <td>
+                        <code>= ({% trans 'Tolerance %' %} / 100) x {{ d.tolerance_calc.base_label }}</code><br>
+                        <code>= ({{ details.tolerance_percentage }} / 100) x {{ d.tolerance_calc.base_value }}</code>
+                    </td>
+                    <td class="text-center"><code>{{ details.allowed_tolerance|floatformat:0 }}</code></td>
+                </tr>
+                {% endif %}
+
+                <tr class="active">
+                    <td><strong>{% trans 'Pass Condition' %}</strong></td>
+                    <td>
+                        <code>{{ d.pass_condition.formula }}</code><br>
+                        <code>{{ d.pass_condition.left_value }} &le; {{ d.pass_condition.right_value|floatformat:0 }}</code>
+                    </td>
+                    <td class="text-center">
+                        <strong>{% if details.passed %}{% trans 'PASS' %}{% else %}{% trans 'FAIL' %}{% endif %}</strong>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        {# Result Alert #}
+        <div class="alert {% if details.passed %}alert-success{% else %}alert-danger{% endif %} text-center">
+            <strong>{% if details.passed %}{% trans 'Result: PASSED' %}{% else %}{% trans 'Result: FAILED' %}{% endif %}</strong>
+        </div>
+    </div>
+</div>
+{% endwith %}
+{% endif %}
+{% endwith %}
