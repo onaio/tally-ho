@@ -1030,20 +1030,29 @@ class TestAuditRecallRequestsCsvView(TestBase):
 
         # Check that actual values are displayed
         self.assertIn('<td>Total Valid Votes</td>', content)
-        self.assertIn('<td class="result-column">80</td>', content)
+        self.assertIn(
+            '<td class="text-center"><code>80</code></td>', 
+            content
+        )
         self.assertIn(
             '<td>Number of Invalid Ballot Papers</td>', 
             content
         )
-        self.assertIn('<td class="result-column">10</td>', content)
+        self.assertIn(
+            '<td class="text-center"><code>10</code></td>',
+            content
+        )
         self.assertIn(
             '<td>Total Number of Ballot Papers in the Box</td>',
              content
         )
-        self.assertIn('<td class="result-column">110</td>', content)
-        self.assertIn('<td>Tolerance Percentage</td>', content)
         self.assertIn(
-            '<td class="result-column">5 (fixed value)</td>', 
+            '<td class="text-center"><code>110</code></td>', 
+            content
+        )
+        self.assertIn('<td>Tolerance</td>', content)
+        self.assertIn(
+            '<code>5 (fixed value)</code>', 
             content
         )
         
@@ -1113,7 +1122,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
             content
         )
         self.assertIn(
-            '<td class="result-column">80</td>',
+            '<td class="text-center"><code>80</code></td>',
             content
         )
         self.assertIn(
@@ -1125,15 +1134,15 @@ class TestAuditRecallRequestsCsvView(TestBase):
             content
         )
         self.assertIn(
-            '<td class="result-column">20</td>',
+            '<td class="text-center"><code>20</code></td>',
             content
         )
         self.assertIn(
-            '<td>Tolerance Percentage</td>',
+            '<td>Tolerance</td>',
             content
         )
         self.assertIn(
-            '<td class="result-column">10 (fixed value)</td>',
+            '<code>10 (fixed value)</code>',
             content
         )
 
@@ -1187,7 +1196,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
             content
         )
         self.assertIn(
-            '<td class="result-column">210</td>',
+            '<td class="text-center"><code>210</code></td>',
             content
         )
         self.assertIn(
@@ -1195,7 +1204,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
             content
         )
         self.assertIn(
-            '<td class="result-column">200</td>',
+            '<td class="text-center"><code>200</code></td>',
             content
         )
         self.assertIn(
@@ -1203,15 +1212,15 @@ class TestAuditRecallRequestsCsvView(TestBase):
             content
         )
         self.assertIn(
-            '<td class="result-column">15</td>',
+            '<td class="text-center"><code>15</code></td>',
             content
         )
         self.assertIn(
-            '<td>Tolerance Percentage</td>',
+            '<td>Tolerance</td>',
             content
         )
         self.assertIn(
-            '<td class="result-column">8 (fixed value)</td>',
+            '<code>8 (fixed value)</code>\n ',
             content
         )
 
@@ -1284,7 +1293,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
             content
         )
         self.assertIn(
-            '<td class="result-column">110</td>', 
+            '<td class="text-center"><code>110</code></td>', 
             content
         )
         self.assertIn(
@@ -1292,7 +1301,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
             content
         )
         self.assertIn(
-            '<td class="result-column">90</td>', 
+            '<td class="text-center"><code>90</code></td>', 
             content
         )
         self.assertIn(
@@ -1300,15 +1309,15 @@ class TestAuditRecallRequestsCsvView(TestBase):
             content
         )
         self.assertIn(
-            '<td class="result-column">10</td>', 
+            '<td class="text-center"><code>10</code></td>', 
             content
         )
         self.assertIn(
-            '<td>Tolerance Percentage</td>', 
+            '<td>Tolerance</td>', 
             content
         )
         self.assertIn(
-            '<td class="result-column">8 (fixed value)</td>', 
+            '<code>8 (fixed value)</code>', 
             content
         )
 
