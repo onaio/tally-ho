@@ -4109,3 +4109,47 @@ msgstr "البيانات الناتجة غير مطابقه للنمودج ال�
 
 #~ msgid "Import staff list."
 #~ msgstr "استيراد قائمة العاملين"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:13
+msgid "Input Values"
+msgstr "قيم الإدخال"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:17
+msgid "Item"
+msgstr "غرض"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:29
+msgid "Tolerance"
+msgstr "تسامح"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:31
+msgid "fixed value"
+msgstr "قيمة ثابتة"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:38
+msgid "Calculations"
+msgstr "الحسابات"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:43
+msgid "Calculation"
+msgstr "حساب"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:44
+msgid "Result"
+msgstr "نتيجة"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:63
+msgid "Tolerance %"
+msgstr "تسامح ٪"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:71
+msgid "Pass Condition"
+msgstr "حالة المرور"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:85
+msgid "Result: PASSED"
+msgstr "النتيجة: نجحت"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:85
+msgid "Result: FAILED"
+msgstr "النتيجة: فشل"
