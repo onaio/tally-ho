@@ -229,10 +229,9 @@ msgid "File extension ({file_extension}) is not supported."
 msgstr ""
 
 #: tally_ho/apps/tally/forms/pass_to_quality_control_form.py:20
-#, fuzzy, python-brace-format
 #| msgid "Result Form has no double entries."
 msgid "Result Form with key {pk} does not exit."
-msgstr "نموذج النتائج لا يحتوي على إدخالات مزدوجة"
+msgstr "نموذج النتيجة بالمفتاح {pk} غير موجود"
 
 #: tally_ho/apps/tally/forms/pass_to_quality_control_form.py:27
 msgid "Suspicious activity detected."
@@ -1116,10 +1115,9 @@ msgid "Center ID"
 msgstr "معرّف المركز"
 
 #: tally_ho/apps/tally/templates/clearance/dashboard.html:51
-#, fuzzy
 #| msgid "Reject Recall"
 msgid "Reject Reason"
-msgstr "رفض الاسترجاع"
+msgstr "رفض السبب"
 
 #: tally_ho/apps/tally/templates/clearance/dashboard.html:52
 msgid "Reviewed?"
@@ -1308,7 +1306,7 @@ msgstr "بطاقة اقتراع جديدة"
 #: tally_ho/apps/tally/templates/super_admin/duplicate_result_tracking.html:21
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:24
 msgid "Show inactive ballots"
-msgstr ""
+msgstr "إظهار بطاقات الاقتراع غير النشطة"
 
 #: tally_ho/apps/tally/templates/data/ballots.html:60
 #: tally_ho/apps/tally/templates/data/offices.html:31
@@ -2089,7 +2087,6 @@ msgid "Result"
 msgstr "نتيجة"
 
 #: tally_ho/apps/tally/templates/quarantine_check_details.html:63
-#, fuzzy, python-format
 #| msgid "Tolerance %"
 msgid "Tolerance %%"
 msgstr "تسامح ٪"
@@ -2100,11 +2097,11 @@ msgstr "حالة المرور"
 
 #: tally_ho/apps/tally/templates/quarantine_check_details.html:77
 msgid "PASS"
-msgstr ""
+msgstr "يمر"
 
 #: tally_ho/apps/tally/templates/quarantine_check_details.html:77
 msgid "FAIL"
-msgstr ""
+msgstr "يفشل"
 
 #: tally_ho/apps/tally/templates/quarantine_check_details.html:85
 msgid "Result: PASSED"
@@ -2421,10 +2418,9 @@ msgid "Result Forms with Duplicate Results"
 msgstr "نماذج نتائج تحتوي على تكرارات"
 
 #: tally_ho/apps/tally/templates/reports/duplicate_results.html:47
-#, fuzzy
 #| msgid "Filter out Centers and Stations from report."
 msgid "Filter by Centers and Stations."
-msgstr "تصفية المراكز والمحطات من التقرير"
+msgstr "تصفية حسب المراكز والمحطات."
 
 #: tally_ho/apps/tally/templates/reports/duplicate_results.html:63
 msgid "State"
@@ -3177,7 +3173,6 @@ msgstr "حدف محطة"
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:5
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:27
 #: tally_ho/apps/tally/views/super_admin.py:2259
-#, fuzzy
 #| msgid "Result Form Details"
 msgid "Result Form History"
 msgstr "تفاصيل نموذج النتائج"
@@ -3373,14 +3368,12 @@ msgid "Public Site Results Report"
 msgstr "تقرير نتائج الموقع العام"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:33
-#, fuzzy
 #| msgid "Error"
 msgid "Error:"
 msgstr "خطأ"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:37
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:107
-#, fuzzy
 #| msgid "Back to top"
 msgid "Back to Search"
 msgstr "عد إلى الأعلى"
@@ -3400,19 +3393,16 @@ msgid "Timestamp"
 msgstr ""
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:58
-#, fuzzy
 #| msgid "New User"
 msgid "User"
 msgstr "مستخدم جديد"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:59
-#, fuzzy
 #| msgid "Previous Form State"
 msgid "Previous State"
 msgstr "حالة النموذج السابقة"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:60
-#, fuzzy
 #| msgid "New Station"
 msgid "New State"
 msgstr "محطة جديدة"
@@ -3430,28 +3420,24 @@ msgid "Initial"
 msgstr ""
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:101
-#, fuzzy
 #| msgid "Total Centers"
 msgid "Total history entries:"
 msgstr "إجمالي عدد المراكز"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_search.html:4
-#, fuzzy
 #| msgid "Results Form Corrections:"
 msgid "Result Form History Search"
-msgstr "تصحيح نموذج النتائج:"
+msgstr "نتائج البحث في تاريخ النموذج"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_search.html:10
-#, fuzzy
 #| msgid "Scan Barcode to proceed"
 msgid "Scan or enter barcode to search"
 msgstr "امسح الباركود للمتابعة"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_search.html:28
-#, fuzzy
 #| msgid "Dashboard"
 msgid "Back to Dashboard"
-msgstr "لوحة التحكم"
+msgstr "العودة إلى لوحة القيادة"
 
 #: tally_ho/apps/tally/templates/super_admin/tallies.html:7
 msgid "Tallies"
@@ -3766,7 +3752,6 @@ msgid "Ballot number do not match for center and form"
 msgstr "رقم بطاقة الاقتراع لا يتطابق مع المركز والنموذج"
 
 #: tally_ho/apps/tally/views/intake.py:282
-#, fuzzy, python-brace-format
 #| msgid "Center Number does not exist"
 msgid "Center with code {center_number} does not exist"
 msgstr "رقم المركز غير موجود"
@@ -4004,7 +3989,6 @@ msgid "Candidate successfully disabled."
 msgstr "تم تعطيل المرشح بنجاح"
 
 #: tally_ho/apps/tally/views/super_admin.py:2280
-#, fuzzy
 #| msgid "No result form found with this barcode in this tally."
 msgid "Result form with this barcode does not exist in this tally."
 msgstr "لم يتم العثور على نموذج نتائج بهذا الرمز في هذا المركز"
@@ -4295,30 +4279,26 @@ msgid "Admin View"
 msgstr "عرض اجراء الاستمارة"
 
 #: tally_ho/libs/verify/quarantine_checks.py:148
-#, fuzzy
 #| msgid "Reconciliation section"
 msgid "Reconciliation Check Details"
-msgstr "قسم التسوية"
+msgstr "تفاصيل فحص المصالحة"
 
 #: tally_ho/libs/verify/quarantine_checks.py:151
 #: tally_ho/libs/verify/quarantine_checks.py:166
 #: tally_ho/libs/verify/quarantine_checks.py:263
 #: tally_ho/libs/verify/quarantine_checks.py:274
 #: tally_ho/libs/verify/quarantine_checks.py:368
-#, fuzzy
 #| msgid "Valid Votes"
 msgid "Total Valid Votes"
-msgstr "أصوات صحيحة"
+msgstr "إجمالي الأصوات الصالحة"
 
 #: tally_ho/libs/verify/quarantine_checks.py:155
 #: tally_ho/libs/verify/quarantine_checks.py:267
-#, fuzzy
 #| msgid "Number of valid ballot papers:"
 msgid "Number of Invalid Ballot Papers"
 msgstr "عدد أوراق الاقتراع الصحيحة:"
 
 #: tally_ho/libs/verify/quarantine_checks.py:159
-#, fuzzy
 #| msgid "Total number of ballot papers in the box"
 msgid "Total Number of Ballot Papers in the Box"
 msgstr "إجمالي أوراق الاقتراع داخل الصندوق"
@@ -4328,14 +4308,12 @@ msgstr "إجمالي أوراق الاقتراع داخل الصندوق"
 #: tally_ho/libs/verify/quarantine_checks.py:185
 #: tally_ho/libs/verify/quarantine_checks.py:273
 #: tally_ho/libs/verify/quarantine_checks.py:293
-#, fuzzy
 #| msgid "Total Votes"
 msgid "Total Votes Cast"
 msgstr "إجمالي الأصوات"
 
 #: tally_ho/libs/verify/quarantine_checks.py:168
 #: tally_ho/libs/verify/quarantine_checks.py:276
-#, fuzzy
 #| msgid "Invalid Ballots"
 msgid "Invalid Ballot Papers"
 msgstr "أوراق اقتراع غير صحيحة"
@@ -4343,18 +4321,16 @@ msgstr "أوراق اقتراع غير صحيحة"
 #: tally_ho/libs/verify/quarantine_checks.py:174
 #: tally_ho/libs/verify/quarantine_checks.py:189
 msgid "Difference"
-msgstr ""
+msgstr "اختلاف"
 
 #: tally_ho/libs/verify/quarantine_checks.py:176
 #: tally_ho/libs/verify/quarantine_checks.py:378
 #: tally_ho/libs/verify/quarantine_checks.py:396
-#, fuzzy
 #| msgid "Received Ballots Papers"
 msgid "Total Ballot Papers"
 msgstr "أوراق الاقتراع المستلمة"
 
 #: tally_ho/libs/verify/quarantine_checks.py:256
-#, fuzzy
 #| msgid "Polling Center Details"
 msgid "Over Voting Check Details"
 msgstr "تفاصيل مركز الاقتراع"
@@ -4362,7 +4338,6 @@ msgstr "تفاصيل مركز الاقتراع"
 #: tally_ho/libs/verify/quarantine_checks.py:259
 #: tally_ho/libs/verify/quarantine_checks.py:283
 #: tally_ho/libs/verify/quarantine_checks.py:289
-#, fuzzy
 #| msgid "Registrants"
 msgid "Registered Voters"
 msgstr "عدد المسجلين"
@@ -4372,29 +4347,25 @@ msgstr "عدد المسجلين"
 #: tally_ho/libs/verify/quarantine_checks.py:385
 #: tally_ho/libs/verify/quarantine_checks.py:396
 msgid "Maximum Allowed"
-msgstr ""
+msgstr "الحد الأقصى المسموح به"
 
 #: tally_ho/libs/verify/quarantine_checks.py:361
-#, fuzzy
 #| msgid "View Details"
 msgid "Card Check Details"
 msgstr "عرض التفاصيل"
 
 #: tally_ho/libs/verify/quarantine_checks.py:364
-#, fuzzy
 #| msgid "Number of Voter Cards in the Ballot Box"
 msgid "Voter Cards in Ballot Box"
 msgstr "عدد بطاقات الناخبين داخل الصندوق"
 
 #: tally_ho/libs/verify/quarantine_checks.py:372
-#, fuzzy
 #| msgid "Invalid Votes"
 msgid "Total Invalid Votes"
 msgstr "الأصوات الباطلة"
 
 #: tally_ho/libs/verify/quarantine_checks.py:386
 #: tally_ho/libs/verify/quarantine_checks.py:392
-#, fuzzy
 #| msgid "Voters"
 msgid "Voter Cards"
 msgstr "الناخبون"
