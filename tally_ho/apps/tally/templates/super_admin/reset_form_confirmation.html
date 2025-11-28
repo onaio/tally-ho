@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1>{% trans 'Reset Form to Unsubmitted' %}</h1>
+<h1>{% trans 'Reset Result Form to UNSUBMITTED state' %}</h1>
 
 {% if messages %}
     {% for message in messages %}
@@ -33,9 +33,7 @@
     </div>
 {% endif %}
 
-<div class="container">
-    {% include 'center_details.html' %}
-</div>
+{% include 'center_details.html' %}
 <a href="{% url 'result-form-history' tally_id=tally_id %}" >{% trans "View Result Form History" %}</a>
 
 {% if not is_already_unsubmitted %}
@@ -50,7 +48,7 @@
     </div>
 
     <input type="hidden" name="next" value="{{ next }}">
-    <button type="submit" name="reset_submit" class="btn btn-small btn-warning">{% trans "Reset to Unsubmitted" %}</button>
+    <button type="submit" name="reset_submit" class="btn btn-small btn-warning">{% trans "Reset to UNSUBMITTED" %}</button>
     <button type="submit" name="abort_submit" class="btn btn-small btn-default" formnovalidate>{% trans "Cancel" %}</button>
     {% csrf_token %}
 {% endif %}
