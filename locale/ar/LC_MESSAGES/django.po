@@ -257,10 +257,9 @@ msgid "Form Barcode"
 msgstr "الرقم التسلسلي للنموذج"
 
 #: tally_ho/apps/tally/forms/reset_form_form.py:48
-#, fuzzy
 #| msgid "Report not found."
 msgid "Form not found"
-msgstr "الصفحة غير موجودة"
+msgstr "لم يتم العثور على النموذج"
 
 #: tally_ho/apps/tally/forms/site_info_form.py:21
 msgid "User idle timeout"
@@ -3198,7 +3197,6 @@ msgstr "إعادة تعيين النموذج"
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:5
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:27
 #: tally_ho/apps/tally/views/super_admin.py:2395
-#, fuzzy
 #| msgid "Result Form Details"
 msgid "Result Form History"
 msgstr "تفاصيل نموذج النتائج"
@@ -3367,15 +3365,15 @@ msgstr "سبب التعطيل:"
 
 #: tally_ho/apps/tally/templates/super_admin/reset_form.html:9
 msgid "Enter the barcode of the form to reset to Unsubmitted state."
-msgstr ""
+msgstr "أدخل الرمز الشريطي للنموذج لإعادة تعيينه إلى حالة غير مرسلة"
 
 #: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:7
 msgid "Reset Result Form to UNSUBMITTED state"
-msgstr ""
+msgstr "إعادة تعيين نموذج النتيجة إلى حالة غير مرسل"
 
 #: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:26
 msgid "Notice:"
-msgstr ""
+msgstr "يلاحظ"
 
 #: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:27
 msgid "This form is already in UNSUBMITTED state. Form Reset is not required."
@@ -3383,7 +3381,7 @@ msgstr "هذا النموذج في حالة غير مُرسَل. لا حاجة �
 
 #: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:31
 msgid "Warning!"
-msgstr ""
+msgstr "تحذير!"
 
 #: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:32
 msgid ""
@@ -3396,14 +3394,13 @@ msgstr ""
 "مراقبة الجودة)."
 
 #: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:37
-#, fuzzy
 #| msgid "Duplicate Result Forms List"
 msgid "View Result Form History"
 msgstr "قائمة نماذج النتائج المتكررة"
 
 #: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:51
 msgid "Reset to UNSUBMITTED"
-msgstr ""
+msgstr "إعادة التعيين إلى غير مُرسل"
 
 #: tally_ho/apps/tally/templates/super_admin/result_export.html:7
 msgid "Downloads"
@@ -3957,29 +3954,25 @@ msgid "This center is tied to 1 or more stations"
 msgstr "هذا المركز مرتبط بمحطة أو أكثر"
 
 #: tally_ho/apps/tally/views/super_admin.py:1348
-#, fuzzy
 #| msgid "Form Successfully Deleted"
 msgid "Form Successfully Reset."
-msgstr "تم حذف النموذج بنجاح"
+msgstr "تم إعادة تعيين النموذج بنجاح"
 
 #: tally_ho/apps/tally/views/super_admin.py:1390
-#, fuzzy
 #| msgid "Form Successfully Deleted"
 msgid "Form Successfully Reset to Unsubmitted."
 msgstr "تم حذف النموذج بنجاح"
 
 #: tally_ho/apps/tally/views/super_admin.py:1437
-#, fuzzy, python-format
 #| msgid "Form successfully sent to clearance"
 msgid "Form %(barcode)s successfully reset to Unsubmitted"
-msgstr "تم إرسال النموذج إلى مرحلة التدقيق بنجاح"
+msgstr "تم إعادة تعيين النموذج %(barcode)s الفعال إلى غير مرسل"
 
 #: tally_ho/apps/tally/views/super_admin.py:1449
 #: tally_ho/apps/tally/views/super_admin.py:1461
-#, fuzzy, python-format
 #| msgid "Error updating tally: %(error)s"
 msgid "Error resetting form %(barcode)s: %(error)s"
-msgstr "حدث خطأ أثناء تحديث مركز التجميع: %(error)s"
+msgstr "خطأ في إعادة تعيين النموذج: %(error)s"
 
 #: tally_ho/apps/tally/views/super_admin.py:1483
 msgid "Center Successfully Updated"
@@ -4077,7 +4070,6 @@ msgid "Candidate successfully disabled."
 msgstr "تم تعطيل المرشح بنجاح"
 
 #: tally_ho/apps/tally/views/super_admin.py:2416
-#, fuzzy
 #| msgid "No result form found with this barcode in this tally."
 msgid "Result form with this barcode does not exist in this tally."
 msgstr "لم يتم العثور على نموذج نتائج بهذا الرمز في هذا المركز"
