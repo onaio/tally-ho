@@ -533,6 +533,17 @@ urlpatterns = [
         name="remove-form-confirmation",
     ),
     re_path(
+        r"^super-administrator/reset-form/(?P<tally_id>(\d+))$",
+        super_admin.ResetFormView.as_view(),
+        name="reset-form",
+    ),
+    re_path(
+        r"^super-administrator/reset-form-confirmation/(?P<tally_id>(\d+))/"
+        r"(?P<form_id>(\d+))$",
+        super_admin.ResetFormConfirmationView.as_view(),
+        name="reset-form-confirmation",
+    ),
+    re_path(
         r"^super-administrator/form-progress/(?P<tally_id>(\d+))/$",
         super_admin.FormProgressView.as_view(),
         name="form-progress",

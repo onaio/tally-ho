@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-28 10:23+0300\n"
+"POT-Creation-Date: 2025-11-28 15:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -246,6 +246,21 @@ msgstr "كلمة المرور الجديدة"
 msgid "New password confirmation"
 msgstr "تأكيد كلمة المرور الجديدة"
 
+#: tally_ho/apps/tally/forms/reset_form_form.py:15
+#: tally_ho/apps/tally/forms/reset_form_form.py:20
+msgid "Please enter exactly 11 numbers"
+msgstr "الرجاء إدخال 11 رقمًا بالضبط"
+
+#: tally_ho/apps/tally/forms/reset_form_form.py:29
+#: tally_ho/apps/tally/templates/workflow/recall_request_detail.html:16
+msgid "Form Barcode"
+msgstr "الرقم التسلسلي للنموذج"
+
+#: tally_ho/apps/tally/forms/reset_form_form.py:48
+#| msgid "Report not found."
+msgid "Form not found"
+msgstr "لم يتم العثور على النموذج"
+
 #: tally_ho/apps/tally/forms/site_info_form.py:21
 msgid "User idle timeout"
 msgstr "مهلة خمول المستخدم"
@@ -413,20 +428,20 @@ msgstr "عدد الأصوات الصحيحة"
 msgid "Total number of ballot papers in the box"
 msgstr "إجمالي أوراق الاقتراع داخل الصندوق"
 
-#: tally_ho/apps/tally/models/result_form.py:20
+#: tally_ho/apps/tally/models/result_form.py:22
 msgid "Male"
 msgstr "ذكر"
 
-#: tally_ho/apps/tally/models/result_form.py:21
+#: tally_ho/apps/tally/models/result_form.py:23
 msgid "Female"
 msgstr "أنثى"
 
-#: tally_ho/apps/tally/models/result_form.py:51
+#: tally_ho/apps/tally/models/result_form.py:53
 #: tally_ho/libs/views/corrections.py:68
 msgid "Result Form has no double entries."
 msgstr "نموذج النتائج لا يحتوي على إدخالات مزدوجة"
 
-#: tally_ho/apps/tally/models/result_form.py:58
+#: tally_ho/apps/tally/models/result_form.py:60
 #, python-format
 msgid ""
 "Unexpected number of results in form %(barcode)s, return result form to Data "
@@ -456,7 +471,7 @@ msgstr "عدد غير متوقع من استمارات التسوية"
 msgid "No"
 msgstr "لا"
 
-#: tally_ho/apps/tally/models/result_form.py:272
+#: tally_ho/apps/tally/models/result_form.py:274
 msgid "Corrections Required!"
 msgstr "مطلوب تصحيحات!"
 
@@ -549,8 +564,8 @@ msgstr "رقم التسلسل"
 #: tally_ho/apps/tally/templates/workflow/recall_request_detail.html:17
 #: tally_ho/apps/tally/views/reports/overall_votes.py:26
 #: tally_ho/apps/tally/views/reports/votes_per_candidate.py:88
-#: tally_ho/apps/tally/views/super_admin.py:1400
-#: tally_ho/apps/tally/views/super_admin.py:1458
+#: tally_ho/apps/tally/views/super_admin.py:1536
+#: tally_ho/apps/tally/views/super_admin.py:1594
 #: tally_ho/libs/utils/templates.py:17
 msgid "Center"
 msgstr "المركز"
@@ -562,8 +577,8 @@ msgstr "المركز"
 #: tally_ho/apps/tally/templates/workflow/recall_request_detail.html:18
 #: tally_ho/apps/tally/views/reports/overall_votes.py:22
 #: tally_ho/apps/tally/views/reports/votes_per_candidate.py:85
-#: tally_ho/apps/tally/views/super_admin.py:1400
-#: tally_ho/apps/tally/views/super_admin.py:1458
+#: tally_ho/apps/tally/views/super_admin.py:1536
+#: tally_ho/apps/tally/views/super_admin.py:1594
 #: tally_ho/libs/utils/templates.py:18
 msgid "Station"
 msgstr "المحطة"
@@ -651,7 +666,7 @@ msgid "Audit Case: Team Page"
 msgstr "قضية التدقيق: صفحة الفريق"
 
 #: tally_ho/apps/tally/templates/audit/print_cover.html:11
-#: tally_ho/apps/tally/templates/center_details.html:26
+#: tally_ho/apps/tally/templates/center_details.html:27
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:11
 #: tally_ho/apps/tally/templates/print_cover_common.html:13
 #: tally_ho/apps/tally/templates/workflow/recall_request_form.html:22
@@ -664,14 +679,14 @@ msgid "Barcode Number:"
 msgstr "رقم الباركود:"
 
 #: tally_ho/apps/tally/templates/audit/print_cover.html:15
-#: tally_ho/apps/tally/templates/center_details.html:22
+#: tally_ho/apps/tally/templates/center_details.html:23
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:15
 #: tally_ho/apps/tally/templates/print_cover_common.html:10
 msgid "Office Name:"
 msgstr "اسم المكتب:"
 
 #: tally_ho/apps/tally/templates/audit/print_cover.html:16
-#: tally_ho/apps/tally/templates/center_details.html:30
+#: tally_ho/apps/tally/templates/center_details.html:31
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:16
 #: tally_ho/apps/tally/templates/print_cover_common.html:22
 #: tally_ho/apps/tally/templates/super_admin/remove_result_form_confirmation.html:36
@@ -680,7 +695,7 @@ msgid "Election Level:"
 msgstr "مستوى الانتخابات:"
 
 #: tally_ho/apps/tally/templates/audit/print_cover.html:17
-#: tally_ho/apps/tally/templates/center_details.html:34
+#: tally_ho/apps/tally/templates/center_details.html:35
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:17
 #: tally_ho/apps/tally/templates/print_cover_common.html:25
 #: tally_ho/apps/tally/templates/super_admin/remove_result_form_confirmation.html:40
@@ -694,7 +709,7 @@ msgid "Sub-Constituency:"
 msgstr "الدائرة الفرعية:"
 
 #: tally_ho/apps/tally/templates/audit/print_cover.html:21
-#: tally_ho/apps/tally/templates/center_details.html:48
+#: tally_ho/apps/tally/templates/center_details.html:51
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:21
 #: tally_ho/apps/tally/templates/super_admin/remove_result_form_confirmation.html:16
 #: tally_ho/apps/tally/templates/workflow/recall_request_form.html:26
@@ -708,7 +723,7 @@ msgid "Number of Registrants:"
 msgstr "عدد المسجلين:"
 
 #: tally_ho/apps/tally/templates/audit/print_cover.html:25
-#: tally_ho/apps/tally/templates/center_details.html:52
+#: tally_ho/apps/tally/templates/center_details.html:55
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:29
 #: tally_ho/apps/tally/templates/workflow/recall_request_form.html:30
 msgid "Station Code:"
@@ -906,6 +921,7 @@ msgstr "حفظ"
 #: tally_ho/apps/tally/templates/super_admin/remove_center_confirmation.html:32
 #: tally_ho/apps/tally/templates/super_admin/remove_result_form_confirmation.html:50
 #: tally_ho/apps/tally/templates/super_admin/remove_station_confirmation.html:32
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:52
 #: tally_ho/apps/tally/templates/tally_manager/edit_user_profile.html:29
 #: tally_ho/apps/tally/templates/tally_manager/remove_user_confirmation.html:41
 #: tally_ho/apps/tally/templates/tally_manager/remove_user_confirmation.html:43
@@ -954,6 +970,7 @@ msgstr "نسخة الباركود"
 #: tally_ho/apps/tally/templates/enter_center_details.html:48
 #: tally_ho/apps/tally/templates/super_admin/remove_center.html:27
 #: tally_ho/apps/tally/templates/super_admin/remove_station.html:33
+#: tally_ho/apps/tally/templates/super_admin/reset_form.html:27
 msgid "Submit"
 msgstr "إرسال"
 
@@ -961,11 +978,11 @@ msgstr "إرسال"
 msgid "Use barcode reader"
 msgstr "استخدم قارئ الباركود"
 
-#: tally_ho/apps/tally/templates/center_details.html:5
+#: tally_ho/apps/tally/templates/center_details.html:4
 msgid "Polling Center Details"
 msgstr "تفاصيل مركز الاقتراع"
 
-#: tally_ho/apps/tally/templates/center_details.html:11
+#: tally_ho/apps/tally/templates/center_details.html:12
 #: tally_ho/apps/tally/templates/intake_success.html:56
 #: tally_ho/apps/tally/templates/print_cover_common.html:4
 #: tally_ho/apps/tally/templates/success.html:22
@@ -976,13 +993,13 @@ msgstr "تفاصيل مركز الاقتراع"
 msgid "Barcode:"
 msgstr "الباركود:"
 
-#: tally_ho/apps/tally/templates/center_details.html:18
+#: tally_ho/apps/tally/templates/center_details.html:19
 #: tally_ho/apps/tally/templates/print_cover_common.html:7
 #: tally_ho/apps/tally/templates/super_admin/edit_station.html:22
 msgid "Region Name:"
 msgstr "اسم المنطقة:"
 
-#: tally_ho/apps/tally/templates/center_details.html:41
+#: tally_ho/apps/tally/templates/center_details.html:44
 #: tally_ho/apps/tally/templates/super_admin/remove_result_form_confirmation.html:32
 msgid "Voting District:"
 msgstr "الدائرة الانتخابية:"
@@ -1065,6 +1082,7 @@ msgstr "نوع السباق"
 #: tally_ho/apps/tally/templates/super_admin/form_clearance.html:30
 #: tally_ho/apps/tally/templates/super_admin/form_duplicates.html:30
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:36
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:22
 msgid "Form State"
 msgstr "حالة النموذج"
 
@@ -1294,7 +1312,7 @@ msgid "Not Correct - Reject"
 msgstr "غير صحيحة - رفض"
 
 #: tally_ho/apps/tally/templates/data/ballots.html:45
-#: tally_ho/apps/tally/views/super_admin.py:1494
+#: tally_ho/apps/tally/views/super_admin.py:1630
 msgid "New Ballot"
 msgstr "بطاقة اقتراع جديدة"
 
@@ -1438,12 +1456,12 @@ msgid "Center and Station List"
 msgstr "قائمة المركز والمحطة"
 
 #: tally_ho/apps/tally/templates/data/centers.html:36
-#: tally_ho/apps/tally/views/super_admin.py:1839
+#: tally_ho/apps/tally/views/super_admin.py:1975
 msgid "New Station"
 msgstr "محطة جديدة"
 
 #: tally_ho/apps/tally/templates/data/centers.html:43
-#: tally_ho/apps/tally/views/super_admin.py:1208
+#: tally_ho/apps/tally/views/super_admin.py:1210
 msgid "New Center"
 msgstr "مركز جديد"
 
@@ -1525,7 +1543,7 @@ msgid "Edit"
 msgstr "تعديل"
 
 #: tally_ho/apps/tally/templates/data/electrol_races.html:31
-#: tally_ho/apps/tally/views/super_admin.py:1585
+#: tally_ho/apps/tally/views/super_admin.py:1721
 msgid "New Electrol Race"
 msgstr "سباق انتخابي جديد"
 
@@ -1590,7 +1608,7 @@ msgid "json"
 msgstr "json"
 
 #: tally_ho/apps/tally/templates/data/forms.html:53
-#: tally_ho/apps/tally/views/super_admin.py:377
+#: tally_ho/apps/tally/views/super_admin.py:379
 msgid "New Form"
 msgstr "تسجيل أستمارة جديدة"
 
@@ -1984,19 +2002,19 @@ msgstr "غير صحيح"
 msgid "Component"
 msgstr "مكون"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:11
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:12
 msgid "❌ Quarantined - Requires Audit"
 msgstr "❌ النموذج موقوف - يحتاج إلى المراجعة"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:13
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:14
 msgid "✅ Successful Archive"
 msgstr "✅ تمت الأرشفة بنجاح"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:22
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:23
 msgid "Archived Form"
 msgstr "نموذج مؤرشف"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:30
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:31
 msgid "Failed Quarantine Checks:"
 msgstr "فشل في فحص التوقيف:"
 
@@ -3130,12 +3148,12 @@ msgid "Other user views"
 msgstr "واجهات المستخدم الأخرى"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:75
-#: tally_ho/apps/tally/templates/super_admin/home.html:93
+#: tally_ho/apps/tally/templates/super_admin/home.html:94
 msgid "Intake Clerk"
 msgstr "موظف الاستقبال "
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:76
-#: tally_ho/apps/tally/templates/super_admin/home.html:95
+#: tally_ho/apps/tally/templates/super_admin/home.html:96
 msgid "Clearance Clerk"
 msgstr "موظف التدقيق"
 
@@ -3144,7 +3162,7 @@ msgid "Data Entry Clerk"
 msgstr "موظف مدخل البيانات"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:78
-#: tally_ho/apps/tally/templates/super_admin/home.html:99
+#: tally_ho/apps/tally/templates/super_admin/home.html:100
 msgid "Corrections Clerk"
 msgstr "موظف التصحيح"
 
@@ -3153,7 +3171,7 @@ msgid "Quality Control & Archiving Clerk"
 msgstr "موظف ضمان الجودة"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:80
-#: tally_ho/apps/tally/templates/super_admin/home.html:102
+#: tally_ho/apps/tally/templates/super_admin/home.html:103
 msgid "Audit Clerk"
 msgstr "موظف المراجعة"
 
@@ -3170,59 +3188,65 @@ msgid "Remove a Station"
 msgstr "حدف محطة"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:88
+#: tally_ho/apps/tally/templates/super_admin/reset_form.html:7
+#| msgid "Remove Form"
+msgid "Reset Form"
+msgstr "إعادة تعيين النموذج"
+
+#: tally_ho/apps/tally/templates/super_admin/home.html:89
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:5
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:27
-#: tally_ho/apps/tally/views/super_admin.py:2259
+#: tally_ho/apps/tally/views/super_admin.py:2395
 #| msgid "Result Form Details"
 msgid "Result Form History"
 msgstr "تفاصيل نموذج النتائج"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:91
+#: tally_ho/apps/tally/templates/super_admin/home.html:92
 msgid "Staff Performance Metrics"
 msgstr "مقاييس أداء الموظفين"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:94
+#: tally_ho/apps/tally/templates/super_admin/home.html:95
 msgid "Intake Supervisor"
 msgstr "مشرف القبول"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:96
+#: tally_ho/apps/tally/templates/super_admin/home.html:97
 msgid "Clearance Supervisor"
 msgstr "مشرف التدقيق"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:97
+#: tally_ho/apps/tally/templates/super_admin/home.html:98
 msgid "Data Entry 1 Clerk"
 msgstr "موظف مدخل البيانات 1"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:98
+#: tally_ho/apps/tally/templates/super_admin/home.html:99
 msgid "Data Entry 2 Clerk"
 msgstr "موظف مدخل البيانات 2"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:100
+#: tally_ho/apps/tally/templates/super_admin/home.html:101
 msgid "Quality Control Clerk"
 msgstr "موظف ضبظ الجودة"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:101
+#: tally_ho/apps/tally/templates/super_admin/home.html:102
 msgid "Quality Control Supervisor"
 msgstr "مشرف ضبط الجودة"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:103
+#: tally_ho/apps/tally/templates/super_admin/home.html:104
 msgid "Audit Supervisor"
 msgstr "مشرف المراجعة"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:104
+#: tally_ho/apps/tally/templates/super_admin/home.html:105
 msgid "Supervisors Approvals"
 msgstr "موافقات المشرفين"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:105
+#: tally_ho/apps/tally/templates/super_admin/home.html:106
 msgid "Track Corrections"
 msgstr "تتبع التصحيحات"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:108
+#: tally_ho/apps/tally/templates/super_admin/home.html:109
 #: tally_ho/apps/tally/templates/tally_manager/home.html:30
 msgid "Users and groups"
 msgstr "المستخدمون والمجموعات"
 
-#: tally_ho/apps/tally/templates/super_admin/home.html:110
+#: tally_ho/apps/tally/templates/super_admin/home.html:111
 #: tally_ho/apps/tally/templates/tally_manager/home.html:32
 msgid "Demo groups and passwords (formatted as login/pass):"
 msgstr "مجموعات تجريبية وكلمات المرور (بتنسيق اسم المستخدم/كلمة المرور)"
@@ -3338,6 +3362,45 @@ msgstr "عدد المسجلين:"
 #: tally_ho/apps/tally/templates/super_admin/remove_station_confirmation.html:27
 msgid "Disable reason:"
 msgstr "سبب التعطيل:"
+
+#: tally_ho/apps/tally/templates/super_admin/reset_form.html:9
+msgid "Enter the barcode of the form to reset to Unsubmitted state."
+msgstr "أدخل الرمز الشريطي للنموذج لإعادة تعيينه إلى حالة غير مرسلة"
+
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:7
+msgid "Reset Result Form to UNSUBMITTED state"
+msgstr "إعادة تعيين نموذج النتيجة إلى حالة غير مرسل"
+
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:26
+msgid "Notice:"
+msgstr "يلاحظ"
+
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:27
+msgid "This form is already in UNSUBMITTED state. Form Reset is not required."
+msgstr "هذا النموذج في حالة غير مُرسَل. لا حاجة لإعادة ضبط النموذج."
+
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:31
+msgid "Warning!"
+msgstr "تحذير!"
+
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:32
+msgid ""
+"This will reset the form to UNSUBMITTED state and deactivate all related "
+"records (results, reconciliation forms, audits, clearances, and quality "
+"control records)."
+msgstr ""
+"سيؤدي هذا إلى إعادة تعيين النموذج إلى حالة غير مرسل وإلغاء تنشيط جميع "
+"السجلات ذات الصلة (النتائج، ونماذج المصالحة، والتدقيقات، والمخالصات، وسجلات "
+"مراقبة الجودة)."
+
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:37
+#| msgid "Duplicate Result Forms List"
+msgid "View Result Form History"
+msgstr "قائمة نماذج النتائج المتكررة"
+
+#: tally_ho/apps/tally/templates/super_admin/reset_form_confirmation.html:51
+msgid "Reset to UNSUBMITTED"
+msgstr "إعادة التعيين إلى غير مُرسل"
 
 #: tally_ho/apps/tally/templates/super_admin/result_export.html:7
 msgid "Downloads"
@@ -3626,10 +3689,6 @@ msgstr "معلومات الطلب"
 msgid "Request ID"
 msgstr "رقم الطلب"
 
-#: tally_ho/apps/tally/templates/workflow/recall_request_detail.html:16
-msgid "Form Barcode"
-msgstr "الرقم التسلسلي للنموذج"
-
 #: tally_ho/apps/tally/templates/workflow/recall_request_detail.html:26
 msgid "Actioned By"
 msgstr "تم التنفيذ بواسطة"
@@ -3797,6 +3856,7 @@ msgstr "أصوات كل مرشح حسب المنطقة"
 #: tally_ho/apps/tally/views/reports/administrative_areas_reports.py:3188
 #: tally_ho/apps/tally/views/reports/administrative_areas_reports.py:3207
 #: tally_ho/apps/tally/views/reports/administrative_areas_reports.py:3228
+#, python-brace-format
 msgid "{}{}"
 msgstr ""
 
@@ -3836,164 +3896,186 @@ msgstr "أصوات المرشحين النشطين"
 msgid "active_candidates_votes"
 msgstr "أصوات المرشحين النشطين"
 
-#: tally_ho/apps/tally/views/super_admin.py:374
+#: tally_ho/apps/tally/views/super_admin.py:376
 msgid "Clearance: New Result Form"
 msgstr "تدقيق: نموذج نتائج جديد"
 
-#: tally_ho/apps/tally/views/super_admin.py:414
+#: tally_ho/apps/tally/views/super_admin.py:416
 #, python-format
 msgid "Successfully Created form %(form)s"
 msgstr "تم إنشاء النموذج بنجاح %(form)s"
 
-#: tally_ho/apps/tally/views/super_admin.py:438
+#: tally_ho/apps/tally/views/super_admin.py:440
 msgid "Form Successfully Updated"
 msgstr "تم تحديث النموذج بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:476
+#: tally_ho/apps/tally/views/super_admin.py:478
 msgid "Form Successfully Deleted"
 msgstr "تم حذف النموذج بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:671
+#: tally_ho/apps/tally/views/super_admin.py:673
 msgid "Successfully marked forms as duplicate reviewed"
 msgstr "تمت مراجعة النماذج المكررة بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:698
+#: tally_ho/apps/tally/views/super_admin.py:700
 msgid "Form successfully sent to clearance"
 msgstr "تم إرسال النموذج إلى مرحلة التدقيق بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:708
+#: tally_ho/apps/tally/views/super_admin.py:710
 msgid "Archived form can not be sent to clearance."
 msgstr "لا يمكن إرسال النموذج المؤرشف إلى التدقيق"
 
-#: tally_ho/apps/tally/views/super_admin.py:740
+#: tally_ho/apps/tally/views/super_admin.py:742
 #, python-format
 msgid "Archived form(s) (%(barcodes)s) can not be sent to clearance."
 msgstr "لا يمكن إرسال النموذج المؤرشف (%(barcodes)s) إلى التدقيق"
 
-#: tally_ho/apps/tally/views/super_admin.py:748
+#: tally_ho/apps/tally/views/super_admin.py:750
 msgid "All forms successfully sent to clearance"
 msgstr "تم إرسال جميع النماذج إلى التصحيح بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1216
+#: tally_ho/apps/tally/views/super_admin.py:1218
 #, python-format
 msgid "Successfully Created Center %(center)s"
 msgstr "تم إنشاء المركز بنجاح %(center)s"
 
-#: tally_ho/apps/tally/views/super_admin.py:1252
-#: tally_ho/apps/tally/views/super_admin.py:1298
+#: tally_ho/apps/tally/views/super_admin.py:1254
+#: tally_ho/apps/tally/views/super_admin.py:1300
 msgid "Center Successfully Removed."
 msgstr "تم حذف المركز بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1273
+#: tally_ho/apps/tally/views/super_admin.py:1275
 #, python-format
 msgid "Successfully removed center %(center)s"
 msgstr "تم حذف المركز بنجاح %(center)s"
 
-#: tally_ho/apps/tally/views/super_admin.py:1330
+#: tally_ho/apps/tally/views/super_admin.py:1332
 msgid "This center is tied to 1 or more stations"
 msgstr "هذا المركز مرتبط بمحطة أو أكثر"
 
-#: tally_ho/apps/tally/views/super_admin.py:1347
+#: tally_ho/apps/tally/views/super_admin.py:1348
+#| msgid "Form Successfully Deleted"
+msgid "Form Successfully Reset."
+msgstr "تم إعادة تعيين النموذج بنجاح"
+
+#: tally_ho/apps/tally/views/super_admin.py:1390
+#| msgid "Form Successfully Deleted"
+msgid "Form Successfully Reset to Unsubmitted."
+msgstr "تم حذف النموذج بنجاح"
+
+#: tally_ho/apps/tally/views/super_admin.py:1437
+#| msgid "Form successfully sent to clearance"
+msgid "Form %(barcode)s successfully reset to Unsubmitted"
+msgstr "تم إعادة تعيين النموذج %(barcode)s الفعال إلى غير مرسل"
+
+#: tally_ho/apps/tally/views/super_admin.py:1449
+#: tally_ho/apps/tally/views/super_admin.py:1461
+#| msgid "Error updating tally: %(error)s"
+msgid "Error resetting form %(barcode)s: %(error)s"
+msgstr "خطأ في إعادة تعيين النموذج: %(error)s"
+
+#: tally_ho/apps/tally/views/super_admin.py:1483
 msgid "Center Successfully Updated"
 msgstr "تم تحديث بيانات المركز بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1401
+#: tally_ho/apps/tally/views/super_admin.py:1537
 #, python-format
 msgid "%(entity_name)s Successfully Disabled."
 msgstr "تم تعطيل %(entity_name)s بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1426
+#: tally_ho/apps/tally/views/super_admin.py:1562
 #, python-format
 msgid "Successfully disabled center %(center)s"
 msgstr "تم تعطيل المركز %(center)s بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1431
+#: tally_ho/apps/tally/views/super_admin.py:1567
 #, python-format
 msgid "Successfully disabled station %(station_number)s"
 msgstr "تم تعطيل المحطة %(station_number)s بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1459
+#: tally_ho/apps/tally/views/super_admin.py:1595
 #, python-format
 msgid "%(entity_name)s Successfully enabled."
 msgstr "تم تفعيل %(entity_name)s بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1482
+#: tally_ho/apps/tally/views/super_admin.py:1618
 msgid "Ballot Successfully Created"
 msgstr "تم إنشاء بطاقة الاقتراع بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1523
+#: tally_ho/apps/tally/views/super_admin.py:1659
 msgid "Ballot Successfully Updated"
 msgstr "تم تحديث بطاقة الاقتراع بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1571
+#: tally_ho/apps/tally/views/super_admin.py:1707
 msgid "Electrol Race Successfully Created"
 msgstr "تم إنشاء السباق الانتخابي بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1614
+#: tally_ho/apps/tally/views/super_admin.py:1750
 msgid "Electrol Race Successfully Updated"
 msgstr "تم تحديث السباق الانتخابي بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1683
+#: tally_ho/apps/tally/views/super_admin.py:1819
 msgid "Electrol Race Successfully Disabled."
 msgstr "تم تعطيل السباق الانتخابي بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1701
+#: tally_ho/apps/tally/views/super_admin.py:1837
 msgid "Electrol Race Successfully disabled"
 msgstr "تم تعطيل السباق الانتخابي"
 
-#: tally_ho/apps/tally/views/super_admin.py:1728
+#: tally_ho/apps/tally/views/super_admin.py:1864
 msgid "Electrol Race Successfully enabled."
 msgstr "تم تفعيل السباق الانتخابي بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1765
+#: tally_ho/apps/tally/views/super_admin.py:1901
 msgid "Ballot Successfully Disabled."
 msgstr "تم تعطيل بطاقة الاقتراع بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1783
+#: tally_ho/apps/tally/views/super_admin.py:1919
 msgid "Ballot Successfully disabled"
 msgstr "تم تعطيل بطاقة الاقتراع"
 
-#: tally_ho/apps/tally/views/super_admin.py:1809
+#: tally_ho/apps/tally/views/super_admin.py:1945
 msgid "Ballot Successfully enabled."
 msgstr "تم تفعيل بطاقة الاقتراع بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1826
+#: tally_ho/apps/tally/views/super_admin.py:1962
 msgid "Station Successfully Created"
 msgstr "تم إنشاء المحطة بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1851
+#: tally_ho/apps/tally/views/super_admin.py:1987
 #, python-format
 msgid "Successfully created station %(center)s"
 msgstr "تم إنشاء محطة %(center)s بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:1875
-#: tally_ho/apps/tally/views/super_admin.py:1967
+#: tally_ho/apps/tally/views/super_admin.py:2011
+#: tally_ho/apps/tally/views/super_admin.py:2103
 msgid "Station Successfully Removed."
 msgstr "تم حذف المحطة بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:2006
+#: tally_ho/apps/tally/views/super_admin.py:2142
 #, python-format
 msgid "Successfully removed station %(station)s from center %(center)s."
 msgstr "تم حذف المحطة %(station)s من المركز %(center)s بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:2035
+#: tally_ho/apps/tally/views/super_admin.py:2171
 msgid "Station Successfully Updated"
 msgstr "تم تحديث بيانات المحطة بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:2077
+#: tally_ho/apps/tally/views/super_admin.py:2213
 msgid "Candidate successfully enabled."
 msgstr "تم تفعيل المرشح بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:2099
+#: tally_ho/apps/tally/views/super_admin.py:2235
 msgid "Candidate successfully disabled."
 msgstr "تم تعطيل المرشح بنجاح"
 
-#: tally_ho/apps/tally/views/super_admin.py:2280
+#: tally_ho/apps/tally/views/super_admin.py:2416
 #| msgid "No result form found with this barcode in this tally."
 msgid "Result form with this barcode does not exist in this tally."
 msgstr "لم يتم العثور على نموذج نتائج بهذا الرمز في هذا المركز"
 
 #: tally_ho/apps/tally/views/tally_manager.py:178
+#, python-brace-format
 msgid "{}"
 msgstr ""
 
@@ -4035,6 +4117,7 @@ msgid "No result form selected for recall."
 msgstr "لم يتم اختيار نموذج نتائج للاسترجاع"
 
 #: tally_ho/apps/tally/views/workflow.py:149
+#, python-brace-format
 msgid "Create Recall Request for Barcode: {}"
 msgstr "إنشاء طلب استرجاع للرمز التسلسلي: {}"
 
@@ -4047,6 +4130,7 @@ msgid "An active recall request already exists for this form."
 msgstr "يوجد طلب استرجاع نشط لهذا النموذج بالفعل"
 
 #: tally_ho/apps/tally/views/workflow.py:184
+#, python-brace-format
 msgid "Recall request created successfully for barcode {}"
 msgstr "تم إنشاء طلب استرجاع بنجاح للرمز التسلسلي {}"
 
