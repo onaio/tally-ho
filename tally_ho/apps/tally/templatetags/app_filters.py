@@ -4,6 +4,7 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
+from tally_ho.libs.verify import quarantine_checks
 
 register = template.Library()
 
@@ -120,3 +121,18 @@ def get_bg_class_by_race_type(electrol_race):
     if electrol_race.ballot_name.lower() == 'list':
         return 'green-bg'
     return 'blue-bg'
+
+@register.filter(name="get_quarantine_details")
+def get_quarantine_details(result_form, check):
+    """Get quarantine check details for a specific check.
+
+    :param result_form: The ResultForm instance
+    :param check: The QuarantineCheck instance
+
+    :returns: A dictionary with check details and actual values
+    """
+    if result_form and check:
+        return quarantine_checks.get_quarantine_check_details(
+            result_form, check
+        )
+    return None

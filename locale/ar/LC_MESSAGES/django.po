@@ -223,9 +223,15 @@ msgstr "الحسابات المُدارة"
 msgid "File size must be under"
 msgstr "يجب أن يكون حجم الملف أقل من"
 
-#: tally_ho/apps/tally/forms/fields.py:41
-msgid " is not supported."
-msgstr "غير مدعوم"
+#: tally_ho/apps/tally/forms/fields.py:40
+#, python-brace-format
+msgid "File extension ({file_extension}) is not supported."
+msgstr ""
+
+#: tally_ho/apps/tally/forms/pass_to_quality_control_form.py:20
+#| msgid "Result Form has no double entries."
+msgid "Result Form with key {pk} does not exit."
+msgstr "نموذج النتيجة بالمفتاح {pk} غير موجود"
 
 #: tally_ho/apps/tally/forms/pass_to_quality_control_form.py:27
 msgid "Suspicious activity detected."
@@ -321,6 +327,13 @@ msgstr "استخراج تقرير نسبة المشاركة في الانتخا�
 #: tally_ho/apps/tally/management/commands/get_overvoted_result_forms_csv.py:102
 msgid "create csv file with overvotes."
 msgstr "إنشاء ملف CSV يحتوي على الأصوات الزائدة"
+
+#: tally_ho/apps/tally/management/commands/utils.py:221
+#, python-brace-format
+msgid "Column {str_m_cols} is missing in the {file_name} file"
+msgid_plural "Columns {str_m_cols} are missing in the {file_name} file"
+msgstr[0] ""
+msgstr[1] ""
 
 #: tally_ho/apps/tally/models/audit.py:62
 msgid "Blank Reconcilliation"
@@ -438,24 +451,24 @@ msgstr ""
 "عدد غير متوقع من النتائج في النموذج %(barcode)s، يرجى إرجاع النموذج إلى "
 "إدخال البيانات 1"
 
-#: tally_ho/apps/tally/models/result_form.py:100
+#: tally_ho/apps/tally/models/result_form.py:98
 msgid "Votes do not match!"
 msgstr "الأصوات غير متطابقة!"
 
-#: tally_ho/apps/tally/models/result_form.py:127
+#: tally_ho/apps/tally/models/result_form.py:125
 msgid "Unexpected number of reconciliation forms"
 msgstr "عدد غير متوقع من استمارات التسوية"
 
-#: tally_ho/apps/tally/models/result_form.py:236
-#: tally_ho/apps/tally/models/result_form.py:241
-#: tally_ho/apps/tally/models/result_form.py:375
-#: tally_ho/apps/tally/models/result_form.py:381
+#: tally_ho/apps/tally/models/result_form.py:234
+#: tally_ho/apps/tally/models/result_form.py:239
+#: tally_ho/apps/tally/models/result_form.py:373
+#: tally_ho/apps/tally/models/result_form.py:379
 #: tally_ho/apps/tally/templates/corrections/comparison.html:15
 #: tally_ho/apps/tally/templates/corrections/required.html:29
+#: tally_ho/apps/tally/tests/models/test_result_form.py:216
 #: tally_ho/apps/tally/tests/models/test_result_form.py:217
-#: tally_ho/apps/tally/tests/models/test_result_form.py:218
+#: tally_ho/apps/tally/tests/models/test_result_form.py:261
 #: tally_ho/apps/tally/tests/models/test_result_form.py:262
-#: tally_ho/apps/tally/tests/models/test_result_form.py:263
 msgid "No"
 msgstr "لا"
 
@@ -640,6 +653,8 @@ msgid "Status"
 msgstr "الحالة"
 
 #: tally_ho/apps/tally/templates/audit/dashboard.html:154
+#: tally_ho/apps/tally/templates/audit/review.html:29
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:37
 msgid "View Details"
 msgstr "عرض التفاصيل"
 
@@ -704,7 +719,7 @@ msgstr "رمز المركز:"
 
 #: tally_ho/apps/tally/templates/audit/print_cover.html:24
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:24
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:46
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:50
 msgid "Number of Registrants:"
 msgstr "عدد المسجلين:"
 
@@ -736,8 +751,8 @@ msgid "Modified by:"
 msgstr "تم التعديل بواسطة:"
 
 #: tally_ho/apps/tally/templates/audit/print_cover.html:42
-#: tally_ho/apps/tally/templates/audit/review.html:32
-#: tally_ho/apps/tally/templates/audit/review.html:82
+#: tally_ho/apps/tally/templates/audit/review.html:44
+#: tally_ho/apps/tally/templates/audit/review.html:94
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:54
 #: tally_ho/apps/tally/templates/clearance/review.html:19
 #: tally_ho/apps/tally/templates/clearance/review.html:77
@@ -745,8 +760,8 @@ msgid "Problem"
 msgstr "مشكلة"
 
 #: tally_ho/apps/tally/templates/audit/print_cover.html:60
-#: tally_ho/apps/tally/templates/audit/review.html:48
-#: tally_ho/apps/tally/templates/audit/review.html:88
+#: tally_ho/apps/tally/templates/audit/review.html:60
+#: tally_ho/apps/tally/templates/audit/review.html:100
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:72
 #: tally_ho/apps/tally/templates/clearance/review.html:44
 #: tally_ho/apps/tally/templates/clearance/review.html:93
@@ -776,7 +791,7 @@ msgstr "تعليق المشرف:"
 #: tally_ho/apps/tally/templates/audit/print_cover.html:86
 #: tally_ho/apps/tally/templates/clearance/print_cover.html:99
 #: tally_ho/apps/tally/templates/intake/print_cover.html:78
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:85
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:89
 msgid "Print"
 msgstr "طباعة"
 
@@ -788,95 +803,95 @@ msgstr "طباعة"
 msgid "Print Successful"
 msgstr "تمت الطباعة بنجاح"
 
-#: tally_ho/apps/tally/templates/audit/review.html:10
+#: tally_ho/apps/tally/templates/audit/review.html:14
 msgid "Audit:"
 msgstr "التدقيق:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:10
+#: tally_ho/apps/tally/templates/audit/review.html:14
 msgid "Clerk Review"
 msgstr "مراجعة الكاتب"
 
-#: tally_ho/apps/tally/templates/audit/review.html:10
+#: tally_ho/apps/tally/templates/audit/review.html:14
 msgid "Supervisor Review"
 msgstr "مراجعة المشرف"
 
-#: tally_ho/apps/tally/templates/audit/review.html:15
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:21
+#: tally_ho/apps/tally/templates/audit/review.html:20
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:20
 msgid "Quarantined Form"
 msgstr "نموذج معزول"
 
-#: tally_ho/apps/tally/templates/audit/review.html:19
+#: tally_ho/apps/tally/templates/audit/review.html:26
 msgid "Failed quarantine check:"
 msgstr "فشل فحص التوقيف:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:35
+#: tally_ho/apps/tally/templates/audit/review.html:47
 msgid "Blank reconciliation"
 msgstr "استمارة تسوية فارغة"
 
-#: tally_ho/apps/tally/templates/audit/review.html:38
+#: tally_ho/apps/tally/templates/audit/review.html:50
 msgid "Blank results"
 msgstr "نتائج فارغة"
 
-#: tally_ho/apps/tally/templates/audit/review.html:41
+#: tally_ho/apps/tally/templates/audit/review.html:53
 msgid "Unclear figures"
 msgstr "أرقام غير واضحة"
 
-#: tally_ho/apps/tally/templates/audit/review.html:44
+#: tally_ho/apps/tally/templates/audit/review.html:56
 msgid "Damaged form"
 msgstr "نموذج تالف"
 
-#: tally_ho/apps/tally/templates/audit/review.html:53
-#: tally_ho/apps/tally/templates/audit/review.html:93
+#: tally_ho/apps/tally/templates/audit/review.html:65
+#: tally_ho/apps/tally/templates/audit/review.html:105
 #: tally_ho/apps/tally/templates/clearance/review.html:48
 #: tally_ho/apps/tally/templates/clearance/review.html:98
 msgid "Action Prior to Recommendation"
 msgstr "إجراء قبل التوصية"
 
-#: tally_ho/apps/tally/templates/audit/review.html:55
-#: tally_ho/apps/tally/templates/audit/review.html:94
+#: tally_ho/apps/tally/templates/audit/review.html:67
+#: tally_ho/apps/tally/templates/audit/review.html:106
 #: tally_ho/apps/tally/templates/clearance/review.html:50
 #: tally_ho/apps/tally/templates/clearance/review.html:99
 msgid "Action prior to recommendation:"
 msgstr "الإجراء قبل التوصية:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:60
-#: tally_ho/apps/tally/templates/audit/review.html:97
+#: tally_ho/apps/tally/templates/audit/review.html:72
+#: tally_ho/apps/tally/templates/audit/review.html:109
 #: tally_ho/apps/tally/templates/clearance/review.html:55
 #: tally_ho/apps/tally/templates/clearance/review.html:102
 msgid "Resolution recommendation:"
 msgstr "التوصية بالحل:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:68
-#: tally_ho/apps/tally/templates/audit/review.html:109
+#: tally_ho/apps/tally/templates/audit/review.html:80
+#: tally_ho/apps/tally/templates/audit/review.html:121
 #: tally_ho/apps/tally/templates/clearance/review.html:63
 #: tally_ho/apps/tally/templates/clearance/review.html:115
 msgid "Team comment:"
 msgstr "تعليق الفريق:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:74
-#: tally_ho/apps/tally/templates/audit/review.html:114
+#: tally_ho/apps/tally/templates/audit/review.html:86
+#: tally_ho/apps/tally/templates/audit/review.html:126
 #: tally_ho/apps/tally/templates/clearance/review.html:69
 #: tally_ho/apps/tally/templates/clearance/review.html:120
 msgid "Supervisor comment:"
 msgstr "تعليق المشرف:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:83
+#: tally_ho/apps/tally/templates/audit/review.html:95
 msgid "Blank reconciliation:"
 msgstr "استمارة تسوية فارغة:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:84
+#: tally_ho/apps/tally/templates/audit/review.html:96
 msgid "Blank results:"
 msgstr "نتائج فارغة:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:85
+#: tally_ho/apps/tally/templates/audit/review.html:97
 msgid "Unclear figures:"
 msgstr "أرقام غير واضحة:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:86
+#: tally_ho/apps/tally/templates/audit/review.html:98
 msgid "Damaged form:"
 msgstr "نموذج تالف:"
 
-#: tally_ho/apps/tally/templates/audit/review.html:90
+#: tally_ho/apps/tally/templates/audit/review.html:102
 #: tally_ho/apps/tally/templates/clearance/review.html:95
 #: tally_ho/apps/tally/templates/super_admin/edit_ballot.html:42
 #: tally_ho/apps/tally/templates/super_admin/edit_center.html:41
@@ -892,7 +907,7 @@ msgstr "نموذج تالف:"
 msgid "Save"
 msgstr "حفظ"
 
-#: tally_ho/apps/tally/templates/audit/review.html:91
+#: tally_ho/apps/tally/templates/audit/review.html:103
 #: tally_ho/apps/tally/templates/check_clearance_center_details.html:16
 #: tally_ho/apps/tally/templates/clearance/review.html:96
 #: tally_ho/apps/tally/templates/corrections/required.html:74
@@ -920,17 +935,17 @@ msgstr "حفظ"
 msgid "Cancel"
 msgstr "إلغاء"
 
-#: tally_ho/apps/tally/templates/audit/review.html:101
+#: tally_ho/apps/tally/templates/audit/review.html:113
 #: tally_ho/apps/tally/templates/clearance/review.html:106
 msgid "Forward to Supervisor and Print Cover"
 msgstr "إرسال إلى المشرف وطباعة الغلاف"
 
-#: tally_ho/apps/tally/templates/audit/review.html:103
+#: tally_ho/apps/tally/templates/audit/review.html:115
 #: tally_ho/apps/tally/templates/clearance/review.html:108
 msgid "Mark Form as Resolved"
 msgstr "تحديد النموذج كمحلول"
 
-#: tally_ho/apps/tally/templates/audit/review.html:104
+#: tally_ho/apps/tally/templates/audit/review.html:116
 msgid "Return to Audit Team"
 msgstr "إرجاع إلى فريق المراجعة"
 
@@ -1119,10 +1134,9 @@ msgid "Center ID"
 msgstr "معرّف المركز"
 
 #: tally_ho/apps/tally/templates/clearance/dashboard.html:51
-#, fuzzy
 #| msgid "Reject Recall"
 msgid "Reject Reason"
-msgstr "رفض الاسترجاع"
+msgstr "رفض السبب"
 
 #: tally_ho/apps/tally/templates/clearance/dashboard.html:52
 msgid "Reviewed?"
@@ -1311,7 +1325,7 @@ msgstr "بطاقة اقتراع جديدة"
 #: tally_ho/apps/tally/templates/super_admin/duplicate_result_tracking.html:21
 #: tally_ho/apps/tally/templates/super_admin/form_progress.html:24
 msgid "Show inactive ballots"
-msgstr ""
+msgstr "إظهار بطاقات الاقتراع غير النشطة"
 
 #: tally_ho/apps/tally/templates/data/ballots.html:60
 #: tally_ho/apps/tally/templates/data/offices.html:31
@@ -1864,7 +1878,7 @@ msgid "Start new form"
 msgstr "بدء نموذج جديد"
 
 #: tally_ho/apps/tally/templates/intake/print_cover.html:8
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:8
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:7
 msgid "Print Cover"
 msgstr "طباعة الغلاف"
 
@@ -1881,7 +1895,7 @@ msgid "Successful"
 msgstr "ناجح"
 
 #: tally_ho/apps/tally/templates/intake/print_cover.html:20
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:49
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:53
 msgid "Date/Time:"
 msgstr "التاريخ / الوقت:"
 
@@ -2005,39 +2019,39 @@ msgstr "نموذج مؤرشف"
 msgid "Failed Quarantine Checks:"
 msgstr "فشل في فحص التوقيف:"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:54
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:58
 msgid "Quarantined by:"
 msgstr "تم توقيفه من:"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:56
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:60
 msgid "Archived by:"
 msgstr "تمت أرشفته من قبل:"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:63
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:67
 msgid "Next Steps"
 msgstr "الخطوات التالية"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:65
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:69
 msgid "This form requires audit. Please forward to the audit team for review."
 msgstr "هذا النموذج يتطلب المراجعة، يرجى تمريره إلى فريق المراجعة"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:67
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:71
 msgid "This form has been successfully archived."
 msgstr "تمت أرشفة هذا النموذج بنجاح"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:74
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:78
 msgid "After printing, click the button below to send this form to Audit."
 msgstr "بعد الطباعة، انقر على الزر أدناه لإرسال هذا النموذج إلى المراجعة"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:76
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:80
 msgid "After printing, click the button below to archive this form."
 msgstr "بعد الطباعة، انقر على الزر أدناه لأرشفة هذا النموذج"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:88
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:92
 msgid "Finish and Send to Audit"
 msgstr "إنهاء وإرسال إلى المراجعة"
 
-#: tally_ho/apps/tally/templates/quality_control/print_cover.html:90
+#: tally_ho/apps/tally/templates/quality_control/print_cover.html:94
 msgid "Finish and Archive"
 msgstr "إنهاء وأرشفة"
 
@@ -2052,6 +2066,69 @@ msgstr "ملاحظات:"
 #: tally_ho/apps/tally/templates/quality_control/reject.html:9
 msgid "Form Rejected: Send to Data Entry 1"
 msgstr "تم رفض النموذج: أرسله إلى إدخال البيانات 1"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:13
+msgid "Input Values"
+msgstr "قيم الإدخال"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:17
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:42
+msgid "Item"
+msgstr "غرض"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:18
+#: tally_ho/apps/tally/templates/super_admin/quarantine_checks_list.html:22
+msgid "Value"
+msgstr "القيمة"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:29
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:61
+#: tally_ho/libs/verify/quarantine_checks.py:189
+#: tally_ho/libs/verify/quarantine_checks.py:283
+#: tally_ho/libs/verify/quarantine_checks.py:386
+msgid "Tolerance"
+msgstr "تسامح"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:31
+msgid "fixed value"
+msgstr "قيمة ثابتة"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:38
+msgid "Calculations"
+msgstr "الحسابات"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:43
+msgid "Calculation"
+msgstr "حساب"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:44
+msgid "Result"
+msgstr "نتيجة"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:63
+#| msgid "Tolerance %"
+msgid "Tolerance %%"
+msgstr "تسامح ٪"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:71
+msgid "Pass Condition"
+msgstr "حالة المرور"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:77
+msgid "PASS"
+msgstr "يمر"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:77
+msgid "FAIL"
+msgstr "يفشل"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:85
+msgid "Result: PASSED"
+msgstr "النتيجة: نجحت"
+
+#: tally_ho/apps/tally/templates/quarantine_check_details.html:85
+msgid "Result: FAILED"
+msgstr "النتيجة: فشل"
 
 #: tally_ho/apps/tally/templates/reports/admin_areas_excluded_after_investigation.html:23
 #: tally_ho/apps/tally/templates/reports/admin_areas_under_investigation.html:23
@@ -2263,6 +2340,7 @@ msgstr "أوراق الاقتراع المستلمة"
 #: tally_ho/apps/tally/templates/reports/offices.html:34
 #: tally_ho/apps/tally/templates/reports/valid_and_invalid_votes_by_admin_area.html:191
 #: tally_ho/libs/reports/progress.py:265
+#: tally_ho/libs/verify/quarantine_checks.py:379
 msgid "Valid Votes"
 msgstr "أصوات صحيحة"
 
@@ -2359,10 +2437,9 @@ msgid "Result Forms with Duplicate Results"
 msgstr "نماذج نتائج تحتوي على تكرارات"
 
 #: tally_ho/apps/tally/templates/reports/duplicate_results.html:47
-#, fuzzy
 #| msgid "Filter out Centers and Stations from report."
 msgid "Filter by Centers and Stations."
-msgstr "تصفية المراكز والمحطات من التقرير"
+msgstr "تصفية حسب المراكز والمحطات."
 
 #: tally_ho/apps/tally/templates/reports/duplicate_results.html:63
 msgid "State"
@@ -2731,6 +2808,7 @@ msgid "Valid and Invalid Votes by Admin Area"
 msgstr "الأصوات الصالحة والباطلة حسب المنطقة الإدارية"
 
 #: tally_ho/apps/tally/templates/reports/valid_and_invalid_votes_by_admin_area.html:192
+#: tally_ho/libs/verify/quarantine_checks.py:379
 msgid "Invalid Votes"
 msgstr "الأصوات الباطلة"
 
@@ -3112,10 +3190,9 @@ msgstr "حدف محطة"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:88
 #: tally_ho/apps/tally/templates/super_admin/reset_form.html:7
-#, fuzzy
 #| msgid "Remove Form"
 msgid "Reset Form"
-msgstr "إزالة النموذج"
+msgstr "إعادة تعيين النموذج"
 
 #: tally_ho/apps/tally/templates/super_admin/home.html:89
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:5
@@ -3200,10 +3277,6 @@ msgstr "نشيط:"
 #: tally_ho/apps/tally/templates/super_admin/quarantine_checks_list.html:21
 msgid "Modification date"
 msgstr "تاريخ التعديل"
-
-#: tally_ho/apps/tally/templates/super_admin/quarantine_checks_list.html:22
-msgid "Value"
-msgstr "القيمة"
 
 #: tally_ho/apps/tally/templates/super_admin/quarantine_checks_list.html:23
 msgid "Description"
@@ -3361,14 +3434,12 @@ msgid "Public Site Results Report"
 msgstr "تقرير نتائج الموقع العام"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:33
-#, fuzzy
 #| msgid "Error"
 msgid "Error:"
 msgstr "خطأ"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:37
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:107
-#, fuzzy
 #| msgid "Back to top"
 msgid "Back to Search"
 msgstr "عد إلى الأعلى"
@@ -3388,19 +3459,16 @@ msgid "Timestamp"
 msgstr ""
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:58
-#, fuzzy
 #| msgid "New User"
 msgid "User"
 msgstr "مستخدم جديد"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:59
-#, fuzzy
 #| msgid "Previous Form State"
 msgid "Previous State"
 msgstr "حالة النموذج السابقة"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:60
-#, fuzzy
 #| msgid "New Station"
 msgid "New State"
 msgstr "محطة جديدة"
@@ -3418,28 +3486,24 @@ msgid "Initial"
 msgstr ""
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_history.html:101
-#, fuzzy
 #| msgid "Total Centers"
 msgid "Total history entries:"
 msgstr "إجمالي عدد المراكز"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_search.html:4
-#, fuzzy
 #| msgid "Results Form Corrections:"
 msgid "Result Form History Search"
-msgstr "تصحيح نموذج النتائج:"
+msgstr "نتائج البحث في تاريخ النموذج"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_search.html:10
-#, fuzzy
 #| msgid "Scan Barcode to proceed"
 msgid "Scan or enter barcode to search"
 msgstr "امسح الباركود للمتابعة"
 
 #: tally_ho/apps/tally/templates/super_admin/result_form_search.html:28
-#, fuzzy
 #| msgid "Dashboard"
 msgid "Back to Dashboard"
-msgstr "لوحة التحكم"
+msgstr "العودة إلى لوحة القيادة"
 
 #: tally_ho/apps/tally/templates/super_admin/tallies.html:7
 msgid "Tallies"
@@ -3748,6 +3812,11 @@ msgstr "نسخة مكررة من نموذج تم إدخاله مسبقًا في 
 #: tally_ho/apps/tally/views/intake.py:218
 msgid "Ballot number do not match for center and form"
 msgstr "رقم بطاقة الاقتراع لا يتطابق مع المركز والنموذج"
+
+#: tally_ho/apps/tally/views/intake.py:282
+#| msgid "Center Number does not exist"
+msgid "Center with code {center_number} does not exist"
+msgstr "رقم المركز غير موجود"
 
 #: tally_ho/apps/tally/views/intake.py:512
 msgid "Intake Successful"
@@ -4301,6 +4370,98 @@ msgstr "محطة"
 msgid "Admin View"
 msgstr "عرض اجراء الاستمارة"
 
+#: tally_ho/libs/verify/quarantine_checks.py:148
+#| msgid "Reconciliation section"
+msgid "Reconciliation Check Details"
+msgstr "تفاصيل فحص المصالحة"
+
+#: tally_ho/libs/verify/quarantine_checks.py:151
+#: tally_ho/libs/verify/quarantine_checks.py:166
+#: tally_ho/libs/verify/quarantine_checks.py:263
+#: tally_ho/libs/verify/quarantine_checks.py:274
+#: tally_ho/libs/verify/quarantine_checks.py:368
+#| msgid "Valid Votes"
+msgid "Total Valid Votes"
+msgstr "إجمالي الأصوات الصالحة"
+
+#: tally_ho/libs/verify/quarantine_checks.py:155
+#: tally_ho/libs/verify/quarantine_checks.py:267
+#| msgid "Number of valid ballot papers:"
+msgid "Number of Invalid Ballot Papers"
+msgstr "عدد أوراق الاقتراع الصحيحة:"
+
+#: tally_ho/libs/verify/quarantine_checks.py:159
+#| msgid "Total number of ballot papers in the box"
+msgid "Total Number of Ballot Papers in the Box"
+msgstr "إجمالي أوراق الاقتراع داخل الصندوق"
+
+#: tally_ho/libs/verify/quarantine_checks.py:165
+#: tally_ho/libs/verify/quarantine_checks.py:178
+#: tally_ho/libs/verify/quarantine_checks.py:185
+#: tally_ho/libs/verify/quarantine_checks.py:273
+#: tally_ho/libs/verify/quarantine_checks.py:293
+#| msgid "Total Votes"
+msgid "Total Votes Cast"
+msgstr "إجمالي الأصوات"
+
+#: tally_ho/libs/verify/quarantine_checks.py:168
+#: tally_ho/libs/verify/quarantine_checks.py:276
+#| msgid "Invalid Ballots"
+msgid "Invalid Ballot Papers"
+msgstr "أوراق اقتراع غير صحيحة"
+
+#: tally_ho/libs/verify/quarantine_checks.py:174
+#: tally_ho/libs/verify/quarantine_checks.py:189
+msgid "Difference"
+msgstr "اختلاف"
+
+#: tally_ho/libs/verify/quarantine_checks.py:176
+#: tally_ho/libs/verify/quarantine_checks.py:378
+#: tally_ho/libs/verify/quarantine_checks.py:396
+#| msgid "Received Ballots Papers"
+msgid "Total Ballot Papers"
+msgstr "أوراق الاقتراع المستلمة"
+
+#: tally_ho/libs/verify/quarantine_checks.py:256
+#| msgid "Polling Center Details"
+msgid "Over Voting Check Details"
+msgstr "تفاصيل مركز الاقتراع"
+
+#: tally_ho/libs/verify/quarantine_checks.py:259
+#: tally_ho/libs/verify/quarantine_checks.py:283
+#: tally_ho/libs/verify/quarantine_checks.py:289
+#| msgid "Registrants"
+msgid "Registered Voters"
+msgstr "عدد المسجلين"
+
+#: tally_ho/libs/verify/quarantine_checks.py:282
+#: tally_ho/libs/verify/quarantine_checks.py:293
+#: tally_ho/libs/verify/quarantine_checks.py:385
+#: tally_ho/libs/verify/quarantine_checks.py:396
+msgid "Maximum Allowed"
+msgstr "الحد الأقصى المسموح به"
+
+#: tally_ho/libs/verify/quarantine_checks.py:361
+#| msgid "View Details"
+msgid "Card Check Details"
+msgstr "عرض التفاصيل"
+
+#: tally_ho/libs/verify/quarantine_checks.py:364
+#| msgid "Number of Voter Cards in the Ballot Box"
+msgid "Voter Cards in Ballot Box"
+msgstr "عدد بطاقات الناخبين داخل الصندوق"
+
+#: tally_ho/libs/verify/quarantine_checks.py:372
+#| msgid "Invalid Votes"
+msgid "Total Invalid Votes"
+msgstr "الأصوات الباطلة"
+
+#: tally_ho/libs/verify/quarantine_checks.py:386
+#: tally_ho/libs/verify/quarantine_checks.py:392
+#| msgid "Voters"
+msgid "Voter Cards"
+msgstr "الناخبون"
+
 #: tally_ho/libs/views/exports.py:471
 msgid "File Not found!"
 msgstr "الصفحة غير موجودة"
@@ -4321,3 +4482,9 @@ msgstr "خطأ : بيانات ناقصة "
 #: tally_ho/libs/views/session.py:22
 msgid "Session result_form does not match submitted data."
 msgstr "البيانات الناتجة غير مطابقه للنمودج المداخل"
+
+#~ msgid " is not supported."
+#~ msgstr "غير مدعوم"
+
+#~ msgid "Import staff list."
+#~ msgstr "استيراد قائمة العاملين"

@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 
-{% load i18n %}
-{% load tz %}
+{% load i18n tz static app_filters %}
 
 {% block content %}
 
@@ -29,14 +28,19 @@
         <td colspan="2" class="failed-checks-cell">
             <div class="failed-checks-section">
                 <h4 class="failed-checks-title">{% trans 'Failed Quarantine Checks:' %}</h4>
-                <ul class="failed-checks-list">
-                    {% for check in result_form.audit.quarantine_checks.all %}
-                    <li>
+                {% for check in result_form.audit.quarantine_checks.all %}
+                <div class="quarantine-check-details">
+                    <p style="margin: 0 0 10px 0;">
                         <span class="check-icon">❗</span>
-                        <span class="check-name">{{ check.local_name }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
+                        <strong>{{ check.local_name }}</strong>
+                        <a class="btn btn-xs btn-link" data-toggle="collapse" href="#check-details-{{ check.pk }}">
+                            {% trans 'View Details' %}
+                        </a>
+                    </p>
+
+                    {% include "quarantine_check_details.html" with result_form=result_form check=check %}
+                </div>
+                {% endfor %}
             </div>
         </td>
     </tr>
@@ -97,6 +101,7 @@
 {% block javascript %}
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.11.0.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/print_button_check.js"></script>
+<script src="{% static "js/bootstrap.min.js" %}"></script>
 {% endblock %}
 
 {% block extra_css %}
@@ -234,6 +239,7 @@
         margin-right: 0;
         margin-left: 10px;
     }
+
     /* End Styles for Failed Quarantine Checks */
     /* Print-specific styles */
     @media print {
