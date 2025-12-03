@@ -1225,7 +1225,7 @@ class TestClearance(TestBase):
         self.assertContains(
             response,
             (
-                'Tally ID: <ul class="errorlist">'
+                'Tally ID: <ul class="errorlist" id="id_tally_id_error">'
                 "<li>This field is required.</li></ul>"
             ),
         )

@@ -41,7 +41,7 @@ class TestProfile(TestBase):
         result_form = create_result_form(form_state=FormState.DATA_ENTRY_1,
                                          tally=tally)
         data_entry_url = 'enter-results/%s/' % tally.pk
-        request = self.factory.get(data_entry_url)
+        request = self.factory.post(data_entry_url)
         request.user = self.user
         # Adding session
         middleware = SessionMiddleware(HttpResponse)
@@ -51,6 +51,8 @@ class TestProfile(TestBase):
             encoded_result_form_data_entry_start_time
         request.session['result_form'] =\
             result_form.pk
+        # Mark request as not requiring CSRF check
+        request._dont_enforce_csrf_checks = True
 
         response = views.session_expiry_logout_view(request)
 
