@@ -15,6 +15,12 @@ from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 class Result(BaseModel):
     class Meta:
         app_label = 'tally'
+        indexes = [
+            # Optimize candidate vote calculations in exports
+            models.Index(fields=['candidate', 'entry_version', 'active', 'result_form']),
+            # Optimize filtering by form state
+            models.Index(fields=['result_form', 'entry_version', 'active']),
+        ]
 
     candidate = models.ForeignKey(Candidate,
                                   related_name='results',
