@@ -1,17 +1,21 @@
 import csv
+#import logging
 import os
+import time
 from collections import OrderedDict, defaultdict
 from tempfile import NamedTemporaryFile
 
 from django.conf import settings
 from django.core.files.base import File
 from django.core.files.storage import default_storage
+from django.db.models import Count, Sum, Q
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 
 OUTPUT_PATH = 'results/all_candidate_votes_%s.csv'
@@ -297,6 +301,14 @@ def export_candidate_votes(save_barcodes=False,
 
     :returns: The name of the temporary file that results have been output to.
     """
+
+    #logger = logging.getLogger(__name__)
+    #start_time = time.time()
+    #logger.info(f"[TIMING] Starting export_candidate_votes for tally_id={tally_id}")
+
+    from django.db import connection
+    from django.conf import settings
+
     header = ['ballot number',
               'stations',
               'stations completed',
@@ -325,7 +337,10 @@ def export_candidate_votes(save_barcodes=False,
         w = csv.DictWriter(f, header)
         w.writeheader()
 
+        ballot_count = 0
         for ballot in valid_ballots(tally_id):
+            ballot_start = time.time()
+            ballot_count += 1
             general_ballot = ballot
             forms = distinct_forms(ballot, tally_id)
             final_forms = ResultForm.forms_in_state(
@@ -350,15 +365,58 @@ def export_candidate_votes(save_barcodes=False,
             candidates_to_votes = {}
             num_results_ary = []
 
-            candidates = ballot.candidates.all()
+            # OPTIMIZATION: Use database aggregation to eliminate N+1 queries
+            # Instead of querying each candidate individually (2 queries × N candidates),
+            # we use a single aggregated query to get all vote counts for this ballot
+            candidate_query = ballot.candidates.all()
             if not show_disabled_candidates:
-                candidates = candidates.filter(active=True)
+                candidate_query = candidate_query.filter(active=True)
 
-            for candidate in candidates:
-                num_results, votes = candidate.num_votes()
-                all_votes = candidate.num_all_votes
-                candidates_to_votes[candidate.full_name] = [votes, all_votes]
+            # Single aggregated query to get all vote data for all candidates in this ballot
+            #agg_start = time.time()
+            candidates_with_votes = candidate_query.annotate(
+                # Count distinct result forms (for archived state only)
+                num_results=Count(
+                    'results__result_form',
+                    filter=Q(
+                        results__entry_version=EntryVersion.FINAL,
+                        results__active=True,
+                        results__result_form__form_state=FormState.ARCHIVED
+                    ),
+                    distinct=True
+                ),
+                # Sum votes from archived forms only
+                archived_votes=Sum(
+                    'results__votes',
+                    filter=Q(
+                        results__entry_version=EntryVersion.FINAL,
+                        results__active=True,
+                        results__result_form__form_state=FormState.ARCHIVED
+                    )
+                ),
+                # Sum votes from archived + audit (quarantine) forms
+                all_votes=Sum(
+                    'results__votes',
+                    filter=Q(
+                        results__entry_version=EntryVersion.FINAL,
+                        results__active=True,
+                        results__result_form__form_state__in=[FormState.ARCHIVED, FormState.AUDIT]
+                    )
+                )
+            ).values('full_name', 'num_results', 'archived_votes', 'all_votes')
+
+            # Build candidates_to_votes dictionary from aggregated results
+            for candidate_data in candidates_with_votes:
+                full_name = candidate_data['full_name']
+                votes = candidate_data['archived_votes'] or 0
+                all_votes_count = candidate_data['all_votes'] or 0
+                num_results = candidate_data['num_results'] or 0
+
+                candidates_to_votes[full_name] = [votes, all_votes_count]
                 num_results_ary.append(num_results)
+
+            #agg_duration = time.time() - agg_start
+            #logger.info(f"[TIMING] Ballot {ballot.number}: Aggregation query took {agg_duration:.3f}s for {len(candidates_to_votes)} candidates")
 
             assert len(set(num_results_ary)) <= 1
 
@@ -387,6 +445,12 @@ def export_candidate_votes(save_barcodes=False,
                        (i + 1)] = votes[1]
 
             write_utf8(w, output)
+
+            #ballot_duration = time.time() - ballot_start
+            #logger.info(f"[TIMING] Ballot {ballot.number}: Total processing took {ballot_duration:.3f}s")
+
+    #total_duration = time.time() - start_time
+    #logger.info(f"[TIMING] export_candidate_votes completed: {ballot_count} ballots in {total_duration:.3f}s (avg {total_duration/ballot_count:.3f}s per ballot)")
 
     if output_to_file:
         if show_disabled_candidates:
