@@ -1,9 +1,5 @@
 import csv
 import os
-import time
-import cProfile
-import pstats
-import io
 from collections import OrderedDict, defaultdict
 from tempfile import NamedTemporaryFile
 
@@ -325,22 +321,15 @@ def export_candidate_votes(save_barcodes=False,
                            output_duplicates=True,
                            output_to_file=True,
                            show_disabled_candidates=True,
-                           tally_id=None,
-                           profile=False):
+                           tally_id=None):
     """Export a spreadsheet of the candidates their votes for each race.
 
     :param save_barcodes: Generate barcode result file, default False.
     :param output_duplicates: Generate duplicates file, default True.
     :param output_to_file: Output to file, default True.
-    :param profile: Enable profiling output, default False.
 
     :returns: The name of the temporary file that results have been output to.
     """
-    if profile:
-        profiler = cProfile.Profile()
-        profiler.enable()
-        start_time = time.time()
-
     header = ['ballot number',
               'stations',
               'stations completed',
@@ -438,29 +427,12 @@ def export_candidate_votes(save_barcodes=False,
         else:
             save_csv_file_and_symlink(csv_file, ACTIVE_OUTPUT_PATH % tally_id)
 
-    result = csv_file.name
     if save_barcodes:
-        result = save_barcode_results(complete_barcodes,
-                                      output_duplicates=output_duplicates,
-                                      output_to_file=output_to_file,
-                                      tally_id=tally_id)
-
-    if profile:
-        profiler.disable()
-        total_time = time.time() - start_time
-
-        # Print profiling results
-        print(f"\n{'='*80}")
-        print(f"PROFILING RESULTS - Total time: {total_time:.2f}s")
-        print(f"{'='*80}")
-
-        s = io.StringIO()
-        ps = pstats.Stats(profiler, stream=s).sort_stats('cumulative')
-        ps.print_stats(30)  # Top 30 functions
-        print(s.getvalue())
-        print(f"{'='*80}\n")
-
-    return result
+        return save_barcode_results(complete_barcodes,
+                                    output_duplicates=output_duplicates,
+                                    output_to_file=output_to_file,
+                                    tally_id=tally_id)
+    return csv_file.name
 
 
 def check_position_changes(candidates_votes):
@@ -518,8 +490,7 @@ def get_result_export_response(report, tally_id):
         export_candidate_votes(save_barcodes=True,
                                output_duplicates=True,
                                show_disabled_candidates=show_disabled,
-                               tally_id=tally_id,
-                               profile=True)  # Enable profiling
+                               tally_id=tally_id)
 
         path = os.readlink(filename)
         filename = os.path.basename(path)
