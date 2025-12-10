@@ -1,5 +1,9 @@
 import csv
 import os
+import time
+import cProfile
+import pstats
+import io
 from collections import OrderedDict, defaultdict
 from tempfile import NamedTemporaryFile
 
@@ -12,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 
 OUTPUT_PATH = 'results/all_candidate_votes_%s.csv'
@@ -152,6 +157,8 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
 
     :returns: The name of the temporary file that results were saved to.
     """
+    from tally_ho.apps.tally.models.result import Result
+
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
     ballots_to_candidates = {}
@@ -189,8 +196,36 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
         w = csv.DictWriter(f, header)
         w.writeheader()
 
-        result_forms = ResultForm.objects.select_related().filter(
-            barcode__in=complete_barcodes, tally__id=tally_id)
+        # OPTIMIZATION: Use select_related and prefetch_related to eliminate N+1 queries
+        result_forms = ResultForm.objects.filter(
+            barcode__in=complete_barcodes, tally__id=tally_id
+        ).select_related(
+            'ballot',
+            'ballot__electrol_race',
+            'center',
+            'center__office',
+            'center__sub_constituency'
+        ).prefetch_related(
+            'ballot__candidates',  # For result_form.candidates property
+            'reconciliationform_set',
+            'center__stations'  # For result_form.station property
+        )
+
+        # OPTIMIZATION: Batch fetch ALL results to avoid N+1 queries
+        # Build a lookup: (result_form_id, candidate_id) -> votes
+        result_form_ids = [rf.id for rf in result_forms]
+
+        all_results = Result.objects.filter(
+            result_form_id__in=result_form_ids,
+            entry_version=EntryVersion.FINAL,
+            active=True
+        ).values('result_form_id', 'candidate_id', 'votes')
+
+        # Create lookup dictionary
+        votes_lookup = {}
+        for result in all_results:
+            key = (result['result_form_id'], result['candidate_id'])
+            votes_lookup[key] = result['votes']
 
         for result_form in result_forms:
             # build list of votes for this barcode
@@ -198,7 +233,9 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             output = build_result_and_recon_output(result_form)
 
             for candidate in result_form.candidates:
-                votes = candidate.num_votes(result_form)
+                # OPTIMIZATION: Use pre-fetched votes instead of querying
+                key = (result_form.id, candidate.id)
+                votes = votes_lookup.get(key, 0)
                 vote_list += (votes,)
 
                 output['order'] = candidate.order
@@ -288,15 +325,22 @@ def export_candidate_votes(save_barcodes=False,
                            output_duplicates=True,
                            output_to_file=True,
                            show_disabled_candidates=True,
-                           tally_id=None):
+                           tally_id=None,
+                           profile=False):
     """Export a spreadsheet of the candidates their votes for each race.
 
     :param save_barcodes: Generate barcode result file, default False.
     :param output_duplicates: Generate duplicates file, default True.
     :param output_to_file: Output to file, default True.
+    :param profile: Enable profiling output, default False.
 
     :returns: The name of the temporary file that results have been output to.
     """
+    if profile:
+        profiler = cProfile.Profile()
+        profiler.enable()
+        start_time = time.time()
+
     header = ['ballot number',
               'stations',
               'stations completed',
@@ -394,12 +438,29 @@ def export_candidate_votes(save_barcodes=False,
         else:
             save_csv_file_and_symlink(csv_file, ACTIVE_OUTPUT_PATH % tally_id)
 
+    result = csv_file.name
     if save_barcodes:
-        return save_barcode_results(complete_barcodes,
-                                    output_duplicates=output_duplicates,
-                                    output_to_file=output_to_file,
-                                    tally_id=tally_id)
-    return csv_file.name
+        result = save_barcode_results(complete_barcodes,
+                                      output_duplicates=output_duplicates,
+                                      output_to_file=output_to_file,
+                                      tally_id=tally_id)
+
+    if profile:
+        profiler.disable()
+        total_time = time.time() - start_time
+
+        # Print profiling results
+        print(f"\n{'='*80}")
+        print(f"PROFILING RESULTS - Total time: {total_time:.2f}s")
+        print(f"{'='*80}")
+
+        s = io.StringIO()
+        ps = pstats.Stats(profiler, stream=s).sort_stats('cumulative')
+        ps.print_stats(30)  # Top 30 functions
+        print(s.getvalue())
+        print(f"{'='*80}\n")
+
+    return result
 
 
 def check_position_changes(candidates_votes):
@@ -457,7 +518,8 @@ def get_result_export_response(report, tally_id):
         export_candidate_votes(save_barcodes=True,
                                output_duplicates=True,
                                show_disabled_candidates=show_disabled,
-                               tally_id=tally_id)
+                               tally_id=tally_id,
+                               profile=True)  # Enable profiling
 
         path = os.readlink(filename)
         filename = os.path.basename(path)

@@ -67,7 +67,7 @@ WSGI_APPLICATION = 'tally_ho.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'tallyho_mun_election_august_2025',
+        'NAME': 'tally',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': '127.0.0.1',
