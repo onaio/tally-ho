@@ -429,15 +429,21 @@ class TestExports(TestBase):
             rows = list(csv_reader)
             self.assertEqual(len(rows), 2, "Should have 2 rows for 2 candidates")
 
+            # Find rows by candidate name to avoid order dependency
+            rows_by_candidate = {row['candidate name']: row for row in rows}
+
+            # Verify we have both candidates
+            self.assertIn('Alice Smith', rows_by_candidate)
+            self.assertIn('Bob Jones', rows_by_candidate)
+
             # Verify first candidate row has all fields populated
-            row1 = rows[0]
+            row1 = rows_by_candidate['Alice Smith']
             self.assertEqual(row1['ballot'], '1')
             self.assertEqual(row1['race number'], '1')
             self.assertEqual(row1['center'], self.center.code)
             self.assertEqual(row1['station'], '10')
             self.assertEqual(row1['barcode'], result_form1.barcode)
             self.assertEqual(row1['order'], '1')
-            self.assertEqual(row1['candidate name'], 'Alice Smith')
             self.assertEqual(row1['candidate id'], str(candidate1.candidate_id))
             self.assertEqual(row1['votes'], '45')
             self.assertEqual(row1['invalid ballots'], '5')
@@ -449,14 +455,13 @@ class TestExports(TestBase):
             self.assertEqual(row1['candidate status'], 'enabled')
 
             # Verify second candidate row with different values
-            row2 = rows[1]
+            row2 = rows_by_candidate['Bob Jones']
             self.assertEqual(row2['ballot'], '2')
             self.assertEqual(row2['race number'], '2')
             self.assertEqual(row2['center'], self.center.code)
             self.assertEqual(row2['station'], '20')
             self.assertEqual(row2['barcode'], result_form2.barcode)
             self.assertEqual(row2['order'], '1')
-            self.assertEqual(row2['candidate name'], 'Bob Jones')
             self.assertEqual(row2['candidate id'], str(candidate2.candidate_id))
             self.assertEqual(row2['votes'], '67')
             self.assertEqual(row2['invalid ballots'], '8')
