@@ -127,19 +127,19 @@ class TestExports(TestBase):
     def test_export_candidate_votes_basic(self):
         """Test basic export_candidate_votes functionality."""
         # Create candidates for the ballot
-        candidate1 = create_candidate(
+        create_candidate(
             ballot=self.ballot,
             candidate_name="Test Candidate 1",
             tally=self.tally
         )
-        candidate2 = create_candidate(
+        create_candidate(
             ballot=self.ballot,
             candidate_name="Test Candidate 2",
             tally=self.tally
         )
 
         # Create result form
-        result_form = create_result_form(
+        create_result_form(
             ballot=self.ballot,
             center=self.center,
             station_number=self.station.station_number,
@@ -256,13 +256,13 @@ class TestExports(TestBase):
     def test_export_candidate_votes_filter_disabled(self):
         """Test that disabled candidates are filtered when requested."""
         # Create active and disabled candidates
-        active_candidate = create_candidate(
+        create_candidate(
             ballot=self.ballot,
             candidate_name="Active Candidate",
             tally=self.tally,
             active=True
         )
-        disabled_candidate = create_candidate(
+        create_candidate(
             ballot=self.ballot,
             candidate_name="Disabled Candidate",
             tally=self.tally,
