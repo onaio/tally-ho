@@ -8,12 +8,14 @@ from tally_ho.libs.tests.test_base import (
     create_center,
     create_electrol_race,
     create_reconciliation_form,
+    create_result,
     create_result_form,
     create_station,
     create_sub_constituency,
     create_tally,
     TestBase,
 )
+from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.views.exports import (
     export_candidate_votes,
@@ -296,6 +298,174 @@ class TestExports(TestBase):
             # Should only have columns for 1 candidate (the active one)
             self.assertIn('candidate 1 name', headers)
             self.assertNotIn('candidate 2 name', headers)
+
+        # Clean up
+        os.unlink(csv_filename)
+
+    def test_save_barcode_results_all_fields(self):
+        """Test that save_barcode_results exports all expected fields."""
+        # Create stations for the center (using different numbers to avoid conflicts)
+        station1 = create_station(self.center, station_number=10, registrants=200)
+        station2 = create_station(self.center, station_number=20, registrants=250)
+
+        # Create two ballots with candidates to verify different values
+        ballot1 = create_ballot(tally=self.tally, number=1)
+        candidate1 = create_candidate(
+            ballot=ballot1,
+            candidate_name='Alice Smith'
+        )
+
+        ballot2 = create_ballot(tally=self.tally, number=2)
+        candidate2 = create_candidate(
+            ballot=ballot2,
+            candidate_name='Bob Jones'
+        )
+
+        # Create first result form with reconciliation data
+        result_form1 = create_result_form(
+            ballot=ballot1,
+            barcode='1111111111',
+            serial_number=1,
+            center=self.center,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+            station_number=station1.station_number
+        )
+
+        # Create reconciliation form with all fields for result_form1
+        create_reconciliation_form(
+            result_form=result_form1,
+            user=self.user,
+            entry_version=EntryVersion.FINAL,
+            number_invalid_votes=5,
+            number_of_voter_cards_in_the_ballot_box=100,
+            number_of_voters=95,
+            number_valid_votes=90,
+            number_sorted_and_counted=95
+        )
+
+        # Create result for candidate1
+        create_result(
+            result_form=result_form1,
+            user=self.user,
+            candidate=candidate1,
+            votes=45
+        )
+
+        # Create second result form with different reconciliation data
+        result_form2 = create_result_form(
+            ballot=ballot2,
+            barcode='2222222',
+            serial_number=2,
+            center=self.center,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+            station_number=station2.station_number
+        )
+
+        # Create reconciliation form with different values for result_form2
+        create_reconciliation_form(
+            result_form=result_form2,
+            user=self.user,
+            entry_version=EntryVersion.FINAL,
+            number_invalid_votes=8,
+            number_of_voter_cards_in_the_ballot_box=150,
+            number_of_voters=142,
+            number_valid_votes=134,
+            number_sorted_and_counted=142
+        )
+
+        # Create result for candidate2 with different votes
+        create_result(
+            result_form=result_form2,
+            user=self.user,
+            candidate=candidate2,
+            votes=67
+        )
+
+        # Call save_barcode_results
+        from tally_ho.libs.views.exports import save_barcode_results
+        csv_filename = save_barcode_results(
+            complete_barcodes=[result_form1.barcode, result_form2.barcode],
+            output_duplicates=False,
+            output_to_file=False,
+            tally_id=self.tally.id
+        )
+
+        # Verify CSV contains all expected fields
+        expected_fields = [
+            'ballot',
+            'race number',
+            'center',
+            'station',
+            'gender',
+            'barcode',
+            'election level',
+            'sub race type',
+            'voting district',
+            'order',
+            'candidate name',
+            'candidate id',
+            'votes',
+            'invalid ballots',
+            'number of voter cards in the ballot box',
+            'received ballots papers',
+            'valid votes',
+            'total number of ballot papers in the box',
+            'number registrants',
+            'candidate status',
+        ]
+
+        with open(csv_filename, 'r') as f:
+            csv_reader = csv.DictReader(f)
+            fieldnames = csv_reader.fieldnames
+
+            # Check all expected fields are present
+            for field in expected_fields:
+                self.assertIn(field, fieldnames,
+                             f"Missing field: {field}")
+
+            # Read the rows and verify data
+            rows = list(csv_reader)
+            self.assertEqual(len(rows), 2, "Should have 2 rows for 2 candidates")
+
+            # Verify first candidate row has all fields populated
+            row1 = rows[0]
+            self.assertEqual(row1['ballot'], '1')
+            self.assertEqual(row1['race number'], '1')
+            self.assertEqual(row1['center'], self.center.code)
+            self.assertEqual(row1['station'], '10')
+            self.assertEqual(row1['barcode'], result_form1.barcode)
+            self.assertEqual(row1['order'], '1')
+            self.assertEqual(row1['candidate name'], 'Alice Smith')
+            self.assertEqual(row1['candidate id'], str(candidate1.candidate_id))
+            self.assertEqual(row1['votes'], '45')
+            self.assertEqual(row1['invalid ballots'], '5')
+            self.assertEqual(row1['number of voter cards in the ballot box'], '100')
+            self.assertEqual(row1['received ballots papers'], '95')
+            self.assertEqual(row1['valid votes'], '90')
+            self.assertEqual(row1['total number of ballot papers in the box'], '95')
+            self.assertEqual(row1['number registrants'], '200')
+            self.assertEqual(row1['candidate status'], 'enabled')
+
+            # Verify second candidate row with different values
+            row2 = rows[1]
+            self.assertEqual(row2['ballot'], '2')
+            self.assertEqual(row2['race number'], '2')
+            self.assertEqual(row2['center'], self.center.code)
+            self.assertEqual(row2['station'], '20')
+            self.assertEqual(row2['barcode'], result_form2.barcode)
+            self.assertEqual(row2['order'], '1')
+            self.assertEqual(row2['candidate name'], 'Bob Jones')
+            self.assertEqual(row2['candidate id'], str(candidate2.candidate_id))
+            self.assertEqual(row2['votes'], '67')
+            self.assertEqual(row2['invalid ballots'], '8')
+            self.assertEqual(row2['number of voter cards in the ballot box'], '150')
+            self.assertEqual(row2['received ballots papers'], '142')
+            self.assertEqual(row2['valid votes'], '134')
+            self.assertEqual(row2['total number of ballot papers in the box'], '142')
+            self.assertEqual(row2['number registrants'], '250')
+            self.assertEqual(row2['candidate status'], 'enabled')
 
         # Clean up
         os.unlink(csv_filename)
