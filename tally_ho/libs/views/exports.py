@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.ballot import Ballot
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
@@ -153,8 +154,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
 
     :returns: The name of the temporary file that results were saved to.
     """
-    from tally_ho.apps.tally.models.result import Result
-
+    
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
     ballots_to_candidates = {}
