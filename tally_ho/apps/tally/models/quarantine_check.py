@@ -9,11 +9,17 @@ from tally_ho.apps.tally.models.user_profile import UserProfile
 class QuarantineCheck(BaseModel):
     class Meta:
         app_label = 'tally'
+        unique_together = [['method', 'tally'], ['name', 'tally']]
 
     user = models.ForeignKey(UserProfile, null=True, on_delete=models.PROTECT)
+    tally = models.ForeignKey(
+        'Tally',
+        on_delete=models.PROTECT,
+        related_name='quarantine_checks'
+    )
 
-    name = models.CharField(max_length=256, unique=True)
-    method = models.CharField(max_length=256, unique=True)
+    name = models.CharField(max_length=256)
+    method = models.CharField(max_length=256)
     value = models.IntegerField(default=0)
     percentage = models.IntegerField(default=0)
     active = models.BooleanField(default=False)
