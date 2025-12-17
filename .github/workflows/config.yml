@@ -54,6 +54,9 @@ jobs:
       - name: Install gettext
         run: sudo apt-get install -y gettext
 
+      - name: Install reportlab system dependencies
+        run: sudo apt-get install -y libfreetype6-dev libjpeg-dev zlib1g-dev libfribidi-dev libharfbuzz-dev
+
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
         # Add uv to the PATH
