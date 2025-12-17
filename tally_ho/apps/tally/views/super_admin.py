@@ -2027,7 +2027,10 @@ class QuarantineChecksListView(
         return context
 
     def get(self, *args, **kwargs):
-        all_checks = QuarantineCheck.objects.all().order_by("id")
+        tally_id = self.kwargs.get("tally_id")
+        all_checks = QuarantineCheck.objects.filter(
+            tally_id=tally_id
+        ).order_by("id")
 
         checks = paging(all_checks, self.request)
 
