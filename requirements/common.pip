@@ -5,7 +5,7 @@ django-guardian==2.4.0
 django-queryset-csv==1.1.0
 django-reversion==5.0.4
 django-tracking2==0.5.1
-psycopg2-binary==2.8.6
+psycopg[binary]>=3.1
 python-dateutil==2.8.2
 xhtml2pdf==0.2.11
 python-pptx==0.6.21
