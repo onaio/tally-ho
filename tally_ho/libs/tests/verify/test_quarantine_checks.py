@@ -4,7 +4,8 @@ from django.conf import settings
 
 from tally_ho.libs.tests.test_base import (TestBase, create_center,
                                            create_reconciliation_form,
-                                           create_result_form, create_station)
+                                           create_result_form, create_station,
+                                           create_tally)
 from tally_ho.libs.verify.quarantine_checks import (
     create_quarantine_checks,
     pass_reconciliation_check,
@@ -14,8 +15,9 @@ from tally_ho.libs.verify.quarantine_checks import (
 
 
 class TestQuarantineChecks(TestBase):
-    def setUp(self):
-        create_quarantine_checks(getattr(settings, "QUARANTINE_DATA"))
+    def setUp(self):  
+        self.tally = create_tally()      
+        create_quarantine_checks(tally_id=self.tally.pk,quarantine_data=getattr(settings, "QUARANTINE_DATA"))
         self._create_permission_groups()
         self._create_and_login_user()
 
@@ -27,7 +29,7 @@ class TestQuarantineChecks(TestBase):
         papers including blank ones).
         """
         # Setup
-        center = create_center()
+        center = create_center(tally=self.tally)
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
             center=center,
@@ -71,7 +73,7 @@ class TestQuarantineChecks(TestBase):
 
         This test checks that the pass_reconciliation_check function
         with default 3% tolerance."""
-        center = create_center()
+        center = create_center(tally=self.tally)
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
             center=center, station_number=station.station_number
@@ -128,7 +130,7 @@ class TestQuarantineChecks(TestBase):
     @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_reconciliation_check_with_tolerance(self, MockQC):
         """Test the pass_reconciliation_check function with tolerance."""
-        center = create_center()
+        center = create_center(tally=self.tally)
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
             center=center, station_number=station.station_number
@@ -219,7 +221,7 @@ class TestQuarantineChecks(TestBase):
         security.
         """
         # Setup
-        center = create_center()
+        center = create_center(tally=self.tally)
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
             center=center,
@@ -277,7 +279,7 @@ class TestQuarantineChecks(TestBase):
     @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_over_voting_check_with_custom_tolerance(self, MockQC):
         """Test the pass_over_voting_check function with custom tolerance."""
-        center = create_center()
+        center = create_center(tally=self.tally)
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
             center=center, station_number=station.station_number
@@ -358,7 +360,7 @@ class TestQuarantineChecks(TestBase):
         tolerance value.
         """
         # Setup
-        center = create_center()
+        center = create_center(tally=self.tally)
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
             center=center,
@@ -397,7 +399,7 @@ class TestQuarantineChecks(TestBase):
     @patch("tally_ho.libs.verify.quarantine_checks.QuarantineCheck")
     def test_pass_card_check_with_custom_tolerance(self, MockQC):
         """Test the pass_card_check function with custom tolerance."""
-        center = create_center()
+        center = create_center(tally=self.tally)
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
             center=center, station_number=station.station_number
