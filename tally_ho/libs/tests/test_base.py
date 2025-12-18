@@ -283,8 +283,8 @@ def create_reconciliation_form(
     )
 
 
-def create_quarantine_checks(quarantine_data):
-    create_quarantine_checks_fn(quarantine_data=quarantine_data)
+def create_quarantine_checks(tally_id, quarantine_data):
+    create_quarantine_checks_fn(tally_id=tally_id, quarantine_data=quarantine_data)
 
 
 def create_recon_forms(result_form, user, de1_notes="", de2_notes=""):
