@@ -5,17 +5,28 @@ from tally_ho.apps.tally.models.audit import Audit
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 
 
-def create_quarantine_checks(quarantine_data=None):
+def create_quarantine_checks(tally_id, quarantine_data=None):
+    """Create quarantine checks for a specific tally.
+
+    :param tally_id: Required tally ID to associate checks with.
+    :param quarantine_data: List of check configurations. Uses settings.QUARANTINE_DATA if None.
+    """
+    
     quarantine_data = (
         quarantine_data
         if quarantine_data is not None
         else getattr(settings, "QUARANTINE_DATA")
     )
+
     for quarantine_check in quarantine_data:
         try:
-            QuarantineCheck.objects.get(method=quarantine_check["method"])
+            # Check if a check with this method already exists for this tally
+            QuarantineCheck.objects.get(method=quarantine_check["method"], tally_id=tally_id)
         except QuarantineCheck.DoesNotExist:
-            QuarantineCheck.objects.create(**quarantine_check)
+            # Add tally_id to the check data
+            check_data = quarantine_check.copy()
+            check_data['tally_id'] = tally_id
+            QuarantineCheck.objects.create(**check_data)
 
 
 # Disabled: Awaiting client feedback for final removal.
@@ -43,8 +54,10 @@ def get_total_candidates_votes(result_form):
     # return sum(vote_list)
 
 
-def quarantine_checks():
-    """Return tuples of (QuarantineCheck, validation_function)."""
+def quarantine_checks(tally_id):
+    """Return tuples of (validation_function, QuarantineCheck) for active checks.
+       :param tally_id: Required tally ID to filter checks. All checks are tally-specific.    
+    """
     all_methods = {
         "pass_reconciliation_check": pass_reconciliation_check,
         "pass_over_voting_check": pass_over_voting_check,
@@ -53,7 +66,7 @@ def quarantine_checks():
     methods = []
 
     quarantine_checks_methods = (
-        QuarantineCheck.objects.filter(active=True)
+        QuarantineCheck.objects.filter(active=True, tally_id=tally_id)
         .values_list("method", flat=True)
         .order_by("pk")
     )
@@ -61,7 +74,9 @@ def quarantine_checks():
     for method_name in quarantine_checks_methods:
         methods.append(all_methods[method_name])
 
-    checks = QuarantineCheck.objects.filter(active=True).order_by("pk")
+    checks = QuarantineCheck.objects.filter(
+        active=True, tally_id=tally_id
+    ).order_by("pk")
 
     return zip(methods, checks)
 
@@ -123,7 +138,11 @@ def get_reconciliation_check_details(result_form):
     expected_total = result_form.num_votes + recon_form.number_invalid_votes
     actual_total = recon_form.number_sorted_and_counted
 
-    qc = QuarantineCheck.objects.get(method="pass_reconciliation_check")
+    qc = QuarantineCheck.objects.get(
+        method="pass_reconciliation_check",
+        tally_id=result_form.tally_id
+    )
+
     allowed_tolerance = (
         (qc.value) if qc.value != 0 else ((qc.percentage / 100) * expected_total)
     )
@@ -231,7 +250,11 @@ def get_over_voting_check_details(result_form):
     if registrants is None:
         return None
 
-    qc = QuarantineCheck.objects.get(method="pass_over_voting_check")
+    qc = QuarantineCheck.objects.get(
+        method="pass_over_voting_check",
+        tally_id=result_form.tally_id
+    )
+
     allowed_tolerance = (
         (qc.value) if qc.value != 0 else ((qc.percentage / 100) * registrants)
     )
@@ -333,7 +356,11 @@ def get_card_check_details(result_form):
     if not recon_form:
         return None
 
-    qc = QuarantineCheck.objects.get(method="pass_card_check")
+    qc = QuarantineCheck.objects.get(
+        method="pass_card_check",
+        tally_id=result_form.tally_id
+    )
+
     voter_cards = recon_form.number_of_voter_cards_in_the_ballot_box
     allowed_tolerance = (
         (qc.value) if qc.value != 0 else ((qc.percentage / 100) * voter_cards)
@@ -724,7 +751,9 @@ def check_quarantine(result_form, user):
     audit = None
 
     if not result_form.skip_quarantine_checks:
-        for passed_check, check in quarantine_checks():
+        tally_id = result_form.tally_id
+
+        for passed_check, check in quarantine_checks(tally_id):
             if not passed_check(result_form):
                 if not audit:
                     audit = Audit.objects.create(
