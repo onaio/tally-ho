@@ -34,7 +34,8 @@ class TestGetQuarantineDetails(TestBase):
             name="Test Check",
             method="pass_reconciliation_check",
             value=5,
-            percentage=0
+            percentage=0,
+            tally = self.tally
         )
 
         result = get_quarantine_details(None, check)
@@ -79,7 +80,8 @@ class TestGetQuarantineDetails(TestBase):
             name="Reconciliation Check",
             method="pass_reconciliation_check",
             value=5,
-            percentage=0
+            percentage=0,
+            tally = self.tally
         )
 
         details = get_quarantine_details(result_form, check)
@@ -167,7 +169,8 @@ class TestGetQuarantineDetails(TestBase):
             name="Over Voting Check",
             method="pass_over_voting_check",
             value=10,
-            percentage=0
+            percentage=0,
+            tally = self.tally
         )
 
         details = get_quarantine_details(result_form, check)
@@ -248,7 +251,8 @@ class TestGetQuarantineDetails(TestBase):
             name="Card Check",
             method="pass_card_check",
             value=8,
-            percentage=0
+            percentage=0,
+            tally = self.tally
         )
 
         details = get_quarantine_details(result_form, check)
