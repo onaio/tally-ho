@@ -212,13 +212,14 @@ def center_data(code1, code2=None, station_number=1, tally_id=None):
     }
 
 
-def create_candidate(ballot, candidate_name, tally=None):
+def create_candidate(ballot, candidate_name, tally=None, active=True):
     return Candidate.objects.create(
         ballot=ballot,
         full_name=candidate_name,
         candidate_id=1,
         order=1,
         tally=tally,
+        active=active
     )
 
 
