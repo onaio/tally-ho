@@ -13,9 +13,11 @@ class TestMiddleware(TestCase):
 
     def setUp(self):
         bob = User.objects.create(username='bob', password='bob')
-        self.request = RequestFactory().get('/')
+        self.request = RequestFactory().post('/')
         self.request.user = bob
         self.request.session = self._session()
+        # Bypass CSRF checks for test
+        self.request._dont_enforce_csrf_checks = True
 
     def _session(self):
         if 'django.contrib.sessions' in settings.INSTALLED_APPS:
