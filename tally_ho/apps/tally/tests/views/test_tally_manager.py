@@ -160,7 +160,9 @@ class TestTallyManager(TestBase):
         self.assertContains(
             response,
             str('<input type="text" name="user_idle_timeout" value="example" '
-                'size="50" required id="id_user_idle_timeout">'))
+                'size="50" required aria-invalid="true" '
+                'aria-describedby="id_user_idle_timeout_error" '
+                'id="id_user_idle_timeout">'))
 
     def test_create_user_view_get(self):
         tally = create_tally()
