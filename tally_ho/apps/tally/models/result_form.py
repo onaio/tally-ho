@@ -142,6 +142,12 @@ class ResultForm(BaseModel):
                                  'station_number',
                                  'ballot',
                                  'tally']),
+            # Optimize barcode lookups in exports
+            models.Index(fields=['barcode', 'tally']),
+            # Optimize form_state filtering
+            models.Index(fields=['form_state', 'tally']),
+            # Optimize ballot and form_state queries
+            models.Index(fields=['ballot', 'form_state', 'tally']),
         ]
         unique_together = (('barcode', 'tally'), ('serial_number', 'tally'))
 
