@@ -474,3 +474,126 @@ class TestExports(TestBase):
 
         # Clean up
         os.unlink(csv_filename)
+
+    def test_export_candidate_votes_statistics_calculation(self):
+        """Test that candidate vote statistics are 
+        correctly calculated.
+        """
+        # Create candidates
+        candidate1 = create_candidate(
+            ballot=self.ballot,
+            candidate_name="Candidate One",
+            tally=self.tally
+        )
+        candidate2 = create_candidate(
+            ballot=self.ballot,
+            candidate_name="Candidate Two",
+            tally=self.tally
+        )
+
+        # Create archived result forms with votes for 
+        # both candidates        
+        result_form_1_archived = create_result_form(
+            ballot=self.ballot,
+            barcode='111111',
+            serial_number=1,
+            center=self.center,
+            station_number=self.station.station_number,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED
+        )
+        create_result(
+            result_form=result_form_1_archived,
+            candidate=candidate1,
+            votes=50,
+            user=self.user
+        )
+        create_result(
+            result_form=result_form_1_archived,
+            candidate=candidate2,
+            votes=45,
+            user=self.user
+        )
+
+        result_form_2_archived = create_result_form(
+            ballot=self.ballot,
+            barcode='222222',
+            serial_number=2,
+            center=self.center,
+            station_number=self.station.station_number + 1,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED
+        )
+        create_result(
+            result_form=result_form_2_archived,
+            candidate=candidate1,
+            votes=30,
+            user=self.user
+        )
+        create_result(
+            result_form=result_form_2_archived,
+            candidate=candidate2,
+            votes=35,
+            user=self.user
+        )
+
+        # Create audit result form with votes for both candidates
+        result_form_3_audit = create_result_form(
+            ballot=self.ballot,
+            barcode='333333',
+            serial_number=3,
+            center=self.center,
+            station_number=self.station.station_number + 2,
+            tally=self.tally,
+            form_state=FormState.AUDIT
+        )
+        create_result(
+            result_form=result_form_3_audit,
+            candidate=candidate1,
+            votes=20,
+            user=self.user
+        )
+        create_result(
+            result_form=result_form_3_audit,
+            candidate=candidate2,
+            votes=15,
+            user=self.user
+        )
+
+        # Call export function
+        csv_filename = export_candidate_votes(
+            save_barcodes=False,
+            output_duplicates=False,
+            output_to_file=False,
+            show_disabled_candidates=True,
+            tally_id=self.tally.id
+        )
+
+        # Verify CSV was created
+        self.assertTrue(os.path.exists(csv_filename))
+
+        # Read and verify the CSV content
+        with open(csv_filename, 'r') as f:
+            csv_reader = csv.DictReader(f)
+            rows = list(csv_reader)
+
+            # Should have one row for the ballot
+            self.assertEqual(len(rows), 1)
+            row = rows[0]
+
+            # Verify candidate1 statistics
+            # - votes: 80 (50 + 30 from archived forms)
+            # - all_votes: 100 (50 + 30 from archived + 20 from audit)
+            self.assertEqual(row['candidate 1 name'], 'Candidate One')
+            self.assertEqual(row['candidate 1 votes'], '80')  # Only archived
+            self.assertEqual(row['candidate 1 votes included quarantine'], '100')  # Archived + audit
+
+            # Verify candidate2 statistics
+            # - votes: 80 (45 + 35 from archived forms)
+            # - all_votes: 95 (45 + 35 from archived + 15 from audit)
+            self.assertEqual(row['candidate 2 name'], 'Candidate Two')
+            self.assertEqual(row['candidate 2 votes'], '80')
+            self.assertEqual(row['candidate 2 votes included quarantine'], '95')
+
+        # Clean up
+        os.unlink(csv_filename)
