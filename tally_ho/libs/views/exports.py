@@ -347,9 +347,14 @@ def export_candidate_votes(save_barcodes=False,
 
     max_candidates = 0
 
-    for ballot in Ballot.objects.filter(tally__id=tally_id):
+    # OPTIMIZATION: Prefetch candidates to avoid N+1 queries
+    ballots_with_candidates = Ballot.objects.filter(
+        tally__id=tally_id
+    ).prefetch_related('candidates')
+
+    for ballot in ballots_with_candidates:
         if not show_disabled_candidates:
-            ballot_number = ballot.candidates.filter(active=True).count()
+            ballot_number = len([candidate for candidate in ballot.candidates.all() if candidate.active])
         else:
             ballot_number = ballot.candidates.count()
 
@@ -362,6 +367,35 @@ def export_candidate_votes(save_barcodes=False,
         header.append('candidate %s votes included quarantine' % i)
 
     complete_barcodes = []
+
+    # OPTIMIZATION: Pre-calculate vote aggregates for all candidates to avoid N+1 queries
+    # This batches all the candidate.num_votes() and candidate.num_all_votes calls
+    candidate_vote_stats = {}
+
+    # Fetch all relevant results in TWO efficient queries instead of N queries
+    archived_results = Result.get_num_votes_for_all_candidates(tally_id)
+    all_results_data = Result.get_num_all_votes_for_all_candidates(tally_id)
+
+    # Build lookup dictionaries by candidate
+    archived_votes_by_candidate = defaultdict(dict)
+    for r in archived_results:
+        archived_votes_by_candidate[r['candidate_id']][r['result_form_id']] = r['votes']
+
+    all_votes_by_candidate = defaultdict(dict)
+    for r in all_results_data:
+        all_votes_by_candidate[r['candidate_id']][r['result_form_id']] = r['votes']
+
+    # Calculate stats for each candidate
+    all_candidate_ids = set(archived_votes_by_candidate.keys()) | set(all_votes_by_candidate.keys())
+    for candidate_id in all_candidate_ids:
+        archived_votes_by_candidate_dict = archived_votes_by_candidate.get(candidate_id, {})
+        all_votes_by_candidate_dict = all_votes_by_candidate.get(candidate_id, {})
+
+        candidate_vote_stats[candidate_id] = {
+            'num_results': len(archived_votes_by_candidate_dict),
+            'votes': sum(archived_votes_by_candidate_dict.values()),
+            'all_votes': sum(all_votes_by_candidate_dict.values())
+        }
 
     csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
     with open(csv_file.name, 'w') as f:
@@ -395,11 +429,19 @@ def export_candidate_votes(save_barcodes=False,
 
             candidates = ballot.candidates.all()
             if not show_disabled_candidates:
-                candidates = candidates.filter(active=True)
+                candidates = [c for c in candidates if c.active]
 
             for candidate in candidates:
-                num_results, votes = candidate.num_votes()
-                all_votes = candidate.num_all_votes
+                # OPTIMIZATION: Use pre-calculated vote stats instead of querying
+                stats = candidate_vote_stats.get(candidate.id, {
+                    'num_results': 0,
+                    'votes': 0,
+                    'all_votes': 0
+                })
+                num_results = stats['num_results']
+                votes = stats['votes']
+                all_votes = stats['all_votes']
+
                 candidates_to_votes[candidate.full_name] = [votes, all_votes]
                 num_results_ary.append(num_results)
 
