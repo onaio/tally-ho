@@ -82,7 +82,7 @@ def reverse_populate_tally_for_quarantine_checks(apps, schema_editor):
 
 class Migration(migrations.Migration):    
     dependencies = [
-        ("tally", "0072_alter_quarantinecheck_add_tally_id"),
+        ("tally", "0073_alter_quarantinecheck_add_tally_id"),
     ]
 
     operations = [

@@ -137,7 +137,7 @@ def reverse_remap_audit_quarantine_checks(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("tally", "0073_populate_quarantine_check_tally"),
+        ("tally", "0074_populate_quarantine_check_tally"),
     ]
 
     operations = [

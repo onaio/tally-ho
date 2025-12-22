@@ -67,7 +67,7 @@ def restore_global_quarantine_checks(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("tally", "0074_remap_audit_quarantine_checks"),
+        ("tally", "0075_remap_audit_quarantine_checks"),
     ]
 
     operations = [

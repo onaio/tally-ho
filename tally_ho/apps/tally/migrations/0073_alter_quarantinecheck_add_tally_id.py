@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("tally", "0071_add_tally_form_reset"),
+        ("tally", "0072_add_export_optimization_indexes"),
     ]
 
     operations = [

@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("tally", "0075_delete_global_quarantine_checks"),
+        ("tally", "0076_delete_global_quarantine_checks"),
     ]
 
     operations = [
