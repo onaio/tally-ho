@@ -17,6 +17,12 @@ from tally_ho.libs.utils.templates import get_active_candidate_link
 class Candidate(BaseModel):
     class Meta:
         app_label = 'tally'
+        indexes = [
+            # Optimize candidate filtering by ballot and active status
+            models.Index(fields=['ballot', 'active']),
+            # Optimize ordering candidates
+            models.Index(fields=['ballot', 'order']),
+        ]
 
     ballot = models.ForeignKey(Ballot, related_name='candidates',
                                on_delete=models.PROTECT)

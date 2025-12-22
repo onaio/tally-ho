@@ -28,10 +28,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.9
+      - name: Set up Python 3.12
         uses: actions/setup-python@v2
         with:
-          python-version: "3.9"
+          python-version: "3.12"
 
       - name: Cache Dependencies
         uses: actions/cache@v3
@@ -53,6 +53,9 @@ jobs:
 
       - name: Install gettext
         run: sudo apt-get install -y gettext
+
+      - name: Install reportlab system dependencies
+        run: sudo apt-get install -y libfreetype6-dev libjpeg-dev zlib1g-dev libfribidi-dev libharfbuzz-dev
 
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh

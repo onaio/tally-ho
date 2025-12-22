@@ -11,7 +11,9 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.ballot import Ballot
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 
 OUTPUT_PATH = 'results/all_candidate_votes_%s.csv'
@@ -152,6 +154,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
 
     :returns: The name of the temporary file that results were saved to.
     """
+    
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
     ballots_to_candidates = {}
@@ -189,8 +192,36 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
         w = csv.DictWriter(f, header)
         w.writeheader()
 
-        result_forms = ResultForm.objects.select_related().filter(
-            barcode__in=complete_barcodes, tally__id=tally_id)
+        # OPTIMIZATION: Use select_related and prefetch_related to eliminate N+1 queries
+        result_forms = ResultForm.objects.filter(
+            barcode__in=complete_barcodes, tally__id=tally_id
+        ).select_related(
+            'ballot',
+            'ballot__electrol_race',
+            'center',
+            'center__office',
+            'center__sub_constituency'
+        ).prefetch_related(
+            'ballot__candidates',  # For result_form.candidates property
+            'reconciliationform_set',
+            'center__stations'  # For result_form.station property
+        )
+
+        # OPTIMIZATION: Batch fetch ALL results to avoid N+1 queries
+        # Build a lookup: (result_form_id, candidate_id) -> votes
+        result_form_ids = [rf.id for rf in result_forms]
+
+        all_results = Result.objects.filter(
+            result_form_id__in=result_form_ids,
+            entry_version=EntryVersion.FINAL,
+            active=True
+        ).values('result_form_id', 'candidate_id', 'votes')
+
+        # Create lookup dictionary
+        votes_lookup = {}
+        for result in all_results:
+            key = (result['result_form_id'], result['candidate_id'])
+            votes_lookup[key] = result['votes']
 
         for result_form in result_forms:
             # build list of votes for this barcode
@@ -198,7 +229,9 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             output = build_result_and_recon_output(result_form)
 
             for candidate in result_form.candidates:
-                votes = candidate.num_votes(result_form)
+                # OPTIMIZATION: Use pre-fetched votes instead of querying
+                key = (result_form.id, candidate.id)
+                votes = votes_lookup.get(key, 0)
                 vote_list += (votes,)
 
                 output['order'] = candidate.order
