@@ -47,20 +47,17 @@ def restore_global_quarantine_checks(apps, schema_editor):
     print(f"\nRestoring global checks from Tally ID {first_tally.id}...")
 
     for check in tally_checks:
-        # Remove the tally-specific suffix from the name
-        original_name = check.name.replace(f" (Tally {first_tally.id})", "")
-
         QuarantineCheck.objects.create(
             tally=None,  # Global check
             user=check.user,
-            name=original_name,
+            name=check.name,
             method=check.method,
             value=check.value,
             percentage=check.percentage,
             active=check.active,
             description=check.description,
         )
-        print(f"  ✓ Restored: {original_name}")
+        print(f"  ✓ Restored: {check.name}")
 
     print("Global checks restored\n")
 

@@ -47,7 +47,7 @@ def populate_tally_for_quarantine_checks(apps, schema_editor):
             new_check = QuarantineCheck.objects.create(
                 tally=tally,
                 user=check.user,
-                name=f"{check.name} (Tally {tally.id})",  # Make name unique
+                name=check.name,
                 method=check.method,  # Keep method same for lookup
                 value=check.value,
                 percentage=check.percentage,
