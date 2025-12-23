@@ -145,6 +145,7 @@ class TestResultForm(TestBase):
             name='1',
             method='1',
             value=1,
+            tally = self.tally
         )
         audit = create_audit(result_form, self.user)
         audit.quarantine_checks.add(quarantine_check)
@@ -229,7 +230,11 @@ class TestResultForm(TestBase):
         audit.save()
 
         quarantine_check =\
-            QuarantineCheck.objects.create(name='check1', method='m1')
+            QuarantineCheck.objects.create(
+                name='check1',
+                method='m1',
+                tally=self.tally
+            )
         audit.quarantine_checks.add(quarantine_check)
 
         result_form.refresh_from_db()

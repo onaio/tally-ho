@@ -71,7 +71,8 @@ class TestAudit(TestBase):
             user=self.user,
             name='Guard against overvoting',
             method='1',
-            value=1)
+            value=1,
+            tally = tally)
         audit = create_audit(result_form, self.user, reviewed_team=True)
         audit.quarantine_checks.add(quarantine_check)
         self._create_and_login_user()
@@ -1011,7 +1012,8 @@ class TestAuditRecallRequestsCsvView(TestBase):
             name="Reconciliation Check",
             method="pass_reconciliation_check",
             value=5,
-            percentage=0
+            percentage=0,
+            tally = tally
         )
         audit.quarantine_checks.add(check)
 
@@ -1099,7 +1101,8 @@ class TestAuditRecallRequestsCsvView(TestBase):
             name="Over Voting Check",
             method="pass_over_voting_check",
             value=10,
-            percentage=0
+            percentage=0,
+            tally = tally
         )
         audit.quarantine_checks.add(check)
 
@@ -1173,7 +1176,8 @@ class TestAuditRecallRequestsCsvView(TestBase):
             name="Card Check",
             method="pass_card_check",
             value=8,
-            percentage=0
+            percentage=0,
+            tally = tally
         )
         audit.quarantine_checks.add(check)
 
@@ -1262,13 +1266,15 @@ class TestAuditRecallRequestsCsvView(TestBase):
             name="Reconciliation Check",
             method="pass_reconciliation_check",
             value=5,
-            percentage=0
+            percentage=0,
+            tally = tally
         )
         check2 = QuarantineCheck.objects.create(
             name="Card Check",
             method="pass_card_check",
             value=8,
-            percentage=0
+            percentage=0,
+            tally = tally
         )
 
         audit.quarantine_checks.add(check1, check2)
