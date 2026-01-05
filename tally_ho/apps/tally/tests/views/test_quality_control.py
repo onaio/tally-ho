@@ -728,7 +728,10 @@ class TestQualityControl(TestBase):
         """
         Test quality control post passes all quarantine triggers
         """
-        create_quarantine_checks(self.quarantine_data)
+        create_quarantine_checks(
+            tally_id= self.tally.pk, 
+            quarantine_data=self.quarantine_data
+        )
         center = create_center()
         station = create_station(center=center, registrants=50)
         result_form = create_result_form(
@@ -775,7 +778,10 @@ class TestQualityControl(TestBase):
         """
         Test quality control post fails card check quarantine trigger
         """
-        create_quarantine_checks(self.quarantine_data)
+        create_quarantine_checks(
+            tally_id= self.tally.pk, 
+            quarantine_data=self.quarantine_data
+        )
         center = create_center()
         station = create_station(center=center, registrants=50)
         result_form = create_result_form(
@@ -821,7 +827,10 @@ class TestQualityControl(TestBase):
         """
         Test quality control post fails recon check quarantine trigger
         """
-        create_quarantine_checks(self.quarantine_data)
+        create_quarantine_checks(
+            tally_id= self.tally.pk, 
+            quarantine_data=self.quarantine_data
+        )
         center = create_center()
         station = create_station(center=center, registrants=100)
         result_form = create_result_form(
@@ -867,7 +876,10 @@ class TestQualityControl(TestBase):
         """
         Test quality control post fails over-voting check quarantine trigger
         """
-        create_quarantine_checks(self.quarantine_data)
+        create_quarantine_checks(
+            tally_id= self.tally.pk, 
+            quarantine_data=self.quarantine_data
+        )
         center = create_center()
         station = create_station(center=center, registrants=24)
         result_form = create_result_form(
@@ -915,7 +927,10 @@ class TestQualityControl(TestBase):
         """
         center = create_center()
         create_station(center, registrants=2)
-        create_quarantine_checks(self.quarantine_data)
+        create_quarantine_checks(
+            tally_id= self.tally.pk, 
+            quarantine_data=self.quarantine_data
+        )
         result_form = create_result_form(
             form_state=FormState.QUALITY_CONTROL,
             tally=self.tally,
@@ -1000,7 +1015,8 @@ class TestQualityControl(TestBase):
             station_number=station_number,
         )
         quarantine_check = QuarantineCheck.objects.create(
-            user=self.user, name="1", method="1", value=1
+            user=self.user, name="1", method="1", value=1,
+            tally = self.tally
         )
         audit = create_audit(result_form, self.user)
         audit.quarantine_checks.add(quarantine_check)
