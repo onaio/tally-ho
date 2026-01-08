@@ -23,12 +23,39 @@ def get_candidate_results_queryset(tally_id, data=None):
     similar to the output of save_barcode_results.
     If data is None, include all forms for the tally.
     """
+    from django.db.models import Prefetch
+    from tally_ho.apps.tally.models.candidate import Candidate
+    from tally_ho.apps.tally.models.result import Result
+    from tally_ho.libs.models.enums.entry_version import EntryVersion
+
     queryset = []
+
+    # Prefetch candidates with their results to eliminate N+1 queries
+    candidates_prefetch = Prefetch(
+        'ballot__candidates',
+        queryset=Candidate.objects.select_related('ballot').prefetch_related(
+            Prefetch(
+                'results',
+                queryset=Result.objects.filter(
+                    entry_version=EntryVersion.FINAL,
+                    active=True,
+                    result_form__form_state=FormState.ARCHIVED,
+                ),
+                to_attr='final_results'
+            )
+        )
+    )
+
     result_forms = ResultForm.objects.select_related(
         'ballot',
         'center',
-        'ballot__electrol_race',
+        'center__office',
         'center__sub_constituency',
+        'ballot__electrol_race',
+    ).prefetch_related(
+        candidates_prefetch,
+        'center__stations',  # For result_form.station property
+        'reconciliationform_set',  # For result_form.reconciliationform property
     ).filter(
         tally__id=tally_id,
         form_state=FormState.ARCHIVED,
@@ -53,9 +80,11 @@ def get_candidate_results_queryset(tally_id, data=None):
 
     for result_form in result_forms:
         output = build_candidate_results_output(result_form)
-        for candidate in result_form.candidates:
+        for candidate in result_form.ballot.candidates.all():
             row = output.copy()
-            votes = candidate.num_votes(result_form)
+            # Calculate votes from prefetched final_results instead of triggering new query
+            votes = sum(result.votes for result in candidate.final_results
+                       if result.result_form_id == result_form.id)
             row['order'] = candidate.order
             row['candidate_name'] = candidate.full_name
             row['candidate_id'] = candidate.candidate_id
