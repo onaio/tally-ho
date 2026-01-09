@@ -247,3 +247,49 @@ class TestCandidateResultsViews(TestBase):
         content = json.loads(response.content.decode())
 
         self.assertEqual(len(content['data']), 0)
+
+    def test_candidate_results_data_view_all_fields_accurate(self):
+        """
+        Test that ALL returned field values match the source data exactly.
+        Verifies data accuracy for all fields in the candidate results output.
+        """
+        url = reverse(
+            'candidate-results-data', kwargs={'tally_id': self.tally.pk}
+        )
+        request = self.factory.get(url)
+        request.user = self.user
+        request.session = {}
+        response = CandidateResultsDataView.as_view()(
+            request, tally_id=self.tally.pk
+        )
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(len(content['data']), 1)
+        row = content['data'][0]
+
+        # Validate all fields
+        self.assertEqual(row['ballot'], self.result_form.ballot.number)
+        self.assertEqual(row['race_number'], self.result_form.ballot.number)
+        self.assertEqual(row['center'], 1) 
+        self.assertEqual(row['office'], self.result_form.center.office.name)
+        self.assertEqual(row['station'], 1)
+        self.assertEqual(row['gender'], 'MALE')
+        self.assertEqual(row['barcode'], self.result_form.barcode)
+        self.assertEqual(row['election_level'], 'Municipal')
+        self.assertEqual(row['sub_race_type'], 'Individual')
+        self.assertEqual(row['voting_district'], 1)
+        self.assertEqual(row['order'], 0)
+        self.assertEqual(row['candidate_name'], 'the candidate name')
+        self.assertEqual(row['candidate_id'], 1)
+        self.assertEqual(row['votes'], 55)
+        self.assertEqual(row['invalid_ballots'], 5)
+        self.assertEqual(
+            row['number_of_voter_cards_in_the_ballot_box'],
+            self.recon_form.number_of_voter_cards_in_the_ballot_box or 0
+        )
+        self.assertEqual(row['received_ballots_papers'], 100)
+        self.assertEqual(row['valid_votes'], 55)
+        self.assertEqual(row['number_registrants'], 100)
+        self.assertEqual(row['candidate_status'], 'enabled')
+   
