@@ -153,6 +153,9 @@ class TallyAccessMixin(object):
         tally = get_object_or_404(Tally, id=tally_id)
         user_profile = UserProfile.objects.get(id=self.request.user.id)
 
+        if not tally.active:
+            raise PermissionDenied
+
         if not (self.has_tally_access(user_profile, tally)):
             raise PermissionDenied
 
