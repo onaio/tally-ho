@@ -73,14 +73,59 @@ def distinct_forms(ballot, tally_id):
     return forms
 
 
-def build_result_and_recon_output(result_form):
+def get_station_from_prefetch(result_form):
+    """Get station from prefetched center.stations without triggering a query.
+
+    The result_form.station property uses .filter() which bypasses prefetch.
+    This function iterates over prefetched stations to find the matching one.
+
+    :param result_form: The result form with prefetched center.stations.
+    :returns: The matching Station object or None.
+    """
+    if result_form.center:
+        # Use .all() to access prefetched queryset instead of .filter()
+        for station in result_form.center.stations.all():
+            if station.station_number == result_form.station_number:
+                return station
+    return None
+
+
+def get_reconciliationform_from_prefetch(result_form):
+    """Get final reconciliation form from prefetched set without triggering query.
+
+    The result_form.reconciliationform property uses .filter() which bypasses
+    prefetch. This function iterates over prefetched reconciliationform_set.
+
+    :param result_form: The result form with prefetched reconciliationform_set.
+    :returns: The final ReconciliationForm object or None.
+    """
+    # Use .all() to access prefetched queryset instead of .filter()
+    for recon in result_form.reconciliationform_set.all():
+        if recon.active and recon.entry_version == EntryVersion.FINAL:
+            return recon
+    return None
+
+
+def build_result_and_recon_output(result_form, station=None, recon=None):
     """Build dict of data from a result form and add reconciliation information
     if it has a reconciliation form.
 
     :param result_form: The result form to build data for.
+    :param station: Optional pre-fetched station object. If None, will be
+        retrieved from prefetched data.
+    :param recon: Optional pre-fetched reconciliation form. If None, will be
+        retrieved from prefetched data.
 
     :returns: A dict of information about this result form.
     """
+    # Use provided station or get from prefetch to avoid N+1 query
+    if station is None:
+        station = get_station_from_prefetch(result_form)
+
+    # Use provided recon or get from prefetch to avoid N+1 query
+    if recon is None:
+        recon = get_reconciliationform_from_prefetch(result_form)
+
     output = {
         'ballot': result_form.ballot.number,
         'center': result_form.center.code,
@@ -90,10 +135,8 @@ def build_result_and_recon_output(result_form):
         'election level': result_form.ballot.electrol_race.election_level,
         'sub race type': result_form.ballot.electrol_race.ballot_name,
         'voting district': result_form.center.sub_constituency.code,
-        'number registrants': result_form.station.registrants
+        'number registrants': station.registrants if station else None
     }
-
-    recon = result_form.reconciliationform
 
     if recon:
         output.update({
@@ -109,14 +152,26 @@ def build_result_and_recon_output(result_form):
     return output
 
 
-def build_candidate_results_output(result_form):
+def build_candidate_results_output(result_form, station=None, recon=None):
     """Build dict of data from a result form and add reconciliation information
     if it has a reconciliation form.
 
     :param result_form: The result form to build data for.
+    :param station: Optional pre-fetched station object. If None, will be
+        retrieved from prefetched data.
+    :param recon: Optional pre-fetched reconciliation form. If None, will be
+        retrieved from prefetched data.
 
     :returns: A dict of information about this result form.
     """
+    # Use provided station or get from prefetch to avoid N+1 query
+    if station is None:
+        station = get_station_from_prefetch(result_form)
+
+    # Use provided recon or get from prefetch to avoid N+1 query
+    if recon is None:
+        recon = get_reconciliationform_from_prefetch(result_form)
+
     output = {
         'ballot': result_form.ballot.number,
         'center': result_form.center.code,
@@ -127,10 +182,8 @@ def build_candidate_results_output(result_form):
         'election_level': result_form.ballot.electrol_race.election_level,
         'sub_race_type': result_form.ballot.electrol_race.ballot_name,
         'voting_district': result_form.center.sub_constituency.code,
-        'number_registrants': result_form.station.registrants
+        'number_registrants': station.registrants if station else None
     }
-
-    recon = result_form.reconciliationform
 
     if recon:
         output.update({
