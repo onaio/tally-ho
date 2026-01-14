@@ -3,8 +3,10 @@ from django.test import RequestFactory
 from django.views.generic.base import View
 
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import TestBase
+from tally_ho.libs.tests.test_base import (TestBase,
+                                           create_tally)
 from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+                                        TallyAccessMixin,
                                         get_datatables_context)
 
 
@@ -125,3 +127,39 @@ class TestDataTablesContext(TestBase):
 
         context = get_datatables_context(request, enable_scroll_x=False)
         self.assertFalse(context['enable_scroll_x'])
+
+
+class ViewWithTallyAccess(View):
+    """Test view that uses TallyAccessMixin"""
+    def dispatch(self, request, *args, **kwargs):
+        return TallyAccessMixin.dispatch(self, request, *args, **kwargs)
+
+
+class TestTallyAccessMixin(TestBase):
+    def setUp(self):
+        super().setUp()        
+        self.create_tally = create_tally
+        self.factory = RequestFactory()
+        self._create_permission_groups()
+        self._create_and_login_user()
+
+    def test_inactive_tally_blocks_access(self):
+        """Test that access to inactive tally is blocked for all users"""
+        # Create an inactive tally
+        tally = self.create_tally()
+        tally.active = False
+        tally.save()
+
+        # Add user to tally manager group
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        # Create request
+        request = self.factory.get(f'super-administrator/{tally.id}/')
+        request.user = self.user
+
+        # Try to access view
+        view = ViewWithTallyAccess.as_view()
+
+        # Should raise PermissionDenied
+        with self.assertRaises(PermissionDenied):
+            view(request, tally_id=tally.id)
