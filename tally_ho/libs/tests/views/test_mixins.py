@@ -1,4 +1,5 @@
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.http import Http404
 from django.test import RequestFactory
 from django.views.generic.base import View
 
@@ -156,10 +157,10 @@ class TestTallyAccessMixin(TestBase):
         # Create request
         request = self.factory.get(f'super-administrator/{tally.id}/')
         request.user = self.user
-
-        # Try to access view
+      
         view = ViewWithTallyAccess.as_view()
 
-        # Should raise PermissionDenied
-        with self.assertRaises(PermissionDenied):
+        # Should return a 404
+        with self.assertRaises(Http404):
             view(request, tally_id=tally.id)
+
