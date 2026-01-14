@@ -61,8 +61,12 @@
                                 {% endif %}
                             {% endif %}
                             {% trans 'Signed in as'%} {{user.username}} -
-                            <a id="logout_link" href="{% url 'logout' %}">
-                                {% trans 'logout' %}</a>
+                            <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" id="logout_link" class="btn-link">
+                                    {% trans 'logout' %}
+                                </button>
+                            </form>
                             <br/></span>
                         {% endif %}
                     </div>

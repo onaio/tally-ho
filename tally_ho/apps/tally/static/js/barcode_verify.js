@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const barcodeScanInputField = document.getElementById("id_scanned_barcode");
     const barcodeManualEntryInputField = document.getElementById("id_barcode");
     const barcodeCopyManualEntryInputField = document.getElementById("id_barcode_copy");
-    const submitButton = document.querySelector('button[type="submit"]');
+    const submitButton = document.getElementById("barcode_submit_btn");
 
     // Set or remove required attributes based on form mode
     barcodeScanInputField.setAttribute("required", "true");
@@ -26,7 +26,7 @@ function check_submit_button_state() {
     const barcodeScanInputField = document.getElementById("id_scanned_barcode");
     const barcodeManualEntryInputField = document.getElementById("id_barcode");
     const barcodeCopyManualEntryInputField = document.getElementById("id_barcode_copy");
-    const submitButton = document.querySelector('button[type="submit"]');
+    const submitButton = document.getElementById("barcode_submit_btn");
     const barcodeScanEntry = document.getElementById("barcode_scan_entry");
     const barcodeManualEntry = document.getElementById("barcode_manual_entry");
     const validBarcodeLength = 11; 
