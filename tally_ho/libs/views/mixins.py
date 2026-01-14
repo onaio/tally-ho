@@ -150,7 +150,7 @@ class TallyAccessMixin(object):
         self.request = request
         tally_id = kwargs.get('tally_id')
 
-        tally = get_object_or_404(Tally, id=tally_id)
+        tally = get_object_or_404(Tally, id=tally_id, active=True)
         user_profile = UserProfile.objects.get(id=self.request.user.id)
 
         if not (self.has_tally_access(user_profile, tally)):
