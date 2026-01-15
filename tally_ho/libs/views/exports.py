@@ -16,28 +16,27 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 
-OUTPUT_PATH = 'results/all_candidate_votes_%s.csv'
-ACTIVE_OUTPUT_PATH = 'results/active_candidate_votes_%s.csv'
-RESULTS_PATH = 'results/form_results_%s.csv'
-DUPLICATE_RESULTS_PATH = 'results/duplicate_results_%s.csv'
+OUTPUT_PATH = "results/all_candidate_votes_%s.csv"
+ACTIVE_OUTPUT_PATH = "results/active_candidate_votes_%s.csv"
+RESULTS_PATH = "results/form_results_%s.csv"
+DUPLICATE_RESULTS_PATH = "results/duplicate_results_%s.csv"
 SPECIAL_BALLOTS = None
 
 
 def path_with_timestamp(path):
     if isinstance(path, str):
-        tmp = path.split('.')
-        time_str = timezone.now().strftime('%Y%m%d_%H-%M-%S')
+        tmp = path.split(".")
+        time_str = timezone.now().strftime("%Y%m%d_%H-%M-%S")
         tmp.insert(len(tmp) - 1, time_str)
 
-        return '.'.join(tmp)
+        return ".".join(tmp)
 
     return path
 
 
 def save_csv_file_and_symlink(csv_file, path):
     new_path = path_with_timestamp(path)
-    file_path =\
-        default_storage.save(new_path, File(open(csv_file.name, mode='r')))
+    file_path = default_storage.save(new_path, File(open(csv_file.name, mode="r")))
     new_path = default_storage.path(file_path)
 
     try:
@@ -83,29 +82,29 @@ def build_result_and_recon_output(result_form):
     """
     station = result_form.station
     output = {
-        'ballot': result_form.ballot.number,
-        'center': result_form.center.code,
-        'station': result_form.station_number,
-        'gender': result_form.gender_name,
-        'barcode': result_form.barcode,
-        'election level': result_form.ballot.electrol_race.election_level,
-        'sub race type': result_form.ballot.electrol_race.ballot_name,
-        'voting district': result_form.center.sub_constituency.code,
-        'number registrants': station.registrants if station else None
+        "ballot": result_form.ballot.number,
+        "center": result_form.center.code,
+        "station": result_form.station_number,
+        "gender": result_form.gender_name,
+        "barcode": result_form.barcode,
+        "election level": result_form.ballot.electrol_race.election_level,
+        "sub race type": result_form.ballot.electrol_race.ballot_name,
+        "voting district": result_form.center.sub_constituency.code,
+        "number registrants": station.registrants if station else None,
     }
 
     recon = result_form.reconciliationform
 
     if recon:
-        output.update({
-            'invalid ballots': recon.number_invalid_votes,
-            'number of voter cards in the ballot box':
-            recon.number_of_voter_cards_in_the_ballot_box,
-            'received ballots papers': recon.number_of_voters,
-            'valid votes': recon.number_valid_votes,
-            'total number of ballot papers in the box':
-            recon.number_sorted_and_counted,
-        })
+        output.update(
+            {
+                "invalid ballots": recon.number_invalid_votes,
+                "number of voter cards in the ballot box": recon.number_of_voter_cards_in_the_ballot_box,
+                "received ballots papers": recon.number_of_voters,
+                "valid votes": recon.number_valid_votes,
+                "total number of ballot papers in the box": recon.number_sorted_and_counted,
+            }
+        )
 
     return output
 
@@ -120,34 +119,44 @@ def build_candidate_results_output(result_form):
     """
     station = result_form.station
     output = {
-        'ballot': result_form.ballot.number,
-        'center': result_form.center.code,
-        'office': result_form.center.office.name,
-        'station': result_form.station_number,
-        'gender': result_form.gender_name,
-        'barcode': result_form.barcode,
-        'election_level': result_form.ballot.electrol_race.election_level,
-        'sub_race_type': result_form.ballot.electrol_race.ballot_name,
-        'voting_district': result_form.center.sub_constituency.code,
-        'number_registrants': station.registrants if station else None
+        "ballot": result_form.ballot.number,
+        "center": result_form.center.code,
+        "office": result_form.center.office.name,
+        "station": result_form.station_number,
+        "gender": result_form.gender_name,
+        "barcode": result_form.barcode,
+        "election_level": result_form.ballot.electrol_race.election_level,
+        "sub_race_type": result_form.ballot.electrol_race.ballot_name,
+        "voting_district": result_form.center.sub_constituency.code,
+        "number_registrants": station.registrants if station else None,
     }
 
-    recon = result_form.reconciliationform
+    # Use prefetched final_reconciliations if available, else fall back to property
+    if hasattr(result_form, "final_reconciliations"):
+        recon = (
+            result_form.final_reconciliations[0]
+            if result_form.final_reconciliations
+            else None
+        )
+    else:
+        recon = result_form.reconciliationform
 
     if recon:
-        output.update({
-            'invalid_ballots': recon.number_invalid_votes,
-            'number_of_voter_cards_in_the_ballot_box':
-            recon.number_of_voter_cards_in_the_ballot_box,
-            'received_ballots_papers': recon.number_of_voters,
-            'valid_votes': recon.number_valid_votes,
-        })
+        output.update(
+            {
+                "invalid_ballots": recon.number_invalid_votes,
+                "number_of_voter_cards_in_the_ballot_box": recon.number_of_voter_cards_in_the_ballot_box,
+                "received_ballots_papers": recon.number_of_voters,
+                "valid_votes": recon.number_valid_votes,
+            }
+        )
 
     return output
 
 
-def save_barcode_results(complete_barcodes, output_duplicates=False,
-                         output_to_file=True, tally_id=None):
+def save_barcode_results(
+    complete_barcodes, output_duplicates=False, output_to_file=True, tally_id=None
+):
     """Save a list of results for all candidates in all result forms.
 
     :param complete_barcodes: The set of barcodes for result forms.
@@ -156,57 +165,58 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
 
     :returns: The name of the temporary file that results were saved to.
     """
-    
+
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
     ballots_to_candidates = {}
 
     for ballot in valid_ballots(tally_id):
-        ballots_to_candidates[ballot.number] = \
-            ballot.candidates.all().order_by('order')
+        ballots_to_candidates[ballot.number] = ballot.candidates.all().order_by("order")
 
-    csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
+    csv_file = NamedTemporaryFile(delete=False, suffix=".csv")
 
-    with open(csv_file.name, 'w') as f:
+    with open(csv_file.name, "w") as f:
         header = [
-            'ballot',
-            'race number',
-            'center',
-            'station',
-            'gender',
-            'barcode',
-            'election level',
-            'sub race type',
-            'voting district',
-            'order',
-            'candidate name',
-            'candidate id',
-            'votes',
-            'invalid ballots',
-            'number of voter cards in the ballot box',
-            'received ballots papers',
-            'valid votes',
-            'total number of ballot papers in the box',
-            'number registrants',
-            'candidate status',
+            "ballot",
+            "race number",
+            "center",
+            "station",
+            "gender",
+            "barcode",
+            "election level",
+            "sub race type",
+            "voting district",
+            "order",
+            "candidate name",
+            "candidate id",
+            "votes",
+            "invalid ballots",
+            "number of voter cards in the ballot box",
+            "received ballots papers",
+            "valid votes",
+            "total number of ballot papers in the box",
+            "number registrants",
+            "candidate status",
         ]
 
         w = csv.DictWriter(f, header)
         w.writeheader()
 
         # OPTIMIZATION: Use select_related and prefetch_related to eliminate N+1 queries
-        result_forms = ResultForm.objects.filter(
-            barcode__in=complete_barcodes, tally__id=tally_id
-        ).select_related(
-            'ballot',
-            'ballot__electrol_race',
-            'center',
-            'center__office',
-            'center__sub_constituency'
-        ).prefetch_related(
-            'ballot__candidates',  # For result_form.candidates property
-            'reconciliationform_set',
-            'center__stations'  # For result_form.station property
+        result_forms = (
+            ResultForm.objects.filter(barcode__in=complete_barcodes, tally__id=tally_id)
+            .select_related(
+                "ballot",
+                "ballot__electrol_race",
+                "center",
+                "center__office",
+                "center__sub_constituency",
+            )
+            .prefetch_related(
+                "ballot__candidates",  # For result_form.candidates property
+                "reconciliationform_set",
+                "center__stations",  # For result_form.station property
+            )
         )
 
         # OPTIMIZATION: Batch fetch ALL results to avoid N+1 queries
@@ -216,14 +226,14 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
         all_results = Result.objects.filter(
             result_form_id__in=result_form_ids,
             entry_version=EntryVersion.FINAL,
-            active=True
-        ).values('result_form_id', 'candidate_id', 'votes')
+            active=True,
+        ).values("result_form_id", "candidate_id", "votes")
 
         # Create lookup dictionary
         votes_lookup = {}
         for result in all_results:
-            key = (result['result_form_id'], result['candidate_id'])
-            votes_lookup[key] = result['votes']
+            key = (result["result_form_id"], result["candidate_id"])
+            votes_lookup[key] = result["votes"]
 
         for result_form in result_forms:
             # build list of votes for this barcode
@@ -236,15 +246,15 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
                 votes = votes_lookup.get(key, 0)
                 vote_list += (votes,)
 
-                output['order'] = candidate.order
-                output['candidate name'] = candidate.full_name
-                output['candidate id'] = candidate.candidate_id
-                output['votes'] = votes
-                output['race number'] = candidate.ballot.number
+                output["order"] = candidate.order
+                output["candidate name"] = candidate.full_name
+                output["candidate id"] = candidate.candidate_id
+                output["votes"] = votes
+                output["race number"] = candidate.ballot.number
                 if candidate.active:
-                    output['candidate status'] = 'enabled'
+                    output["candidate status"] = "enabled"
                 else:
-                    output['candidate status'] = 'disabled'
+                    output["candidate status"] = "disabled"
 
                 write_utf8(w, output)
 
@@ -257,16 +267,18 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
         save_csv_file_and_symlink(csv_file, RESULTS_PATH % tally_id)
 
     if output_duplicates:
-        return save_center_duplicates(center_to_votes,
-                                      center_to_forms,
-                                      output_to_file=output_to_file,
-                                      tally_id=tally_id)
+        return save_center_duplicates(
+            center_to_votes,
+            center_to_forms,
+            output_to_file=output_to_file,
+            tally_id=tally_id,
+        )
     return csv_file.name
 
 
-def save_center_duplicates(center_to_votes, center_to_forms,
-                           output_to_file=True,
-                           tally_id=None):
+def save_center_duplicates(
+    center_to_votes, center_to_forms, output_to_file=True, tally_id=None
+):
     """Output list of forms with duplicates votes in the same center.
 
     :param center_to_votes: A dict mapping centers to a list of votes for that
@@ -277,12 +289,12 @@ def save_center_duplicates(center_to_votes, center_to_forms,
 
     :returns: The name of the temporary file that results have been output to.
     """
-    print('[INFO] Exporting vote duplicate records')
+    print("[INFO] Exporting vote duplicate records")
 
-    csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
+    csv_file = NamedTemporaryFile(delete=False, suffix=".csv")
 
-    with open(csv_file.name, 'w') as f:
-        header = ['ballot', 'center', 'barcode', 'state', 'station', 'votes']
+    with open(csv_file.name, "w") as f:
+        header = ["ballot", "center", "barcode", "state", "station", "votes"]
         w = csv.DictWriter(f, header)
         w.writeheader()
 
@@ -292,38 +304,41 @@ def save_center_duplicates(center_to_votes, center_to_forms,
             num_distinct_vote_lists = len(set(vote_lists))
 
             if votes_cast and num_distinct_vote_lists < num_vote_lists:
-                print('[WARNING] Matching votes for center %s, %s vote lists'
-                      % (code, num_vote_lists))
+                print(
+                    "[WARNING] Matching votes for center %s, %s vote lists"
+                    % (code, num_vote_lists)
+                )
 
                 for i, form in enumerate(center_to_forms[code]):
                     vote_list = vote_lists[i]
                     votes_cast = sum(vote_list) > 0
-                    other_vote_lists = vote_lists[:i] + vote_lists[i + 1:]
+                    other_vote_lists = vote_lists[:i] + vote_lists[i + 1 :]
 
                     if votes_cast and vote_list in other_vote_lists:
                         output = {
-                            'ballot': form.ballot.number,
-                            'center': code,
-                            'barcode': form.barcode,
-                            'state': form.form_state_name,
-                            'station': form.station_number,
-                            'votes': vote_list
+                            "ballot": form.ballot.number,
+                            "center": code,
+                            "barcode": form.barcode,
+                            "state": form.form_state_name,
+                            "station": form.station_number,
+                            "votes": vote_list,
                         }
 
                         write_utf8(w, output)
 
     if output_to_file:
-        return save_csv_file_and_symlink(csv_file,
-                                         DUPLICATE_RESULTS_PATH % tally_id)
+        return save_csv_file_and_symlink(csv_file, DUPLICATE_RESULTS_PATH % tally_id)
 
     return csv_file.name
 
 
-def export_candidate_votes(save_barcodes=False,
-                           output_duplicates=True,
-                           output_to_file=True,
-                           show_disabled_candidates=True,
-                           tally_id=None):
+def export_candidate_votes(
+    save_barcodes=False,
+    output_duplicates=True,
+    output_to_file=True,
+    show_disabled_candidates=True,
+    tally_id=None,
+):
     """Export a spreadsheet of the candidates their votes for each race.
 
     :param save_barcodes: Generate barcode result file, default False.
@@ -332,10 +347,12 @@ def export_candidate_votes(save_barcodes=False,
 
     :returns: The name of the temporary file that results have been output to.
     """
-    header = ['ballot number',
-              'stations',
-              'stations completed',
-              'stations percent completed']
+    header = [
+        "ballot number",
+        "stations",
+        "stations completed",
+        "stations percent completed",
+    ]
 
     max_candidates = 0
 
@@ -349,14 +366,14 @@ def export_candidate_votes(save_barcodes=False,
             max_candidates = ballot_number
 
     for i in range(1, max_candidates + 1):
-        header.append('candidate %s name' % i)
-        header.append('candidate %s votes' % i)
-        header.append('candidate %s votes included quarantine' % i)
+        header.append("candidate %s name" % i)
+        header.append("candidate %s votes" % i)
+        header.append("candidate %s votes included quarantine" % i)
 
     complete_barcodes = []
 
-    csv_file = NamedTemporaryFile(delete=False, suffix='.csv')
-    with open(csv_file.name, 'w') as f:
+    csv_file = NamedTemporaryFile(delete=False, suffix=".csv")
+    with open(csv_file.name, "w") as f:
         w = csv.DictWriter(f, header)
         w.writeheader()
 
@@ -364,7 +381,8 @@ def export_candidate_votes(save_barcodes=False,
             general_ballot = ballot
             forms = distinct_forms(ballot, tally_id)
             final_forms = ResultForm.forms_in_state(
-                FormState.ARCHIVED, pks=[r.pk for r in forms])
+                FormState.ARCHIVED, pks=[r.pk for r in forms]
+            )
 
             if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
                 complete_barcodes.extend([r.barcode for r in final_forms])
@@ -372,15 +390,20 @@ def export_candidate_votes(save_barcodes=False,
             num_stations = forms.count()
             num_stations_completed = final_forms.count()
 
-            percent_complete = round(
-                100 * num_stations_completed / num_stations, 3) if \
-                num_stations else 0
+            percent_complete = (
+                round(100 * num_stations_completed / num_stations, 3)
+                if num_stations
+                else 0
+            )
 
-            output = OrderedDict({
-                'ballot number': ballot.number,
-                'stations': num_stations,
-                'stations completed': num_stations_completed,
-                'stations percent completed': percent_complete})
+            output = OrderedDict(
+                {
+                    "ballot number": ballot.number,
+                    "stations": num_stations,
+                    "stations completed": num_stations_completed,
+                    "stations percent completed": percent_complete,
+                }
+            )
 
             candidates_to_votes = {}
             num_results_ary = []
@@ -399,16 +422,26 @@ def export_candidate_votes(save_barcodes=False,
 
             for num_results in num_results_ary:
                 if num_stations_completed != num_results:
-                    print('[WARNING] Number stations complete (%s) not '
-                          'equal to num_results (%s) for ballot %s (general'
-                          ' ballot %s)' % (
-                              num_stations_completed, num_results,
-                              ballot.number, general_ballot.number))
-                    output['stations completed'] = num_results
+                    print(
+                        "[WARNING] Number stations complete (%s) not "
+                        "equal to num_results (%s) for ballot %s (general"
+                        " ballot %s)"
+                        % (
+                            num_stations_completed,
+                            num_results,
+                            ballot.number,
+                            general_ballot.number,
+                        )
+                    )
+                    output["stations completed"] = num_results
 
-            candidates_to_votes = OrderedDict((sorted(
-                candidates_to_votes.items(), key=lambda t: t[1][0],
-                reverse=True)))
+            candidates_to_votes = OrderedDict(
+                (
+                    sorted(
+                        candidates_to_votes.items(), key=lambda t: t[1][0], reverse=True
+                    )
+                )
+            )
 
             # Checks changes in candidates positions
             check_position_changes(candidates_to_votes)
@@ -416,10 +449,9 @@ def export_candidate_votes(save_barcodes=False,
             for i, item in enumerate(candidates_to_votes.items()):
                 candidate, votes = item
 
-                output['candidate %s name' % (i + 1)] = candidate
-                output['candidate %s votes' % (i + 1)] = votes[0]
-                output['candidate %s votes included quarantine' %
-                       (i + 1)] = votes[1]
+                output["candidate %s name" % (i + 1)] = candidate
+                output["candidate %s votes" % (i + 1)] = votes[0]
+                output["candidate %s votes included quarantine" % (i + 1)] = votes[1]
 
             write_utf8(w, output)
 
@@ -430,22 +462,23 @@ def export_candidate_votes(save_barcodes=False,
             save_csv_file_and_symlink(csv_file, ACTIVE_OUTPUT_PATH % tally_id)
 
     if save_barcodes:
-        return save_barcode_results(complete_barcodes,
-                                    output_duplicates=output_duplicates,
-                                    output_to_file=output_to_file,
-                                    tally_id=tally_id)
+        return save_barcode_results(
+            complete_barcodes,
+            output_duplicates=output_duplicates,
+            output_to_file=output_to_file,
+            tally_id=tally_id,
+        )
     return csv_file.name
 
 
 def check_position_changes(candidates_votes):
-    """Order candidates by valid votes and all votes included quarantine
-    """
-    sort_valid_votes = OrderedDict((sorted(
-        candidates_votes.items(), key=lambda t: t[1][0],
-        reverse=True)))
-    sort_all_votes = OrderedDict((sorted(
-        candidates_votes.items(), key=lambda t: t[1][1],
-        reverse=True)))
+    """Order candidates by valid votes and all votes included quarantine"""
+    sort_valid_votes = OrderedDict(
+        (sorted(candidates_votes.items(), key=lambda t: t[1][0], reverse=True))
+    )
+    sort_all_votes = OrderedDict(
+        (sorted(candidates_votes.items(), key=lambda t: t[1][1], reverse=True))
+    )
 
     # Get first five candidates
     valid_votes = dict(enumerate(list(sort_valid_votes.keys())[0:5]))
@@ -464,24 +497,21 @@ def get_result_export_response(report, tally_id):
 
     :returns: An HTTP response.
     """
-    filename = 'not_found.csv'
+    filename = "not_found.csv"
     path = None
     show_disabled = True
 
-    if report == 'formresults':
-        filename = os.path.join('results', 'form_results_%d.csv' % tally_id)
-    elif report == 'all-candidates':
-        filename = os.path.join('results',
-                                'all_candidate_votes_%d.csv' % tally_id)
-    elif report == 'active-candidates':
-        filename = os.path.join('results',
-                                'active_candidate_votes_%d.csv' % tally_id)
+    if report == "formresults":
+        filename = os.path.join("results", "form_results_%d.csv" % tally_id)
+    elif report == "all-candidates":
+        filename = os.path.join("results", "all_candidate_votes_%d.csv" % tally_id)
+    elif report == "active-candidates":
+        filename = os.path.join("results", "active_candidate_votes_%d.csv" % tally_id)
         show_disabled = False
-    elif report == 'duplicates':
-        filename = os.path.join('results',
-                                'duplicate_results_%d.csv' % tally_id)
+    elif report == "duplicates":
+        filename = os.path.join("results", "duplicate_results_%d.csv" % tally_id)
 
-    response = HttpResponse(content_type='text/csv')
+    response = HttpResponse(content_type="text/csv")
 
     try:
         # FIXME: if file it's been already generated,
@@ -489,26 +519,28 @@ def get_result_export_response(report, tally_id):
         if not os.path.isdir(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))
 
-        export_candidate_votes(save_barcodes=True,
-                               output_duplicates=True,
-                               show_disabled_candidates=show_disabled,
-                               tally_id=tally_id)
+        export_candidate_votes(
+            save_barcodes=True,
+            output_duplicates=True,
+            show_disabled_candidates=show_disabled,
+            tally_id=tally_id,
+        )
 
         path = os.readlink(filename)
         filename = os.path.basename(path)
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
-        response['Content-Type'] = 'text/csv; charset=utf-8'
+        response["Content-Disposition"] = "attachment; filename=%s" % filename
+        response["Content-Type"] = "text/csv; charset=utf-8"
 
         if path:
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
                 response.write(f.read())
         else:
-            raise Exception(_(u"File Not found!"))
+            raise Exception(_("File Not found!"))
 
     except Exception as e:
         if settings.DEBUG:
             raise e
-        response.write(_(u"Report not found."))
+        response.write(_("Report not found."))
         response.status_code = 404
 
     return response

@@ -1,3 +1,4 @@
+import reversion
 from django.core.exceptions import SuspiciousOperation
 from django.db import models, transaction
 from django.db.models import Q, Sum
@@ -5,28 +6,27 @@ from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
-import reversion
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.result_form_reset import ResultFormReset
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
-from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
+from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.utils.templates import get_result_form_edit_delete_links
-from tally_ho.apps.tally.models.result_form_reset import ResultFormReset
 
-male_local = _('Male')
-female_local = _('Female')
+male_local = _("Male")
+female_local = _("Female")
 
 
 def model_field_to_dict(form):
     field_dict = model_to_dict(form)
-    del field_dict['id']
-    del field_dict['user']
+    del field_dict["id"]
+    del field_dict["user"]
 
     return field_dict
 
@@ -43,23 +43,25 @@ def get_matched_results(result_form, results):
     :returns: A list of matched and unmatched results.
     """
     results_v1 = results.filter(
-        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1)\
-        .values('candidate', 'votes')
+        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_1
+    ).values("candidate", "votes")
     results_v2 = results.filter(
-        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_2)\
-        .values('candidate', 'votes')
+        result_form=result_form, entry_version=EntryVersion.DATA_ENTRY_2
+    ).values("candidate", "votes")
 
     if results and (not results_v1 or not results_v2):
-        raise SuspiciousOperation(_(u"Result Form has no double entries."))
+        raise SuspiciousOperation(_("Result Form has no double entries."))
 
     if results_v1.count() != results_v2.count():
         result_form.previous_form_state = result_form.form_state
         result_form.reject()
 
-        raise SuspiciousOperation(_(
-            u"Unexpected number of results in form %(barcode)s, "
-            u"return result form to Data Entry 1." %
-            {'barcode': result_form.barcode}))
+        raise SuspiciousOperation(
+            _(
+                "Unexpected number of results in form %(barcode)s, "
+                "return result form to Data Entry 1." % {"barcode": result_form.barcode}
+            )
+        )
 
     tuple_list = [i.items() for i in results_v1]
     matches = [rec for rec in results_v2 if rec.items() in tuple_list]
@@ -95,7 +97,6 @@ def sanity_check_final_results(result_form):
 
         if results.count() > 1:
             for result in results[1:]:
-
                 if result.votes != other_result.votes:
                     raise SuspiciousOperation(_("Votes do not match!"))
 
@@ -123,8 +124,9 @@ def clean_reconciliation_forms(recon_queryset):
             other_field_dict = model_field_to_dict(form)
             for k, v in other_field_dict.items():
                 if field_dict[k] != v:
-                    raise SuspiciousOperation(_(
-                        'Unexpected number of reconciliation forms'))
+                    raise SuspiciousOperation(
+                        _("Unexpected number of reconciliation forms")
+                    )
 
             form.active = False
             form.save()
@@ -136,31 +138,27 @@ def clean_reconciliation_forms(recon_queryset):
 
 class ResultForm(BaseModel):
     class Meta:
-        app_label = 'tally'
+        app_label = "tally"
         indexes = [
-            models.Index(fields=['center',
-                                 'station_number',
-                                 'ballot',
-                                 'tally']),
+            models.Index(fields=["center", "station_number", "ballot", "tally"]),
             # Optimize barcode lookups in exports
-            models.Index(fields=['barcode', 'tally']),
+            models.Index(fields=["barcode", "tally"]),
             # Optimize form_state filtering
-            models.Index(fields=['form_state', 'tally']),
+            models.Index(fields=["form_state", "tally"]),
             # Optimize ballot and form_state queries
-            models.Index(fields=['ballot', 'form_state', 'tally']),
+            models.Index(fields=["ballot", "form_state", "tally"]),
         ]
-        unique_together = (('barcode', 'tally'), ('serial_number', 'tally'))
+        unique_together = (("barcode", "tally"), ("serial_number", "tally"))
 
     START_BARCODE = 10000000
     OCV_CENTER_MIN = 80001
 
     ballot = models.ForeignKey(Ballot, null=True, on_delete=models.PROTECT)
-    center = models.ForeignKey(Center, blank=True, null=True,
-                               on_delete=models.PROTECT)
+    center = models.ForeignKey(Center, blank=True, null=True, on_delete=models.PROTECT)
     user = models.ForeignKey(UserProfile, null=True, on_delete=models.PROTECT)
-    created_user = models.ForeignKey(UserProfile, null=True,
-                                     on_delete=models.PROTECT,
-                                     related_name='created_user')
+    created_user = models.ForeignKey(
+        UserProfile, null=True, on_delete=models.PROTECT, related_name="created_user"
+    )
 
     audited_count = models.PositiveIntegerField(default=0)
     barcode = models.CharField(max_length=255)
@@ -171,8 +169,7 @@ class ResultForm(BaseModel):
     previous_form_state = EnumIntegerField(FormState, blank=True, null=True)
     gender = EnumIntegerField(Gender, null=True)
     name = models.CharField(max_length=256, null=True)
-    office = models.ForeignKey(Office, blank=True, null=True,
-                               on_delete=models.PROTECT)
+    office = models.ForeignKey(Office, blank=True, null=True, on_delete=models.PROTECT)
     rejected_count = models.PositiveIntegerField(default=0)
     reject_reason = models.TextField(null=True, blank=True)
     serial_number = models.BigIntegerField(null=True)
@@ -182,11 +179,13 @@ class ResultForm(BaseModel):
     is_replacement = models.BooleanField(default=False)
     intake_printed = models.BooleanField(default=False)
     clearance_printed = models.BooleanField(default=False)
-    tally = models.ForeignKey(Tally,
-                              null=True,
-                              blank=True,
-                              related_name='result_forms',
-                              on_delete=models.PROTECT)
+    tally = models.ForeignKey(
+        Tally,
+        null=True,
+        blank=True,
+        related_name="result_forms",
+        on_delete=models.PROTECT,
+    )
 
     # Field used in result duplicated list view
     results_duplicated = []
@@ -194,8 +193,7 @@ class ResultForm(BaseModel):
     @property
     def results_final(self):
         """Return the final active results for this result form."""
-        return self.results.filter(active=True,
-                                   entry_version=EntryVersion.FINAL)
+        return self.results.filter(active=True, entry_version=EntryVersion.FINAL)
 
     @property
     def station(self):
@@ -216,11 +214,10 @@ class ResultForm(BaseModel):
 
     @property
     def form_results(self):
-        election_level =\
-            self.ballot.electrol_race.election_level
+        election_level = self.ballot.electrol_race.election_level
         return self.results.filter(
-            active=True,
-            candidate__ballot__electrol_race__election_level=election_level)
+            active=True, candidate__ballot__electrol_race__election_level=election_level
+        )
 
     @property
     def has_results(self):
@@ -238,13 +235,19 @@ class ResultForm(BaseModel):
 
     @property
     def audit_team_reviewed(self):
-        return self.audit.user.username if self.audit and\
-            self.audit.reviewed_team else _('No')
+        return (
+            self.audit.user.username
+            if self.audit and self.audit.reviewed_team
+            else _("No")
+        )
 
     @property
     def audit_supervisor_reviewed(self):
-        return self.audit.supervisor.username if self.audit and\
-            self.audit.reviewed_supervisor else _('No')
+        return (
+            self.audit.supervisor.username
+            if self.audit and self.audit.reviewed_supervisor
+            else _("No")
+        )
 
     @property
     def audit_recommendation(self):
@@ -259,7 +262,7 @@ class ResultForm(BaseModel):
     @property
     def audit_quaritine_checks(self):
         if self.audit:
-            return self.audit.quarantine_checks.all().values('name')
+            return self.audit.quarantine_checks.all().values("name")
 
     @property
     def form_state_name(self):
@@ -267,22 +270,19 @@ class ResultForm(BaseModel):
 
     @property
     def gender_name(self):
-        return _(self.station.gender.name if self.station
-                 else self.gender.name)
+        return _(self.station.gender.name if self.station else self.gender.name)
 
     @property
     def num_votes(self):
-        return list(
-            self.results_final.aggregate(Sum('votes')).values())[0] or 0
+        return list(self.results_final.aggregate(Sum("votes")).values())[0] or 0
 
     @property
     def corrections_required_text(self):
-        return _(u"Corrections Required!")
+        return _("Corrections Required!")
 
     @property
     def results_match(self):
-        return match_results(self, self.form_results) \
-            if self.has_results else False
+        return match_results(self, self.form_results) if self.has_results else False
 
     @property
     def corrections_reconciliationforms(self):
@@ -297,10 +297,8 @@ class ResultForm(BaseModel):
         """
         reconciliationforms = self.reconciliationform_set.filter(active=True)
 
-        de_1 = reconciliationforms.filter(
-            entry_version=EntryVersion.DATA_ENTRY_1)
-        de_2 = reconciliationforms.filter(
-            entry_version=EntryVersion.DATA_ENTRY_2)
+        de_1 = reconciliationforms.filter(entry_version=EntryVersion.DATA_ENTRY_1)
+        de_2 = reconciliationforms.filter(entry_version=EntryVersion.DATA_ENTRY_2)
 
         if de_1.count() > 1:
             clean_reconciliation_forms(de_1)
@@ -320,16 +318,22 @@ class ResultForm(BaseModel):
         """
         # Use .all() to leverage prefetch_related cache
         final = [
-            recon for recon in self.reconciliationform_set.all()
+            recon
+            for recon in self.reconciliationform_set.all()
             if recon.active and recon.entry_version == EntryVersion.FINAL
         ]
+        final = self.reconciliationform_set.filter(
+            active=True, entry_version=EntryVersion.FINAL
+        )
+        final_count = final.count()
 
-        if len(final) == 0:
+        if final_count == 0:
             return False
 
-        len(final) > 1 and clean_reconciliation_forms(final)
+        # raises SuspiciousOperation exeption if there is an issue.
+        clean_reconciliation_forms(final)
 
-        return final[0]
+        return final.first()
 
     @property
     def reconciliationform_exists(self):
@@ -348,8 +352,8 @@ class ResultForm(BaseModel):
             v1, v2 = [model_to_dict(result) for result in results]
 
             # remove keys that should differ
-            del v1['id']
-            del v1['entry_version']
+            del v1["id"]
+            del v1["entry_version"]
 
             for k, v in v1.items():
                 if v != v2[k]:
@@ -380,14 +384,19 @@ class ResultForm(BaseModel):
 
     @property
     def clearance_team_reviewed(self):
-        return self.clearance.user.username if self.clearance and\
-            self.clearance.reviewed_team else _('No')
+        return (
+            self.clearance.user.username
+            if self.clearance and self.clearance.reviewed_team
+            else _("No")
+        )
 
     @property
     def clearance_supervisor_reviewed(self):
-        return self.clearance.supervisor and\
-            self.clearance.supervisor.username if self.clearance and\
-            self.clearance.reviewed_supervisor else _('No')
+        return (
+            self.clearance.supervisor and self.clearance.supervisor.username
+            if self.clearance and self.clearance.reviewed_supervisor
+            else _("No")
+        )
 
     @property
     def corrections_passed(self):
@@ -397,16 +406,16 @@ class ResultForm(BaseModel):
         :returns: True if the results from Data Entry 1 and 2 match, otherwise
             returns False.
         """
-        return (
-            (not self.has_results or self.results_match) and
-            (not self.reconciliationform_exists or
-             self.reconciliation_match))
+        return (not self.has_results or self.results_match) and (
+            not self.reconciliationform_exists or self.reconciliation_match
+        )
 
     def reject(
-            self,
-            new_state=FormState.DATA_ENTRY_1,
-            reject_reason=None,
-            workflow_request=None):
+        self,
+        new_state=FormState.DATA_ENTRY_1,
+        reject_reason=None,
+        workflow_request=None,
+    ):
         """Deactivate existing results and reconciliation forms for this result
         form, change the state, and increment the rejected count.
 
@@ -483,10 +492,7 @@ class ResultForm(BaseModel):
 
         # Create a ResultFormReset record
         ResultFormReset.objects.create(
-            user=user,
-            result_form=self,
-            tally=self.tally,
-            reason=reason
+            user=user, result_form=self, tally=self.tally, reason=reason
         )
 
     @property
@@ -495,13 +501,11 @@ class ResultForm(BaseModel):
 
     @property
     def center_office(self):
-        return self.center.office.name if self.center and self.center.office\
-            else None
+        return self.center.office.name if self.center and self.center.office else None
 
     @property
     def center_office_number(self):
-        return self.center.office.number if self.center and self.center.office\
-            else None
+        return self.center.office.number if self.center and self.center.office else None
 
     @property
     def ballot_number(self):
@@ -533,15 +537,14 @@ class ResultForm(BaseModel):
 
         :returns: A list of candidates that appear on this result form.
         """
-        return list(self.ballot.candidates.order_by('order'))
+        return list(self.ballot.candidates.order_by("order"))
 
     @property
     def get_action_button(self):
         return get_result_form_edit_delete_links(self) if self else None
 
     @classmethod
-    def get_pending_intake_for_station(
-        cls, tally_id, center_code, station_number):
+    def get_pending_intake_for_station(cls, tally_id, center_code, station_number):
         """
         Returns a queryset of forms pending intake for a specific station.
 
@@ -553,14 +556,16 @@ class ResultForm(BaseModel):
         """
         if not center_code or station_number is None:
             return cls.objects.none()
-        return cls.objects.filter(
-            tally__id=tally_id,
-            center__code=center_code,
-            station_number=station_number,
-            form_state=FormState.UNSUBMITTED
-        ).select_related(
-            'ballot', 'ballot__electrol_race'
-        ).order_by('ballot__number')
+        return (
+            cls.objects.filter(
+                tally__id=tally_id,
+                center__code=center_code,
+                station_number=station_number,
+                form_state=FormState.UNSUBMITTED,
+            )
+            .select_related("ballot", "ballot__electrol_race")
+            .order_by("ballot__number")
+        )
 
     @classmethod
     def get_intaken_for_station(cls, tally_id, center_code, station_number):
@@ -581,16 +586,18 @@ class ResultForm(BaseModel):
             FormState.CORRECTION,
             FormState.QUALITY_CONTROL,
             FormState.ARCHIVED,
-            FormState.AUDIT
+            FormState.AUDIT,
         ]
-        return cls.objects.filter(
-            tally__id=tally_id,
-            center__code=center_code,
-            station_number=station_number,
-            form_state__in=intaken_states
-        ).select_related(
-            'ballot', 'ballot__electrol_race'
-        ).order_by('ballot__number')
+        return (
+            cls.objects.filter(
+                tally__id=tally_id,
+                center__code=center_code,
+                station_number=station_number,
+                form_state__in=intaken_states,
+            )
+            .select_related("ballot", "ballot__electrol_race")
+            .order_by("ballot__number")
+        )
 
     @classmethod
     def get_pending_intake_for_center(cls, tally_id, center_code):
@@ -604,13 +611,15 @@ class ResultForm(BaseModel):
         """
         if not center_code:
             return cls.objects.none()
-        return cls.objects.filter(
-            tally__id=tally_id,
-            center__code=center_code,
-            form_state=FormState.UNSUBMITTED
-        ).select_related(
-            'ballot', 'ballot__electrol_race', 'center', 'office'
-        ).order_by('station_number', 'ballot__number')
+        return (
+            cls.objects.filter(
+                tally__id=tally_id,
+                center__code=center_code,
+                form_state=FormState.UNSUBMITTED,
+            )
+            .select_related("ballot", "ballot__electrol_race", "center", "office")
+            .order_by("station_number", "ballot__number")
+        )
 
     @classmethod
     def get_intaken_for_center(cls, tally_id, center_code):
@@ -630,15 +639,17 @@ class ResultForm(BaseModel):
             FormState.CORRECTION,
             FormState.QUALITY_CONTROL,
             FormState.ARCHIVED,
-            FormState.AUDIT
+            FormState.AUDIT,
         ]
-        return cls.objects.filter(
-            tally__id=tally_id,
-            center__code=center_code,
-            form_state__in=intaken_states
-        ).select_related(
-            'ballot', 'ballot__electrol_race', 'center', 'office'
-        ).order_by('station_number', 'ballot__number')
+        return (
+            cls.objects.filter(
+                tally__id=tally_id,
+                center__code=center_code,
+                form_state__in=intaken_states,
+            )
+            .select_related("ballot", "ballot__electrol_race", "center", "office")
+            .order_by("station_number", "ballot__number")
+        )
 
     @classmethod
     def distinct_filter(self, qs, tally_id=None):
@@ -652,13 +663,13 @@ class ResultForm(BaseModel):
 
         :returns: A distinct, ordered, and filtered queryset.
         """
-        new_qs = qs.filter(
-            center__isnull=False,
-            station_number__isnull=False,
-            ballot__isnull=False).order_by(
-            'center__id', 'station_number', 'ballot__id',
-            'form_state').distinct(
-            'center__id', 'station_number', 'ballot__id')
+        new_qs = (
+            qs.filter(
+                center__isnull=False, station_number__isnull=False, ballot__isnull=False
+            )
+            .order_by("center__id", "station_number", "ballot__id", "form_state")
+            .distinct("center__id", "station_number", "ballot__id")
+        )
 
         return new_qs.filter(tally__id=tally_id) if tally_id else new_qs
 
@@ -671,9 +682,11 @@ class ResultForm(BaseModel):
 
         :returns: A distinct list of result forms.
         """
-        return cls.distinct_filter(cls.objects.filter(
-            ballot__number__in=ballot.form_ballot_numbers,
-            tally__id=tally_id))
+        return cls.distinct_filter(
+            cls.objects.filter(
+                ballot__number__in=ballot.form_ballot_numbers, tally__id=tally_id
+            )
+        )
 
     @classmethod
     def distinct_forms(cls, tally_id=None):
@@ -684,8 +697,9 @@ class ResultForm(BaseModel):
 
     @classmethod
     def distinct_form_pks(cls, tally_id=None):
-        return cls.distinct_filter(cls.distinct_forms(tally_id),
-                                   tally_id).values_list('id', flat=True)
+        return cls.distinct_filter(cls.distinct_forms(tally_id), tally_id).values_list(
+            "id", flat=True
+        )
 
     @classmethod
     def forms_in_state(cls, state, pks=None, tally_id=None):
@@ -707,10 +721,8 @@ class ResultForm(BaseModel):
 
         :returns: A new unique integer barcode.
         """
-        result_forms = cls.objects.filter(
-            tally__id=tally_id).order_by('-barcode')
-        highest_barcode = result_forms[0].barcode if result_forms else\
-            cls.START_BARCODE
+        result_forms = cls.objects.filter(tally__id=tally_id).order_by("-barcode")
+        highest_barcode = result_forms[0].barcode if result_forms else cls.START_BARCODE
 
         return int(highest_barcode) + 1
 
@@ -731,19 +743,24 @@ class ResultForm(BaseModel):
 
         qs = ResultForm.objects.filter(tally=self.tally)
         qs = qs.filter(
-            Q(center=center), Q(center__isnull=False),
-            Q(station_number=station_number), Q(station_number__isnull=False),
-            Q(ballot=self.ballot), Q(ballot__isnull=False))
+            Q(center=center),
+            Q(center__isnull=False),
+            Q(station_number=station_number),
+            Q(station_number__isnull=False),
+            Q(ballot=self.ballot),
+            Q(ballot__isnull=False),
+        )
 
         if self.form_state in [FormState.UNSUBMITTED, FormState.CLEARANCE]:
             qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED))
         elif self.form_state == FormState.INTAKE:
-            qs = qs.exclude(Q(form_state=FormState.UNSUBMITTED)
-                            | Q(form_state=FormState.INTAKE))
+            qs = qs.exclude(
+                Q(form_state=FormState.UNSUBMITTED) | Q(form_state=FormState.INTAKE)
+            )
         else:
             return []
 
-        return qs.order_by('created_date')
+        return qs.order_by("created_date")
 
     def send_to_clearance(self):
         self.previous_form_state = self.form_state
