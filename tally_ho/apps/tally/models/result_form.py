@@ -318,18 +318,18 @@ class ResultForm(BaseModel):
 
         :returns: The final reconciliation form for this result form.
         """
-        # Use .all() to leverage prefetch_related cache
-        final = [
-            recon for recon in self.reconciliationform_set.all()
-            if recon.active and recon.entry_version == EntryVersion.FINAL
-        ]
+        final = self.reconciliationform_set.filter(
+            active=True, entry_version=EntryVersion.FINAL
+        )
+        final_count = final.count()
 
-        if len(final) == 0:
+        if final_count == 0:
             return False
 
-        len(final) > 1 and clean_reconciliation_forms(final)
+        # raises SuspiciousOperation exeption if there is an issue.
+        clean_reconciliation_forms(final)
 
-        return final[0]
+        return final.first()
 
     @property
     def reconciliationform_exists(self):

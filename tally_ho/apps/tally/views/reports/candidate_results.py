@@ -1,15 +1,20 @@
 import ast
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.generic import TemplateView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
+from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
+from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
+from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.views.reports.administrative_areas_reports import \
     build_stations_centers_and_sub_cons_list
+from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views.exports import build_candidate_results_output
@@ -23,11 +28,6 @@ def get_candidate_results_queryset(tally_id, data=None):
     similar to the output of save_barcode_results.
     If data is None, include all forms for the tally.
     """
-    from django.db.models import Prefetch
-    from tally_ho.apps.tally.models.candidate import Candidate
-    from tally_ho.apps.tally.models.result import Result
-    from tally_ho.libs.models.enums.entry_version import EntryVersion
-
     queryset = []
 
     # Prefetch candidates with their results to eliminate N+1 queries
@@ -55,7 +55,13 @@ def get_candidate_results_queryset(tally_id, data=None):
     ).prefetch_related(
         candidates_prefetch,
         'center__stations',  # For result_form.station property
-        'reconciliationform_set',  # For result_form.reconciliationform property
+        Prefetch(
+            "reconciliationform_set",
+            queryset=ReconciliationForm.objects.filter(
+                active=True, entry_version=EntryVersion.FINAL
+            ),
+            to_attr="final_reconciliations",
+        ),
     ).filter(
         tally__id=tally_id,
         form_state=FormState.ARCHIVED,

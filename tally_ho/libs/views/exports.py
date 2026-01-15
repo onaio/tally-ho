@@ -132,7 +132,15 @@ def build_candidate_results_output(result_form):
         'number_registrants': station.registrants if station else None
     }
 
-    recon = result_form.reconciliationform
+    # Use prefetched final_reconciliations if available, else fall back to property
+    if hasattr(result_form, "final_reconciliations"):
+        recon = (
+            result_form.final_reconciliations[0]
+            if result_form.final_reconciliations
+            else None
+        )
+    else:
+        recon = result_form.reconciliationform
 
     if recon:
         output.update({
