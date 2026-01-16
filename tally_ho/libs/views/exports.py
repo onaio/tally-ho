@@ -81,6 +81,7 @@ def build_result_and_recon_output(result_form):
 
     :returns: A dict of information about this result form.
     """
+    station = result_form.station
     output = {
         'ballot': result_form.ballot.number,
         'center': result_form.center.code,
@@ -90,7 +91,7 @@ def build_result_and_recon_output(result_form):
         'election level': result_form.ballot.electrol_race.election_level,
         'sub race type': result_form.ballot.electrol_race.ballot_name,
         'voting district': result_form.center.sub_constituency.code,
-        'number registrants': result_form.station.registrants
+        'number registrants': station.registrants if station else None
     }
 
     recon = result_form.reconciliationform
@@ -117,6 +118,7 @@ def build_candidate_results_output(result_form):
 
     :returns: A dict of information about this result form.
     """
+    station = result_form.station
     output = {
         'ballot': result_form.ballot.number,
         'center': result_form.center.code,
@@ -127,10 +129,18 @@ def build_candidate_results_output(result_form):
         'election_level': result_form.ballot.electrol_race.election_level,
         'sub_race_type': result_form.ballot.electrol_race.ballot_name,
         'voting_district': result_form.center.sub_constituency.code,
-        'number_registrants': result_form.station.registrants
+        'number_registrants': station.registrants if station else None
     }
 
-    recon = result_form.reconciliationform
+    # Use prefetched final_reconciliations if available, else fall back to property
+    if hasattr(result_form, "final_reconciliations"):
+        recon = (
+            result_form.final_reconciliations[0]
+            if result_form.final_reconciliations
+            else None
+        )
+    else:
+        recon = result_form.reconciliationform
 
     if recon:
         output.update({

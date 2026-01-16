@@ -207,10 +207,10 @@ class ResultForm(BaseModel):
         center tied to this result form.
         """
         if self.center:
-            stations = self.center.stations.filter(
-                station_number=self.station_number)
-            if stations:
-                return stations[0]
+            # Use .all() to leverage prefetch_related cache
+            for station in self.center.stations.all():
+                if station.station_number == self.station_number:
+                    return station
 
         return None
 
@@ -319,14 +319,17 @@ class ResultForm(BaseModel):
         :returns: The final reconciliation form for this result form.
         """
         final = self.reconciliationform_set.filter(
-            active=True, entry_version=EntryVersion.FINAL)
+            active=True, entry_version=EntryVersion.FINAL
+        )
+        final_count = final.count()
 
-        if len(final) == 0:
+        if final_count == 0:
             return False
 
-        final.count() > 1 and clean_reconciliation_forms(final)
+        # raises SuspiciousOperation exeption if there is an issue.
+        clean_reconciliation_forms(final)
 
-        return final[0]
+        return final.first()
 
     @property
     def reconciliationform_exists(self):
