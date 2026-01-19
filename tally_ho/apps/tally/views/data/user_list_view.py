@@ -1,4 +1,5 @@
 from django.contrib.auth.models import Group
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.urls import reverse
 from django.views.generic import TemplateView
@@ -47,6 +48,8 @@ class UserListDataView(LoginRequiredMixin,
 
         if self.role == 'admin':
             qs = qs.filter(groups__name__exact=groups.SUPER_ADMINISTRATOR)
+        elif self.role == 'tally-manager':
+            qs = qs.filter(groups__name__exact=groups.TALLY_MANAGER)
         else:
             qs = qs.filter(groups__in=Group.objects.all().exclude(
                 name__in=[groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER]))
@@ -67,17 +70,25 @@ class UserListView(LoginRequiredMixin,
                    GroupRequiredMixin,
                    DataTablesMixin,
                    TemplateView):
-    group_required = groups.TALLY_MANAGER
+    group_required = [groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]
     template_name = "data/users.html"
 
-    def get(self, *args, **kwargs):
-        # check cache
+    def get(self, request, *args, **kwargs):
         role = kwargs.get('role', 'user')
+
+        # Only SUPER_ADMINISTRATOR can access tally-manager role
+        if role == 'tally-manager':
+            if not request.user.groups.filter(
+                    name=groups.SUPER_ADMINISTRATOR).exists():
+                raise PermissionDenied
+
         is_admin = role == 'admin'
+        is_tally_manager = role == 'tally-manager'
 
         return self.render_to_response(self.get_context_data(
             role=role,
             is_admin=is_admin,
+            is_tally_manager=is_tally_manager,
             remote_url=reverse('user-list-data', kwargs={'role': role}),
             export_file_name='user-list',
             server_side=True,

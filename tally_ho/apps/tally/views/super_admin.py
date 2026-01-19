@@ -1,6 +1,7 @@
 from collections import defaultdict
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
@@ -294,11 +295,17 @@ class TalliesView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     template_name = "super_admin/tallies.html"
 
     def get(self, request, *args, **kwargs):
+        site_id = getattr(settings, "SITE_ID", None)
+        group_logins = [g.lower().replace(" ", "_") for g in groups.GROUPS]
+
         try:
             userprofile = request.user.userprofile
             kwargs["tallies"] = userprofile.administrated_tallies.all()
         except UserProfile.DoesNotExist:
             kwargs["tallies"] = Tally.objects.all()
+
+        kwargs["site_id"] = site_id
+        kwargs["groups"] = group_logins
         return super(TalliesView, self).get(request, *args, **kwargs)
 
 

@@ -1347,40 +1347,40 @@ urlpatterns = [
         name="global-settings",
     ),
     re_path(
-        r"^tally-manager/user-list/(?P<role>(user|admin))$",
+        r"^tally-manager/user-list/(?P<role>(user|admin|tally-manager))$",
         user_list_view.UserListView.as_view(),
         name="user-list",
     ),
     re_path(
-        r"^tally-manager/user-list-data/(?P<role>(user|admin))$",
+        r"^tally-manager/user-list-data/(?P<role>(user|admin|tally-manager))$",
         user_list_view.UserListDataView.as_view(),
         name="user-list-data",
     ),
     re_path(
-        r"^tally-manager/remove-user/(?P<role>(user|admin))/"
+        r"^tally-manager/remove-user/(?P<role>(user|admin|tally-manager))/"
         r"(?P<user_id>(\d+))/$",
         tally_manager.RemoveUserConfirmationView.as_view(),
         name="remove-user-confirmation",
     ),
     re_path(
-        r"^tally-manager/edit-user/(?P<role>(user|admin))/"
+        r"^tally-manager/edit-user/(?P<role>(user|admin|tally-manager))/"
         r"(?P<user_id>(\d+))/$",
         tally_manager.EditUserView.as_view(),
         name="edit-user",
     ),
     re_path(
-        r"^tally-manager/edit-user/(?P<role>(user|admin))/"
+        r"^tally-manager/edit-user/(?P<role>(user|admin|tally-manager))/"
         r"(?P<tally_id>(\d+))/(?P<user_id>(\d+))/$",
         tally_manager.EditUserView.as_view(),
         name="edit-user",
     ),
     re_path(
-        r"^tally-manager/create-user/(?P<role>(user|admin))$",
+        r"^tally-manager/create-user/(?P<role>(user|admin|tally-manager))$",
         tally_manager.CreateUserView.as_view(),
         name="create-user",
     ),
     re_path(
-        r"^tally-manager/remove-user/(?P<role>(user|admin))/"
+        r"^tally-manager/remove-user/(?P<role>(user|admin|tally-manager))/"
         r"(?P<tally_id>(\d+))/(?P<user_id>(\d+))/$",
         tally_manager.RemoveUserConfirmationView.as_view(),
         name="remove-user-confirmation",

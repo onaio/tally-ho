@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<h1>{% trans 'Tallies' %}</h1>
+<h1>{% trans 'Dashboard' %}</h1>
 {% if messages %}
 <ul class="text-info">
     {% for message in messages %}
@@ -13,6 +13,12 @@
 </ul>
 {% endif %}
 
+<h3>{% trans 'Data views' %}</h3>
+<ul>
+    <li><a href="{% url 'user-list' 'tally-manager' %}">{% trans 'Tally Managers List' %}</a></li>
+</ul>
+
+<h3>{% trans 'Tallies' %}</h3>
 <ul>
     {% for tally in tallies %}
         <li><a href="{% url 'super-administrator' tally_id=tally.id %}">{{ tally.name }}</a></li>
@@ -20,5 +26,22 @@
     <li>{% trans 'You have no tally assigned to be administrated.' %}</li>
     {% endfor %}
 </ul>
+
+<h3>{% trans 'Other Operations' %}</h3>
+<ul>
+    <li><a href="{% url 'create-tally' %}">{% trans 'Create a Tally' %}</a></li>
+    <li><a href="{% url 'global-settings' site_id=site_id %}">{% trans 'Global Settings' %}</a></li>
+</ul>
+
+{% if debug %}
+<h3>{% trans 'Users and groups' %}</h3>
+
+<h4>{% trans 'Demo groups and passwords (formatted as login/pass):' %}</h4>
+<ul>
+    {% for group in groups %}
+    <li>{{ group }}/data</li>
+    {% endfor %}
+</ul>
+{% endif %}
 
 {% endblock %}

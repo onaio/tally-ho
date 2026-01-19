@@ -8,6 +8,10 @@
 <h1>{% trans 'Edit Administrator' %}</h1>
 {% elif is_admin and not object  %}
 <h1>{% trans 'Create Administrator' %}</h1>
+{% elif is_tally_manager and object %}
+<h1>{% trans 'Edit Tally Manager' %}</h1>
+{% elif is_tally_manager and not object %}
+<h1>{% trans 'Create Tally Manager' %}</h1>
 {% elif not is_admin and object %}
 <h1>{% trans 'Edit User' %}</h1>
 {% else %}

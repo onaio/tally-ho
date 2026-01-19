@@ -6,6 +6,7 @@ import duckdb
 from celery.result import AsyncResult
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.models import Site
 from django.db import transaction
@@ -20,7 +21,7 @@ from django.views.generic import (CreateView, DeleteView, FormView,
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.edit_user_profile_form import (
-    EditAdminProfileForm, EditUserProfileForm)
+    EditAdminProfileForm, EditTallyManagerProfileForm, EditUserProfileForm)
 from tally_ho.apps.tally.forms.site_info_form import SiteInfoForm
 from tally_ho.apps.tally.forms.tally_files_form import TallyFilesForm
 from tally_ho.apps.tally.forms.tally_form import TallyForm
@@ -211,17 +212,20 @@ def process_batch_step(current_step, file_map, tally):
 class DashboardView(
     LoginRequiredMixin, GroupRequiredMixin, TemplateView
 ):
-    group_required = groups.TALLY_MANAGER
+    group_required = [groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]
     template_name = "tally_manager/home.html"
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         site_id = getattr(settings, "SITE_ID", None)
         group_logins = [g.lower().replace(" ", "_") for g in groups.GROUPS]
+        is_super_admin = request.user.groups.filter(
+            name=groups.SUPER_ADMINISTRATOR).exists()
 
         return self.render_to_response(
             self.get_context_data(
                 groups=group_logins,
                 site_id=site_id,
+                is_super_admin=is_super_admin,
                 tally_id=None)
         )
 
@@ -234,17 +238,28 @@ class EditUserView(
     UpdateView,
 ):
     model = UserProfile
-    group_required = groups.TALLY_MANAGER
+    group_required = [groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]
     template_name = "tally_manager/edit_user_profile.html"
     slug_url_kwarg = "user_id"
     slug_field = "id"
 
+    def dispatch(self, request, *args, **kwargs):
+        role = kwargs.get("role", "user")
+        # Only SUPER_ADMINISTRATOR can edit tally-manager users
+        if role == "tally-manager":
+            if not request.user.groups.filter(
+                    name=groups.SUPER_ADMINISTRATOR).exists():
+                raise PermissionDenied
+        return super(EditUserView, self).dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super(EditUserView, self).get_context_data(**kwargs)
         is_admin = self.object.is_administrator
+        is_tally_manager = self.object.is_tally_manager
         role = self.kwargs.get("role", "user")
         tally_id = self.kwargs.get("tally_id")
         context["is_admin"] = is_admin
+        context["is_tally_manager"] = is_tally_manager
         context["role"] = role
         context["tally_id"] = tally_id
         context["object"] = self.object
@@ -273,6 +288,8 @@ class EditUserView(
     def get_form_class(self):
         if self.object.is_administrator:
             return EditAdminProfileForm
+        elif self.object.is_tally_manager:
+            return EditTallyManagerProfileForm
         else:
             return EditUserProfileForm
 
@@ -341,14 +358,24 @@ class RemoveUserConfirmationView(
 class CreateUserView(
     LoginRequiredMixin, GroupRequiredMixin, CreateView
 ):
-    group_required = groups.TALLY_MANAGER
+    group_required = [groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]
     template_name = "tally_manager/edit_user_profile.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        role = kwargs.get("role", "user")
+        # Only SUPER_ADMINISTRATOR can create tally-manager users
+        if role == "tally-manager":
+            if not request.user.groups.filter(
+                    name=groups.SUPER_ADMINISTRATOR).exists():
+                raise PermissionDenied
+        return super(CreateUserView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         role = self.kwargs.get("role", "user")
         tally_id = self.kwargs.get("tally_id")
         context = super(CreateUserView, self).get_context_data(**kwargs)
         context["is_admin"] = role == "admin"
+        context["is_tally_manager"] = role == "tally-manager"
         context["tally_id"] = tally_id
         url_name = None
         url_param = None
@@ -374,8 +401,11 @@ class CreateUserView(
         return context
 
     def get_form_class(self):
-        if self.kwargs.get("role", "user") == "admin":
+        role = self.kwargs.get("role", "user")
+        if role == "admin":
             return EditAdminProfileForm
+        elif role == "tally-manager":
+            return EditTallyManagerProfileForm
         else:
             return EditUserProfileForm
 
