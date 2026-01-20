@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.models.site_info import SiteInfo
@@ -277,3 +278,215 @@ class TestTallyManager(TestBase):
             tally_id=self.tally.id)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Please correct the errors below.')
+
+
+class TestTallyManagerRolePermissions(TestBase):
+    """
+    Test permission guards for tally-manager role in CreateUserView
+    and EditUserView.
+    """
+    def setUp(self):
+        self.factory = RequestFactory()
+        self._create_permission_groups()
+        self._create_and_login_user(username='manager', password='pass')
+        self.tally = create_tally()
+
+    def test_create_user_view_tally_manager_role_denied_for_tally_manager(self):
+        """
+        Test that TALLY_MANAGER users cannot create tally-manager users.
+        """
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        view = views.CreateUserView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        with self.assertRaises(PermissionDenied):
+            view(request, role='tally-manager')
+
+    def test_create_user_view_tally_manager_role_allowed_for_super_admin(self):
+        """
+        Test that SUPER_ADMINISTRATOR users can create tally-manager users.
+        """
+        self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
+
+        view = views.CreateUserView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='tally-manager')
+        response.render()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Create Tally Manager', response.content)
+
+    def test_create_user_view_admin_role_allowed_for_tally_manager(self):
+        """
+        Test that TALLY_MANAGER users can create admin users.
+        """
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        view = views.CreateUserView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='admin')
+        response.render()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Create Administrator', response.content)
+
+    def test_create_user_view_user_role_allowed_for_tally_manager(self):
+        """
+        Test that TALLY_MANAGER users can create regular users.
+        """
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        view = views.CreateUserView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='user')
+        response.render()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Create User', response.content)
+
+    def test_edit_user_view_tally_manager_role_denied_for_tally_manager(self):
+        """
+        Test that TALLY_MANAGER users cannot edit tally-manager users.
+        """
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        # Create a tally manager user to edit
+        tm_user = UserProfile.objects.create(username='tm_to_edit')
+        self._add_user_to_group(tm_user, groups.TALLY_MANAGER)
+
+        view = views.EditUserView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        with self.assertRaises(PermissionDenied):
+            view(request, role='tally-manager', user_id=tm_user.id)
+
+    def test_edit_user_view_tally_manager_role_allowed_for_super_admin(self):
+        """
+        Test that SUPER_ADMINISTRATOR users can edit tally-manager users.
+        """
+        self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
+
+        # Create a tally manager user to edit
+        tm_user = UserProfile.objects.create(username='tm_to_edit')
+        self._add_user_to_group(tm_user, groups.TALLY_MANAGER)
+
+        view = views.EditUserView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='tally-manager', user_id=tm_user.id)
+        response.render()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Edit Tally Manager', response.content)
+
+    def test_create_user_view_context_is_tally_manager(self):
+        """
+        Test that CreateUserView sets is_tally_manager context correctly.
+        """
+        self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
+
+        view = views.CreateUserView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='tally-manager')
+        self.assertTrue(response.context_data.get('is_tally_manager'))
+        self.assertFalse(response.context_data.get('is_admin'))
+
+    def test_edit_user_view_context_is_tally_manager(self):
+        """
+        Test that EditUserView sets is_tally_manager context correctly.
+        """
+        self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
+
+        # Create a tally manager user to edit
+        tm_user = UserProfile.objects.create(username='tm_context_test')
+        self._add_user_to_group(tm_user, groups.TALLY_MANAGER)
+
+        view = views.EditUserView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='tally-manager', user_id=tm_user.id)
+        self.assertTrue(response.context_data.get('is_tally_manager'))
+
+
+class TestDashboardView(TestBase):
+    """
+    Test DashboardView for tally manager home page.
+    """
+    def setUp(self):
+        self.factory = RequestFactory()
+        self._create_permission_groups()
+        self._create_and_login_user(username='manager', password='pass')
+        self.tally = create_tally()
+
+    def test_dashboard_view_tally_manager_access(self):
+        """
+        Test that TALLY_MANAGER users can access the dashboard.
+        """
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        view = views.DashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_dashboard_view_super_admin_access(self):
+        """
+        Test that SUPER_ADMINISTRATOR users can access the dashboard.
+        """
+        self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
+
+        view = views.DashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_dashboard_view_is_super_admin_context(self):
+        """
+        Test that is_super_admin context is True for SUPER_ADMINISTRATOR.
+        """
+        self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
+
+        view = views.DashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request)
+        self.assertTrue(response.context_data.get('is_super_admin'))
+
+    def test_dashboard_view_is_super_admin_context_false_for_tally_manager(self):
+        """
+        Test that is_super_admin context is False for TALLY_MANAGER.
+        """
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        view = views.DashboardView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request)
+        self.assertFalse(response.context_data.get('is_super_admin'))
