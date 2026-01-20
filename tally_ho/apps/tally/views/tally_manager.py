@@ -246,10 +246,9 @@ class EditUserView(
     def dispatch(self, request, *args, **kwargs):
         role = kwargs.get("role", "user")
         # Only SUPER_ADMINISTRATOR can edit tally-manager users
-        if role == "tally-manager":
-            if not request.user.groups.filter(
-                    name=groups.SUPER_ADMINISTRATOR).exists():
-                raise PermissionDenied
+        if role == "tally-manager" and not groups.is_super_administrator(
+                request.user):
+            raise PermissionDenied
         return super(EditUserView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -364,10 +363,9 @@ class CreateUserView(
     def dispatch(self, request, *args, **kwargs):
         role = kwargs.get("role", "user")
         # Only SUPER_ADMINISTRATOR can create tally-manager users
-        if role == "tally-manager":
-            if not request.user.groups.filter(
-                    name=groups.SUPER_ADMINISTRATOR).exists():
-                raise PermissionDenied
+        if role == "tally-manager" and not groups.is_super_administrator(
+                request.user):
+            raise PermissionDenied
         return super(CreateUserView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

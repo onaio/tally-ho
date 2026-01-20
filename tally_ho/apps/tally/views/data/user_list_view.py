@@ -77,10 +77,9 @@ class UserListView(LoginRequiredMixin,
         role = kwargs.get('role', 'user')
 
         # Only SUPER_ADMINISTRATOR can access tally-manager role
-        if role == 'tally-manager':
-            if not request.user.groups.filter(
-                    name=groups.SUPER_ADMINISTRATOR).exists():
-                raise PermissionDenied
+        if role == 'tally-manager' and not groups.is_super_administrator(
+                request.user):
+            raise PermissionDenied
 
         is_admin = role == 'admin'
         is_tally_manager = role == 'tally-manager'
