@@ -315,9 +315,10 @@ class DashboardView(
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/home.html"
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         group_logins = [g.lower().replace(" ", "_") for g in groups.GROUPS]
         kwargs["groups"] = group_logins
+        kwargs["is_super_admin"] = groups.is_super_administrator(request.user)
         kwargs["intake_clerk"] = groups.INTAKE_CLERK
         kwargs["intake_supervisor"] = groups.INTAKE_SUPERVISOR
         kwargs["clearance_clerk"] = groups.CLEARANCE_CLERK
