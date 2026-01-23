@@ -300,9 +300,9 @@ class TalliesView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
 
         try:
             userprofile = request.user.userprofile
-            kwargs["tallies"] = userprofile.administrated_tallies.all()
+            kwargs["tallies"] = userprofile.administrated_tallies.filter(active=True)
         except UserProfile.DoesNotExist:
-            kwargs["tallies"] = Tally.objects.all()
+            kwargs["tallies"] = Tally.objects.filter(active=True)
 
         kwargs["site_id"] = site_id
         kwargs["groups"] = group_logins

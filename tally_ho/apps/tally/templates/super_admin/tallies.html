@@ -21,9 +21,7 @@
 <h3>{% trans 'Tallies' %}</h3>
 <ul>
     {% for tally in tallies %}
-        {% if tally.active %}
-            <li><a href="{% url 'super-administrator' tally_id=tally.id %}">{{ tally.name }}</a></li>
-        {% endif %}
+        <li><a href="{% url 'super-administrator' tally_id=tally.id %}">{{ tally.name }}</a></li>        
     {% empty %}
     <li>{% trans 'You have no tally assigned to be administrated.' %}</li>
     {% endfor %}
