@@ -115,10 +115,14 @@ class EditAdminProfileForm(ModelForm):
         if "instance" not in kwargs or not kwargs["instance"]:
             self.fields["reboot_password"].widget = HiddenInput()
             self.fields["administrated_tallies"] = ModelMultipleChoiceField(
-                queryset=Tally.objects.all(),
+                queryset=Tally.objects.filter(active=True),
                 label=_("Administrated tallies"),
                 widget=CheckboxSelectMultiple(),
             )
+        else:
+            # When editing, also filter to active tallies
+            self.fields["administrated_tallies"].queryset = Tally.objects.filter(
+                active=True)
 
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:
@@ -174,10 +178,14 @@ class EditTallyManagerProfileForm(ModelForm):
         if "instance" not in kwargs or not kwargs["instance"]:
             self.fields["reboot_password"].widget = HiddenInput()
             self.fields["administrated_tallies"] = ModelMultipleChoiceField(
-                queryset=Tally.objects.all(),
+                queryset=Tally.objects.filter(active=True),
                 label=_("Administrated tallies"),
                 widget=CheckboxSelectMultiple(),
             )
+        else:
+            # When editing, also filter to active tallies
+            self.fields["administrated_tallies"].queryset = Tally.objects.filter(
+                active=True)
 
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:
