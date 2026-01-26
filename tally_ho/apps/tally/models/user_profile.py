@@ -59,6 +59,12 @@ class UserProfile(User):
             "name", flat=True
         )
 
+    @property
+    def is_tally_manager(self):
+        return groups.TALLY_MANAGER in self.groups.values_list(
+            "name", flat=True
+        )
+
     def __str__(self):
         return "%s - %s %s" % (self.username, self.first_name, self.last_name)
 

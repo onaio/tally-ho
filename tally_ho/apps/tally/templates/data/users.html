@@ -17,6 +17,8 @@
 
 {% if is_admin %}
 <h1>{% trans 'Administrators List' %}</h1>
+{% elif is_tally_manager %}
+<h1>{% trans 'Tally Managers List' %}</h1>
 {% else %}
 <h1>{% trans 'Users List' %}</h1>
 {% endif %}
@@ -35,11 +37,13 @@
         {% trans 'New User' %}
     </button>
 </form>
-{% else %}
+{% elif not read_only %}
 <form method="get" action="{% url 'create-user' role %}">
   <button type="submit" class="btn btn-primary btn-small pull-right">
         {% if is_admin %}
         {% trans "New Administrator" %}
+        {% elif is_tally_manager %}
+        {% trans "New Tally Manager" %}
         {% else %}
         {% trans "New User" %}
         {% endif %}

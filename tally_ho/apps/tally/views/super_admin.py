@@ -1,6 +1,7 @@
 from collections import defaultdict
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
@@ -294,11 +295,17 @@ class TalliesView(LoginRequiredMixin, GroupRequiredMixin, TemplateView):
     template_name = "super_admin/tallies.html"
 
     def get(self, request, *args, **kwargs):
+        site_id = getattr(settings, "SITE_ID", None)
+        group_logins = [g.lower().replace(" ", "_") for g in groups.GROUPS]
+
         try:
             userprofile = request.user.userprofile
-            kwargs["tallies"] = userprofile.administrated_tallies.all()
+            kwargs["tallies"] = userprofile.administrated_tallies.filter(active=True)
         except UserProfile.DoesNotExist:
-            kwargs["tallies"] = Tally.objects.all()
+            kwargs["tallies"] = Tally.objects.filter(active=True)
+
+        kwargs["site_id"] = site_id
+        kwargs["groups"] = group_logins
         return super(TalliesView, self).get(request, *args, **kwargs)
 
 
@@ -308,9 +315,10 @@ class DashboardView(
     group_required = groups.SUPER_ADMINISTRATOR
     template_name = "super_admin/home.html"
 
-    def get(self, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         group_logins = [g.lower().replace(" ", "_") for g in groups.GROUPS]
         kwargs["groups"] = group_logins
+        kwargs["is_super_admin"] = groups.is_super_administrator(request.user)
         kwargs["intake_clerk"] = groups.INTAKE_CLERK
         kwargs["intake_supervisor"] = groups.INTAKE_SUPERVISOR
         kwargs["clearance_clerk"] = groups.CLEARANCE_CLERK

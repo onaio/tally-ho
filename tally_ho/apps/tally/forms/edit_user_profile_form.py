@@ -115,10 +115,14 @@ class EditAdminProfileForm(ModelForm):
         if "instance" not in kwargs or not kwargs["instance"]:
             self.fields["reboot_password"].widget = HiddenInput()
             self.fields["administrated_tallies"] = ModelMultipleChoiceField(
-                queryset=Tally.objects.all(),
+                queryset=Tally.objects.filter(active=True),
                 label=_("Administrated tallies"),
                 widget=CheckboxSelectMultiple(),
             )
+        else:
+            # When editing, also filter to active tallies
+            self.fields["administrated_tallies"].queryset = Tally.objects.filter(
+                active=True)
 
         for key in self.fields:
             if key not in self.MANDATORY_FIELDS:
@@ -140,3 +144,70 @@ class EditAdminProfileForm(ModelForm):
             user.reset_password = True
 
         user.save()
+
+        return user
+
+
+class EditTallyManagerProfileForm(ModelForm):
+    MANDATORY_FIELDS = ["username"]
+
+    class Meta:
+        model = UserProfile
+        fields = localized_fields = [
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "administrated_tallies",
+        ]
+
+        widgets = {
+            "username": TextInput(attrs={"size": 50}),
+            "first_name": TextInput(attrs={"size": 50}),
+            "last_name": TextInput(attrs={"size": 50}),
+            "email": TextInput(attrs={"size": 50}),
+        }
+
+    reboot_password = BooleanField(
+        label=_("Reset password"), widget=CheckboxInput()
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(EditTallyManagerProfileForm, self).__init__(*args, **kwargs)
+
+        if "instance" not in kwargs or not kwargs["instance"]:
+            self.fields["reboot_password"].widget = HiddenInput()
+            self.fields["administrated_tallies"] = ModelMultipleChoiceField(
+                queryset=Tally.objects.filter(active=True),
+                label=_("Administrated tallies"),
+                widget=CheckboxSelectMultiple(),
+            )
+        else:
+            # When editing, also filter to active tallies
+            self.fields["administrated_tallies"].queryset = Tally.objects.filter(
+                active=True)
+
+        for key in self.fields:
+            if key not in self.MANDATORY_FIELDS:
+                self.fields[key].required = False
+
+    def clean(self):
+        if self.is_valid():
+            lower_case_form_data(self, EditTallyManagerProfileForm, ["username"])
+
+    def save(self):
+        user = super(EditTallyManagerProfileForm, self).save()
+        reboot_password = self.cleaned_data.get("reboot_password")
+
+        # Assign Tally Manager group
+        tally_manager = Group.objects.get(name=groups.TALLY_MANAGER)
+        user.groups.clear()
+        user.groups.add(tally_manager)
+
+        if not user.password or reboot_password:
+            user.set_password(user.username)
+            user.reset_password = True
+
+        user.save()
+
+        return user

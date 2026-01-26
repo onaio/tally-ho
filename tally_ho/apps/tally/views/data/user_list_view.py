@@ -31,6 +31,10 @@ class UserListDataView(LoginRequiredMixin,
         if column == 'date_joined':
             return row.date_joined.strftime('%a, %d %b %Y %H:%M:%S %Z')
         if column == 'edit':
+            # Tally managers viewing tally-manager or admin list get read-only view
+            is_super_admin = groups.is_super_administrator(self.request.user)
+            if role in ('tally-manager', 'admin') and not is_super_admin:
+                return ''
             return row.get_edit_link(role=role)
         else:
             return super(UserListDataView, self).render_column(
@@ -47,6 +51,8 @@ class UserListDataView(LoginRequiredMixin,
 
         if self.role == 'admin':
             qs = qs.filter(groups__name__exact=groups.SUPER_ADMINISTRATOR)
+        elif self.role == 'tally-manager':
+            qs = qs.filter(groups__name__exact=groups.TALLY_MANAGER)
         else:
             qs = qs.filter(groups__in=Group.objects.all().exclude(
                 name__in=[groups.SUPER_ADMINISTRATOR, groups.TALLY_MANAGER]))
@@ -67,17 +73,24 @@ class UserListView(LoginRequiredMixin,
                    GroupRequiredMixin,
                    DataTablesMixin,
                    TemplateView):
-    group_required = groups.TALLY_MANAGER
+    group_required = [groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR]
     template_name = "data/users.html"
 
-    def get(self, *args, **kwargs):
-        # check cache
+    def get(self, request, *args, **kwargs):
         role = kwargs.get('role', 'user')
+
         is_admin = role == 'admin'
+        is_tally_manager = role == 'tally-manager'
+
+        # Tally managers can view tally-manager and admin lists but in read-only mode
+        is_super_admin = groups.is_super_administrator(request.user)
+        read_only = (is_tally_manager or is_admin) and not is_super_admin
 
         return self.render_to_response(self.get_context_data(
             role=role,
             is_admin=is_admin,
+            is_tally_manager=is_tally_manager,
+            read_only=read_only,
             remote_url=reverse('user-list-data', kwargs={'role': role}),
             export_file_name='user-list',
             server_side=True,

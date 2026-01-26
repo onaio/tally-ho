@@ -67,3 +67,159 @@ class TestUserListView(TestBase):
         self.assertEqual(date_joined,
                           audit_user.date_joined.strftime(
                               '%a, %d %b %Y %H:%M:%S %Z'))
+
+    def test_user_list_view_tally_manager_role(self):
+        """
+        Test that super admin can access tally-manager role list view.
+        """
+        view = views.UserListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(request, role='tally-manager')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tally Managers List")
+        self.assertContains(response, "New Tally Manager")
+
+    def test_user_list_view_admin_role(self):
+        """
+        Test that admin role shows Administrators List.
+        """
+        view = views.UserListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+        response = view(request, role='admin')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Administrators List")
+        self.assertContains(response, "New Administrator")
+
+    def test_user_list_data_view_filters_tally_managers(self):
+        """
+        Test that user list data view filters by TALLY_MANAGER group
+        when role is tally-manager.
+        """
+        # Create a tally manager user
+        tm_user = UserProfile.objects.create(
+            username='test_tally_manager',
+            first_name='Test',
+            last_name='TallyManager')
+        self._add_user_to_group(tm_user, groups.TALLY_MANAGER)
+
+        # Create a regular user (should not appear)
+        regular_user = UserProfile.objects.create(
+            username='regular_user',
+            first_name='Regular',
+            last_name='User')
+        self._add_user_to_group(regular_user, groups.AUDIT_SUPERVISOR)
+
+        view = views.UserListDataView.as_view()
+        request = self.factory.get('/user-list/tally-manager')
+        request.user = self.user
+        response = view(request, role='tally-manager')
+
+        data = json.loads(response.content.decode())['data']
+
+        # Should only contain tally manager users
+        usernames = [row[0] for row in data]
+        self.assertIn('test_tally_manager', usernames)
+        self.assertNotIn('regular_user', usernames)
+
+    def test_user_list_data_view_filters_admins(self):
+        """
+        Test that user list data view filters by SUPER_ADMINISTRATOR group
+        when role is admin.
+        """
+        # Create another super admin
+        admin_user = UserProfile.objects.create(
+            username='another_admin',
+            first_name='Another',
+            last_name='Admin')
+        self._add_user_to_group(admin_user, groups.SUPER_ADMINISTRATOR)
+
+        # Create a tally manager (should not appear)
+        tm_user = UserProfile.objects.create(
+            username='tm_user',
+            first_name='TM',
+            last_name='User')
+        self._add_user_to_group(tm_user, groups.TALLY_MANAGER)
+
+        view = views.UserListDataView.as_view()
+        request = self.factory.get('/user-list/admin')
+        request.user = self.user
+        response = view(request, role='admin')
+
+        data = json.loads(response.content.decode())['data']
+
+        # Should contain admin users
+        usernames = [row[0] for row in data]
+        self.assertIn('another_admin', usernames)
+        self.assertNotIn('tm_user', usernames)
+
+
+class TestUserListViewPermissions(TestBase):
+    """
+    Test permission guards for user list views.
+    """
+    def setUp(self):
+        self.factory = RequestFactory()
+        self._create_permission_groups()
+        self._create_and_login_user()
+
+    def test_tally_manager_can_access_tally_manager(self):
+        """
+        Test that TALLY_MANAGER users can access 
+        tally-manager role list in read-only mode.
+        """
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        view = views.UserListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='tally-manager')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context_data['read_only'])
+
+    def test_super_admin_can_access_tally_manager_role(self):
+        """
+        Test that SUPER_ADMINISTRATOR users can access tally-manager role list.
+        """
+        self._add_user_to_group(self.user, groups.SUPER_ADMINISTRATOR)
+
+        view = views.UserListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='tally-manager')
+        self.assertEqual(response.status_code, 200)
+
+    def test_tally_manager_can_access_admin_role(self):
+        """
+        Test that TALLY_MANAGER users can access admin role list.
+        """
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        view = views.UserListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='admin')
+        self.assertEqual(response.status_code, 200)
+
+    def test_tally_manager_can_access_user_role(self):
+        """
+        Test that TALLY_MANAGER users can access user role list.
+        """
+        self._add_user_to_group(self.user, groups.TALLY_MANAGER)
+
+        view = views.UserListView.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+        request.session = {}
+
+        response = view(request, role='user')
+        self.assertEqual(response.status_code, 200)

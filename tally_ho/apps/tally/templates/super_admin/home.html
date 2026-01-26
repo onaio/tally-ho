@@ -30,6 +30,7 @@
 </ul>
 
 
+{% if not is_super_admin %}
 <h3>{% trans 'Reports' %}</h3>
 <ul>
     <li><a href="{% url 'turnout-list' tally_id=tally_id %}">{% trans 'Turnout Report' %}</a></li>
@@ -79,7 +80,7 @@
     <li><a href="{% url 'quality-control' tally_id=tally_id %}">{% trans 'Quality Control & Archiving Clerk' %}</a></li>
     <li><a href="{% url 'audit_dashboard' tally_id=tally_id %}">{% trans 'Audit Clerk' %}</a></li>
 </ul>
-
+{% endif %}
 
 <h3>{% trans 'Admin Operations' %}</h3>
 <ul>
