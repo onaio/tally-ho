@@ -31,9 +31,9 @@ class UserListDataView(LoginRequiredMixin,
         if column == 'date_joined':
             return row.date_joined.strftime('%a, %d %b %Y %H:%M:%S %Z')
         if column == 'edit':
-            # Tally managers viewing tally-manager list get read-only view
+            # Tally managers viewing tally-manager or admin list get read-only view
             is_super_admin = groups.is_super_administrator(self.request.user)
-            if role == 'tally-manager' and not is_super_admin:
+            if role in ('tally-manager', 'admin') and not is_super_admin:
                 return ''
             return row.get_edit_link(role=role)
         else:
@@ -82,9 +82,9 @@ class UserListView(LoginRequiredMixin,
         is_admin = role == 'admin'
         is_tally_manager = role == 'tally-manager'
 
-        # Tally managers can view tally-manager list but in read-only mode
+        # Tally managers can view tally-manager and admin lists but in read-only mode
         is_super_admin = groups.is_super_administrator(request.user)
-        read_only = is_tally_manager and not is_super_admin
+        read_only = (is_tally_manager or is_admin) and not is_super_admin
 
         return self.render_to_response(self.get_context_data(
             role=role,
