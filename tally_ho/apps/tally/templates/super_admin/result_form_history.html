@@ -94,21 +94,20 @@
                                         </tbody>
                                     </table>
                                 </div>
-
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <p class="text-info">
-                                            <strong>{% trans "Total history entries:" %}</strong> {{ history_data|length }}
-                                        </p>
-                                        
-                                        <div class="btn-group">
-                                            <a href="{% url 'result-form-search' tally_id=tally_id %}" 
-                                               class="btn btn-primary">
-                                                {% trans "Back to Search" %}
-                                            </a>
-                                        </div>
+                                                                
+                                <div class="col-md-12">
+                                    <p class="text-info">
+                                        <strong>{% trans "Total history entries:" %}</strong> {{ history_data|length }}
+                                    </p>
+                                    
+                                    <div class="btn-group">
+                                        <a href="{% url 'result-form-search' tally_id=tally_id %}" 
+                                            class="btn btn-primary">
+                                            {% trans "Back to Search" %}
+                                        </a>
                                     </div>
                                 </div>
+                                
                             </div>
                         </div>
                     {% endif %}
