@@ -234,7 +234,7 @@ class TestSuperAdmin(TestBase):
         response.render()
         self.assertIn(tally.name, str(response.content))
         self.assertIn(
-            "You have no tally assigned to be administrated",
+            "Tallies List",
             str(response.content),
         )
 
