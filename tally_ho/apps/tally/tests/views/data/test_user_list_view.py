@@ -1,5 +1,4 @@
 import json
-from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.models.user_profile import UserProfile
@@ -167,9 +166,10 @@ class TestUserListViewPermissions(TestBase):
         self._create_permission_groups()
         self._create_and_login_user()
 
-    def test_tally_manager_cannot_access_tally_manager_role(self):
+    def test_tally_manager_can_access_tally_manager(self):
         """
-        Test that TALLY_MANAGER users cannot access tally-manager role list.
+        Test that TALLY_MANAGER users can access 
+        tally-manager role list in read-only mode.
         """
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)
 
@@ -178,8 +178,9 @@ class TestUserListViewPermissions(TestBase):
         request.user = self.user
         request.session = {}
 
-        with self.assertRaises(PermissionDenied):
-            view(request, role='tally-manager')
+        response = view(request, role='tally-manager')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context_data['read_only'])
 
     def test_super_admin_can_access_tally_manager_role(self):
         """
