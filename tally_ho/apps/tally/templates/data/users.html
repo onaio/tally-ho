@@ -37,7 +37,7 @@
         {% trans 'New User' %}
     </button>
 </form>
-{% else %}
+{% elif not read_only %}
 <form method="get" action="{% url 'create-user' role %}">
   <button type="submit" class="btn btn-primary btn-small pull-right">
         {% if is_admin %}

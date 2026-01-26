@@ -15,10 +15,8 @@
 <h3>{% trans 'Data views' %}</h3>
 <ul>
     <li><a href="{% url 'tally-list' %}">{% trans 'Tallies List' %}</a></li>
-    <li><a href="{% url 'user-list' 'admin' %}">{% trans 'Administrators List' %}</a></li>
-    {% if is_super_admin %}
-    <li><a href="{% url 'user-list' 'tally-manager' %}">{% trans 'Tally Managers List' %}</a></li>
-    {% endif %}
+    <li><a href="{% url 'user-list' 'admin' %}">{% trans 'Administrators List' %}</a></li>    
+    <li><a href="{% url 'user-list' 'tally-manager' %}">{% trans 'Tally Managers List' %}</a></li>    
     <li><a href="{% url 'user-list' 'user' %}">{% trans 'Users List' %}</a></li>
 </ul>
 

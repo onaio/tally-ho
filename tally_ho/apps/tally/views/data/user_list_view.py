@@ -1,5 +1,4 @@
 from django.contrib.auth.models import Group
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.urls import reverse
 from django.views.generic import TemplateView
@@ -32,6 +31,10 @@ class UserListDataView(LoginRequiredMixin,
         if column == 'date_joined':
             return row.date_joined.strftime('%a, %d %b %Y %H:%M:%S %Z')
         if column == 'edit':
+            # Tally managers viewing tally-manager list get read-only view
+            is_super_admin = groups.is_super_administrator(self.request.user)
+            if role == 'tally-manager' and not is_super_admin:
+                return ''
             return row.get_edit_link(role=role)
         else:
             return super(UserListDataView, self).render_column(
@@ -76,18 +79,18 @@ class UserListView(LoginRequiredMixin,
     def get(self, request, *args, **kwargs):
         role = kwargs.get('role', 'user')
 
-        # Only SUPER_ADMINISTRATOR can access tally-manager role
-        if role == 'tally-manager' and not groups.is_super_administrator(
-                request.user):
-            raise PermissionDenied
-
         is_admin = role == 'admin'
         is_tally_manager = role == 'tally-manager'
+
+        # Tally managers can view tally-manager list but in read-only mode
+        is_super_admin = groups.is_super_administrator(request.user)
+        read_only = is_tally_manager and not is_super_admin
 
         return self.render_to_response(self.get_context_data(
             role=role,
             is_admin=is_admin,
             is_tally_manager=is_tally_manager,
+            read_only=read_only,
             remote_url=reverse('user-list-data', kwargs={'role': role}),
             export_file_name='user-list',
             server_side=True,
