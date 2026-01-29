@@ -6,10 +6,11 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import DataTablesMixin, GroupRequiredMixin
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin, DataTablesMixin,
+                                        GroupRequiredMixin)
 
 
-class TallyListDataView(LoginRequiredMixin,
+class TallyListDataView(AjaxLoginRequiredMixin,
                         GroupRequiredMixin,
                         BaseDatatableView):
     group_required = groups.TALLY_MANAGER
