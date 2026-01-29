@@ -1,12 +1,16 @@
+import json
+
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.test import RequestFactory
 from django.views.generic.base import View
 
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (TestBase,
                                            create_tally)
-from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin,
+                                        GroupRequiredMixin,
                                         TallyAccessMixin,
                                         get_datatables_context)
 
@@ -22,6 +26,71 @@ class ViewGroupRequired(GroupRequiredMixin, View):
 class ViewTwoGroupsRequired(GroupRequiredMixin, View):
     group_required = [groups.DATA_ENTRY_1_CLERK,
                       groups.DATA_ENTRY_2_CLERK]
+
+
+class ViewAjaxLoginRequired(AjaxLoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse('OK')
+
+
+class TestAjaxLoginRequiredMixin(TestBase):
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+
+    def test_unauthenticated_ajax_request_returns_401(self):
+        """Test that unauthenticated AJAX requests return 401 JSON response."""
+        view = ViewAjaxLoginRequired.as_view()
+        request = self.factory.get(
+            '/',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        request.user = AnonymousUser()
+
+        response = view(request)
+
+        self.assertEqual(response.status_code, 401)
+        data = json.loads(response.content)
+        self.assertEqual(data['error'], 'session_expired')
+        self.assertIn('login_url', data)
+
+    def test_unauthenticated_non_ajax_request_redirects(self):
+        """Test that unauthenticated non-AJAX requests redirect to login."""
+        view = ViewAjaxLoginRequired.as_view()
+        request = self.factory.get('/')
+        request.user = AnonymousUser()
+
+        response = view(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+
+    def test_authenticated_ajax_request_succeeds(self):
+        """Test that authenticated AJAX requests proceed normally."""
+        self._create_and_login_user()
+        view = ViewAjaxLoginRequired.as_view()
+        request = self.factory.get(
+            '/',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        request.user = self.user
+
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'OK')
+
+    def test_authenticated_non_ajax_request_succeeds(self):
+        """Test that authenticated non-AJAX requests proceed normally."""
+        self._create_and_login_user()
+        view = ViewAjaxLoginRequired.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'OK')
 
 
 class TestGroupRequired(TestBase):

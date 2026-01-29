@@ -43,8 +43,8 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.numbers import parse_int
 from tally_ho.libs.utils.query_set_helpers import Round
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin, DataTablesMixin,
+                                        GroupRequiredMixin, TallyAccessMixin)
 
 report_types = {
     1: "turnout",
@@ -2545,7 +2545,7 @@ def get_sub_cons_list(request):
 
 
 class SummaryReportDataView(
-    LoginRequiredMixin,
+    AjaxLoginRequiredMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
     BaseDatatableView,
@@ -2751,7 +2751,7 @@ class SummaryReportView(
 
 
 class ProgressiveReportDataView(
-    LoginRequiredMixin,
+    AjaxLoginRequiredMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
     BaseDatatableView,
@@ -3025,7 +3025,7 @@ class ProgressiveReportView(
 
 
 class DiscrepancyReportDataView(
-    LoginRequiredMixin,
+    AjaxLoginRequiredMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
     BaseDatatableView,
@@ -4051,7 +4051,7 @@ class SubConstituencyReportsView(
 
 
 class ResultFormResultsListDataView(
-    LoginRequiredMixin,
+    AjaxLoginRequiredMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
     BaseDatatableView,
@@ -4278,7 +4278,7 @@ class ResultFormResultsListView(
 
 
 class DuplicateResultsListDataView(
-    LoginRequiredMixin,
+    AjaxLoginRequiredMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
     BaseDatatableView,
@@ -4375,7 +4375,7 @@ class DuplicateResultsListView(
 
 
 class AllCandidatesVotesDataView(
-    LoginRequiredMixin,
+    AjaxLoginRequiredMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
     BaseDatatableView,
@@ -4476,7 +4476,7 @@ class AllCandidatesVotesListView(
 
 
 class ActiveCandidatesVotesDataView(
-    LoginRequiredMixin,
+    AjaxLoginRequiredMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
     BaseDatatableView,
@@ -4627,7 +4627,7 @@ class ClearanceAuditSummaryReportView(
 
 
 class ClearanceAuditSummaryReportDataView(
-    LoginRequiredMixin,
+    AjaxLoginRequiredMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
     BaseDatatableView,

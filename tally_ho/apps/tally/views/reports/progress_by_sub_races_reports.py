@@ -3,7 +3,6 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.constituency import Constituency
 from tally_ho.apps.tally.models.electrol_race import ElectrolRace
@@ -13,11 +12,11 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (GroupRequiredMixin, TallyAccessMixin,
-                                        get_datatables_context)
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin, GroupRequiredMixin,
+                                        TallyAccessMixin, get_datatables_context)
 
 
-class RegionsReportView(LoginRequiredMixin,
+class RegionsReportView(AjaxLoginRequiredMixin,
                         GroupRequiredMixin,
                         TallyAccessMixin,
                         BaseDatatableView):
@@ -122,7 +121,7 @@ class RegionsReportView(LoginRequiredMixin,
         return dt_regions_columns
 
 
-class OfficesReportView(LoginRequiredMixin,
+class OfficesReportView(AjaxLoginRequiredMixin,
                         GroupRequiredMixin,
                         TallyAccessMixin,
                         BaseDatatableView):
@@ -228,7 +227,7 @@ class OfficesReportView(LoginRequiredMixin,
         return dt_offices_columns
 
 
-class ConstituenciesReportView(LoginRequiredMixin,
+class ConstituenciesReportView(AjaxLoginRequiredMixin,
                                GroupRequiredMixin,
                                TallyAccessMixin,
                                BaseDatatableView):
@@ -337,7 +336,7 @@ class ConstituenciesReportView(LoginRequiredMixin,
         return dt_constituencies_columns
 
 
-class SubConstituenciesReportView(LoginRequiredMixin,
+class SubConstituenciesReportView(AjaxLoginRequiredMixin,
                                   GroupRequiredMixin,
                                   TallyAccessMixin,
                                   BaseDatatableView):
