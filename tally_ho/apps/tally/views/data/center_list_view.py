@@ -16,6 +16,7 @@ from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.views.constants import show_inactive_query_param
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.views.mixins import (
+    AjaxLoginRequiredMixin,
     DataTablesMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
@@ -23,7 +24,7 @@ from tally_ho.libs.views.mixins import (
 
 
 class CenterListDataView(
-    LoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
+    AjaxLoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
 ):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Station

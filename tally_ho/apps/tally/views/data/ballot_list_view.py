@@ -8,11 +8,12 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.views.constants import show_inactive_query_param
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin,DataTablesMixin, 
+                                        GroupRequiredMixin,
                                         TallyAccessMixin)
 
 
-class BallotListDataView(LoginRequiredMixin,
+class BallotListDataView(AjaxLoginRequiredMixin,
                        GroupRequiredMixin,
                        TallyAccessMixin,
                        BaseDatatableView):
