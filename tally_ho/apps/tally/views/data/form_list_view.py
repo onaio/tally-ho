@@ -29,6 +29,7 @@ from tally_ho.libs.models.enums.form_state import (
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.enum import get_matching_enum_values
 from tally_ho.libs.views.mixins import (
+    AjaxLoginRequiredMixin,
     DataTablesMixin,
     GroupRequiredMixin,
     TallyAccessMixin,
@@ -38,7 +39,7 @@ ALL = "__all__"
 
 
 class FormListDataView(
-    LoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
+    AjaxLoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
 ):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm

@@ -1,7 +1,8 @@
 import json
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
@@ -44,6 +45,24 @@ def get_datatables_context(request, enable_scroll_x=False):
             '/ajax/download-centers-and-stations-list/',
         'candidates_list_download_url': '/ajax/download-candidates-list/',
     }
+
+
+class AjaxLoginRequiredMixin(LoginRequiredMixin):
+    """
+    Mixin that handles session expiration for AJAX requests.
+    Returns a JSON response with 401 status for unauthenticated AJAX requests,
+    allowing the client to redirect to the login page.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'error': 'session_expired',
+                    'login_url': self.get_login_url()
+                }, status=401)
+        return super().dispatch(request, *args, **kwargs)
+
 
 admin_groups = set((groups.TALLY_MANAGER, groups.SUPER_ADMINISTRATOR))
 
