@@ -300,8 +300,10 @@ def find_missing_center_codes(result_forms_file, centers_by_code):
 
     query = f"""
     SELECT rf.center_code
-    FROM read_csv_auto('{result_forms_file}') AS rf
-    WHERE rf.center_code NOT IN {center_codes_tuple};
+    FROM read_csv_auto('{result_forms_file}', ALL_VARCHAR=TRUE) AS rf
+    WHERE rf.center_code IS NOT NULL
+      AND rf.center_code != ''
+      AND CAST(rf.center_code AS INTEGER) NOT IN {center_codes_tuple};
     """
 
     # Execute the query and fetch the result

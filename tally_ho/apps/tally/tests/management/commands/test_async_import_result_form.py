@@ -115,6 +115,26 @@ class AsyncImportResultFormsTestCase(TransactionTestCase):
                         csv_file_path=csv_file_path,)
             task.wait()
 
+    def test_async_import_result_forms_with_replacements(self):
+        csv_file_path = \
+            str('tally_ho/libs/tests/fixtures/'
+                'tally_setup_files/result_forms_with_replacements.csv')
+        task = async_import_results_forms_from_result_forms_file.delay(
+                        tally_id=self.tally.id,
+                        csv_file_path=csv_file_path,)
+        task.wait()
+
+        result_forms = ResultForm.objects.filter(tally=self.tally)
+        self.assertEqual(result_forms.count(), 14)
+
+        replacement_forms = result_forms.filter(is_replacement=True)
+        self.assertEqual(replacement_forms.count(), 2)
+
+        for form in replacement_forms:
+            self.assertIsNone(form.center)
+            self.assertIsNone(form.gender)
+            self.assertIsNone(form.station_number)
+
     def test_async_import_result_forms_with_invalid_centers_exception(self):
         # Prepare test data with faulty file
         csv_file_path =\

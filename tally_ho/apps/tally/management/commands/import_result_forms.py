@@ -155,7 +155,9 @@ def create_result_forms_result_form_file_data(
                     continue
 
                 if field_name == 'gender':
-                    kwargs['gender'] = genders_by_name.get(field_val.upper())
+                    kwargs['gender'] = \
+                        genders_by_name.get(field_val.upper()) \
+                        if field_val else None
                     continue
 
             if len(kwargs.items()):
