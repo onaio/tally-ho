@@ -26,6 +26,10 @@ class Command(BaseCommand):
         "    # Migrate all except certain users\n"
         "    python manage.py migrate_users_tally --source-tally 2 "
         "--target-tally 5 --all-users --exclude-usernames 'admin,super_user'\n"
+        "\n"
+        "    # Migrate and reset passwords (prompts password change on login)\n"
+        "    python manage.py migrate_users_tally --source-tally 2 "
+        "--target-tally 5 --all-users --reset-passwords\n"
     )
 
     def create_parser(self, prog_name, subcommand, **kwargs):
@@ -67,6 +71,12 @@ class Command(BaseCommand):
             help="Keep administrated_tallies associations (default: False)",
         )
         parser.add_argument(
+            "--reset-passwords",
+            action="store_true",
+            help="Reset user passwords to their usernames and prompt "
+                 "password change on first login (default: False)",
+        )
+        parser.add_argument(
             "--dry-run",
             action="store_true",
             help="Preview changes without making them",
@@ -79,6 +89,7 @@ class Command(BaseCommand):
         usernames = options.get("usernames")
         exclude_usernames = options.get("exclude_usernames")
         preserve_admin_tallies = options["preserve_admin_tallies"]
+        reset_passwords = options["reset_passwords"]
         dry_run = options["dry_run"]
 
         # Validate arguments
@@ -154,6 +165,7 @@ class Command(BaseCommand):
         self.stdout.write(
             f"  Preserve admin tallies: {preserve_admin_tallies}"
         )
+        self.stdout.write(f"  Reset passwords: {reset_passwords}")
         self.stdout.write(f"  Dry run: {dry_run}")
         self.stdout.write("")
 
@@ -197,7 +209,15 @@ class Command(BaseCommand):
 
                         # Update user's tally
                         user.tally = target_tally
-                        user.save(update_fields=["tally"])
+                        update_fields = ["tally"]
+
+                        if reset_passwords:
+                            user.reset_password = True
+                            update_fields.extend(
+                                ["password", "reset_password"]
+                            )
+
+                        user.save(update_fields=update_fields)
 
                         # Remove admin tallies if not preserving
                         if (
