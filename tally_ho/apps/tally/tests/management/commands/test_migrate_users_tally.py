@@ -259,6 +259,55 @@ class TestMigrateUsersTallyCommand(TestCase):
 
         self.assertIn("No users found to migrate", output)
 
+    def test_reset_passwords(self):
+        """Test that --reset-passwords resets passwords to usernames and
+        sets reset_password=True so users are prompted to change on login"""
+        # First set reset_password to False to simulate users who have
+        # already changed their password
+        self.user1.reset_password = False
+        self.user1.save(update_fields=["reset_password"])
+        self.user2.reset_password = False
+        self.user2.save(update_fields=["reset_password"])
+
+        self.call_command_with_output(
+            source_tally=self.source_tally.id,
+            target_tally=self.target_tally.id,
+            usernames="user1,user2",
+            reset_passwords=True
+        )
+
+        self.user1.refresh_from_db()
+        self.user2.refresh_from_db()
+
+        # Tally should be updated
+        self.assertEqual(self.user1.tally, self.target_tally)
+        self.assertEqual(self.user2.tally, self.target_tally)
+
+        # reset_password should be True
+        self.assertTrue(self.user1.reset_password)
+        self.assertTrue(self.user2.reset_password)
+
+        # Password should be reset to username
+        self.assertTrue(self.user1.check_password("user1"))
+        self.assertTrue(self.user2.check_password("user2"))
+
+    def test_migrate_without_reset_passwords(self):
+        """Test that without --reset-passwords, passwords are unchanged"""
+        self.user1.set_password("custom_password")
+        self.user1.reset_password = False
+        self.user1.save()
+
+        self.call_command_with_output(
+            source_tally=self.source_tally.id,
+            target_tally=self.target_tally.id,
+            usernames="user1"
+        )
+
+        self.user1.refresh_from_db()
+        self.assertEqual(self.user1.tally, self.target_tally)
+        self.assertFalse(self.user1.reset_password)
+        self.assertTrue(self.user1.check_password("custom_password"))
+
     def test_migration_output_formatting(self):
         """Test that output contains expected information"""
         output = self.call_command_with_output(
