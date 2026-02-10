@@ -10,6 +10,7 @@ from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.views import intake as views
 from tally_ho.apps.tally.views.intake import INTAKE_DUPLICATE_ERROR_MESSAGE
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
                                            create_center, create_electrol_race,
@@ -460,7 +461,7 @@ class TestIntake(TestBase):
         tally = create_tally()
         tally.users.add(self.user)
         center = create_center(code="11111", tally=tally)
-        station = create_station(center)
+        station = create_station(center, tally=tally)
         # Add active ballot to station's sub_constituency so validation passes
         ballot = create_ballot(tally=tally)
         station.sub_constituency.ballots.add(ballot)
@@ -490,7 +491,7 @@ class TestIntake(TestBase):
         tally = create_tally()
         tally.users.add(self.user)
         center = create_center(code="11111", tally=tally)
-        station = create_station(center)
+        station = create_station(center, tally=tally)
         ballot = create_ballot(tally=tally)
         # Add ballot to station's sub_constituency so validation passes
         station.sub_constituency.ballots.add(ballot)
@@ -538,7 +539,7 @@ class TestIntake(TestBase):
         tally = create_tally()
         tally.users.add(self.user)
         center = create_center(code="11111", tally=tally)
-        station = create_station(center)
+        station = create_station(center, tally=tally)
         ballot = create_ballot(tally=tally)
         # Add ballot to station's sub_constituency so validation passes
         station.sub_constituency.ballots.add(ballot)
@@ -708,7 +709,7 @@ class TestIntake(TestBase):
         tally.users.add(self.user)
         self._add_user_to_group(self.user, groups.INTAKE_CLERK)
         center = create_center(tally=tally)
-        station = create_station(center)
+        station = create_station(center, tally=tally)
         result_form = create_result_form(
             tally=tally, form_state=FormState.INTAKE
         )
@@ -1124,7 +1125,7 @@ class TestIntake(TestBase):
         center = create_center(
             code="11111", tally=tally, sub_constituency=sub_constituency
         )
-        create_station(center)
+        create_station(center, tally=tally)
         # Create form with a different ballot
         electrol_race = create_electrol_race(
             tally=tally, election_level="Municipality", ballot_name="List"
@@ -1273,6 +1274,111 @@ class TestIntake(TestBase):
 
         with self.assertRaises(SuspiciousOperation):
             view(request, tally_id=tally.pk)
+
+    def test_replacement_form_gender_set_from_station_on_intake(self):
+        """Test that a replacement form gets its gender set from the station
+        when the clerk enters the centre and station during intake."""
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(code="11111", tally=tally)
+        station = create_station(center, gender=Gender.FEMALE, tally=tally)
+        ballot = create_ballot(tally=tally)
+        station.sub_constituency.ballots.add(ballot)
+
+        replacement_result_form = create_result_form(
+            barcode="012345678",
+            ballot=ballot,
+            form_state=FormState.INTAKE,
+            serial_number=1,
+            tally=tally,
+            is_replacement=True,
+            gender=None,
+        )
+        self.assertIsNone(replacement_result_form.gender)
+
+        # Step 1: EnterCenterView stores center/station in session
+        enter_view = views.EnterCenterView.as_view()
+        data = {
+            "result_form": replacement_result_form.pk,
+            "center_number": center.code,
+            "center_number_copy": center.code,
+            "station_number": station.station_number,
+            "station_number_copy": station.station_number,
+            "tally_id": tally.pk,
+        }
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        request.session = {"result_form": replacement_result_form.pk}
+        response = enter_view(request, tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+
+        # Step 2: CheckCenterDetailsView assigns center/station/gender
+        check_view = views.CheckCenterDetailsView.as_view()
+        request = self.factory.get("/")
+        request.user = self.user
+        request.session = {
+            "result_form": replacement_result_form.pk,
+            "station_number": station.station_number,
+            "center_number": center.code,
+        }
+        check_view(request, tally_id=tally.pk)
+
+        replacement_result_form.reload()
+        self.assertEqual(replacement_result_form.gender, Gender.FEMALE)
+        self.assertEqual(replacement_result_form.center, center)
+        self.assertEqual(
+            replacement_result_form.station_number, station.station_number)
+
+    def test_replacement_form_gender_set_on_duplicate_clearance(self):
+        """Test that a replacement form gets its gender set from the station
+        even when it triggers a duplicate and is sent to clearance."""
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center(code="11111", tally=tally)
+        station = create_station(center, gender=Gender.FEMALE, tally=tally)
+        ballot = create_ballot(tally=tally)
+        station.sub_constituency.ballots.add(ballot)
+
+        create_result_form(
+            barcode="123456789",
+            ballot=ballot,
+            form_state=FormState.DATA_ENTRY_1,
+            center=center,
+            station_number=station.station_number,
+            tally=tally,
+        )
+        replacement_result_form = create_result_form(
+            barcode="012345678",
+            ballot=ballot,
+            form_state=FormState.INTAKE,
+            serial_number=1,
+            tally=tally,
+            is_replacement=True,
+            gender=None,
+        )
+
+        view = views.EnterCenterView.as_view()
+        data = {
+            "result_form": replacement_result_form.pk,
+            "center_number": center.code,
+            "center_number_copy": center.code,
+            "station_number": station.station_number,
+            "station_number_copy": station.station_number,
+            "tally_id": tally.pk,
+        }
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        request.session = {"result_form": replacement_result_form.pk}
+        view(request, tally_id=tally.pk)
+
+        replacement_result_form.reload()
+        self.assertEqual(
+            replacement_result_form.form_state, FormState.CLEARANCE)
+        self.assertEqual(replacement_result_form.gender, Gender.FEMALE)
 
 
 class TestIntakePrintedView(TestBase):

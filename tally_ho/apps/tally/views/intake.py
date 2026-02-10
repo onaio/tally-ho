@@ -10,9 +10,9 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.barcode_form import BarcodeForm
 from tally_ho.apps.tally.forms.center_details_form import CenterDetailsForm
-from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
@@ -200,7 +200,23 @@ class EnterCenterView(LoginRequiredMixin,
         if center_form.is_valid():
             station_number = center_form.cleaned_data.get('station_number')
             center_number = center_form.cleaned_data.get('center_number')
-            center = Center.objects.get(code=center_number, tally__id=tally_id)
+
+            try:
+                station = Station.objects.get(
+                    center__code=center_number,
+                    station_number=station_number,
+                    tally__id=tally_id)
+            except Station.DoesNotExist:
+                form = add_generic_error(
+                    center_form,
+                    _(f"Station {station_number} does not exist"
+                      f" for center {center_number}"))
+                return self.render_to_response(self.get_context_data(
+                    form=form, header_text=_('Intake'),
+                    result_form=result_form,
+                    tally_id=tally_id))
+
+            center = station.center
 
             # Checks if center ballot number and form ballot number are the
             # same
@@ -227,6 +243,8 @@ class EnterCenterView(LoginRequiredMixin,
             if duplicated_forms:
                 result_form.station_number = station_number
                 result_form.center = center
+                if result_form.is_replacement:
+                    result_form.gender = station.gender
                 # a form already exists, send to clearance
                 self.request.session[
                     'intake-error'] = INTAKE_DUPLICATE_ERROR_MESSAGE
@@ -275,15 +293,21 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             center_number = self.request.session.get('center_number')
 
             try:
-                center = Center.objects.get(code=center_number,
-                                            tally__id=tally_id)
-            except Center.DoesNotExist:
+                station = Station.objects.get(
+                    center__code=center_number,
+                    station_number=station_number,
+                    tally__id=tally_id)
+            except Station.DoesNotExist:
                 raise SuspiciousOperation(
-                    _(f"Center with code {center_number} does not exist")
+                    _(f"Station {station_number} does not exist"
+                      f" for center {center_number}")
                 )
 
+            center = station.center
             result_form.station_number = station_number
             result_form.center = center
+            if result_form.is_replacement:
+                result_form.gender = station.gender
             result_form.save()
 
             self.request.session['station_number'] = station_number
@@ -329,11 +353,16 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             if not result_form.center:
                 station_number = self.request.session.get('station_number')
                 center_number = self.request.session.get('center_number')
-                center = Center.objects.get(code=center_number,
-                                            tally__id=tally_id)
+                station = Station.objects.get(
+                    center__code=center_number,
+                    station_number=station_number,
+                    tally__id=tally_id)
+                center = station.center
 
                 result_form.station_number = station_number
                 result_form.center = center
+                if result_form.is_replacement:
+                    result_form.gender = station.gender
 
             if 'station_number' in self.request.session:
                 del self.request.session['station_number']

@@ -109,6 +109,12 @@ msgstr "أرقام المحطة غير متطابقة"
 msgid "Invalid Station Number for this Center"
 msgstr "رقم المحطة غير صحيح لهذا المركز"
 
+#: tally_ho/apps/tally/views/intake.py:212
+#: tally_ho/apps/tally/views/intake.py:302
+#, python-brace-format
+msgid "Station {station_number} does not exist for center {center_number}"
+msgstr "المحطة {station_number} غير موجودة للمركز {center_number}"
+
 #: tally_ho/apps/tally/forms/center_details_form.py:82
 msgid "Center is disabled"
 msgstr "المركز غير مفعل"
@@ -3811,11 +3817,6 @@ msgstr "نسخة مكررة من نموذج تم إدخاله مسبقًا في 
 #: tally_ho/apps/tally/views/intake.py:218
 msgid "Ballot number do not match for center and form"
 msgstr "رقم بطاقة الاقتراع لا يتطابق مع المركز والنموذج"
-
-#: tally_ho/apps/tally/views/intake.py:282
-#| msgid "Center Number does not exist"
-msgid "Center with code {center_number} does not exist"
-msgstr "رقم المركز غير موجود"
 
 #: tally_ho/apps/tally/views/intake.py:512
 msgid "Intake Successful"
