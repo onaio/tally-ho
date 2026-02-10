@@ -209,7 +209,8 @@ class EnterCenterView(LoginRequiredMixin,
             except Station.DoesNotExist:
                 form = add_generic_error(
                     center_form,
-                    _(u"Invalid Station Number for this Center"))
+                    _(f"Station {station_number} does not exist"
+                      f" for center {center_number}"))
                 return self.render_to_response(self.get_context_data(
                     form=form, header_text=_('Intake'),
                     result_form=result_form,
@@ -298,7 +299,8 @@ class CheckCenterDetailsView(LoginRequiredMixin,
                     tally__id=tally_id)
             except Station.DoesNotExist:
                 raise SuspiciousOperation(
-                    _(f"Center with code {center_number} does not exist")
+                    _(f"Station {station_number} does not exist"
+                      f" for center {center_number}")
                 )
 
             center = station.center
