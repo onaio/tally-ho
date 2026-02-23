@@ -85,7 +85,8 @@ class Audit(BaseModel):
     def save(self, *args, **kwargs):
         if not self.tally_id and self.result_form_id:
             self.tally_id = self.result_form.tally_id
-        if not self.pk and self.result_form.audit_set.filter(
+        if self.active and not self.pk and \
+                self.result_form.audit_set.filter(
                 active=True).exists():
             raise ValidationError(
                 _("An active audit already exists for this form.")

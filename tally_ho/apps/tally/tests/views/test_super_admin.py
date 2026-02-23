@@ -3360,7 +3360,7 @@ class TestSuperAdmin(TestBase):
         request.user = self.user
         configure_messages(request)
         request.session = {"result_form": result_form.pk}
-        response = view(request, tally_id=tally.pk, ballot_id=ballot.number)
+        view(request, tally_id=tally.pk, ballot_id=ballot.number)
 
         self.assertEqual(
             result_form.clearances.count(), clearance_count_before)

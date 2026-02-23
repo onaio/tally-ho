@@ -43,6 +43,7 @@ def configure_messages(request):
 
 
 def create_audit(result_form, user, reviewed_team=False):
+    result_form.audit_set.filter(active=True).update(active=False)
     return Audit.objects.create(
         user=user,
         reviewed_team=reviewed_team,
@@ -94,6 +95,7 @@ def create_electrol_race(
 def create_clearance(result_form, user, reviewed_team=False):
     date_team_modified = timezone.now() if reviewed_team else None
 
+    result_form.clearances.filter(active=True).update(active=False)
     return Clearance.objects.create(
         result_form=result_form,
         reviewed_team=reviewed_team,
@@ -299,6 +301,7 @@ def create_recon_forms(result_form, user, de1_notes="", de2_notes=""):
 
 
 def create_quality_control(result_form, user):
+    result_form.qualitycontrol_set.filter(active=True).update(active=False)
     return QualityControl.objects.create(result_form=result_form, user=user)
 
 
