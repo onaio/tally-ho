@@ -2,6 +2,7 @@ from importlib import import_module
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages import get_messages
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder, json
 from django.template import Context, Template
@@ -19,7 +20,8 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
-from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
+from tally_ho.libs.tests.test_base import (TestBase, configure_messages,
+                                           create_ballot,
                                            create_candidates, create_center,
                                            create_clearance,
                                            create_constituency,
@@ -1269,3 +1271,49 @@ class TestClearance(TestBase):
         self.assertEqual(
             response.url, f"/clearance/check-center-details/{tally.id}/"
         )
+
+    def test_create_clearance_post_duplicate_shows_warning(self):
+        """Attempting to create a clearance when an active one exists
+        shows a warning and redirects without creating a duplicate."""
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.CLEARANCE_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center()
+        station = create_station(center=center)
+        result_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=tally,
+            center=center,
+            station_number=station.station_number,
+        )
+        create_recon_forms(result_form, self.user)
+        create_candidates(result_form, self.user)
+
+        # Pre-create an active clearance
+        create_clearance(result_form, self.user)
+        clearance_count_before = result_form.clearances.count()
+
+        view = views.AddClearanceFormView.as_view()
+        data = {
+            "accept_submit": 1,
+            "result_form": result_form.pk,
+            "tally_id": tally.pk,
+        }
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        data["encoded_result_form_clearance_start_time"] = (
+            self.encoded_result_form_clearance_start_time
+        )
+        request.session = data
+        configure_messages(request)
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(
+            result_form.clearances.count(), clearance_count_before)
+        self.assertEqual(response.status_code, 302)
+        messages_list = list(get_messages(request))
+        self.assertTrue(any(
+            "active clearance already exists" in str(m)
+            for m in messages_list
+        ))

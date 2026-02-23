@@ -5,6 +5,7 @@ import shutil
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.contrib.messages.storage import default_storage
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -34,6 +35,7 @@ from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.fixtures.electrol_race_data import electrol_races
 from tally_ho.libs.tests.test_base import (TestBase, configure_messages,
                                            create_audit, create_ballot,
+                                           create_clearance,
                                            create_candidate, create_candidates,
                                            create_center, create_electrol_race,
                                            create_quarantine_checks,
@@ -3326,4 +3328,44 @@ class TestSuperAdmin(TestBase):
         self.assertTrue(any(
             '55555555555' in str(msg)
             for msg in message_list
+        ))
+
+    def test_duplicate_result_form_send_clearance_duplicate_shows_warning(
+            self):
+        """When super admin sends a form to clearance but an active clearance
+        already exists, a warning is shown and no duplicate is created."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        ballot = create_ballot(tally=tally)
+        center = create_center("12345", tally=tally)
+        station = create_station(center)
+        result_form = create_result_form(
+            tally=tally,
+            ballot=ballot,
+            barcode="1234",
+            center=center,
+            station_number=station.station_number,
+        )
+        create_candidates(
+            result_form, votes=12, user=self.user, num_results=1
+        )
+
+        # Pre-create an active clearance
+        create_clearance(result_form, self.user)
+        clearance_count_before = result_form.clearances.count()
+
+        view = views.DuplicateResultFormView.as_view()
+        data = {"result_form": result_form.pk, "send_clearance": 1}
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        configure_messages(request)
+        request.session = {"result_form": result_form.pk}
+        response = view(request, tally_id=tally.pk, ballot_id=ballot.number)
+
+        self.assertEqual(
+            result_form.clearances.count(), clearance_count_before)
+        messages_list = list(get_messages(request))
+        self.assertTrue(any(
+            "active clearance already exists" in str(m)
+            for m in messages_list
         ))
