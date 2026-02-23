@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
@@ -16,6 +17,13 @@ from tally_ho.libs.utils.collections import keys_if_value
 class Audit(BaseModel):
     class Meta:
         app_label = 'tally'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['result_form'],
+                condition=models.Q(active=True),
+                name='unique_active_audit_per_result_form'
+            ),
+        ]
 
     quarantine_checks = models.ManyToManyField(QuarantineCheck)
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
@@ -77,6 +85,11 @@ class Audit(BaseModel):
     def save(self, *args, **kwargs):
         if not self.tally_id and self.result_form_id:
             self.tally_id = self.result_form.tally_id
+        if not self.pk and self.result_form.audit_set.filter(
+                active=True).exists():
+            raise ValidationError(
+                _("An active audit already exists for this form.")
+            )
         super().save(*args, **kwargs)
 
 

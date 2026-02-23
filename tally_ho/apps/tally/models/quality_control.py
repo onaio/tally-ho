@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 import reversion
@@ -11,6 +12,13 @@ from tally_ho.libs.models.base_model import BaseModel
 class QualityControl(BaseModel):
     class Meta:
         app_label = 'tally'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['result_form'],
+                condition=models.Q(active=True),
+                name='unique_active_qc_per_result_form'
+            ),
+        ]
 
     result_form = models.ForeignKey(ResultForm, on_delete=models.PROTECT)
     tally = models.ForeignKey(Tally,
@@ -45,6 +53,11 @@ class QualityControl(BaseModel):
     def save(self, *args, **kwargs):
         if not self.tally_id and self.result_form_id:
             self.tally_id = self.result_form.tally_id
+        if not self.pk and self.result_form.qualitycontrol_set.filter(
+                active=True).exists():
+            raise ValidationError(
+                _("An active quality control already exists for this form.")
+            )
         super().save(*args, **kwargs)
 
 
