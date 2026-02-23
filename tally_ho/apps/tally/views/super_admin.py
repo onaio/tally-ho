@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.core.exceptions import SuspiciousOperation
+from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.db.models import Case, Count, F, FloatField, Q, Value, When
 from django.db.models.deletion import ProtectedError
 from django.db.models.functions import Cast
@@ -701,9 +701,17 @@ class DuplicateResultFormView(
                     new_state=FormState.CLEARANCE, reject_reason=reject_reason
                 )
                 result_form.duplicate_reviewed = True
-                Clearance.objects.create(
-                    result_form=result_form, user=self.request.user.userprofile
-                )
+                try:
+                    Clearance.objects.create(
+                        result_form=result_form,
+                        user=self.request.user.userprofile
+                    )
+                except ValidationError:
+                    messages.warning(
+                        self.request,
+                        _("An active clearance already exists for "
+                          "this form.")
+                    )
                 result_form.save()
 
                 self.success_message = _("Form successfully sent to clearance")
@@ -734,10 +742,17 @@ class DuplicateResultFormView(
                         reject_reason=reject_reason,
                     )
                     results_form_duplicate.duplicate_reviewed = True
-                    Clearance.objects.create(
-                        result_form=results_form_duplicate,
-                        user=self.request.user.userprofile,
-                    )
+                    try:
+                        Clearance.objects.create(
+                            result_form=results_form_duplicate,
+                            user=self.request.user.userprofile,
+                        )
+                    except ValidationError:
+                        messages.warning(
+                            self.request,
+                            _("An active clearance already exists "
+                              "for this form.")
+                        )
                     results_form_duplicate.save()
                 else:
                     archived_forms_barcodes.append(

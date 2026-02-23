@@ -2,6 +2,7 @@
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.mixins import AccessMixin
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -332,8 +333,17 @@ class RecallRequestDetailView(LoginRequiredMixin,
                     workflow_request=workflow_request
                 )
                 # Create an audit record for the form
-                Audit.objects.create(
-                    result_form=result_form, user=request.user.userprofile)
+                try:
+                    Audit.objects.create(
+                        result_form=result_form,
+                        user=request.user.userprofile)
+                except ValidationError:
+                    messages.warning(
+                        request,
+                        _("An active audit already exists for this form.")
+                    )
+                    return redirect(
+                        self.get_success_url(tally_id=tally_id))
                 workflow_request.save()
                 messages.success(
                     request,

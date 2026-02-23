@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models.audit import Audit
@@ -756,9 +757,12 @@ def check_quarantine(result_form, user):
         for passed_check, check in quarantine_checks(tally_id):
             if not passed_check(result_form):
                 if not audit:
-                    audit = Audit.objects.create(
-                        user=user.userprofile, result_form=result_form
-                    )
+                    try:
+                        audit = Audit.objects.create(
+                            user=user.userprofile, result_form=result_form
+                        )
+                    except ValidationError:
+                        return
 
                 audit.quarantine_checks.add(check)
 
