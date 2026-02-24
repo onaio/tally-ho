@@ -162,5 +162,5 @@ File upload limit is set to 10MB in `MAX_FILE_UPLOAD_SIZE` within `tally_ho/sett
 
 ## News
 
-- Article: [Writing Python Code to Decide an Election](https://ona.io/home/writing-python-code-to-decide-an-election-2/).
-- PyConZA 2014 presentation: [Writing Python Code to Decide an Election](https://ona.io/home/writing-python-code-to-decide-an-election-2/).
+- Article: [Writing Python Code to Decide an Election](https://peet.ldee.org/general/2014/10/03/pyconza-tally-ho.html)
+- PyConZA 2014 presentation: [Writing Python Code to Decide an Election](https://speakerdeck.com/pyconza/pyconza-2014-writing-python-code-to-decide-an-election-by-peter-lubell-doughtie)
