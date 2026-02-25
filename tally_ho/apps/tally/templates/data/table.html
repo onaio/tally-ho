@@ -78,4 +78,27 @@
         }
     }
     });
+
+    // Intercept 401 session expiration errors before DataTables can show its popup
+    // Other errors will still show the default DataTables error alert
+    $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+        var originalError = options.error;
+        options.error = function(xhr, textStatus, errorThrown) {
+            if (xhr.status === 401) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error === 'session_expired') {
+                        window.location.href = response.login_url + '?next=' + encodeURIComponent(window.location.pathname);
+                        return; // Don't call original error handler
+                    }
+                } catch (e) {
+                    // Not a JSON response, fall through to original handler
+                }
+            }
+            // Call original error handler for non-401 errors
+            if (originalError) {
+                originalError.apply(this, arguments);
+            }
+        };
+    });
 </script>

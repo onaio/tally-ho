@@ -8,11 +8,11 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin, DataTablesMixin,
+                                        GroupRequiredMixin, TallyAccessMixin)
 
 
-class VotesPerCandidateListDataView(LoginRequiredMixin,
+class VotesPerCandidateListDataView(AjaxLoginRequiredMixin,
                                     GroupRequiredMixin,
                                     TallyAccessMixin,
                                     BaseDatatableView):

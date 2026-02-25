@@ -16,8 +16,8 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.numbers import parse_int
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin, DataTablesMixin,
+                                        GroupRequiredMixin, TallyAccessMixin)
 
 
 def generate_election_statistics(tally_id, election_level, gender=None):
@@ -511,7 +511,7 @@ def generate_overview_election_statistics(tally_id, election_level):
 
 
 class ElectionStatisticsDataView(
-    LoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
+    AjaxLoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
 ):
     group_required = groups.TALLY_MANAGER
     model = Station

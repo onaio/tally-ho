@@ -10,11 +10,11 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.office import Office
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin, DataTablesMixin,
+                                        GroupRequiredMixin, TallyAccessMixin)
 
 
-class OfficeListDataView(LoginRequiredMixin,
+class OfficeListDataView(AjaxLoginRequiredMixin,
                          GroupRequiredMixin,
                          TallyAccessMixin,
                          BaseDatatableView):

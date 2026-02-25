@@ -12,12 +12,12 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports.progress import get_office_candidates_ids
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin,DataTablesMixin, GroupRequiredMixin,
                                         TallyAccessMixin)
 
 
 class CandidateListDataView(
-    LoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
+    AjaxLoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
 ):
     group_required = groups.SUPER_ADMINISTRATOR
     model = Candidate

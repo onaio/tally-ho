@@ -86,6 +86,7 @@ from tally_ho.libs.views.exports import (
     valid_ballots,
 )
 from tally_ho.libs.views.mixins import (
+    AjaxLoginRequiredMixin,
     DataTablesMixin,
     GroupRequiredMixin,
     ReverseSuccessURLMixin,
@@ -843,7 +844,7 @@ class FormAuditView(
 
 
 class FormProgressDataView(
-    LoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
+    AjaxLoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
 ):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm
@@ -901,7 +902,7 @@ class FormProgressDataView(
 
 
 class FormProgressByFormStateDataView(
-    LoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
+    AjaxLoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, BaseDatatableView
 ):
     group_required = groups.SUPER_ADMINISTRATOR
     model = ResultForm

@@ -9,11 +9,11 @@ from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.models.region import Region
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (DataTablesMixin, GroupRequiredMixin,
-                                        TallyAccessMixin)
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin, DataTablesMixin,
+                                        GroupRequiredMixin, TallyAccessMixin)
 
 
-class RegionListDataView(LoginRequiredMixin,
+class RegionListDataView(AjaxLoginRequiredMixin,
                          GroupRequiredMixin,
                          TallyAccessMixin,
                          BaseDatatableView):

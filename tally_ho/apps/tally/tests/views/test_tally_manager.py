@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.sites.models import Site
 from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory
@@ -278,6 +279,30 @@ class TestTallyManager(TestBase):
             tally_id=self.tally.id)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Please correct the errors below.')
+
+    def test_edit_user_view_redirects_to_login_on_expired_session(self):
+        """EditUserView has a custom dispatch() override.
+        Verify that an unauthenticated request still redirects to login."""
+        view = views.EditUserView.as_view()
+        request = self.factory.post('/')
+        request.user = AnonymousUser()
+
+        response = view(request, role='user', user_id=1)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+
+    def test_create_user_view_redirects_to_login_on_expired_session(self):
+        """CreateUserView has a custom dispatch() override.
+        Verify that an unauthenticated request still redirects to login."""
+        view = views.CreateUserView.as_view()
+        request = self.factory.post('/')
+        request.user = AnonymousUser()
+
+        response = view(request, role='user')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
 
 
 class TestTallyManagerRolePermissions(TestBase):

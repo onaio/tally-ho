@@ -1,14 +1,65 @@
+import json
+
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.test import RequestFactory
 from django.views.generic.base import View
 
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (TestBase,
                                            create_tally)
-from tally_ho.libs.views.mixins import (GroupRequiredMixin,
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin,
+                                        GroupRequiredMixin,
                                         TallyAccessMixin,
                                         get_datatables_context)
+from tally_ho.apps.tally.views.data.ballot_list_view import BallotListDataView
+from tally_ho.apps.tally.views.data.candidate_list_view import (
+    CandidateListDataView)
+from tally_ho.apps.tally.views.data.center_list_view import (
+    CenterListDataView)
+from tally_ho.apps.tally.views.data.electrol_race_list_view import (
+    ElectrolRaceListDataView)
+from tally_ho.apps.tally.views.data.form_list_view import (
+    FormListDataView, FormNotReceivedDataView)
+from tally_ho.apps.tally.views.data.office_list_view import (
+    OfficeListDataView)
+from tally_ho.apps.tally.views.data.region_list_view import (
+    RegionListDataView)
+from tally_ho.apps.tally.views.data.sub_constituency_list_view import (
+    SubConstituencyListDataView)
+from tally_ho.apps.tally.views.data.tally_list_view import (
+    TallyListDataView)
+from tally_ho.apps.tally.views.data.user_list_view import (
+    UserListDataView, UserTallyListDataView)
+from tally_ho.apps.tally.views.reports.administrative_areas_reports import (
+    SummaryReportDataView,
+    ProgressiveReportDataView,
+    DiscrepancyReportDataView,
+    ResultFormResultsListDataView,
+    DuplicateResultsListDataView,
+    AllCandidatesVotesDataView,
+    ActiveCandidatesVotesDataView,
+    ClearanceAuditSummaryReportDataView)
+from tally_ho.apps.tally.views.reports.candidate_list_by_votes import (
+    CandidateVotesListDataView)
+from tally_ho.apps.tally.views.reports.candidate_results import (
+    CandidateResultsDataView)
+from tally_ho.apps.tally.views.reports.election_statistics_report import (
+    ElectionStatisticsDataView)
+from tally_ho.apps.tally.views.reports.overvoted_forms import (
+    OvervotedResultFormsDataView)
+from tally_ho.apps.tally.views.reports.progress_by_sub_races_reports import (
+    RegionsReportView,
+    OfficesReportView,
+    ConstituenciesReportView,
+    SubConstituenciesReportView)
+from tally_ho.apps.tally.views.reports.station_progress_report import (
+    StationProgressListDataView)
+from tally_ho.apps.tally.views.reports.votes_per_candidate import (
+    VotesPerCandidateListDataView)
+from tally_ho.apps.tally.views.super_admin import (
+    FormProgressDataView, FormProgressByFormStateDataView)
 
 
 class ViewGroupRequiredNoGroups(GroupRequiredMixin, View):
@@ -22,6 +73,111 @@ class ViewGroupRequired(GroupRequiredMixin, View):
 class ViewTwoGroupsRequired(GroupRequiredMixin, View):
     group_required = [groups.DATA_ENTRY_1_CLERK,
                       groups.DATA_ENTRY_2_CLERK]
+
+
+class ViewAjaxLoginRequired(AjaxLoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse('OK')
+
+
+class TestAjaxLoginRequiredMixin(TestBase):
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+
+    def test_unauthenticated_ajax_request_returns_401(self):
+        """Test that unauthenticated AJAX requests return 401 JSON response."""
+        view = ViewAjaxLoginRequired.as_view()
+        request = self.factory.get(
+            '/',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        request.user = AnonymousUser()
+
+        response = view(request)
+
+        self.assertEqual(response.status_code, 401)
+        data = json.loads(response.content)
+        self.assertEqual(data['error'], 'session_expired')
+        self.assertIn('login_url', data)
+
+    def test_unauthenticated_non_ajax_request_redirects(self):
+        """Test that unauthenticated non-AJAX requests redirect to login."""
+        view = ViewAjaxLoginRequired.as_view()
+        request = self.factory.get('/')
+        request.user = AnonymousUser()
+
+        response = view(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+
+    def test_authenticated_ajax_request_succeeds(self):
+        """Test that authenticated AJAX requests proceed normally."""
+        self._create_and_login_user()
+        view = ViewAjaxLoginRequired.as_view()
+        request = self.factory.get(
+            '/',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        request.user = self.user
+
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'OK')
+
+    def test_authenticated_non_ajax_request_succeeds(self):
+        """Test that authenticated non-AJAX requests proceed normally."""
+        self._create_and_login_user()
+        view = ViewAjaxLoginRequired.as_view()
+        request = self.factory.get('/')
+        request.user = self.user
+
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'OK')
+
+    def test_center_list_data_view_returns_401_for_expired_session(self):
+        """Integration test: CenterListDataView returns 401 JSON
+        when an unauthenticated AJAX request is made."""
+        from tally_ho.apps.tally.views.data.center_list_view import (
+            CenterListDataView)
+
+        view = CenterListDataView.as_view()
+        request = self.factory.post(
+            '/',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        request.user = AnonymousUser()
+
+        response = view(request, tally_id=1)
+
+        self.assertEqual(response.status_code, 401)
+        data = json.loads(response.content)
+        self.assertEqual(data['error'], 'session_expired')
+        self.assertIn('login_url', data)
+
+    def test_station_progress_data_view_returns_401_for_expired_session(self):
+        """Integration test: StationProgressListDataView returns 401 JSON
+        when an unauthenticated AJAX request is made."""
+        from tally_ho.apps.tally.views.reports.station_progress_report import (
+            StationProgressListDataView)
+
+        view = StationProgressListDataView.as_view()
+        request = self.factory.post(
+            '/',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        request.user = AnonymousUser()
+
+        response = view(request, tally_id=1)
+
+        self.assertEqual(response.status_code, 401)
+        data = json.loads(response.content)
+        self.assertEqual(data['error'], 'session_expired')
+        self.assertIn('login_url', data)
 
 
 class TestGroupRequired(TestBase):
@@ -163,4 +319,55 @@ class TestTallyAccessMixin(TestBase):
         # Should return a 404
         with self.assertRaises(Http404):
             view(request, tally_id=tally.id)
+
+
+class TestAjaxLoginRequiredMixinWiring(TestBase):
+    """Structural test: all DataTable views must inherit AjaxLoginRequiredMixin."""
+
+    AJAX_DATATABLE_VIEWS = [
+        # Data views
+        BallotListDataView,
+        CandidateListDataView,
+        CenterListDataView,
+        ElectrolRaceListDataView,
+        FormListDataView,
+        FormNotReceivedDataView,
+        OfficeListDataView,
+        RegionListDataView,
+        SubConstituencyListDataView,
+        TallyListDataView,
+        UserListDataView,
+        UserTallyListDataView,
+        # Report views
+        SummaryReportDataView,
+        ProgressiveReportDataView,
+        DiscrepancyReportDataView,
+        ResultFormResultsListDataView,
+        DuplicateResultsListDataView,
+        AllCandidatesVotesDataView,
+        ActiveCandidatesVotesDataView,
+        ClearanceAuditSummaryReportDataView,
+        CandidateVotesListDataView,
+        CandidateResultsDataView,
+        ElectionStatisticsDataView,
+        OvervotedResultFormsDataView,
+        RegionsReportView,
+        OfficesReportView,
+        ConstituenciesReportView,
+        SubConstituenciesReportView,
+        StationProgressListDataView,
+        VotesPerCandidateListDataView,
+        # Super admin views
+        FormProgressDataView,
+        FormProgressByFormStateDataView,
+    ]
+
+    def test_all_datatable_views_use_ajax_login_mixin(self):
+        """Every DataTable view must inherit AjaxLoginRequiredMixin
+        to handle session expiry on AJAX requests."""
+        for view_class in self.AJAX_DATATABLE_VIEWS:
+            self.assertTrue(
+                issubclass(view_class, AjaxLoginRequiredMixin),
+                f"{view_class.__name__} is missing AjaxLoginRequiredMixin"
+            )
 
