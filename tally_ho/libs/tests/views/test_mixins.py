@@ -159,6 +159,26 @@ class TestAjaxLoginRequiredMixin(TestBase):
         self.assertEqual(data['error'], 'session_expired')
         self.assertIn('login_url', data)
 
+    def test_station_progress_data_view_returns_401_for_expired_session(self):
+        """Integration test: StationProgressListDataView returns 401 JSON
+        when an unauthenticated AJAX request is made."""
+        from tally_ho.apps.tally.views.reports.station_progress_report import (
+            StationProgressListDataView)
+
+        view = StationProgressListDataView.as_view()
+        request = self.factory.post(
+            '/',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        request.user = AnonymousUser()
+
+        response = view(request, tally_id=1)
+
+        self.assertEqual(response.status_code, 401)
+        data = json.loads(response.content)
+        self.assertEqual(data['error'], 'session_expired')
+        self.assertIn('login_url', data)
+
 
 class TestGroupRequired(TestBase):
     def test_improperly_configured(self):
