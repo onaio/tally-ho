@@ -13,6 +13,53 @@ from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin,
                                         GroupRequiredMixin,
                                         TallyAccessMixin,
                                         get_datatables_context)
+from tally_ho.apps.tally.views.data.ballot_list_view import BallotListDataView
+from tally_ho.apps.tally.views.data.candidate_list_view import (
+    CandidateListDataView)
+from tally_ho.apps.tally.views.data.center_list_view import (
+    CenterListDataView)
+from tally_ho.apps.tally.views.data.electrol_race_list_view import (
+    ElectrolRaceListDataView)
+from tally_ho.apps.tally.views.data.form_list_view import (
+    FormListDataView, FormNotReceivedDataView)
+from tally_ho.apps.tally.views.data.office_list_view import (
+    OfficeListDataView)
+from tally_ho.apps.tally.views.data.region_list_view import (
+    RegionListDataView)
+from tally_ho.apps.tally.views.data.sub_constituency_list_view import (
+    SubConstituencyListDataView)
+from tally_ho.apps.tally.views.data.tally_list_view import (
+    TallyListDataView)
+from tally_ho.apps.tally.views.data.user_list_view import (
+    UserListDataView, UserTallyListDataView)
+from tally_ho.apps.tally.views.reports.administrative_areas_reports import (
+    SummaryReportDataView,
+    ProgressiveReportDataView,
+    DiscrepancyReportDataView,
+    ResultFormResultsListDataView,
+    DuplicateResultsListDataView,
+    AllCandidatesVotesDataView,
+    ActiveCandidatesVotesDataView,
+    ClearanceAuditSummaryReportDataView)
+from tally_ho.apps.tally.views.reports.candidate_list_by_votes import (
+    CandidateVotesListDataView)
+from tally_ho.apps.tally.views.reports.candidate_results import (
+    CandidateResultsDataView)
+from tally_ho.apps.tally.views.reports.election_statistics_report import (
+    ElectionStatisticsDataView)
+from tally_ho.apps.tally.views.reports.overvoted_forms import (
+    OvervotedResultFormsDataView)
+from tally_ho.apps.tally.views.reports.progress_by_sub_races_reports import (
+    RegionsReportView,
+    OfficesReportView,
+    ConstituenciesReportView,
+    SubConstituenciesReportView)
+from tally_ho.apps.tally.views.reports.station_progress_report import (
+    StationProgressListDataView)
+from tally_ho.apps.tally.views.reports.votes_per_candidate import (
+    VotesPerCandidateListDataView)
+from tally_ho.apps.tally.views.super_admin import (
+    FormProgressDataView, FormProgressByFormStateDataView)
 
 
 class ViewGroupRequiredNoGroups(GroupRequiredMixin, View):
@@ -232,4 +279,55 @@ class TestTallyAccessMixin(TestBase):
         # Should return a 404
         with self.assertRaises(Http404):
             view(request, tally_id=tally.id)
+
+
+class TestAjaxLoginRequiredMixinWiring(TestBase):
+    """Structural test: all DataTable views must inherit AjaxLoginRequiredMixin."""
+
+    AJAX_DATATABLE_VIEWS = [
+        # Data views
+        BallotListDataView,
+        CandidateListDataView,
+        CenterListDataView,
+        ElectrolRaceListDataView,
+        FormListDataView,
+        FormNotReceivedDataView,
+        OfficeListDataView,
+        RegionListDataView,
+        SubConstituencyListDataView,
+        TallyListDataView,
+        UserListDataView,
+        UserTallyListDataView,
+        # Report views
+        SummaryReportDataView,
+        ProgressiveReportDataView,
+        DiscrepancyReportDataView,
+        ResultFormResultsListDataView,
+        DuplicateResultsListDataView,
+        AllCandidatesVotesDataView,
+        ActiveCandidatesVotesDataView,
+        ClearanceAuditSummaryReportDataView,
+        CandidateVotesListDataView,
+        CandidateResultsDataView,
+        ElectionStatisticsDataView,
+        OvervotedResultFormsDataView,
+        RegionsReportView,
+        OfficesReportView,
+        ConstituenciesReportView,
+        SubConstituenciesReportView,
+        StationProgressListDataView,
+        VotesPerCandidateListDataView,
+        # Super admin views
+        FormProgressDataView,
+        FormProgressByFormStateDataView,
+    ]
+
+    def test_all_datatable_views_use_ajax_login_mixin(self):
+        """Every DataTable view must inherit AjaxLoginRequiredMixin
+        to handle session expiry on AJAX requests."""
+        for view_class in self.AJAX_DATATABLE_VIEWS:
+            self.assertTrue(
+                issubclass(view_class, AjaxLoginRequiredMixin),
+                f"{view_class.__name__} is missing AjaxLoginRequiredMixin"
+            )
 
