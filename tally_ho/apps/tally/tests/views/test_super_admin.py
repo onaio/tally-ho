@@ -88,7 +88,8 @@ class TestSuperAdmin(TestBase):
         response = view(request, tally_id=tally.pk)
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/audit/review", response["Location"])
+        self.assertIn("/super-administrator/audit-review-detail",
+                      response["Location"])
 
     def test_form_action_view_post_confirm_audit(self):
         tally = create_tally()
@@ -131,6 +132,111 @@ class TestSuperAdmin(TestBase):
         self.assertIn(
             "/super-administrator/form-action-list", response["Location"]
         )
+
+    def test_form_action_review_redirects_to_read_only_detail(self):
+        """FormActionView 'Review' button must redirect to the read-only
+        audit-review-detail view, NOT the editable ReviewView."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            form_state=FormState.AUDIT, tally=tally
+        )
+        view = views.FormActionView.as_view()
+        data = {"result_form": result_form.pk, "review": 1}
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        request.session = {"result_form": result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            "/super-administrator/audit-review-detail",
+            response["Location"],
+        )
+        self.assertNotIn("/audit/review", response["Location"])
+
+    def test_audit_review_detail_view_get(self):
+        """AuditReviewDetailView returns 200 with audit context."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            form_state=FormState.AUDIT, tally=tally
+        )
+        audit = create_audit(result_form, self.user)
+        audit.reviewed_supervisor = True
+        audit.for_superadmin = True
+        audit.resolution_recommendation = 4  # MAKE_AVAILABLE_FOR_ARCHIVE
+        audit.save()
+
+        view = views.AuditReviewDetailView.as_view()
+        request = self.factory.get("/")
+        request.user = self.user
+        request.session = {"result_form": result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("audit", response.context_data)
+        self.assertIn("result_form", response.context_data)
+        self.assertEqual(response.context_data["audit"].pk, audit.pk)
+
+    def test_audit_review_detail_view_rejects_post(self):
+        """AuditReviewDetailView must not accept POST requests."""
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            form_state=FormState.AUDIT, tally=tally
+        )
+        audit = create_audit(result_form, self.user)
+        audit.reviewed_supervisor = True
+        audit.for_superadmin = True
+        audit.save()
+
+        view = views.AuditReviewDetailView.as_view()
+        request = self.factory.post("/", data={})
+        request.user = self.user
+        request.session = {"result_form": result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_form_action_confirm_preserves_audit_resolution(self):
+        """FormActionView 'Confirm' must not change the audit's
+        resolution_recommendation — it should only deactivate the audit
+        and send the form to DATA_ENTRY_1."""
+        from tally_ho.libs.models.enums.audit_resolution import \
+            AuditResolution
+
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(
+            form_state=FormState.AUDIT, tally=tally
+        )
+        create_reconciliation_form(result_form, self.user)
+        create_reconciliation_form(result_form, self.user)
+        create_candidates(result_form, self.user)
+        audit = create_audit(result_form, self.user)
+        audit.reviewed_supervisor = True
+        audit.for_superadmin = True
+        audit.resolution_recommendation = \
+            AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE
+        audit.save()
+
+        view = views.FormActionView.as_view()
+        data = {"result_form": result_form.pk, "confirm": 1}
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        request.session = {"result_form": result_form.pk}
+        view(request, tally_id=tally.pk)
+
+        audit.reload()
+        result_form.reload()
+        self.assertFalse(audit.active)
+        self.assertEqual(
+            audit.resolution_recommendation,
+            AuditResolution.MAKE_AVAILABLE_FOR_ARCHIVE,
+        )
+        self.assertEqual(result_form.form_state, FormState.DATA_ENTRY_1)
+        self.assertTrue(result_form.skip_quarantine_checks)
 
     def test_result_export_view(self):
         tally = create_tally()
