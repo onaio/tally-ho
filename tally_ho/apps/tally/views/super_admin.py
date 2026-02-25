@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import SuspiciousOperation
+from django.forms import model_to_dict
 from django.db.models import Case, Count, F, FloatField, Q, Value, When
 from django.db.models.deletion import ProtectedError
 from django.db.models.functions import Cast
@@ -22,6 +23,7 @@ from guardian.mixins import LoginRequiredMixin
 from reversion.models import Version
 
 from tally_ho.apps.tally.forms.barcode_form import ResultFormSearchBarcodeForm
+from tally_ho.apps.tally.forms.recon_form import ReconForm
 from tally_ho.apps.tally.forms.confirm_reset_form import ConfirmResetForm
 from tally_ho.apps.tally.forms.create_ballot_form import CreateBallotForm
 from tally_ho.apps.tally.forms.create_center_form import CreateCenterForm
@@ -56,6 +58,7 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.apps.tally.views.quality_control import result_form_results
 from tally_ho.apps.tally.views.constants import (
     at_state_query_param,
     election_level_query_param,
@@ -1191,6 +1194,37 @@ class FormActionView(
             return redirect(self.success_url, tally_id=tally_id)
         else:
             raise SuspiciousOperation("Unknown POST response type")
+
+
+class AuditReviewDetailView(
+    LoginRequiredMixin,
+    GroupRequiredMixin,
+    TallyAccessMixin,
+    TemplateView,
+):
+    group_required = groups.SUPER_ADMINISTRATOR
+    template_name = "audit/review_read_only.html"
+
+    def get(self, *args, **kwargs):
+        tally_id = kwargs["tally_id"]
+        pk = self.request.session.get("result_form")
+        result_form = get_object_or_404(
+            ResultForm, pk=pk, tally__id=tally_id
+        )
+        audit = result_form.audit
+
+        reconciliation_form = ReconForm(data=model_to_dict(
+            result_form.reconciliationform
+        )) if result_form.reconciliationform else None
+        results = result_form_results(result_form)
+
+        return self.render_to_response(self.get_context_data(
+            audit=audit,
+            result_form=result_form,
+            tally_id=tally_id,
+            reconciliation_form=reconciliation_form,
+            results=results,
+        ))
 
 
 class CreateCenterView(
