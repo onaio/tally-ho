@@ -24,3 +24,6 @@ local_settings.py
 # vim temp files
 *.sw?
 .python-version
+
+# AI working documents
+docs/plans/

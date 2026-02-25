@@ -1,6 +1,6 @@
 import dateutil.parser
 from django.contrib.messages.views import SuccessMessageMixin
-from django.core.exceptions import SuspiciousOperation
+from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder, json
 from django.db import transaction
 from django.forms.models import model_to_dict
@@ -134,9 +134,13 @@ class QualityControlView(
                 return self.form_invalid(form)
 
             self.request.session["result_form"] = result_form.pk
-            QualityControl.objects.create(
-                result_form=result_form, user=self.request.user.userprofile
-            )
+            try:
+                QualityControl.objects.create(
+                    result_form=result_form,
+                    user=self.request.user.userprofile
+                )
+            except ValidationError:
+                pass  # Already has active QC; proceed to dashboard
 
             return redirect(self.success_url, tally_id=tally_id)
         else:

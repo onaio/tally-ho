@@ -1,5 +1,6 @@
 import dateutil.parser
-from django.core.exceptions import SuspiciousOperation
+from django.contrib import messages
+from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder, json
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -383,9 +384,16 @@ class CheckCenterDetailsView(LoginRequiredMixin,
             result_form.reject(
                 new_state=FormState.CLEARANCE, reject_reason=error_message
             )
-            Clearance.objects.create(
-                result_form=result_form, user=self.request.user.userprofile
-            )
+            try:
+                Clearance.objects.create(
+                    result_form=result_form,
+                    user=self.request.user.userprofile
+                )
+            except ValidationError:
+                messages.warning(
+                    self.request,
+                    _("An active clearance already exists for this form.")
+                )
             url = 'intake-clearance'
         else:
             del self.request.session['result_form']

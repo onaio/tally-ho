@@ -1,6 +1,8 @@
 import csv
 
 import dateutil.parser
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder, json
 from django.forms import model_to_dict
 from django.http import HttpResponse
@@ -105,9 +107,12 @@ def audit_action(audit, post_data, result_form, url):
             result_form.reject(
                 new_state=FormState.CLEARANCE, reject_reason=reject_reason
             )
-            Clearance.objects.create(
-                result_form=result_form, user=result_form.user
-            )
+            try:
+                Clearance.objects.create(
+                    result_form=result_form, user=result_form.user
+                )
+            except ValidationError:
+                pass  # Active clearance already exists
         elif audit.action_prior_to_recommendation in\
                 [ActionsPrior.REQUEST_AUDIT_ACTION_FROM_FIELD,
                  ActionsPrior.REQUEST_COPY_FROM_FIELD]:
@@ -458,8 +463,15 @@ class CreateAuditView(LoginRequiredMixin,
             result_form.audited_count += 1
             result_form.save()
 
-            Audit.objects.create(result_form=result_form,
-                                 user=self.request.user.userprofile)
+            try:
+                Audit.objects.create(result_form=result_form,
+                                     user=self.request.user.userprofile)
+            except ValidationError:
+                messages.warning(
+                    self.request,
+                    _("An active audit already exists for this form.")
+                )
+                return redirect(self.success_url, tally_id=tally_id)
 
             return redirect(self.success_url, tally_id=tally_id)
         else:

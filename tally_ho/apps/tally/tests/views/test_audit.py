@@ -1,6 +1,7 @@
 import csv
 
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages import get_messages
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder, json
 from django.test import RequestFactory
@@ -18,7 +19,8 @@ from tally_ho.libs.models.enums.request_reason import RequestReason
 from tally_ho.libs.models.enums.request_status import RequestStatus
 from tally_ho.libs.models.enums.request_type import RequestType
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (TestBase, create_audit,
+from tally_ho.libs.tests.test_base import (TestBase, configure_messages,
+                                           create_audit,
                                            create_candidates,
                                            create_recon_forms,
                                            create_reconciliation_form,
@@ -918,6 +920,47 @@ class TestAudit(TestBase):
 
         for recon in result_form.reconciliationform_set.all():
             self.assertFalse(recon.active)
+
+    def test_create_audit_post_duplicate_shows_warning(self):
+        """Attempting to create a manual audit when an active one exists
+        shows a warning and redirects without creating a duplicate."""
+        self._create_and_login_user()
+        self._add_user_to_group(self.user, groups.AUDIT_CLERK)
+        tally = create_tally()
+        tally.users.add(self.user)
+        center = create_center()
+        station = create_station(center=center)
+        result_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1,
+            tally=tally,
+            center=center,
+            station_number=station.station_number,
+        )
+        create_recon_forms(result_form, self.user)
+        create_candidates(result_form, self.user)
+
+        # Pre-create an active audit
+        create_audit(result_form, self.user)
+        audit_count_before = result_form.audit_set.count()
+
+        view = views.CreateAuditView.as_view()
+        data = {
+            'barcode': result_form.barcode,
+            'barcode_copy': result_form.barcode,
+            'tally_id': tally.pk,
+        }
+        request = self.factory.post('/', data=data)
+        request.user = self.user
+        request.session = data
+        configure_messages(request)
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(result_form.audit_set.count(), audit_count_before)
+        self.assertEqual(response.status_code, 302)
+        messages_list = list(get_messages(request))
+        self.assertTrue(any(
+            "active audit already exists" in str(m) for m in messages_list
+        ))
 
 
 class TestAuditRecallRequestsCsvView(TestBase):

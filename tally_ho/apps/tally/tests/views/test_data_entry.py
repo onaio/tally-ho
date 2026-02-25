@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages import get_messages
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder, json
 from django.test import RequestFactory
@@ -12,8 +13,10 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (TestBase, center_data,
+                                           configure_messages,
                                            create_ballot, create_candidate,
-                                           create_center, create_result_form,
+                                           create_center, create_clearance,
+                                           create_result_form,
                                            create_station, create_tally,
                                            result_form_data,
                                            result_form_data_blank)
@@ -690,6 +693,44 @@ class TestDataEntry(TestBase):
         self.assertEqual(result_form_stat.reviewed_by_supervisor, False)
         self.assertEqual(result_form_stat.user, self.user)
         self.assertEqual(result_form_stat.result_form, result_form)
+
+    def test_enter_results_invalid_duplicate_clearance_shows_warning(self):
+        """When data entry sends to clearance for invalid votes but an
+        active clearance already exists, a warning is shown and no
+        duplicate is created."""
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        code = "12345"
+        center = create_center(code, tally=tally)
+        create_station(center)
+        result_form = create_result_form(
+            form_state=FormState.DATA_ENTRY_1, tally=tally
+        )
+        ballot = result_form.ballot
+        create_candidate(ballot, "candidate name")
+
+        # Pre-create an active clearance
+        create_clearance(result_form, self.user)
+        clearance_count_before = result_form.clearances.count()
+
+        self._add_user_to_group(self.user, groups.DATA_ENTRY_1_CLERK)
+        view = views.EnterResultsView.as_view()
+        data = result_form_data_blank(result_form)
+        request = self.factory.post("/", data=data)
+        request.user = self.user
+        configure_messages(request)
+        request.session = {"result_form": result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(
+            result_form.clearances.count(), clearance_count_before)
+        self.assertEqual(response.status_code, 302)
+        messages_list = list(get_messages(request))
+        self.assertTrue(any(
+            "active clearance already exists" in str(m)
+            for m in messages_list
+        ))
 
     def test_confirmation_get_corrections(self):
         self._create_and_login_user()

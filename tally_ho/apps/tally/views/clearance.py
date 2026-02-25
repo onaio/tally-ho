@@ -1,4 +1,6 @@
 import dateutil.parser
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder, json
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -456,9 +458,17 @@ class AddClearanceFormView(
             result_form.reject(
                 new_state=FormState.CLEARANCE, reject_reason=reject_reason
             )
-            Clearance.objects.create(
-                result_form=result_form, user=self.request.user.userprofile
-            )
+            try:
+                Clearance.objects.create(
+                    result_form=result_form,
+                    user=self.request.user.userprofile
+                )
+            except ValidationError:
+                messages.warning(
+                    self.request,
+                    _("An active clearance already exists for this form.")
+                )
+                return redirect(self.success_url, tally_id=tally_id)
             result_form.save()
 
         result_form.date_seen = now()

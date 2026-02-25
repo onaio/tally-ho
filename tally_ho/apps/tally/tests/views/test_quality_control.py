@@ -1290,3 +1290,55 @@ class TestQualityControl(TestBase):
         self.assertTrue(quality_control.active)
         self.assertEqual(result_form.form_state, FormState.QUALITY_CONTROL)
         self.assertIsNotNone(request.session.get("result_form"))
+
+    def test_no_duplicate_audit_on_double_submit(self):
+        """Double-clicking QC 'correct' when quarantine check fails does
+        not create a duplicate audit — the second attempt is silently
+        skipped."""
+        create_quarantine_checks(
+            tally_id=self.tally.pk,
+            quarantine_data=self.quarantine_data,
+        )
+        center = create_center()
+        station = create_station(center=center, registrants=1)
+        result_form = create_result_form(
+            form_state=FormState.QUALITY_CONTROL,
+            center=center,
+            tally=self.tally,
+            station_number=station.station_number,
+        )
+        create_reconciliation_form(
+            result_form=result_form,
+            user=self.user,
+            number_of_voters=1,
+            number_invalid_votes=0,
+            number_valid_votes=1,
+            number_of_voter_cards_in_the_ballot_box=1,
+            number_sorted_and_counted=1,
+        )
+        create_quality_control(result_form, self.user)
+        create_candidates(result_form, self.user, votes=1, num_results=1)
+
+        # Pre-create an active audit (simulating first submit)
+        existing_audit = create_audit(result_form, self.user)
+        card_check = QuarantineCheck.objects.get(
+            method="pass_card_check", tally_id=self.tally.pk
+        )
+        existing_audit.quarantine_checks.add(card_check)
+        audit_count_before = result_form.audit_set.count()
+
+        # Second submit — should not crash or create duplicate
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+        view = views.QualityControlDashboardView.as_view()
+        data = {
+            "correct": 1,
+            "result_form": result_form.pk,
+            "tally_id": self.tally.pk,
+        }
+        request = self.factory.post("/", data=data)
+        request.session = {"result_form": result_form.pk}
+        request.user = self.user
+        response = view(request, tally_id=self.tally.pk)
+
+        self.assertEqual(result_form.audit_set.count(), audit_count_before)
+        self.assertEqual(response.status_code, 302)

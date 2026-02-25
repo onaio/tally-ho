@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages import get_messages
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.serializers.json import DjangoJSONEncoder, json
 from django.test import RequestFactory
@@ -12,8 +13,10 @@ from tally_ho.apps.tally.views.intake import INTAKE_DUPLICATE_ERROR_MESSAGE
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.tests.test_base import (TestBase, create_ballot,
-                                           create_center, create_electrol_race,
+from tally_ho.libs.tests.test_base import (TestBase, configure_messages,
+                                           create_ballot,
+                                           create_center, create_clearance,
+                                           create_electrol_race,
                                            create_result_form, create_station,
                                            create_sub_constituency,
                                            create_tally)
@@ -1379,6 +1382,36 @@ class TestIntake(TestBase):
         self.assertEqual(
             replacement_result_form.form_state, FormState.CLEARANCE)
         self.assertEqual(replacement_result_form.gender, Gender.FEMALE)
+
+    def test_intake_is_not_match_duplicate_clearance_shows_warning(self):
+        """When intake sends to clearance but an active clearance already
+        exists, a warning is shown and no duplicate is created."""
+        self._create_or_login_intake_clerk()
+        tally = create_tally()
+        tally.users.add(self.user)
+        result_form = create_result_form(tally=tally)
+        result_form.form_state = FormState.INTAKE
+        result_form.save()
+
+        # Pre-create an active clearance
+        create_clearance(result_form, self.user)
+        clearance_count_before = result_form.clearances.count()
+
+        view = views.CheckCenterDetailsView.as_view()
+        post_data = {"result_form": result_form.pk, "is_not_match": "true"}
+        request = self.factory.post("/", data=post_data)
+        request.user = self.user
+        configure_messages(request)
+        request.session = {"result_form": result_form.pk}
+        response = view(request, tally_id=tally.pk)
+
+        self.assertEqual(result_form.clearances.count(), clearance_count_before)
+        self.assertEqual(response.status_code, 302)
+        messages_list = list(get_messages(request))
+        self.assertTrue(any(
+            "active clearance already exists" in str(m)
+            for m in messages_list
+        ))
 
 
 class TestIntakePrintedView(TestBase):

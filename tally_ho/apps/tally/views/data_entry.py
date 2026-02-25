@@ -1,5 +1,6 @@
 import dateutil.parser
-from django.core.exceptions import SuspiciousOperation
+from django.contrib import messages
+from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder, json
 from django.db import transaction
 from django.forms.formsets import formset_factory
@@ -407,9 +408,17 @@ class EnterResultsView(
                 result_form.reject(
                     new_state=FormState.CLEARANCE, reject_reason=error_message
                 )
-                Clearance.objects.create(
-                    result_form=result_form, user=self.request.user.userprofile
-                )
+                try:
+                    Clearance.objects.create(
+                        result_form=result_form,
+                        user=self.request.user.userprofile
+                    )
+                except ValidationError:
+                    messages.warning(
+                        self.request,
+                        _("An active clearance already exists for "
+                          "this form.")
+                    )
                 self.request.session["clearance_error"] = str(error_message)
                 return redirect(self.success_url, tally_id=tally_id)
 
