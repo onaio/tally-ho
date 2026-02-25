@@ -292,6 +292,18 @@ class TestTallyManager(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/accounts/login/', response.url)
 
+    def test_create_user_view_redirects_to_login_on_expired_session(self):
+        """CreateUserView has a custom dispatch() override.
+        Verify that an unauthenticated request still redirects to login."""
+        view = views.CreateUserView.as_view()
+        request = self.factory.post('/')
+        request.user = AnonymousUser()
+
+        response = view(request, role='user')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+
 
 class TestTallyManagerRolePermissions(TestBase):
     """
