@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% load i18n static app_filters %}
+
+{% block content %}
+
+<div class="container main-container">
+<div class="row">
+    <h1>{% trans 'Audit Review' %}</h1>
+</div>
+{% include 'center_details.html' %}
+
+{% if audit %}
+<div class="row">
+<h1>{% trans 'Quarantined Form' %}</h1>
+<hr>
+</div>
+{% for check in audit.quarantine_checks.all %}
+<div class="row">
+    <p>
+        {% trans 'Failed quarantine check:' %}
+        <b>{{ check.local_name }}</b>
+        <a class="btn btn-xs btn-link" data-toggle="collapse" href="#check-details-{{ check.pk }}">
+            {% trans 'View Details' %}
+        </a>
+    </p>
+
+    {% include "quarantine_check_details.html" with result_form=result_form check=check %}
+</div>
+{% endfor %}
+
+<div class="row audit-form border-top">
+    <div class="row">
+        <div class="col-md-2 col-sm-1 grid2">
+            {% if audit.blank_reconciliation or audit.blank_results or audit.unclear_figures or audit.damaged_form or audit.other %}
+            <h3 style="margin-top: 0;">{% trans "Problem" %}</h3>
+            {% endif %}
+            {% if audit.blank_reconciliation %}
+             <p><label>{% trans "Blank reconciliation" %}</label></p>
+            {% endif %}
+            {% if audit.blank_results %}
+             <p><label>{% trans "Blank results" %}</label></p>
+            {% endif %}
+            {% if audit.unclear_figures %}
+             <p><label>{% trans "Unclear figures" %}</label></p>
+            {% endif %}
+            {% if audit.damaged_form %}
+              <p><label>{% trans "Damaged form" %}</label></p>
+            {% endif %}
+            {% if audit.other %}
+             <p class="large"><label class="wrap_label">
+                {% trans "Other:" %}</label> {{ audit.other }}</p>
+            {% endif %}
+
+            <h3>{% trans "Action Prior to Recommendation" %}</h3>
+            <p><label>{% trans "Action prior to recommendation:" %}</label>
+                {{ audit.action_prior_name }}
+            </p>
+            <p><label>{% trans "Resolution recommendation:" %}</label>
+                {{ audit.resolution_recommendation_name }}
+            </p>
+        </div>
+        <div class="col-md-2 col-sm-1 grid2 righter">
+            {% if audit.team_comment %}
+                <p><label>{% trans "Team comment:" %}</label>
+                    {{ audit.team_comment }}
+                </p>
+            {% endif %}
+            {% if audit.supervisor_comment %}
+                <p><label>{% trans "Supervisor comment:" %}</label>
+                    {{ audit.supervisor_comment }}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row" style="margin-top: 20px;">
+    <a class="btn btn-default" href="{% url 'form-action-view' tally_id=tally_id %}">
+        {% trans "Back to Approval Queue" %}
+    </a>
+</div>
+</div>
+
+{% endblock %}
