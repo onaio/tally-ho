@@ -1179,7 +1179,7 @@ class FormActionView(
         self.request.session["result_form"] = result_form.pk
 
         if "review" in post_data:
-            return redirect("audit-review", tally_id=tally_id)
+            return redirect("audit-review-detail", tally_id=tally_id)
         elif "confirm" in post_data:
             result_form.previous_form_state = result_form.form_state
             result_form.user = self.request.user.userprofile
