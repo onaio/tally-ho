@@ -574,6 +574,12 @@ urlpatterns = [
         name="form-action-view",
     ),
     re_path(
+        r"^super-administrator/audit-review-detail/"
+        r"(?P<tally_id>(\d+))/$",
+        super_admin.AuditReviewDetailView.as_view(),
+        name="audit-review-detail",
+    ),
+    re_path(
         r"^super-administrator/duplicate-result-tracking/"
         r"(?P<tally_id>(\d+))/$",
         super_admin.DuplicateResultTrackingView.as_view(),
