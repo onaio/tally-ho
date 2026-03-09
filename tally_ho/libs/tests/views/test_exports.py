@@ -19,9 +19,12 @@ from tally_ho.libs.tests.test_base import (
 )
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from unittest.mock import patch
+
 from tally_ho.libs.views.exports import (
     export_candidate_votes,
     get_complete_barcodes,
+    get_result_export_response,
     save_barcode_results,
 )
 
@@ -696,3 +699,50 @@ class TestExports(TestBase):
         barcodes = get_complete_barcodes(self.tally.id)
         self.assertIn(rf_archived.barcode, barcodes)
         self.assertEqual(len(barcodes), 1)
+
+    @patch('tally_ho.libs.views.exports.save_barcode_results')
+    @patch('tally_ho.libs.views.exports.export_candidate_votes')
+    def test_formresults_only_calls_save_barcode_results(
+        self, mock_export_cv, mock_save_br
+    ):
+        """Test that 'formresults' report only calls save_barcode_results,
+        not the full export_candidate_votes pipeline."""
+        import tempfile
+        tmp = tempfile.NamedTemporaryFile(
+            delete=False, suffix='.csv', mode='w'
+        )
+        tmp.write("col1\nval1\n")
+        tmp.close()
+        mock_save_br.return_value = tmp.name
+
+        response = get_result_export_response('formresults', self.tally.id)
+
+        mock_save_br.assert_called_once()
+        mock_export_cv.assert_not_called()
+        self.assertEqual(response.status_code, 200)
+        os.unlink(tmp.name)
+
+    @patch('tally_ho.libs.views.exports.save_barcode_results')
+    @patch('tally_ho.libs.views.exports.export_candidate_votes')
+    def test_all_candidates_does_not_call_save_barcode(
+        self, mock_export_cv, mock_save_br
+    ):
+        """Test that 'all-candidates' report only calls export_candidate_votes
+        without save_barcodes=True."""
+        import tempfile
+        tmp = tempfile.NamedTemporaryFile(
+            delete=False, suffix='.csv', mode='w'
+        )
+        tmp.write("col1\nval1\n")
+        tmp.close()
+        mock_export_cv.return_value = tmp.name
+
+        response = get_result_export_response('all-candidates', self.tally.id)
+
+        mock_export_cv.assert_called_once()
+        call_kwargs = mock_export_cv.call_args
+        # Verify save_barcodes=False
+        self.assertFalse(call_kwargs[1].get('save_barcodes', True))
+        mock_save_br.assert_not_called()
+        self.assertEqual(response.status_code, 200)
+        os.unlink(tmp.name)

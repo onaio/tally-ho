@@ -553,52 +553,63 @@ def check_position_changes(candidates_votes):
 
 
 def get_result_export_response(report, tally_id):
-    """Choose the appropriate file to returns as an HTTP Response.
+    """Choose the appropriate export function and return as HTTP Response.
+
+    Each report type only generates its own CSV, not all reports.
 
     :param report: The type of report to return.
-
-    :returns: An HTTP response.
+    :param tally_id: The tally ID.
+    :returns: An HTTP response with CSV attachment.
     """
-    filename = 'not_found.csv'
-    path = None
-    show_disabled = True
-
-    if report == 'formresults':
-        filename = os.path.join('results', 'form_results_%d.csv' % tally_id)
-    elif report == 'all-candidates':
-        filename = os.path.join('results',
-                                'all_candidate_votes_%d.csv' % tally_id)
-    elif report == 'active-candidates':
-        filename = os.path.join('results',
-                                'active_candidate_votes_%d.csv' % tally_id)
-        show_disabled = False
-    elif report == 'duplicates':
-        filename = os.path.join('results',
-                                'duplicate_results_%d.csv' % tally_id)
-
     response = HttpResponse(content_type='text/csv')
 
     try:
-        # FIXME: if file it's been already generated,
-        # does not generate new one. correct??
-        if not os.path.isdir(os.path.dirname(filename)):
-            os.makedirs(os.path.dirname(filename))
+        if not os.path.isdir('results'):
+            os.makedirs('results')
 
-        export_candidate_votes(save_barcodes=True,
-                               output_duplicates=True,
-                               show_disabled_candidates=show_disabled,
-                               tally_id=tally_id)
+        if report == 'formresults':
+            barcodes = get_complete_barcodes(tally_id)
+            path = save_barcode_results(
+                barcodes,
+                output_duplicates=False,
+                output_to_file=True,
+                tally_id=tally_id,
+            )
+        elif report == 'all-candidates':
+            path = export_candidate_votes(
+                save_barcodes=False,
+                output_duplicates=False,
+                output_to_file=True,
+                show_disabled_candidates=True,
+                tally_id=tally_id,
+            )
+        elif report == 'active-candidates':
+            path = export_candidate_votes(
+                save_barcodes=False,
+                output_duplicates=False,
+                output_to_file=True,
+                show_disabled_candidates=False,
+                tally_id=tally_id,
+            )
+        elif report == 'duplicates':
+            barcodes = get_complete_barcodes(tally_id)
+            path = save_barcode_results(
+                barcodes,
+                output_duplicates=True,
+                output_to_file=True,
+                tally_id=tally_id,
+            )
+        else:
+            response.write(_(u"Invalid report type."))
+            response.status_code = 400
+            return response
 
-        path = os.readlink(filename)
         filename = os.path.basename(path)
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         response['Content-Type'] = 'text/csv; charset=utf-8'
 
-        if path:
-            with open(path, 'r') as f:
-                response.write(f.read())
-        else:
-            raise Exception(_(u"File Not found!"))
+        with open(path, 'r') as f:
+            response.write(f.read())
 
     except Exception as e:
         if settings.DEBUG:
