@@ -21,6 +21,7 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.views.exports import (
     export_candidate_votes,
+    get_complete_barcodes,
     save_barcode_results,
 )
 
@@ -667,3 +668,31 @@ class TestExports(TestBase):
         # 5 forms × 2 candidates = 10 rows
         self.assertEqual(len(rows), 10)
         os.unlink(csv_filename)
+
+    def test_get_complete_barcodes(self):
+        """Test that get_complete_barcodes returns barcodes of archived forms."""
+        # Create archived form
+        rf_archived = create_result_form(
+            ballot=self.ballot,
+            barcode='111111',
+            serial_number=1,
+            center=self.center,
+            station_number=self.station.station_number,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+        )
+
+        # Create non-archived form (should not be included)
+        create_result_form(
+            ballot=self.ballot,
+            barcode='222222',
+            serial_number=2,
+            center=self.center,
+            station_number=self.station.station_number + 1,
+            tally=self.tally,
+            form_state=FormState.DATA_ENTRY_1,
+        )
+
+        barcodes = get_complete_barcodes(self.tally.id)
+        self.assertIn(rf_archived.barcode, barcodes)
+        self.assertEqual(len(barcodes), 1)

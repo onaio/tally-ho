@@ -353,6 +353,25 @@ def save_center_duplicates(center_to_votes, center_to_forms,
     return csv_file.name
 
 
+def get_complete_barcodes(tally_id):
+    """Get barcodes for all completed (archived) result forms for a tally.
+
+    Extracts the barcode collection logic from export_candidate_votes
+    so it can be called independently by get_result_export_response.
+
+    :param tally_id: The tally ID to get barcodes for.
+    :returns: List of barcode strings for archived result forms.
+    """
+    complete_barcodes = []
+    for ballot in valid_ballots(tally_id):
+        forms = distinct_forms(ballot, tally_id)
+        final_forms = ResultForm.forms_in_state(
+            FormState.ARCHIVED, pks=[r.pk for r in forms])
+        if not SPECIAL_BALLOTS or ballot.number in SPECIAL_BALLOTS:
+            complete_barcodes.extend([r.barcode for r in final_forms])
+    return complete_barcodes
+
+
 def export_candidate_votes(save_barcodes=False,
                            output_duplicates=True,
                            output_to_file=True,
