@@ -21,6 +21,8 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from unittest.mock import patch
 
+from django.http import StreamingHttpResponse
+
 from tally_ho.libs.views.exports import (
     export_candidate_votes,
     get_complete_barcodes,
@@ -700,49 +702,82 @@ class TestExports(TestBase):
         self.assertIn(rf_archived.barcode, barcodes)
         self.assertEqual(len(barcodes), 1)
 
-    @patch('tally_ho.libs.views.exports.save_barcode_results')
-    @patch('tally_ho.libs.views.exports.export_candidate_votes')
-    def test_formresults_only_calls_save_barcode_results(
-        self, mock_export_cv, mock_save_br
+    @patch('tally_ho.libs.views.exports.stream_barcode_results_csv')
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    def test_formresults_only_calls_stream_barcode(
+        self, mock_stream_cv, mock_stream_br
     ):
-        """Test that 'formresults' report only calls save_barcode_results,
-        not the full export_candidate_votes pipeline."""
-        import tempfile
-        tmp = tempfile.NamedTemporaryFile(
-            delete=False, suffix='.csv', mode='w'
-        )
-        tmp.write("col1\nval1\n")
-        tmp.close()
-        mock_save_br.return_value = tmp.name
+        """Test that 'formresults' report only calls stream_barcode_results_csv,
+        not stream_candidate_votes_csv."""
+        mock_stream_br.return_value = iter(["col1\n", "val1\n"])
 
         response = get_result_export_response('formresults', self.tally.id)
 
-        mock_save_br.assert_called_once()
-        mock_export_cv.assert_not_called()
-        self.assertEqual(response.status_code, 200)
-        os.unlink(tmp.name)
+        mock_stream_br.assert_called_once()
+        mock_stream_cv.assert_not_called()
+        self.assertIsInstance(response, StreamingHttpResponse)
 
-    @patch('tally_ho.libs.views.exports.save_barcode_results')
-    @patch('tally_ho.libs.views.exports.export_candidate_votes')
-    def test_all_candidates_does_not_call_save_barcode(
-        self, mock_export_cv, mock_save_br
+    @patch('tally_ho.libs.views.exports.stream_barcode_results_csv')
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    def test_all_candidates_does_not_call_stream_barcode(
+        self, mock_stream_cv, mock_stream_br
     ):
-        """Test that 'all-candidates' report only calls export_candidate_votes
-        without save_barcodes=True."""
-        import tempfile
-        tmp = tempfile.NamedTemporaryFile(
-            delete=False, suffix='.csv', mode='w'
-        )
-        tmp.write("col1\nval1\n")
-        tmp.close()
-        mock_export_cv.return_value = tmp.name
+        """Test that 'all-candidates' report only calls
+        stream_candidate_votes_csv."""
+        mock_stream_cv.return_value = iter(["col1\n", "val1\n"])
 
         response = get_result_export_response('all-candidates', self.tally.id)
 
-        mock_export_cv.assert_called_once()
-        call_kwargs = mock_export_cv.call_args
-        # Verify save_barcodes=False
-        self.assertFalse(call_kwargs[1].get('save_barcodes', True))
-        mock_save_br.assert_not_called()
-        self.assertEqual(response.status_code, 200)
-        os.unlink(tmp.name)
+        mock_stream_cv.assert_called_once()
+        mock_stream_br.assert_not_called()
+        self.assertIsInstance(response, StreamingHttpResponse)
+
+    def test_get_result_export_response_returns_streaming(self):
+        """Test that get_result_export_response returns StreamingHttpResponse."""
+        c1 = create_candidate(
+            ballot=self.ballot, candidate_name="Test Cand", tally=self.tally
+        )
+        rf = create_result_form(
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+        )
+        create_reconciliation_form(
+            result_form=rf, user=self.user, entry_version=EntryVersion.FINAL
+        )
+        create_result(
+            result_form=rf, candidate=c1, votes=10, user=self.user
+        )
+
+        response = get_result_export_response('formresults', self.tally.id)
+        self.assertIsInstance(response, StreamingHttpResponse)
+        self.assertEqual(response['Content-Type'], 'text/csv; charset=utf-8')
+
+        # Consume the stream and verify it's valid CSV
+        content = b''.join(response.streaming_content).decode('utf-8')
+        reader = csv.DictReader(content.splitlines())
+        rows = list(reader)
+        self.assertGreater(len(rows), 0)
+
+    def test_streaming_candidate_votes_response(self):
+        """Test that candidate votes export also streams."""
+        create_candidate(
+            ballot=self.ballot, candidate_name="Test Cand", tally=self.tally
+        )
+        create_result_form(
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+        )
+
+        response = get_result_export_response('all-candidates', self.tally.id)
+        self.assertIsInstance(response, StreamingHttpResponse)
+
+        content = b''.join(response.streaming_content).decode('utf-8')
+        reader = csv.DictReader(content.splitlines())
+        rows = list(reader)
+        self.assertGreater(len(rows), 0)

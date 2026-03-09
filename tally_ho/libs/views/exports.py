@@ -1,4 +1,5 @@
 import csv
+import io
 import os
 from collections import OrderedDict, defaultdict
 from tempfile import NamedTemporaryFile
@@ -6,11 +7,10 @@ from tempfile import NamedTemporaryFile
 from django.conf import settings
 from django.core.files.base import File
 from django.core.files.storage import default_storage
-from django.http import HttpResponse
+from django.db.models import Prefetch
+from django.http import HttpResponse, HttpResponseBadRequest, StreamingHttpResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
-from django.db.models import Prefetch
 
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -552,69 +552,273 @@ def check_position_changes(candidates_votes):
         pass
 
 
-def get_result_export_response(report, tally_id):
-    """Choose the appropriate export function and return as HTTP Response.
+def stream_barcode_results_csv(complete_barcodes, tally_id):
+    """Generator that yields CSV rows for barcode results.
 
-    Each report type only generates its own CSV, not all reports.
+    Used by StreamingHttpResponse to send CSV data as it's generated,
+    so the browser download starts immediately.
+
+    :param complete_barcodes: List of barcode strings to export.
+    :param tally_id: The tally ID.
+    :yields: CSV row strings.
+    """
+    header = [
+        'ballot', 'race number', 'center', 'station', 'gender',
+        'barcode', 'election level', 'sub race type', 'voting district',
+        'order', 'candidate name', 'candidate id', 'votes',
+        'invalid ballots', 'number of voter cards in the ballot box',
+        'received ballots papers', 'valid votes',
+        'total number of ballot papers in the box',
+        'number registrants', 'candidate status',
+    ]
+
+    # Yield header row
+    output = io.StringIO()
+    writer = csv.DictWriter(output, header)
+    writer.writeheader()
+    yield output.getvalue()
+
+    # Build optimized queryset with prefetch
+    result_forms = ResultForm.objects.filter(
+        barcode__in=complete_barcodes, tally__id=tally_id
+    ).select_related(
+        'ballot', 'ballot__electrol_race',
+        'center', 'center__office', 'center__sub_constituency'
+    ).prefetch_related(
+        Prefetch(
+            'reconciliationform_set',
+            queryset=ReconciliationForm.objects.filter(
+                active=True, entry_version=EntryVersion.FINAL
+            ),
+            to_attr='final_reconciliations'
+        ),
+        Prefetch(
+            'ballot__candidates',
+            queryset=Candidate.objects.order_by('order'),
+            to_attr='ordered_candidates'
+        ),
+        'center__stations',
+    )
+
+    # Batch fetch votes lookup
+    result_form_ids = [rf.id for rf in result_forms]
+    all_results = Result.objects.filter(
+        result_form_id__in=result_form_ids,
+        entry_version=EntryVersion.FINAL,
+        active=True
+    ).values('result_form_id', 'candidate_id', 'votes')
+
+    votes_lookup = {}
+    for result in all_results:
+        key = (result['result_form_id'], result['candidate_id'])
+        votes_lookup[key] = result['votes']
+
+    # Yield data rows
+    for result_form in result_forms:
+        row_output = build_result_and_recon_output(result_form)
+
+        for candidate in result_form.ballot.ordered_candidates:
+            key = (result_form.id, candidate.id)
+            votes = votes_lookup.get(key, 0)
+
+            row_output['order'] = candidate.order
+            row_output['candidate name'] = candidate.full_name
+            row_output['candidate id'] = candidate.candidate_id
+            row_output['votes'] = votes
+            row_output['race number'] = candidate.ballot.number
+            row_output['candidate status'] = (
+                'enabled' if candidate.active else 'disabled'
+            )
+
+            output = io.StringIO()
+            writer = csv.DictWriter(output, header)
+            writer.writerow(row_output)
+            yield output.getvalue()
+
+
+def stream_candidate_votes_csv(show_disabled_candidates, tally_id):
+    """Generator that yields CSV rows for candidate votes.
+
+    :param show_disabled_candidates: Whether to include disabled candidates.
+    :param tally_id: The tally ID.
+    :yields: CSV row strings.
+    """
+    # Build header (need max_candidates first)
+    max_candidates = 0
+    ballots_with_candidates = Ballot.objects.filter(
+        tally__id=tally_id
+    ).prefetch_related('candidates')
+
+    for ballot in ballots_with_candidates:
+        if not show_disabled_candidates:
+            count = len([c for c in ballot.candidates.all() if c.active])
+        else:
+            count = ballot.candidates.count()
+        if count > max_candidates:
+            max_candidates = count
+
+    header = ['ballot number', 'stations', 'stations completed',
+              'stations percent completed']
+    for i in range(1, max_candidates + 1):
+        header.append('candidate %s name' % i)
+        header.append('candidate %s votes' % i)
+        header.append('candidate %s votes included quarantine' % i)
+
+    # Yield header
+    output = io.StringIO()
+    writer = csv.DictWriter(output, header)
+    writer.writeheader()
+    yield output.getvalue()
+
+    # Pre-calculate vote stats
+    candidate_vote_stats = {}
+    archived_results = Result.get_num_votes_for_all_candidates(tally_id)
+    all_results_data = Result.get_num_all_votes_for_all_candidates(tally_id)
+
+    archived_votes_by_candidate = defaultdict(dict)
+    for r in archived_results:
+        archived_votes_by_candidate[r['candidate_id']][
+            r['result_form_id']] = r['votes']
+
+    all_votes_by_candidate = defaultdict(dict)
+    for r in all_results_data:
+        all_votes_by_candidate[r['candidate_id']][
+            r['result_form_id']] = r['votes']
+
+    all_candidate_ids = (set(archived_votes_by_candidate.keys()) |
+                         set(all_votes_by_candidate.keys()))
+    for candidate_id in all_candidate_ids:
+        a_dict = archived_votes_by_candidate.get(candidate_id, {})
+        all_dict = all_votes_by_candidate.get(candidate_id, {})
+        candidate_vote_stats[candidate_id] = {
+            'num_results': len(a_dict),
+            'votes': sum(a_dict.values()),
+            'all_votes': sum(all_dict.values()),
+        }
+
+    # Yield data rows
+    for ballot in valid_ballots(tally_id):
+        general_ballot = ballot
+        forms = distinct_forms(ballot, tally_id)
+        final_forms = ResultForm.forms_in_state(
+            FormState.ARCHIVED, pks=[r.pk for r in forms])
+
+        num_stations = forms.count()
+        num_stations_completed = final_forms.count()
+        percent_complete = (
+            round(100 * num_stations_completed / num_stations, 3)
+            if num_stations else 0
+        )
+
+        row = OrderedDict({
+            'ballot number': ballot.number,
+            'stations': num_stations,
+            'stations completed': num_stations_completed,
+            'stations percent completed': percent_complete,
+        })
+
+        candidates_to_votes = {}
+        num_results_ary = []
+        candidates = ballot.candidates.all()
+        if not show_disabled_candidates:
+            candidates = [c for c in candidates if c.active]
+
+        for candidate in candidates:
+            stats = candidate_vote_stats.get(candidate.id, {
+                'num_results': 0, 'votes': 0, 'all_votes': 0
+            })
+            candidates_to_votes[candidate.full_name] = [
+                stats['votes'], stats['all_votes']
+            ]
+            num_results_ary.append(stats['num_results'])
+
+        assert len(set(num_results_ary)) <= 1
+
+        for num_results in num_results_ary:
+            if num_stations_completed != num_results:
+                print('[WARNING] Number stations complete (%s) not '
+                      'equal to num_results (%s) for ballot %s (general'
+                      ' ballot %s)' % (
+                          num_stations_completed, num_results,
+                          ballot.number, general_ballot.number))
+                row['stations completed'] = num_results
+
+        candidates_to_votes = OrderedDict(sorted(
+            candidates_to_votes.items(), key=lambda t: t[1][0],
+            reverse=True
+        ))
+
+        check_position_changes(candidates_to_votes)
+
+        for i, item in enumerate(candidates_to_votes.items()):
+            candidate, votes = item
+            row['candidate %s name' % (i + 1)] = candidate
+            row['candidate %s votes' % (i + 1)] = votes[0]
+            row['candidate %s votes included quarantine' %
+                (i + 1)] = votes[1]
+
+        output = io.StringIO()
+        writer = csv.DictWriter(output, header)
+        writer.writerow(row)
+        yield output.getvalue()
+
+
+def get_result_export_response(report, tally_id):
+    """Return a streaming CSV response for the requested report.
 
     :param report: The type of report to return.
     :param tally_id: The tally ID.
-    :returns: An HTTP response with CSV attachment.
+    :returns: A StreamingHttpResponse with CSV data.
     """
-    response = HttpResponse(content_type='text/csv')
-
     try:
-        if not os.path.isdir('results'):
-            os.makedirs('results')
-
         if report == 'formresults':
             barcodes = get_complete_barcodes(tally_id)
-            path = save_barcode_results(
-                barcodes,
-                output_duplicates=False,
-                output_to_file=True,
-                tally_id=tally_id,
-            )
+            generator = stream_barcode_results_csv(barcodes, tally_id)
+            filename = 'form_results_%d.csv' % tally_id
         elif report == 'all-candidates':
-            path = export_candidate_votes(
-                save_barcodes=False,
-                output_duplicates=False,
-                output_to_file=True,
-                show_disabled_candidates=True,
-                tally_id=tally_id,
+            generator = stream_candidate_votes_csv(
+                show_disabled_candidates=True, tally_id=tally_id
             )
+            filename = 'all_candidate_votes_%d.csv' % tally_id
         elif report == 'active-candidates':
-            path = export_candidate_votes(
-                save_barcodes=False,
-                output_duplicates=False,
-                output_to_file=True,
-                show_disabled_candidates=False,
-                tally_id=tally_id,
+            generator = stream_candidate_votes_csv(
+                show_disabled_candidates=False, tally_id=tally_id
             )
+            filename = 'active_candidate_votes_%d.csv' % tally_id
         elif report == 'duplicates':
             barcodes = get_complete_barcodes(tally_id)
+            # Duplicates still uses file-based approach since it needs
+            # cross-form comparison (center_to_votes dict)
+            if not os.path.isdir('results'):
+                os.makedirs('results')
             path = save_barcode_results(
-                barcodes,
-                output_duplicates=True,
-                output_to_file=True,
-                tally_id=tally_id,
+                barcodes, output_duplicates=True,
+                output_to_file=True, tally_id=tally_id
             )
-        else:
-            response.write(_(u"Invalid report type."))
-            response.status_code = 400
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = (
+                'attachment; filename=duplicate_results_%d.csv' % tally_id
+            )
+            response['Content-Type'] = 'text/csv; charset=utf-8'
+            with open(path, 'r') as f:
+                response.write(f.read())
             return response
+        else:
+            return HttpResponseBadRequest("Invalid report type")
 
-        filename = os.path.basename(path)
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        response = StreamingHttpResponse(
+            generator, content_type='text/csv'
+        )
+        response['Content-Disposition'] = (
+            'attachment; filename=%s' % filename
+        )
         response['Content-Type'] = 'text/csv; charset=utf-8'
-
-        with open(path, 'r') as f:
-            response.write(f.read())
+        return response
 
     except Exception as e:
         if settings.DEBUG:
             raise e
+        response = HttpResponse(content_type='text/csv')
         response.write(_(u"Report not found."))
         response.status_code = 404
-
-    return response
+        return response
