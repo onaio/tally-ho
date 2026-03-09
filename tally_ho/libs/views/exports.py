@@ -5,8 +5,6 @@ import os
 from collections import OrderedDict, defaultdict
 from tempfile import NamedTemporaryFile
 
-logger = logging.getLogger(__name__)
-
 from django.conf import settings
 from django.core.files.base import File
 from django.core.files.storage import default_storage
@@ -22,6 +20,8 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+
+logger = logging.getLogger(__name__)
 
 OUTPUT_PATH = 'results/all_candidate_votes_%s.csv'
 ACTIVE_OUTPUT_PATH = 'results/active_candidate_votes_%s.csv'
