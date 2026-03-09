@@ -29,6 +29,9 @@
     <li><a href="{% url 'form-results' tally_id=tally_id %}">{% trans 'Public Site Results Report' %}</a></li>
 </ul>
 
-<script src="{% static 'js/export_download.js' %}"></script>
+{% endblock %}
 
+{% block javascript %}
+<script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'js/export_download.js' %}"></script>
 {% endblock %}
