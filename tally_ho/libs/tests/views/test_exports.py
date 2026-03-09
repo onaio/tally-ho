@@ -1,6 +1,8 @@
 import csv
 import os
 
+from django.db import connection, reset_queries
+from django.test.utils import override_settings
 
 from tally_ho.libs.tests.test_base import (
     create_ballot,
@@ -596,4 +598,72 @@ class TestExports(TestBase):
             self.assertEqual(row['candidate 2 votes included quarantine'], '95')
 
         # Clean up
+        os.unlink(csv_filename)
+
+    def test_save_barcode_results_query_efficiency(self):
+        """Test that save_barcode_results uses efficient prefetch queries
+        instead of N+1 pattern."""
+        # Create multiple result forms to detect N+1
+        result_forms = []
+        for i in range(5):
+            station = create_station(
+                self.center, station_number=100 + i, registrants=200
+            )
+            rf = create_result_form(
+                ballot=self.ballot,
+                barcode=str(900000 + i),
+                serial_number=100 + i,
+                center=self.center,
+                station_number=station.station_number,
+                tally=self.tally,
+                form_state=FormState.ARCHIVED,
+            )
+            result_forms.append(rf)
+            create_reconciliation_form(
+                result_form=rf,
+                user=self.user,
+                entry_version=EntryVersion.FINAL,
+            )
+
+        # Create candidates and results
+        c1 = create_candidate(
+            ballot=self.ballot, candidate_name="Cand A", tally=self.tally
+        )
+        c2 = create_candidate(
+            ballot=self.ballot, candidate_name="Cand B", tally=self.tally
+        )
+        for rf in result_forms:
+            create_result(
+                result_form=rf, candidate=c1, votes=10, user=self.user
+            )
+            create_result(
+                result_form=rf, candidate=c2, votes=20, user=self.user
+            )
+
+        barcodes = [rf.barcode for rf in result_forms]
+
+        with override_settings(DEBUG=True):
+            reset_queries()
+            csv_filename = save_barcode_results(
+                complete_barcodes=barcodes,
+                output_duplicates=False,
+                output_to_file=False,
+                tally_id=self.tally.id,
+            )
+            query_count = len(connection.queries)
+
+        # With proper prefetch, should be well under 20 queries
+        # (currently ~750 for 186 forms due to N+1)
+        # Expected: ~5-7 queries regardless of form count
+        self.assertLess(
+            query_count, 20,
+            f"Expected <20 queries with prefetch, got {query_count}. "
+            f"N+1 query problem likely present."
+        )
+
+        # Verify CSV output is still correct
+        with open(csv_filename, 'r') as f:
+            rows = list(csv.DictReader(f))
+        # 5 forms × 2 candidates = 10 rows
+        self.assertEqual(len(rows), 10)
         os.unlink(csv_filename)

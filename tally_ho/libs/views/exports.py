@@ -10,7 +10,11 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from django.db.models import Prefetch
+
 from tally_ho.apps.tally.models.ballot import Ballot
+from tally_ho.apps.tally.models.candidate import Candidate
+from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
@@ -94,7 +98,16 @@ def build_result_and_recon_output(result_form):
         'number registrants': station.registrants if station else None
     }
 
-    recon = result_form.reconciliationform
+    # Use prefetched final_reconciliations if available,
+    # else fall back to property
+    if hasattr(result_form, "final_reconciliations"):
+        recon = (
+            result_form.final_reconciliations[0]
+            if result_form.final_reconciliations
+            else None
+        )
+    else:
+        recon = result_form.reconciliationform
 
     if recon:
         output.update({
@@ -202,7 +215,10 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
         w = csv.DictWriter(f, header)
         w.writeheader()
 
-        # OPTIMIZATION: Use select_related and prefetch_related to eliminate N+1 queries
+        # OPTIMIZATION: Use Prefetch with to_attr to avoid N+1 queries.
+        # The reconciliationform property and candidates property bypass
+        # basic prefetch_related by calling .filter() and .order_by(),
+        # so we use to_attr to store pre-filtered results directly.
         result_forms = ResultForm.objects.filter(
             barcode__in=complete_barcodes, tally__id=tally_id
         ).select_related(
@@ -212,9 +228,19 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'center__office',
             'center__sub_constituency'
         ).prefetch_related(
-            'ballot__candidates',  # For result_form.candidates property
-            'reconciliationform_set',
-            'center__stations'  # For result_form.station property
+            Prefetch(
+                'reconciliationform_set',
+                queryset=ReconciliationForm.objects.filter(
+                    active=True, entry_version=EntryVersion.FINAL
+                ),
+                to_attr='final_reconciliations'
+            ),
+            Prefetch(
+                'ballot__candidates',
+                queryset=Candidate.objects.order_by('order'),
+                to_attr='ordered_candidates'
+            ),
+            'center__stations',
         )
 
         # OPTIMIZATION: Batch fetch ALL results to avoid N+1 queries
@@ -238,7 +264,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             vote_list = ()
             output = build_result_and_recon_output(result_form)
 
-            for candidate in result_form.candidates:
+            for candidate in result_form.ballot.ordered_candidates:
                 # OPTIMIZATION: Use pre-fetched votes instead of querying
                 key = (result_form.id, candidate.id)
                 votes = votes_lookup.get(key, 0)
