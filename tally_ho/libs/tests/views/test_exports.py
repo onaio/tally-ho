@@ -781,3 +781,13 @@ class TestExports(TestBase):
         reader = csv.DictReader(content.splitlines())
         rows = list(reader)
         self.assertGreater(len(rows), 0)
+
+    def test_invalid_report_type_returns_400(self):
+        """Test that invalid report type returns 400 Bad Request."""
+        response = get_result_export_response('invalid-report', self.tally.id)
+        self.assertEqual(response.status_code, 400)
+
+    def test_nonexistent_tally_returns_404(self):
+        """Test that nonexistent tally ID returns 404."""
+        response = get_result_export_response('formresults', 99999)
+        self.assertEqual(response.status_code, 404)

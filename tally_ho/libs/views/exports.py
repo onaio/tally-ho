@@ -1,8 +1,11 @@
 import csv
 import io
+import logging
 import os
 from collections import OrderedDict, defaultdict
 from tempfile import NamedTemporaryFile
+
+logger = logging.getLogger(__name__)
 
 from django.conf import settings
 from django.core.files.base import File
@@ -770,6 +773,17 @@ def get_result_export_response(report, tally_id):
     :param tally_id: The tally ID.
     :returns: A StreamingHttpResponse with CSV data.
     """
+    valid_reports = (
+        'formresults', 'all-candidates', 'active-candidates', 'duplicates'
+    )
+    if report not in valid_reports:
+        return HttpResponseBadRequest("Invalid report type")
+
+    if not Ballot.objects.filter(tally__id=tally_id).exists():
+        return HttpResponse(
+            _("Tally not found."), status=404, content_type='text/plain'
+        )
+
     try:
         if report == 'formresults':
             barcodes = get_complete_barcodes(tally_id)
@@ -803,8 +817,6 @@ def get_result_export_response(report, tally_id):
             with open(path, 'r') as f:
                 response.write(f.read())
             return response
-        else:
-            return HttpResponseBadRequest("Invalid report type")
 
         response = StreamingHttpResponse(
             generator, content_type='text/csv'
@@ -816,9 +828,13 @@ def get_result_export_response(report, tally_id):
         return response
 
     except Exception as e:
+        logger.exception(
+            "Export failed: report=%s tally_id=%s", report, tally_id
+        )
         if settings.DEBUG:
             raise e
-        response = HttpResponse(content_type='text/csv')
-        response.write(_(u"Report not found."))
-        response.status_code = 404
-        return response
+        return HttpResponse(
+            _("Export failed. Please try again."),
+            status=500,
+            content_type='text/plain',
+        )
