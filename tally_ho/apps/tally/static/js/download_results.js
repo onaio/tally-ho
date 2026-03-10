@@ -27,6 +27,11 @@ $(document).ready(function () {
                 $("#export-results").removeAttr("disabled");
                 $("#export-results").html("All Results JSON Export");
             },
+            error: () => {
+                $("#export-results").removeAttr("disabled");
+                $("#export-results").html("All Results JSON Export");
+                alert("Export failed. Please try again.");
+            },
         });
     });
 
@@ -47,6 +52,11 @@ $(document).ready(function () {
                 $("#export-centers-by-mun-results").removeAttr("disabled");
                 $("#export-centers-by-mun-results").html("All Centers By Mun Results JSON Export");
             },
+            error: () => {
+                $("#export-centers-by-mun-results").removeAttr("disabled");
+                $("#export-centers-by-mun-results").html("All Centers By Mun Results JSON Export");
+                alert("Export failed. Please try again.");
+            },
         });
     });
     $("#in-report").on("click", "#export-centers-by-mun-c-votes-results", function () {
@@ -65,6 +75,11 @@ $(document).ready(function () {
                 downloadResults(data, `centers_by_mun_c_votes_results_${Date.now()}.json`);
                 $("#export-centers-by-mun-c-votes-results").removeAttr("disabled");
                 $("#export-centers-by-mun-c-votes-results").html("Centers By Mun Candidates Votes Results (JSON)");
+            },
+            error: () => {
+                $("#export-centers-by-mun-c-votes-results").removeAttr("disabled");
+                $("#export-centers-by-mun-c-votes-results").html("Centers By Mun Candidates Votes Results (JSON)");
+                alert("Export failed. Please try again.");
             },
         });
     });
@@ -85,6 +100,11 @@ $(document).ready(function () {
                 $("#export-centers-stations-by-mun-c-votes-results").removeAttr("disabled");
                 $("#export-centers-stations-by-mun-c-votes-results").html("Centers/Stations By Mun Candidates Votes Results (JSON)");
             },
+            error: () => {
+                $("#export-centers-stations-by-mun-c-votes-results").removeAttr("disabled");
+                $("#export-centers-stations-by-mun-c-votes-results").html("Centers/Stations By Mun Candidates Votes Results (JSON)");
+                alert("Export failed. Please try again.");
+            },
         });
     });
 
@@ -104,6 +124,11 @@ $(document).ready(function () {
                 downloadResults(data, `sub_cons_list_${Date.now()}.json`);
                 $("#export-sub-cons").removeAttr("disabled");
                 $("#export-sub-cons").html("json");
+            },
+            error: () => {
+                $("#export-sub-cons").removeAttr("disabled");
+                $("#export-sub-cons").html("json");
+                alert("Export failed. Please try again.");
             },
         });
     });
@@ -126,6 +151,11 @@ $(document).ready(function () {
                 downloadResults(data, 'parliamentary_results.json');
                 $("#export-form-results-parliamentary").removeAttr("disabled");
                 $("#export-form-results-parliamentary").html("Export Parliamentary Results in JSON");
+            },
+            error: () => {
+                $("#export-form-results-parliamentary").removeAttr("disabled");
+                $("#export-form-results-parliamentary").html("Export Parliamentary Results in JSON");
+                alert("Export failed. Please try again.");
             },
         });
     });
