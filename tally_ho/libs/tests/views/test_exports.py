@@ -791,3 +791,94 @@ class TestExports(TestBase):
         """Test that nonexistent tally ID returns 404."""
         response = get_result_export_response('formresults', 99999)
         self.assertEqual(response.status_code, 404)
+
+    @patch('tally_ho.libs.views.exports.stream_barcode_results_csv')
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    def test_active_candidates_calls_stream_with_disabled_false(
+        self, mock_stream_cv, mock_stream_br
+    ):
+        """Test that 'active-candidates' report calls stream_candidate_votes_csv
+        with show_disabled_candidates=False."""
+        mock_stream_cv.return_value = iter(["col1\n", "val1\n"])
+
+        response = get_result_export_response(
+            'active-candidates', self.tally.id
+        )
+
+        mock_stream_cv.assert_called_once_with(
+            show_disabled_candidates=False, tally_id=self.tally.id
+        )
+        mock_stream_br.assert_not_called()
+        self.assertIsInstance(response, StreamingHttpResponse)
+        self.assertIn(
+            'active_candidate_votes_', response['Content-Disposition']
+        )
+
+    @patch('tally_ho.libs.views.exports.save_barcode_results')
+    @patch('tally_ho.libs.views.exports.get_complete_barcodes')
+    def test_duplicates_report_returns_file_response(
+        self, mock_get_barcodes, mock_save_barcode
+    ):
+        """Test that 'duplicates' report uses file-based export and returns
+        HttpResponse (not StreamingHttpResponse)."""
+        import tempfile
+
+        # Create a temp CSV file to simulate the saved output
+        tmp = tempfile.NamedTemporaryFile(
+            delete=False, suffix='.csv', mode='w'
+        )
+        tmp.write("ballot,center,barcode,state,station,votes\n")
+        tmp.write("1,1001,111111,Archived,1,\"(10, 20)\"\n")
+        tmp.close()
+
+        mock_get_barcodes.return_value = ['111111']
+        mock_save_barcode.return_value = tmp.name
+
+        response = get_result_export_response('duplicates', self.tally.id)
+
+        mock_get_barcodes.assert_called_once_with(self.tally.id)
+        mock_save_barcode.assert_called_once_with(
+            ['111111'], output_duplicates=True,
+            output_to_file=True, tally_id=self.tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIsInstance(response, StreamingHttpResponse)
+        self.assertIn(
+            'duplicate_results_', response['Content-Disposition']
+        )
+        self.assertEqual(
+            response['Content-Type'], 'text/csv; charset=utf-8'
+        )
+        # Verify CSV content was written to response
+        self.assertIn('ballot,center,barcode', response.content.decode())
+
+        # Clean up
+        os.unlink(tmp.name)
+
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    @override_settings(DEBUG=False)
+    def test_export_exception_returns_500_when_not_debug(
+        self, mock_stream_cv
+    ):
+        """Test that exceptions return 500 response when DEBUG=False."""
+        mock_stream_cv.side_effect = Exception("Database error")
+
+        response = get_result_export_response(
+            'all-candidates', self.tally.id
+        )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertIn('Export failed', response.content.decode())
+        self.assertEqual(response['Content-Type'], 'text/plain')
+
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    @override_settings(DEBUG=True)
+    def test_export_exception_reraises_when_debug(
+        self, mock_stream_cv
+    ):
+        """Test that exceptions are re-raised when DEBUG=True."""
+        mock_stream_cv.side_effect = Exception("Database error")
+
+        with self.assertRaises(Exception) as ctx:
+            get_result_export_response('all-candidates', self.tally.id)
+        self.assertEqual(str(ctx.exception), "Database error")
