@@ -1,6 +1,6 @@
-## Tally-Ho! Design Documentation
+# Tally-Ho! Design Documentation
 
-### Objective
+## Objective
 
 Record, verify, and report data concerning election results.
 
@@ -20,38 +20,38 @@ Support the entry of results and reconciliation forms, correction, and comments.
 * Record issues and comments about data.
 
 #### Records
-    
+
 Store the form data entered into the system.
 
 * State: store the current progress of the record through validation steps.
-    * Intake
-    * Clearance
-    * Data Entry 1
-    * Data Entry 2
-    * Corrections
-    * Quality Control
-    * Audit: failed quarantine checks
-    * Archived: final state, results official
+  * Intake
+  * Clearance
+  * Data Entry 1
+  * Data Entry 2
+  * Corrections
+  * Quality Control
+  * Audit: failed quarantine checks
+  * Archived: final state, results official
 * Transitions: the possible transitions from the current state.
 * Actions: the actions a user can perform.
-    * Transitioning the form to a new state.
-    * Select correct version of field data.
-    * Enter comments and select options.
-    * Printing a cover sheet for the record.
+  * Transitioning the form to a new state.
+  * Select correct version of field data.
+  * Enter comments and select options.
+  * Printing a cover sheet for the record.
 
 #### User permissions system
 
 Assign roles for all users limiting their actions.
 
 * All users must login with a name and password to access the tally system.
-    * Each user is assigned a role.
-    * Admins can reassign roles.
-    * Admins can reset passwords to temporary passwords.
+  * Each user is assigned a role.
+  * Admins can reassign roles.
+  * Admins can reset passwords to temporary passwords.
 * Roles determine the actions that a user can perform.
 * There are a fixed set of roles with predetermined actions.
 
 #### Alerts
-    
+
 Run "quarantine checks" to ensure that entered data is credible.
 
 * The system runs checks after a record passes the "quality control" state.
@@ -63,8 +63,8 @@ Run "quarantine checks" to ensure that entered data is credible.
 Display entry progress and the tally results.
 
 * Display the percentage of forms entered to form expected.
-    * Group by region and other metadata?
+  * Group by region and other metadata?
 * Display the current state of all entered forms.
-    * Group by region and other metadata?
+  * Group by region and other metadata?
 * Display the sum of votes for each candidate in each election.
-    *  Display the percentage of votes. 
+  * Display the percentage of votes.

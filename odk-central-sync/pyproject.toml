@@ -1,0 +1,17 @@
+[project]
+name = "odk-central-sync"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "click>=8.3.1",
+    "pandas>=3.0.1",
+    "pyodk>=1.2.1",
+    "rich>=14.3.3",
+    "tenacity>=9.1.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
