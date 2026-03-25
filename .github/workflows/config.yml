@@ -2,6 +2,10 @@ name: Django CI
 
 on: [push]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build-amd64:
     runs-on: ubuntu-latest
