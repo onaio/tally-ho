@@ -10,3 +10,8 @@ dependencies = [
     "rich>=14.3.3",
     "tenacity>=9.1.4",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
