@@ -25,3 +25,5 @@ local_settings.py
 *.sw?
 .python-version
 .worktrees
+odk-central-sync/.pyodk_config.toml
+odk-central-sync/results-output/
