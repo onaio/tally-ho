@@ -2,7 +2,7 @@
 name = "odk-central-sync"
 version = "0.1.0"
 description = "Add your description here"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "click>=8.3.1",
     "pandas>=3.0.1",

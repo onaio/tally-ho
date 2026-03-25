@@ -95,6 +95,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv python install
+      - run: uv python install 3.13
       - run: uv sync --locked
       - run: uv run pytest tests/ -v
