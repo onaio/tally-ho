@@ -12,7 +12,7 @@ from src.download_results_forms import (
 )
 
 
-def make_test_zip(center_id):
+def make_test_zip(center_id, include_media=True):
     """Build an in-memory ZIP matching the ODK Central export layout."""
     form_id = f"results_{center_id}"
 
@@ -22,14 +22,19 @@ def make_test_zip(center_id):
         f"2,102,Bob,30,uuid:abc-{center_id},uuid:abc-{center_id}/candidate_results[2]\n"
     )
     submissions_csv = (
-        "meta-instanceID,station_number,staff_user_name,ballot_number,race_type\n"
-        f"uuid:abc-{center_id},3,tester,1313,Individual\n"
+        "meta-instanceID,station_number,staff_user_name,ballot_number,race_type,"
+        "clerk_signature,forms_picture_1st_page,forms_picture_2nd_page\n"
+        f"uuid:abc-{center_id},3,tester,1313,Individual,"
+        f"sig_{center_id}.jpg,page1_{center_id}.jpg,\n"
     )
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w") as zf:
         zf.writestr(f"{form_id}-candidate_results.csv", candidates_csv)
         zf.writestr(f"{form_id}.csv", submissions_csv)
+        if include_media:
+            zf.writestr(f"media/sig_{center_id}.jpg", b"fake-signature-jpg")
+            zf.writestr(f"media/page1_{center_id}.jpg", b"fake-page1-jpg")
     return buf.getvalue()
 
 
@@ -143,6 +148,52 @@ class TestExportCenterCandidateResults:
 
         assert len(df) == 4
         assert set(df["center_id"]) == {100, 200}
+
+    def test_extracts_media_with_center_prefix(self, output_dir):
+        center_id = 100
+        zip_bytes = make_test_zip(center_id)
+
+        mock_response = MagicMock()
+        mock_response.content = zip_bytes
+        mock_response.raise_for_status = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_response
+
+        export_center_candidate_results(
+            client=mock_client,
+            project_id=1,
+            center_ids=[center_id],
+            output_dir=output_dir,
+        )
+
+        media_dir = output_dir / "media"
+        assert (media_dir / f"{center_id}_sig_{center_id}.jpg").exists()
+        assert (media_dir / f"{center_id}_page1_{center_id}.jpg").exists()
+
+    def test_image_columns_have_prefixed_filenames(self, output_dir):
+        center_id = 100
+        zip_bytes = make_test_zip(center_id)
+
+        mock_response = MagicMock()
+        mock_response.content = zip_bytes
+        mock_response.raise_for_status = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_response
+
+        df = export_center_candidate_results(
+            client=mock_client,
+            project_id=1,
+            center_ids=[center_id],
+            output_dir=output_dir,
+        )
+
+        assert "clerk_signature" in df.columns
+        assert "forms_picture_1st_page" in df.columns
+        assert "forms_picture_2nd_page" in df.columns
+        assert df["clerk_signature"].iloc[0] == f"{center_id}_sig_{center_id}.jpg"
+        assert df["forms_picture_1st_page"].iloc[0] == f"{center_id}_page1_{center_id}.jpg"
 
     def test_skips_existing_valid_zip(self, output_dir):
         center_id = 100

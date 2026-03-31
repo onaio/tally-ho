@@ -66,7 +66,15 @@ def export_center_candidate_results(
 
     Intermediate ZIP files are saved under output_dir/<center_id>/results.zip.
     """
+    IMAGE_COLUMNS = [
+        "clerk_signature",
+        "forms_picture_1st_page",
+        "forms_picture_2nd_page",
+    ]
+
     candidate_results: list[pd.DataFrame] = []
+    media_dir = output_dir / "media"
+    media_dir.mkdir(parents=True, exist_ok=True)
 
     with Progress(console=console) as progress:
         task = progress.add_task("Exporting centers", total=len(center_ids))
@@ -101,6 +109,27 @@ def export_center_candidate_results(
                 submissions_path = Path(f"{xml_form_id}.csv")
                 console.log(f"Extracting {submissions_path}")
                 submissions_df = pd.read_csv(archive.open(str(submissions_path)))
+
+                # Extract media files and prefix filenames with center_id
+                media_names = [
+                    n for n in archive.namelist() if n.startswith("media/")
+                ]
+                for name in media_names:
+                    filename = Path(name).name
+                    prefixed = f"{center_id}_{filename}"
+                    dest = media_dir / prefixed
+                    if not dest.exists():
+                        dest.write_bytes(archive.read(name))
+                console.log(f"Extracted {len(media_names)} media files")
+
+                # Prefix image filenames in submissions before merge
+                for col in IMAGE_COLUMNS:
+                    if col in submissions_df.columns:
+                        submissions_df[col] = submissions_df[col].apply(
+                            lambda v, cid=center_id: f"{cid}_{v}"
+                            if pd.notna(v) else v
+                        )
+
                 df = df.merge(
                     submissions_df[
                         [
@@ -110,6 +139,7 @@ def export_center_candidate_results(
                             "ballot_number",
                             "race_type",
                         ]
+                        + [c for c in IMAGE_COLUMNS if c in submissions_df.columns]
                     ],
                     left_on="PARENT_KEY",
                     right_on="meta-instanceID",
