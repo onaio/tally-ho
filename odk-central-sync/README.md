@@ -12,13 +12,13 @@ Export candidate results from ODK Central for a list of centers.
 Export specific centers:
 
 ```bash
-uv run download-results-forms.py --project-id=14 11034 11035 11036
+uv run download-results --project-id=14 11034 11035 11036
 ```
 
 Export all centers (auto-discovers `results_*` forms in the project):
 
 ```bash
-uv run download-results-forms.py --project-id=14
+uv run download-results --project-id=14
 ```
 
 ### Options

@@ -23,7 +23,7 @@ CLI_EPILOG = (
     "  1) Create a pyODK config file (default: .pyodk_config.toml).\n"
     "     https://getodk.github.io/pyodk/#configure\n\n"
     "Example:\n"
-    "  uv run download-results-forms.py --project-id=5 11034 11035 11036"
+    "  uv run download-results --project-id=5 11034 11035 11036"
 )
 
 
