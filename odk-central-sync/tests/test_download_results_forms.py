@@ -5,6 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from click.testing import CliRunner
 
+from pyodk.errors import PyODKError
+
 from src.download_results_forms import (
     export_center_candidate_results,
     export_form_submissions,
@@ -269,3 +271,19 @@ class TestCLI:
         assert result.exit_code == 0
         mock_client.forms.list.assert_called_once_with(project_id=1)
         assert (output_dir / "candidate_results.csv").exists()
+
+    def test_pyodk_error_exits_gracefully(self, output_dir):
+        mock_client = MagicMock()
+        mock_client.__enter__ = MagicMock(return_value=mock_client)
+        mock_client.__exit__ = MagicMock(return_value=False)
+        mock_client.forms.list.side_effect = PyODKError("auth failed")
+
+        runner = CliRunner()
+        with patch("src.download_results_forms.Client", return_value=mock_client):
+            result = runner.invoke(
+                main,
+                ["--project-id=1", "--output-dir", str(output_dir)],
+            )
+
+        assert result.exit_code == 1
+        assert "auth failed" in result.output

@@ -4,6 +4,7 @@ from pathlib import Path
 import click
 import pandas as pd
 from pyodk.client import Client
+from pyodk.errors import PyODKError
 from requests.exceptions import ConnectionError, Timeout
 from rich.console import Console
 from rich.progress import Progress
@@ -173,22 +174,25 @@ def main(project_id: int, center_ids: tuple[int, ...], output_dir: Path, config:
     output_dir.mkdir(parents=True, exist_ok=True)
     output_csv = output_dir / "candidate_results.csv"
 
-    with Client(config_path=str(config)) as client:
-        if not center_ids:
-            forms = client.forms.list(project_id=project_id)
-            center_ids = tuple(
-                int(f.xmlFormId.removeprefix("results_"))
-                for f in forms
-                if f.xmlFormId.startswith("results_")
-            )
-            console.log(f"Discovered {len(center_ids)} results forms")
+    try:
+        with Client(config_path=str(config)) as client:
+            if not center_ids:
+                forms = client.forms.list(project_id=project_id)
+                center_ids = tuple(
+                    int(f.xmlFormId.removeprefix("results_"))
+                    for f in forms
+                    if f.xmlFormId.startswith("results_")
+                )
+                console.log(f"Discovered {len(center_ids)} results forms")
 
-        results_df = export_center_candidate_results(
-            client=client,
-            project_id=project_id,
-            center_ids=list(center_ids),
-            output_dir=output_dir,
-        )
+            results_df = export_center_candidate_results(
+                client=client,
+                project_id=project_id,
+                center_ids=list(center_ids),
+                output_dir=output_dir,
+            )
+    except PyODKError as exc:
+        raise click.ClickException(str(exc)) from exc
 
     results_df.to_csv(output_csv, index=False)
     console.log(f"Saved {len(results_df)} rows to {output_csv}")
