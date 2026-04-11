@@ -26,3 +26,13 @@ uv run download-results --project-id=14
 - `--project-id` (required) — ODK Central project ID
 - `--output-dir` — Directory for output files (default: `results-output`)
 - `--config` — Path to pyODK config file (default: `.pyodk_config.toml`)
+- `--bundle` — Create a timestamped upload bundle in the output directory (default: `true`). Pass `--bundle=false` to skip.
+
+## Output
+
+Each run writes the following into `--output-dir`:
+
+- `candidate_results.csv` — combined candidate results across all centers
+- `<center_id>/results.zip` — raw ODK Central export per center (cached; reused on reruns)
+- `media/` — extracted images from all centers, filenames prefixed by `center_id`
+- `results_export_p<project_id>_<timestamp>.zip` — upload bundle containing `candidate_results.csv` and `media/`. This is the file to upload to the results system for integration with other results. Disable with `--bundle=false`.

@@ -1,16 +1,22 @@
-import zipfile
+from datetime import datetime
+import logging
 from pathlib import Path
+import zipfile
 
 import click
 import pandas as pd
 from pyodk.client import Client
 from pyodk.errors import PyODKError
-from requests.exceptions import ConnectionError, Timeout
+from requests.exceptions import ConnectionError
+from requests.exceptions import Timeout
 from rich.console import Console
 from rich.progress import Progress
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, before_sleep_log
+from tenacity import before_sleep_log
+from tenacity import retry
+from tenacity import retry_if_exception_type
+from tenacity import stop_after_attempt
+from tenacity import wait_exponential
 
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +30,12 @@ CLI_EPILOG = (
     "  1) Create a pyODK config file (default: .pyodk_config.toml).\n"
     "     https://getodk.github.io/pyodk/#configure\n\n"
     "Example:\n"
-    "  uv run download-results --project-id=5 11034 11035 11036"
+    "  uv run download-results --project-id=5 11034 11035 11036\n\n"
+    "Output:\n"
+    "  - candidate_results.csv: combined results across all centers\n"
+    "  - media/: extracted images, filenames prefixed by center_id\n"
+    "  - results_export_p<project_id>_<timestamp>.zip: upload bundle\n"
+    "    (CSV + media/). Disable with --bundle=false."
 )
 
 
@@ -153,6 +164,32 @@ def export_center_candidate_results(
     return pd.concat(candidate_results, ignore_index=True)
 
 
+def create_upload_bundle(
+    output_dir: Path,
+    csv_path: Path,
+    media_dir: Path,
+    project_id: int,
+) -> Path:
+    """
+    Package the candidate results CSV and media files into a timestamped ZIP
+    for upload to the results system.
+
+    The bundle is written to output_dir as results_export_p<project_id>_<timestamp>.zip
+    with no compression (ZIP_STORED) since media is already compressed.
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    bundle_path = output_dir / f"results_export_p{project_id}_{timestamp}.zip"
+
+    with zipfile.ZipFile(bundle_path, "w", zipfile.ZIP_STORED) as zf:
+        zf.write(csv_path, arcname=csv_path.name)
+        if media_dir.exists():
+            for media_file in sorted(media_dir.iterdir()):
+                if media_file.is_file():
+                    zf.write(media_file, arcname=f"media/{media_file.name}")
+
+    return bundle_path
+
+
 @click.command(help=CLI_HELP, epilog=CLI_EPILOG)
 @click.option("--project-id", type=int, required=True, help="ODK Central project ID")
 @click.argument("center-ids", type=click.INT, nargs=-1)
@@ -170,7 +207,23 @@ def export_center_candidate_results(
     show_default=True,
     help="Path to pyODK config file. See https://getodk.github.io/pyodk/#configure",
 )
-def main(project_id: int, center_ids: tuple[int, ...], output_dir: Path, config: Path):
+@click.option(
+    "--bundle",
+    type=bool,
+    default=True,
+    show_default=True,
+    help=(
+        "Create a timestamped ZIP bundle (candidate_results.csv + media/) in the "
+        "output directory for upload to the results system. Pass --bundle=false to disable."
+    ),
+)
+def main(
+    project_id: int,
+    center_ids: tuple[int, ...],
+    output_dir: Path,
+    config: Path,
+    bundle: bool,
+):
     output_dir.mkdir(parents=True, exist_ok=True)
     output_csv = output_dir / "candidate_results.csv"
 
@@ -196,6 +249,15 @@ def main(project_id: int, center_ids: tuple[int, ...], output_dir: Path, config:
 
     results_df.to_csv(output_csv, index=False)
     console.log(f"Saved {len(results_df)} rows to {output_csv}")
+
+    if bundle:
+        bundle_path = create_upload_bundle(
+            output_dir=output_dir,
+            csv_path=output_csv,
+            media_dir=output_dir / "media",
+            project_id=project_id,
+        )
+        console.log(f"Created upload bundle: {bundle_path}")
 
 
 if __name__ == "__main__":

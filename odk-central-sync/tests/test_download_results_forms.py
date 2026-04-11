@@ -1,17 +1,17 @@
 import io
+import re
+from unittest.mock import MagicMock
+from unittest.mock import patch
 import zipfile
-from unittest.mock import MagicMock, patch
 
-import pytest
 from click.testing import CliRunner
-
 from pyodk.errors import PyODKError
+import pytest
 
-from src.download_results_forms import (
-    export_center_candidate_results,
-    export_form_submissions,
-    main,
-)
+from src.download_results_forms import create_upload_bundle
+from src.download_results_forms import export_center_candidate_results
+from src.download_results_forms import export_form_submissions
+from src.download_results_forms import main
 
 
 def make_test_zip(center_id, include_media=True):
@@ -220,6 +220,89 @@ class TestExportCenterCandidateResults:
         assert len(df) == 2
 
 
+class TestCreateUploadBundle:
+    def test_bundle_contains_csv_and_media(self, tmp_path):
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+        csv_path = output_dir / "candidate_results.csv"
+        csv_path.write_text("a,b\n1,2\n")
+        media_dir = output_dir / "media"
+        media_dir.mkdir()
+        (media_dir / "100_sig.jpg").write_bytes(b"img1")
+        (media_dir / "100_page.jpg").write_bytes(b"img2")
+
+        bundle_path = create_upload_bundle(
+            output_dir=output_dir,
+            csv_path=csv_path,
+            media_dir=media_dir,
+            project_id=14,
+        )
+
+        assert bundle_path.exists()
+        assert bundle_path.parent == output_dir
+        with zipfile.ZipFile(bundle_path) as zf:
+            names = set(zf.namelist())
+            assert "candidate_results.csv" in names
+            assert "media/100_sig.jpg" in names
+            assert "media/100_page.jpg" in names
+            # ZIP_STORED = no compression
+            for info in zf.infolist():
+                assert info.compress_type == zipfile.ZIP_STORED
+
+    def test_bundle_filename_has_project_id_and_timestamp(self, tmp_path):
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+        csv_path = output_dir / "candidate_results.csv"
+        csv_path.write_text("a,b\n1,2\n")
+
+        bundle_path = create_upload_bundle(
+            output_dir=output_dir,
+            csv_path=csv_path,
+            media_dir=output_dir / "media",
+            project_id=42,
+        )
+
+        assert re.fullmatch(
+            r"results_export_p42_\d{8}_\d{6}\.zip", bundle_path.name
+        )
+
+    def test_bundle_handles_missing_media_dir(self, tmp_path):
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+        csv_path = output_dir / "candidate_results.csv"
+        csv_path.write_text("a,b\n1,2\n")
+
+        bundle_path = create_upload_bundle(
+            output_dir=output_dir,
+            csv_path=csv_path,
+            media_dir=output_dir / "media",
+            project_id=1,
+        )
+
+        assert bundle_path.exists()
+        with zipfile.ZipFile(bundle_path) as zf:
+            names = set(zf.namelist())
+            assert names == {"candidate_results.csv"}
+
+    def test_bundle_handles_empty_media_dir(self, tmp_path):
+        output_dir = tmp_path / "output"
+        output_dir.mkdir()
+        csv_path = output_dir / "candidate_results.csv"
+        csv_path.write_text("a,b\n1,2\n")
+        media_dir = output_dir / "media"
+        media_dir.mkdir()
+
+        bundle_path = create_upload_bundle(
+            output_dir=output_dir,
+            csv_path=csv_path,
+            media_dir=media_dir,
+            project_id=1,
+        )
+
+        with zipfile.ZipFile(bundle_path) as zf:
+            assert set(zf.namelist()) == {"candidate_results.csv"}
+
+
 class TestCLI:
     def test_with_center_ids(self, output_dir):
         zip_bytes = make_test_zip(100)
@@ -271,6 +354,59 @@ class TestCLI:
         assert result.exit_code == 0
         mock_client.forms.list.assert_called_once_with(project_id=1)
         assert (output_dir / "candidate_results.csv").exists()
+
+    def test_creates_bundle_by_default(self, output_dir):
+        zip_bytes = make_test_zip(100)
+
+        mock_response = MagicMock()
+        mock_response.content = zip_bytes
+        mock_response.raise_for_status = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_response
+        mock_client.__enter__ = MagicMock(return_value=mock_client)
+        mock_client.__exit__ = MagicMock(return_value=False)
+
+        runner = CliRunner()
+        with patch("src.download_results_forms.Client", return_value=mock_client):
+            result = runner.invoke(
+                main,
+                ["--project-id=14", "--output-dir", str(output_dir), "100"],
+            )
+
+        assert result.exit_code == 0
+        bundles = list(output_dir.glob("results_export_p14_*.zip"))
+        assert len(bundles) == 1
+
+    def test_bundle_false_skips_bundle(self, output_dir):
+        zip_bytes = make_test_zip(100)
+
+        mock_response = MagicMock()
+        mock_response.content = zip_bytes
+        mock_response.raise_for_status = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_response
+        mock_client.__enter__ = MagicMock(return_value=mock_client)
+        mock_client.__exit__ = MagicMock(return_value=False)
+
+        runner = CliRunner()
+        with patch("src.download_results_forms.Client", return_value=mock_client):
+            result = runner.invoke(
+                main,
+                [
+                    "--project-id=14",
+                    "--output-dir",
+                    str(output_dir),
+                    "--bundle=false",
+                    "100",
+                ],
+            )
+
+        assert result.exit_code == 0
+        assert (output_dir / "candidate_results.csv").exists()
+        bundles = list(output_dir.glob("results_export_p*.zip"))
+        assert len(bundles) == 0
 
     def test_pyodk_error_exits_gracefully(self, output_dir):
         mock_client = MagicMock()
