@@ -19,14 +19,32 @@ def make_test_zip(center_id, include_media=True):
     form_id = f"results_{center_id}"
 
     candidates_csv = (
-        "pos,candidate_id,candidate_name,candidate_result_round1,PARENT_KEY,KEY\n"
-        f"1,101,Alice,25,uuid:abc-{center_id},uuid:abc-{center_id}/candidate_results[1]\n"
-        f"2,102,Bob,30,uuid:abc-{center_id},uuid:abc-{center_id}/candidate_results[2]\n"
+        "pos,candidate_id,candidate_name,"
+        "candidate_result_round1,candidate_result_r2-candidate_result_round2,"
+        "PARENT_KEY,KEY\n"
+        f"1,101,Alice,25,26,uuid:abc-{center_id},"
+        f"uuid:abc-{center_id}/candidate_results[1]\n"
+        f"2,102,Bob,30,31,uuid:abc-{center_id},"
+        f"uuid:abc-{center_id}/candidate_results[2]\n"
     )
     submissions_csv = (
         "meta-instanceID,station_number,staff_user_name,ballot_number,race_type,"
+        "intro-barcode,"
+        "reconciliation_r1-number_ballots_received_r1,"
+        "reconciliation_r1-number_voter_cards_r1,"
+        "reconciliation_r1-number_valid_ballots_r1,"
+        "reconciliation_r1-number_invalid_ballots_r1,"
+        "reconciliation_r1-number_ballots_inside_box_r1,"
+        "reconciliation_r2-number_ballots_received_r2,"
+        "reconciliation_r2-number_voter_cards_r2,"
+        "reconciliation_r2-number_valid_ballots_r2,"
+        "reconciliation_r2-number_invalid_ballots_r2,"
+        "reconciliation_r2-number_ballots_inside_box_r2,"
         "clerk_signature,forms_picture_1st_page,forms_picture_2nd_page\n"
         f"uuid:abc-{center_id},3,tester,1313,Individual,"
+        f"{center_id}003001,"
+        "200,150,140,10,150,"
+        "204,149,139,10,149,"
         f"sig_{center_id}.jpg,page1_{center_id}.jpg,\n"
     )
 
@@ -196,6 +214,102 @@ class TestExportCenterCandidateResults:
         assert "forms_picture_2nd_page" in df.columns
         assert df["clerk_signature"].iloc[0] == f"{center_id}_sig_{center_id}.jpg"
         assert df["forms_picture_1st_page"].iloc[0] == f"{center_id}_page1_{center_id}.jpg"
+
+    def test_extracts_barcode(self, output_dir):
+        center_id = 100
+        zip_bytes = make_test_zip(center_id)
+
+        mock_response = MagicMock()
+        mock_response.content = zip_bytes
+        mock_response.raise_for_status = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_response
+
+        df = export_center_candidate_results(
+            client=mock_client,
+            project_id=1,
+            center_ids=[center_id],
+            output_dir=output_dir,
+        )
+
+        assert "barcode" in df.columns
+        assert list(df["barcode"]) == [f"{center_id}003001"] * 2
+        # Original intro-barcode should have been renamed
+        assert "intro-barcode" not in df.columns
+
+    def test_extracts_round2_candidate_votes(self, output_dir):
+        center_id = 100
+        zip_bytes = make_test_zip(center_id)
+
+        mock_response = MagicMock()
+        mock_response.content = zip_bytes
+        mock_response.raise_for_status = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_response
+
+        df = export_center_candidate_results(
+            client=mock_client,
+            project_id=1,
+            center_ids=[center_id],
+            output_dir=output_dir,
+        )
+
+        assert "candidate_result_round2" in df.columns
+        assert list(df["candidate_result_round2"]) == [26, 31]
+        # Original hyphenated column should have been renamed away
+        assert (
+            "candidate_result_r2-candidate_result_round2" not in df.columns
+        )
+        # Round 1 should still be present unchanged
+        assert "candidate_result_round1" in df.columns
+        assert list(df["candidate_result_round1"]) == [25, 30]
+
+    def test_extracts_reconciliation_fields(self, output_dir):
+        center_id = 100
+        zip_bytes = make_test_zip(center_id)
+
+        mock_response = MagicMock()
+        mock_response.content = zip_bytes
+        mock_response.raise_for_status = MagicMock()
+
+        mock_client = MagicMock()
+        mock_client.get.return_value = mock_response
+
+        df = export_center_candidate_results(
+            client=mock_client,
+            project_id=1,
+            center_ids=[center_id],
+            output_dir=output_dir,
+        )
+
+        r1_cols = [
+            "reconciliation_r1-number_ballots_received_r1",
+            "reconciliation_r1-number_voter_cards_r1",
+            "reconciliation_r1-number_valid_ballots_r1",
+            "reconciliation_r1-number_invalid_ballots_r1",
+            "reconciliation_r1-number_ballots_inside_box_r1",
+        ]
+        r2_cols = [
+            "reconciliation_r2-number_ballots_received_r2",
+            "reconciliation_r2-number_voter_cards_r2",
+            "reconciliation_r2-number_valid_ballots_r2",
+            "reconciliation_r2-number_invalid_ballots_r2",
+            "reconciliation_r2-number_ballots_inside_box_r2",
+        ]
+        for col in r1_cols + r2_cols:
+            assert col in df.columns, f"missing reconciliation column: {col}"
+
+        # Spot-check the values round-trip correctly
+        assert (
+            df["reconciliation_r1-number_ballots_received_r1"].iloc[0] == 200
+        )
+        assert df["reconciliation_r1-number_valid_ballots_r1"].iloc[0] == 140
+        assert (
+            df["reconciliation_r2-number_ballots_received_r2"].iloc[0] == 204
+        )
+        assert df["reconciliation_r2-number_valid_ballots_r2"].iloc[0] == 139
 
     def test_skips_existing_valid_zip(self, output_dir):
         center_id = 100

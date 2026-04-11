@@ -83,6 +83,21 @@ def export_center_candidate_results(
         "forms_picture_1st_page",
         "forms_picture_2nd_page",
     ]
+    # PVP reconciliation fields. PVP devices collect two passes (r1, r2) of the
+    # reconciliation data per submission. Downstream tally-ho uses r2 but we
+    # export both so the raw data is preserved for review.
+    RECON_COLUMNS = [
+        "reconciliation_r1-number_ballots_received_r1",
+        "reconciliation_r1-number_voter_cards_r1",
+        "reconciliation_r1-number_valid_ballots_r1",
+        "reconciliation_r1-number_invalid_ballots_r1",
+        "reconciliation_r1-number_ballots_inside_box_r1",
+        "reconciliation_r2-number_ballots_received_r2",
+        "reconciliation_r2-number_voter_cards_r2",
+        "reconciliation_r2-number_valid_ballots_r2",
+        "reconciliation_r2-number_invalid_ballots_r2",
+        "reconciliation_r2-number_ballots_inside_box_r2",
+    ]
 
     candidate_results: list[pd.DataFrame] = []
     media_dir = output_dir / "media"
@@ -114,6 +129,15 @@ def export_center_candidate_results(
                 candidates_path = Path(f"{xml_form_id}-candidate_results.csv")
                 console.log(f"Extracting {candidates_path}")
                 df = pd.read_csv(archive.open(str(candidates_path)))
+                # PVP stores the second round of candidate votes under a
+                # hyphenated group path; flatten it to candidate_result_round2
+                # to match the round1 column naming.
+                df = df.rename(
+                    columns={
+                        "candidate_result_r2-candidate_result_round2":
+                            "candidate_result_round2",
+                    }
+                )
                 df["xml_form_id"] = xml_form_id
                 df["center_id"] = center_id
 
@@ -142,21 +166,32 @@ def export_center_candidate_results(
                             if pd.notna(v) else v
                         )
 
+                required_cols = [
+                    "meta-instanceID",
+                    "station_number",
+                    "staff_user_name",
+                    "ballot_number",
+                    "race_type",
+                ]
+                optional_cols = (
+                    ["intro-barcode"] + RECON_COLUMNS + IMAGE_COLUMNS
+                )
+                selected_cols = required_cols + [
+                    c for c in optional_cols if c in submissions_df.columns
+                ]
                 df = df.merge(
-                    submissions_df[
-                        [
-                            "meta-instanceID",
-                            "station_number",
-                            "staff_user_name",
-                            "ballot_number",
-                            "race_type",
-                        ]
-                        + [c for c in IMAGE_COLUMNS if c in submissions_df.columns]
-                    ],
+                    submissions_df[selected_cols],
                     left_on="PARENT_KEY",
                     right_on="meta-instanceID",
                     how="left",
                 ).drop(columns=["meta-instanceID"])
+                # Rename the PVP barcode column to a plain "barcode" for
+                # downstream consumers (tally-ho upload matches on barcode).
+                # Coerce to string so numeric-looking barcodes keep leading
+                # zeros and match ResultForm.barcode (CharField).
+                if "intro-barcode" in df.columns:
+                    df = df.rename(columns={"intro-barcode": "barcode"})
+                    df["barcode"] = df["barcode"].astype("string")
                 candidate_results.append(df)
 
             progress.advance(task)
