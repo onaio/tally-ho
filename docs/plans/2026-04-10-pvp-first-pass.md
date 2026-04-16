@@ -173,7 +173,7 @@ Per PVP submission row:
     one row per barcode here.)
 6. For each candidate row in the submission:
      Write Result(candidate, result_form, entry_version=DATA_ENTRY_1,
-                  votes=candidate_result_round2, active=True, user=<pvp system user>)
+                  votes=candidate_result_round2, active=True, user=uploaded_by)
 7. Write ReconciliationForm(
         result_form, entry_version=DATA_ENTRY_1, active=True,
         number_of_voters=station.registrants,  # derived — see "Open for review"
@@ -182,13 +182,28 @@ Per PVP submission row:
         number_invalid_votes=reconciliation_r2-number_invalid_ballots_r2,
         number_sorted_and_counted=reconciliation_r2-number_ballots_inside_box_r2,
         ballot_number_from=None, ballot_number_to=None, notes=None,
-        user=<pvp system user>,
+        user=uploaded_by,
     )
 8. Transition form_state: UNSUBMITTED → DATA_ENTRY_2.
-   (Bypasses the usual INTAKE → DATA_ENTRY_1 path because PVP is DE1.)
-9. Save PvpSubmission (status=IMPORTED, pvp_mode_applied=DE1_ONLY,
-    images saved from the zip), link result_form.pvp_submission = this.
+   (Bypasses the usual INTAKE → DATA_ENTRY_1 path because PVP is DE1.
+    This is safe — the _transitions dict in form_state.py is defined but
+    never enforced at runtime. No signals, save() overrides, or middleware
+    validate state transitions. previous_form_state is tracked for audit only.)
+   Also set:
+     result_form.previous_form_state = UNSUBMITTED
+     result_form.duplicate_reviewed = False  # mirrors what INTAKE normally sets
+     result_form.user = uploaded_by          # attribution for the state change
+9. Save PvpSubmission (status=IMPORTED, pvp_mode_applied=DE1_ONLY),
+    link result_form.pvp_submission = this.
+10. Defer image saves to a transaction.on_commit() callback:
+    after the DB transaction succeeds, extract images from the zip and
+    save them to the PvpSubmission FileFields. If images fail to save,
+    the PvpSubmission exists with null image fields (same as the
+    "missing images" path). This avoids orphan files on disk if the
+    DB transaction rolls back.
 ```
+
+**User attribution:** All Result, ReconciliationForm, and ResultForm writes use `uploaded_by` — the super admin who triggered the import. This is the real user who caused the records to exist, already tracked on `PvpUploadBundle.uploaded_by`. No system/bot user needed.
 
 Important: pass 1 does **not** auto-populate DE2. Human clerks still enter DE2 independently. Corrections catches any discrepancy between PVP-sourced DE1 and human DE2.
 
@@ -400,12 +415,13 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 
 - Given a row that passes all sanity checks, import writes `EntryVersion.DATA_ENTRY_1` `Result` rows matching round2 values.
 - Import writes a DE1 `ReconciliationForm` with the mapping from the table above, `number_of_voters` pulled from `station.registrants`.
-- Form state transitions from `UNSUBMITTED` → `DATA_ENTRY_2`.
-- `PvpSubmission` is created with `status=IMPORTED`, `pvp_mode_applied=DE1_ONLY`, images attached.
+- Form state transitions from `UNSUBMITTED` → `DATA_ENTRY_2`, with `previous_form_state` set to `UNSUBMITTED`, `duplicate_reviewed` set to `False`, and `result_form.user` set to the uploading user.
+- `PvpSubmission` is created with `status=IMPORTED`, `pvp_mode_applied=DE1_ONLY`.
 - `ResultForm.pvp_submission` is linked.
 - Idempotency: calling twice on the same form short-circuits the second call to `ALREADY_IMPORTED`.
+- Images are saved to the PvpSubmission FileFields after the transaction commits (via `transaction.on_commit()`). Test that: (a) on successful import, images are present on the saved submission; (b) if the DB transaction rolls back, no orphan image files are left on disk.
 
-**Step 2 — implementation.** One function `import_submission(parsed_row, tally, bundle, system_user) -> PvpSubmission`. Atomic (`@transaction.atomic`). Matches the algorithm in the "Import algorithm" section above.
+**Step 2 — implementation.** One function `import_submission(parsed_row, tally, bundle, uploaded_by, zip_ref) -> PvpSubmission`. Atomic (`@transaction.atomic`). Matches the algorithm in the "Import algorithm" section above. `uploaded_by` is the super admin who triggered the upload — used as the `user` for Result, ReconciliationForm, and ResultForm writes (no system/bot user needed; `ReconciliationForm.user` is non-nullable, `Result.user` is nullable but we set it for consistency). Image extraction from the zip is deferred to a `transaction.on_commit()` callback to avoid orphan files on rollback.
 
 **Step 3 — commit.**
 
@@ -423,7 +439,7 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 - Given a parsed bundle with 3 valid + 1 invalid row, orchestrator creates 3 `IMPORTED` submissions and 1 `EXCLUDED` submission, updates the bundle's counts.
 - Given a bundle where the tally's `pvp_mode == DISABLED`, every row becomes `EXCLUDED(disabled)`.
 
-**Step 2 — implementation.** `import_bundle(parsed_bundle, tally, uploaded_by) -> PvpUploadBundle`. Creates the `PvpUploadBundle` row, iterates rows, calls `import_submission` per row, updates counters.
+**Step 2 — implementation.** `import_bundle(parsed_bundle, tally, uploaded_by, zip_ref) -> PvpUploadBundle`. Creates the `PvpUploadBundle` row, iterates rows, calls `import_submission` per row passing `uploaded_by` as the user for all DB writes, updates counters.
 
 **Step 3 — commit.**
 
@@ -433,12 +449,14 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 
 **Files:**
 
-- Create: `tally_ho/apps/tally/management/commands/async_pvp_import.py` (matching the `import_result_forms.py` pattern that uses `@app.task()` — see `tally_ho/apps/tally/management/commands/import_result_forms.py:178`)
+- Create: `tally_ho/apps/tally/management/commands/async_pvp_import.py`
 - Create: `tally_ho/apps/tally/tests/management/commands/test_async_pvp_import.py`
 
-**Step 1 — tests.** Assert the task (called synchronously via `.apply()`) end-to-end imports a fixture bundle and updates the `PvpUploadBundle` row.
+**Pattern:** This is a management command module containing a `@app.task()` decorated function — not a `BaseCommand` subclass. This matches the existing pattern in `import_result_forms.py:178`: import `from tally_ho.celeryapp import app`, define an `@app.task()` function. The Celery routing config in `settings/common.py` automatically routes all `tally_ho.apps.tally.management.commands.*` tasks to the `tally_data_import` queue. Views call the function via `.delay()`.
 
-**Step 2 — implementation.** `@app.task()` function that takes a path to the saved bundle zip + the `PvpUploadBundle.id` + the user id, runs `parse_bundle` then `import_bundle`, saves results.
+**Step 1 — tests.** Use `TransactionTestCase` with `start_worker` from `celery.contrib.testing.worker` (matching the pattern in `test_async_import_result_form.py`). Assert the task end-to-end imports a fixture bundle and updates the `PvpUploadBundle` row.
+
+**Step 2 — implementation.** `@app.task()` function `async_pvp_import(zip_file_path, bundle_id, user_id)`. Loads the `PvpUploadBundle` and `UserProfile`, runs `parse_bundle` then `import_bundle`, saves results.
 
 **Step 3 — commit.**
 
