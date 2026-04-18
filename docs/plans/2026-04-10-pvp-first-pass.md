@@ -46,9 +46,8 @@ The upload lands a form at `DATA_ENTRY_2` with `EntryVersion.DATA_ENTRY_1` resul
 - Celery task that performs the import, matching the existing `import_result_forms` async pattern.
 - `DE1_ONLY` mode implementation: PVP round2 data populates `EntryVersion.DATA_ENTRY_1` candidate results + reconciliation form; form advances to `DATA_ENTRY_2` for a human clerk to enter independently.
 - `DE1_AND_DE2` mode wired into the enum and config UI but **not implemented** — picking it errors/warns "coming in pass 2." This is deliberate so the config lives in the right shape from day one.
-- Sanity checks run at parse time: required fields present, barcode resolves to a form in this tally, form is in `UNSUBMITTED`. Invalid rows appear in the "will exclude" list with a reason; valid rows appear in the "will import" list.
+- Parse-time validation: required fields present, barcode resolves to a form in this tally, form is in `UNSUBMITTED`, not already imported. Invalid rows appear on the confirmation screen's "will skip" list with a reason but are never persisted. Valid rows appear in the "will import" list and become `PvpSubmission` rows on confirm.
 - Duplicate detection: if a bundle contains more than one PVP submission for the same `(barcode, tally)`, **reject the entire bundle** with a clear error. Pass 2 will add a picker.
-- Idempotency: a `ResultForm` that already has a non-null `pvp_submission` FK is excluded on re-upload with reason `already_imported`.
 - Tagging of PVP-sourced forms in result form detail views, print covers, and row-per-form exports (DuckDB).
 - Images from the bundle (`clerk_signature`, `forms_picture_1st_page`, `forms_picture_2nd_page`) stored as `FileField`s on `PvpSubmission` under `MEDIA_ROOT/pvp/<tally_id>/<submission_id>/`.
 - Permissions: super admin only.
@@ -93,12 +92,6 @@ class PvpMode(Enum):
     DE1_ONLY    = 1  # PVP populates DE1; human clerk enters DE2 normally
     DE1_AND_DE2 = 2  # pass 2 — NOT implemented in pass 1
 
-# tally_ho/libs/models/enums/pvp_import_status.py  (new)
-class PvpImportStatus(Enum):
-    IMPORTED = 0
-    EXCLUDED = 1  # sanity check failed
-    ALREADY_IMPORTED = 2  # ResultForm already tagged
-
 # tally_ho/apps/tally/models/tally.py  (modified)
 class Tally(BaseModel):
     ...
@@ -109,24 +102,23 @@ class PvpUploadBundle(BaseModel):
     tally = FK(Tally)
     uploaded_by = FK(UserProfile)
     filename = CharField(max_length=512)
-    total_submissions = PositiveIntegerField()
-    imported_count = PositiveIntegerField(default=0)
-    excluded_count = PositiveIntegerField(default=0)
-    already_imported_count = PositiveIntegerField(default=0)
+    number_of_submissions = PositiveIntegerField()  # total rows that passed parse-time validation
 
 # tally_ho/apps/tally/models/pvp_submission.py  (new)
+#
+# PvpSubmission is a standalone record of what was uploaded. It does NOT
+# hold an FK to ResultForm — the linkage lives on ResultForm.pvp_submission
+# only. This keeps PvpSubmission as a pure "phase 1: load" artifact, and
+# ResultForm.pvp_submission as the explicit "phase 2: merge" link.
+# Excluded submissions simply never get linked.
 class PvpSubmission(BaseModel):
     tally = FK(Tally)
     bundle = FK(PvpUploadBundle, related_name='submissions')
-    result_form = FK(ResultForm, null=True, related_name='+')  # null if excluded
     odk_instance_id = CharField(max_length=255)  # from meta-instanceID
     odk_form_id = CharField(max_length=255)      # e.g. "results_14065"
-    barcode = CharField(max_length=255, null=True)
+    barcode = CharField(max_length=255)
     staff_user_name = CharField(max_length=255, null=True)
     submission_date = DateTimeField(null=True)
-    status = EnumIntegerField(PvpImportStatus)
-    exclusion_reason = CharField(max_length=128, null=True)
-    pvp_mode_applied = EnumIntegerField(PvpMode, null=True)
 
     # Raw payloads — kept for provenance + future pass 2 dupe/round handling
     round1_raw = JSONField(default=dict)  # {candidate_id: votes}
@@ -144,9 +136,9 @@ class PvpSubmission(BaseModel):
 # tally_ho/apps/tally/models/result_form.py  (modified)
 class ResultForm(BaseModel):
     ...
-    pvp_submission = OneToOneField(
+    pvp_submission = ForeignKey(
         PvpSubmission, null=True, on_delete=models.SET_NULL,
-        related_name='linked_result_form',
+        related_name='result_form',
     )
 
     @property
@@ -160,21 +152,19 @@ class ResultForm(BaseModel):
 
 Per PVP submission row:
 
+Phase 1 (parse-time validation) filters rows before any DB writes. Invalid rows
+(missing fields, barcode not found, form not UNSUBMITTED, already imported,
+pvp_mode DISABLED) are shown on the confirmation screen but never persisted.
+Only valid rows proceed to phase 2.
+
+Phase 2 (per valid submission row, inside @transaction.atomic):
+
 ```text
-1. If tally.pvp_mode == DISABLED:
-     record EXCLUDED(reason="disabled"); skip.
-2. Resolve ResultForm by (barcode, tally):
-     if not found → EXCLUDED(reason="barcode_not_found"); skip.
-3. If result_form.form_state != UNSUBMITTED:
-     EXCLUDED(reason="form_not_unsubmitted"); skip.
-4. If result_form.pvp_submission_id is not None:
-     ALREADY_IMPORTED; skip.
-5. (Bundle-level precheck already ran duplicate detection; we're guaranteed
-    one row per barcode here.)
-6. For each candidate row in the submission:
+1. Create PvpSubmission with raw payloads (round1_raw, round2_raw, recon_raw).
+2. For each candidate row in the submission:
      Write Result(candidate, result_form, entry_version=DATA_ENTRY_1,
                   votes=candidate_result_round2, active=True, user=uploaded_by)
-7. Write ReconciliationForm(
+3. Write ReconciliationForm(
         result_form, entry_version=DATA_ENTRY_1, active=True,
         number_of_voters=station.registrants,  # derived — see "Open for review"
         number_of_voter_cards_in_the_ballot_box=reconciliation_r2-number_voter_cards_r2,
@@ -184,7 +174,7 @@ Per PVP submission row:
         ballot_number_from=None, ballot_number_to=None, notes=None,
         user=uploaded_by,
     )
-8. Transition form_state: UNSUBMITTED → DATA_ENTRY_2.
+4. Transition form_state: UNSUBMITTED → DATA_ENTRY_2.
    (Bypasses the usual INTAKE → DATA_ENTRY_1 path because PVP is DE1.
     This is safe — the _transitions dict in form_state.py is defined but
     never enforced at runtime. No signals, save() overrides, or middleware
@@ -193,14 +183,13 @@ Per PVP submission row:
      result_form.previous_form_state = UNSUBMITTED
      result_form.duplicate_reviewed = False  # mirrors what INTAKE normally sets
      result_form.user = uploaded_by          # attribution for the state change
-9. Save PvpSubmission (status=IMPORTED, pvp_mode_applied=DE1_ONLY),
-    link result_form.pvp_submission = this.
-10. Defer image saves to a transaction.on_commit() callback:
-    after the DB transaction succeeds, extract images from the zip and
-    save them to the PvpSubmission FileFields. If images fail to save,
-    the PvpSubmission exists with null image fields (same as the
-    "missing images" path). This avoids orphan files on disk if the
-    DB transaction rolls back.
+5. Link result_form.pvp_submission = the PvpSubmission from step 1.
+6. Defer image saves to a transaction.on_commit() callback:
+   after the DB transaction succeeds, extract images from the zip and
+   save them to the PvpSubmission FileFields. If images fail to save,
+   the PvpSubmission exists with null image fields (same as the
+   "missing images" path). This avoids orphan files on disk if the
+   DB transaction rolls back.
 ```
 
 **User attribution:** All Result, ReconciliationForm, and ResultForm writes use `uploaded_by` — the super admin who triggered the import. This is the real user who caused the records to exist, already tracked on `PvpUploadBundle.uploaded_by`. No system/bot user needed.
@@ -214,13 +203,18 @@ Important: pass 1 does **not** auto-populate DE2. Human clerks still enter DE2 i
 3. **Image integrity:** for each non-null image filename referenced in the CSV, check that `media/<filename>` exists in the zip. Missing images → warning on the confirmation screen; user can proceed (images left null on those submissions) or cancel.
 4. **Duplicate detection:** if more than one submission row exists for any `(barcode, tally)`, reject the whole bundle with an error listing the offending barcodes.
 
-### Sanity checks (per row)
+### Parse-time validation (per row)
 
-| Name | Rule | Action on fail |
+Rows that fail validation appear on the confirmation screen's "will exclude"
+list with the reason shown. They are never persisted as `PvpSubmission` rows.
+
+| Name | Rule | Reason shown |
 |---|---|---|
-| `required_fields` | `barcode`, `ballot_number`, `meta-instanceID`, at least one candidate row with non-null `candidate_result_round2` | EXCLUDED(reason=`required_fields`) |
-| `barcode_in_tally` | barcode must resolve to a `ResultForm` in **this tally** | EXCLUDED(reason=`barcode_not_found`) |
-| `form_unsubmitted` | resolved form's `form_state == UNSUBMITTED` | EXCLUDED(reason=`form_not_unsubmitted`) |
+| `pvp_disabled` | `tally.pvp_mode == DISABLED` | `pvp_disabled` |
+| `required_fields` | `barcode`, `ballot_number`, `meta-instanceID`, at least one candidate row with non-null `candidate_result_round2` | `required_fields` |
+| `barcode_in_tally` | barcode must resolve to a `ResultForm` in **this tally** | `barcode_not_found` |
+| `form_unsubmitted` | resolved form's `form_state == UNSUBMITTED` | `form_not_unsubmitted` |
+| `already_imported` | `result_form.pvp_submission_id` is null | `already_imported` |
 
 ---
 
@@ -231,24 +225,23 @@ Important: pass 1 does **not** auto-populate DE2. Human clerks still enter DE2 i
 - File input for the zip.
 - On POST, parse the bundle, run validation, redirect to confirmation.
 
-**Confirmation screen** (`super-admin/<tally_id>/pvp/confirm/<bundle_id>/`)
+**Confirmation screen** (`super-admin/<tally_id>/pvp/confirm/`)
 
 - Shows `tally.pvp_mode` prominently ("PVP data will be imported as DE1 ONLY").
-- "Will import" section: count + expandable list of `(barcode, center, station, ballot)` tuples.
-- "Will exclude" section: count + expandable list of `(barcode, reason)`.
+- "Will import" section: count + expandable list of `(barcode, center, station, ballot)` tuples. These are the rows that passed parse-time validation.
+- "Will skip" section: count + expandable list of `(barcode, reason)`. These are the rows that failed parse-time validation — they will not be persisted.
 - "Missing images" warning: count + expandable list, with radio "proceed without images" / "cancel."
-- Already-imported section: count + expandable list.
-- Confirm button (enqueues Celery task) / Cancel button (discards the bundle).
+- Confirm button (enqueues Celery task) / Cancel button.
 
 **Result screen** (`super-admin/<tally_id>/pvp/result/<bundle_id>/`)
 
 - Displayed after the Celery task runs.
-- Final counts: imported, excluded, already-imported, errors.
+- Final count: number of `PvpSubmission` rows created and `ResultForm`s linked.
 - Link back to form progress.
 
 **Result form tagging** (in detail view, print cover, row-per-form exports)
 
-- A "PVP" badge + "Populated from PVP on `<date>` in mode `<pvp_mode_applied>`" caption.
+- A "PVP" badge + "Populated from PVP on `<date>`" caption.
 
 ---
 
@@ -280,12 +273,11 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 
 ---
 
-### Task 2: Create `PvpMode` and `PvpImportStatus` enums
+### Task 2: Create `PvpMode` enum
 
 **Files:**
 
 - Create: `tally_ho/libs/models/enums/pvp_mode.py`
-- Create: `tally_ho/libs/models/enums/pvp_import_status.py`
 - Create: `tally_ho/libs/tests/models/enums/test_pvp_mode.py`
 
 **Step 1 — tests.** Assert that `PvpMode.DISABLED.value == 0`, `DE1_ONLY == 1`, `DE1_AND_DE2 == 2`.
@@ -344,6 +336,7 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 - Create a submission with raw JSON payloads and image files; assert round-trip.
 - Assert `(tally, odk_instance_id)` uniqueness is enforced.
 - Assert images save under `MEDIA_ROOT/pvp/<tally_id>/<submission_id>/`.
+- Note: `PvpSubmission` has no status or exclusion_reason fields. Only rows that pass parse-time validation become `PvpSubmission` rows. Invalid rows are shown on the confirmation screen but never persisted.
 
 **Step 2 — implementation.** Per sketch. Write the `_pvp_upload_to` function that computes the image path from the submission's `tally_id` and pre-save id (or use a two-step save — save submission, then save images referencing `self.id`).
 
@@ -361,7 +354,7 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 
 **Step 1 — tests.** Assert `result_form.from_pvp` is `False` by default and `True` after linking a `PvpSubmission`. Assert unlinking (setting to null) flips it back.
 
-**Step 2 — implementation.** `OneToOneField(PvpSubmission, null=True, on_delete=models.SET_NULL, related_name='linked_result_form')` + `from_pvp` property.
+**Step 2 — implementation.** `ForeignKey(PvpSubmission, null=True, on_delete=models.SET_NULL, related_name='result_form')` + `from_pvp` property.
 
 **Step 3 — commit.**
 
@@ -389,16 +382,16 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 
 ---
 
-### Task 8: Sanity-check module
+### Task 8: Parse-time validation module
 
 **Files:**
 
-- Create: `tally_ho/libs/utils/pvp_sanity.py`
-- Create: `tally_ho/libs/tests/utils/test_pvp_sanity.py`
+- Create: `tally_ho/libs/utils/pvp_validation.py`
+- Create: `tally_ho/libs/tests/utils/test_pvp_validation.py`
 
-**Step 1 — tests.** One test per check: `required_fields`, `barcode_in_tally`, `form_unsubmitted`. Each test asserts both the pass case and the fail case with the right `reason` code.
+**Step 1 — tests.** One test per check: `pvp_disabled`, `required_fields`, `barcode_in_tally`, `form_unsubmitted`, `already_imported`. Each test asserts both the pass case and the fail case with the right reason string.
 
-**Step 2 — implementation.** Single function `run_sanity_checks(row, tally, result_form_by_barcode) -> SanityResult(status, reason)`.
+**Step 2 — implementation.** Single function `validate_row(row, tally, result_form_by_barcode) -> ValidationResult(valid, reason)`. Returns `valid=True` if the row should proceed to import, or `valid=False` with a reason string for the confirmation screen. Rows that fail are never persisted.
 
 **Step 3 — commit.**
 
@@ -416,9 +409,8 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 - Given a row that passes all sanity checks, import writes `EntryVersion.DATA_ENTRY_1` `Result` rows matching round2 values.
 - Import writes a DE1 `ReconciliationForm` with the mapping from the table above, `number_of_voters` pulled from `station.registrants`.
 - Form state transitions from `UNSUBMITTED` → `DATA_ENTRY_2`, with `previous_form_state` set to `UNSUBMITTED`, `duplicate_reviewed` set to `False`, and `result_form.user` set to the uploading user.
-- `PvpSubmission` is created with `status=IMPORTED`, `pvp_mode_applied=DE1_ONLY`.
-- `ResultForm.pvp_submission` is linked.
-- Idempotency: calling twice on the same form short-circuits the second call to `ALREADY_IMPORTED`.
+- `PvpSubmission` is created and `ResultForm.pvp_submission` is linked.
+- Idempotency: calling twice on the same form is prevented by parse-time validation (`already_imported` check), so `import_submission` can assume the form is eligible.
 - Images are saved to the PvpSubmission FileFields after the transaction commits (via `transaction.on_commit()`). Test that: (a) on successful import, images are present on the saved submission; (b) if the DB transaction rolls back, no orphan image files are left on disk.
 
 **Step 2 — implementation.** One function `import_submission(parsed_row, tally, bundle, uploaded_by, zip_ref) -> PvpSubmission`. Atomic (`@transaction.atomic`). Matches the algorithm in the "Import algorithm" section above. `uploaded_by` is the super admin who triggered the upload — used as the `user` for Result, ReconciliationForm, and ResultForm writes (no system/bot user needed; `ReconciliationForm.user` is non-nullable, `Result.user` is nullable but we set it for consistency). Image extraction from the zip is deferred to a `transaction.on_commit()` callback to avoid orphan files on rollback.
@@ -436,8 +428,8 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 
 **Step 1 — tests.**
 
-- Given a parsed bundle with 3 valid + 1 invalid row, orchestrator creates 3 `IMPORTED` submissions and 1 `EXCLUDED` submission, updates the bundle's counts.
-- Given a bundle where the tally's `pvp_mode == DISABLED`, every row becomes `EXCLUDED(disabled)`.
+- Given a parsed bundle with 3 valid rows, orchestrator creates 3 `PvpSubmission` rows and links 3 `ResultForm`s.
+- Invalid rows are already filtered out at parse-time validation; the orchestrator only receives valid rows.
 
 **Step 2 — implementation.** `import_bundle(parsed_bundle, tally, uploaded_by, zip_ref) -> PvpUploadBundle`. Creates the `PvpUploadBundle` row, iterates rows, calls `import_submission` per row passing `uploaded_by` as the user for all DB writes, updates counters.
 
