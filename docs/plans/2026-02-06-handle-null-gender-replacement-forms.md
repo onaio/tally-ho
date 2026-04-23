@@ -8,16 +8,17 @@
 
 **Tech Stack:** Django, DuckDB, Celery, pytest
 
-**GitHub Issue:** https://github.com/onaio/tally-ho/issues/550
+**GitHub Issue:** <https://github.com/onaio/tally-ho/issues/550>
 
 ---
 
-### Task 1: Create test fixture CSV with replacement forms
+## Task 1: Create test fixture CSV with replacement forms
 
 **Files:**
+
 - Create: `tally_ho/libs/tests/fixtures/tally_setup_files/result_forms_with_replacements.csv`
 
-**Step 1: Create the fixture file**
+### Step 1: Create the fixture file
 
 Use the same dummy data pattern as the existing `result_forms.csv` fixture, and append two replacement form rows with empty center_code, station_number, gender, and name:
 
@@ -41,7 +42,7 @@ ballot_number,center_code,station_number,gender,name,office_name,barcode,serial_
 
 The last two rows are replacement forms with empty center_code, station_number, gender, and name.
 
-**Step 2: Commit**
+### Step 2: Commit
 
 ```bash
 git add tally_ho/libs/tests/fixtures/tally_setup_files/result_forms_with_replacements.csv
@@ -50,14 +51,16 @@ git commit -S -m "Add test fixture CSV with replacement form rows"
 
 ---
 
-### Task 2: Write the failing test
+## Task 2: Write the failing test
 
 **Files:**
+
 - Modify: `tally_ho/apps/tally/tests/management/commands/test_async_import_result_form.py`
 
-**Step 1: Add test method**
+### Step 1: Add test method
 
 Add a new test to `AsyncImportResultFormsTestCase` that imports result forms with replacement rows and verifies:
+
 1. Import succeeds without error
 2. Replacement forms are created with `is_replacement=True`
 3. Replacement forms have `center=None` and `gender=None`
@@ -84,7 +87,7 @@ def test_async_import_result_forms_with_replacements(self):
         self.assertIsNone(form.station_number)
 ```
 
-**Step 2: Run test to verify it fails**
+### Step 2: Run test to verify it fails
 
 ```bash
 pytest tally_ho/apps/tally/tests/management/commands/test_async_import_result_form.py::AsyncImportResultFormsTestCase::test_async_import_result_forms_with_replacements -v
@@ -92,7 +95,7 @@ pytest tally_ho/apps/tally/tests/management/commands/test_async_import_result_fo
 
 Expected: FAIL with `AttributeError: 'NoneType' object has no attribute 'upper'`
 
-**Step 3: Commit**
+### Step 3: Commit
 
 ```bash
 git add tally_ho/apps/tally/tests/management/commands/test_async_import_result_form.py
@@ -101,12 +104,13 @@ git commit -S -m "Add failing test for importing replacement forms with null gen
 
 ---
 
-### Task 3: Fix the null gender bug
+## Task 3: Fix the null gender bug
 
 **Files:**
+
 - Modify: `tally_ho/apps/tally/management/commands/import_result_forms.py:157-159`
 
-**Step 1: Add null guard**
+### Step 1: Add null guard
 
 Change line 158 from:
 
@@ -126,7 +130,7 @@ if field_name == 'gender':
     continue
 ```
 
-**Step 2: Run the test to verify it passes**
+### Step 2: Run the test to verify it passes
 
 ```bash
 pytest tally_ho/apps/tally/tests/management/commands/test_async_import_result_form.py::AsyncImportResultFormsTestCase::test_async_import_result_forms_with_replacements -v
@@ -134,7 +138,7 @@ pytest tally_ho/apps/tally/tests/management/commands/test_async_import_result_fo
 
 Expected: PASS
 
-**Step 3: Run all import result form tests to check for regressions**
+### Step 3: Run all import result form tests to check for regressions
 
 ```bash
 pytest tally_ho/apps/tally/tests/management/commands/test_async_import_result_form.py -v
@@ -142,7 +146,7 @@ pytest tally_ho/apps/tally/tests/management/commands/test_async_import_result_fo
 
 Expected: All tests PASS
 
-**Step 4: Commit**
+### Step 4: Commit
 
 ```bash
 git add tally_ho/apps/tally/management/commands/import_result_forms.py
@@ -153,9 +157,9 @@ Closes #550"
 
 ---
 
-### Task 4: Verify the full test suite passes
+## Task 4: Verify the full test suite passes
 
-**Step 1: Run the full test suite**
+### Step 1: Run the full test suite
 
 ```bash
 pytest --tb=short -q
@@ -163,4 +167,4 @@ pytest --tb=short -q
 
 Expected: All tests PASS
 
-**Step 2: Fix any failures found, then commit**
+### Step 2: Fix any failures found, then commit

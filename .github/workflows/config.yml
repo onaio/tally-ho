@@ -2,6 +2,10 @@ name: Django CI
 
 on: [push]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build-amd64:
     runs-on: ubuntu-latest
@@ -62,12 +66,14 @@ jobs:
         # Add uv to the PATH
       - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+
       - name: Generate Report
         run: |
           uv venv
           source .venv/bin/activate
           uv pip install -r requirements/dev.pip
-          python -m ruff check . --exit-non-zero-on-fix
           python -m pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
           python manage.py compilemessages -l ar
           coverage xml
@@ -80,3 +86,15 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
+
+  odk-central-sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: odk-central-sync
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv python install 3.13
+      - run: uv sync --locked
+      - run: uv run pytest tests/ -v
