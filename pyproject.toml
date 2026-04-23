@@ -1,3 +1,56 @@
+[project]
+name = "tally-ho"
+version = "0.1.0"
+description = "Election results data entry and verification software"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "django==5.2.8",
+    "django-datatables-view==1.20.0",
+    "django-enumfields2==3.0.2",
+    "django-guardian==2.4.0",
+    "django-queryset-csv==1.1.0",
+    "django-reversion==5.0.4",
+    "django-tracking2==0.5.1",
+    "psycopg[binary]>=3.1",
+    "python-dateutil==2.8.2",
+    "xhtml2pdf==0.2.17",
+    "python-pptx==0.6.21",
+    "duckdb==1.4.3",
+    "pymemcache==4.0.0",
+    "celery==5.3.1",
+    "redis==4.5.5",
+    "python-memcached==1.59",
+    "pytest==7.4.2",
+    "pytest-django==4.5.2",
+    "gunicorn>=23,<24",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["tally_ho"]
+
+[dependency-groups]
+dev = [
+    "coverage",
+    "coveralls",
+    "django-debug-toolbar==4.1.0",
+    "mock",
+    "django-extensions",
+    "ipython",
+    "ipdb",
+    "sphinx",
+    "autopep8",
+    "pydot",
+    "locust",
+    "ruff",
+    "pre-commit",
+    "beautifulsoup4",
+    "pytest-cov",
+]
+
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [
@@ -25,14 +78,15 @@ exclude = [
     "tally_ho/apps/tally/models/__init__.py",
 ]
 
-# Same as Black.
-line-length = 79
+line-length = 88
+indent-width = 4
 
-# Assume Python 3.10.
 target-version = "py312"
 
-# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
-lint.select = ["E", "F", "W"]
+# Pyflakes (`F`) plus a subset of pycodestyle (`E4`, `E7`, `E9`).
+# This matches the ruleset that was enforced by the former `ruff.toml`
+# prior to the uv migration.
+lint.select = ["E4", "E7", "E9", "F"]
 lint.ignore = []
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
