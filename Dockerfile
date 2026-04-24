@@ -27,7 +27,6 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /code
 
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /code/tally_ho/static /code/tally_ho/static
-COPY . /code
+COPY --from=builder /code /code
 
 EXPOSE 8000

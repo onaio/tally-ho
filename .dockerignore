@@ -1,0 +1,42 @@
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Python artifacts
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Runtime / generated data
+*.log
+media/
+data/
+tally_ho/static/
+db.sqlite3
+results/
+build/
+
+# Docs, tests, unrelated subprojects
+docs/
+tests/
+odk-central-sync/
+
+# Local secrets / dev overrides
+local_settings.py
+.python-version.bak
