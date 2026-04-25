@@ -1,5 +1,0 @@
-#!/bin/bash
-
-psql -c "DROP DATABASE $1;" -U $2 -h $3 postgres
-psql -c "CREATE DATABASE $1;" -U $2 -h $3 postgres
-python manage.py migrate --settings=$4

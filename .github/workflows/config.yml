@@ -31,17 +31,7 @@ jobs:
       POSTGRES_USER: postgres
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.12"
-
-      - name: Cache Dependencies
-        uses: actions/cache@v3
-        with:
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/dev.pip') }}
-          path: ./venv
+      - uses: actions/checkout@v4
 
       - name: Install Memcached
         run: sudo apt-get update && sudo apt-get install -y memcached
@@ -61,22 +51,22 @@ jobs:
       - name: Install reportlab system dependencies
         run: sudo apt-get install -y libfreetype6-dev libjpeg-dev zlib1g-dev libfribidi-dev libharfbuzz-dev
 
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-        # Add uv to the PATH
-      - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - run: uv python install
+
+      - run: uv sync --locked
 
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
 
       - name: Generate Report
         run: |
-          uv venv
-          source .venv/bin/activate
-          uv pip install -r requirements/dev.pip
-          python -m pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
-          python manage.py compilemessages -l ar
-          coverage xml
+          uv run pytest tally_ho --doctest-modules --junitxml=coverage.xml --cov=tally_ho --cov-report=xml --cov-report=html
+          uv run python manage.py compilemessages -l ar
+          uv run coverage xml
           ls -al
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
