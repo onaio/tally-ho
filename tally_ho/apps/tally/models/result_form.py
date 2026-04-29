@@ -187,6 +187,20 @@ class ResultForm(BaseModel):
                               blank=True,
                               related_name='result_forms',
                               on_delete=models.PROTECT)
+    # Set to the PvpSubmission whose round-2 candidate results populated
+    # this form's DATA_ENTRY_1 results. Lazy string ref avoids importing
+    # PvpSubmission at module load (and the matching circular risk).
+    pvp_submission = models.ForeignKey(
+        'tally.PvpSubmission',
+        null=True,
+        blank=True,
+        related_name='result_form',
+        on_delete=models.SET_NULL,
+    )
+
+    @property
+    def from_pvp(self):
+        return self.pvp_submission_id is not None
 
     # Field used in result duplicated list view
     results_duplicated = []

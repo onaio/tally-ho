@@ -23,3 +23,4 @@ from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 from tally_ho.apps.tally.models.result_form_reset import ResultFormReset
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
+from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
