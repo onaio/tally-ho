@@ -5,8 +5,10 @@ from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory
 
 from tally_ho.apps.tally.models.site_info import SiteInfo
+from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views import tally_manager as views
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.tests.test_base import (TestBase, configure_messages,
                                            create_site_info, create_tally)
@@ -242,6 +244,7 @@ class TestTallyManager(TestBase):
             'print_cover_in_clearance': True,
             'print_cover_in_quality_control': True,
             'print_cover_in_audit': True,
+            'pvp_mode': PvpMode.DISABLED.value,
         }
         request = self.factory.post('/', data=data)
         configure_messages(request)
@@ -254,6 +257,110 @@ class TestTallyManager(TestBase):
         self.assertContains(response, 'Tally updated successfully')
         self.tally.refresh_from_db()
         self.assertEqual(self.tally.name, 'updated tally')
+
+    def test_post_update_view_pvp_mode_de1_only_persists(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.TallyUpdateView.as_view()
+        super_admin = self._create_user(
+            username='super_admin_pvp', password='pass')
+        self._add_user_to_group(super_admin, groups.SUPER_ADMINISTRATOR)
+        tally.users.add(super_admin)
+        super_admins = UserProfile.objects.filter(
+            tally=tally,
+            groups__name__exact=groups.SUPER_ADMINISTRATOR)
+        data = {
+            'name': self.tally.name,
+            'administrators': [s.pk for s in super_admins],
+            'print_cover_in_intake': True,
+            'print_cover_in_clearance': True,
+            'print_cover_in_quality_control': True,
+            'print_cover_in_audit': True,
+            'pvp_mode': PvpMode.DE1_ONLY.value,
+        }
+        request = self.factory.post('/', data=data)
+        configure_messages(request)
+        request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=self.tally.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Tally updated successfully')
+        self.tally.refresh_from_db()
+        self.assertEqual(self.tally.pvp_mode, PvpMode.DE1_ONLY)
+
+    def test_post_update_view_pvp_mode_de1_and_de2_rejected(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+        view = views.TallyUpdateView.as_view()
+        super_admin = self._create_user(
+            username='super_admin_reject', password='pass')
+        self._add_user_to_group(super_admin, groups.SUPER_ADMINISTRATOR)
+        tally.users.add(super_admin)
+        super_admins = UserProfile.objects.filter(
+            tally=tally,
+            groups__name__exact=groups.SUPER_ADMINISTRATOR)
+        data = {
+            'name': self.tally.name,
+            'administrators': [s.pk for s in super_admins],
+            'print_cover_in_intake': True,
+            'print_cover_in_clearance': True,
+            'print_cover_in_quality_control': True,
+            'print_cover_in_audit': True,
+            'pvp_mode': PvpMode.DE1_AND_DE2.value,
+        }
+        request = self.factory.post('/', data=data)
+        configure_messages(request)
+        request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=self.tally.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Please correct the errors below.')
+        self.tally.refresh_from_db()
+        self.assertEqual(self.tally.pvp_mode, PvpMode.DISABLED)
+
+    def test_create_tally_view_pvp_mode_defaults_to_disabled(self):
+        view = views.CreateTallyView.as_view()
+        super_admin = self._create_user(
+            username='super_admin_create', password='pass')
+        self._add_user_to_group(super_admin, groups.SUPER_ADMINISTRATOR)
+        data = {
+            'name': 'newly created tally',
+            'administrators': [super_admin.pk],
+            'print_cover_in_intake': True,
+            'print_cover_in_clearance': True,
+            'print_cover_in_quality_control': True,
+            'print_cover_in_audit': True,
+            'pvp_mode': PvpMode.DISABLED.value,
+        }
+        request = self.factory.post('/', data=data)
+        configure_messages(request)
+        request.user = self.user
+        request.session = {}
+        view(request)
+        created = Tally.objects.get(name='newly created tally')
+        self.assertEqual(created.pvp_mode, PvpMode.DISABLED)
+
+    def test_create_tally_view_pvp_mode_de1_and_de2_rejected(self):
+        view = views.CreateTallyView.as_view()
+        super_admin = self._create_user(
+            username='super_admin_create_reject', password='pass')
+        self._add_user_to_group(super_admin, groups.SUPER_ADMINISTRATOR)
+        data = {
+            'name': 'should not be created',
+            'administrators': [super_admin.pk],
+            'print_cover_in_intake': True,
+            'print_cover_in_clearance': True,
+            'print_cover_in_quality_control': True,
+            'print_cover_in_audit': True,
+            'pvp_mode': PvpMode.DE1_AND_DE2.value,
+        }
+        request = self.factory.post('/', data=data)
+        configure_messages(request)
+        request.user = self.user
+        request.session = {}
+        view(request)
+        self.assertFalse(
+            Tally.objects.filter(name='should not be created').exists())
 
     def test_post_update_view_error_message(self):
         tally = create_tally()

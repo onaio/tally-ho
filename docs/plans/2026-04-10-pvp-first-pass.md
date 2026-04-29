@@ -97,12 +97,28 @@ class Tally(BaseModel):
     ...
     pvp_mode = EnumIntegerField(PvpMode, default=PvpMode.DISABLED)
 
+# tally_ho/libs/models/enums/pvp_bundle_status.py  (new)
+class PvpBundleStatus(Enum):
+    PENDING   = 0  # uploaded, awaiting confirmation
+    IMPORTING = 1  # celery task is running
+    COMPLETED = 2  # import finished, submissions linked
+    FAILED    = 3  # celery task errored out
+
 # tally_ho/apps/tally/models/pvp_upload_bundle.py  (new)
+#
+# Lifecycle: row is created at UPLOAD time, not at confirm time. The zip
+# itself is persisted via `zip_file` so it survives the gap between upload,
+# confirmation, and the async celery import. The celery task reads the zip
+# from this FileField, creates child PvpSubmission rows, and updates
+# `status` + `imported_at`.
 class PvpUploadBundle(BaseModel):
     tally = FK(Tally)
     uploaded_by = FK(UserProfile)
-    filename = CharField(max_length=512)
-    number_of_submissions = PositiveIntegerField()  # total rows that passed parse-time validation
+    filename = CharField(max_length=512)  # original zip filename (provenance)
+    zip_file = FileField(upload_to=_bundle_zip_upload_to)
+    status = EnumIntegerField(PvpBundleStatus, default=PvpBundleStatus.PENDING)
+    number_of_submissions = PositiveIntegerField(default=0)  # populated by celery
+    imported_at = DateTimeField(null=True)  # set on COMPLETED
 
 # tally_ho/apps/tally/models/pvp_submission.py  (new)
 #
@@ -288,37 +304,197 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 
 ---
 
-### Task 3: Add `Tally.pvp_mode` field
+### Task 3: Add `Tally.pvp_mode` field + edit-form integration
+
+> **For Claude:** Land this as 3 commits — model+migration, form+widget, template+tests — to keep the diff readable.
+
+**Discovery (already done):**
+
+- `TallyForm` lives at `tally_ho/apps/tally/forms/tally_form.py`. It's a `ModelForm` over `Tally` with explicit `fields = [...]`. Already adds custom `administrators` field via `__init__`.
+- Used by **both** `CreateTallyView` (line 428) and `TallyUpdateView` (line 441) in `tally_ho/apps/tally/views/tally_manager.py`. Permission: `TALLY_MANAGER` group.
+- Template: `tally_ho/apps/tally/templates/tally_manager/tally_form.html` — table-based, renders each field manually with `{{ form.fieldname }}` + per-field error block.
+- Existing view test: `tally_ho/apps/tally/tests/views/test_tally_manager.py` already exists.
+- No model test file: `tally_ho/apps/tally/tests/models/test_tally.py` does NOT exist — needs to be created.
+
+#### Step 3a — Model field + migration (commit 1)
 
 **Files:**
 
 - Modify: `tally_ho/apps/tally/models/tally.py`
-- Create: `tally_ho/apps/tally/migrations/XXXX_tally_pvp_mode.py`
-- Modify: `tally_ho/apps/tally/tests/models/test_tally.py` (create if missing)
-- Modify: `tally_ho/apps/tally/forms/` — check whether there's a tally edit form; if so add `pvp_mode` to it with `DE1_AND_DE2` disabled in the widget.
+- Create: `tally_ho/apps/tally/migrations/XXXX_tally_pvp_mode.py` (via `manage.py makemigrations`)
+- Create: `tally_ho/apps/tally/tests/models/__init__.py` (if missing)
+- Create: `tally_ho/apps/tally/tests/models/test_tally.py`
 
-**Step 1 — tests.** Assert a Tally saves with `pvp_mode=DISABLED` by default, and can be updated to `DE1_ONLY`.
+**Tests first (TDD):**
 
-**Step 2 — implementation.** Add the `EnumIntegerField(PvpMode, default=PvpMode.DISABLED)` field. Migration. In the tally edit form / super-admin UI, render the enum as a dropdown but disable the `DE1_AND_DE2` option with a tooltip "coming in pass 2."
+```python
+def test_pvp_mode_defaults_to_disabled(self):
+    tally = Tally.objects.create(name="t1")
+    self.assertEqual(tally.pvp_mode, PvpMode.DISABLED)
+
+def test_pvp_mode_can_be_set_to_de1_only(self):
+    tally = Tally.objects.create(name="t2", pvp_mode=PvpMode.DE1_ONLY)
+    tally.refresh_from_db()
+    self.assertEqual(tally.pvp_mode, PvpMode.DE1_ONLY)
+```
+
+**Implementation:**
+
+```python
+# tally.py
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
+
+class Tally(BaseModel):
+    ...
+    pvp_mode = EnumIntegerField(
+        PvpMode, default=PvpMode.DISABLED, verbose_name=_("PVP mode"),
+    )
+```
+
+Migration: `uv run python manage.py makemigrations tally --name tally_pvp_mode`. Default `DISABLED (0)` backfills cleanly — no data migration needed.
+
+**Verify:** `uv run pytest tally_ho/apps/tally/tests/models/test_tally.py` passes.
+
+#### Step 3b — Form field with disabled-option widget (commit 2)
+
+**Files:**
+
+- Create: `tally_ho/apps/tally/forms/widgets.py` (or add to existing `fields.py` if it's the right home — the file exists)
+- Modify: `tally_ho/apps/tally/forms/tally_form.py`
+- Modify: `tally_ho/apps/tally/tests/forms/test_tally_form.py` (create if missing — `tests/forms/` exists per earlier grep)
+
+**The widget problem.** `EnumIntegerField` renders as a `Select` with all enum members as options. We want the `DE1_AND_DE2` option visually present but unselectable, plus a tooltip explaining why.
+
+**Custom widget:**
+
+```python
+# widgets.py
+from django.forms import Select
+from django.utils.translation import gettext_lazy as _
+
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
+
+
+class PvpModeSelect(Select):
+    """Renders the PvpMode dropdown with DE1_AND_DE2 disabled (pass 2)."""
+
+    DISABLED_VALUES = {str(PvpMode.DE1_AND_DE2.value)}
+
+    def create_option(self, name, value, label, selected, index,
+                      subindex=None, attrs=None):
+        option = super().create_option(
+            name, value, label, selected, index, subindex, attrs,
+        )
+        if str(value) in self.DISABLED_VALUES:
+            option["attrs"]["disabled"] = "disabled"
+            option["attrs"]["title"] = _("Coming in pass 2")
+        return option
+```
+
+**Form changes:**
+
+```python
+# tally_form.py
+class TallyForm(forms.ModelForm):
+    class Meta:
+        model = Tally
+        fields = [
+            "name",
+            "pvp_mode",                       # NEW
+            "print_cover_in_intake",
+            ...
+        ]
+        widgets = {
+            "pvp_mode": PvpModeSelect(attrs={"class": "form-control"}),
+        }
+
+    def clean_pvp_mode(self):
+        # Defense-in-depth: the disabled HTML attr is bypassable.
+        # Enforce the same restriction server-side.
+        value = self.cleaned_data["pvp_mode"]
+        if value == PvpMode.DE1_AND_DE2:
+            raise forms.ValidationError(
+                _("DE1_AND_DE2 mode is not yet implemented "
+                  "(coming in pass 2).")
+            )
+        return value
+```
+
+**Tests:**
+
+```python
+def test_pvp_mode_field_present(self):
+    form = TallyForm()
+    self.assertIn("pvp_mode", form.fields)
+
+def test_pvp_mode_de1_and_de2_option_is_disabled_in_widget(self):
+    form = TallyForm()
+    rendered = str(form["pvp_mode"])
+    self.assertIn(
+        f'value="{PvpMode.DE1_AND_DE2.value}" disabled', rendered,
+    )
+
+def test_pvp_mode_de1_and_de2_rejected_server_side(self):
+    form = TallyForm(data={
+        "name": "t", "pvp_mode": PvpMode.DE1_AND_DE2.value,
+        # ... other required fields
+    })
+    self.assertFalse(form.is_valid())
+    self.assertIn("pvp_mode", form.errors)
+
+def test_pvp_mode_de1_only_accepted(self):
+    # Positive case
+    ...
+
+def test_pvp_mode_disabled_accepted(self):
+    # Default case
+    ...
+```
+
+#### Step 3c — Template + view tests (commit 3)
+
+**Files:**
+
+- Modify: `tally_ho/apps/tally/templates/tally_manager/tally_form.html`
+- Modify: `tally_ho/apps/tally/tests/views/test_tally_manager.py`
+
+**Template change:** add a `<tr>` block for `pvp_mode` matching the existing pattern (label cell + value cell with errors block + `{{ form.pvp_mode }}`). Place it logically (near the print-cover toggles).
+
+**View tests:** extend `test_tally_manager.py` with:
+
+- `TallyUpdateView` POST with `pvp_mode=DE1_ONLY` → succeeds, persists.
+- `TallyUpdateView` POST with `pvp_mode=DE1_AND_DE2` → rejected (form error visible).
+- `CreateTallyView` POST without `pvp_mode` → tally created with `pvp_mode=DISABLED`.
+- `CreateTallyView` POST with `pvp_mode=DE1_AND_DE2` → rejected.
+
+**Verify the full chain:** `uv run pytest tally_ho/apps/tally/tests/models/test_tally.py tally_ho/apps/tally/tests/forms/test_tally_form.py tally_ho/apps/tally/tests/views/test_tally_manager.py`.
+
+#### Open question — surface in the next review
+
+The `print_cover_in_*` toggles have human-readable labels set in `TallyForm.__init__`. `pvp_mode` will need a label too. The plan assumes "PVP mode" via `verbose_name` on the field. If a clearer copy is wanted, decide it now and stash in `__init__` like the print-cover labels.
 
 **Step 3 — commit.**
 
 ---
 
-### Task 4: Create `PvpUploadBundle` model
+### Task 4: Create `PvpUploadBundle` model + `PvpBundleStatus` enum
 
 **Files:**
 
+- Create: `tally_ho/libs/models/enums/pvp_bundle_status.py`
+- Create: `tally_ho/libs/tests/models/enums/test_pvp_bundle_status.py`
 - Create: `tally_ho/apps/tally/models/pvp_upload_bundle.py`
 - Modify: `tally_ho/apps/tally/models/__init__.py` (export)
 - Create: migration
 - Create: `tally_ho/apps/tally/tests/models/test_pvp_upload_bundle.py`
 
-**Step 1 — tests.** Create a bundle row and assert fields save/load. Assert default counts are zero.
+**Step 1 — enum.** `PvpBundleStatus` with `PENDING=0, IMPORTING=1, COMPLETED=2, FAILED=3`. Match the pattern from `PvpMode`.
 
-**Step 2 — implementation.** Model per the data-model sketch above. `BaseModel` subclass.
+**Step 2 — model tests.** Bundle row saves/loads its fields. Defaults: `status=PENDING`, `number_of_submissions=0`, `imported_at=None`. The `zip_file` accepts a `SimpleUploadedFile` and lands under `MEDIA_ROOT/pvp/bundles/<tally_id>/<bundle_id>/<filename>.zip`.
 
-**Step 3 — commit.**
+**Step 3 — implementation.** Per the data-model sketch above. `BaseModel` subclass. `_bundle_zip_upload_to` callable computes the storage path; use a two-step save (save bundle to get id, then attach the zip) or a UUID-based path so the dest is known pre-save.
+
+**Step 4 — commit.**
 
 ---
 
@@ -431,7 +607,7 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 - Given a parsed bundle with 3 valid rows, orchestrator creates 3 `PvpSubmission` rows and links 3 `ResultForm`s.
 - Invalid rows are already filtered out at parse-time validation; the orchestrator only receives valid rows.
 
-**Step 2 — implementation.** `import_bundle(parsed_bundle, tally, uploaded_by, zip_ref) -> PvpUploadBundle`. Creates the `PvpUploadBundle` row, iterates rows, calls `import_submission` per row passing `uploaded_by` as the user for all DB writes, updates counters.
+**Step 2 — implementation.** `import_bundle(bundle, parsed_bundle, tally, uploaded_by, zip_ref) -> PvpUploadBundle`. The `bundle` row already exists (created at upload time, see Task 12). The orchestrator iterates rows, calls `import_submission` per row passing `uploaded_by` as the user for all DB writes, updates `bundle.number_of_submissions` + `bundle.imported_at`, and flips `bundle.status` to `COMPLETED` (or `FAILED` if anything raises).
 
 **Step 3 — commit.**
 
@@ -448,7 +624,7 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 
 **Step 1 — tests.** Use `TransactionTestCase` with `start_worker` from `celery.contrib.testing.worker` (matching the pattern in `test_async_import_result_form.py`). Assert the task end-to-end imports a fixture bundle and updates the `PvpUploadBundle` row.
 
-**Step 2 — implementation.** `@app.task()` function `async_pvp_import(zip_file_path, bundle_id, user_id)`. Loads the `PvpUploadBundle` and `UserProfile`, runs `parse_bundle` then `import_bundle`, saves results.
+**Step 2 — implementation.** `@app.task()` function `async_pvp_import(bundle_id, user_id)`. Loads the `PvpUploadBundle` and `UserProfile`, flips `bundle.status` to `IMPORTING`, reads the zip from `bundle.zip_file.path`, runs `parse_bundle` then `import_bundle`, saves results. (Note: the zip path comes from the bundle row — no need to pass it as a separate argument.)
 
 **Step 3 — commit.**
 
@@ -466,12 +642,18 @@ git commit -m "odk-central-sync: extract barcode + rounds + reconciliation field
 - Modify: `tally_ho/urls.py` — add `super-admin/<tally_id>/pvp/upload/`, `.../confirm/<bundle_id>/`, `.../result/<bundle_id>/`
 - Create: `tally_ho/apps/tally/tests/views/test_pvp_views.py`
 
+**Lifecycle clarification:**
+
+1. Upload POST: validate zip opens cleanly → save zip to disk via `PvpUploadBundle.zip_file` → create the bundle row with `status=PENDING` → parse the zip in-process → store the parsed summary in the session (or re-parse on confirm) → redirect to confirm page with `bundle_id`.
+2. Confirm POST: load the bundle → enqueue Celery task with `bundle_id` → redirect to result page (which polls bundle.status).
+3. Celery: flips `status` PENDING → IMPORTING → COMPLETED (or FAILED).
+
 **Step 1 — tests.**
 
 - Unauthorized user → 403.
 - Super admin GET → renders upload form.
-- Super admin POST valid zip → redirects to confirm page with bundle id.
-- Super admin POST invalid zip → shows error on the upload form.
+- Super admin POST valid zip → bundle row created with `status=PENDING` and zip persisted; redirects to confirm page with bundle id.
+- Super admin POST invalid zip → shows error on the upload form, no bundle row created.
 - Confirm page shows the counts and row lists.
 - POST confirm → enqueues Celery task (mocked with `.apply()` for the test) and redirects to result page.
 

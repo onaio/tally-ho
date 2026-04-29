@@ -5,6 +5,28 @@ from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
+
+
+class PvpModeSelect(forms.Select):
+    """Renders the PvpMode dropdown with DE1_AND_DE2 unselectable.
+
+    The HTML `disabled` attribute is bypassable from the client, so the
+    consuming form must also reject DE1_AND_DE2 server-side.
+    """
+
+    DISABLED_VALUES = {str(PvpMode.DE1_AND_DE2.value)}
+
+    def create_option(self, name, value, label, selected, index,
+                      subindex=None, attrs=None):
+        option = super().create_option(
+            name, value, label, selected, index, subindex, attrs,
+        )
+        if str(value) in self.DISABLED_VALUES:
+            option["attrs"]["disabled"] = "disabled"
+            option["attrs"]["title"] = _("Coming in pass 2")
+        return option
+
 
 class RestrictedFileField(forms.FileField):
     def __init__(self, *args, **kwargs):

@@ -50,6 +50,20 @@
             </td>
         </tr>
         <tr>
+            <td>{% trans 'PVP Mode' %}:</td>
+            <td>
+                {% if form.pvp_mode.errors %}
+                <div class="alert alert-danger">
+                    {{ form.pvp_mode.errors }}
+                </div>
+                {% endif %}
+                {{ form.pvp_mode }}
+                {% if form.pvp_mode.help_text %}
+                <p class="help-block">{{ form.pvp_mode.help_text }}</p>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
             <td>{% trans 'Print Cover Options' %}:</td>
             <td>
                 <div class="checkbox">
