@@ -142,8 +142,10 @@ class TestExportCenterCandidateResults:
         assert "center_id" in df.columns
         assert list(df["center_id"]) == [center_id, center_id]
         assert list(df["candidate_name"]) == ["Alice", "Bob"]
-        # meta-instanceID should be dropped after merge
-        assert "meta-instanceID" not in df.columns
+        # PARENT_KEY is dropped after merge — meta-instanceID is the
+        # canonical submission identifier downstream.
+        assert "PARENT_KEY" not in df.columns
+        assert "meta-instanceID" in df.columns
 
     def test_combines_multiple_centers(self, output_dir):
         center_ids = [100, 200]

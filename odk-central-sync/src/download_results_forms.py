@@ -184,7 +184,7 @@ def export_center_candidate_results(
                     left_on="PARENT_KEY",
                     right_on="meta-instanceID",
                     how="left",
-                ).drop(columns=["meta-instanceID"])
+                ).drop(columns=["PARENT_KEY"])
                 # Rename the PVP barcode column to a plain "barcode" for
                 # downstream consumers (tally-ho upload matches on barcode).
                 # Coerce to string so numeric-looking barcodes keep leading

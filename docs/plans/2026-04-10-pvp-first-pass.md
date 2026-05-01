@@ -540,8 +540,8 @@ The `print_cover_in_*` toggles have human-readable labels set in `TallyForm.__in
 
 **Files:**
 
-- Create: `tally_ho/libs/utils/pvp_bundle.py`
-- Create: `tally_ho/libs/tests/utils/test_pvp_bundle.py`
+- Create: `tally_ho/libs/pvp/bundle.py`
+- Create: `tally_ho/libs/tests/pvp/test_bundle.py`
 - Create: `tally_ho/libs/tests/fixtures/pvp/` — place a real bundle zip fixture here (copy from `odk-central-sync/results-output/` after running task 1).
 
 **Step 1 — tests.**
@@ -562,8 +562,8 @@ The `print_cover_in_*` toggles have human-readable labels set in `TallyForm.__in
 
 **Files:**
 
-- Create: `tally_ho/libs/utils/pvp_validation.py`
-- Create: `tally_ho/libs/tests/utils/test_pvp_validation.py`
+- Create: `tally_ho/libs/pvp/validation.py`
+- Create: `tally_ho/libs/tests/pvp/test_validation.py`
 
 **Step 1 — tests.** One test per check: `pvp_disabled`, `required_fields`, `barcode_in_tally`, `form_unsubmitted`, `already_imported`. Each test asserts both the pass case and the fail case with the right reason string.
 
@@ -577,8 +577,8 @@ The `print_cover_in_*` toggles have human-readable labels set in `TallyForm.__in
 
 **Files:**
 
-- Create: `tally_ho/libs/utils/pvp_import.py`
-- Create: `tally_ho/libs/tests/utils/test_pvp_import.py`
+- Create: `tally_ho/libs/pvp/import_submission.py`
+- Create: `tally_ho/libs/tests/pvp/test_import_submission.py`
 
 **Step 1 — tests.**
 
@@ -599,8 +599,8 @@ The `print_cover_in_*` toggles have human-readable labels set in `TallyForm.__in
 
 **Files:**
 
-- Modify: `tally_ho/libs/utils/pvp_import.py`
-- Modify: `tally_ho/libs/tests/utils/test_pvp_import.py`
+- Modify: `tally_ho/libs/pvp/import_submission.py`
+- Modify: `tally_ho/libs/tests/pvp/test_import_submission.py`
 
 **Step 1 — tests.**
 
