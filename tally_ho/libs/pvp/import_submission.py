@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
@@ -28,6 +29,7 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 
 _RECON_FIELD_MAP = {
     "number_of_voter_cards_in_the_ballot_box":
@@ -122,6 +124,44 @@ def import_submission(
     )
 
     return submission
+
+
+def import_bundle(*, bundle, submissions, tally, uploaded_by, zip_ref):
+    """Import a list of validated submissions, flipping bundle status.
+
+    Caller is expected to have already filtered out rows that fail
+    parse-time validation. The bundle row already exists (created at
+    upload time); this function just walks the validated subset, calls
+    `import_submission` for each row, and flips the bundle's terminal
+    status to COMPLETED or FAILED.
+
+    On the first import_submission failure the orchestrator marks the
+    bundle FAILED and re-raises. Submissions that succeeded before the
+    failure stay committed (each import_submission is its own atomic
+    block), so a failed bundle may be partially imported. Pass-2 work
+    will revisit retry / partial-import semantics.
+    """
+    submissions = list(submissions)
+    try:
+        for parsed in submissions:
+            import_submission(
+                parsed,
+                tally=tally,
+                bundle=bundle,
+                uploaded_by=uploaded_by,
+                zip_ref=zip_ref,
+            )
+    except Exception:
+        bundle.status = PvpBundleStatus.FAILED
+        bundle.save(update_fields=["status", "modified_date"])
+        raise
+    bundle.number_of_submissions = len(submissions)
+    bundle.imported_at = timezone.now()
+    bundle.status = PvpBundleStatus.COMPLETED
+    bundle.save(update_fields=[
+        "number_of_submissions", "imported_at", "status", "modified_date",
+    ])
+    return bundle
 
 
 def _save_images(submission_id, images, zip_ref):

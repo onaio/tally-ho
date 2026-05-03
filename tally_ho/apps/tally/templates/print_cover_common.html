@@ -1,7 +1,9 @@
 {% load i18n %}
+{% load pvp_tags %}
 
     <tr>
-        <td>{% trans 'Barcode:' %}</td><td>{{ result_form.barcode }}</td>
+        <td>{% trans 'Barcode:' %}</td>
+        <td>{{ result_form.barcode }} {% pvp_badge result_form %}</td>
     </tr>
     <tr>
         <td>{% trans 'Region Name:' %}</td><td>{{ result_form.center.office.region.name }}</td>

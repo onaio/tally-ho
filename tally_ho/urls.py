@@ -10,6 +10,7 @@ from tally_ho.apps.tally.forms.login_form import LoginForm
 from tally_ho.apps.tally.forms.password_change import PasswordChangeForm
 from tally_ho.apps.tally.views import (audit, clearance, corrections,
                                        data_entry, home, intake, profile,
+                                       pvp as pvp_views,
                                        quality_control, super_admin,
                                        tally_manager)
 from tally_ho.apps.tally.views.data import (ballot_list_view,
@@ -514,6 +515,23 @@ urlpatterns = [
         r"^super-administrator/(?P<tally_id>(\d+))/$",
         super_admin.DashboardView.as_view(),
         name="super-administrator",
+    ),
+    re_path(
+        r"^super-administrator/(?P<tally_id>\d+)/pvp/upload/$",
+        pvp_views.PvpUploadView.as_view(),
+        name="pvp-upload",
+    ),
+    re_path(
+        r"^super-administrator/(?P<tally_id>\d+)/pvp/confirm/"
+        r"(?P<bundle_id>\d+)/$",
+        pvp_views.PvpConfirmView.as_view(),
+        name="pvp-confirm",
+    ),
+    re_path(
+        r"^super-administrator/(?P<tally_id>\d+)/pvp/result/"
+        r"(?P<bundle_id>\d+)/$",
+        pvp_views.PvpResultView.as_view(),
+        name="pvp-result",
     ),
     re_path(
         r"^super-administrator/create-form/(?P<tally_id>(\d+))/$",

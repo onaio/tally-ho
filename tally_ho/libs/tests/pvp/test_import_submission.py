@@ -19,8 +19,9 @@ from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 from tally_ho.libs.pvp.bundle import CandidateResult, ParsedSubmission
-from tally_ho.libs.pvp.import_submission import import_submission
+from tally_ho.libs.pvp.import_submission import import_bundle, import_submission
 from tally_ho.libs.tests.test_base import (
     TestBase, create_ballot, create_center, create_electrol_race,
     create_result_form, create_station, create_tally,
@@ -308,3 +309,107 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
             for f in files:
                 leftovers.append(os.path.join(root, f))
         self.assertEqual(leftovers, [])
+
+
+class TestImportBundle(ImportSubmissionTestBase, TestCase):
+    """Bundle-level orchestrator: walks validated submissions, flips status."""
+
+    def setUp(self):
+        super().setUp()
+        # Three result_forms with distinct barcodes; each maps to its own
+        # candidate set (reuse the two candidates created in the parent
+        # setUp; PvpSubmission writes Result rows referencing them).
+        self.rf2 = create_result_form(
+            tally=self.tally, ballot=self.ballot, center=self.center,
+            station_number=self.station.station_number,
+            barcode="222", form_state=FormState.UNSUBMITTED,
+            serial_number=2,
+        )
+        self.rf3 = create_result_form(
+            tally=self.tally, ballot=self.ballot, center=self.center,
+            station_number=self.station.station_number,
+            barcode="333", form_state=FormState.UNSUBMITTED,
+            serial_number=3,
+        )
+
+    def _three_submissions(self):
+        return [
+            self._parsed_submission(
+                odk_instance_id="uuid:rf-1", barcode="111",
+            ),
+            self._parsed_submission(
+                odk_instance_id="uuid:rf-2", barcode="222",
+            ),
+            self._parsed_submission(
+                odk_instance_id="uuid:rf-3", barcode="333",
+            ),
+        ]
+
+    def test_imports_all_rows_and_marks_completed(self):
+        zip_ref = self._zip_with_images({})
+        try:
+            returned = import_bundle(
+                bundle=self.bundle,
+                submissions=self._three_submissions(),
+                tally=self.tally,
+                uploaded_by=self.user,
+                zip_ref=zip_ref,
+            )
+        finally:
+            zip_ref.close()
+        self.assertIs(returned, self.bundle)
+        self.bundle.refresh_from_db()
+        self.assertEqual(self.bundle.status, PvpBundleStatus.COMPLETED)
+        self.assertEqual(self.bundle.number_of_submissions, 3)
+        self.assertIsNotNone(self.bundle.imported_at)
+        self.assertEqual(self.bundle.submissions.count(), 3)
+        for rf in (self.result_form, self.rf2, self.rf3):
+            rf.refresh_from_db()
+            self.assertTrue(rf.from_pvp)
+            self.assertEqual(rf.form_state, FormState.DATA_ENTRY_2)
+
+    def test_empty_submission_list_marks_completed_with_zero(self):
+        zip_ref = self._zip_with_images({})
+        try:
+            import_bundle(
+                bundle=self.bundle, submissions=[],
+                tally=self.tally, uploaded_by=self.user, zip_ref=zip_ref,
+            )
+        finally:
+            zip_ref.close()
+        self.bundle.refresh_from_db()
+        self.assertEqual(self.bundle.status, PvpBundleStatus.COMPLETED)
+        self.assertEqual(self.bundle.number_of_submissions, 0)
+        self.assertIsNotNone(self.bundle.imported_at)
+
+    def test_failure_marks_bundle_failed_and_reraises(self):
+        # Second submission references a candidate_id that doesn't exist;
+        # first submission imports successfully then we hit DoesNotExist.
+        bad = self._parsed_submission(
+            odk_instance_id="uuid:rf-2", barcode="222",
+            candidates=(
+                CandidateResult(
+                    candidate_id="999999", candidate_order=1,
+                    round1=1, round2=1,
+                ),
+            ),
+        )
+        good = self._parsed_submission(
+            odk_instance_id="uuid:rf-1", barcode="111",
+        )
+        zip_ref = self._zip_with_images({})
+        try:
+            with self.assertRaises(Candidate.DoesNotExist):
+                import_bundle(
+                    bundle=self.bundle, submissions=[good, bad],
+                    tally=self.tally, uploaded_by=self.user,
+                    zip_ref=zip_ref,
+                )
+        finally:
+            zip_ref.close()
+        self.bundle.refresh_from_db()
+        self.assertEqual(self.bundle.status, PvpBundleStatus.FAILED)
+        self.assertIsNone(self.bundle.imported_at)
+        # First submission committed (each import_submission is its own
+        # atomic block); failed second left no trace.
+        self.assertEqual(self.bundle.submissions.count(), 1)
