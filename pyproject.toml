@@ -20,8 +20,6 @@ dependencies = [
     "celery==5.3.1",
     "redis==4.5.5",
     "python-memcached==1.59",
-    "pytest==7.4.2",
-    "pytest-django==4.5.2",
     "gunicorn>=23,<24",
 ]
 
@@ -48,6 +46,8 @@ dev = [
     "ruff",
     "pre-commit",
     "beautifulsoup4",
+    "pytest==7.4.2",
+    "pytest-django==4.5.2",
     "pytest-cov",
 ]
 
@@ -83,10 +83,8 @@ indent-width = 4
 
 target-version = "py312"
 
-# Pyflakes (`F`) plus a subset of pycodestyle (`E4`, `E7`, `E9`).
-# This matches the ruleset that was enforced by the former `ruff.toml`
-# prior to the uv migration.
-lint.select = ["E4", "E7", "E9", "F"]
+# Pyflakes (`F`) + full pycodestyle (`E`) + warnings (`W`).
+lint.select = ["E", "F", "W"]
 lint.ignore = []
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
@@ -110,7 +108,8 @@ omit = [
     "manage.py",
     "tally_ho/wsgi.py",
     "*/migrations/*",
-    "*/venv/*''*/settings/*",
+    "*/venv/*",
+    "*/settings/*",
     "*/templates/*"
 ]
 
@@ -121,6 +120,7 @@ omit = [
     "manage.py",
     "tally_ho/wsgi.py",
     "*/migrations/*",
-    "*/venv/*''*/settings/*",
+    "*/venv/*",
+    "*/settings/*",
     "*/templates/*"
 ]

@@ -1987,11 +1987,11 @@ class TestSuperAdmin(TestBase):
         tally = create_tally()
         quarantine_data = getattr(settings, "QUARANTINE_DATA")
         create_quarantine_checks(
-            tally_id=tally.pk, 
+            tally_id=tally.pk,
             quarantine_data=quarantine_data
         )
         quarantine_check = QuarantineCheck.objects.get(
-            method="pass_card_check", 
+            method="pass_card_check",
             tally=tally
         )
         view = views.QuarantineChecksConfigView.as_view()
@@ -3349,7 +3349,7 @@ class TestSuperAdmin(TestBase):
         self.assertContains(response, "Please enter exactly 11 numbers")
 
     def test_reset_form_view_requires_super_admin(self):
-        """Test ResetFormView requires 
+        """Test ResetFormView requires
         SUPER_ADMINISTRATOR permission."""
         tally = create_tally()
         tally.users.add(self.user)

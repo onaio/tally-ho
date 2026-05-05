@@ -211,7 +211,7 @@ class TestExports(TestBase):
             center=self.center,
             station_number=self.station.station_number,
             tally=self.tally,
-            form_state=FormState.ARCHIVED,            
+            form_state=FormState.ARCHIVED,
         )
         create_result_form(
             ballot=ballot2,

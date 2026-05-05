@@ -12,7 +12,9 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.reports.progress import get_office_candidates_ids
-from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin,DataTablesMixin, GroupRequiredMixin,
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin,
+                                        DataTablesMixin,
+                                        GroupRequiredMixin,
                                         TallyAccessMixin)
 
 

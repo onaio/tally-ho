@@ -8,7 +8,7 @@ from guardian.mixins import LoginRequiredMixin
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.views.constants import show_inactive_query_param
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin,DataTablesMixin, 
+from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin,DataTablesMixin,
                                         GroupRequiredMixin,
                                         TallyAccessMixin)
 

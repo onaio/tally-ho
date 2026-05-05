@@ -996,14 +996,14 @@ class TestAuditRecallRequestsCsvView(TestBase):
             number_sorted_and_counted=110,
             number_valid_votes=80
         )
-        
+
         create_candidates(
             result_form=result_form,
             user=result_form.user,
             votes=20,
             num_results=2
         )
-        
+
         result_form.save()
 
         # Create audit with quarantine check
@@ -1033,11 +1033,11 @@ class TestAuditRecallRequestsCsvView(TestBase):
         # Check that actual values are displayed
         self.assertIn('<td>Total Valid Votes</td>', content)
         self.assertIn(
-            '<td class="text-center"><code>80</code></td>', 
+            '<td class="text-center"><code>80</code></td>',
             content
         )
         self.assertIn(
-            '<td>Number of Invalid Ballot Papers</td>', 
+            '<td>Number of Invalid Ballot Papers</td>',
             content
         )
         self.assertIn(
@@ -1049,20 +1049,20 @@ class TestAuditRecallRequestsCsvView(TestBase):
              content
         )
         self.assertIn(
-            '<td class="text-center"><code>110</code></td>', 
+            '<td class="text-center"><code>110</code></td>',
             content
         )
         self.assertIn('<td>Tolerance</td>', content)
         self.assertIn(
-            '<code>5 (fixed value)</code>', 
+            '<code>5 (fixed value)</code>',
             content
         )
-        
+
 
     def test_review_view_displays_quarantine_check_details_over_voting(self):
-        """Test that review view displays quarantine check details 
+        """Test that review view displays quarantine check details
         for over voting check."""
-        
+
         self._create_and_login_user(username="audit_clerk")
         tally = create_tally()
         tally.users.add(self.user)
@@ -1070,7 +1070,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
 
         # Create station with registrants
         create_region(tally=tally)
-        
+
         center = create_center("12345", tally=tally)
         station = create_station(registrants=80, tally=tally, center=center)
 
@@ -1119,7 +1119,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
         # Check that quarantine check name is displayed
         self.assertIn(check.name, content)
 
-        # Check that actual values are displayed        
+        # Check that actual values are displayed
         self.assertIn(
             '<td>Registered Voters</td>',
             content
@@ -1133,7 +1133,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
               content
         )
         self.assertIn(
-            '<td>Number of Invalid Ballot Papers</td>', 
+            '<td>Number of Invalid Ballot Papers</td>',
             content
         )
         self.assertIn(
@@ -1150,7 +1150,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
         )
 
     def test_review_view_displays_quarantine_check_details_card_check(self):
-        """Test that review view displays quarantine check 
+        """Test that review view displays quarantine check
         details for card check."""
         self._create_and_login_user("audit_clerk")
         tally = create_tally()
@@ -1229,7 +1229,7 @@ class TestAuditRecallRequestsCsvView(TestBase):
         )
 
     def test_review_view_multiple_quarantine_checks(self):
-        """Test that review view displays details for 
+        """Test that review view displays details for
         multiple quarantine checks."""
         self._create_and_login_user("audit_clerk")
         tally = create_tally()
@@ -1293,37 +1293,37 @@ class TestAuditRecallRequestsCsvView(TestBase):
         self.assertIn(check1.name, content)
         self.assertIn(check2.name, content)
 
-        # Check that details for both checks are displayed       
+        # Check that details for both checks are displayed
         self.assertIn(
-            '<td>Voter Cards in Ballot Box</td>', 
+            '<td>Voter Cards in Ballot Box</td>',
             content
         )
         self.assertIn(
-            '<td class="text-center"><code>110</code></td>', 
+            '<td class="text-center"><code>110</code></td>',
             content
         )
         self.assertIn(
-            '<td>Total Valid Votes</td>', 
+            '<td>Total Valid Votes</td>',
             content
         )
         self.assertIn(
-            '<td class="text-center"><code>90</code></td>', 
+            '<td class="text-center"><code>90</code></td>',
             content
         )
         self.assertIn(
-            '<td>Total Invalid Votes</td>', 
+            '<td>Total Invalid Votes</td>',
             content
         )
         self.assertIn(
-            '<td class="text-center"><code>10</code></td>', 
+            '<td class="text-center"><code>10</code></td>',
             content
         )
         self.assertIn(
-            '<td>Tolerance</td>', 
+            '<td>Tolerance</td>',
             content
         )
         self.assertIn(
-            '<code>8 (fixed value)</code>', 
+            '<code>8 (fixed value)</code>',
             content
         )
 

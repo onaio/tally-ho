@@ -164,7 +164,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
 
     :returns: The name of the temporary file that results were saved to.
     """
-    
+
     center_to_votes = defaultdict(list)
     center_to_forms = defaultdict(list)
     ballots_to_candidates = {}

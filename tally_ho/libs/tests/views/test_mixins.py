@@ -294,7 +294,7 @@ class ViewWithTallyAccess(View):
 
 class TestTallyAccessMixin(TestBase):
     def setUp(self):
-        super().setUp()        
+        super().setUp()
         self.create_tally = create_tally
         self.factory = RequestFactory()
         self._create_permission_groups()
@@ -313,7 +313,7 @@ class TestTallyAccessMixin(TestBase):
         # Create request
         request = self.factory.get(f'super-administrator/{tally.id}/')
         request.user = self.user
-      
+
         view = ViewWithTallyAccess.as_view()
 
         # Should return a 404

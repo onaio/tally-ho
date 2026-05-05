@@ -284,6 +284,23 @@ behavior change for existing consumers. `tally-ho` opts in via
   as-is, installing into the uv-managed venv.
 - `onaio/ansible-django` will get an external review.
 
+### Phase 2 status
+
+- **R1 (ansible-django, Tasks 10–14)** — merged as `5d4a6b9` on
+  `onaio/ansible-django` `main` (PR #51). Two reviewer-flagged
+  idempotency fixes landed alongside (uv-version probe + pip-bootstrap
+  `creates:` guard).
+- **R2 (ansible-tally-ho, Task 15)** — merged as `8b0a4d9` on
+  `onaio/ansible-tally-ho` `main` (PR #25). Pinned `ansible-django` to
+  the R1 merge sha; cleaned up dead `tally_ho_django_tally_ho_use_*`
+  vars and the obsolete `setuptools_version`; explicit
+  `django_use_poetry: false` for symmetry.
+- **R3 (infrastructure, Task 16)** — pending. Bump
+  `ansible/roles/tally-ho` submodule pointer to R2's sha, then run
+  `ansible-playbook -i inventories/tally-ho/stage tally_ho.yml`. Stage's
+  `tally_ho_django_git_version` (`"django-upgrade"`) must contain
+  pyproject.toml + uv.lock from this PR before the deploy will work.
+
 ### Repo 1: `ansible-django` — add `django_use_uv` mode
 
 #### Task 10: Add `django_use_uv` defaults

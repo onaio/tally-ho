@@ -33,7 +33,7 @@ class TestResetFormForm(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('barcode', form.errors)
         self.assertIn(
-            'This field is required', 
+            'This field is required',
             form.errors['barcode'][0]
         )
 
@@ -77,7 +77,7 @@ class TestResetFormForm(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('barcode', form.errors)
         self.assertIn(
-            'Please enter exactly 11 numbers', 
+            'Please enter exactly 11 numbers',
             str(form.errors['barcode'])
         )
 
@@ -91,7 +91,7 @@ class TestResetFormForm(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('barcode', form.errors)
         self.assertIn(
-            'Please enter exactly 11 numbers', 
+            'Please enter exactly 11 numbers',
             str(form.errors['barcode'])
         )
 
@@ -114,7 +114,7 @@ class TestResetFormForm(TestCase):
         )
 
     def test_form_has_security_attributes(self):
-        """Test barcode field has security attributes 
+        """Test barcode field has security attributes
         to prevent copy/paste"""
         form = ResetFormForm()
         attrs = form.fields['barcode'].widget.attrs
@@ -175,7 +175,7 @@ class TestResetFormForm(TestCase):
         self.assertEqual(result, self.result_form)
 
     def test_save_raises_validation_error_when_form_not_found(self):
-        """Test save raises ValidationError when ResultForm 
+        """Test save raises ValidationError when ResultForm
         doesn't exist"""
         form_data = {
             'barcode': '99999999999',

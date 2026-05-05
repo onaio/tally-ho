@@ -729,7 +729,7 @@ class TestQualityControl(TestBase):
         Test quality control post passes all quarantine triggers
         """
         create_quarantine_checks(
-            tally_id= self.tally.pk, 
+            tally_id= self.tally.pk,
             quarantine_data=self.quarantine_data
         )
         center = create_center()
@@ -779,7 +779,7 @@ class TestQualityControl(TestBase):
         Test quality control post fails card check quarantine trigger
         """
         create_quarantine_checks(
-            tally_id= self.tally.pk, 
+            tally_id= self.tally.pk,
             quarantine_data=self.quarantine_data
         )
         center = create_center()
@@ -828,7 +828,7 @@ class TestQualityControl(TestBase):
         Test quality control post fails recon check quarantine trigger
         """
         create_quarantine_checks(
-            tally_id= self.tally.pk, 
+            tally_id= self.tally.pk,
             quarantine_data=self.quarantine_data
         )
         center = create_center()
@@ -877,7 +877,7 @@ class TestQualityControl(TestBase):
         Test quality control post fails over-voting check quarantine trigger
         """
         create_quarantine_checks(
-            tally_id= self.tally.pk, 
+            tally_id= self.tally.pk,
             quarantine_data=self.quarantine_data
         )
         center = create_center()
@@ -928,7 +928,7 @@ class TestQualityControl(TestBase):
         center = create_center()
         create_station(center, registrants=2)
         create_quarantine_checks(
-            tally_id= self.tally.pk, 
+            tally_id= self.tally.pk,
             quarantine_data=self.quarantine_data
         )
         result_form = create_result_form(

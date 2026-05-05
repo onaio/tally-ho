@@ -17,7 +17,9 @@ class Result(BaseModel):
         app_label = 'tally'
         indexes = [
             # Optimize candidate vote calculations in exports
-            models.Index(fields=['candidate', 'entry_version', 'active', 'result_form']),
+            models.Index(
+                fields=['candidate', 'entry_version', 'active', 'result_form'],
+            ),
             # Optimize filtering by form state
             models.Index(fields=['result_form', 'entry_version', 'active']),
         ]

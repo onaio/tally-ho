@@ -15,9 +15,12 @@ from tally_ho.libs.verify.quarantine_checks import (
 
 
 class TestQuarantineChecks(TestBase):
-    def setUp(self):  
-        self.tally = create_tally()      
-        create_quarantine_checks(tally_id=self.tally.pk,quarantine_data=getattr(settings, "QUARANTINE_DATA"))
+    def setUp(self):
+        self.tally = create_tally()
+        create_quarantine_checks(
+            tally_id=self.tally.pk,
+            quarantine_data=getattr(settings, "QUARANTINE_DATA"),
+        )
         self._create_permission_groups()
         self._create_and_login_user()
 
