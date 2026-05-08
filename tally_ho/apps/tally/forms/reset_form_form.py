@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from tally_ho.apps.tally.models.result_form import ResultForm
 
 class ResetFormForm(forms.Form):
-    barcode = forms.CharField( 
+    barcode = forms.CharField(
         min_length=11,
         max_length=11,
         required=True,
@@ -14,7 +14,7 @@ class ResetFormForm(forms.Form):
                 regex=r'^[0-9]{11}$',
                 message=_('Please enter exactly 11 numbers'),
             ),
-        ],       
+        ],
         widget=forms.NumberInput(attrs={
         'class': 'form-control',
         'title': _('Please enter exactly 11 numbers'),

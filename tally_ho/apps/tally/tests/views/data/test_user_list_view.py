@@ -168,7 +168,7 @@ class TestUserListViewPermissions(TestBase):
 
     def test_tally_manager_can_access_tally_manager(self):
         """
-        Test that TALLY_MANAGER users can access 
+        Test that TALLY_MANAGER users can access
         tally-manager role list in read-only mode.
         """
         self._add_user_to_group(self.user, groups.TALLY_MANAGER)

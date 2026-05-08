@@ -271,7 +271,7 @@ class TestCandidateResultsViews(TestBase):
         # Validate all fields
         self.assertEqual(row['ballot'], self.result_form.ballot.number)
         self.assertEqual(row['race_number'], self.result_form.ballot.number)
-        self.assertEqual(row['center'], 1) 
+        self.assertEqual(row['center'], 1)
         self.assertEqual(row['office'], self.result_form.center.office.name)
         self.assertEqual(row['station'], 1)
         self.assertEqual(row['gender'], 'MALE')
@@ -292,4 +292,3 @@ class TestCandidateResultsViews(TestBase):
         self.assertEqual(row['valid_votes'], 55)
         self.assertEqual(row['number_registrants'], 100)
         self.assertEqual(row['candidate_status'], 'enabled')
-   

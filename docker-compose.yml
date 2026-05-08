@@ -2,7 +2,7 @@ version: '3'
 
 services:
   db1:
-    image: postgres:11.1
+    image: postgres:15-alpine
     env_file:
       - config/db/db1_env
     networks:
@@ -12,7 +12,7 @@ services:
   web:
     build: .
     command: >
-      bash -c "python3 manage.py migrate --settings=tally_ho.settings.docker
+      bash -c "python manage.py migrate --settings=tally_ho.settings.docker
       && python manage.py create_groups --settings=tally_ho.settings.docker
       && python manage.py create_demo_users --settings=tally_ho.settings.docker
       && python manage.py create_quarantine_checks --settings=tally_ho.settings.docker
@@ -29,7 +29,7 @@ services:
   nginx:
     command: >
       bash -c "sleep 2 && nginx -g 'daemon off;'"
-    image: nginx:1.15.6
+    image: nginx:stable-alpine
     ports:
       - 8000:80
       # change to 80:80 for production

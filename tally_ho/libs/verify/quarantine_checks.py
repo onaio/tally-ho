@@ -9,9 +9,10 @@ def create_quarantine_checks(tally_id, quarantine_data=None):
     """Create quarantine checks for a specific tally.
 
     :param tally_id: Required tally ID to associate checks with.
-    :param quarantine_data: List of check configurations. Uses settings.QUARANTINE_DATA if None.
+    :param quarantine_data: List of check configurations. Uses
+        settings.QUARANTINE_DATA if None.
     """
-    
+
     quarantine_data = (
         quarantine_data
         if quarantine_data is not None
@@ -21,7 +22,9 @@ def create_quarantine_checks(tally_id, quarantine_data=None):
     for quarantine_check in quarantine_data:
         try:
             # Check if a check with this method already exists for this tally
-            QuarantineCheck.objects.get(method=quarantine_check["method"], tally_id=tally_id)
+            QuarantineCheck.objects.get(
+                method=quarantine_check["method"], tally_id=tally_id,
+            )
         except QuarantineCheck.DoesNotExist:
             # Add tally_id to the check data
             check_data = quarantine_check.copy()
@@ -55,8 +58,10 @@ def get_total_candidates_votes(result_form):
 
 
 def quarantine_checks(tally_id):
-    """Return tuples of (validation_function, QuarantineCheck) for active checks.
-       :param tally_id: Required tally ID to filter checks. All checks are tally-specific.    
+    """Return (validation_function, QuarantineCheck) tuples for active checks.
+
+    :param tally_id: Required tally ID to filter checks. All checks are
+        tally-specific.
     """
     all_methods = {
         "pass_reconciliation_check": pass_reconciliation_check,

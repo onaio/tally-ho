@@ -88,7 +88,8 @@ def get_candidate_results_queryset(tally_id, data=None):
         output = build_candidate_results_output(result_form)
         for candidate in result_form.ballot.candidates.all():
             row = output.copy()
-            # Calculate votes from prefetched final_results instead of triggering new query
+            # Calculate votes from prefetched final_results
+            # instead of triggering a new query.
             votes = sum(result.votes for result in candidate.final_results
                        if result.result_form_id == result_form.id)
             row['order'] = candidate.order

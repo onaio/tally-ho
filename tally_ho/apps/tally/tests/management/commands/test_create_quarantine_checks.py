@@ -18,7 +18,10 @@ class TestCreateQuarantineChecks(TestCase):
         """Test that the command requires --tally-id argument."""
         with self.assertRaises(CommandError)  as context:
             call_command("create_quarantine_checks")
-        self.assertIn("the following arguments are required: --tally-id", str(context.exception))
+        self.assertIn(
+            "the following arguments are required: --tally-id",
+            str(context.exception),
+        )
 
     def test_create_quarantine_checks_with_invalid_tally_id(self):
         """Test that the command fails with invalid tally_id."""

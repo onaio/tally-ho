@@ -16,14 +16,15 @@ Election results data entry and verification software built by [Ona Systems](htt
 git clone git@github.com:onaio/tally-ho.git
 ```
 
-### Set Up Virtual Environment and Install Requirements
+### Install Dependencies
 
-Prerequisites: Ensure [virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/en/latest/install.html) and [PostgreSQL](https://wiki.postgresql.org/wiki/Detailed_installation_guides) are installed.
+Prerequisites: [uv](https://docs.astral.sh/uv/) and [PostgreSQL](https://wiki.postgresql.org/wiki/Detailed_installation_guides).
 
 ```bash
-mkvirtualenv tally --python=python3.9
-pip install -r requirements/dev.pip
+uv sync
 ```
+
+`uv` will install the pinned Python interpreter from `.python-version` and create `.venv` with all dependencies from `uv.lock`.
 
 Install `libpq-dev` for PostgreSQL headers:
 
@@ -37,22 +38,16 @@ Install memcached and Redis:
 sudo apt-get update && sudo apt-get install -y memcached redis-server
 ```
 
-Ensure latest versions of pip, wheel, and setuptools:
-
-```bash
-python -m pip install -U pip wheel setuptools
-```
-
 Enable [pre-commit hook checks](https://pre-commit.com/#3-install-the-git-hook-scripts):
 
 ```bash
-pre-commit install
+uv run pre-commit install
 ```
 
 ### Running Celery
 
 ```bash
-celery -A tally_ho.celeryapp worker --loglevel=info
+uv run celery -A tally_ho.celeryapp worker --loglevel=info
 ```
 
 ### Quick Start with User Demo Data
@@ -66,7 +61,7 @@ celery -A tally_ho.celeryapp worker --loglevel=info
 If server setup is complete, start the server:
 
 ```bash
-python manage.py runserver --settings=tally_ho.settings.dev
+uv run python manage.py runserver --settings=tally_ho.settings.dev
 ```
 
 ### Loading Tally Demo Data
@@ -100,7 +95,7 @@ Visit `127.0.0.1:8000`. For production, modify the `docker-compose.yml` file:
 Run tests with:
 
 ```bash
-pytest tally_ho
+uv run pytest tally_ho
 ```
 
 ## Documentation
@@ -138,18 +133,18 @@ Follow these steps for managing Arabic translations:
 
 ### Generating Model Graphs
 
-Install requirements from `requirements/dev.pip` and [graphviz](https://graphviz.org/download/).
+Install [graphviz](https://graphviz.org/download/). The `dev` dependency group already includes `django-extensions` and `pydot`.
 
 Generate all model graphs:
 
 ```bash
-python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -g -o tally-ho-all-models.png
+uv run python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -g -o tally-ho-all-models.png
 ```
 
 Generate specific app model graphs:
 
 ```bash
-python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -X GroupObjectPermission,... -g -o tally-ho-app-models.png
+uv run python manage.py graph_models --settings=tally_ho.settings.dev --pydot -a -X GroupObjectPermission,... -g -o tally-ho-app-models.png
 ```
 
 ### Demo Users
