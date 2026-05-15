@@ -15,7 +15,6 @@ services:
       bash -c "python manage.py migrate --settings=tally_ho.settings.docker
       && python manage.py create_groups --settings=tally_ho.settings.docker
       && python manage.py create_demo_users --settings=tally_ho.settings.docker
-      && python manage.py create_quarantine_checks --settings=tally_ho.settings.docker
       && DJANGO_SETTINGS_MODULE=tally_ho.settings.docker gunicorn --limit-request-line 6000 --chdir /code --bind :8000 tally_ho.wsgi:application"
     volumes:
       - .:/code
@@ -31,7 +30,7 @@ services:
       bash -c "sleep 2 && nginx -g 'daemon off;'"
     image: nginx:stable-alpine
     ports:
-      - 8000:80
+      - ${TALLY_HO_HTTP_PORT:-8000}:80
       # change to 80:80 for production
     volumes:
       - ./config/nginx/conf.d:/etc/nginx/conf.d
