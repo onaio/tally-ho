@@ -11,4 +11,7 @@ DATABASES = {
     }
 }
 
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'cache+memcached://memcached:11211/'
+
 SITE_NAME = '[DEMO] Tally Ho - HNEC RMS'

@@ -9,12 +9,25 @@ services:
       - db1_net
     volumes:
       - db1_volume:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    networks:
+      - db1_net
+  memcached:
+    image: memcached:1.6-alpine
+    ports:
+      - 11211:11211
+    networks:
+      - db1_net
   web:
     build: .
     command: >
       bash -c "python manage.py migrate --settings=tally_ho.settings.docker
       && python manage.py create_groups --settings=tally_ho.settings.docker
       && python manage.py create_demo_users --settings=tally_ho.settings.docker
+      && python manage.py create_demo_tally --settings=tally_ho.settings.docker
       && DJANGO_SETTINGS_MODULE=tally_ho.settings.docker gunicorn --limit-request-line 6000 --chdir /code --bind :8000 tally_ho.wsgi:application"
     volumes:
       - .:/code
@@ -22,6 +35,8 @@ services:
       - media_volume:/code/tally_ho/media
     depends_on:
       - db1
+      - redis
+      - memcached
     networks:
       - nginx_net
       - db1_net
