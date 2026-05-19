@@ -1,6 +1,8 @@
 import csv
 import os
 
+from django.db import connection, reset_queries
+from django.test.utils import override_settings
 
 from tally_ho.libs.tests.test_base import (
     create_ballot,
@@ -17,8 +19,14 @@ from tally_ho.libs.tests.test_base import (
 )
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from unittest.mock import patch
+
+from django.http import StreamingHttpResponse
+
 from tally_ho.libs.views.exports import (
     export_candidate_votes,
+    get_complete_barcodes,
+    get_result_export_response,
     save_barcode_results,
 )
 
@@ -474,3 +482,403 @@ class TestExports(TestBase):
 
         # Clean up
         os.unlink(csv_filename)
+
+    def test_export_candidate_votes_statistics_calculation(self):
+        """Test that candidate vote statistics are 
+        correctly calculated.
+        """
+        # Create candidates
+        candidate1 = create_candidate(
+            ballot=self.ballot,
+            candidate_name="Candidate One",
+            tally=self.tally
+        )
+        candidate2 = create_candidate(
+            ballot=self.ballot,
+            candidate_name="Candidate Two",
+            tally=self.tally
+        )
+
+        # Create archived result forms with votes for 
+        # both candidates        
+        result_form_1_archived = create_result_form(
+            ballot=self.ballot,
+            barcode='111111',
+            serial_number=1,
+            center=self.center,
+            station_number=self.station.station_number,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED
+        )
+        create_result(
+            result_form=result_form_1_archived,
+            candidate=candidate1,
+            votes=50,
+            user=self.user
+        )
+        create_result(
+            result_form=result_form_1_archived,
+            candidate=candidate2,
+            votes=45,
+            user=self.user
+        )
+
+        result_form_2_archived = create_result_form(
+            ballot=self.ballot,
+            barcode='222222',
+            serial_number=2,
+            center=self.center,
+            station_number=self.station.station_number + 1,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED
+        )
+        create_result(
+            result_form=result_form_2_archived,
+            candidate=candidate1,
+            votes=30,
+            user=self.user
+        )
+        create_result(
+            result_form=result_form_2_archived,
+            candidate=candidate2,
+            votes=35,
+            user=self.user
+        )
+
+        # Create audit result form with votes for both candidates
+        result_form_3_audit = create_result_form(
+            ballot=self.ballot,
+            barcode='333333',
+            serial_number=3,
+            center=self.center,
+            station_number=self.station.station_number + 2,
+            tally=self.tally,
+            form_state=FormState.AUDIT
+        )
+        create_result(
+            result_form=result_form_3_audit,
+            candidate=candidate1,
+            votes=20,
+            user=self.user
+        )
+        create_result(
+            result_form=result_form_3_audit,
+            candidate=candidate2,
+            votes=15,
+            user=self.user
+        )
+
+        # Call export function
+        csv_filename = export_candidate_votes(
+            save_barcodes=False,
+            output_duplicates=False,
+            output_to_file=False,
+            show_disabled_candidates=True,
+            tally_id=self.tally.id
+        )
+
+        # Verify CSV was created
+        self.assertTrue(os.path.exists(csv_filename))
+
+        # Read and verify the CSV content
+        with open(csv_filename, 'r') as f:
+            csv_reader = csv.DictReader(f)
+            rows = list(csv_reader)
+
+            # Should have one row for the ballot
+            self.assertEqual(len(rows), 1)
+            row = rows[0]
+
+            # Verify candidate1 statistics
+            # - votes: 80 (50 + 30 from archived forms)
+            # - all_votes: 100 (50 + 30 from archived + 20 from audit)
+            self.assertEqual(row['candidate 1 name'], 'Candidate One')
+            self.assertEqual(row['candidate 1 votes'], '80')  # Only archived
+            self.assertEqual(row['candidate 1 votes included quarantine'], '100')  # Archived + audit
+
+            # Verify candidate2 statistics
+            # - votes: 80 (45 + 35 from archived forms)
+            # - all_votes: 95 (45 + 35 from archived + 15 from audit)
+            self.assertEqual(row['candidate 2 name'], 'Candidate Two')
+            self.assertEqual(row['candidate 2 votes'], '80')
+            self.assertEqual(row['candidate 2 votes included quarantine'], '95')
+
+        # Clean up
+        os.unlink(csv_filename)
+
+    def test_save_barcode_results_query_efficiency(self):
+        """Test that save_barcode_results uses efficient prefetch queries
+        instead of N+1 pattern."""
+        # Create multiple result forms to detect N+1
+        result_forms = []
+        for i in range(5):
+            station = create_station(
+                self.center, station_number=100 + i, registrants=200
+            )
+            rf = create_result_form(
+                ballot=self.ballot,
+                barcode=str(900000 + i),
+                serial_number=100 + i,
+                center=self.center,
+                station_number=station.station_number,
+                tally=self.tally,
+                form_state=FormState.ARCHIVED,
+            )
+            result_forms.append(rf)
+            create_reconciliation_form(
+                result_form=rf,
+                user=self.user,
+                entry_version=EntryVersion.FINAL,
+            )
+
+        # Create candidates and results
+        c1 = create_candidate(
+            ballot=self.ballot, candidate_name="Cand A", tally=self.tally
+        )
+        c2 = create_candidate(
+            ballot=self.ballot, candidate_name="Cand B", tally=self.tally
+        )
+        for rf in result_forms:
+            create_result(
+                result_form=rf, candidate=c1, votes=10, user=self.user
+            )
+            create_result(
+                result_form=rf, candidate=c2, votes=20, user=self.user
+            )
+
+        barcodes = [rf.barcode for rf in result_forms]
+
+        with override_settings(DEBUG=True):
+            reset_queries()
+            csv_filename = save_barcode_results(
+                complete_barcodes=barcodes,
+                output_duplicates=False,
+                output_to_file=False,
+                tally_id=self.tally.id,
+            )
+            query_count = len(connection.queries)
+
+        # With proper prefetch, should be well under 20 queries
+        # (currently ~750 for 186 forms due to N+1)
+        # Expected: ~5-7 queries regardless of form count
+        self.assertLess(
+            query_count, 20,
+            f"Expected <20 queries with prefetch, got {query_count}. "
+            f"N+1 query problem likely present."
+        )
+
+        # Verify CSV output is still correct
+        with open(csv_filename, 'r') as f:
+            rows = list(csv.DictReader(f))
+        # 5 forms × 2 candidates = 10 rows
+        self.assertEqual(len(rows), 10)
+        os.unlink(csv_filename)
+
+    def test_get_complete_barcodes(self):
+        """Test that get_complete_barcodes returns barcodes of archived forms."""
+        # Create archived form
+        rf_archived = create_result_form(
+            ballot=self.ballot,
+            barcode='111111',
+            serial_number=1,
+            center=self.center,
+            station_number=self.station.station_number,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+        )
+
+        # Create non-archived form (should not be included)
+        create_result_form(
+            ballot=self.ballot,
+            barcode='222222',
+            serial_number=2,
+            center=self.center,
+            station_number=self.station.station_number + 1,
+            tally=self.tally,
+            form_state=FormState.DATA_ENTRY_1,
+        )
+
+        barcodes = get_complete_barcodes(self.tally.id)
+        self.assertIn(rf_archived.barcode, barcodes)
+        self.assertEqual(len(barcodes), 1)
+
+    @patch('tally_ho.libs.views.exports.stream_barcode_results_csv')
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    def test_formresults_only_calls_stream_barcode(
+        self, mock_stream_cv, mock_stream_br
+    ):
+        """Test that 'formresults' report only calls stream_barcode_results_csv,
+        not stream_candidate_votes_csv."""
+        mock_stream_br.return_value = iter(["col1\n", "val1\n"])
+
+        response = get_result_export_response('formresults', self.tally.id)
+
+        mock_stream_br.assert_called_once()
+        mock_stream_cv.assert_not_called()
+        self.assertIsInstance(response, StreamingHttpResponse)
+
+    @patch('tally_ho.libs.views.exports.stream_barcode_results_csv')
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    def test_all_candidates_does_not_call_stream_barcode(
+        self, mock_stream_cv, mock_stream_br
+    ):
+        """Test that 'all-candidates' report only calls
+        stream_candidate_votes_csv."""
+        mock_stream_cv.return_value = iter(["col1\n", "val1\n"])
+
+        response = get_result_export_response('all-candidates', self.tally.id)
+
+        mock_stream_cv.assert_called_once()
+        mock_stream_br.assert_not_called()
+        self.assertIsInstance(response, StreamingHttpResponse)
+
+    def test_get_result_export_response_returns_streaming(self):
+        """Test that get_result_export_response returns StreamingHttpResponse."""
+        c1 = create_candidate(
+            ballot=self.ballot, candidate_name="Test Cand", tally=self.tally
+        )
+        rf = create_result_form(
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+        )
+        create_reconciliation_form(
+            result_form=rf, user=self.user, entry_version=EntryVersion.FINAL
+        )
+        create_result(
+            result_form=rf, candidate=c1, votes=10, user=self.user
+        )
+
+        response = get_result_export_response('formresults', self.tally.id)
+        self.assertIsInstance(response, StreamingHttpResponse)
+        self.assertEqual(response['Content-Type'], 'text/csv; charset=utf-8')
+
+        # Consume the stream and verify it's valid CSV
+        content = b''.join(response.streaming_content).decode('utf-8')
+        reader = csv.DictReader(content.splitlines())
+        rows = list(reader)
+        self.assertGreater(len(rows), 0)
+
+    def test_streaming_candidate_votes_response(self):
+        """Test that candidate votes export also streams."""
+        create_candidate(
+            ballot=self.ballot, candidate_name="Test Cand", tally=self.tally
+        )
+        create_result_form(
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            tally=self.tally,
+            form_state=FormState.ARCHIVED,
+        )
+
+        response = get_result_export_response('all-candidates', self.tally.id)
+        self.assertIsInstance(response, StreamingHttpResponse)
+
+        content = b''.join(response.streaming_content).decode('utf-8')
+        reader = csv.DictReader(content.splitlines())
+        rows = list(reader)
+        self.assertGreater(len(rows), 0)
+
+    def test_invalid_report_type_returns_400(self):
+        """Test that invalid report type returns 400 Bad Request."""
+        response = get_result_export_response('invalid-report', self.tally.id)
+        self.assertEqual(response.status_code, 400)
+
+    def test_nonexistent_tally_returns_404(self):
+        """Test that nonexistent tally ID returns 404."""
+        response = get_result_export_response('formresults', 99999)
+        self.assertEqual(response.status_code, 404)
+
+    @patch('tally_ho.libs.views.exports.stream_barcode_results_csv')
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    def test_active_candidates_calls_stream_with_disabled_false(
+        self, mock_stream_cv, mock_stream_br
+    ):
+        """Test that 'active-candidates' report calls stream_candidate_votes_csv
+        with show_disabled_candidates=False."""
+        mock_stream_cv.return_value = iter(["col1\n", "val1\n"])
+
+        response = get_result_export_response(
+            'active-candidates', self.tally.id
+        )
+
+        mock_stream_cv.assert_called_once_with(
+            show_disabled_candidates=False, tally_id=self.tally.id
+        )
+        mock_stream_br.assert_not_called()
+        self.assertIsInstance(response, StreamingHttpResponse)
+        self.assertIn(
+            'active_candidate_votes_', response['Content-Disposition']
+        )
+
+    @patch('tally_ho.libs.views.exports.save_barcode_results')
+    @patch('tally_ho.libs.views.exports.get_complete_barcodes')
+    def test_duplicates_report_returns_file_response(
+        self, mock_get_barcodes, mock_save_barcode
+    ):
+        """Test that 'duplicates' report uses file-based export and returns
+        HttpResponse (not StreamingHttpResponse)."""
+        import tempfile
+
+        # Create a temp CSV file to simulate the saved output
+        tmp = tempfile.NamedTemporaryFile(
+            delete=False, suffix='.csv', mode='w'
+        )
+        tmp.write("ballot,center,barcode,state,station,votes\n")
+        tmp.write("1,1001,111111,Archived,1,\"(10, 20)\"\n")
+        tmp.close()
+
+        mock_get_barcodes.return_value = ['111111']
+        mock_save_barcode.return_value = tmp.name
+
+        response = get_result_export_response('duplicates', self.tally.id)
+
+        mock_get_barcodes.assert_called_once_with(self.tally.id)
+        mock_save_barcode.assert_called_once_with(
+            ['111111'], output_duplicates=True,
+            output_to_file=True, tally_id=self.tally.id
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIsInstance(response, StreamingHttpResponse)
+        self.assertIn(
+            'duplicate_results_', response['Content-Disposition']
+        )
+        self.assertEqual(
+            response['Content-Type'], 'text/csv; charset=utf-8'
+        )
+        # Verify CSV content was written to response
+        self.assertIn('ballot,center,barcode', response.content.decode())
+
+        # Clean up
+        os.unlink(tmp.name)
+
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    @override_settings(DEBUG=False)
+    def test_export_exception_returns_500_when_not_debug(
+        self, mock_stream_cv
+    ):
+        """Test that exceptions return 500 response when DEBUG=False."""
+        mock_stream_cv.side_effect = Exception("Database error")
+
+        response = get_result_export_response(
+            'all-candidates', self.tally.id
+        )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertIn('Export failed', response.content.decode())
+        self.assertEqual(response['Content-Type'], 'text/plain')
+
+    @patch('tally_ho.libs.views.exports.stream_candidate_votes_csv')
+    @override_settings(DEBUG=True)
+    def test_export_exception_reraises_when_debug(
+        self, mock_stream_cv
+    ):
+        """Test that exceptions are re-raised when DEBUG=True."""
+        mock_stream_cv.side_effect = Exception("Database error")
+
+        with self.assertRaises(Exception) as ctx:
+            get_result_export_response('all-candidates', self.tally.id)
+        self.assertEqual(str(ctx.exception), "Database error")

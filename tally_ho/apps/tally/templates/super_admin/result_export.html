@@ -1,17 +1,79 @@
 {% extends 'base.html' %}
 
-{% load i18n %}
+{% load i18n static %}
 
 {% block content %}
 
-<h1>{% trans 'Downloads' %}</h1>
-<ul>
-    <li><a href="{% url 'candidate-results' tally_id=tally_id %}">{% trans 'Candidate Final Results' %}</a></li>
-    <li><a href="{% url 'result-export' tally_id=tally_id report='formresults' %}">{% trans 'Form Results' %}</a></li>
-    <li><a href="{% url 'result-export' tally_id=tally_id report='all-candidates' %}">{% trans 'All Candidate Votes' %}</a></li>
-    <li><a href="{% url 'result-export' tally_id=tally_id report='active-candidates' %}">{% trans 'Active Candidate Votes' %}</a></li>
-    <li><a href="{% url 'result-forms-with-duplicate-results' tally_id=tally_id %}">{% trans 'Result Forms With Duplicate Results' %}</a></li>
-    <li><a href="{% url 'form-results' tally_id=tally_id %}">{% trans 'Public Site Results Report' %}</a></li>
-</ul>
+<h2>{% trans 'Downloads' %}</h2>
+<p class="text-muted">{% trans 'Export tally data as CSV files or view report pages.' %}</p>
 
+<div class="row" style="margin-top: 20px;">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <span class="glyphicon glyphicon-download-alt"></span>
+                    {% trans 'CSV Downloads' %}
+                </h3>
+            </div>
+            <div class="list-group">
+                <div class="list-group-item">
+                    <h4 class="list-group-item-heading">{% trans 'Form Results' %}</h4>
+                    <p class="list-group-item-text text-muted">{% trans 'Detailed results per form with reconciliation data.' %}</p>
+                    <button class="btn btn-primary btn-sm download-btn" style="margin-top: 8px;"
+                            data-url="{% url 'result-export' tally_id=tally_id report='formresults' %}">
+                        <span class="glyphicon glyphicon-download"></span> {% trans 'Download CSV' %}
+                    </button>
+                </div>
+                <div class="list-group-item">
+                    <h4 class="list-group-item-heading">{% trans 'All Candidate Votes' %}</h4>
+                    <p class="list-group-item-text text-muted">{% trans 'Vote totals for all candidates including disabled.' %}</p>
+                    <button class="btn btn-primary btn-sm download-btn" style="margin-top: 8px;"
+                            data-url="{% url 'result-export' tally_id=tally_id report='all-candidates' %}">
+                        <span class="glyphicon glyphicon-download"></span> {% trans 'Download CSV' %}
+                    </button>
+                </div>
+                <div class="list-group-item">
+                    <h4 class="list-group-item-heading">{% trans 'Active Candidate Votes' %}</h4>
+                    <p class="list-group-item-text text-muted">{% trans 'Vote totals for active candidates only.' %}</p>
+                    <button class="btn btn-primary btn-sm download-btn" style="margin-top: 8px;"
+                            data-url="{% url 'result-export' tally_id=tally_id report='active-candidates' %}">
+                        <span class="glyphicon glyphicon-download"></span> {% trans 'Download CSV' %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <span class="glyphicon glyphicon-list-alt"></span>
+                    {% trans 'Reports' %}
+                </h3>
+            </div>
+            <div class="list-group">
+                <a href="{% url 'candidate-results' tally_id=tally_id %}" class="list-group-item">
+                    <h4 class="list-group-item-heading">{% trans 'Candidate Final Results' %}</h4>
+                    <p class="list-group-item-text text-muted">{% trans 'Final tallied results per candidate.' %}</p>
+                </a>
+                <a href="{% url 'result-forms-with-duplicate-results' tally_id=tally_id %}" class="list-group-item">
+                    <h4 class="list-group-item-heading">{% trans 'Result Forms With Duplicate Results' %}</h4>
+                    <p class="list-group-item-text text-muted">{% trans 'Forms flagged for matching vote patterns.' %}</p>
+                </a>
+                <a href="{% url 'form-results' tally_id=tally_id %}" class="list-group-item">
+                    <h4 class="list-group-item-heading">{% trans 'Public Site Results Report' %}</h4>
+                    <p class="list-group-item-text text-muted">{% trans 'Results formatted for the public website.' %}</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'js/export_download.js' %}"></script>
 {% endblock %}
