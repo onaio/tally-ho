@@ -61,6 +61,25 @@ class TestCreateDemoPvpBundle(TestCase):
                 self.assertIsNotNone(candidate.round2)
                 self.assertGreaterEqual(candidate.round2, 0)
 
+    def test_vote_patterns_differ_across_forms_in_same_ballot(self):
+        create_demo_pvp_bundle(tally=self.tally, output=self.output)
+
+        parsed = parse_bundle(self.output)
+        patterns_by_ballot = {}
+        for submission in parsed.rows:
+            pattern = tuple(
+                (c.candidate_id, c.round2) for c in submission.candidates
+            )
+            patterns_by_ballot.setdefault(
+                submission.ballot_number, [],
+            ).append(pattern)
+        for ballot, patterns in patterns_by_ballot.items():
+            self.assertEqual(
+                len(patterns), len(set(patterns)),
+                f"ballot {ballot} has duplicate vote patterns; "
+                f"would trip duplicate-result-tracking",
+            )
+
     def test_recon_r2_fields_populated(self):
         create_demo_pvp_bundle(tally=self.tally, output=self.output)
 

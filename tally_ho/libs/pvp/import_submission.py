@@ -17,6 +17,7 @@ Caller responsibilities:
 
 from __future__ import annotations
 
+import reversion
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils import timezone
@@ -48,6 +49,20 @@ def import_submission(
     parsed_submission, *, tally, bundle, uploaded_by, zip_ref,
 ):
     """Import one validated PVP submission as DE1 results + recon."""
+    with reversion.create_revision():
+        reversion.set_user(uploaded_by)
+        reversion.set_comment(
+            f"PVP import (bundle {bundle.id}, "
+            f"instance {parsed_submission.odk_instance_id})"
+        )
+        return _import_submission_inner(
+            parsed_submission, tally, bundle, uploaded_by, zip_ref,
+        )
+
+
+def _import_submission_inner(
+    parsed_submission, tally, bundle, uploaded_by, zip_ref,
+):
     result_form = ResultForm.objects.get(
         tally=tally, barcode=parsed_submission.barcode,
     )

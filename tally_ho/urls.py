@@ -534,6 +534,12 @@ urlpatterns = [
         name="pvp-result",
     ),
     re_path(
+        r"^super-administrator/(?P<tally_id>\d+)/pvp/status/"
+        r"(?P<bundle_id>\d+)/$",
+        pvp_views.PvpStatusView.as_view(),
+        name="pvp-status",
+    ),
+    re_path(
         r"^super-administrator/create-form/(?P<tally_id>(\d+))/$",
         super_admin.CreateResultFormView.as_view(),
         name="create-form",

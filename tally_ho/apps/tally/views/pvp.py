@@ -12,9 +12,10 @@ Three-step user journey:
 """
 
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView, TemplateView, View
 from guardian.mixins import LoginRequiredMixin
 
 from tally_ho.apps.tally.forms.pvp_upload_form import PvpUploadForm
@@ -24,6 +25,7 @@ from tally_ho.apps.tally.management.commands.async_pvp_import import (
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.pvp.bundle import (
     InvalidBundleError, DuplicateBarcodeError, parse_bundle,
@@ -49,10 +51,14 @@ class PvpUploadView(
         tally = get_object_or_404(Tally, id=tally_id)
         upload = form.cleaned_data["zip_file"]
 
+        # request.user is a Django User; the FK targets UserProfile (the
+        # multi-table-inherited subclass). Fetch the matching profile.
+        uploaded_by = UserProfile.objects.get(id=self.request.user.id)
+
         # Two-step save: persist row to get id, then attach zip and re-save.
         bundle = PvpUploadBundle.objects.create(
             tally=tally,
-            uploaded_by=self.request.user,
+            uploaded_by=uploaded_by,
             filename=upload.name,
         )
         bundle.zip_file = upload
@@ -147,3 +153,22 @@ class PvpResultView(
             "bundle": bundle,
         })
         return context
+
+
+class PvpStatusView(
+    LoginRequiredMixin, GroupRequiredMixin, TallyAccessMixin, View,
+):
+    group_required = groups.SUPER_ADMINISTRATOR
+
+    def get(self, request, tally_id, bundle_id):
+        bundle = get_object_or_404(
+            PvpUploadBundle, id=bundle_id, tally_id=tally_id,
+        )
+        return JsonResponse({
+            "status": bundle.status.name,
+            "number_of_submissions": bundle.number_of_submissions,
+            "imported_at": (
+                bundle.imported_at.isoformat()
+                if bundle.imported_at else None
+            ),
+        })

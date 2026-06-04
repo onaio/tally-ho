@@ -201,6 +201,16 @@ class TestImportSubmissionDB(ImportSubmissionTestBase, TestCase):
         self.assertEqual(self.result_form.pvp_submission_id, submission.id)
         self.assertTrue(self.result_form.from_pvp)
 
+    def test_creates_reversion_history_for_result_form(self):
+        from reversion.models import Version
+
+        self._import()
+        versions = Version.objects.get_for_object(self.result_form)
+        self.assertGreaterEqual(versions.count(), 1)
+        comment = versions.first().revision.comment
+        self.assertIn("PVP import", comment)
+        self.assertEqual(versions.first().revision.user_id, self.user.id)
+
     def test_atomic_rollback_leaves_no_partial_writes(self):
         # Use a candidate_id that doesn't exist for this tally so the
         # internal Candidate lookup raises and the @transaction.atomic

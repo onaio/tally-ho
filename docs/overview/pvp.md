@@ -6,9 +6,6 @@ an ODK form. If the two rounds match, the device captures a signed copy
 that can be ingested by tally-ho — skipping the manual Data Entry 1 pass
 that would otherwise be done from paper.
 
-This page is the user-facing pass-1 explainer. For the implementation
-plan see `docs/plans/2026-04-10-pvp-first-pass.md`.
-
 ## How a result gets into tally-ho
 
 ```text
@@ -93,6 +90,39 @@ shows the date the bundle was imported.
   stays linked unless the submission is explicitly deleted.
 - No support for replacement-form barcodes — the PVP devices won't
   scan them, by design.
+
+## Trying it locally
+
+The docker-compose stack seeds a small *Demo Tally* (id `1`, 2 ballots,
+6 candidates, 8 result forms) on boot so the PVP upload flow can be
+exercised end-to-end without setting up a real tally.
+
+```bash
+TALLY_HO_HTTP_PORT=9000 docker-compose up
+```
+
+1. Log in at <http://localhost:9000> as `tally_manager` / `data`, edit the
+   Demo Tally and set *PVP Mode* to `DE1_ONLY`.
+2. Generate a bundle that matches the demo tally:
+
+   ```bash
+   docker-compose exec web python manage.py create_demo_pvp_bundle \
+     --tally-id 1 --settings=tally_ho.settings.docker
+   ```
+
+   The zip lands on the host at `data/demo_pvp_bundle_1.zip` (the web
+   container's `/code/` is bind-mounted from the project root).
+3. Log out, log in as `super_administrator` / `data`, open
+   *Admin Operations → Upload PVP Bundle*, upload the zip, and confirm.
+4. After the celery task finishes, any of the 8 demo forms should be at
+   `DATA_ENTRY_2` with a *PVP* badge on its print cover.
+
+Helper commands:
+
+| Command | What it does |
+|---|---|
+| `create_demo_tally` | Idempotently seeds the demo tally. `--clean` wipes it first. Wired into compose boot. |
+| `create_demo_pvp_bundle --tally-id N [--output PATH]` | Emits a bundle zip targeting every result form in tally `N`. Defaults to `data/demo_pvp_bundle_<N>.zip`. |
 
 ## Where it lives in code
 

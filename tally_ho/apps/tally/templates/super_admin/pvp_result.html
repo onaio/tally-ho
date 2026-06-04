@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block content %}
   <h1>{% trans 'PVP import result' %}</h1>
@@ -19,19 +19,36 @@
     </tr>
     <tr>
       <th>{% trans 'Status' %}</th>
-      <td>{{ bundle.status }}</td>
+      <td id="pvp-status">{{ bundle.status.name }}</td>
     </tr>
     <tr>
       <th>{% trans 'Submissions imported' %}</th>
-      <td>{{ bundle.number_of_submissions }}</td>
+      <td id="pvp-count">{{ bundle.number_of_submissions }}</td>
     </tr>
     <tr>
       <th>{% trans 'Imported at' %}</th>
-      <td>{{ bundle.imported_at|default:"—" }}</td>
+      <td id="pvp-imported-at">{{ bundle.imported_at|default:"—" }}</td>
     </tr>
   </table>
 
   <a href="{% url 'super-administrator' tally_id=tally_id %}" class="btn btn-default">
     {% trans 'Back to dashboard' %}
   </a>
+{% endblock %}
+
+{% block javascript %}
+  {{ block.super }}
+  <script src="{% static 'js/async_status.js' %}"></script>
+  <script>
+    (function () {
+      var url = "{% url 'pvp-status' tally_id=tally_id bundle_id=bundle.id %}";
+      pollStatus(url, function (data) {
+        document.getElementById('pvp-status').textContent = data.status;
+        document.getElementById('pvp-count').textContent =
+          data.number_of_submissions;
+        document.getElementById('pvp-imported-at').textContent =
+          data.imported_at || '—';
+      });
+    })();
+  </script>
 {% endblock %}

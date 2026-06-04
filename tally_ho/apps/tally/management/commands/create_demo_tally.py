@@ -31,7 +31,7 @@ from tally_ho.libs.verify.quarantine_checks import (
 
 
 DEFAULT_NAME = "Demo Tally"
-BARCODE_START = 10000001
+BARCODE_START = 10000000001
 STATION_REGISTRANTS = 200
 
 BALLOTS = (

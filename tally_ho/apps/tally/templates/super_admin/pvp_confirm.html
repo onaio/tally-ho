@@ -11,18 +11,15 @@
 
   <h2>{% trans 'Will import' %} ({{ will_import|length }})</h2>
   {% if will_import %}
-    <details>
-      <summary>{% trans 'Show submissions' %}</summary>
-      <ul>
-        {% for sub in will_import %}
-          <li>
-            <code>{{ sub.barcode }}</code>
-            — {% trans 'ballot' %} {{ sub.ballot_number }}
-            ({{ sub.candidates|length }} {% trans 'candidates' %})
-          </li>
-        {% endfor %}
-      </ul>
-    </details>
+    <ul>
+      {% for sub in will_import %}
+        <li>
+          <code>{{ sub.barcode }}</code>
+          — {% trans 'ballot' %} {{ sub.ballot_number }}
+          ({{ sub.candidates|length }} {% trans 'candidates' %})
+        </li>
+      {% endfor %}
+    </ul>
   {% else %}
     <p class="text-muted">{% trans 'Nothing valid to import.' %}</p>
   {% endif %}

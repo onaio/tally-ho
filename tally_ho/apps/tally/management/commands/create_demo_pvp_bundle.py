@@ -94,7 +94,7 @@ def _build_rows(tally):
                 "candidate_order": str(candidate.order),
                 "candidate_result_round1": "",
                 "candidate_result_round2": str(
-                    _round2_votes(candidate.order),
+                    _round2_votes(candidate.order, form.barcode),
                 ),
                 "xml_form_id": f"results_demo_{tally.id}",
                 "staff_user_name": "demo_clerk",
@@ -109,9 +109,14 @@ def _build_rows(tally):
             yield row
 
 
-def _round2_votes(order):
-    # Stub vote counts that differ by candidate so the form looks plausible.
-    return max(0, 60 - 20 * (order - 1))
+def _round2_votes(order, barcode):
+    # Stub votes that vary by both candidate order *and* barcode so the
+    # generated bundle doesn't trip the duplicate-result-tracking check
+    # (which flags forms with identical vote patterns across all
+    # candidates in the same ballot).
+    base = max(0, 60 - 20 * (order - 1))
+    jitter = int(barcode[-2:]) % 11
+    return base + jitter
 
 
 def _default_output(tally_id):

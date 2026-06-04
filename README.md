@@ -66,7 +66,30 @@ uv run python manage.py runserver --settings=tally_ho.settings.dev
 
 ### Loading Tally Demo Data
 
-> **Note**: Add demo result forms and candidate lists.
+`create_demo_tally` seeds a minimal but realistic tally (2 ballots,
+6 candidates, 2 centers, 4 stations, 8 result forms, plus quarantine
+checks) for dogfooding the upload + entry flows. It's idempotent on
+name; pass `--clean` to wipe and re-create.
+
+> **Note**: Result form barcodes must be at least 11 characters — the
+> Data Entry barcode-verify UI enforces this client-side. The demo
+> tally uses 11-digit barcodes starting at `10000000001`.
+
+```bash
+uv run python manage.py create_demo_tally --settings=tally_ho.settings.dev
+```
+
+For the PVP upload flow specifically, `create_demo_pvp_bundle` emits a
+bundle zip targeting every result form in a tally. The zip lands at
+`data/demo_pvp_bundle_<tally_id>.zip` by default.
+
+```bash
+uv run python manage.py create_demo_pvp_bundle \
+  --tally-id <id> --settings=tally_ho.settings.dev
+```
+
+See [docs/overview/pvp.md](docs/overview/pvp.md) for the full PVP
+end-to-end walkthrough.
 
 ### Advanced: Recreate Database and Load Demo Users
 

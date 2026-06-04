@@ -11,13 +11,14 @@ import tempfile
 import zipfile
 from unittest import mock
 
+from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, override_settings
 
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
 from tally_ho.apps.tally.views.pvp import (
-    PvpConfirmView, PvpResultView, PvpUploadView,
+    PvpConfirmView, PvpResultView, PvpStatusView, PvpUploadView,
 )
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
@@ -156,7 +157,11 @@ class TestPvpUploadView(_PvpViewTestBase, TestCase):
             "bundle.zip", zip_bytes, content_type="application/zip",
         )
         request = self.factory.post("/", data={"zip_file": upload})
-        request.user = self.user
+        # Real Django auth middleware sets request.user to a base User
+        # (the AUTH_USER_MODEL); UserProfile is a multi-table-inherited
+        # subclass with a matching pk. Use the base User row to mirror
+        # production and catch the FK-assignment trap.
+        request.user = User.objects.get(id=self.user.id)
         request.session = {}
         response = view(request, tally_id=self.tally.id)
         self.assertEqual(response.status_code, 302)
@@ -262,6 +267,46 @@ class TestPvpResultView(_PvpViewTestBase, TestCase):
         self.assertIn("COMPLETED", body)
         self.assertIn("Submissions imported", body)
         self.assertIn(">3<", body)
+
+
+class TestPvpStatusView(_PvpViewTestBase, TestCase):
+    def _call(self, bundle):
+        view = PvpStatusView.as_view()
+        request = self.factory.get("/")
+        request.user = self.user
+        request.session = {}
+        return view(
+            request, tally_id=self.tally.id, bundle_id=bundle.id,
+        )
+
+    def test_returns_json_with_status_count_and_imported_at(self):
+        import json
+
+        bundle = PvpUploadBundle.objects.create(
+            tally=self.tally, uploaded_by=self.user, filename="b.zip",
+            status=PvpBundleStatus.IMPORTING, number_of_submissions=2,
+        )
+        response = self._call(bundle)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+        payload = json.loads(response.content)
+        self.assertEqual(payload["status"], "IMPORTING")
+        self.assertEqual(payload["number_of_submissions"], 2)
+        self.assertIsNone(payload["imported_at"])
+
+    def test_completed_bundle_includes_imported_at(self):
+        import json
+        from django.utils import timezone
+
+        bundle = PvpUploadBundle.objects.create(
+            tally=self.tally, uploaded_by=self.user, filename="b.zip",
+            status=PvpBundleStatus.COMPLETED, number_of_submissions=5,
+            imported_at=timezone.now(),
+        )
+        payload = json.loads(self._call(bundle).content)
+        self.assertEqual(payload["status"], "COMPLETED")
+        self.assertEqual(payload["number_of_submissions"], 5)
+        self.assertIsNotNone(payload["imported_at"])
 
 
 class TestPvpViewPermissions(_PvpViewTestBase, TestCase):

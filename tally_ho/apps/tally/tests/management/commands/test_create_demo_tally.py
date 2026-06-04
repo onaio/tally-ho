@@ -43,7 +43,7 @@ class TestCreateDemoTally(TestCase):
         )
         self.assertEqual(
             barcodes,
-            [str(10000001 + i) for i in range(8)],
+            [str(10000000001 + i) for i in range(8)],
         )
 
     def test_result_forms_start_unsubmitted(self):
