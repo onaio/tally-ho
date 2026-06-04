@@ -3,6 +3,9 @@ from django.test import TestCase
 from tally_ho.apps.tally.management.commands.create_demo_tally import (
     create_demo_tally,
 )
+from tally_ho.apps.tally.management.commands.create_demo_users import (
+    create_demo_users_with_groups,
+)
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.center import Center
@@ -10,6 +13,7 @@ from tally_ho.apps.tally.models.electrol_race import ElectrolRace
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_mode import PvpMode
 
@@ -89,3 +93,13 @@ class TestCreateDemoTally(TestCase):
         for station in Station.objects.filter(tally=tally):
             self.assertIsNotNone(station.registrants)
             self.assertGreater(station.registrants, 0)
+
+    def test_super_admin_demo_user_can_access_tally(self):
+        create_demo_users_with_groups()
+
+        tally = create_demo_tally(name=self.name)
+
+        profile = UserProfile.objects.get(username="super_administrator")
+        self.assertTrue(
+            profile.administrated_tallies.filter(id=tally.id).exists(),
+        )

@@ -20,6 +20,7 @@ from tally_ho.apps.tally.models.station import Station
 from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.models.enums.pvp_mode import PvpMode
@@ -83,8 +84,17 @@ def create_demo_tally(name=DEFAULT_NAME, clean=False):
         centers = _create_centers_and_stations(tally, office, sub_con)
         _create_result_forms(tally, office, ballots_by_number, centers)
         ensure_quarantine_checks(tally_id=tally.id)
+        _grant_super_admin_access(tally)
 
         return tally
+
+
+def _grant_super_admin_access(tally):
+    # TallyAccessMixin gates super-admin views on
+    # ``UserProfile.administrated_tallies``; link the demo super admin so
+    # ``/super-administrator/<id>/`` is reachable out of the box.
+    for profile in UserProfile.objects.filter(username="super_administrator"):
+        profile.administrated_tallies.add(tally)
 
 
 def _delete_tally_cascade(name):

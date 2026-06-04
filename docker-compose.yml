@@ -21,12 +21,14 @@ services:
       - db1_net
   web:
     build: .
+    environment:
+      TALLY_HO_HTTP_PORT: ${TALLY_HO_HTTP_PORT:-8000}
     command: >
       bash -c "python manage.py migrate --settings=tally_ho.settings.docker
       && python manage.py create_groups --settings=tally_ho.settings.docker
       && python manage.py create_demo_users --settings=tally_ho.settings.docker
       && python manage.py create_demo_tally --settings=tally_ho.settings.docker
-      && DJANGO_SETTINGS_MODULE=tally_ho.settings.docker gunicorn --limit-request-line 6000 --chdir /code --bind :8000 tally_ho.wsgi:application"
+      && DJANGO_SETTINGS_MODULE=tally_ho.settings.docker gunicorn --reload --limit-request-line 6000 --chdir /code --bind :8000 tally_ho.wsgi:application"
     volumes:
       - .:/code
       - static_volume:/code/tally_ho/static
