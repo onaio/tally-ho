@@ -50,54 +50,35 @@ uv run pre-commit install
 uv run celery -A tally_ho.celeryapp worker --loglevel=info
 ```
 
-### Quick Start with User Demo Data
-
-> **Warning**: This will erase all database data.
-
-```bash
-./scripts/quick_start
-```
-
-If server setup is complete, start the server:
-
-```bash
-uv run python manage.py runserver --settings=tally_ho.settings.dev
-```
-
 ### Loading Tally Demo Data
 
-`create_demo_tally` seeds a minimal but realistic tally (2 ballots,
-6 candidates, 2 centers, 4 stations, 8 result forms, plus quarantine
-checks) for dogfooding the upload + entry flows. It's idempotent on
-name; pass `--clean` to wipe and re-create.
+The docker-compose stack auto-seeds a demo tally on boot via
+`create_demo_tally` — 2 ballots, 6 candidates, 2 centers, 4 stations,
+8 result forms, plus quarantine checks. It's idempotent on name;
+re-run with `--clean` to wipe and re-create.
+
+To run management commands against the running stack, use the
+`./build.sh` wrapper:
+
+```bash
+./build.sh create_demo_tally --clean
+```
 
 > **Note**: Result form barcodes must be at least 11 characters — the
 > Data Entry barcode-verify UI enforces this client-side. The demo
 > tally uses 11-digit barcodes starting at `10000000001`.
 
-```bash
-uv run python manage.py create_demo_tally --settings=tally_ho.settings.dev
-```
-
 For the PVP upload flow specifically, `create_demo_pvp_bundle` emits a
 bundle zip targeting every result form in a tally. The zip lands at
-`data/demo_pvp_bundle_<tally_id>.zip` by default.
+`data/demo_pvp_bundle_<tally_id>.zip` (visible on the host via the
+project-root bind mount).
 
 ```bash
-uv run python manage.py create_demo_pvp_bundle \
-  --tally-id <id> --settings=tally_ho.settings.dev
+./build.sh create_demo_pvp_bundle --tally-id <id>
 ```
 
 See [docs/overview/pvp.md](docs/overview/pvp.md) for the full PVP
 end-to-end walkthrough.
-
-### Advanced: Recreate Database and Load Demo Users
-
-> **Warning**: This erases all database data and only works with files in `./data`.
-
-```bash
-./scripts/reload_all postgres 127.0.0.1 tally_ho.settings.common
-```
 
 ## Docker Installation
 

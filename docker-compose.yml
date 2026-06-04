@@ -23,6 +23,7 @@ services:
     build: .
     environment:
       TALLY_HO_HTTP_PORT: ${TALLY_HO_HTTP_PORT:-8000}
+      DJANGO_SETTINGS_MODULE: tally_ho.settings.docker
     command: >
       bash -c "python manage.py migrate --settings=tally_ho.settings.docker
       && python manage.py create_groups --settings=tally_ho.settings.docker
