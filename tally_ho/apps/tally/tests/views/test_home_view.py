@@ -26,6 +26,17 @@ class TestHomeView(TestBase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/intake', response['location'])
 
+    def test_clerk_with_inactive_tally_redirects_to_no_tally(self):
+        self._create_and_login_user()
+        tally = create_tally()
+        tally.users.add(self.user)
+        tally.active = False
+        tally.save()
+        self._add_user_to_group(self.user, groups.INTAKE_CLERK)
+        response = self.view(self.request, tally_id=tally.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/not-tally', response['location'])
+
     def test_suspicious_error(self):
         self._create_and_login_user()
         error_message = "Some Error Message!"

@@ -60,7 +60,7 @@ def get_user_role_url(user):
         if user_group.name not in [groups.TALLY_MANAGER,
                                    groups.SUPER_ADMINISTRATOR]:
             userprofile = UserProfile.objects.get(id=user.id)
-            if not userprofile.tally:
+            if not userprofile.tally or not userprofile.tally.active:
                 return reverse('home-no-tally')
             kwargs = {'tally_id': userprofile.tally.id}
 
