@@ -392,9 +392,10 @@ class TestImportBundle(ImportSubmissionTestBase, TestCase):
         self.assertEqual(self.bundle.number_of_submissions, 0)
         self.assertIsNotNone(self.bundle.imported_at)
 
-    def test_failure_marks_bundle_failed_and_reraises(self):
-        # Second submission references a candidate_id that doesn't exist;
-        # first submission imports successfully then we hit DoesNotExist.
+    def test_failure_marks_bundle_failed_reraises_and_rolls_back_all(self):
+        # Second submission references a candidate_id that doesn't exist.
+        # Under all-or-nothing semantics the first submission must also
+        # be rolled back so the bundle leaves no partial trace.
         bad = self._parsed_submission(
             odk_instance_id="uuid:rf-2", barcode="222",
             candidates=(
@@ -420,6 +421,8 @@ class TestImportBundle(ImportSubmissionTestBase, TestCase):
         self.bundle.refresh_from_db()
         self.assertEqual(self.bundle.status, PvpBundleStatus.FAILED)
         self.assertIsNone(self.bundle.imported_at)
-        # First submission committed (each import_submission is its own
-        # atomic block); failed second left no trace.
-        self.assertEqual(self.bundle.submissions.count(), 1)
+        # All-or-nothing: nothing persisted.
+        self.assertEqual(self.bundle.submissions.count(), 0)
+        self.result_form.refresh_from_db()
+        self.assertEqual(self.result_form.form_state, FormState.UNSUBMITTED)
+        self.assertFalse(self.result_form.from_pvp)

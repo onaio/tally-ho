@@ -166,7 +166,8 @@ def _build_parsed_bundle(csv_rows, media_filenames):
         )
         recon = {col: _to_int(first.get(col)) for col in RECON_COLUMNS}
         images = {
-            col: (first.get(col) or None) for col in IMAGE_COLUMNS
+            col: _safe_image_filename(first.get(col))
+            for col in IMAGE_COLUMNS
         }
         submission = ParsedSubmission(
             odk_instance_id=instance_id,
@@ -206,6 +207,24 @@ def _build_parsed_bundle(csv_rows, media_filenames):
         rows=tuple(submissions),
         missing_images=missing_images,
     )
+
+
+def _safe_image_filename(value):
+    """Drop unsafe image filenames at parse time.
+
+    Image filenames in the CSV reference entries under ``media/<name>``
+    in the zip. Allowing path separators (``/``, ``\\``) or parent
+    traversal (``..``) would let a crafted bundle either read arbitrary
+    zip entries or, via Django's FileField, land outside the per-
+    submission upload directory. Anything suspicious is treated as
+    "no image": missing filenames are already a normal case (the
+    confirmation screen warns), so the bundle still imports.
+    """
+    if not value:
+        return None
+    if "/" in value or "\\" in value or ".." in value:
+        return None
+    return value
 
 
 def _to_int(value):

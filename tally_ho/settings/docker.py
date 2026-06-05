@@ -1,3 +1,14 @@
+"""Demo / dev settings for the docker-compose stack.
+
+NOT for production. This module:
+
+- enables ``DEBUG=True``
+- points at the in-network postgres / redis / memcached service hostnames
+- trusts ``http://localhost:<TALLY_HO_HTTP_PORT>`` for CSRF
+
+Production deployments should run their own settings module that
+inherits ``tally_ho.settings.common`` and keeps ``DEBUG=False``.
+"""
 import os
 
 from tally_ho.settings.common import *  # noqa

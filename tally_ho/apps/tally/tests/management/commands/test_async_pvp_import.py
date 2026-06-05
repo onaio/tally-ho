@@ -11,7 +11,6 @@ import shutil
 import tempfile
 import zipfile
 
-from celery.contrib.testing.worker import start_worker
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TransactionTestCase, override_settings
 
@@ -21,7 +20,6 @@ from tally_ho.apps.tally.management.commands.async_pvp_import import (
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
-from tally_ho.celeryapp import app
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 from tally_ho.libs.models.enums.pvp_mode import PvpMode
@@ -96,18 +94,8 @@ def _build_zip_bytes(rows, image_filenames):
 
 
 class AsyncPvpImportTestCase(TransactionTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.celery_worker = start_worker(
-            app, loglevel="info", perform_ping_check=False,
-        )
-        cls.celery_worker.__enter__()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-        cls.celery_worker.__exit__(None, None, None)
+    # The test invokes the celery task via .apply() so it runs
+    # synchronously in-process. No broker / no worker needed.
 
     def setUp(self):
         self._media_root = tempfile.mkdtemp(prefix="tally_test_media_")
@@ -175,10 +163,11 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         shutil.rmtree(self._media_root, ignore_errors=True)
 
     def test_async_pvp_import_end_to_end(self):
-        result = async_pvp_import.delay(
-            bundle_id=self.bundle.id, user_id=self.user.id,
+        # apply() runs the task synchronously in-process regardless of
+        # broker state, which keeps the test deterministic.
+        async_pvp_import.apply(
+            kwargs={"bundle_id": self.bundle.id, "user_id": self.user.id},
         )
-        result.wait()
 
         self.bundle.refresh_from_db()
         self.assertEqual(self.bundle.status, PvpBundleStatus.COMPLETED)
@@ -191,3 +180,23 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         self.assertEqual(
             self.result_form.form_state, FormState.DATA_ENTRY_2,
         )
+
+    def test_async_pvp_import_marks_failed_when_parse_raises(self):
+        # Corrupt the persisted zip so parse_bundle raises. Without the
+        # try/except in async_pvp_import this would leave the bundle
+        # stuck in IMPORTING.
+        with open(self.bundle.zip_file.path, "wb") as fh:
+            fh.write(b"not a zip")
+
+        with self.assertRaises(Exception):
+            async_pvp_import.apply(
+                kwargs={
+                    "bundle_id": self.bundle.id, "user_id": self.user.id,
+                },
+                throw=True,
+            )
+
+        self.bundle.refresh_from_db()
+        self.assertEqual(self.bundle.status, PvpBundleStatus.FAILED)
+        self.assertIsNone(self.bundle.imported_at)
+        self.assertEqual(PvpSubmission.objects.count(), 0)

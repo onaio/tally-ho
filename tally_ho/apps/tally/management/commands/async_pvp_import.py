@@ -38,28 +38,38 @@ def async_pvp_import(bundle_id, user_id):
     bundle.status = PvpBundleStatus.IMPORTING
     bundle.save(update_fields=["status", "modified_date"])
 
-    zip_path = bundle.zip_file.path
-    parsed = parse_bundle(zip_path)
+    # Catch failures from parse/validation too — otherwise a corrupted
+    # zip leaves the bundle stuck in IMPORTING. import_bundle handles
+    # its own FAILED flip; this except covers everything before it.
+    try:
+        zip_path = bundle.zip_file.path
+        parsed = parse_bundle(zip_path)
 
-    barcodes = [s.barcode for s in parsed.rows]
-    rf_by_barcode = {
-        rf.barcode: rf
-        for rf in ResultForm.objects.filter(
-            tally=bundle.tally, barcode__in=barcodes,
-        )
-    }
-    valid_submissions = [
-        s for s in parsed.rows
-        if validate_row(s, bundle.tally, rf_by_barcode).valid
-    ]
+        barcodes = [s.barcode for s in parsed.rows]
+        rf_by_barcode = {
+            rf.barcode: rf
+            for rf in ResultForm.objects.filter(
+                tally=bundle.tally, barcode__in=barcodes,
+            )
+        }
+        valid_submissions = [
+            s for s in parsed.rows
+            if validate_row(s, bundle.tally, rf_by_barcode).valid
+        ]
 
-    with zipfile.ZipFile(zip_path) as zip_ref:
-        import_bundle(
-            bundle=bundle,
-            submissions=valid_submissions,
-            tally=bundle.tally,
-            uploaded_by=user,
-            zip_ref=zip_ref,
-        )
+        with zipfile.ZipFile(zip_path) as zip_ref:
+            import_bundle(
+                bundle=bundle,
+                submissions=valid_submissions,
+                tally=bundle.tally,
+                uploaded_by=user,
+                zip_ref=zip_ref,
+            )
+    except Exception:
+        bundle.refresh_from_db(fields=["status"])
+        if bundle.status != PvpBundleStatus.FAILED:
+            bundle.status = PvpBundleStatus.FAILED
+            bundle.save(update_fields=["status", "modified_date"])
+        raise
 
     return bundle.id
