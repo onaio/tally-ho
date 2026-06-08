@@ -202,6 +202,20 @@ class ResultForm(BaseModel):
     def from_pvp(self):
         return self.pvp_submission_id is not None
 
+    @property
+    def pvp_submissions_history(self):
+        """Every PvpSubmission ever applied to this form (oldest first).
+
+        After ``reset_to_unsubmitted`` clears ``pvp_submission``, the
+        old PvpSubmission row stays in the DB as a historical record.
+        Lookup is by ``(tally, barcode)`` — barcode is unique per tally
+        on ``ResultForm`` so this is a stable join.
+        """
+        from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
+        return PvpSubmission.objects.filter(
+            tally=self.tally, barcode=self.barcode,
+        ).order_by("created_date")
+
     # Field used in result duplicated list view
     results_duplicated = []
 
@@ -491,8 +505,12 @@ class ResultForm(BaseModel):
             active=False, modified_date=modified_date
         )
 
-        # Reset form state to UNSUBMITTED
+        # Reset form state to UNSUBMITTED and clear the PVP source pointer
+        # so the form is eligible for re-upload (the badge also goes away).
+        # The original PvpSubmission row stays in the DB as history,
+        # queryable by (tally, barcode) — see pvp_submissions_history.
         self.form_state = FormState.UNSUBMITTED
+        self.pvp_submission = None
         self.save()
 
         # Create a ResultFormReset record

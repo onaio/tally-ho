@@ -35,9 +35,14 @@ ODK Central                  network host                     tally-ho host
 
 ## What the operator sees
 
-1. **Configure the tally** — Tally-manager edits the tally and sets
-   *PVP Mode* to `DE1_ONLY`. (`DE1_AND_DE2` is rendered as disabled in
-   pass 1; coming in pass 2.)
+1. **Configure the tally** — Tally-manager edits the tally and picks a
+   *PVP Mode*:
+   - `DE1_ONLY`: round 2 is written as `DATA_ENTRY_1`; a human DE2 clerk
+     still enters round 2 from paper independently. Corrections catches
+     any mismatch.
+   - `DE1_AND_DE2`: round 1 → `DATA_ENTRY_1`, round 2 → `DATA_ENTRY_2`.
+     The device already guarantees round 1 == round 2, so the form
+     skips corrections and goes straight to `QUALITY_CONTROL`.
 2. **Upload a bundle** — Super-admin opens the PVP upload screen,
    selects the `.zip` produced by `odk-central-sync`. Tally-ho sanity-
    parses the zip and redirects to the confirmation screen.
@@ -70,6 +75,9 @@ Bundle-level rejections (whole bundle fails fast):
 - Zip can't be opened or `candidate_results.csv` is missing
 - Required CSV columns are missing
 - More than one row references the same barcode
+- Any candidate row has a missing round, or round 1 ≠ round 2
+  (the device guarantees both, so any departure signals upstream
+  data corruption — surfaces as `RoundIntegrityError`)
 
 ## What the "PVP" badge means
 
@@ -78,19 +86,35 @@ print cover or detail page), it means the form's DATA_ENTRY_1 results
 were populated by a PVP upload rather than by a manual clerk. A caption
 shows the date the bundle was imported.
 
-## What pass 1 doesn't do (yet)
+## Provenance after a reset
 
-- `DE1_AND_DE2` mode is not implemented — the dropdown shows it but
-  rejects it both client-side and server-side. Pass 2 wires it up.
-- No retry: if the Celery task fails mid-bundle, the entire bundle is
-  rolled back atomically (status `FAILED`, no `ResultForm` is left in
-  `DATA_ENTRY_2`). An operator can re-upload after fixing the underlying
-  issue.
+Resetting a PVP-imported form to `UNSUBMITTED` (via *Admin Operations →
+Reset Form*) clears `ResultForm.pvp_submission` and deactivates the
+PVP-written results. The form becomes eligible for re-upload via PVP
+(or normal manual entry through INTAKE → DE1 → DE2), and the badge
+disappears because it's no longer "currently sourced from PVP."
+
+The original `PvpSubmission` row itself stays in the database as a
+historical record — `ResultForm.pvp_submissions_history` returns every
+PVP submission ever applied to a given form via a `(tally, barcode)`
+join, oldest first. Reversion history also captures each PVP import
+with the bundle id and ODK instance id.
+
+`PvpUploadBundle.mode` snapshots the tally's `pvp_mode` at upload time
+and never mutates after that, so exports and audit can always answer
+"what mode was applied to this form?" even if `Tally.pvp_mode` is
+later changed.
+
+## What's not in scope yet
+
+- `pvp_mode` immutability — admins can flip `Tally.pvp_mode` at any
+  time. Future bundles use the new mode; existing bundles/submissions
+  remember the mode they were imported under via
+  `PvpUploadBundle.mode`. Locking the mode mid-tally is a separate
+  decision.
 - No PVP-specific reporting beyond the per-form badge and two new
   columns (`from_pvp`, `pvp_mode_applied`) in the row-per-form CSV
   exports.
-- No "reset PVP" admin action — once linked, a `ResultForm.pvp_submission`
-  stays linked unless the submission is explicitly deleted.
 - No support for replacement-form barcodes — the PVP devices won't
   scan them, by design.
 
@@ -106,7 +130,7 @@ TALLY_HO_HTTP_PORT=9000 docker-compose up
 ```
 
 1. Log in at <http://localhost:9000> as `tally_manager` / `data`, edit the
-   Demo Tally and set *PVP Mode* to `DE1_ONLY`.
+   Demo Tally and set *PVP Mode* to `DE1_ONLY` or `DE1_AND_DE2`.
 2. Generate a bundle that matches the demo tally:
 
    ```bash
@@ -121,7 +145,8 @@ TALLY_HO_HTTP_PORT=9000 docker-compose up
 3. Log out, log in as `super_administrator` / `data`, open
    *Admin Operations → Upload PVP Bundle*, upload the zip, and confirm.
 4. The result page updates in place; the demo forms end up at
-   `DATA_ENTRY_2` with a *PVP* badge on their print covers and a
+   `DATA_ENTRY_2` (under `DE1_ONLY`) or `QUALITY_CONTROL` (under
+   `DE1_AND_DE2`) with a *PVP* badge on their print covers and a
    reversion history entry attributing the import to
    `super_administrator`.
 

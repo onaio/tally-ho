@@ -86,16 +86,18 @@ def _build_rows(tally):
         instance_id = f"uuid:demo-{tally.id}-{index}"
         candidates = form.ballot.candidates.order_by("order")
         for candidate in candidates:
+            # PVP's whole premise is double-entry: the device only
+            # emits when round1 == round2. The bundle parser enforces
+            # this at parse time, so the demo bundle must mirror it.
+            votes = _round2_votes(candidate.order, form.barcode)
             row = {
                 "meta-instanceID": instance_id,
                 "barcode": form.barcode,
                 "ballot_number": str(form.ballot.number),
                 "candidate_id": str(candidate.candidate_id),
                 "candidate_order": str(candidate.order),
-                "candidate_result_round1": "",
-                "candidate_result_round2": str(
-                    _round2_votes(candidate.order, form.barcode),
-                ),
+                "candidate_result_round1": str(votes),
+                "candidate_result_round2": str(votes),
                 "xml_form_id": f"results_demo_{tally.id}",
                 "staff_user_name": "demo_clerk",
                 "clerk_signature": STUB_IMAGES[0],

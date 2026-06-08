@@ -1,10 +1,8 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from tally_ho.apps.tally.forms.fields import PvpModeSelect
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
-from tally_ho.libs.models.enums.pvp_mode import PvpMode
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.utils.form import lower_case_form_data
 
@@ -21,7 +19,7 @@ class TallyForm(forms.ModelForm):
             "print_cover_in_audit",
         ]
         widgets = {
-            "pvp_mode": PvpModeSelect(attrs={"class": "form-control"}),
+            "pvp_mode": forms.Select(attrs={"class": "form-control"}),
         }
 
     administrators = forms.ModelMultipleChoiceField(
@@ -52,17 +50,6 @@ class TallyForm(forms.ModelForm):
             "Enable Cover Printing in Quality Control"
         )
         self.fields["print_cover_in_audit"].label = _("Enable Cover Printing in Audit")
-
-    def clean_pvp_mode(self):
-        # Defense in depth: the PvpModeSelect widget marks DE1_AND_DE2 as
-        # `disabled` in the HTML, but that's bypassable from a client.
-        value = self.cleaned_data["pvp_mode"]
-        if value == PvpMode.DE1_AND_DE2:
-            raise forms.ValidationError(
-                _("DE1_AND_DE2 mode is not yet implemented "
-                  "(coming in pass 2).")
-            )
-        return value
 
     def clean(self):
         if self.is_valid():

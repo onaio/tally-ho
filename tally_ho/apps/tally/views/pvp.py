@@ -56,10 +56,14 @@ class PvpUploadView(
         uploaded_by = UserProfile.objects.get(id=self.request.user.id)
 
         # Two-step save: persist row to get id, then attach zip and re-save.
+        # mode is snapshotted from the tally's current setting; Tally.pvp_mode
+        # is mutable, so a later change does not retroactively re-tag this
+        # bundle.
         bundle = PvpUploadBundle.objects.create(
             tally=tally,
             uploaded_by=uploaded_by,
             filename=upload.name,
+            mode=tally.pvp_mode,
         )
         bundle.zip_file = upload
         bundle.save()

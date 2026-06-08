@@ -5,6 +5,7 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
 
 
 def bundle_zip_upload_to(instance, filename):
@@ -38,6 +39,12 @@ class PvpUploadBundle(BaseModel):
     status = EnumIntegerField(
         PvpBundleStatus, default=PvpBundleStatus.PENDING,
     )
+    # Snapshot of Tally.pvp_mode at upload time. Tally.pvp_mode itself
+    # remains mutable; this field records what mode was actually applied
+    # when the bundle was imported, so downstream consumers (exports,
+    # audit, reporting) read the historical mode instead of the
+    # current setting.
+    mode = EnumIntegerField(PvpMode, default=PvpMode.DISABLED)
     number_of_submissions = models.PositiveIntegerField(default=0)
     imported_at = models.DateTimeField(null=True, blank=True)
 

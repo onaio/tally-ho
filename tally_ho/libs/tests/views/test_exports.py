@@ -507,9 +507,10 @@ class TestPvpExportColumns(TestBase):
             form_state=FormState.UNSUBMITTED,
         )
 
-    def _link_pvp(self, result_form):
+    def _link_pvp(self, result_form, mode=PvpMode.DE1_ONLY):
         bundle = PvpUploadBundle.objects.create(
             tally=self.tally, uploaded_by=self.user, filename="b.zip",
+            mode=mode,
         )
         sub = PvpSubmission.objects.create(
             tally=self.tally, bundle=bundle,
@@ -542,4 +543,16 @@ class TestPvpExportColumns(TestBase):
         self._link_pvp(rf)
         out = build_candidate_results_output(rf)
         self.assertTrue(out["from_pvp"])
+        self.assertEqual(out["pvp_mode_applied"], "DE1_ONLY")
+
+    def test_pvp_mode_applied_is_bundle_snapshot_not_tally_current(self):
+        # Import happens under DE1_ONLY; tally later changes to DISABLED.
+        # Exports must still report DE1_ONLY (the mode at import time).
+        self.tally.pvp_mode = PvpMode.DE1_ONLY
+        self.tally.save()
+        rf = self._make_result_form("103")
+        self._link_pvp(rf, mode=PvpMode.DE1_ONLY)
+        self.tally.pvp_mode = PvpMode.DISABLED
+        self.tally.save()
+        out = build_candidate_results_output(rf)
         self.assertEqual(out["pvp_mode_applied"], "DE1_ONLY")

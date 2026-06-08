@@ -71,6 +71,16 @@ class DuplicateBarcodeError(Exception):
     """More than one submission row references the same barcode."""
 
 
+class RoundIntegrityError(Exception):
+    """A row has missing rounds or a round1 != round2 mismatch.
+
+    The device's whole purpose is double-entry validation: both rounds
+    should be present and equal in every emitted submission. Any
+    departure signals data corruption between device and tally — fail
+    the whole bundle so the operator investigates.
+    """
+
+
 @dataclass(frozen=True)
 class CandidateResult:
     candidate_id: str
@@ -110,21 +120,21 @@ def parse_bundle(zip_path) -> ParsedBundle:
     """
     path = Path(zip_path)
     try:
-        zf = zipfile.ZipFile(path)
+        archive = zipfile.ZipFile(path)
     except (zipfile.BadZipFile, OSError) as exc:
         raise InvalidBundleError(f"could not open zip: {exc}") from exc
 
-    with zf:
-        if CSV_NAME not in zf.namelist():
+    with archive:
+        if CSV_NAME not in archive.namelist():
             raise InvalidBundleError(
                 f"bundle is missing {CSV_NAME}"
             )
         media_filenames = {
             name[len(MEDIA_DIR) + 1:]
-            for name in zf.namelist()
+            for name in archive.namelist()
             if name.startswith(MEDIA_DIR + "/") and not name.endswith("/")
         }
-        with zf.open(CSV_NAME) as raw:
+        with archive.open(CSV_NAME) as raw:
             text = io.TextIOWrapper(raw, encoding="utf-8", newline="")
             reader = csv.DictReader(text)
             _check_required_columns(reader.fieldnames or [])
@@ -135,7 +145,7 @@ def parse_bundle(zip_path) -> ParsedBundle:
 
 def _check_required_columns(fieldnames):
     present = set(fieldnames)
-    missing = [c for c in REQUIRED_COLUMNS if c not in present]
+    missing = [column for column in REQUIRED_COLUMNS if column not in present]
     if missing:
         raise InvalidBundleError(
             f"bundle CSV is missing required columns: {', '.join(missing)}"
@@ -157,12 +167,12 @@ def _build_parsed_bundle(csv_rows, media_filenames):
         first = group[0]
         candidates = tuple(
             CandidateResult(
-                candidate_id=r["candidate_id"],
-                candidate_order=_to_int(r["candidate_order"]) or 0,
-                round1=_to_int(r["candidate_result_round1"]),
-                round2=_to_int(r["candidate_result_round2"]),
+                candidate_id=row["candidate_id"],
+                candidate_order=_to_int(row["candidate_order"]) or 0,
+                round1=_to_int(row["candidate_result_round1"]),
+                round2=_to_int(row["candidate_result_round2"]),
             )
-            for r in group
+            for row in group
         )
         recon = {col: _to_int(first.get(col)) for col in RECON_COLUMNS}
         images = {
@@ -195,10 +205,12 @@ def _build_parsed_bundle(csv_rows, media_filenames):
             f"barcodes appear in more than one submission: {listing}"
         )
 
+    _check_round_integrity(submissions)
+
     referenced_images = {
         name
-        for s in submissions
-        for name in s.images.values()
+        for submission in submissions
+        for name in submission.images.values()
         if name
     }
     missing_images = sorted(referenced_images - media_filenames)
@@ -209,16 +221,33 @@ def _build_parsed_bundle(csv_rows, media_filenames):
     )
 
 
-def _safe_image_filename(value):
-    """Drop unsafe image filenames at parse time.
+def _check_round_integrity(submissions):
+    offenders = []
+    for submission in submissions:
+        for candidate in submission.candidates:
+            if (
+                candidate.round1 is None
+                or candidate.round2 is None
+                or candidate.round1 != candidate.round2
+            ):
+                offenders.append(submission.barcode)
+                break
+    if offenders:
+        listing = ", ".join(sorted(set(offenders)))
+        raise RoundIntegrityError(
+            f"barcodes with missing or mismatched rounds: {listing}"
+        )
 
-    Image filenames in the CSV reference entries under ``media/<name>``
-    in the zip. Allowing path separators (``/``, ``\\``) or parent
-    traversal (``..``) would let a crafted bundle either read arbitrary
-    zip entries or, via Django's FileField, land outside the per-
-    submission upload directory. Anything suspicious is treated as
-    "no image": missing filenames are already a normal case (the
-    confirmation screen warns), so the bundle still imports.
+
+def _safe_image_filename(value):
+    """Drop image filenames with path separators or `..` segments.
+
+    Django's storage (FileSystemStorage + safe_join) already prevents
+    writes outside MEDIA_ROOT, but a crafted filename like `../{other}/img.jpg`
+    still resolves *inside* MEDIA_ROOT to a different submission's directory
+    and can overwrite another submission's image. Reject anything with path
+    syntax at parse time so the on-disk layout matches the per-submission
+    upload_to() contract.
     """
     if not value:
         return None
@@ -228,12 +257,7 @@ def _safe_image_filename(value):
 
 
 def _to_int(value):
-    if value in (None, ""):
-        return None
     try:
         return int(value)
     except (TypeError, ValueError):
-        try:
-            return int(float(value))
-        except (TypeError, ValueError):
-            return None
+        return None

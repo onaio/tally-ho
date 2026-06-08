@@ -14,6 +14,7 @@ from tally_ho.libs.pvp.bundle import (
     DuplicateBarcodeError,
     InvalidBundleError,
     ParsedBundle,
+    RoundIntegrityError,
     parse_bundle,
 )
 
@@ -134,10 +135,10 @@ def test_valid_bundle_returns_parsed_bundle(tmp_path):
     rows = [
         _candidate_row(instance_id="uuid:s1", barcode="111",
                        candidate_id="c1", candidate_order=1,
-                       round1=10, round2=12),
+                       round1=12, round2=12),
         _candidate_row(instance_id="uuid:s1", barcode="111",
                        candidate_id="c2", candidate_order=2,
-                       round1=20, round2=22),
+                       round1=22, round2=22),
         _candidate_row(instance_id="uuid:s2", barcode="222",
                        candidate_id="c1", candidate_order=1,
                        round1=5, round2=5,
@@ -165,7 +166,7 @@ def test_valid_bundle_returns_parsed_bundle(tmp_path):
     assert len(s1.candidates) == 2
     cands = sorted(s1.candidates, key=lambda c: c.candidate_order)
     assert cands[0].candidate_id == "c1"
-    assert cands[0].round1 == 10
+    assert cands[0].round1 == 12
     assert cands[0].round2 == 12
     assert cands[1].round2 == 22
 
@@ -241,6 +242,55 @@ def test_duplicate_barcode_raises(tmp_path):
     path = _bundle_path(tmp_path, rows)
     with pytest.raises(DuplicateBarcodeError, match="DUP"):
         parse_bundle(path)
+
+
+# ---- round integrity -----------------------------------------------------
+
+
+def test_missing_round1_raises_round_integrity(tmp_path):
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=None, round2=10),
+    ]
+    path = _bundle_path(tmp_path, rows)
+    with pytest.raises(RoundIntegrityError, match="111"):
+        parse_bundle(path)
+
+
+def test_missing_round2_raises_round_integrity(tmp_path):
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=10, round2=None),
+    ]
+    path = _bundle_path(tmp_path, rows)
+    with pytest.raises(RoundIntegrityError, match="111"):
+        parse_bundle(path)
+
+
+def test_round1_not_equal_round2_raises_round_integrity(tmp_path):
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=10, round2=11),
+    ]
+    path = _bundle_path(tmp_path, rows)
+    with pytest.raises(RoundIntegrityError, match="111"):
+        parse_bundle(path)
+
+
+def test_rounds_zero_zero_is_valid(tmp_path):
+    # Zero votes is a legitimate outcome; both rounds at zero must match.
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=0, round2=0),
+    ]
+    path = _bundle_path(tmp_path, rows,
+                        image_filenames={"14065_sig.jpg", "14065_p1.jpg"})
+    parsed = parse_bundle(path)
+    assert parsed.total == 1
 
 
 # ---- image filename safety -----------------------------------------------

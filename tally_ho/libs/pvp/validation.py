@@ -58,12 +58,9 @@ def validate_row(submission, tally, result_form_by_barcode):
 
 
 def _has_required_fields(submission):
-    if not submission.barcode:
-        return False
-    if not submission.ballot_number:
-        return False
-    if not submission.odk_instance_id:
-        return False
-    if not any(c.round2 is not None for c in submission.candidates):
-        return False
-    return True
+    return bool(
+        submission.barcode
+        and submission.ballot_number
+        and submission.odk_instance_id
+        and any(c.round2 is not None for c in submission.candidates)
+    )

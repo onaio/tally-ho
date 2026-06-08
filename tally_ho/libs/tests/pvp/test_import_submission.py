@@ -20,6 +20,7 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
 from tally_ho.libs.pvp.bundle import CandidateResult, ParsedSubmission
 from tally_ho.libs.pvp.import_submission import import_bundle, import_submission
 from tally_ho.libs.tests.test_base import (
@@ -64,7 +65,7 @@ class ImportSubmissionTestBase(TestBase):
         )
         self.bundle = PvpUploadBundle.objects.create(
             tally=self.tally, uploaded_by=self.user,
-            filename="bundle.zip",
+            filename="bundle.zip", mode=PvpMode.DE1_ONLY,
         )
 
         self._media_root = tempfile.mkdtemp(prefix="tally_test_media_")
@@ -243,6 +244,104 @@ class TestImportSubmissionDB(ImportSubmissionTestBase, TestCase):
         )
         self.result_form.refresh_from_db()
         self.assertEqual(self.result_form.form_state, FormState.UNSUBMITTED)
+
+
+class TestImportSubmissionDE1AndDE2(ImportSubmissionTestBase, TestCase):
+    """DE1_AND_DE2 mode: round1 -> DE1, round2 -> DE2, state -> QC."""
+
+    def setUp(self):
+        super().setUp()
+        # Override the bundle to DE1_AND_DE2 mode.
+        self.bundle.mode = PvpMode.DE1_AND_DE2
+        self.bundle.save(update_fields=["mode"])
+
+    def _parsed_de1_and_de2(self):
+        # PVP guarantees round1 == round2 at parse time; mirror that.
+        return self._parsed_submission(
+            candidates=(
+                CandidateResult(
+                    candidate_id="131301", candidate_order=1,
+                    round1=12, round2=12,
+                ),
+                CandidateResult(
+                    candidate_id="131302", candidate_order=2,
+                    round1=9, round2=9,
+                ),
+            ),
+        )
+
+    def _import(self):
+        zip_ref = self._zip_with_images({})
+        try:
+            return import_submission(
+                self._parsed_de1_and_de2(),
+                tally=self.tally, bundle=self.bundle,
+                uploaded_by=self.user, zip_ref=zip_ref,
+            )
+        finally:
+            zip_ref.close()
+
+    def test_writes_both_entry_versions(self):
+        self._import()
+        de1 = Result.objects.filter(
+            result_form=self.result_form,
+            entry_version=EntryVersion.DATA_ENTRY_1,
+        )
+        de2 = Result.objects.filter(
+            result_form=self.result_form,
+            entry_version=EntryVersion.DATA_ENTRY_2,
+        )
+        self.assertEqual(de1.count(), 2)
+        self.assertEqual(de2.count(), 2)
+
+    def test_de1_uses_round1_de2_uses_round2(self):
+        self._import()
+        de1_votes = dict(
+            Result.objects.filter(
+                result_form=self.result_form,
+                entry_version=EntryVersion.DATA_ENTRY_1,
+            ).values_list("candidate__candidate_id", "votes"),
+        )
+        de2_votes = dict(
+            Result.objects.filter(
+                result_form=self.result_form,
+                entry_version=EntryVersion.DATA_ENTRY_2,
+            ).values_list("candidate__candidate_id", "votes"),
+        )
+        # Per _parsed_de1_and_de2, both rounds match.
+        self.assertEqual(de1_votes, {131301: 12, 131302: 9})
+        self.assertEqual(de2_votes, {131301: 12, 131302: 9})
+
+    def test_writes_both_reconciliation_forms(self):
+        self._import()
+        recons = ReconciliationForm.objects.filter(
+            result_form=self.result_form, active=True,
+        )
+        self.assertEqual(recons.count(), 2)
+        de1 = recons.get(entry_version=EntryVersion.DATA_ENTRY_1)
+        de2 = recons.get(entry_version=EntryVersion.DATA_ENTRY_2)
+        # DE1 recon reads from r1 columns, DE2 from r2 columns (per the
+        # parsed submission default fixtures).
+        self.assertEqual(de1.number_invalid_votes, 2)   # r1 invalid
+        self.assertEqual(de2.number_invalid_votes, 3)   # r2 invalid
+        self.assertEqual(de1.number_of_voter_cards_in_the_ballot_box, 120)
+        self.assertEqual(de2.number_of_voter_cards_in_the_ballot_box, 121)
+
+    def test_form_state_transitions_to_quality_control(self):
+        self._import()
+        self.result_form.refresh_from_db()
+        self.assertEqual(
+            self.result_form.form_state, FormState.QUALITY_CONTROL,
+        )
+        self.assertEqual(
+            self.result_form.previous_form_state, FormState.UNSUBMITTED,
+        )
+
+    def test_links_result_form_to_pvp_submission(self):
+        submission = self._import()
+        self.result_form.refresh_from_db()
+        self.assertEqual(self.result_form.pvp_submission_id, submission.id)
+        self.assertTrue(self.result_form.from_pvp)
 
 
 class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):

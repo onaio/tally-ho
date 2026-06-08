@@ -94,8 +94,8 @@ def build_result_and_recon_output(result_form):
         'number registrants': station.registrants if station else None,
         'from_pvp': result_form.from_pvp,
         'pvp_mode_applied': (
-            result_form.tally.pvp_mode.name
-            if result_form.from_pvp and result_form.tally else ''
+            result_form.pvp_submission.bundle.mode.name
+            if result_form.from_pvp else ''
         ),
     }
 
@@ -137,8 +137,8 @@ def build_candidate_results_output(result_form):
         'number_registrants': station.registrants if station else None,
         'from_pvp': result_form.from_pvp,
         'pvp_mode_applied': (
-            result_form.tally.pvp_mode.name
-            if result_form.from_pvp and result_form.tally else ''
+            result_form.pvp_submission.bundle.mode.name
+            if result_form.from_pvp else ''
         ),
     }
 

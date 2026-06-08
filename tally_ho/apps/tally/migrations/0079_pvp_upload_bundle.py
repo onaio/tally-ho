@@ -4,6 +4,7 @@ import django.db.models.deletion
 import enumfields.fields
 import tally_ho.apps.tally.models.pvp_upload_bundle
 import tally_ho.libs.models.enums.pvp_bundle_status
+import tally_ho.libs.models.enums.pvp_mode
 from django.db import migrations, models
 
 
@@ -23,6 +24,7 @@ class Migration(migrations.Migration):
                 ('filename', models.CharField(max_length=512)),
                 ('zip_file', models.FileField(blank=True, null=True, upload_to=tally_ho.apps.tally.models.pvp_upload_bundle.bundle_zip_upload_to)),
                 ('status', enumfields.fields.EnumIntegerField(default=0, enum=tally_ho.libs.models.enums.pvp_bundle_status.PvpBundleStatus)),
+                ('mode', enumfields.fields.EnumIntegerField(default=0, enum=tally_ho.libs.models.enums.pvp_mode.PvpMode)),
                 ('number_of_submissions', models.PositiveIntegerField(default=0)),
                 ('imported_at', models.DateTimeField(blank=True, null=True)),
                 ('tally', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='tally.tally')),

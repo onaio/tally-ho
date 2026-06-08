@@ -288,12 +288,12 @@ class TestTallyManager(TestBase):
         self.tally.refresh_from_db()
         self.assertEqual(self.tally.pvp_mode, PvpMode.DE1_ONLY)
 
-    def test_post_update_view_pvp_mode_de1_and_de2_rejected(self):
+    def test_post_update_view_pvp_mode_de1_and_de2_persists(self):
         tally = create_tally()
         tally.users.add(self.user)
         view = views.TallyUpdateView.as_view()
         super_admin = self._create_user(
-            username='super_admin_reject', password='pass')
+            username='super_admin_de1de2', password='pass')
         self._add_user_to_group(super_admin, groups.SUPER_ADMINISTRATOR)
         tally.users.add(super_admin)
         super_admins = UserProfile.objects.filter(
@@ -314,9 +314,9 @@ class TestTallyManager(TestBase):
         request.session = {}
         response = view(request, tally_id=self.tally.id)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Please correct the errors below.')
+        self.assertContains(response, 'Tally updated successfully')
         self.tally.refresh_from_db()
-        self.assertEqual(self.tally.pvp_mode, PvpMode.DISABLED)
+        self.assertEqual(self.tally.pvp_mode, PvpMode.DE1_AND_DE2)
 
     def test_create_tally_view_pvp_mode_defaults_to_disabled(self):
         view = views.CreateTallyView.as_view()
@@ -339,28 +339,6 @@ class TestTallyManager(TestBase):
         view(request)
         created = Tally.objects.get(name='newly created tally')
         self.assertEqual(created.pvp_mode, PvpMode.DISABLED)
-
-    def test_create_tally_view_pvp_mode_de1_and_de2_rejected(self):
-        view = views.CreateTallyView.as_view()
-        super_admin = self._create_user(
-            username='super_admin_create_reject', password='pass')
-        self._add_user_to_group(super_admin, groups.SUPER_ADMINISTRATOR)
-        data = {
-            'name': 'should not be created',
-            'administrators': [super_admin.pk],
-            'print_cover_in_intake': True,
-            'print_cover_in_clearance': True,
-            'print_cover_in_quality_control': True,
-            'print_cover_in_audit': True,
-            'pvp_mode': PvpMode.DE1_AND_DE2.value,
-        }
-        request = self.factory.post('/', data=data)
-        configure_messages(request)
-        request.user = self.user
-        request.session = {}
-        view(request)
-        self.assertFalse(
-            Tally.objects.filter(name='should not be created').exists())
 
     def test_post_update_view_error_message(self):
         tally = create_tally()

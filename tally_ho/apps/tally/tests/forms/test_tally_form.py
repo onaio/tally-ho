@@ -27,22 +27,15 @@ class TestTallyForm(TestBase):
         form = TallyForm()
         self.assertIn("pvp_mode", form.fields)
 
-    def test_pvp_mode_de1_and_de2_option_is_disabled_in_widget(self):
-        form = TallyForm()
-        rendered = str(form["pvp_mode"])
-        expected = f'value="{PvpMode.DE1_AND_DE2.value}" disabled'
-        self.assertIn(expected, rendered)
-
-    def test_pvp_mode_de1_and_de2_rejected_server_side(self):
-        form = TallyForm(data=self._form_data(
-            pvp_mode=PvpMode.DE1_AND_DE2.value,
-        ))
-        self.assertFalse(form.is_valid())
-        self.assertIn("pvp_mode", form.errors)
-
     def test_pvp_mode_de1_only_accepted(self):
         form = TallyForm(data=self._form_data(
             pvp_mode=PvpMode.DE1_ONLY.value,
+        ))
+        self.assertTrue(form.is_valid(), msg=form.errors)
+
+    def test_pvp_mode_de1_and_de2_accepted(self):
+        form = TallyForm(data=self._form_data(
+            pvp_mode=PvpMode.DE1_AND_DE2.value,
         ))
         self.assertTrue(form.is_valid(), msg=form.errors)
 

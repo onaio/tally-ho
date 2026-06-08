@@ -1432,6 +1432,53 @@ class TestResultForm(TestBase):
         self.assertIsNone(result_form.pvp_submission_id)
         self.assertFalse(result_form.from_pvp)
 
+    def test_reset_clears_pvp_submission(self):
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            barcode="r-clears-pvp",
+            form_state=FormState.DATA_ENTRY_2,
+        )
+        submission = self._make_pvp_submission(instance_id="uuid:clear")
+        result_form.pvp_submission = submission
+        result_form.save()
+
+        result_form.reset_to_unsubmitted(user=self.user, reason="redo")
+        result_form.refresh_from_db()
+
+        self.assertFalse(result_form.from_pvp)
+        self.assertIsNone(result_form.pvp_submission_id)
+        # The submission row itself still exists (history is preserved).
+        self.assertTrue(
+            PvpSubmission.objects.filter(id=submission.id).exists(),
+        )
+
+    def test_pvp_submissions_history_returns_old_after_reset(self):
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            barcode="r-history",
+            form_state=FormState.DATA_ENTRY_2,
+        )
+        submission = self._make_pvp_submission(instance_id="uuid:hist")
+        # Tag the submission with this form's barcode so the history
+        # query (joining on tally+barcode) finds it.
+        submission.barcode = result_form.barcode
+        submission.save(update_fields=["barcode"])
+        result_form.pvp_submission = submission
+        result_form.save()
+
+        result_form.reset_to_unsubmitted(user=self.user, reason="redo")
+        result_form.refresh_from_db()
+
+        history = list(result_form.pvp_submissions_history)
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0].id, submission.id)
+
     def test_reset_to_unsubmitted_with_no_related_records(self):
         """Test reset_to_unsubmitted() works when no related records exist."""
         result_form = create_result_form(

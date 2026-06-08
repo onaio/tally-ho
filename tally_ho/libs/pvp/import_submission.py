@@ -1,11 +1,17 @@
 """Per-submission PVP import.
 
-Writes ``EntryVersion.DATA_ENTRY_1`` ``Result`` rows + a DE1
-``ReconciliationForm`` for one parsed submission, links the resulting
-``PvpSubmission`` to its ``ResultForm``, and transitions the form's state
-``UNSUBMITTED`` -> ``DATA_ENTRY_2``. Image extraction from the bundle zip
-is deferred to a ``transaction.on_commit`` callback so a rollback leaves
-nothing on disk.
+Behavior depends on ``bundle.mode``:
+
+- ``DE1_ONLY``: round2 is written as a single ``DATA_ENTRY_1`` set of
+  ``Result`` rows + a DE1 ``ReconciliationForm``; the form transitions
+  ``UNSUBMITTED`` -> ``DATA_ENTRY_2`` for a human clerk to enter DE2.
+- ``DE1_AND_DE2``: round1 -> DE1 ``Result`` rows + DE1 ``ReconciliationForm``,
+  round2 -> DE2 ``Result`` rows + DE2 ``ReconciliationForm``. The form
+  transitions ``UNSUBMITTED`` -> ``QUALITY_CONTROL`` (the device already
+  guarantees round1 == round2, so corrections is a no-op gate we skip).
+
+Image extraction from the bundle zip is deferred to a
+``transaction.on_commit`` callback so a rollback leaves nothing on disk.
 
 Caller responsibilities:
 - Pre-validate the row via ``tally_ho.libs.pvp.validation.validate_row``.
@@ -31,8 +37,9 @@ from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
 
-_RECON_FIELD_MAP = {
+_RECON_FIELD_MAP_R2 = {
     "number_of_voter_cards_in_the_ballot_box":
         "reconciliation_r2-number_voter_cards_r2",
     "number_valid_votes":
@@ -41,6 +48,16 @@ _RECON_FIELD_MAP = {
         "reconciliation_r2-number_invalid_ballots_r2",
     "number_sorted_and_counted":
         "reconciliation_r2-number_ballots_inside_box_r2",
+}
+_RECON_FIELD_MAP_R1 = {
+    "number_of_voter_cards_in_the_ballot_box":
+        "reconciliation_r1-number_voter_cards_r1",
+    "number_valid_votes":
+        "reconciliation_r1-number_valid_ballots_r1",
+    "number_invalid_votes":
+        "reconciliation_r1-number_invalid_ballots_r1",
+    "number_sorted_and_counted":
+        "reconciliation_r1-number_ballots_inside_box_r1",
 }
 
 
@@ -90,45 +107,65 @@ def _import_submission_inner(
         recon_raw=dict(parsed_submission.recon),
     )
 
-    for parsed_candidate in parsed_submission.candidates:
-        candidate = Candidate.objects.get(
+    # Pre-resolve candidates once for the whole submission.
+    candidates_by_parsed = {
+        pc: Candidate.objects.get(
             tally=tally,
             ballot=result_form.ballot,
-            candidate_id=int(parsed_candidate.candidate_id),
+            candidate_id=int(pc.candidate_id),
         )
-        Result.objects.create(
-            candidate=candidate,
+        for pc in parsed_submission.candidates
+    }
+
+    if bundle.mode == PvpMode.DE1_AND_DE2:
+        entries = (
+            (EntryVersion.DATA_ENTRY_1, "round1", _RECON_FIELD_MAP_R1),
+            (EntryVersion.DATA_ENTRY_2, "round2", _RECON_FIELD_MAP_R2),
+        )
+        # PVP already guaranteed round1 == round2 at parse time; the
+        # form goes straight to QC, skipping corrections.
+        next_state = FormState.QUALITY_CONTROL
+    else:
+        entries = (
+            (EntryVersion.DATA_ENTRY_1, "round2", _RECON_FIELD_MAP_R2),
+        )
+        next_state = FormState.DATA_ENTRY_2
+
+    recon = parsed_submission.recon
+    for entry_version, round_attr, recon_map in entries:
+        for parsed_candidate, candidate in candidates_by_parsed.items():
+            votes = getattr(parsed_candidate, round_attr) or 0
+            Result.objects.create(
+                candidate=candidate,
+                result_form=result_form,
+                tally=tally,
+                user=uploaded_by,
+                entry_version=entry_version,
+                votes=votes,
+                active=True,
+            )
+        ReconciliationForm.objects.create(
             result_form=result_form,
             tally=tally,
             user=uploaded_by,
-            entry_version=EntryVersion.DATA_ENTRY_1,
-            votes=parsed_candidate.round2 or 0,
+            entry_version=entry_version,
             active=True,
+            number_of_voters=station.registrants,
+            number_of_voter_cards_in_the_ballot_box=recon.get(
+                recon_map["number_of_voter_cards_in_the_ballot_box"]),
+            number_valid_votes=recon.get(
+                recon_map["number_valid_votes"]),
+            number_invalid_votes=recon.get(
+                recon_map["number_invalid_votes"]),
+            number_sorted_and_counted=recon.get(
+                recon_map["number_sorted_and_counted"]),
+            ballot_number_from=None,
+            ballot_number_to=None,
+            notes=None,
         )
 
-    recon = parsed_submission.recon
-    ReconciliationForm.objects.create(
-        result_form=result_form,
-        tally=tally,
-        user=uploaded_by,
-        entry_version=EntryVersion.DATA_ENTRY_1,
-        active=True,
-        number_of_voters=station.registrants,
-        number_of_voter_cards_in_the_ballot_box=recon.get(
-            _RECON_FIELD_MAP["number_of_voter_cards_in_the_ballot_box"]),
-        number_valid_votes=recon.get(
-            _RECON_FIELD_MAP["number_valid_votes"]),
-        number_invalid_votes=recon.get(
-            _RECON_FIELD_MAP["number_invalid_votes"]),
-        number_sorted_and_counted=recon.get(
-            _RECON_FIELD_MAP["number_sorted_and_counted"]),
-        ballot_number_from=None,
-        ballot_number_to=None,
-        notes=None,
-    )
-
     result_form.previous_form_state = result_form.form_state
-    result_form.form_state = FormState.DATA_ENTRY_2
+    result_form.form_state = next_state
     result_form.duplicate_reviewed = False
     result_form.user = uploaded_by
     result_form.pvp_submission = submission
