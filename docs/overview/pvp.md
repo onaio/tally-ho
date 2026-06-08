@@ -49,7 +49,9 @@ ODK Central                  network host                     tally-ho host
      with empty image fields)
 4. **Result** — After confirming, a Celery task does the import. The
    result page shows the bundle status (`PENDING`, `IMPORTING`,
-   `COMPLETED`, `FAILED`) and the count of submissions imported.
+   `COMPLETED`, `FAILED`) and the count of submissions imported, and
+   refreshes itself in place until the bundle reaches a terminal
+   status (no page reload needed).
 
 ## Validation rules (parse-time)
 
@@ -80,9 +82,10 @@ shows the date the bundle was imported.
 
 - `DE1_AND_DE2` mode is not implemented — the dropdown shows it but
   rejects it both client-side and server-side. Pass 2 wires it up.
-- No retry / partial-import recovery: if the Celery task fails mid-bundle,
-  some submissions may be committed. The bundle is marked `FAILED`; an
-  operator can manually re-trigger after fixing the underlying issue.
+- No retry: if the Celery task fails mid-bundle, the entire bundle is
+  rolled back atomically (status `FAILED`, no `ResultForm` is left in
+  `DATA_ENTRY_2`). An operator can re-upload after fixing the underlying
+  issue.
 - No PVP-specific reporting beyond the per-form badge and two new
   columns (`from_pvp`, `pvp_mode_applied`) in the row-per-form CSV
   exports.
@@ -93,9 +96,10 @@ shows the date the bundle was imported.
 
 ## Trying it locally
 
-The docker-compose stack seeds a small *Demo Tally* (id `1`, 2 ballots,
-6 candidates, 8 result forms) on boot so the PVP upload flow can be
-exercised end-to-end without setting up a real tally.
+The docker-compose stack seeds a small *Demo Tally* (typically `id=1`
+on a fresh DB; 2 ballots, 6 candidates, 2 centers, 4 stations, 8 result
+forms) on boot so the PVP upload flow can be exercised end-to-end
+without setting up a real tally.
 
 ```bash
 TALLY_HO_HTTP_PORT=9000 docker-compose up
@@ -106,23 +110,27 @@ TALLY_HO_HTTP_PORT=9000 docker-compose up
 2. Generate a bundle that matches the demo tally:
 
    ```bash
-   docker-compose exec web python manage.py create_demo_pvp_bundle \
-     --tally-id 1 --settings=tally_ho.settings.docker
+   ./build.sh create_demo_pvp_bundle --tally-id 1
    ```
 
-   The zip lands on the host at `data/demo_pvp_bundle_1.zip` (the web
-   container's `/code/` is bind-mounted from the project root).
+   `./build.sh` is a thin wrapper around
+   `docker-compose exec -e DJANGO_SETTINGS_MODULE=tally_ho.settings.docker
+   web python manage.py …`. The zip lands on the host at
+   `data/demo_pvp_bundle_1.zip` (the web container's `/code/` is
+   bind-mounted from the project root).
 3. Log out, log in as `super_administrator` / `data`, open
    *Admin Operations → Upload PVP Bundle*, upload the zip, and confirm.
-4. After the celery task finishes, any of the 8 demo forms should be at
-   `DATA_ENTRY_2` with a *PVP* badge on its print cover.
+4. The result page updates in place; the demo forms end up at
+   `DATA_ENTRY_2` with a *PVP* badge on their print covers and a
+   reversion history entry attributing the import to
+   `super_administrator`.
 
 Helper commands:
 
 | Command | What it does |
 |---|---|
-| `create_demo_tally` | Idempotently seeds the demo tally. `--clean` wipes it first. Wired into compose boot. |
-| `create_demo_pvp_bundle --tally-id N [--output PATH]` | Emits a bundle zip targeting every result form in tally `N`. Defaults to `data/demo_pvp_bundle_<N>.zip`. |
+| `./build.sh create_demo_tally [--clean]` | Idempotently seeds the demo tally (super-admin link + quarantine checks included). Wired into compose boot. |
+| `./build.sh create_demo_pvp_bundle --tally-id N [--output PATH]` | Emits a bundle zip targeting every result form in tally `N`. Defaults to `data/demo_pvp_bundle_<N>.zip`. |
 
 ## Where it lives in code
 
@@ -140,3 +148,6 @@ Helper commands:
 | Templates | `tally_ho/apps/tally/templates/super_admin/pvp_*.html` |
 | `pvp_badge` template tag | `tally_ho/apps/tally/templatetags/pvp_tags.py` |
 | Export columns | `tally_ho/libs/views/exports.py` |
+| Status JSON endpoint (`PvpStatusView`) | `tally_ho/apps/tally/views/pvp.py` |
+| Reusable polling primitive | `tally_ho/apps/tally/static/js/async_status.js` |
+| Demo seed commands | `tally_ho/apps/tally/management/commands/create_demo_{tally,pvp_bundle}.py` |
