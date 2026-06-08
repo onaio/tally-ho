@@ -6,14 +6,17 @@ end-to-end in test_async_pvp_import.py.
 
 import csv
 import io
+import json
 import shutil
 import tempfile
 import zipfile
 from unittest import mock
 
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, override_settings
+from django.utils import timezone
 
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
@@ -280,8 +283,6 @@ class TestPvpStatusView(_PvpViewTestBase, TestCase):
         )
 
     def test_returns_json_with_status_count_and_imported_at(self):
-        import json
-
         bundle = PvpUploadBundle.objects.create(
             tally=self.tally, uploaded_by=self.user, filename="b.zip",
             status=PvpBundleStatus.IMPORTING, number_of_submissions=2,
@@ -295,9 +296,6 @@ class TestPvpStatusView(_PvpViewTestBase, TestCase):
         self.assertIsNone(payload["imported_at"])
 
     def test_completed_bundle_includes_imported_at(self):
-        import json
-        from django.utils import timezone
-
         bundle = PvpUploadBundle.objects.create(
             tally=self.tally, uploaded_by=self.user, filename="b.zip",
             status=PvpBundleStatus.COMPLETED, number_of_submissions=5,
@@ -312,7 +310,6 @@ class TestPvpStatusView(_PvpViewTestBase, TestCase):
 class TestPvpViewPermissions(_PvpViewTestBase, TestCase):
     def test_non_super_admin_forbidden(self):
         # Re-create user without super-admin group.
-        from django.core.exceptions import PermissionDenied
         self._create_and_login_user(username="rando", password="pass")
         # No group added.
         view = PvpUploadView.as_view()

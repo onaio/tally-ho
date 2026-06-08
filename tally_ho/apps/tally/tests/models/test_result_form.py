@@ -1,3 +1,4 @@
+from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models import ResultForm, Station, WorkflowRequest
@@ -7,7 +8,10 @@ from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result import Result
-from tally_ho.apps.tally.models.result_form import sanity_check_final_results
+from tally_ho.apps.tally.models.result_form import (
+    get_matched_results,
+    sanity_check_final_results,
+)
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
@@ -376,11 +380,6 @@ class TestResultForm(TestBase):
 
     def test_get_matched_results_tracks_previous_state_on_count_mismatch(self):
         """Test get_matched_results tracks previous_form_state on mismatch."""
-        from django.core.exceptions import SuspiciousOperation
-
-        from tally_ho.apps.tally.models.result import Result
-        from tally_ho.apps.tally.models.result_form import get_matched_results
-
         result_form = create_result_form(
             form_state=FormState.CORRECTION,
             tally=self.tally,

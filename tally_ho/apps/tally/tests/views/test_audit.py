@@ -7,6 +7,7 @@ from django.test import RequestFactory
 from django.utils import timezone
 
 from tally_ho.apps.tally.models.audit import Audit
+from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
@@ -851,7 +852,6 @@ class TestAudit(TestBase):
         audit.save()
 
         # Import Clearance model to check creation
-        from tally_ho.apps.tally.models.clearance import Clearance
 
         # Verify no clearance exists yet
         self.assertEqual(

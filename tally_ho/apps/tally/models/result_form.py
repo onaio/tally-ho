@@ -10,6 +10,7 @@ import reversion
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
@@ -188,10 +189,9 @@ class ResultForm(BaseModel):
                               related_name='result_forms',
                               on_delete=models.PROTECT)
     # Set to the PvpSubmission whose round-2 candidate results populated
-    # this form's DATA_ENTRY_1 results. Lazy string ref avoids importing
-    # PvpSubmission at module load (and the matching circular risk).
+    # this form's DATA_ENTRY_1 results.
     pvp_submission = models.ForeignKey(
-        'tally.PvpSubmission',
+        PvpSubmission,
         null=True,
         blank=True,
         related_name='result_form',
@@ -211,7 +211,6 @@ class ResultForm(BaseModel):
         Lookup is by ``(tally, barcode)`` — barcode is unique per tally
         on ``ResultForm`` so this is a stable join.
         """
-        from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
         return PvpSubmission.objects.filter(
             tally=self.tally, barcode=self.barcode,
         ).order_by("created_date")

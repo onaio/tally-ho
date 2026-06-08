@@ -1,5 +1,8 @@
 import json
+import re
 
+from bs4 import BeautifulSoup
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.urls import reverse
 
@@ -11,6 +14,8 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.views.reports import \
     administrative_areas_reports as admin_reports
+from tally_ho.apps.tally.views.reports import \
+    administrative_areas_reports as aar
 from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
@@ -777,7 +782,6 @@ class TestAdministrativeAreasReports(TestBase):
             if (isinstance(barcode_value, str) and
                     barcode_value.startswith('<td')):
                 # Extract the content between <td> tags
-                import re
                 match = re.search(r'<td[^>]*>([^<]+)</td>', barcode_value)
                 if match:
                     barcode_value = match.group(1)
@@ -850,11 +854,6 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         Test that the clearance audit summary report view renders correctly
         """
-        from bs4 import BeautifulSoup
-
-        from tally_ho.apps.tally.views.reports import \
-            administrative_areas_reports as aar
-
         request = self.factory.get(
             reverse(
                 "clearance-audit-summary", kwargs={"tally_id": self.tally.pk}
@@ -901,9 +900,6 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         Test that the clearance audit summary report data view returns data
         """
-        from tally_ho.apps.tally.views.reports import \
-            administrative_areas_reports as aar
-
         url = reverse(
             "clearance-audit-summary-data", kwargs={"tally_id": self.tally.pk}
         )
@@ -942,9 +938,6 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         Test that the clearance audit summary report data view filters data
         """
-        from tally_ho.apps.tally.views.reports import \
-            administrative_areas_reports as aar
-
         url = reverse(
             "clearance-audit-summary-data", kwargs={"tally_id": self.tally.pk}
         )
@@ -965,9 +958,6 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         Test that the clearance audit summary report data view paginates data
         """
-        from tally_ho.apps.tally.views.reports import \
-            administrative_areas_reports as aar
-
         url = reverse(
             "clearance-audit-summary-data", kwargs={"tally_id": self.tally.pk}
         )
@@ -987,15 +977,10 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         """
         Test that the clearance audit summary report view requires login
         """
-        from tally_ho.apps.tally.views.reports import \
-            administrative_areas_reports as aar
-
         url = reverse(
             "clearance-audit-summary", kwargs={"tally_id": self.tally.pk}
         )
         request = self.factory.get(url)
-        from django.contrib.auth.models import AnonymousUser
-
         request.user = AnonymousUser()
         request.session = {}
         response = aar.ClearanceAuditSummaryReportView.as_view()(
@@ -1008,9 +993,6 @@ class TestClearanceAuditSummaryReportViews(TestBase):
         Test that the clearance audit summary report data view returns empty
         data
         """
-        from tally_ho.apps.tally.views.reports import \
-            administrative_areas_reports as aar
-
         # Remove clearance from the form
         self.result_form.clearances.all().delete()
         self.result_form.form_state = FormState.ARCHIVED

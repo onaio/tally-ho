@@ -6,11 +6,13 @@ Django models). Image-extraction tests use ``captureOnCommitCallbacks`` so
 """
 
 import io
+import os
 import shutil
 import tempfile
 import zipfile
 
 from django.test import TestCase, override_settings
+from reversion.models import Version
 
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
@@ -203,8 +205,6 @@ class TestImportSubmissionDB(ImportSubmissionTestBase, TestCase):
         self.assertTrue(self.result_form.from_pvp)
 
     def test_creates_reversion_history_for_result_form(self):
-        from reversion.models import Version
-
         self._import()
         versions = Version.objects.get_for_object(self.result_form)
         self.assertGreaterEqual(versions.count(), 1)
@@ -413,7 +413,6 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
         # Media root is otherwise empty — no orphan image files.
         # (override_settings + tearDown clean the dir between tests.)
         leftovers = []
-        import os
         for root, _, files in os.walk(self._media_root):
             for f in files:
                 leftovers.append(os.path.join(root, f))

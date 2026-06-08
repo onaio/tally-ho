@@ -389,7 +389,6 @@ class TestExports(TestBase):
         )
 
         # Call save_barcode_results
-        from tally_ho.libs.views.exports import save_barcode_results
         csv_filename = save_barcode_results(
             complete_barcodes=[result_form1.barcode, result_form2.barcode],
             output_duplicates=False,

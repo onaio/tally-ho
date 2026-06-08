@@ -20,6 +20,7 @@ from tally_ho.apps.tally.management.commands.async_pvp_import import (
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
+from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 from tally_ho.libs.models.enums.pvp_mode import PvpMode
@@ -134,7 +135,6 @@ class AsyncPvpImportTestCase(TransactionTestCase):
             barcode="111", form_state=FormState.UNSUBMITTED,
         )
         # Need a UserProfile with an id we can pass to the celery task.
-        from tally_ho.apps.tally.models.user_profile import UserProfile
         self.user = UserProfile.objects.create(
             username="pvp_admin", password="pass",
         )
