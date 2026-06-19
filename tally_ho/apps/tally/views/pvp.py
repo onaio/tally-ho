@@ -28,7 +28,11 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.pvp.bundle import (
-    InvalidBundleError, DuplicateBarcodeError, parse_bundle,
+    DuplicateBarcodeError,
+    InvalidBundleError,
+    RoundIntegrityError,
+    UnsafeImageFilenameError,
+    parse_bundle,
 )
 from tally_ho.libs.pvp.validation import validate_row
 from tally_ho.libs.views.mixins import GroupRequiredMixin, TallyAccessMixin
@@ -73,7 +77,12 @@ class PvpUploadView(
         # for display.
         try:
             parse_bundle(bundle.zip_file.path)
-        except (InvalidBundleError, DuplicateBarcodeError) as exc:
+        except (
+            InvalidBundleError,
+            DuplicateBarcodeError,
+            RoundIntegrityError,
+            UnsafeImageFilenameError,
+        ) as exc:
             bundle.delete()  # zip_file deletion handled by FileField
             form.add_error("zip_file", str(exc))
             return self.form_invalid(form)

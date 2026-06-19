@@ -151,7 +151,7 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         )
         self.bundle = PvpUploadBundle.objects.create(
             tally=self.tally, uploaded_by=self.user,
-            filename="bundle.zip",
+            filename="bundle.zip", mode=PvpMode.DE1_ONLY,
         )
         self.bundle.zip_file = SimpleUploadedFile(
             "bundle.zip", zip_bytes, content_type="application/zip",

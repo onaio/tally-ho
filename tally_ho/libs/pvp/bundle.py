@@ -22,26 +22,6 @@ from pathlib import Path
 CSV_NAME = "candidate_results.csv"
 MEDIA_DIR = "media"
 
-# Columns we use during parsing. If any are missing, raise InvalidBundleError.
-REQUIRED_COLUMNS = (
-    "meta-instanceID",
-    "barcode",
-    "ballot_number",
-    "candidate_id",
-    "candidate_order",
-    "candidate_result_round1",
-    "candidate_result_round2",
-    "xml_form_id",
-    "staff_user_name",
-    "reconciliation_r2-number_voter_cards_r2",
-    "reconciliation_r2-number_valid_ballots_r2",
-    "reconciliation_r2-number_invalid_ballots_r2",
-    "reconciliation_r2-number_ballots_inside_box_r2",
-    "clerk_signature",
-    "forms_picture_1st_page",
-    "forms_picture_2nd_page",
-)
-
 # Recon fields we preserve verbatim into PvpSubmission.recon_raw.
 RECON_COLUMNS = (
     "reconciliation_r1-number_ballots_received_r1",
@@ -54,6 +34,25 @@ RECON_COLUMNS = (
     "reconciliation_r2-number_valid_ballots_r2",
     "reconciliation_r2-number_invalid_ballots_r2",
     "reconciliation_r2-number_ballots_inside_box_r2",
+)
+
+# Columns we use during parsing. If any are missing, raise InvalidBundleError.
+# All RECON_COLUMNS are required: DE1_AND_DE2 mode reads the r1 fields, and
+# even in DE1_ONLY we preserve them in PvpSubmission.recon_raw for audit.
+REQUIRED_COLUMNS = (
+    "meta-instanceID",
+    "barcode",
+    "ballot_number",
+    "candidate_id",
+    "candidate_order",
+    "candidate_result_round1",
+    "candidate_result_round2",
+    "xml_form_id",
+    "staff_user_name",
+    *RECON_COLUMNS,
+    "clerk_signature",
+    "forms_picture_1st_page",
+    "forms_picture_2nd_page",
 )
 
 IMAGE_COLUMNS = (
@@ -78,6 +77,15 @@ class RoundIntegrityError(Exception):
     should be present and equal in every emitted submission. Any
     departure signals data corruption between device and tally — fail
     the whole bundle so the operator investigates.
+    """
+
+
+class UnsafeImageFilenameError(Exception):
+    """An image filename contains path syntax (separator or ``..``).
+
+    Device-emitted filenames are bare basenames; anything path-shaped
+    signals a hand-crafted or corrupted bundle. Surface it so the
+    operator investigates rather than silently dropping the image.
     """
 
 
@@ -111,7 +119,7 @@ class ParsedBundle:
         return len(self.rows)
 
 
-def parse_bundle(zip_path) -> ParsedBundle:
+def parse_bundle(zip_path: str | Path) -> ParsedBundle:
     """Parse a PVP upload bundle into submission-level rows.
 
     Raises:
@@ -174,7 +182,7 @@ def _build_parsed_bundle(csv_rows, media_filenames):
             )
             for row in group
         )
-        recon = {col: _to_int(first.get(col)) for col in RECON_COLUMNS}
+        recon = {col: _to_int(first[col]) for col in RECON_COLUMNS}
         images = {
             col: _safe_image_filename(first.get(col))
             for col in IMAGE_COLUMNS
@@ -240,24 +248,36 @@ def _check_round_integrity(submissions):
 
 
 def _safe_image_filename(value):
-    """Drop image filenames with path separators or `..` segments.
+    """Validate an image filename is a bare basename.
 
     Django's storage (FileSystemStorage + safe_join) already prevents
-    writes outside MEDIA_ROOT, but a crafted filename like `../{other}/img.jpg`
-    still resolves *inside* MEDIA_ROOT to a different submission's directory
-    and can overwrite another submission's image. Reject anything with path
-    syntax at parse time so the on-disk layout matches the per-submission
-    upload_to() contract.
+    writes outside MEDIA_ROOT, but a crafted filename like
+    ``../{other}/img.jpg`` still resolves *inside* MEDIA_ROOT to a
+    different submission's directory and can overwrite another
+    submission's image. Surface anything with path syntax loudly so
+    the operator sees the bad bundle.
     """
     if not value:
         return None
     if "/" in value or "\\" in value or ".." in value:
-        return None
+        raise UnsafeImageFilenameError(
+            f"image filename contains path syntax: {value!r}"
+        )
     return value
 
 
 def _to_int(value):
+    """Parse a numeric column value; empty stays None, garbage raises.
+
+    Empty/None is a legitimate "no value" for optional ints (e.g. an
+    unrecorded round). A non-int string like ``"abc"`` signals upstream
+    corruption — surface it rather than silently dropping data.
+    """
+    if value in (None, ""):
+        return None
     try:
         return int(value)
-    except (TypeError, ValueError):
-        return None
+    except (TypeError, ValueError) as exc:
+        raise InvalidBundleError(
+            f"expected integer, got {value!r}"
+        ) from exc

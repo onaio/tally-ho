@@ -122,14 +122,14 @@ def _import_submission_inner(
             (EntryVersion.DATA_ENTRY_1, "round1", _RECON_FIELD_MAP_R1),
             (EntryVersion.DATA_ENTRY_2, "round2", _RECON_FIELD_MAP_R2),
         )
-        # PVP already guaranteed round1 == round2 at parse time; the
-        # form goes straight to QC, skipping corrections.
         next_state = FormState.QUALITY_CONTROL
-    else:
+    elif bundle.mode == PvpMode.DE1_ONLY:
         entries = (
             (EntryVersion.DATA_ENTRY_1, "round2", _RECON_FIELD_MAP_R2),
         )
         next_state = FormState.DATA_ENTRY_2
+    else:
+        raise ValueError(f"unsupported PVP mode {bundle.mode}")
 
     recon = parsed_submission.recon
     for entry_version, round_attr, recon_map in entries:
@@ -227,17 +227,30 @@ def _save_images(submission_id, images, zip_ref):
     cancel this callback before it ever fires.
     """
     submission = PvpSubmission.objects.get(id=submission_id)
-    dirty = False
-    for field_name, filename in images.items():
-        if not filename:
-            continue
-        try:
-            data = zip_ref.read(f"media/{filename}")
-        except KeyError:
-            continue  # missing image -> leave field null
-        getattr(submission, field_name).save(
-            filename, ContentFile(data), save=False,
-        )
-        dirty = True
-    if dirty:
+    saved_any = (
+        _attach_image(submission.clerk_signature,
+                      images.get("clerk_signature"), zip_ref)
+        | _attach_image(submission.forms_picture_1st_page,
+                        images.get("forms_picture_1st_page"), zip_ref)
+        | _attach_image(submission.forms_picture_2nd_page,
+                        images.get("forms_picture_2nd_page"), zip_ref)
+    )
+    if saved_any:
         submission.save()
+
+
+def _attach_image(field_file, filename, zip_ref):
+    """Read one media entry from the zip and attach to the FieldFile.
+
+    Returns True if a file was attached, False otherwise. Missing
+    filename (None / empty) and missing-from-zip are both treated as
+    no-op (the field stays null).
+    """
+    if not filename:
+        return False
+    try:
+        data = zip_ref.read(f"media/{filename}")
+    except KeyError:
+        return False
+    field_file.save(filename, ContentFile(data), save=False)
+    return True

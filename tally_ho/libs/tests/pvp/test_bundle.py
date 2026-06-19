@@ -15,6 +15,7 @@ from tally_ho.libs.pvp.bundle import (
     InvalidBundleError,
     ParsedBundle,
     RoundIntegrityError,
+    UnsafeImageFilenameError,
     parse_bundle,
 )
 
@@ -296,33 +297,38 @@ def test_rounds_zero_zero_is_valid(tmp_path):
 # ---- image filename safety -----------------------------------------------
 
 
-def test_image_filename_with_path_separator_is_dropped(tmp_path):
+def test_garbage_integer_value_raises_invalid_bundle(tmp_path):
+    # candidate_order is parsed as int; "abc" is not.
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order="abc",
+                       round1=1, round2=1),
+    ]
+    with pytest.raises(InvalidBundleError, match="expected integer"):
+        parse_bundle(_bundle_path(tmp_path, rows))
+
+
+def test_image_filename_with_path_separator_raises(tmp_path):
     rows = [
         _candidate_row(instance_id="uuid:s1", barcode="111",
                        candidate_id="c1", candidate_order=1,
                        round1=1, round2=1,
-                       clerk_signature="../../../etc/passwd",
-                       page1="subdir/legit.jpg"),
+                       clerk_signature="../../../etc/passwd"),
     ]
     path = _bundle_path(tmp_path, rows)
-    parsed = parse_bundle(path)
-    sub = parsed.rows[0]
-    assert sub.images["clerk_signature"] is None
-    assert sub.images["forms_picture_1st_page"] is None
-    # ...and the unsafe names don't show up in missing_images either.
-    assert "../../../etc/passwd" not in parsed.missing_images
-    assert "subdir/legit.jpg" not in parsed.missing_images
+    with pytest.raises(UnsafeImageFilenameError, match="etc/passwd"):
+        parse_bundle(path)
 
 
-def test_image_filename_with_backslash_is_dropped(tmp_path):
+def test_image_filename_with_backslash_raises(tmp_path):
     rows = [
         _candidate_row(instance_id="uuid:s1", barcode="111",
                        candidate_id="c1", candidate_order=1,
                        round1=1, round2=1,
                        clerk_signature="..\\windows\\system32"),
     ]
-    parsed = parse_bundle(_bundle_path(tmp_path, rows))
-    assert parsed.rows[0].images["clerk_signature"] is None
+    with pytest.raises(UnsafeImageFilenameError):
+        parse_bundle(_bundle_path(tmp_path, rows))
 
 
 # ---- accepts pathlib.Path or str -----------------------------------------

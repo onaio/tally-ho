@@ -12,6 +12,10 @@
     </div>
   {% endif %}
 
+  <div id="pvp-result-root"
+       data-status-url="{% url 'pvp-status' tally_id=tally_id bundle_id=bundle.id %}">
+  </div>
+
   <table class="table table-bordered">
     <tr>
       <th>{% trans 'Bundle filename' %}</th>
@@ -39,16 +43,5 @@
 {% block javascript %}
   {{ block.super }}
   <script src="{% static 'js/async_status.js' %}"></script>
-  <script>
-    (function () {
-      var url = "{% url 'pvp-status' tally_id=tally_id bundle_id=bundle.id %}";
-      pollStatus(url, function (data) {
-        document.getElementById('pvp-status').textContent = data.status;
-        document.getElementById('pvp-count').textContent =
-          data.number_of_submissions;
-        document.getElementById('pvp-imported-at').textContent =
-          data.imported_at || '—';
-      });
-    })();
-  </script>
+  <script src="{% static 'js/pvp_result_init.js' %}"></script>
 {% endblock %}

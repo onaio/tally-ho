@@ -504,11 +504,10 @@ class ResultForm(BaseModel):
             active=False, modified_date=modified_date
         )
 
-        # Reset form state to UNSUBMITTED and clear the PVP source pointer
-        # so the form is eligible for re-upload (the badge also goes away).
-        # The original PvpSubmission row stays in the DB as history,
-        # queryable by (tally, barcode) — see pvp_submissions_history.
+        # Reset form state to UNSUBMITTED
         self.form_state = FormState.UNSUBMITTED
+
+        # Clear the PVP source pointer so the form is eligible for re-upload
         self.pvp_submission = None
         self.save()
 
