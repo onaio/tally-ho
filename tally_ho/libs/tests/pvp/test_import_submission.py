@@ -11,7 +11,7 @@ import shutil
 import tempfile
 import zipfile
 
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 from reversion.models import Version
 
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -19,15 +19,17 @@ from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
+from tally_ho.apps.tally.views import quality_control as qc_views
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 from tally_ho.libs.models.enums.pvp_mode import PvpMode
+from tally_ho.libs.permissions import groups
 from tally_ho.libs.pvp.bundle import CandidateResult, ParsedSubmission
 from tally_ho.libs.pvp.import_submission import import_bundle, import_submission
 from tally_ho.libs.tests.test_base import (
     TestBase, create_ballot, create_center, create_electrol_race,
-    create_result_form, create_station, create_tally,
+    create_quality_control, create_result_form, create_station, create_tally,
 )
 
 
@@ -342,6 +344,28 @@ class TestImportSubmissionDE1AndDE2(ImportSubmissionTestBase, TestCase):
         self.result_form.refresh_from_db()
         self.assertEqual(self.result_form.pvp_submission_id, submission.id)
         self.assertTrue(self.result_form.from_pvp)
+
+    def test_imported_values_are_presented_on_qc_dashboard(self):
+        self._import()
+        self.result_form.refresh_from_db()
+        create_quality_control(self.result_form, self.user)
+        self.tally.users.add(self.user)
+        self._add_user_to_group(self.user, groups.QUALITY_CONTROL_CLERK)
+
+        request = RequestFactory().get("/")
+        request.user = self.user
+        request.session = {"result_form": self.result_form.pk}
+
+        response = qc_views.QualityControlDashboardView.as_view()(
+            request, tally_id=self.tally.pk,
+        )
+        response.render()
+
+        self.assertContains(response, "Candidate One")
+        self.assertContains(response, "Candidate Two")
+        self.assertContains(response, "12")
+        self.assertContains(response, "9")
+        self.assertContains(response, "Reconciliation Section")
 
 
 class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
