@@ -26,6 +26,7 @@ from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.pvp.bundle import (
     DuplicateBarcodeError,
@@ -137,6 +138,19 @@ class PvpConfirmView(
         bundle = get_object_or_404(
             PvpUploadBundle, id=bundle_id, tally_id=tally_id,
         )
+        # Only PENDING bundles can be enqueued. Re-confirming an already
+        # IMPORTING/COMPLETED/FAILED bundle would otherwise duplicate the
+        # import task and race against the in-flight one.
+        if bundle.status != PvpBundleStatus.PENDING:
+            messages.info(
+                request,
+                _("PVP import already %(status)s.") % {
+                    "status": bundle.status.name,
+                },
+            )
+            return redirect(
+                "pvp-result", tally_id=tally_id, bundle_id=bundle.id,
+            )
         async_pvp_import.delay(
             bundle_id=bundle.id, user_id=request.user.id,
         )

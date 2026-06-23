@@ -36,7 +36,17 @@ class TestPvpUploadBundle(TestBase):
         self.assertEqual(bundle.status, PvpBundleStatus.PENDING)
         self.assertEqual(bundle.number_of_submissions, 0)
         self.assertIsNone(bundle.imported_at)
+        self.assertEqual(bundle.error_message, "")
         self.assertIsNotNone(bundle.created_date)
+
+    def test_error_message_round_trips(self):
+        bundle = self._create_bundle()
+        bundle.error_message = "could not open zip: bad header"
+        bundle.save(update_fields=["error_message"])
+        bundle.refresh_from_db()
+        self.assertEqual(
+            bundle.error_message, "could not open zip: bad header",
+        )
 
     def test_required_fields_round_trip(self):
         bundle = self._create_bundle(filename="2026-04-29-bundle.zip")

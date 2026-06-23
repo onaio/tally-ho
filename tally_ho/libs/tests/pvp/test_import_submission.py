@@ -313,11 +313,13 @@ class TestImportSubmissionDE1AndDE2(ImportSubmissionTestBase, TestCase):
         self.assertEqual(de2_votes, {131301: 12, 131302: 9})
 
     def test_writes_both_reconciliation_forms(self):
+        # DE1, DE2 and FINAL (FINAL is asserted separately in
+        # test_writes_final_recon_form).
         self._import()
         recons = ReconciliationForm.objects.filter(
             result_form=self.result_form, active=True,
         )
-        self.assertEqual(recons.count(), 2)
+        self.assertEqual(recons.count(), 3)
         de1 = recons.get(entry_version=EntryVersion.DATA_ENTRY_1)
         de2 = recons.get(entry_version=EntryVersion.DATA_ENTRY_2)
         # DE1 recon reads from r1 columns, DE2 from r2 columns (per the
@@ -342,6 +344,38 @@ class TestImportSubmissionDE1AndDE2(ImportSubmissionTestBase, TestCase):
         self.result_form.refresh_from_db()
         self.assertEqual(self.result_form.pvp_submission_id, submission.id)
         self.assertTrue(self.result_form.from_pvp)
+
+    def test_writes_final_results_so_reports_see_the_form(self):
+        # Reports/exports filter on EntryVersion.FINAL. Since DE1_AND_DE2
+        # skips corrections (which is what normally creates FINAL rows),
+        # the import must produce FINAL Result rows itself so these
+        # forms appear in candidate results, turnout, etc.
+        self._import()
+        finals = Result.objects.filter(
+            result_form=self.result_form,
+            entry_version=EntryVersion.FINAL,
+            active=True,
+        )
+        self.assertEqual(finals.count(), 2)
+        final_votes = dict(
+            finals.values_list("candidate__candidate_id", "votes"),
+        )
+        # round1 == round2 is guaranteed by the device; both equal FINAL.
+        self.assertEqual(final_votes, {131301: 12, 131302: 9})
+
+    def test_writes_final_recon_form(self):
+        self._import()
+        recons = ReconciliationForm.objects.filter(
+            result_form=self.result_form,
+            entry_version=EntryVersion.FINAL,
+            active=True,
+        )
+        self.assertEqual(recons.count(), 1)
+        recon = recons.get()
+        # FINAL recon mirrors the round 2 values (same as DE2).
+        self.assertEqual(recon.number_invalid_votes, 3)
+        self.assertEqual(recon.number_of_voter_cards_in_the_ballot_box, 121)
+        self.assertEqual(recon.number_of_voters, 300)
 
 
 class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):

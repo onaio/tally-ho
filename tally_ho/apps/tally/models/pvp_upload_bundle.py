@@ -47,6 +47,10 @@ class PvpUploadBundle(BaseModel):
     mode = EnumIntegerField(PvpMode, default=PvpMode.DISABLED)
     number_of_submissions = models.PositiveIntegerField(default=0)
     imported_at = models.DateTimeField(null=True, blank=True)
+    # Populated on FAILED with the exception that aborted the import,
+    # so the result page can show the operator what went wrong instead
+    # of a bare status flag.
+    error_message = models.TextField(blank=True, default="")
 
     def __str__(self):
         return f"PvpUploadBundle({self.id}, {self.filename}, {self.status})"

@@ -27,6 +27,7 @@ class Migration(migrations.Migration):
                 ('mode', enumfields.fields.EnumIntegerField(default=0, enum=tally_ho.libs.models.enums.pvp_mode.PvpMode)),
                 ('number_of_submissions', models.PositiveIntegerField(default=0)),
                 ('imported_at', models.DateTimeField(blank=True, null=True)),
+                ('error_message', models.TextField(blank=True, default='')),
                 ('tally', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='tally.tally')),
                 ('uploaded_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='tally.userprofile')),
             ],

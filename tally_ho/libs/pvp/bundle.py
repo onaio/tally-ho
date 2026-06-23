@@ -19,6 +19,8 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from django.utils.translation import gettext_lazy as _
+
 CSV_NAME = "candidate_results.csv"
 MEDIA_DIR = "media"
 
@@ -130,12 +132,14 @@ def parse_bundle(zip_path: str | Path) -> ParsedBundle:
     try:
         archive = zipfile.ZipFile(path)
     except (zipfile.BadZipFile, OSError) as exc:
-        raise InvalidBundleError(f"could not open zip: {exc}") from exc
+        raise InvalidBundleError(
+            _("could not open zip: %(error)s") % {"error": exc}
+        ) from exc
 
     with archive:
         if CSV_NAME not in archive.namelist():
             raise InvalidBundleError(
-                f"bundle is missing {CSV_NAME}"
+                _("bundle is missing %(name)s") % {"name": CSV_NAME}
             )
         media_filenames = {
             name[len(MEDIA_DIR) + 1:]
@@ -156,7 +160,9 @@ def _check_required_columns(fieldnames):
     missing = [column for column in REQUIRED_COLUMNS if column not in present]
     if missing:
         raise InvalidBundleError(
-            f"bundle CSV is missing required columns: {', '.join(missing)}"
+            _("bundle CSV is missing required columns: %(columns)s") % {
+                "columns": ", ".join(missing),
+            }
         )
 
 
@@ -210,7 +216,9 @@ def _build_parsed_bundle(csv_rows, media_filenames):
     if duplicates:
         listing = ", ".join(sorted(duplicates))
         raise DuplicateBarcodeError(
-            f"barcodes appear in more than one submission: {listing}"
+            _("barcodes appear in more than one submission: %(barcodes)s") % {
+                "barcodes": listing,
+            }
         )
 
     _check_round_integrity(submissions)
@@ -243,7 +251,9 @@ def _check_round_integrity(submissions):
     if offenders:
         listing = ", ".join(sorted(set(offenders)))
         raise RoundIntegrityError(
-            f"barcodes with missing or mismatched rounds: {listing}"
+            _("barcodes with missing or mismatched rounds: %(barcodes)s") % {
+                "barcodes": listing,
+            }
         )
 
 
@@ -261,7 +271,9 @@ def _safe_image_filename(value):
         return None
     if "/" in value or "\\" in value or ".." in value:
         raise UnsafeImageFilenameError(
-            f"image filename contains path syntax: {value!r}"
+            _("image filename contains path syntax: %(name)r") % {
+                "name": value,
+            }
         )
     return value
 
@@ -279,5 +291,5 @@ def _to_int(value):
         return int(value)
     except (TypeError, ValueError) as exc:
         raise InvalidBundleError(
-            f"expected integer, got {value!r}"
+            _("expected integer, got %(value)r") % {"value": value}
         ) from exc

@@ -250,6 +250,55 @@ class TestPvpConfirmView(_PvpViewTestBase, TestCase):
             f"/pvp/result/{bundle.id}/", response["Location"],
         )
 
+    @mock.patch(
+        "tally_ho.apps.tally.views.pvp.async_pvp_import",
+    )
+    def test_post_does_not_enqueue_when_bundle_already_importing(
+        self, mock_task,
+    ):
+        # A second confirm while the first task is still in flight must
+        # not enqueue a second task. The user is redirected to the
+        # result page (where status polling shows IMPORTING).
+        bundle = self._make_pending_bundle()
+        bundle.status = PvpBundleStatus.IMPORTING
+        bundle.save(update_fields=["status"])
+        view = PvpConfirmView.as_view()
+        request = self.factory.post("/")
+        configure_messages(request)
+        request.user = self.user
+        request.session = {}
+        response = view(
+            request, tally_id=self.tally.id, bundle_id=bundle.id,
+        )
+        self.assertEqual(response.status_code, 302)
+        mock_task.delay.assert_not_called()
+        self.assertIn(
+            f"/pvp/result/{bundle.id}/", response["Location"],
+        )
+
+    @mock.patch(
+        "tally_ho.apps.tally.views.pvp.async_pvp_import",
+    )
+    def test_post_does_not_enqueue_when_bundle_already_completed(
+        self, mock_task,
+    ):
+        bundle = self._make_pending_bundle()
+        bundle.status = PvpBundleStatus.COMPLETED
+        bundle.save(update_fields=["status"])
+        view = PvpConfirmView.as_view()
+        request = self.factory.post("/")
+        configure_messages(request)
+        request.user = self.user
+        request.session = {}
+        response = view(
+            request, tally_id=self.tally.id, bundle_id=bundle.id,
+        )
+        self.assertEqual(response.status_code, 302)
+        mock_task.delay.assert_not_called()
+        self.assertIn(
+            f"/pvp/result/{bundle.id}/", response["Location"],
+        )
+
 
 class TestPvpResultView(_PvpViewTestBase, TestCase):
     def test_get_renders_status(self):

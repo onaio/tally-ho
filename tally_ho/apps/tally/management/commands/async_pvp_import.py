@@ -65,11 +65,14 @@ def async_pvp_import(bundle_id, user_id):
                 uploaded_by=user,
                 zip_ref=zip_ref,
             )
-    except Exception:
+    except Exception as exc:
         bundle.refresh_from_db(fields=["status"])
         if bundle.status != PvpBundleStatus.FAILED:
             bundle.status = PvpBundleStatus.FAILED
-            bundle.save(update_fields=["status", "modified_date"])
+        bundle.error_message = str(exc)
+        bundle.save(
+            update_fields=["status", "error_message", "modified_date"],
+        )
         raise
 
     return bundle.id

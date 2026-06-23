@@ -118,9 +118,15 @@ def _import_submission_inner(
     }
 
     if bundle.mode == PvpMode.DE1_AND_DE2:
+        # FINAL is created here (round2 values) because DE1_AND_DE2
+        # skips corrections — which is what normally writes FINAL rows.
+        # Without this, reports/exports that filter on EntryVersion.FINAL
+        # would not see PVP-imported forms in this mode. round1 == round2
+        # is guaranteed by the device, so FINAL is deterministic.
         entries = (
             (EntryVersion.DATA_ENTRY_1, "round1", _RECON_FIELD_MAP_R1),
             (EntryVersion.DATA_ENTRY_2, "round2", _RECON_FIELD_MAP_R2),
+            (EntryVersion.FINAL, "round2", _RECON_FIELD_MAP_R2),
         )
         next_state = FormState.QUALITY_CONTROL
     elif bundle.mode == PvpMode.DE1_ONLY:

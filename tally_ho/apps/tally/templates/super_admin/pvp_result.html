@@ -33,6 +33,12 @@
       <th>{% trans 'Imported at' %}</th>
       <td id="pvp-imported-at">{{ bundle.imported_at|default:"—" }}</td>
     </tr>
+    {% if bundle.error_message %}
+      <tr>
+        <th>{% trans 'Error' %}</th>
+        <td id="pvp-error-message">{{ bundle.error_message }}</td>
+      </tr>
+    {% endif %}
   </table>
 
   <a href="{% url 'super-administrator' tally_id=tally_id %}" class="btn btn-default">

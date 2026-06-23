@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
 
 from tally_ho.libs.models.base_model import BaseModel
@@ -29,7 +30,7 @@ class Tally(BaseModel):
     pvp_mode = EnumIntegerField(
         PvpMode,
         default=PvpMode.DISABLED,
-        help_text='Preliminary Vote Protocol ingest mode for this tally')
+        help_text=_('Preliminary Vote Protocol ingest mode for this tally'))
 
     def __str__(self):
         return u'%d - %s' % (self.id, self.name)

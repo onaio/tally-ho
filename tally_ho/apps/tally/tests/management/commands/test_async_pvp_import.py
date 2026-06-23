@@ -200,3 +200,22 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         self.assertEqual(self.bundle.status, PvpBundleStatus.FAILED)
         self.assertIsNone(self.bundle.imported_at)
         self.assertEqual(PvpSubmission.objects.count(), 0)
+
+    def test_async_pvp_import_stores_error_message_on_failure(self):
+        # On failure the bundle must record why so the operator sees
+        # the cause on the result page instead of a bare FAILED.
+        with open(self.bundle.zip_file.path, "wb") as fh:
+            fh.write(b"not a zip")
+
+        with self.assertRaises(Exception):
+            async_pvp_import.apply(
+                kwargs={
+                    "bundle_id": self.bundle.id, "user_id": self.user.id,
+                },
+                throw=True,
+            )
+
+        self.bundle.refresh_from_db()
+        self.assertEqual(self.bundle.status, PvpBundleStatus.FAILED)
+        self.assertTrue(self.bundle.error_message)
+        self.assertIn("zip", self.bundle.error_message.lower())

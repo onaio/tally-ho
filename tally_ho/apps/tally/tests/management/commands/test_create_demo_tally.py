@@ -66,11 +66,15 @@ class TestCreateDemoTally(TestCase):
             self.assertEqual(ids, [1, 2, 3])
 
     def test_is_idempotent(self):
+        self.assertEqual(Tally.objects.filter(name=self.name).count(), 0)
+
         first = create_demo_tally(name=self.name)
+        self.assertEqual(Tally.objects.filter(name=self.name).count(), 1)
+
         second = create_demo_tally(name=self.name)
+        self.assertEqual(Tally.objects.filter(name=self.name).count(), 1)
 
         self.assertEqual(first.pk, second.pk)
-        self.assertEqual(Tally.objects.filter(name=self.name).count(), 1)
         self.assertEqual(
             ResultForm.objects.filter(tally=first).count(), 8,
         )

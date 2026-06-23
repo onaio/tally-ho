@@ -8,6 +8,10 @@ that would otherwise be done from paper.
 
 ## How a result gets into tally-ho
 
+The diagram below shows the upload pipeline. The final per-row write
+and the post-import path differ by `Tally.pvp_mode` — see *What the
+operator sees* below for the per-mode specifics.
+
 ```text
 ODK Central                  network host                     tally-ho host
     │                              │                                │
@@ -22,15 +26,22 @@ ODK Central                  network host                     tally-ho host
     │                              │                                ▼  user confirms
     │                              │                         Celery import task
     │                              │                                │
-    │                              │                                ├─ For each row:
-    │                              │                                │   • DE1 Result rows (one per candidate, votes = round 2)
+    │                              │                                ├─ For each row, write per-mode:
+    │                              │                                │
+    │                              │                                │   DE1_ONLY:
+    │                              │                                │   • DE1 Result rows (votes = round 2)
     │                              │                                │   • DE1 ReconciliationForm
     │                              │                                │   • Form state UNSUBMITTED → DATA_ENTRY_2
-    │                              │                                │   • Link ResultForm.pvp_submission
-    │                              │                                ▼
-    │                              │                         Manual DE2 clerk
-    │                              │                         enters DE2 normally; mismatch goes
-    │                              │                         to corrections as usual.
+    │                              │                                │     (human DE2 clerk; mismatch → corrections)
+    │                              │                                │
+    │                              │                                │   DE1_AND_DE2:
+    │                              │                                │   • DE1 Result + recon (round 1)
+    │                              │                                │   • DE2 Result + recon (round 2)
+    │                              │                                │   • FINAL Result + recon (round 1 == round 2)
+    │                              │                                │   • Form state UNSUBMITTED → QUALITY_CONTROL
+    │                              │                                │     (no manual DE2, no corrections)
+    │                              │                                │
+    │                              │                                └─ Link ResultForm.pvp_submission
 ```
 
 ## What the operator sees
