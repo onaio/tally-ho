@@ -179,30 +179,41 @@ def _build_parsed_bundle(csv_rows, media_filenames):
 
     for instance_id, group in by_instance.items():
         first = group[0]
-        candidates = tuple(
-            CandidateResult(
-                candidate_id=row["candidate_id"],
-                candidate_order=_to_int(row["candidate_order"]) or 0,
-                round1=_to_int(row["candidate_result_round1"]),
-                round2=_to_int(row["candidate_result_round2"]),
+        # All accessed columns are in REQUIRED_COLUMNS so a KeyError here
+        # would mean the upstream column check was bypassed or DictReader
+        # behaved unexpectedly. Wrap it as InvalidBundleError so the
+        # operator sees a meaningful message instead of a raw traceback.
+        try:
+            candidates = tuple(
+                CandidateResult(
+                    candidate_id=row["candidate_id"],
+                    candidate_order=_to_int(row["candidate_order"]) or 0,
+                    round1=_to_int(row["candidate_result_round1"]),
+                    round2=_to_int(row["candidate_result_round2"]),
+                )
+                for row in group
             )
-            for row in group
-        )
-        recon = {col: _to_int(first[col]) for col in RECON_COLUMNS}
-        images = {
-            col: _safe_image_filename(first.get(col))
-            for col in IMAGE_COLUMNS
-        }
-        submission = ParsedSubmission(
-            odk_instance_id=instance_id,
-            odk_form_id=first.get("xml_form_id", ""),
-            barcode=first["barcode"],
-            ballot_number=first.get("ballot_number", ""),
-            staff_user_name=first.get("staff_user_name") or None,
-            candidates=candidates,
-            recon=recon,
-            images=images,
-        )
+            recon = {col: _to_int(first[col]) for col in RECON_COLUMNS}
+            images = {
+                col: _safe_image_filename(first[col])
+                for col in IMAGE_COLUMNS
+            }
+            submission = ParsedSubmission(
+                odk_instance_id=instance_id,
+                odk_form_id=first["xml_form_id"],
+                barcode=first["barcode"],
+                ballot_number=first["ballot_number"],
+                staff_user_name=first["staff_user_name"] or None,
+                candidates=candidates,
+                recon=recon,
+                images=images,
+            )
+        except KeyError as exc:
+            raise InvalidBundleError(
+                _("row missing required column: %(column)s") % {
+                    "column": exc.args[0],
+                }
+            ) from exc
         submissions.append(submission)
         barcode_to_instances.setdefault(submission.barcode, []).append(
             instance_id,
