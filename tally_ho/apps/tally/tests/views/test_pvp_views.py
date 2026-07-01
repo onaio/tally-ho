@@ -7,6 +7,7 @@ end-to-end in test_async_pvp_import.py.
 import csv
 import io
 import json
+import pathlib
 import shutil
 import tempfile
 import zipfile
@@ -188,6 +189,70 @@ class TestPvpUploadView(_PvpViewTestBase, TestCase):
         )
         request = self.factory.post("/", data={"zip_file": upload})
         request.user = self.user
+        request.session = {}
+        response = view(request, tally_id=self.tally.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PvpUploadBundle.objects.count(), 0)
+
+    def test_post_invalid_zip_removes_persisted_zip_from_disk(self):
+        # On parse failure the bundle row is deleted, but Django does
+        # not delete the underlying file when the model row goes away.
+        # The view must explicitly clean it up to avoid an orphan in
+        # MEDIA_ROOT.
+        view = PvpUploadView.as_view()
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, mode="w") as zf:
+            zf.writestr("README.txt", b"oops")
+        upload = SimpleUploadedFile(
+            "bundle.zip", buf.getvalue(),
+            content_type="application/zip",
+        )
+        request = self.factory.post("/", data={"zip_file": upload})
+        request.user = User.objects.get(id=self.user.id)
+        request.session = {}
+
+        # Snapshot the bundle directory tree before; anything new here
+        # at the end of the test is a leak.
+        bundles_root = pathlib.Path(self._media_root) / "pvp" / "bundles"
+        before = (
+            set(p.relative_to(bundles_root) for p in bundles_root.rglob("*"))
+            if bundles_root.exists() else set()
+        )
+
+        response = view(request, tally_id=self.tally.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PvpUploadBundle.objects.count(), 0)
+
+        after_files = (
+            {
+                p for p in bundles_root.rglob("*")
+                if p.is_file()
+            } if bundles_root.exists() else set()
+        )
+        # Compare file paths only; intermediate dirs are not interesting.
+        new_files = {
+            p for p in after_files
+            if p.relative_to(bundles_root) not in before
+        }
+        self.assertEqual(new_files, set())
+
+    def test_post_to_disabled_tally_shows_error_no_bundle_created(self):
+        # Uploading to a DISABLED tally would have every row rejected
+        # downstream as `pvp_disabled` — short-circuit at upload so the
+        # operator sees the actual cause instead of a useless skip list.
+        self.tally.pvp_mode = PvpMode.DISABLED
+        self.tally.save(update_fields=["pvp_mode"])
+
+        view = PvpUploadView.as_view()
+        zip_bytes = _zip_bytes([
+            _csv_row(instance_id="uuid:1", barcode="111",
+                     candidate_id=131301, order=1, r2=12),
+        ])
+        upload = SimpleUploadedFile(
+            "bundle.zip", zip_bytes, content_type="application/zip",
+        )
+        request = self.factory.post("/", data={"zip_file": upload})
+        request.user = User.objects.get(id=self.user.id)
         request.session = {}
         response = view(request, tally_id=self.tally.id)
         self.assertEqual(response.status_code, 200)

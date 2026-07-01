@@ -188,8 +188,12 @@ class ResultForm(BaseModel):
                               blank=True,
                               related_name='result_forms',
                               on_delete=models.PROTECT)
-    # Set to the PvpSubmission whose round-2 candidate results populated
-    # this form's DATA_ENTRY_1 results.
+    # Set to the PvpSubmission whose candidate results populated this
+    # form. In DE1_ONLY mode the submission's round-2 values become a
+    # single DATA_ENTRY_1 result set (DE2 is left for a human clerk).
+    # In DE1_AND_DE2 mode the submission populates DATA_ENTRY_1,
+    # DATA_ENTRY_2, and FINAL — corrections is skipped because the
+    # device guarantees round1 == round2.
     pvp_submission = models.ForeignKey(
         PvpSubmission,
         null=True,

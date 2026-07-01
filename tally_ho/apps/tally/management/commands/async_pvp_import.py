@@ -8,6 +8,8 @@ the import on the confirmation screen.
 
 import zipfile
 
+from django.db import transaction
+
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.user_profile import UserProfile
@@ -28,19 +30,32 @@ def async_pvp_import(bundle_id, user_id):
     The orchestrator flips status to COMPLETED on success or FAILED if
     anything raises.
 
+    Re-invocations on a non-PENDING bundle short-circuit: a celery
+    retry or duplicate enqueue must not overwrite a terminal status
+    (which would also explode on the PvpSubmission unique constraint).
+
     :param bundle_id: PvpUploadBundle.id
     :param user_id:   UserProfile.id (the super admin who confirmed)
     :returns:         the bundle id (round-trip for callers/monitoring)
     """
-    bundle = PvpUploadBundle.objects.get(id=bundle_id)
     user = UserProfile.objects.get(id=user_id)
 
-    bundle.status = PvpBundleStatus.IMPORTING
-    bundle.save(update_fields=["status", "modified_date"])
+    # Atomically claim the bundle: lock the row, verify it's PENDING,
+    # flip to IMPORTING. A duplicate task arriving here finds the row
+    # already IMPORTING/COMPLETED/FAILED and bails before doing work.
+    with transaction.atomic():
+        bundle = PvpUploadBundle.objects.select_for_update().get(
+            id=bundle_id,
+        )
+        if bundle.status != PvpBundleStatus.PENDING:
+            return bundle.id
+        bundle.status = PvpBundleStatus.IMPORTING
+        bundle.save(update_fields=["status", "modified_date"])
 
-    # Catch failures from parse/validation too — otherwise a corrupted
-    # zip leaves the bundle stuck in IMPORTING. import_bundle handles
-    # its own FAILED flip; this except covers everything before it.
+    # All failure handling — parse errors, validation crashes, and
+    # import_bundle rollbacks — is centralized in this except. The
+    # FAILED save happens outside any atomic here (the claim above
+    # already committed), so it sticks even after the re-raise.
     try:
         zip_path = bundle.zip_file.path
         parsed = parse_bundle(zip_path)
@@ -66,9 +81,7 @@ def async_pvp_import(bundle_id, user_id):
                 zip_ref=zip_ref,
             )
     except Exception as exc:
-        bundle.refresh_from_db(fields=["status"])
-        if bundle.status != PvpBundleStatus.FAILED:
-            bundle.status = PvpBundleStatus.FAILED
+        bundle.status = PvpBundleStatus.FAILED
         bundle.error_message = str(exc)
         bundle.save(
             update_fields=["status", "error_message", "modified_date"],

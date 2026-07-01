@@ -23,9 +23,9 @@ from tally_ho.libs.pvp.bundle import (
 )
 
 
-CSV_HEADERS = tuple(
-    dict.fromkeys((*REQUIRED_COLUMNS, *RECON_COLUMNS, *IMAGE_COLUMNS))
-)
+# REQUIRED_COLUMNS is a superset — RECON_COLUMNS is already splatted in
+# and IMAGE_COLUMNS members are listed explicitly.
+CSV_HEADERS = REQUIRED_COLUMNS
 STUB_IMAGES = ("demo_sig.jpg", "demo_p1.jpg", "demo_p2.jpg")
 # Minimal valid JPEG (SOI + APP0 JFIF marker + EOI). Parser only checks
 # that the file exists; content does not need to be a real photo.

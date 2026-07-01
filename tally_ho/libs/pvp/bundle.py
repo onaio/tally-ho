@@ -125,8 +125,13 @@ def parse_bundle(zip_path: str | Path) -> ParsedBundle:
     """Parse a PVP upload bundle into submission-level rows.
 
     Raises:
-      InvalidBundleError: zip can't open, csv missing, required columns gone
-      DuplicateBarcodeError: same barcode appears in more than one submission
+      InvalidBundleError: zip can't open, csv missing, required columns
+        gone, or a value that must parse as an integer doesn't
+      DuplicateBarcodeError: same barcode appears in more than one
+        submission
+      RoundIntegrityError: any candidate row has missing rounds or
+        round1 != round2 (device guarantees they match)
+      UnsafeImageFilenameError: an image filename contains path syntax
     """
     path = Path(zip_path)
     try:

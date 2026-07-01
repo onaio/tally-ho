@@ -201,6 +201,30 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         self.assertIsNone(self.bundle.imported_at)
         self.assertEqual(PvpSubmission.objects.count(), 0)
 
+    def test_async_pvp_import_is_noop_when_bundle_not_pending(self):
+        # If the task is re-queued externally (celery retry, manual
+        # re-run, sibling worker race), the second invocation must not
+        # overwrite a terminal status. Without the guard the task would
+        # flip COMPLETED -> IMPORTING and then explode on the duplicate
+        # PvpSubmission unique constraint, ending in spurious FAILED.
+        original_imported_at = self.bundle.imported_at
+        self.bundle.status = PvpBundleStatus.COMPLETED
+        self.bundle.number_of_submissions = 1
+        self.bundle.save(update_fields=[
+            "status", "number_of_submissions", "modified_date",
+        ])
+
+        async_pvp_import.apply(
+            kwargs={"bundle_id": self.bundle.id, "user_id": self.user.id},
+        )
+
+        self.bundle.refresh_from_db()
+        self.assertEqual(self.bundle.status, PvpBundleStatus.COMPLETED)
+        self.assertEqual(self.bundle.number_of_submissions, 1)
+        self.assertEqual(self.bundle.imported_at, original_imported_at)
+        # No new PvpSubmission row should have been created.
+        self.assertEqual(PvpSubmission.objects.count(), 0)
+
     def test_async_pvp_import_stores_error_message_on_failure(self):
         # On failure the bundle must record why so the operator sees
         # the cause on the result page instead of a bare FAILED.

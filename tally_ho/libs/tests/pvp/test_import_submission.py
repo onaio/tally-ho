@@ -524,10 +524,12 @@ class TestImportBundle(ImportSubmissionTestBase, TestCase):
         self.assertEqual(self.bundle.number_of_submissions, 0)
         self.assertIsNotNone(self.bundle.imported_at)
 
-    def test_failure_marks_bundle_failed_reraises_and_rolls_back_all(self):
+    def test_failure_reraises_and_rolls_back_all(self):
         # Second submission references a candidate_id that doesn't exist.
         # Under all-or-nothing semantics the first submission must also
         # be rolled back so the bundle leaves no partial trace.
+        # import_bundle re-raises for the caller to handle the FAILED
+        # transition (see async_pvp_import for the terminal flip).
         bad = self._parsed_submission(
             odk_instance_id="uuid:rf-2", barcode="222",
             candidates=(
@@ -551,7 +553,10 @@ class TestImportBundle(ImportSubmissionTestBase, TestCase):
         finally:
             zip_ref.close()
         self.bundle.refresh_from_db()
-        self.assertEqual(self.bundle.status, PvpBundleStatus.FAILED)
+        # import_bundle no longer sets FAILED — that's the caller's job.
+        # The bundle stays at whatever status it had when import_bundle
+        # was called (IMPORTING in production, PENDING in this test).
+        self.assertNotEqual(self.bundle.status, PvpBundleStatus.COMPLETED)
         self.assertIsNone(self.bundle.imported_at)
         # All-or-nothing: nothing persisted.
         self.assertEqual(self.bundle.submissions.count(), 0)

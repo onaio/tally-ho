@@ -65,7 +65,12 @@ _RECON_FIELD_MAP_R1 = {
 def import_submission(
     parsed_submission, *, tally, bundle, uploaded_by, zip_ref,
 ):
-    """Import one validated PVP submission as DE1 results + recon."""
+    """Import one validated PVP submission.
+
+    Entry-version writes depend on ``bundle.mode`` — see the module
+    docstring for the DE1_ONLY vs DE1_AND_DE2 breakdown. Wraps the
+    write pass in a reversion revision for audit history.
+    """
     with reversion.create_revision():
         reversion.set_user(uploaded_by)
         reversion.set_comment(
@@ -191,37 +196,32 @@ def import_bundle(*, bundle, submissions, tally, uploaded_by, zip_ref):
     parse-time validation. The bundle row already exists (created at
     upload time); this function walks the validated subset, calls
     `import_submission` for each row inside a single outer atomic
-    transaction, and flips the bundle's terminal status.
+    transaction, and flips the bundle to COMPLETED on success.
 
     All-or-nothing: if any `import_submission` raises, the outer atomic
     rolls back every prior submission's writes (each row's own atomic
     becomes a savepoint of the outer). Image `on_commit` callbacks
     registered by successful submissions are discarded on rollback, so
-    no orphan files land on disk. The bundle status flip to FAILED
-    happens after the rollback so the FAILED row sticks.
+    no orphan files land on disk. Callers are responsible for flipping
+    the bundle to FAILED and persisting the exception message.
     """
     submissions = list(submissions)
-    try:
-        with transaction.atomic():
-            for parsed in submissions:
-                import_submission(
-                    parsed,
-                    tally=tally,
-                    bundle=bundle,
-                    uploaded_by=uploaded_by,
-                    zip_ref=zip_ref,
-                )
-            bundle.number_of_submissions = len(submissions)
-            bundle.imported_at = timezone.now()
-            bundle.status = PvpBundleStatus.COMPLETED
-            bundle.save(update_fields=[
-                "number_of_submissions", "imported_at",
-                "status", "modified_date",
-            ])
-    except Exception:
-        bundle.status = PvpBundleStatus.FAILED
-        bundle.save(update_fields=["status", "modified_date"])
-        raise
+    with transaction.atomic():
+        for parsed in submissions:
+            import_submission(
+                parsed,
+                tally=tally,
+                bundle=bundle,
+                uploaded_by=uploaded_by,
+                zip_ref=zip_ref,
+            )
+        bundle.number_of_submissions = len(submissions)
+        bundle.imported_at = timezone.now()
+        bundle.status = PvpBundleStatus.COMPLETED
+        bundle.save(update_fields=[
+            "number_of_submissions", "imported_at",
+            "status", "modified_date",
+        ])
     return bundle
 
 

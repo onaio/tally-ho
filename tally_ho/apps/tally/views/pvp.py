@@ -12,6 +12,7 @@ Three-step user journey:
 """
 
 from django.contrib import messages
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext_lazy as _
@@ -27,6 +28,7 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
 from tally_ho.libs.permissions import groups
 from tally_ho.libs.pvp.bundle import (
     DuplicateBarcodeError,
@@ -54,6 +56,17 @@ class PvpUploadView(
     def form_valid(self, form):
         tally_id = self.kwargs["tally_id"]
         tally = get_object_or_404(Tally, id=tally_id)
+
+        # A DISABLED tally would reject every row at confirm-time with
+        # `pvp_disabled`. Short-circuit at upload so the operator sees
+        # the actual cause and isn't asked to confirm an empty import.
+        if tally.pvp_mode == PvpMode.DISABLED:
+            form.add_error(
+                "zip_file",
+                _("PVP is disabled for this tally."),
+            )
+            return self.form_invalid(form)
+
         upload = form.cleaned_data["zip_file"]
 
         # request.user is a Django User; the FK targets UserProfile (the
@@ -84,7 +97,11 @@ class PvpUploadView(
             RoundIntegrityError,
             UnsafeImageFilenameError,
         ) as exc:
-            bundle.delete()  # zip_file deletion handled by FileField
+            # Django's FileField does not auto-delete the on-disk file
+            # when the model row is deleted; do it explicitly so a
+            # rejected upload does not leak a zip in MEDIA_ROOT.
+            bundle.zip_file.delete(save=False)
+            bundle.delete()
             form.add_error("zip_file", str(exc))
             return self.form_invalid(form)
 
@@ -135,13 +152,20 @@ class PvpConfirmView(
     def post(self, request, *args, **kwargs):
         tally_id = self.kwargs["tally_id"]
         bundle_id = self.kwargs["bundle_id"]
-        bundle = get_object_or_404(
+        # Tally membership check up front; the locked row read below is
+        # for the enqueue gate, not authorization.
+        get_object_or_404(
             PvpUploadBundle, id=bundle_id, tally_id=tally_id,
         )
-        # Only PENDING bundles can be enqueued. Re-confirming an already
-        # IMPORTING/COMPLETED/FAILED bundle would otherwise duplicate the
-        # import task and race against the in-flight one.
-        if bundle.status != PvpBundleStatus.PENDING:
+        # Take a row lock so two concurrent confirms can't both observe
+        # PENDING and both enqueue. The lock is released when the
+        # atomic block exits, which happens before we hand off to celery.
+        with transaction.atomic():
+            bundle = PvpUploadBundle.objects.select_for_update().get(
+                id=bundle_id,
+            )
+            already_handled = bundle.status != PvpBundleStatus.PENDING
+        if already_handled:
             messages.info(
                 request,
                 _("PVP import already %(status)s.") % {
