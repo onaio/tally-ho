@@ -57,9 +57,6 @@ class PvpUploadView(
         tally_id = self.kwargs["tally_id"]
         tally = get_object_or_404(Tally, id=tally_id)
 
-        # A DISABLED tally would reject every row at confirm-time with
-        # `pvp_disabled`. Short-circuit at upload so the operator sees
-        # the actual cause and isn't asked to confirm an empty import.
         if tally.pvp_mode == PvpMode.DISABLED:
             form.add_error(
                 "zip_file",
