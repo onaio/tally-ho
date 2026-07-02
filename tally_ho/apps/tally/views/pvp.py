@@ -66,8 +66,6 @@ class PvpUploadView(
 
         upload = form.cleaned_data["zip_file"]
 
-        # request.user is a Django User; the FK targets UserProfile (the
-        # multi-table-inherited subclass). Fetch the matching profile.
         uploaded_by = UserProfile.objects.get(id=self.request.user.id)
 
         # Two-step save: persist row to get id, then attach zip and re-save.
