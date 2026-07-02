@@ -56,7 +56,10 @@ ODK Central                  network host                     tally-ho host
      skips corrections and goes straight to `QUALITY_CONTROL`.
 2. **Upload a bundle** — Super-admin opens the PVP upload screen,
    selects the `.zip` produced by `odk-central-sync`. Tally-ho sanity-
-   parses the zip and redirects to the confirmation screen.
+   parses the zip and redirects to the confirmation screen. Uploads
+   against a tally whose `pvp_mode` is `DISABLED` are rejected up
+   front — the operator sees a form error rather than a confirmation
+   screen full of `pvp_disabled` skip reasons.
 3. **Confirm** — The confirmation screen shows three lists:
    - **Will import** — submissions that pass parse-time validation
    - **Will skip** — rows that fail validation, with a reason code
@@ -67,7 +70,10 @@ ODK Central                  network host                     tally-ho host
    result page shows the bundle status (`PENDING`, `IMPORTING`,
    `COMPLETED`, `FAILED`) and the count of submissions imported, and
    refreshes itself in place until the bundle reaches a terminal
-   status (no page reload needed).
+   status (no page reload needed). If the import ends in `FAILED`, the
+   exception message that aborted it is captured on the bundle and
+   surfaced on the result page so the operator sees the cause without
+   having to check task logs.
 
 ## Validation rules (parse-time)
 
@@ -75,7 +81,7 @@ A row is **skipped** (never persisted) if any of these is true:
 
 | Reason | Meaning |
 |---|---|
-| `pvp_disabled` | Tally's `pvp_mode` is `DISABLED` |
+| `pvp_disabled` | Tally's `pvp_mode` was flipped to `DISABLED` between upload and confirm (uploads to an already-`DISABLED` tally are rejected earlier — see step 2) |
 | `required_fields` | Missing barcode, ballot_number, instance ID, or all rounds-2 votes |
 | `barcode_not_found` | Barcode does not match any ResultForm in this tally |
 | `form_not_unsubmitted` | The matched form's state is not `UNSUBMITTED` |

@@ -77,14 +77,24 @@ def import_submission(
             f"PVP import (bundle {bundle.id}, "
             f"instance {parsed_submission.odk_instance_id})"
         )
-        return _import_submission_inner(
-            parsed_submission, tally, bundle, uploaded_by, zip_ref,
+        context = _prepare_import(
+            parsed_submission, tally=tally, bundle=bundle,
+        )
+        return _apply_import(
+            parsed_submission,
+            uploaded_by=uploaded_by,
+            zip_ref=zip_ref,
+            **context,
         )
 
 
-def _import_submission_inner(
-    parsed_submission, tally, bundle, uploaded_by, zip_ref,
-):
+def _prepare_import(parsed_submission, *, tally, bundle):
+    """Resolve DB rows and pick the per-mode write plan.
+
+    Read-only lookups plus the ``PvpSubmission`` provenance row, then
+    dispatch on ``bundle.mode`` to select ``entries`` + ``next_state``.
+    Returns a kwargs dict fed to ``_apply_import``.
+    """
     result_form = ResultForm.objects.get(
         tally=tally, barcode=parsed_submission.barcode,
     )
@@ -122,37 +132,73 @@ def _import_submission_inner(
         for pc in parsed_submission.candidates
     }
 
-    if bundle.mode == PvpMode.DE1_AND_DE2:
+    entries, next_state = _entry_plan(bundle.mode)
+
+    return {
+        "tally": tally,
+        "result_form": result_form,
+        "station": station,
+        "submission": submission,
+        "candidates_by_parsed": candidates_by_parsed,
+        "entries": entries,
+        "next_state": next_state,
+    }
+
+
+def _entry_plan(mode):
+    """Pick the (entries, next_state) tuple for ``bundle.mode``.
+
+    ``entries`` is a tuple of
+    ``(EntryVersion, round_getter, recon_map)`` triples. ``round_getter``
+    is a callable of a ``CandidateResult`` returning the vote count
+    for that entry version; callable form avoids ``getattr`` on a
+    stringly-typed attribute name.
+    """
+    if mode == PvpMode.DE1_AND_DE2:
         # FINAL is created here (round2 values) because DE1_AND_DE2
         # skips corrections — which is what normally writes FINAL rows.
         # Without this, reports/exports that filter on EntryVersion.FINAL
         # would not see PVP-imported forms in this mode. round1 == round2
         # is guaranteed by the device, so FINAL is deterministic.
         entries = (
-            (EntryVersion.DATA_ENTRY_1, "round1", _RECON_FIELD_MAP_R1),
-            (EntryVersion.DATA_ENTRY_2, "round2", _RECON_FIELD_MAP_R2),
-            (EntryVersion.FINAL, "round2", _RECON_FIELD_MAP_R2),
+            (EntryVersion.DATA_ENTRY_1,
+             lambda pc: pc.round1, _RECON_FIELD_MAP_R1),
+            (EntryVersion.DATA_ENTRY_2,
+             lambda pc: pc.round2, _RECON_FIELD_MAP_R2),
+            (EntryVersion.FINAL,
+             lambda pc: pc.round2, _RECON_FIELD_MAP_R2),
         )
-        next_state = FormState.QUALITY_CONTROL
-    elif bundle.mode == PvpMode.DE1_ONLY:
+        return entries, FormState.QUALITY_CONTROL
+    if mode == PvpMode.DE1_ONLY:
         entries = (
-            (EntryVersion.DATA_ENTRY_1, "round2", _RECON_FIELD_MAP_R2),
+            (EntryVersion.DATA_ENTRY_1,
+             lambda pc: pc.round2, _RECON_FIELD_MAP_R2),
         )
-        next_state = FormState.DATA_ENTRY_2
-    else:
-        raise ValueError(f"unsupported PVP mode {bundle.mode}")
+        return entries, FormState.DATA_ENTRY_2
+    raise ValueError(f"unsupported PVP mode {mode}")
 
+
+def _apply_import(
+    parsed_submission, *, tally, result_form, station, submission,
+    candidates_by_parsed, entries, next_state, uploaded_by, zip_ref,
+):
+    """Write Result + ReconciliationForm rows, flip form state, save images.
+
+    Assumes ``_prepare_import`` has already populated every kwarg. All
+    parse-time guarantees hold here: recon keys are present (checked
+    in ``bundle._check_required_columns``) and round values are
+    non-null and equal (``bundle._check_round_integrity``).
+    """
     recon = parsed_submission.recon
-    for entry_version, round_attr, recon_map in entries:
+    for entry_version, get_round, recon_map in entries:
         for parsed_candidate, candidate in candidates_by_parsed.items():
-            votes = getattr(parsed_candidate, round_attr) or 0
             Result.objects.create(
                 candidate=candidate,
                 result_form=result_form,
                 tally=tally,
                 user=uploaded_by,
                 entry_version=entry_version,
-                votes=votes,
+                votes=get_round(parsed_candidate),
                 active=True,
             )
         ReconciliationForm.objects.create(
@@ -162,14 +208,13 @@ def _import_submission_inner(
             entry_version=entry_version,
             active=True,
             number_of_voters=station.registrants,
-            number_of_voter_cards_in_the_ballot_box=recon.get(
-                recon_map["number_of_voter_cards_in_the_ballot_box"]),
-            number_valid_votes=recon.get(
-                recon_map["number_valid_votes"]),
-            number_invalid_votes=recon.get(
-                recon_map["number_invalid_votes"]),
-            number_sorted_and_counted=recon.get(
-                recon_map["number_sorted_and_counted"]),
+            number_of_voter_cards_in_the_ballot_box=recon[
+                recon_map["number_of_voter_cards_in_the_ballot_box"]],
+            number_valid_votes=recon[recon_map["number_valid_votes"]],
+            number_invalid_votes=recon[
+                recon_map["number_invalid_votes"]],
+            number_sorted_and_counted=recon[
+                recon_map["number_sorted_and_counted"]],
             ballot_number_from=None,
             ballot_number_to=None,
             notes=None,
