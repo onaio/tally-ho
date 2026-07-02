@@ -84,7 +84,7 @@ indent-width = 4
 target-version = "py312"
 
 # Pyflakes (`F`) + full pycodestyle (`E`) + warnings (`W`).
-lint.select = ["E", "F", "W"]
+lint.select = ["E", "F", "W", "PLC0415"]
 lint.ignore = []
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.

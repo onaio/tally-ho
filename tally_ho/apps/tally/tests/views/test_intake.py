@@ -5,6 +5,7 @@ from django.test import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 
+from tally_ho.apps.tally.models.clearance import Clearance
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.result_form_stats import ResultFormStats
 from tally_ho.apps.tally.views import intake as views
@@ -834,7 +835,6 @@ class TestIntake(TestBase):
         self.assertEqual(updated_result_form.user, self.user.userprofile)
 
         # Verify Clearance object was created
-        from tally_ho.apps.tally.models.clearance import Clearance
         clearance = Clearance.objects.get(result_form=result_form)
         self.assertEqual(clearance.user, self.user.userprofile)
 

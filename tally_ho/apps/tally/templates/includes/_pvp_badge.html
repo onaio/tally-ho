@@ -1,0 +1,8 @@
+{% load i18n %}
+{% if result_form.from_pvp %}
+  <span class="pvp-badge label label-info" title="{% trans 'Populated from PVP' %}">{% trans 'PVP' %}</span>
+  <small class="text-muted pvp-caption">
+    {% trans 'Populated from PVP on' %}
+    {{ result_form.pvp_submission.created_date|date:'Y-m-d' }}
+  </small>
+{% endif %}

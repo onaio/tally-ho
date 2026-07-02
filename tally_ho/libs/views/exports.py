@@ -91,7 +91,12 @@ def build_result_and_recon_output(result_form):
         'election level': result_form.ballot.electrol_race.election_level,
         'sub race type': result_form.ballot.electrol_race.ballot_name,
         'voting district': result_form.center.sub_constituency.code,
-        'number registrants': station.registrants if station else None
+        'number registrants': station.registrants if station else None,
+        'from_pvp': result_form.from_pvp,
+        'pvp_mode_applied': (
+            result_form.pvp_submission.bundle.mode.name
+            if result_form.from_pvp else ''
+        ),
     }
 
     recon = result_form.reconciliationform
@@ -129,7 +134,12 @@ def build_candidate_results_output(result_form):
         'election_level': result_form.ballot.electrol_race.election_level,
         'sub_race_type': result_form.ballot.electrol_race.ballot_name,
         'voting_district': result_form.center.sub_constituency.code,
-        'number_registrants': station.registrants if station else None
+        'number_registrants': station.registrants if station else None,
+        'from_pvp': result_form.from_pvp,
+        'pvp_mode_applied': (
+            result_form.pvp_submission.bundle.mode.name
+            if result_form.from_pvp else ''
+        ),
     }
 
     # Use prefetched final_reconciliations if available, else fall back to property
@@ -197,6 +207,8 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'total number of ballot papers in the box',
             'number registrants',
             'candidate status',
+            'from_pvp',
+            'pvp_mode_applied',
         ]
 
         w = csv.DictWriter(f, header)

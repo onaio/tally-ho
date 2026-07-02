@@ -1,8 +1,10 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
 
 from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.disable_reason import DisableReason
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
 from tally_ho.libs.utils.templates import (
     get_tally_administer_link,
     get_tally_edit_link,
@@ -25,6 +27,10 @@ class Tally(BaseModel):
         help_text='Enable/disable cover printing in Quality Control stage')
     print_cover_in_audit = models.BooleanField(default=True,
         help_text='Enable/disable cover printing in Audit stage')
+    pvp_mode = EnumIntegerField(
+        PvpMode,
+        default=PvpMode.DISABLED,
+        help_text=_('Preliminary Vote Protocol ingest mode for this tally'))
 
     def __str__(self):
         return u'%d - %s' % (self.id, self.name)

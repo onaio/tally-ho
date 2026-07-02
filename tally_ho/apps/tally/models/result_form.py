@@ -10,6 +10,7 @@ import reversion
 from tally_ho.apps.tally.models.ballot import Ballot
 from tally_ho.apps.tally.models.center import Center
 from tally_ho.apps.tally.models.office import Office
+from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.base_model import BaseModel
@@ -187,6 +188,36 @@ class ResultForm(BaseModel):
                               blank=True,
                               related_name='result_forms',
                               on_delete=models.PROTECT)
+    # Set to the PvpSubmission whose candidate results populated this
+    # form. In DE1_ONLY mode the submission's round-2 values become a
+    # single DATA_ENTRY_1 result set (DE2 is left for a human clerk).
+    # In DE1_AND_DE2 mode the submission populates DATA_ENTRY_1,
+    # DATA_ENTRY_2, and FINAL — corrections is skipped because the
+    # import check guarantees round1 == round2.
+    pvp_submission = models.ForeignKey(
+        PvpSubmission,
+        null=True,
+        blank=True,
+        related_name='result_form',
+        on_delete=models.SET_NULL,
+    )
+
+    @property
+    def from_pvp(self):
+        return self.pvp_submission_id is not None
+
+    @property
+    def pvp_submissions_history(self):
+        """Every PvpSubmission ever applied to this form (oldest first).
+
+        After ``reset_to_unsubmitted`` clears ``pvp_submission``, the
+        old PvpSubmission row stays in the DB as a historical record.
+        Lookup is by ``(tally, barcode)`` — barcode is unique per tally
+        on ``ResultForm`` so this is a stable join.
+        """
+        return PvpSubmission.objects.filter(
+            tally=self.tally, barcode=self.barcode,
+        ).order_by("created_date")
 
     # Field used in result duplicated list view
     results_duplicated = []
@@ -479,6 +510,9 @@ class ResultForm(BaseModel):
 
         # Reset form state to UNSUBMITTED
         self.form_state = FormState.UNSUBMITTED
+
+        # Clear the PVP source pointer so the form is eligible for re-upload
+        self.pvp_submission = None
         self.save()
 
         # Create a ResultFormReset record

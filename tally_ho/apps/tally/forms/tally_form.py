@@ -12,11 +12,15 @@ class TallyForm(forms.ModelForm):
         model = Tally
         fields = [
             "name",
+            "pvp_mode",
             "print_cover_in_intake",
             "print_cover_in_clearance",
             "print_cover_in_quality_control",
             "print_cover_in_audit",
         ]
+        widgets = {
+            "pvp_mode": forms.Select(attrs={"class": "form-control"}),
+        }
 
     administrators = forms.ModelMultipleChoiceField(
         queryset=UserProfile.objects.filter(

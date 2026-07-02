@@ -45,9 +45,14 @@ One row per candidate per submission. Columns:
   `pos`, `candidate_id`, `candidate_order`, `candidate_name`,
   `candidate_result_round1`, `candidate_result_round2` (flattened from the
   ODK `candidate_result_r2-candidate_result_round2` path),
-  `candidate_result_r2-result_note`, `PARENT_KEY`, `KEY`.
+  `candidate_result_r2-result_note`, `KEY`.
 - Provenance: `xml_form_id`, `center_id`.
-- Submission fields joined on `PARENT_KEY` → `meta-instanceID`:
+- **`meta-instanceID`** — the canonical ODK submission UUID. Joins the
+  candidate-row CSV to the submission-level fields below; downstream
+  consumers (tally-ho's PVP import) treat this as the per-submission
+  identity. (The script merges on `PARENT_KEY` then drops it in favor
+  of `meta-instanceID` for clarity.)
+- Submission fields joined on `meta-instanceID`:
   `station_number`, `staff_user_name`, `ballot_number`, `race_type`.
 - **`barcode`** — the PVP scanned barcode (renamed from the ODK
   `intro-barcode` field). String type to preserve leading zeros.

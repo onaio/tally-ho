@@ -27,6 +27,7 @@ from tally_ho.apps.tally.models.sub_constituency import SubConstituency
 from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.apps.tally.views import super_admin as views
+from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
@@ -203,9 +204,6 @@ class TestSuperAdmin(TestBase):
         """FormActionView 'Confirm' must not change the audit's
         resolution_recommendation — it should only deactivate the audit
         and send the form to DATA_ENTRY_1."""
-        from tally_ho.libs.models.enums.audit_resolution import \
-            AuditResolution
-
         tally = create_tally()
         tally.users.add(self.user)
         result_form = create_result_form(

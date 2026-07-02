@@ -17,7 +17,12 @@ from tally_ho.libs.tests.test_base import (
 )
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
+from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
+from tally_ho.libs.models.enums.pvp_mode import PvpMode
 from tally_ho.libs.views.exports import (
+    build_candidate_results_output,
+    build_result_and_recon_output,
     export_candidate_votes,
     save_barcode_results,
 )
@@ -384,7 +389,6 @@ class TestExports(TestBase):
         )
 
         # Call save_barcode_results
-        from tally_ho.libs.views.exports import save_barcode_results
         csv_filename = save_barcode_results(
             complete_barcodes=[result_form1.barcode, result_form2.barcode],
             output_duplicates=False,
@@ -474,3 +478,80 @@ class TestExports(TestBase):
 
         # Clean up
         os.unlink(csv_filename)
+
+
+class TestPvpExportColumns(TestBase):
+    """Verify the row-per-form export builders include the PVP columns."""
+
+    def setUp(self):
+        super().setUp()
+        self._create_and_login_user()
+        self.tally = create_tally()
+        self.electrol_race = create_electrol_race(
+            self.tally, election_level=0, ballot_name="Test",
+        )
+        self.ballot = create_ballot(self.tally, self.electrol_race)
+        self.sub_con = create_sub_constituency(
+            code=12345, tally=self.tally,
+        )
+        self.center = create_center(
+            tally=self.tally, sub_constituency=self.sub_con,
+        )
+        self.station = create_station(self.center)
+
+    def _make_result_form(self, barcode):
+        return create_result_form(
+            ballot=self.ballot, center=self.center, tally=self.tally,
+            station_number=self.station.station_number, barcode=barcode,
+            form_state=FormState.UNSUBMITTED,
+        )
+
+    def _link_pvp(self, result_form, mode=PvpMode.DE1_ONLY):
+        bundle = PvpUploadBundle.objects.create(
+            tally=self.tally, uploaded_by=self.user, filename="b.zip",
+            mode=mode,
+        )
+        sub = PvpSubmission.objects.create(
+            tally=self.tally, bundle=bundle,
+            odk_instance_id=f"uuid:{result_form.barcode}",
+            odk_form_id="results_x", barcode=result_form.barcode,
+        )
+        result_form.pvp_submission = sub
+        result_form.save()
+        return sub
+
+    def test_result_and_recon_output_has_pvp_columns_for_non_pvp(self):
+        rf = self._make_result_form("100")
+        out = build_result_and_recon_output(rf)
+        self.assertFalse(out["from_pvp"])
+        self.assertEqual(out["pvp_mode_applied"], "")
+
+    def test_result_and_recon_output_has_pvp_columns_for_pvp_form(self):
+        self.tally.pvp_mode = PvpMode.DE1_ONLY
+        self.tally.save()
+        rf = self._make_result_form("101")
+        self._link_pvp(rf)
+        out = build_result_and_recon_output(rf)
+        self.assertTrue(out["from_pvp"])
+        self.assertEqual(out["pvp_mode_applied"], "DE1_ONLY")
+
+    def test_candidate_results_output_has_pvp_columns_for_pvp_form(self):
+        self.tally.pvp_mode = PvpMode.DE1_ONLY
+        self.tally.save()
+        rf = self._make_result_form("102")
+        self._link_pvp(rf)
+        out = build_candidate_results_output(rf)
+        self.assertTrue(out["from_pvp"])
+        self.assertEqual(out["pvp_mode_applied"], "DE1_ONLY")
+
+    def test_pvp_mode_applied_is_bundle_snapshot_not_tally_current(self):
+        # Import happens under DE1_ONLY; tally later changes to DISABLED.
+        # Exports must still report DE1_ONLY (the mode at import time).
+        self.tally.pvp_mode = PvpMode.DE1_ONLY
+        self.tally.save()
+        rf = self._make_result_form("103")
+        self._link_pvp(rf, mode=PvpMode.DE1_ONLY)
+        self.tally.pvp_mode = PvpMode.DISABLED
+        self.tally.save()
+        out = build_candidate_results_output(rf)
+        self.assertEqual(out["pvp_mode_applied"], "DE1_ONLY")

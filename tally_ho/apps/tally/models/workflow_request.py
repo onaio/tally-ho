@@ -11,6 +11,7 @@ from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.request_reason import RequestReason
 from tally_ho.libs.models.enums.request_status import RequestStatus
 from tally_ho.libs.models.enums.request_type import RequestType
+from tally_ho.libs.permissions import groups
 
 
 @reversion.register()
@@ -72,7 +73,6 @@ class WorkflowRequest(BaseModel):
         :param user: Logged in user
         :return: bool
         """
-        from tally_ho.libs.permissions import groups
         return user.is_authenticated and\
             groups.is_tally_manager(user) or\
                 groups.is_super_administrator(user)
@@ -85,7 +85,6 @@ class WorkflowRequest(BaseModel):
         :param user: Logged in user
         :return: bool
         """
-        from tally_ho.libs.permissions import groups
         return (
             user.is_authenticated and (
                 groups.is_audit_clerk(user) or

@@ -1,11 +1,17 @@
+from django.core.exceptions import SuspiciousOperation
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models import ResultForm, Station, WorkflowRequest
 from tally_ho.apps.tally.models.archive import Archive
+from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
+from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
 from tally_ho.apps.tally.models.quality_control import QualityControl
 from tally_ho.apps.tally.models.quarantine_check import QuarantineCheck
 from tally_ho.apps.tally.models.result import Result
-from tally_ho.apps.tally.models.result_form import sanity_check_final_results
+from tally_ho.apps.tally.models.result_form import (
+    get_matched_results,
+    sanity_check_final_results,
+)
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
@@ -374,11 +380,6 @@ class TestResultForm(TestBase):
 
     def test_get_matched_results_tracks_previous_state_on_count_mismatch(self):
         """Test get_matched_results tracks previous_form_state on mismatch."""
-        from django.core.exceptions import SuspiciousOperation
-
-        from tally_ho.apps.tally.models.result import Result
-        from tally_ho.apps.tally.models.result_form import get_matched_results
-
         result_form = create_result_form(
             form_state=FormState.CORRECTION,
             tally=self.tally,
@@ -1361,6 +1362,121 @@ class TestResultForm(TestBase):
                 result_form.reset_to_unsubmitted(user=self.user, reason=reason)
 
                 self.assertEqual(result_form.form_state, FormState.UNSUBMITTED)
+
+    def _make_pvp_submission(self, instance_id="uuid:rf-link"):
+        bundle = PvpUploadBundle.objects.create(
+            tally=self.tally,
+            uploaded_by=self.user,
+            filename="rf-link.zip",
+        )
+        return PvpSubmission.objects.create(
+            tally=self.tally,
+            bundle=bundle,
+            odk_instance_id=instance_id,
+            odk_form_id="results_test",
+            barcode="rf-link-1",
+        )
+
+    def test_from_pvp_false_by_default(self):
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+        )
+        self.assertIsNone(result_form.pvp_submission_id)
+        self.assertFalse(result_form.from_pvp)
+
+    def test_from_pvp_true_when_linked(self):
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+        )
+        submission = self._make_pvp_submission()
+        result_form.pvp_submission = submission
+        result_form.save()
+        result_form.refresh_from_db()
+        self.assertTrue(result_form.from_pvp)
+        self.assertEqual(result_form.pvp_submission_id, submission.id)
+
+    def test_from_pvp_false_after_unlink(self):
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+        )
+        submission = self._make_pvp_submission()
+        result_form.pvp_submission = submission
+        result_form.save()
+        result_form.pvp_submission = None
+        result_form.save()
+        result_form.refresh_from_db()
+        self.assertFalse(result_form.from_pvp)
+
+    def test_pvp_submission_set_null_on_delete(self):
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+        )
+        submission = self._make_pvp_submission()
+        result_form.pvp_submission = submission
+        result_form.save()
+        submission.delete()
+        result_form.refresh_from_db()
+        self.assertIsNone(result_form.pvp_submission_id)
+        self.assertFalse(result_form.from_pvp)
+
+    def test_reset_clears_pvp_submission(self):
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            barcode="r-clears-pvp",
+            form_state=FormState.DATA_ENTRY_2,
+        )
+        submission = self._make_pvp_submission(instance_id="uuid:clear")
+        result_form.pvp_submission = submission
+        result_form.save()
+
+        result_form.reset_to_unsubmitted(user=self.user, reason="redo")
+        result_form.refresh_from_db()
+
+        self.assertFalse(result_form.from_pvp)
+        self.assertIsNone(result_form.pvp_submission_id)
+        # The submission row itself still exists (history is preserved).
+        self.assertTrue(
+            PvpSubmission.objects.filter(id=submission.id).exists(),
+        )
+
+    def test_pvp_submissions_history_returns_old_after_reset(self):
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            barcode="r-history",
+            form_state=FormState.DATA_ENTRY_2,
+        )
+        submission = self._make_pvp_submission(instance_id="uuid:hist")
+        # Tag the submission with this form's barcode so the history
+        # query (joining on tally+barcode) finds it.
+        submission.barcode = result_form.barcode
+        submission.save(update_fields=["barcode"])
+        result_form.pvp_submission = submission
+        result_form.save()
+
+        result_form.reset_to_unsubmitted(user=self.user, reason="redo")
+        result_form.refresh_from_db()
+
+        history = list(result_form.pvp_submissions_history)
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0].id, submission.id)
 
     def test_reset_to_unsubmitted_with_no_related_records(self):
         """Test reset_to_unsubmitted() works when no related records exist."""

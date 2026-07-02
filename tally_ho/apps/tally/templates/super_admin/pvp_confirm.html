@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+  <h1>{% trans 'Confirm PVP import' %}</h1>
+
+  <p>
+    <strong>{% trans 'Bundle:' %}</strong> {{ bundle.filename }}
+    ({% trans 'tally PVP mode:' %} {{ bundle.tally.pvp_mode }})
+  </p>
+
+  <h2>{% trans 'Will import' %} ({{ will_import|length }})</h2>
+  {% if will_import %}
+    <ul>
+      {% for sub in will_import %}
+        <li>
+          <code>{{ sub.barcode }}</code>
+          — {% trans 'ballot' %} {{ sub.ballot_number }}
+          ({{ sub.candidates|length }} {% trans 'candidates' %})
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">{% trans 'Nothing valid to import.' %}</p>
+  {% endif %}
+
+  <h2>{% trans 'Will skip' %} ({{ will_skip|length }})</h2>
+  {% if will_skip %}
+    <details>
+      <summary>{% trans 'Show skipped rows' %}</summary>
+      <ul>
+        {% for sub, reason in will_skip %}
+          <li><code>{{ sub.barcode }}</code> — {{ reason }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+  {% endif %}
+
+  {% if missing_images %}
+    <h2>{% trans 'Missing images' %} ({{ missing_images|length }})</h2>
+    <div class="alert alert-warning">
+      {% trans 'Submissions reference image filenames that are not present in the zip. They will be imported with empty image fields.' %}
+    </div>
+    <details>
+      <summary>{% trans 'Show missing image filenames' %}</summary>
+      <ul>
+        {% for name in missing_images %}<li><code>{{ name }}</code></li>{% endfor %}
+      </ul>
+    </details>
+  {% endif %}
+
+  <form action="" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success" {% if not will_import %}disabled{% endif %}>
+      {% trans 'Confirm and import' %}
+    </button>
+    <a href="{% url 'pvp-upload' tally_id=tally_id %}" class="btn btn-default">
+      {% trans 'Cancel' %}
+    </a>
+  </form>
+{% endblock %}

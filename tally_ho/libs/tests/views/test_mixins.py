@@ -142,9 +142,6 @@ class TestAjaxLoginRequiredMixin(TestBase):
     def test_center_list_data_view_returns_401_for_expired_session(self):
         """Integration test: CenterListDataView returns 401 JSON
         when an unauthenticated AJAX request is made."""
-        from tally_ho.apps.tally.views.data.center_list_view import (
-            CenterListDataView)
-
         view = CenterListDataView.as_view()
         request = self.factory.post(
             '/',
@@ -162,9 +159,6 @@ class TestAjaxLoginRequiredMixin(TestBase):
     def test_station_progress_data_view_returns_401_for_expired_session(self):
         """Integration test: StationProgressListDataView returns 401 JSON
         when an unauthenticated AJAX request is made."""
-        from tally_ho.apps.tally.views.reports.station_progress_report import (
-            StationProgressListDataView)
-
         view = StationProgressListDataView.as_view()
         request = self.factory.post(
             '/',
