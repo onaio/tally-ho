@@ -193,7 +193,7 @@ class ResultForm(BaseModel):
     # single DATA_ENTRY_1 result set (DE2 is left for a human clerk).
     # In DE1_AND_DE2 mode the submission populates DATA_ENTRY_1,
     # DATA_ENTRY_2, and FINAL — corrections is skipped because the
-    # device guarantees round1 == round2.
+    # import check guarantees round1 == round2.
     pvp_submission = models.ForeignKey(
         PvpSubmission,
         null=True,
