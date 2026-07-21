@@ -97,6 +97,7 @@ def build_result_and_recon_output(result_form):
             result_form.pvp_submission.bundle.mode.name
             if result_form.from_pvp else ''
         ),
+        'number_of_images': result_form.images.count(),
     }
 
     recon = result_form.reconciliationform
@@ -140,6 +141,7 @@ def build_candidate_results_output(result_form):
             result_form.pvp_submission.bundle.mode.name
             if result_form.from_pvp else ''
         ),
+        'number_of_images': result_form.images.count(),
     }
 
     # Use prefetched final_reconciliations if available, else fall back to property
@@ -209,6 +211,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'candidate status',
             'from_pvp',
             'pvp_mode_applied',
+            'number_of_images',
         ]
 
         w = csv.DictWriter(f, header)

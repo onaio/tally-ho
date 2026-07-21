@@ -17,6 +17,9 @@ from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
+from tally_ho.libs.models.enums.result_form_image_source import (
+    ResultFormImageSource,
+)
 from tally_ho.libs.utils.templates import get_result_form_edit_delete_links
 from tally_ho.apps.tally.models.result_form_reset import ResultFormReset
 
@@ -514,6 +517,14 @@ class ResultForm(BaseModel):
         # Clear the PVP source pointer so the form is eligible for re-upload
         self.pvp_submission = None
         self.save()
+
+        # Drop PVP-sourced images so a reset form stops showing a prior
+        # bundle's photos, mirroring the deactivation of PVP results
+        # above. Manually uploaded images are left intact. The raw image
+        # bytes remain recoverable from the retained bundle zip.
+        self.images.filter(
+            source=ResultFormImageSource.PVP_IMPORT
+        ).delete()
 
         # Create a ResultFormReset record
         ResultFormReset.objects.create(

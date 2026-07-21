@@ -103,13 +103,38 @@ print cover or detail page), it means the form's DATA_ENTRY_1 results
 were populated by a PVP upload rather than by a manual clerk. A caption
 shows the date the bundle was imported.
 
+## Form images
+
+The photographs a PVP bundle carries — the clerk signature and the form
+page pictures — are displayed on every screen where a clerk sees the
+form (data entry, quality control, corrections, audit, clearance, and
+the intake confirmation), rendered by the shared `center_details.html`
+header. Each image shows its kind, its source, and the date.
+
+Images are stored as `ResultFormImage` rows attached to the result form,
+not on `PvpSubmission`. At import time each bundle image becomes one
+`ResultFormImage` with `source=PVP_IMPORT`, linked back to its
+`PvpSubmission` for provenance; the raw image bytes also remain in the
+retained bundle zip on `PvpUploadBundle.zip_file`. `ResultFormImage` is a
+general home for form images — a future release adds manual image upload
+for any form (PVP or not) as `source=UPLOAD` rows through the same
+display.
+
+The images are served through an authenticated, tally-scoped view
+(`result-form-image`) rather than the open `/media/` route, so the
+sensitive signed-form photographs are only reachable by users with
+access to that tally.
+
 ## Provenance after a reset
 
 Resetting a PVP-imported form to `UNSUBMITTED` (via *Admin Operations →
-Reset Form*) clears `ResultForm.pvp_submission` and deactivates the
-PVP-written results. The form becomes eligible for re-upload via PVP
-(or normal manual entry through INTAKE → DE1 → DE2), and the badge
-disappears because it's no longer "currently sourced from PVP."
+Reset Form*) clears `ResultForm.pvp_submission`, deactivates the
+PVP-written results, and deletes the PVP-sourced `ResultFormImage` rows
+(any manually uploaded images are left intact). The form becomes
+eligible for re-upload via PVP (or normal manual entry through
+INTAKE → DE1 → DE2), and the badge disappears because it's no longer
+"currently sourced from PVP." The bundle zip retains the original image
+bytes, so a re-upload restores them.
 
 The original `PvpSubmission` row itself stays in the database as a
 historical record — `ResultForm.pvp_submissions_history` returns every
@@ -129,9 +154,12 @@ later changed.
   remember the mode they were imported under via
   `PvpUploadBundle.mode`. Locking the mode mid-tally is a separate
   decision.
-- No PVP-specific reporting beyond the per-form badge and two new
-  columns (`from_pvp`, `pvp_mode_applied`) in the row-per-form CSV
-  exports.
+- No PVP-specific reporting beyond the per-form badge and three
+  columns (`from_pvp`, `pvp_mode_applied`, `number_of_images`) in the
+  row-per-form CSV exports.
+- No manual image upload yet — form images can only arrive via a PVP
+  bundle. Attaching an image to any form by hand is a planned follow-up
+  through the same `ResultFormImage` model.
 - No support for replacement-form barcodes — the PVP devices won't
   scan them, by design.
 
@@ -182,6 +210,7 @@ Helper commands:
 | `Tally.pvp_mode` model field | `tally_ho/apps/tally/models/tally.py` |
 | `PvpUploadBundle` model | `tally_ho/apps/tally/models/pvp_upload_bundle.py` |
 | `PvpSubmission` model | `tally_ho/apps/tally/models/pvp_submission.py` |
+| `ResultFormImage` model | `tally_ho/apps/tally/models/result_form_image.py` |
 | Bundle parser | `tally_ho/libs/pvp/bundle.py` |
 | Parse-time validation | `tally_ho/libs/pvp/validation.py` |
 | Per-row + bundle import | `tally_ho/libs/pvp/import_submission.py` |
@@ -189,6 +218,8 @@ Helper commands:
 | Upload / confirm / result views | `tally_ho/apps/tally/views/pvp.py` |
 | Templates | `tally_ho/apps/tally/templates/super_admin/pvp_*.html` |
 | `pvp_badge` template tag | `tally_ho/apps/tally/templatetags/pvp_tags.py` |
+| Form-image display tag + include | `tally_ho/apps/tally/templatetags/result_form_tags.py`, `templates/includes/_result_form_images.html` |
+| Authenticated image view (`result-form-image`) | `tally_ho/apps/tally/views/result_form_image.py` |
 | Export columns | `tally_ho/libs/views/exports.py` |
 | Status JSON endpoint (`PvpStatusView`) | `tally_ho/apps/tally/views/pvp.py` |
 | Reusable polling primitive | `tally_ho/apps/tally/static/js/async_status.js` |

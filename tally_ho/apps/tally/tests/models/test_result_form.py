@@ -1,4 +1,5 @@
 from django.core.exceptions import SuspiciousOperation
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models import ResultForm, Station, WorkflowRequest
@@ -12,6 +13,7 @@ from tally_ho.apps.tally.models.result_form import (
     get_matched_results,
     sanity_check_final_results,
 )
+from tally_ho.apps.tally.models.result_form_image import ResultFormImage
 from tally_ho.libs.models.enums.actions_prior import ActionsPrior
 from tally_ho.libs.models.enums.audit_resolution import AuditResolution
 from tally_ho.libs.models.enums.clearance_resolution import ClearanceResolution
@@ -20,6 +22,9 @@ from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.gender import Gender
 from tally_ho.libs.models.enums.request_reason import RequestReason
 from tally_ho.libs.models.enums.request_type import RequestType
+from tally_ho.libs.models.enums.result_form_image_source import (
+    ResultFormImageSource,
+)
 from tally_ho.libs.tests.test_base import (TestBase, create_audit,
                                            create_ballot, create_candidate,
                                            create_candidates, create_center,
@@ -1452,6 +1457,46 @@ class TestResultForm(TestBase):
         # The submission row itself still exists (history is preserved).
         self.assertTrue(
             PvpSubmission.objects.filter(id=submission.id).exists(),
+        )
+
+    def test_reset_deletes_pvp_sourced_images_keeps_uploads(self):
+        result_form = create_result_form(
+            tally=self.tally,
+            ballot=self.ballot,
+            center=self.center,
+            station_number=self.station.station_number,
+            barcode="r-clears-images",
+            form_state=FormState.DATA_ENTRY_2,
+        )
+        submission = self._make_pvp_submission(instance_id="uuid:img")
+        result_form.pvp_submission = submission
+        result_form.save()
+        pvp_image = ResultFormImage.objects.create(
+            tally=self.tally,
+            result_form=result_form,
+            image=SimpleUploadedFile(
+                "sig.jpg", b"sig", content_type="image/jpeg",
+            ),
+            source=ResultFormImageSource.PVP_IMPORT,
+            pvp_submission=submission,
+        )
+        uploaded_image = ResultFormImage.objects.create(
+            tally=self.tally,
+            result_form=result_form,
+            image=SimpleUploadedFile(
+                "note.jpg", b"note", content_type="image/jpeg",
+            ),
+            source=ResultFormImageSource.UPLOAD,
+        )
+
+        result_form.reset_to_unsubmitted(user=self.user, reason="redo")
+
+        # PVP-sourced image is gone; the manual upload survives.
+        self.assertFalse(
+            ResultFormImage.objects.filter(id=pvp_image.id).exists(),
+        )
+        self.assertTrue(
+            ResultFormImage.objects.filter(id=uploaded_image.id).exists(),
         )
 
     def test_pvp_submissions_history_returns_old_after_reset(self):

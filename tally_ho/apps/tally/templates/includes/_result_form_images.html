@@ -1,0 +1,19 @@
+{% load i18n %}
+{% if images %}
+  <div class="result-form-images">
+    <h4>{% trans 'Form images' %}</h4>
+    <div class="row">
+      {% for image in images %}
+        <div class="col-sm-3 result-form-image">
+          <a href="{{ image.url }}" target="_blank" rel="noopener">
+            <img src="{{ image.url }}" class="img-thumbnail" alt="{{ image.kind }}">
+          </a>
+          <small class="text-muted">
+            {{ image.kind }} · {{ image.source }} · {{ image.created_date|date:'Y-m-d' }}
+            {% if image.caption %}<br>{{ image.caption }}{% endif %}
+          </small>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}

@@ -6,10 +6,11 @@ from tally_ho.libs.models.base_model import BaseModel
 
 
 def submission_image_upload_to(instance, filename):
-    """Path: pvp/<tally_id>/<submission_id>/<filename>.
+    """Retained only for migration 0080_pvp_submission, which references
+    it as the historical `upload_to` for the (now removed) image fields.
 
-    `instance.id` is required, so callers must save the submission (without
-    image fields) once before attaching files and saving again.
+    Images are no longer stored on PvpSubmission — they are applied to
+    the form as `ResultFormImage` rows. Do not use for new fields.
     """
     return f"pvp/{instance.tally_id}/{instance.id}/{filename}"
 
@@ -17,10 +18,16 @@ def submission_image_upload_to(instance, filename):
 class PvpSubmission(BaseModel):
     """One row per ODK submission that passed parse-time validation.
 
-    PvpSubmission is a "phase 1: load" provenance record. The link to the
-    ResultForm it populated lives on `ResultForm.pvp_submission` only —
-    not as a reverse FK here. Rows that fail parse-time validation are
-    surfaced on the confirmation screen but never persisted.
+    PvpSubmission is a "phase 1: load" provenance record of the raw
+    bundle payload. The link to the ResultForm it populated lives on
+    `ResultForm.pvp_submission` only — not as a reverse FK here. Rows
+    that fail parse-time validation are surfaced on the confirmation
+    screen but never persisted.
+
+    Images that arrived in the bundle are applied to the form as
+    `ResultFormImage` rows (source=PVP_IMPORT) at import time, linked
+    back here via `applied_images`; the raw image bytes remain available
+    in the retained bundle zip on `PvpUploadBundle.zip_file`.
     """
 
     class Meta:
@@ -44,17 +51,6 @@ class PvpSubmission(BaseModel):
     round1_raw = models.JSONField(default=dict, blank=True)
     round2_raw = models.JSONField(default=dict, blank=True)
     recon_raw = models.JSONField(default=dict, blank=True)
-
-    # Images stored under MEDIA_ROOT/pvp/<tally_id>/<submission_id>/.
-    clerk_signature = models.FileField(
-        upload_to=submission_image_upload_to, null=True, blank=True,
-    )
-    forms_picture_1st_page = models.FileField(
-        upload_to=submission_image_upload_to, null=True, blank=True,
-    )
-    forms_picture_2nd_page = models.FileField(
-        upload_to=submission_image_upload_to, null=True, blank=True,
-    )
 
     def __str__(self):
         return f"PvpSubmission({self.id}, {self.barcode})"

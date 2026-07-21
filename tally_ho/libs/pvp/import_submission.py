@@ -33,11 +33,25 @@ from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_image import ResultFormImage
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 from tally_ho.libs.models.enums.pvp_mode import PvpMode
+from tally_ho.libs.models.enums.result_form_image_kind import (
+    ResultFormImageKind,
+)
+from tally_ho.libs.models.enums.result_form_image_source import (
+    ResultFormImageSource,
+)
+
+# Bundle image key -> the kind recorded on the applied ResultFormImage.
+_IMAGE_KIND_BY_KEY = {
+    "clerk_signature": ResultFormImageKind.CLERK_SIGNATURE,
+    "forms_picture_1st_page": ResultFormImageKind.FORM_PAGE_1,
+    "forms_picture_2nd_page": ResultFormImageKind.FORM_PAGE_2,
+}
 
 _RECON_FIELD_MAP_R2 = {
     "number_of_voter_cards_in_the_ballot_box":
@@ -228,7 +242,14 @@ def _apply_import(
     result_form.save()
 
     transaction.on_commit(
-        lambda: _save_images(submission.id, parsed_submission.images, zip_ref),
+        lambda: _save_images(
+            result_form_id=result_form.id,
+            tally_id=tally.id,
+            submission_id=submission.id,
+            uploaded_by_id=uploaded_by.id,
+            images=parsed_submission.images,
+            zip_ref=zip_ref,
+        ),
     )
 
     return submission
@@ -270,32 +291,39 @@ def import_bundle(*, bundle, submissions, tally, uploaded_by, zip_ref):
     return bundle
 
 
-def _save_images(submission_id, images, zip_ref):
-    """Save image FileFields after the import transaction commits.
+def _save_images(
+    *, result_form_id, tally_id, submission_id, uploaded_by_id, images,
+    zip_ref,
+):
+    """Create ResultFormImage rows after the import transaction commits.
 
-    Failures here leave the affected fields null; the submission row
-    itself is already committed. Rollbacks in the parent transaction
-    cancel this callback before it ever fires.
+    Each bundle image becomes one ``ResultFormImage`` with
+    ``source=PVP_IMPORT`` linked back to the ``PvpSubmission`` for
+    provenance. Failures here leave the form with fewer images; the
+    import's DB writes are already committed. Rollbacks in the parent
+    transaction cancel this callback before it ever fires.
     """
-    submission = PvpSubmission.objects.get(id=submission_id)
-    saved_any = (
-        _attach_image(submission.clerk_signature,
-                      images.get("clerk_signature"), zip_ref)
-        | _attach_image(submission.forms_picture_1st_page,
-                        images.get("forms_picture_1st_page"), zip_ref)
-        | _attach_image(submission.forms_picture_2nd_page,
-                        images.get("forms_picture_2nd_page"), zip_ref)
-    )
-    if saved_any:
-        submission.save()
+    for key, kind in _IMAGE_KIND_BY_KEY.items():
+        _attach_image(
+            result_form_id=result_form_id,
+            tally_id=tally_id,
+            submission_id=submission_id,
+            uploaded_by_id=uploaded_by_id,
+            kind=kind,
+            filename=images.get(key),
+            zip_ref=zip_ref,
+        )
 
 
-def _attach_image(field_file, filename, zip_ref):
-    """Read one media entry from the zip and attach to the FieldFile.
+def _attach_image(
+    *, result_form_id, tally_id, submission_id, uploaded_by_id, kind,
+    filename, zip_ref,
+):
+    """Read one media entry from the zip and create a ResultFormImage.
 
-    Returns True if a file was attached, False otherwise. Missing
-    filename (None / empty) and missing-from-zip are both treated as
-    no-op (the field stays null).
+    Returns True if a row was created, False otherwise. Missing filename
+    (None / empty) and missing-from-zip are both treated as no-op (no
+    row created).
     """
     if not filename:
         return False
@@ -303,5 +331,13 @@ def _attach_image(field_file, filename, zip_ref):
         data = zip_ref.read(f"media/{filename}")
     except KeyError:
         return False
-    field_file.save(filename, ContentFile(data), save=False)
+    image = ResultFormImage(
+        tally_id=tally_id,
+        result_form_id=result_form_id,
+        source=ResultFormImageSource.PVP_IMPORT,
+        kind=kind,
+        pvp_submission_id=submission_id,
+        uploaded_by_id=uploaded_by_id,
+    )
+    image.image.save(filename, ContentFile(data), save=True)
     return True

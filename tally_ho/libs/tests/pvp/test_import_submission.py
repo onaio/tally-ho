@@ -23,6 +23,12 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 from tally_ho.libs.models.enums.pvp_mode import PvpMode
+from tally_ho.libs.models.enums.result_form_image_kind import (
+    ResultFormImageKind,
+)
+from tally_ho.libs.models.enums.result_form_image_source import (
+    ResultFormImageSource,
+)
 from tally_ho.libs.pvp.bundle import CandidateResult, ParsedSubmission
 from tally_ho.libs.pvp.import_submission import import_bundle, import_submission
 from tally_ho.libs.tests.test_base import (
@@ -379,9 +385,14 @@ class TestImportSubmissionDE1AndDE2(ImportSubmissionTestBase, TestCase):
 
 
 class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
-    """Image-saving assertions: deferred to transaction.on_commit."""
+    """Image-applying assertions: deferred to transaction.on_commit.
 
-    def test_images_saved_after_commit_callback_runs(self):
+    Bundle images are applied to the form as ``ResultFormImage`` rows
+    (source=PVP_IMPORT) linked back to the submission, not stored on
+    ``PvpSubmission``.
+    """
+
+    def test_images_applied_after_commit_callback_runs(self):
         zip_ref = self._zip_with_images({
             "sig.jpg": b"sig-bytes",
             "p1.jpg": b"p1-bytes",
@@ -396,29 +407,36 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
             self.assertGreaterEqual(len(callbacks), 1)
         finally:
             zip_ref.close()
-        submission.refresh_from_db()
-        self.assertTrue(submission.clerk_signature.name.endswith("sig.jpg"))
-        self.assertTrue(
-            submission.forms_picture_1st_page.name.endswith("p1.jpg"),
-        )
-        # Page 2 was None in the parsed payload — stays unset.
-        self.assertFalse(submission.forms_picture_2nd_page)
+        images = self.result_form.images.order_by("kind")
+        # Page 2 was None in the parsed payload — no row for it.
+        self.assertEqual(images.count(), 2)
+        by_kind = {img.kind: img for img in images}
+        signature = by_kind[ResultFormImageKind.CLERK_SIGNATURE]
+        page1 = by_kind[ResultFormImageKind.FORM_PAGE_1]
+        self.assertTrue(signature.image.name.endswith("sig.jpg"))
+        self.assertTrue(page1.image.name.endswith("p1.jpg"))
+        for img in images:
+            self.assertEqual(img.source, ResultFormImageSource.PVP_IMPORT)
+            self.assertEqual(img.pvp_submission_id, submission.id)
+            self.assertEqual(img.uploaded_by_id, self.user.id)
 
-    def test_image_missing_from_zip_leaves_field_null(self):
+    def test_image_missing_from_zip_creates_no_row(self):
         # Only sig.jpg is in the zip; p1.jpg referenced in parsed but absent.
         zip_ref = self._zip_with_images({"sig.jpg": b"sig-bytes"})
         try:
             with self.captureOnCommitCallbacks(execute=True):
-                submission = import_submission(
+                import_submission(
                     self._parsed_submission(),
                     tally=self.tally, bundle=self.bundle,
                     uploaded_by=self.user, zip_ref=zip_ref,
                 )
         finally:
             zip_ref.close()
-        submission.refresh_from_db()
-        self.assertTrue(submission.clerk_signature.name.endswith("sig.jpg"))
-        self.assertFalse(submission.forms_picture_1st_page)
+        images = self.result_form.images.all()
+        self.assertEqual(images.count(), 1)
+        self.assertEqual(
+            images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
+        )
 
     def test_no_image_files_on_disk_when_transaction_rolls_back(self):
         zip_ref = self._zip_with_images({

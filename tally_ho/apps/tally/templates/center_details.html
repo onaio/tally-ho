@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load result_form_tags %}
 
 
 <h3>{% trans 'Polling Center Details' %}</h3>
@@ -58,3 +59,5 @@
         </table>
     </div>
 </div>
+
+{% result_form_images result_form %}
