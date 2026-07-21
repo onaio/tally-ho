@@ -260,6 +260,22 @@ class TestImportSubmissionDB(ImportSubmissionTestBase, TestCase):
         self.result_form.refresh_from_db()
         self.assertEqual(self.result_form.form_state, FormState.UNSUBMITTED)
 
+    def test_unsupported_mode_raises(self):
+        # DISABLED never reaches import in practice (parse-time validation
+        # skips it), but the per-mode dispatch guards against it.
+        self.bundle.mode = PvpMode.DISABLED
+        self.bundle.save()
+        zip_ref = self._zip_with_images({})
+        try:
+            with self.assertRaises(ValueError):
+                import_submission(
+                    self._parsed_submission(),
+                    tally=self.tally, bundle=self.bundle,
+                    uploaded_by=self.user, zip_ref=zip_ref,
+                )
+        finally:
+            zip_ref.close()
+
 
 class TestImportSubmissionDE1AndDE2(ImportSubmissionTestBase, TestCase):
     """DE1_AND_DE2 mode: round1 -> DE1, round2 -> DE2, state -> QC."""

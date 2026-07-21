@@ -1,9 +1,11 @@
+import os
 import shutil
 import tempfile
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.http import Http404
 from django.test import RequestFactory, TestCase, override_settings
 
 from tally_ho.apps.tally.models.result_form_image import ResultFormImage
@@ -71,3 +73,9 @@ class TestResultFormImageView(TestBase, TestCase):
     def test_anonymous_redirects_to_login(self):
         response = self._get(AnonymousUser())
         self.assertEqual(response.status_code, 302)
+
+    def test_missing_file_raises_404(self):
+        # Row exists but the underlying file is gone from storage.
+        os.remove(self.image.image.path)
+        with self.assertRaises(Http404):
+            self._get(self.user)

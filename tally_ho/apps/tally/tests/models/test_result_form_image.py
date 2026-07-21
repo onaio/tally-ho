@@ -96,3 +96,9 @@ class TestResultFormImage(TestBase):
         image = self._create_image(uploaded_by=self.user)
         image.refresh_from_db()
         self.assertEqual(image.uploaded_by_id, self.user.id)
+
+    def test_str(self):
+        image = self._create_image()
+        rendered = str(image)
+        self.assertIn("ResultFormImage", rendered)
+        self.assertIn(str(image.result_form_id), rendered)
