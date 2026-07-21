@@ -11,6 +11,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from PIL import Image
 
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.apps.tally.models.tally import Tally
@@ -27,12 +28,17 @@ from tally_ho.libs.pvp.bundle import (
 # and IMAGE_COLUMNS members are listed explicitly.
 CSV_HEADERS = REQUIRED_COLUMNS
 STUB_IMAGES = ("demo_sig.jpg", "demo_p1.jpg", "demo_p2.jpg")
-# Minimal valid JPEG (SOI + APP0 JFIF marker + EOI). Parser only checks
-# that the file exists; content does not need to be a real photo.
-_STUB_JPEG = (
-    b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
-    b"\xff\xd9"
-)
+
+
+def _stub_jpeg():
+    """A genuine (tiny) JPEG. The import verifies every image with Pillow
+    before storing it, so the stub must decode as a real image."""
+    buffer = io.BytesIO()
+    Image.new("RGB", (8, 8), (204, 204, 204)).save(buffer, format="JPEG")
+    return buffer.getvalue()
+
+
+_STUB_JPEG = _stub_jpeg()
 RECON_VALUES = {
     "reconciliation_r1-number_ballots_received_r1": 200,
     "reconciliation_r1-number_voter_cards_r1": 180,

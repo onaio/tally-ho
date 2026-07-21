@@ -215,6 +215,18 @@ rather than the raw `.url`. Whether to *also* lock down the existing open
 `^media/` route is called out for review — a pre-existing gap, arguably a
 separate security task.
 
+**Verify before store.** Loading files is the obvious attack surface even
+airgapped, so every ingest boundary runs the bytes through Pillow before
+anything is persisted (`tally_ho/libs/utils/image_validation.py`): the file
+must decode as a real JPEG, PNG, or WebP, with a decompression-bomb pixel
+cap. The PVP import drops any bundle entry that fails; v2's upload form
+reuses the same check. The model uses `ImageField` (Pillow-backed) from v1
+so no field-type migration is needed for v2, and the verified format is
+stored on `ResultFormImage.image_format` so the serve view can declare an
+explicit `Content-Type` plus `X-Content-Type-Options: nosniff` — a browser
+can never be tricked into interpreting a stored file as anything but the
+image it was verified to be.
+
 ---
 
 ## Task breakdown (TDD; each task a commit with tests green)
