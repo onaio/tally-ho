@@ -112,21 +112,33 @@ class ResultFormImage(BaseModel):
     tally        = FK(Tally, on_delete=PROTECT)
     result_form  = FK(ResultForm, related_name="images", on_delete=CASCADE)
     image        = ImageField(upload_to=result_form_image_upload_to)
+    # Pillow format recorded at ingest so the serve view can declare a
+    # content type without re-decoding or trusting the extension.
+    image_format = CharField(max_length=8, blank=True, default="")
     source       = EnumIntegerField(ResultFormImageSource,
                                     default=ResultFormImageSource.UPLOAD)
     kind         = EnumIntegerField(ResultFormImageKind,
                                     default=ResultFormImageKind.SUPPORTING)
     caption      = CharField(max_length=255, null=True, blank=True)
+    # Soft-delete for the audit trail — reset deactivates rather than
+    # deletes, mirroring how reset_to_unsubmitted handles every other
+    # related record. See "Post-review revisions".
+    active       = BooleanField(default=True)
     uploaded_by  = FK(UserProfile, null=True, on_delete=SET_NULL)
     # Provenance link when source == PVP_IMPORT (null for manual uploads).
     pvp_submission = FK(PvpSubmission, null=True, blank=True,
                         on_delete=SET_NULL, related_name="applied_images")
 
+    class Meta:
+        ordering = ["created_date", "id"]   # deterministic gallery order
+
 # path: form_images/<tally_id>/<result_form_id>/<filename>
 ```
 
-`ImageField` (not `FileField`) so Pillow validates the file is a real
-image at save time; content-type + max-size validation on the upload form.
+`ImageField` (not `FileField`) so the field is Pillow-backed from v1 and
+v2 needs no field-type migration. The authoritative "is this a real
+image?" check is not the field default but an explicit Pillow verification
+run at ingest — see "Post-review revisions" for where it lives.
 
 **`PvpSubmission` change:** remove `clerk_signature`,
 `forms_picture_1st_page`, `forms_picture_2nd_page`. Safe to drop with a
@@ -219,13 +231,73 @@ separate security task.
 airgapped, so every ingest boundary runs the bytes through Pillow before
 anything is persisted (`tally_ho/libs/utils/image_validation.py`): the file
 must decode as a real JPEG, PNG, or WebP, with a decompression-bomb pixel
-cap. The PVP import drops any bundle entry that fails; v2's upload form
-reuses the same check. The model uses `ImageField` (Pillow-backed) from v1
-so no field-type migration is needed for v2, and the verified format is
-stored on `ResultFormImage.image_format` so the serve view can declare an
-explicit `Content-Type` plus `X-Content-Type-Options: nosniff` — a browser
-can never be tricked into interpreting a stored file as anything but the
-image it was verified to be.
+cap. The model uses `ImageField` (Pillow-backed) from v1 so no field-type
+migration is needed for v2, and the verified format is stored on
+`ResultFormImage.image_format` so the serve view can declare an explicit
+`Content-Type` plus `X-Content-Type-Options: nosniff` — a browser can never
+be tricked into interpreting a stored file as anything but the image it was
+verified to be. **Where the validation runs changed after review — see
+below.**
+
+---
+
+## Post-review revisions
+
+A deep review (security, data-model, and test-quality passes) drove the
+following changes to the design above. Where this section conflicts with an
+earlier one, this section wins. v1 (Tasks 1–8) is committed on
+`pvp-image-display`; the items below are the remaining work to apply before
+merge, each landing with its tests.
+
+1. **Image validation moves to the parser, not the import.** The original
+   plan validated bytes post-commit in `import_submission._attach_image` —
+   a silent, best-effort drop that happened *after* the form had already
+   advanced into the tally workflow. Instead, `bundle.py` now reads and
+   Pillow-validates each present image at **parse time**, classifying every
+   slot as **ok / missing / invalid**. The confirmation screen's existing
+   "missing images" section generalizes to **image issues = {missing,
+   invalid}**, each shown with a reason. The operator proceeds with
+   informed consent (consistent with how missing images already work); an
+   invalid or missing slot simply produces no `ResultFormImage` row. No
+   silent drops, and no hard bundle rejection for a single bad image (a
+   corrupt image is localized — it does not impugn the bundle the way
+   `RoundIntegrityError` / `DuplicateBarcodeError` do).
+
+2. **Zip-bomb guard.** The parser caps the decompressed size of each media
+   entry (`zip_ref.getinfo(name).file_size`) before reading it, so a
+   maliciously crafted bundle cannot exhaust worker memory before Pillow
+   ever sees the bytes.
+
+3. **Decompression-bomb cap set locally.** `Image.MAX_IMAGE_PIXELS` is set
+   and restored around the `open()` call (not as a process-global import
+   side-effect). Value: **50 MP** — comfortably above any single Android
+   capture (the bundle's only source), ~200 MB worst-case decode. Confirm
+   against the capture app's documented max resolution if tightening.
+
+4. **Soft-delete for the audit trail.** `ResultFormImage` gains an `active`
+   BooleanField. `reset_to_unsubmitted` does
+   `.filter(source=PVP_IMPORT, active=True).update(active=False)` —
+   matching the soft-deactivate pattern of every sibling reset operation,
+   not a hard `.delete()`. Display and export count filter `active=True`.
+   This also sidesteps the file-orphaning-on-delete gap (queryset
+   `.delete()` never removes the underlying files).
+
+5. **Export count is annotated, not per-row.** `number_of_images` uses
+   `.annotate(number_of_images=Count("images", filter=Q(images__active=
+   True)))` on the export querysets, with a fallback to `.count()` so the
+   builders' direct-call unit tests still pass — avoids an N+1 in the
+   per-form export loops.
+
+6. **Deterministic gallery order** via `Meta.ordering` on the model.
+
+7. **Test additions** (coverage was ~100% but several branches were only
+   executed, not exercised): decompression-bomb rejection; cross-tally
+   IDOR; serve-view content type per format (PNG/WebP/`octet-stream`
+   fallback); template asserts the authenticated `result-form-image` route,
+   not raw `/media/`; PNG-bundle-import `image_format` round-trip;
+   truncated-JPEG rejection; caption HTML-escaping; and the reset test gets
+   an `override_settings(MEDIA_ROOT=tempdir)` so it stops writing into the
+   real media directory.
 
 ---
 
