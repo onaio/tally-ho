@@ -12,6 +12,7 @@ import tempfile
 import zipfile
 
 from django.test import TestCase, override_settings
+from PIL import Image
 from reversion.models import Version
 
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -130,6 +131,14 @@ class ImportSubmissionTestBase(TestBase):
                 zf.writestr(f"media/{name}", data)
         buf.seek(0)
         return zipfile.ZipFile(buf)
+
+    @staticmethod
+    def _image_bytes(image_format="JPEG"):
+        """Real image bytes — the import validates every image before it
+        is stored, so fixtures must decode as genuine images."""
+        buf = io.BytesIO()
+        Image.new("RGB", (2, 2)).save(buf, format=image_format)
+        return buf.getvalue()
 
 
 class TestImportSubmissionDB(ImportSubmissionTestBase, TestCase):
@@ -394,8 +403,8 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
 
     def test_images_applied_after_commit_callback_runs(self):
         zip_ref = self._zip_with_images({
-            "sig.jpg": b"sig-bytes",
-            "p1.jpg": b"p1-bytes",
+            "sig.jpg": self._image_bytes(),
+            "p1.jpg": self._image_bytes(),
         })
         try:
             with self.captureOnCommitCallbacks(execute=True) as callbacks:
@@ -417,12 +426,35 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
         self.assertTrue(page1.image.name.endswith("p1.jpg"))
         for img in images:
             self.assertEqual(img.source, ResultFormImageSource.PVP_IMPORT)
+            self.assertEqual(img.image_format, "JPEG")
             self.assertEqual(img.pvp_submission_id, submission.id)
             self.assertEqual(img.uploaded_by_id, self.user.id)
 
     def test_image_missing_from_zip_creates_no_row(self):
         # Only sig.jpg is in the zip; p1.jpg referenced in parsed but absent.
-        zip_ref = self._zip_with_images({"sig.jpg": b"sig-bytes"})
+        zip_ref = self._zip_with_images({"sig.jpg": self._image_bytes()})
+        try:
+            with self.captureOnCommitCallbacks(execute=True):
+                import_submission(
+                    self._parsed_submission(),
+                    tally=self.tally, bundle=self.bundle,
+                    uploaded_by=self.user, zip_ref=zip_ref,
+                )
+        finally:
+            zip_ref.close()
+        images = self.result_form.images.all()
+        self.assertEqual(images.count(), 1)
+        self.assertEqual(
+            images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
+        )
+
+    def test_non_image_bundle_entry_is_skipped(self):
+        # sig.jpg is a real image; p1.jpg is a disguised non-image and
+        # must be rejected at ingest rather than stored.
+        zip_ref = self._zip_with_images({
+            "sig.jpg": self._image_bytes(),
+            "p1.jpg": b"<html><script>alert(1)</script></html>",
+        })
         try:
             with self.captureOnCommitCallbacks(execute=True):
                 import_submission(

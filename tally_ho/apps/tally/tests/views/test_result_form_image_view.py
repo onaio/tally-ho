@@ -35,6 +35,7 @@ class TestResultFormImageView(TestBase, TestCase):
             image=SimpleUploadedFile(
                 "p.jpg", b"the-bytes", content_type="image/jpeg",
             ),
+            image_format="JPEG",
         )
 
     def tearDown(self):
@@ -56,6 +57,11 @@ class TestResultFormImageView(TestBase, TestCase):
         self.assertEqual(response.status_code, 200)
         content = b"".join(response.streaming_content)
         self.assertEqual(content, b"the-bytes")
+
+    def test_response_declares_image_type_and_nosniff(self):
+        response = self._get(self.user)
+        self.assertEqual(response["Content-Type"], "image/jpeg")
+        self.assertEqual(response["X-Content-Type-Options"], "nosniff")
 
     def test_no_access_forbidden(self):
         other = self._create_user(username="rando", password="pass")

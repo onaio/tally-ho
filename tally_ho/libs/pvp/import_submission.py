@@ -23,7 +23,10 @@ Caller responsibilities:
 
 from __future__ import annotations
 
+import logging
+
 import reversion
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils import timezone
@@ -45,6 +48,9 @@ from tally_ho.libs.models.enums.result_form_image_kind import (
 from tally_ho.libs.models.enums.result_form_image_source import (
     ResultFormImageSource,
 )
+from tally_ho.libs.utils.image_validation import validate_image_bytes
+
+logger = logging.getLogger(__name__)
 
 # Bundle image key -> the kind recorded on the applied ResultFormImage.
 _IMAGE_KIND_BY_KEY = {
@@ -331,11 +337,23 @@ def _attach_image(
         data = zip_ref.read(f"media/{filename}")
     except KeyError:
         return False
+    try:
+        image_format = validate_image_bytes(data)
+    except ValidationError:
+        # A bundle entry that is not a genuine image is dropped rather
+        # than stored — loading it is the obvious attack surface. The
+        # form simply ends up with fewer images.
+        logger.warning(
+            "PVP bundle image %r failed image validation; skipping",
+            filename,
+        )
+        return False
     image = ResultFormImage(
         tally_id=tally_id,
         result_form_id=result_form_id,
         source=ResultFormImageSource.PVP_IMPORT,
         kind=kind,
+        image_format=image_format,
         pvp_submission_id=submission_id,
         uploaded_by_id=uploaded_by_id,
     )

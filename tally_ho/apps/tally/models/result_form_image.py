@@ -45,7 +45,11 @@ class ResultFormImage(BaseModel):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = models.FileField(upload_to=result_form_image_upload_to)
+    image = models.ImageField(upload_to=result_form_image_upload_to)
+    # Pillow format ("JPEG"/"PNG") recorded when the bytes were verified
+    # at ingest, so the serve view can declare a content type without
+    # re-decoding or trusting the filename extension.
+    image_format = models.CharField(max_length=8, blank=True, default="")
     source = EnumIntegerField(
         ResultFormImageSource, default=ResultFormImageSource.UPLOAD,
     )
