@@ -4,6 +4,7 @@ import tempfile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template import Context, Template
 from django.test import override_settings
+from django.urls import reverse
 
 from tally_ho.apps.tally.models.result_form_image import ResultFormImage
 from tally_ho.libs.models.enums.form_state import FormState
@@ -81,4 +82,33 @@ class TestResultFormImagesTag(TestBase):
         )
         body = self._render()
         self.assertIn("signed page", body)
-        self.assertIn("PVP", body)
+        self.assertIn("from PVP", body)
+
+    def test_links_use_authenticated_route_not_raw_media(self):
+        image = self._add_image()
+        body = self._render()
+        expected = reverse(
+            "result-form-image",
+            kwargs={
+                "tally_id": self.tally.id,
+                "image_id": image.id,
+            },
+        )
+        self.assertIn(f'href="{expected}"', body)
+        self.assertIn(f'src="{expected}"', body)
+        # Never the raw, unauthenticated media path.
+        self.assertNotIn("/media/", body)
+
+    def test_only_active_images_render(self):
+        self._add_image(caption="kept")
+        self._add_image(caption="dropped", active=False)
+        body = self._render()
+        self.assertIn("kept", body)
+        self.assertNotIn("dropped", body)
+        self.assertEqual(body.count("<img"), 1)
+
+    def test_caption_is_html_escaped(self):
+        self._add_image(caption="<script>alert(1)</script>")
+        body = self._render()
+        self.assertNotIn("<script>", body)
+        self.assertIn("&lt;script&gt;", body)

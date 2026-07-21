@@ -1,5 +1,9 @@
+import shutil
+import tempfile
+
 from django.core.exceptions import SuspiciousOperation
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.utils.translation import gettext_lazy as _
 
 from tally_ho.apps.tally.models import ResultForm, Station, WorkflowRequest
@@ -1459,45 +1463,51 @@ class TestResultForm(TestBase):
             PvpSubmission.objects.filter(id=submission.id).exists(),
         )
 
-    def test_reset_deletes_pvp_sourced_images_keeps_uploads(self):
-        result_form = create_result_form(
-            tally=self.tally,
-            ballot=self.ballot,
-            center=self.center,
-            station_number=self.station.station_number,
-            barcode="r-clears-images",
-            form_state=FormState.DATA_ENTRY_2,
-        )
-        submission = self._make_pvp_submission(instance_id="uuid:img")
-        result_form.pvp_submission = submission
-        result_form.save()
-        pvp_image = ResultFormImage.objects.create(
-            tally=self.tally,
-            result_form=result_form,
-            image=SimpleUploadedFile(
-                "sig.jpg", b"sig", content_type="image/jpeg",
-            ),
-            source=ResultFormImageSource.PVP_IMPORT,
-            pvp_submission=submission,
-        )
-        uploaded_image = ResultFormImage.objects.create(
-            tally=self.tally,
-            result_form=result_form,
-            image=SimpleUploadedFile(
-                "note.jpg", b"note", content_type="image/jpeg",
-            ),
-            source=ResultFormImageSource.UPLOAD,
-        )
+    def test_reset_deactivates_pvp_images_keeps_uploads(self):
+        media_root = tempfile.mkdtemp(prefix="tally_test_media_")
+        try:
+            with override_settings(MEDIA_ROOT=media_root):
+                result_form = create_result_form(
+                    tally=self.tally,
+                    ballot=self.ballot,
+                    center=self.center,
+                    station_number=self.station.station_number,
+                    barcode="r-clears-images",
+                    form_state=FormState.DATA_ENTRY_2,
+                )
+                submission = self._make_pvp_submission(instance_id="uuid:img")
+                result_form.pvp_submission = submission
+                result_form.save()
+                pvp_image = ResultFormImage.objects.create(
+                    tally=self.tally,
+                    result_form=result_form,
+                    image=SimpleUploadedFile(
+                        "sig.jpg", b"sig", content_type="image/jpeg",
+                    ),
+                    source=ResultFormImageSource.PVP_IMPORT,
+                    pvp_submission=submission,
+                )
+                uploaded_image = ResultFormImage.objects.create(
+                    tally=self.tally,
+                    result_form=result_form,
+                    image=SimpleUploadedFile(
+                        "note.jpg", b"note", content_type="image/jpeg",
+                    ),
+                    source=ResultFormImageSource.UPLOAD,
+                )
 
-        result_form.reset_to_unsubmitted(user=self.user, reason="redo")
+                result_form.reset_to_unsubmitted(
+                    user=self.user, reason="redo",
+                )
 
-        # PVP-sourced image is gone; the manual upload survives.
-        self.assertFalse(
-            ResultFormImage.objects.filter(id=pvp_image.id).exists(),
-        )
-        self.assertTrue(
-            ResultFormImage.objects.filter(id=uploaded_image.id).exists(),
-        )
+                # PVP-sourced image is soft-deleted (row kept for audit,
+                # active flipped); the manual upload stays active.
+                pvp_image.refresh_from_db()
+                uploaded_image.refresh_from_db()
+                self.assertFalse(pvp_image.active)
+                self.assertTrue(uploaded_image.active)
+        finally:
+            shutil.rmtree(media_root, ignore_errors=True)
 
     def test_pvp_submissions_history_returns_old_after_reset(self):
         result_form = create_result_form(

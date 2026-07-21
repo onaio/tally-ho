@@ -38,6 +38,8 @@ class ResultFormImage(BaseModel):
 
     class Meta:
         app_label = "tally"
+        # Deterministic gallery + export order (no implicit DB ordering).
+        ordering = ["created_date", "id"]
 
     tally = models.ForeignKey(Tally, on_delete=models.PROTECT)
     result_form = models.ForeignKey(
@@ -57,6 +59,11 @@ class ResultFormImage(BaseModel):
         ResultFormImageKind, default=ResultFormImageKind.SUPPORTING,
     )
     caption = models.CharField(max_length=255, null=True, blank=True)
+    # Soft-delete flag. reset_to_unsubmitted deactivates PVP-sourced
+    # images rather than deleting them, mirroring how every other related
+    # record is handled on reset and preserving the audit trail. Display
+    # and export count only active images.
+    active = models.BooleanField(default=True)
     uploaded_by = models.ForeignKey(
         UserProfile, null=True, blank=True, on_delete=models.SET_NULL,
     )

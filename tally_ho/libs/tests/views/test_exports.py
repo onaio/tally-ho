@@ -570,6 +570,13 @@ class TestPvpExportColumns(TestBase):
                 self.assertEqual(
                     build_candidate_results_output(rf)["number_of_images"], 2,
                 )
+                # Soft-deleted (inactive) images are not counted.
+                ResultFormImage.objects.filter(
+                    result_form=rf,
+                ).update(active=False)
+                self.assertEqual(
+                    build_result_and_recon_output(rf)["number_of_images"], 0,
+                )
         finally:
             shutil.rmtree(media_root, ignore_errors=True)
 

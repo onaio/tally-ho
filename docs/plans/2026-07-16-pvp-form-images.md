@@ -245,9 +245,8 @@ below.**
 
 A deep review (security, data-model, and test-quality passes) drove the
 following changes to the design above. Where this section conflicts with an
-earlier one, this section wins. v1 (Tasks 1–8) is committed on
-`pvp-image-display`; the items below are the remaining work to apply before
-merge, each landing with its tests.
+earlier one, this section wins. All of the items below are **implemented**
+on `pvp-image-display` on top of the v1 tasks, each with tests.
 
 1. **Image validation moves to the parser, not the import.** The original
    plan validated bytes post-commit in `import_submission._attach_image` —

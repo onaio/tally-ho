@@ -39,6 +39,6 @@ def result_form_images(result_form):
             "caption": image.caption,
             "created_date": image.created_date,
         }
-        for image in result_form.images.all()
+        for image in result_form.images.filter(active=True)
     ]
     return {"images": images}

@@ -60,12 +60,19 @@ ODK Central                  network host                     tally-ho host
    against a tally whose `pvp_mode` is `DISABLED` are rejected up
    front — the operator sees a form error rather than a confirmation
    screen full of `pvp_disabled` skip reasons.
-3. **Confirm** — The confirmation screen shows three lists:
+3. **Confirm** — The confirmation screen shows:
    - **Will import** — submissions that pass parse-time validation
    - **Will skip** — rows that fail validation, with a reason code
    - **Missing images** — image filenames referenced by the CSV but
-     not present in the zip (these submissions still import, just
-     with empty image fields)
+     not present in the zip
+   - **Invalid images** — files present in the zip that are not a valid
+     image (corrupt, wrong format, or over the size cap)
+
+   Missing and invalid images are surfaced here so the operator proceeds
+   with informed consent: the affected submissions still import, just
+   with those image slots empty. To include them, the operator fixes the
+   source data and re-uploads. A single bad image never rejects the whole
+   bundle.
 4. **Result** — After confirming, a Celery task does the import. The
    result page shows the bundle status (`PENDING`, `IMPORTING`,
    `COMPLETED`, `FAILED`) and the count of submissions imported, and
@@ -120,21 +127,36 @@ general home for form images — a future release adds manual image upload
 for any form (PVP or not) as `source=UPLOAD` rows through the same
 display.
 
+Every image is verified with Pillow before it is stored — it must decode
+as a genuine JPEG, PNG, or WebP (the formats the Android capture app
+emits), within a size and pixel cap that guards against decompression
+bombs. Loading a file is the obvious attack surface even airgapped, so
+this check runs at the parser boundary; corrupt or oversized files are
+surfaced on the confirmation screen (see *Confirm* above) rather than
+stored.
+
 The images are served through an authenticated, tally-scoped view
-(`result-form-image`) rather than the open `/media/` route, so the
-sensitive signed-form photographs are only reachable by users with
-access to that tally.
+(`result-form-image`) rather than the open `/media/` route, and the
+response declares an explicit image `Content-Type` plus
+`X-Content-Type-Options: nosniff`. So the sensitive signed-form
+photographs are only reachable by users with access to that tally, and a
+browser can never be tricked into interpreting a stored file as anything
+but the image it was verified to be.
 
 ## Provenance after a reset
 
 Resetting a PVP-imported form to `UNSUBMITTED` (via *Admin Operations →
 Reset Form*) clears `ResultForm.pvp_submission`, deactivates the
-PVP-written results, and deletes the PVP-sourced `ResultFormImage` rows
-(any manually uploaded images are left intact). The form becomes
-eligible for re-upload via PVP (or normal manual entry through
-INTAKE → DE1 → DE2), and the badge disappears because it's no longer
-"currently sourced from PVP." The bundle zip retains the original image
-bytes, so a re-upload restores them.
+PVP-written results, and deactivates the PVP-sourced `ResultFormImage`
+rows (`active=False`) — a soft delete that preserves the audit trail,
+mirroring how every other related record is handled on reset. Any
+manually uploaded images are left active. Display and the export count
+show only active images, so the deactivated ones disappear from the form
+while the rows remain for audit. The form becomes eligible for re-upload
+via PVP (or normal manual entry through INTAKE → DE1 → DE2), and the
+badge disappears because it's no longer "currently sourced from PVP." The
+bundle zip retains the original image bytes, so a re-upload restores
+them.
 
 The original `PvpSubmission` row itself stays in the database as a
 historical record — `ResultForm.pvp_submissions_history` returns every
@@ -211,8 +233,9 @@ Helper commands:
 | `PvpUploadBundle` model | `tally_ho/apps/tally/models/pvp_upload_bundle.py` |
 | `PvpSubmission` model | `tally_ho/apps/tally/models/pvp_submission.py` |
 | `ResultFormImage` model | `tally_ho/apps/tally/models/result_form_image.py` |
-| Bundle parser | `tally_ho/libs/pvp/bundle.py` |
-| Parse-time validation | `tally_ho/libs/pvp/validation.py` |
+| Bundle parser (incl. image validation) | `tally_ho/libs/pvp/bundle.py` |
+| Image verification (Pillow) | `tally_ho/libs/utils/image_validation.py` |
+| Parse-time row validation | `tally_ho/libs/pvp/validation.py` |
 | Per-row + bundle import | `tally_ho/libs/pvp/import_submission.py` |
 | Celery task | `tally_ho/apps/tally/management/commands/async_pvp_import.py` |
 | Upload / confirm / result views | `tally_ho/apps/tally/views/pvp.py` |

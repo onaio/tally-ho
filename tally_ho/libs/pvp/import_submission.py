@@ -24,6 +24,8 @@ Caller responsibilities:
 from __future__ import annotations
 
 import logging
+import zipfile
+import zlib
 
 import reversion
 from django.core.exceptions import ValidationError
@@ -48,6 +50,7 @@ from tally_ho.libs.models.enums.result_form_image_kind import (
 from tally_ho.libs.models.enums.result_form_image_source import (
     ResultFormImageSource,
 )
+from tally_ho.libs.pvp.bundle import MAX_MEDIA_BYTES
 from tally_ho.libs.utils.image_validation import validate_image_bytes
 
 logger = logging.getLogger(__name__)
@@ -327,22 +330,34 @@ def _attach_image(
 ):
     """Read one media entry from the zip and create a ResultFormImage.
 
-    Returns True if a row was created, False otherwise. Missing filename
-    (None / empty) and missing-from-zip are both treated as no-op (no
-    row created).
+    Returns True if a row was created, False otherwise. Any problem —
+    missing filename, member absent from the zip, oversized, corrupt
+    member, or bytes that don't validate as an image — is a no-op (no row
+    created). These conditions were already surfaced to the operator on
+    the confirmation screen (``ParsedBundle.missing_images`` /
+    ``invalid_images``) and consented to, so skipping here is expected,
+    not a silent data loss.
     """
     if not filename:
         return False
+    member = f"media/{filename}"
     try:
-        data = zip_ref.read(f"media/{filename}")
-    except KeyError:
+        if zip_ref.getinfo(member).file_size > MAX_MEDIA_BYTES:
+            logger.warning(
+                "PVP bundle image %r exceeds size cap; skipping", filename,
+            )
+            return False
+        data = zip_ref.read(member)
+    except (KeyError, zipfile.BadZipFile, OSError, zlib.error):
+        # Missing member or a corrupt/truncated deflate stream — skip
+        # rather than letting it escape this post-commit callback.
+        logger.warning(
+            "PVP bundle image %r could not be read; skipping", filename,
+        )
         return False
     try:
         image_format = validate_image_bytes(data)
     except ValidationError:
-        # A bundle entry that is not a genuine image is dropped rather
-        # than stored — loading it is the obvious attack surface. The
-        # form simply ends up with fewer images.
         logger.warning(
             "PVP bundle image %r failed image validation; skipping",
             filename,

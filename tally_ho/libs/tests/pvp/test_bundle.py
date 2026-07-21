@@ -9,6 +9,7 @@ import io
 import zipfile
 
 import pytest
+from PIL import Image
 
 from tally_ho.libs.pvp.bundle import (
     DuplicateBarcodeError,
@@ -18,6 +19,15 @@ from tally_ho.libs.pvp.bundle import (
     UnsafeImageFilenameError,
     parse_bundle,
 )
+
+
+def _real_jpeg(size=(4, 4)):
+    """Genuine JPEG bytes — the parser now Pillow-validates every present
+    image, so fixtures must be real images unless testing the invalid path.
+    """
+    buf = io.BytesIO()
+    Image.new("RGB", size).save(buf, format="JPEG")
+    return buf.getvalue()
 
 
 # Headers that the post-Task-1 odk-central-sync emits in the bundle CSV.
@@ -101,10 +111,18 @@ def _candidate_row(
 
 
 def _make_bundle(rows, *, image_filenames=None, headers=None,
-                 include_csv=True, csv_name="candidate_results.csv"):
-    """Build a zip in-memory and return a Path-like to it (BytesIO)."""
+                 include_csv=True, csv_name="candidate_results.csv",
+                 bad_images=None, image_content=None):
+    """Build a zip in-memory and return a Path-like to it (BytesIO).
+
+    ``bad_images`` names media entries to write as non-image bytes (to
+    exercise the invalid-image path). ``image_content`` optionally maps a
+    filename to explicit bytes (e.g. an oversized entry).
+    """
     headers = headers if headers is not None else HEADERS
     image_filenames = image_filenames or set()
+    bad_images = bad_images or set()
+    image_content = image_content or {}
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, mode="w") as zf:
         if include_csv:
@@ -116,7 +134,13 @@ def _make_bundle(rows, *, image_filenames=None, headers=None,
                 writer.writerow(row)
             zf.writestr(csv_name, csv_buf.getvalue())
         for name in image_filenames:
-            zf.writestr(f"media/{name}", b"image-bytes")
+            if name in image_content:
+                content = image_content[name]
+            elif name in bad_images:
+                content = b"not-an-image"
+            else:
+                content = _real_jpeg()
+            zf.writestr(f"media/{name}", content)
     buf.seek(0)
     return buf
 
@@ -226,6 +250,66 @@ def test_missing_images_collected_not_raised(tmp_path):
     assert sorted(parsed.missing_images) == [
         "also_missing.jpg", "missing.jpg",
     ]
+    assert parsed.invalid_images == []
+
+
+# ---- warning: invalid images (does not raise) ----------------------------
+
+
+def test_invalid_images_collected_not_raised(tmp_path):
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=1, round2=1,
+                       clerk_signature="good.jpg",
+                       page1="corrupt.jpg",
+                       page2="missing.jpg"),
+    ]
+    path = _bundle_path(
+        tmp_path, rows,
+        image_filenames={"good.jpg", "corrupt.jpg"},
+        bad_images={"corrupt.jpg"},
+    )
+
+    parsed = parse_bundle(path)
+
+    assert parsed.total == 1  # bundle still parses; not raised
+    assert parsed.invalid_images == ["corrupt.jpg"]
+    assert parsed.missing_images == ["missing.jpg"]
+
+
+def test_valid_images_produce_no_invalid_entries(tmp_path):
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=1, round2=1,
+                       clerk_signature="good.jpg"),
+    ]
+    path = _bundle_path(tmp_path, rows, image_filenames={"good.jpg"})
+
+    parsed = parse_bundle(path)
+
+    assert parsed.invalid_images == []
+
+
+def test_oversized_image_is_invalid_without_reading(tmp_path):
+    # An entry whose declared size exceeds the cap is invalid and must
+    # not be read into memory. A ~30 MiB entry trips the 25 MiB cap.
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=1, round2=1,
+                       clerk_signature="huge.jpg"),
+    ]
+    path = _bundle_path(
+        tmp_path, rows,
+        image_filenames={"huge.jpg"},
+        image_content={"huge.jpg": b"\x00" * (30 * 1024 * 1024)},
+    )
+
+    parsed = parse_bundle(path)
+
+    assert parsed.invalid_images == ["huge.jpg"]
 
 
 # ---- error: duplicate barcode within bundle ------------------------------

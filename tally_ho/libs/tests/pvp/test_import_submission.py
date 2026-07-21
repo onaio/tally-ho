@@ -486,6 +486,27 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
             images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
         )
 
+    def test_png_bundle_image_records_png_format(self):
+        # image_format follows the validated content, not the extension —
+        # a PNG under a .jpg name is stored as PNG and drives the served
+        # content type.
+        zip_ref = self._zip_with_images({
+            "sig.jpg": self._image_bytes("PNG"),
+        })
+        try:
+            with self.captureOnCommitCallbacks(execute=True):
+                import_submission(
+                    self._parsed_submission(),
+                    tally=self.tally, bundle=self.bundle,
+                    uploaded_by=self.user, zip_ref=zip_ref,
+                )
+        finally:
+            zip_ref.close()
+        signature = self.result_form.images.get(
+            kind=ResultFormImageKind.CLERK_SIGNATURE,
+        )
+        self.assertEqual(signature.image_format, "PNG")
+
     def test_no_image_files_on_disk_when_transaction_rolls_back(self):
         zip_ref = self._zip_with_images({
             "sig.jpg": b"sig-bytes",

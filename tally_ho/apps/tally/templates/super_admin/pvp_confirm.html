@@ -49,6 +49,19 @@
     </details>
   {% endif %}
 
+  {% if invalid_images %}
+    <h2>{% trans 'Invalid images' %} ({{ invalid_images|length }})</h2>
+    <div class="alert alert-warning">
+      {% trans 'These image files are present in the zip but are not a valid image (corrupt, wrong format, or too large). They will be imported with empty image fields. To include them, fix the source data and re-upload.' %}
+    </div>
+    <details>
+      <summary>{% trans 'Show invalid image filenames' %}</summary>
+      <ul>
+        {% for name in invalid_images %}<li><code>{{ name }}</code></li>{% endfor %}
+      </ul>
+    </details>
+  {% endif %}
+
   <form action="" method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-success" {% if not will_import %}disabled{% endif %}>

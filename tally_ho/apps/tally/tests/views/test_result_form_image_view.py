@@ -79,3 +79,43 @@ class TestResultFormImageView(TestBase, TestCase):
         os.remove(self.image.image.path)
         with self.assertRaises(Http404):
             self._get(self.user)
+
+    def test_content_type_follows_stored_format(self):
+        cases = {
+            "PNG": "image/png",
+            "WEBP": "image/webp",
+            "": "application/octet-stream",  # unknown/blank fallback
+        }
+        for image_format, expected in cases.items():
+            image = ResultFormImage.objects.create(
+                tally=self.tally,
+                result_form=self.result_form,
+                image=SimpleUploadedFile(
+                    "x.bin", b"bytes", content_type="application/octet-stream",
+                ),
+                image_format=image_format,
+            )
+            response = self._get(self.user, image_id=image.id)
+            self.assertEqual(
+                response["Content-Type"], expected,
+                msg=f"format {image_format!r}",
+            )
+            self.assertEqual(response["X-Content-Type-Options"], "nosniff")
+
+    def test_cross_tally_image_not_reachable_via_this_tally_scope(self):
+        # self.user is a TALLY_MANAGER (access to every tally). The URL
+        # scope (tally_id) must still gate which image is served: an image
+        # belonging to tally B cannot be fetched by pinning tally A's id.
+        other_tally = create_tally(name="tallyB")
+        other_form = create_result_form(tally=other_tally, barcode="b-1")
+        other_image = ResultFormImage.objects.create(
+            tally=other_tally,
+            result_form=other_form,
+            image=SimpleUploadedFile(
+                "b.jpg", b"b-bytes", content_type="image/jpeg",
+            ),
+            image_format="JPEG",
+        )
+        # tally_id from the URL is self.tally (A); image belongs to B.
+        with self.assertRaises(Http404):
+            self._get(self.user, image_id=other_image.id)

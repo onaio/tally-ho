@@ -13,6 +13,7 @@ import zipfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TransactionTestCase, override_settings
+from PIL import Image
 
 from tally_ho.apps.tally.management.commands.async_pvp_import import (
     async_pvp_import,
@@ -20,6 +21,7 @@ from tally_ho.apps.tally.management.commands.async_pvp_import import (
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
+from tally_ho.apps.tally.models.result_form_image import ResultFormImage
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
@@ -79,6 +81,12 @@ def _csv_row(*, instance_id, barcode, candidate_id, order, r2):
     }
 
 
+def _real_jpeg():
+    buf = io.BytesIO()
+    Image.new("RGB", (4, 4)).save(buf, format="JPEG")
+    return buf.getvalue()
+
+
 def _build_zip_bytes(rows, image_filenames):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, mode="w") as zf:
@@ -90,7 +98,7 @@ def _build_zip_bytes(rows, image_filenames):
             writer.writerow(row)
         zf.writestr("candidate_results.csv", csv_buf.getvalue())
         for name in image_filenames:
-            zf.writestr(f"media/{name}", b"image-bytes")
+            zf.writestr(f"media/{name}", _real_jpeg())
     return buf.getvalue()
 
 
@@ -179,6 +187,13 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         self.assertTrue(self.result_form.from_pvp)
         self.assertEqual(
             self.result_form.form_state, FormState.DATA_ENTRY_2,
+        )
+        # Both bundle images were validated and attached to the form.
+        self.assertEqual(
+            ResultFormImage.objects.filter(
+                result_form=self.result_form,
+            ).count(),
+            2,
         )
 
     def test_async_pvp_import_marks_failed_when_parse_raises(self):
