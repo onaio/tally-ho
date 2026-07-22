@@ -5,16 +5,6 @@ from tally_ho.apps.tally.models.tally import Tally
 from tally_ho.libs.models.base_model import BaseModel
 
 
-def submission_image_upload_to(instance, filename):
-    """Retained only for migration 0080_pvp_submission, which references
-    it as the historical `upload_to` for the (now removed) image fields.
-
-    Images are no longer stored on PvpSubmission — they are applied to
-    the form as `ResultFormImage` rows. Do not use for new fields.
-    """
-    return f"pvp/{instance.tally_id}/{instance.id}/{filename}"
-
-
 class PvpSubmission(BaseModel):
     """One row per ODK submission that passed parse-time validation.
 
@@ -47,7 +37,7 @@ class PvpSubmission(BaseModel):
     staff_user_name = models.CharField(max_length=255, null=True, blank=True)
     submission_date = models.DateTimeField(null=True, blank=True)
 
-    # Raw payloads kept for provenance + future pass-2 dupe/round handling.
+    # Raw payloads preserved for provenance and dupe/round handling.
     round1_raw = models.JSONField(default=dict, blank=True)
     round2_raw = models.JSONField(default=dict, blank=True)
     recon_raw = models.JSONField(default=dict, blank=True)
