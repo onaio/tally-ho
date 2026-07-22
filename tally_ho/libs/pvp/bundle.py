@@ -5,10 +5,13 @@ A bundle is a zip with:
     candidate_results.csv     # one row per (submission, candidate)
     media/<image-filename>... # signature + form pictures referenced by the CSV
 
-This module is intentionally Django-free: callers (the upload view, the
+The parser has no database dependency — callers (the upload view, the
 celery import task) construct the parser inputs and consume its dataclass
-output. Parse-time validation lives at a higher layer (per-row checks
-against the database).
+output, and per-row validation against the database lives at a higher
+layer. It does depend on Pillow and ``django.core.exceptions`` to verify
+image bytes at parse time (see ``_find_invalid_images``); loading a file
+is the obvious attack surface, so images are checked here before anything
+downstream trusts them.
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ import csv
 import dataclasses
 import io
 import zipfile
+import zlib
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -298,7 +302,11 @@ def _find_invalid_images(archive, submissions, media_filenames):
             continue
         try:
             validate_image_bytes(archive.read(member))
-        except ValidationError:
+        except (ValidationError, zipfile.BadZipFile, zlib.error, OSError):
+            # Not a valid image, or a corrupt/truncated member whose
+            # read fails — classify as invalid (surfaced on the
+            # confirmation screen) rather than escaping parse_bundle.
+            # Mirrors the except set in import_submission._attach_image.
             invalid.add(name)
     return sorted(invalid)
 

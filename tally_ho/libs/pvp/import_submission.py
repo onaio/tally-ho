@@ -363,14 +363,25 @@ def _attach_image(
             filename,
         )
         return False
-    image = ResultFormImage(
-        tally_id=tally_id,
-        result_form_id=result_form_id,
-        source=ResultFormImageSource.PVP_IMPORT,
-        kind=kind,
-        image_format=image_format,
-        pvp_submission_id=submission_id,
-        uploaded_by_id=uploaded_by_id,
-    )
-    image.image.save(filename, ContentFile(data), save=True)
+    try:
+        image = ResultFormImage(
+            tally_id=tally_id,
+            result_form_id=result_form_id,
+            source=ResultFormImageSource.PVP_IMPORT,
+            kind=kind,
+            image_format=image_format,
+            pvp_submission_id=submission_id,
+            uploaded_by_id=uploaded_by_id,
+        )
+        image.image.save(filename, ContentFile(data), save=True)
+    except Exception:
+        # This runs in a post-commit callback: the bundle's DB writes are
+        # already committed. A storage/DB error saving one image must not
+        # escape and abort the remaining images (or contradict the
+        # COMPLETED status) — degrade to a missing image, which is an
+        # already-consented outcome.
+        logger.exception(
+            "PVP bundle image %r could not be saved; skipping", filename,
+        )
+        return False
     return True

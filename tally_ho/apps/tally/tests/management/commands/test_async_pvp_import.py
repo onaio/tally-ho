@@ -88,6 +88,12 @@ def _real_jpeg():
 
 
 def _build_zip_bytes(rows, image_filenames):
+    return _build_zip_bytes_with_content(
+        rows, {name: _real_jpeg() for name in image_filenames},
+    )
+
+
+def _build_zip_bytes_with_content(rows, image_content):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, mode="w") as zf:
         csv_buf = io.StringIO()
@@ -97,8 +103,8 @@ def _build_zip_bytes(rows, image_filenames):
         for row in rows:
             writer.writerow(row)
         zf.writestr("candidate_results.csv", csv_buf.getvalue())
-        for name in image_filenames:
-            zf.writestr(f"media/{name}", _real_jpeg())
+        for name, content in image_content.items():
+            zf.writestr(f"media/{name}", content)
     return buf.getvalue()
 
 
@@ -194,6 +200,48 @@ class AsyncPvpImportTestCase(TransactionTestCase):
                 result_form=self.result_form,
             ).count(),
             2,
+        )
+
+    def test_async_import_with_one_invalid_image_still_completes(self):
+        # A bundle with one real and one invalid image imports the form
+        # and the valid image; the bad image is skipped (consented via the
+        # confirmation screen). The bundle must NOT end up FAILED, and the
+        # post-commit image callback must not crash the task.
+        zip_bytes = _build_zip_bytes_with_content(
+            rows=[
+                _csv_row(instance_id="uuid:1", barcode="111",
+                         candidate_id=131301, order=1, r2=12),
+                _csv_row(instance_id="uuid:1", barcode="111",
+                         candidate_id=131302, order=2, r2=9),
+            ],
+            image_content={
+                "sig.jpg": _real_jpeg(),
+                "p1.jpg": b"not-an-image",
+            },
+        )
+        bundle = PvpUploadBundle.objects.create(
+            tally=self.tally, uploaded_by=self.user,
+            filename="mixed.zip", mode=PvpMode.DE1_ONLY,
+        )
+        bundle.zip_file = SimpleUploadedFile(
+            "mixed.zip", zip_bytes, content_type="application/zip",
+        )
+        bundle.save()
+
+        async_pvp_import.apply(
+            kwargs={"bundle_id": bundle.id, "user_id": self.user.id},
+        )
+
+        bundle.refresh_from_db()
+        self.assertEqual(bundle.status, PvpBundleStatus.COMPLETED)
+        self.result_form.refresh_from_db()
+        self.assertTrue(self.result_form.from_pvp)
+        # Only the valid signature attached; the bad image was skipped.
+        self.assertEqual(
+            ResultFormImage.objects.filter(
+                result_form=self.result_form,
+            ).count(),
+            1,
         )
 
     def test_async_pvp_import_marks_failed_when_parse_raises(self):

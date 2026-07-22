@@ -7,6 +7,7 @@ The parser is intentionally Django-free; these tests run without a DB.
 import csv
 import io
 import zipfile
+import zlib
 
 import pytest
 from PIL import Image
@@ -15,8 +16,10 @@ from tally_ho.libs.pvp.bundle import (
     DuplicateBarcodeError,
     InvalidBundleError,
     ParsedBundle,
+    ParsedSubmission,
     RoundIntegrityError,
     UnsafeImageFilenameError,
+    _find_invalid_images,
     parse_bundle,
 )
 
@@ -290,6 +293,31 @@ def test_valid_images_produce_no_invalid_entries(tmp_path):
     parsed = parse_bundle(path)
 
     assert parsed.invalid_images == []
+
+
+def test_corrupt_member_read_error_classified_invalid_not_raised():
+    # A member whose read raises (corrupt deflate stream) is classified
+    # as invalid rather than escaping the parser, mirroring the import.
+    submission = ParsedSubmission(
+        odk_instance_id="uuid:s1", odk_form_id="f", barcode="111",
+        ballot_number="1", staff_user_name=None, candidates=(),
+        recon={}, images={"clerk_signature": "bad.jpg"},
+    )
+
+    class _FakeInfo:
+        file_size = 10  # under the cap, so it attempts a read
+
+    class _FakeArchive:
+        def getinfo(self, member):
+            return _FakeInfo()
+
+        def read(self, member):
+            raise zlib.error("corrupt deflate stream")
+
+    invalid = _find_invalid_images(
+        _FakeArchive(), [submission], {"bad.jpg"},
+    )
+    assert invalid == ["bad.jpg"]
 
 
 def test_oversized_image_is_invalid_without_reading(tmp_path):

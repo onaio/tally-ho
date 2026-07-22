@@ -10,6 +10,7 @@ import os
 import shutil
 import tempfile
 import zipfile
+from unittest import mock
 
 from django.test import TestCase, override_settings
 from PIL import Image
@@ -480,6 +481,64 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
                 )
         finally:
             zip_ref.close()
+        images = self.result_form.images.all()
+        self.assertEqual(images.count(), 1)
+        self.assertEqual(
+            images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
+        )
+
+    def test_oversized_image_skipped_at_import(self):
+        # _attach_image independently size-caps at import (the import does
+        # not receive the parser's invalid_images list). A ~30 MiB entry
+        # is skipped; the good image still imports; no crash.
+        zip_ref = self._zip_with_images({
+            "sig.jpg": self._image_bytes(),
+            "p1.jpg": b"\x00" * (30 * 1024 * 1024),
+        })
+        try:
+            with self.captureOnCommitCallbacks(execute=True):
+                import_submission(
+                    self._parsed_submission(),
+                    tally=self.tally, bundle=self.bundle,
+                    uploaded_by=self.user, zip_ref=zip_ref,
+                )
+        finally:
+            zip_ref.close()
+        images = self.result_form.images.all()
+        self.assertEqual(images.count(), 1)
+        self.assertEqual(
+            images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
+        )
+
+    def test_corrupt_zip_member_skipped_at_import(self):
+        # A member whose compressed stream is corrupt raises at read()
+        # time (BadZipFile / zlib.error). It must be skipped inside the
+        # post-commit callback, not escape it.
+        zip_ref = self._zip_with_images({
+            "sig.jpg": self._image_bytes(),
+            "p1.jpg": self._image_bytes(),
+        })
+        real_read = zip_ref.read
+
+        def read_raising_on_p1(member, *args, **kwargs):
+            if member.endswith("p1.jpg"):
+                raise zipfile.BadZipFile("corrupt member")
+            return real_read(member, *args, **kwargs)
+
+        try:
+            with mock.patch.object(
+                zip_ref, "read", side_effect=read_raising_on_p1,
+            ):
+                with self.captureOnCommitCallbacks(execute=True):
+                    # Must not raise even though a member is unreadable.
+                    import_submission(
+                        self._parsed_submission(),
+                        tally=self.tally, bundle=self.bundle,
+                        uploaded_by=self.user, zip_ref=zip_ref,
+                    )
+        finally:
+            zip_ref.close()
+        # The intact signature imported; the corrupt p1 was skipped.
         images = self.result_form.images.all()
         self.assertEqual(images.count(), 1)
         self.assertEqual(

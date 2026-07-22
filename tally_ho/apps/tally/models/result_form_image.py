@@ -40,6 +40,10 @@ class ResultFormImage(BaseModel):
         app_label = "tally"
         # Deterministic gallery + export order (no implicit DB ordering).
         ordering = ["created_date", "id"]
+        indexes = [
+            # Backs the active-image display filter and export count.
+            models.Index(fields=["result_form", "active"]),
+        ]
 
     tally = models.ForeignKey(Tally, on_delete=models.PROTECT)
     result_form = models.ForeignKey(

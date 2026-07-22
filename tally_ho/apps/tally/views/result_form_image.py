@@ -19,8 +19,12 @@ class ResultFormImageView(LoginRequiredMixin, TallyAccessMixin, View):
     """
 
     def get(self, request, tally_id, image_id, *args, **kwargs):
+        # Only serve active images, so a direct URL agrees with the
+        # gallery and exports (both filter active=True). A soft-deleted
+        # image — e.g. deactivated by a form reset — 404s rather than
+        # staying fetchable.
         image = get_object_or_404(
-            ResultFormImage, id=image_id, tally_id=tally_id,
+            ResultFormImage, id=image_id, tally_id=tally_id, active=True,
         )
         content_type = IMAGE_CONTENT_TYPES.get(
             image.image_format, "application/octet-stream",

@@ -52,6 +52,9 @@ class TestResultFormImage(TestBase):
         self.assertIsNone(image.caption)
         self.assertIsNone(image.uploaded_by_id)
         self.assertIsNone(image.pvp_submission_id)
+        # Live by default (soft-delete flag); format blank until verified.
+        self.assertTrue(image.active)
+        self.assertEqual(image.image_format, "")
 
     def test_reverse_accessor(self):
         self._create_image()

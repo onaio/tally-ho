@@ -247,6 +247,10 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'center__stations'  # For result_form.station property
         ).annotate(number_of_images=ACTIVE_IMAGE_COUNT)
 
+        # Materialize once — the queryset carries an aggregate annotation
+        # (number_of_images) and is iterated twice below.
+        result_forms = list(result_forms)
+
         # OPTIMIZATION: Batch fetch ALL results to avoid N+1 queries
         # Build a lookup: (result_form_id, candidate_id) -> votes
         result_form_ids = [rf.id for rf in result_forms]

@@ -102,6 +102,14 @@ class TestResultFormImageView(TestBase, TestCase):
             )
             self.assertEqual(response["X-Content-Type-Options"], "nosniff")
 
+    def test_soft_deleted_image_returns_404(self):
+        # A deactivated image (e.g. after a form reset) is hidden from the
+        # gallery and exports; the direct serve URL must agree and 404.
+        self.image.active = False
+        self.image.save(update_fields=["active"])
+        with self.assertRaises(Http404):
+            self._get(self.user)
+
     def test_cross_tally_image_not_reachable_via_this_tally_scope(self):
         # self.user is a TALLY_MANAGER (access to every tally). The URL
         # scope (tally_id) must still gate which image is served: an image
