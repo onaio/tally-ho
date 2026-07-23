@@ -50,7 +50,7 @@ from tally_ho.libs.models.enums.result_form_image_kind import (
 from tally_ho.libs.models.enums.result_form_image_source import (
     ResultFormImageSource,
 )
-from tally_ho.libs.pvp.bundle import MAX_MEDIA_BYTES
+from tally_ho.libs.pvp.bundle import MAX_MEDIA_BYTES, read_capped
 from tally_ho.libs.utils.image_validation import validate_image_bytes
 
 logger = logging.getLogger(__name__)
@@ -342,15 +342,19 @@ def _attach_image(
         return False
     member = f"media/{filename}"
     try:
+        # Cheap declared-size pre-check, then a hard-bounded read so a
+        # spoofed header can't inflate the full member into memory.
         if zip_ref.getinfo(member).file_size > MAX_MEDIA_BYTES:
             logger.warning(
                 "PVP bundle image %r exceeds size cap; skipping", filename,
             )
             return False
-        data = zip_ref.read(member)
-    except (KeyError, zipfile.BadZipFile, OSError, zlib.error):
-        # Missing member or a corrupt/truncated deflate stream — skip
-        # rather than letting it escape this post-commit callback.
+        data = read_capped(zip_ref, member)
+    except (KeyError, zipfile.BadZipFile, OSError, zlib.error, RuntimeError):
+        # Missing member; corrupt/truncated deflate stream; encrypted or
+        # unsupported-compression member (RuntimeError /
+        # NotImplementedError); or over the byte cap. Skip rather than
+        # letting it escape this post-commit callback and crash the task.
         logger.warning(
             "PVP bundle image %r could not be read; skipping", filename,
         )

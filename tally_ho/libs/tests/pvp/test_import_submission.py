@@ -12,6 +12,7 @@ import tempfile
 import zipfile
 from unittest import mock
 
+from django.db.models.fields.files import FieldFile
 from django.test import TestCase, override_settings
 from PIL import Image
 from reversion.models import Version
@@ -510,40 +511,53 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
             images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
         )
 
-    def test_corrupt_zip_member_skipped_at_import(self):
-        # A member whose compressed stream is corrupt raises at read()
-        # time (BadZipFile / zlib.error). It must be skipped inside the
-        # post-commit callback, not escape it.
-        zip_ref = self._zip_with_images({
-            "sig.jpg": self._image_bytes(),
-            "p1.jpg": self._image_bytes(),
-        })
-        real_read = zip_ref.read
+    def test_unreadable_zip_member_skipped_at_import(self):
+        # A member whose read raises — corrupt (BadZipFile), encrypted
+        # (RuntimeError), or unsupported compression (NotImplementedError,
+        # neither an OSError) — must be skipped inside the post-commit
+        # callback, not escape it and crash the celery task.
+        for read_error in (
+            zipfile.BadZipFile("corrupt member"),
+            RuntimeError("File is encrypted"),
+            NotImplementedError("compression method"),
+        ):
+            self.result_form.images.all().delete()
+            zip_ref = self._zip_with_images({
+                "sig.jpg": self._image_bytes(),
+                "p1.jpg": self._image_bytes(),
+            })
+            real_open = zip_ref.open
 
-        def read_raising_on_p1(member, *args, **kwargs):
-            if member.endswith("p1.jpg"):
-                raise zipfile.BadZipFile("corrupt member")
-            return real_read(member, *args, **kwargs)
+            def open_raising_on_p1(member, *args, _err=read_error, **kwargs):
+                if member.endswith("p1.jpg"):
+                    raise _err
+                return real_open(member, *args, **kwargs)
 
-        try:
-            with mock.patch.object(
-                zip_ref, "read", side_effect=read_raising_on_p1,
-            ):
-                with self.captureOnCommitCallbacks(execute=True):
-                    # Must not raise even though a member is unreadable.
-                    import_submission(
-                        self._parsed_submission(),
-                        tally=self.tally, bundle=self.bundle,
-                        uploaded_by=self.user, zip_ref=zip_ref,
-                    )
-        finally:
-            zip_ref.close()
-        # The intact signature imported; the corrupt p1 was skipped.
-        images = self.result_form.images.all()
-        self.assertEqual(images.count(), 1)
-        self.assertEqual(
-            images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
-        )
+            try:
+                with mock.patch.object(
+                    zip_ref, "open", side_effect=open_raising_on_p1,
+                ):
+                    with self.captureOnCommitCallbacks(execute=True):
+                        # Must not raise even though a member is unreadable.
+                        import_submission(
+                            self._parsed_submission(),
+                            tally=self.tally, bundle=self.bundle,
+                            uploaded_by=self.user, zip_ref=zip_ref,
+                        )
+            finally:
+                zip_ref.close()
+            # The intact signature imported; the unreadable p1 was skipped.
+            images = self.result_form.images.all()
+            self.assertEqual(
+                images.count(), 1, msg=f"for {type(read_error).__name__}",
+            )
+            self.assertEqual(
+                images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
+            )
+            # Re-linking would fail the unique instance-id constraint;
+            # reset for the next iteration.
+            PvpSubmission.objects.all().delete()
+            self.result_form.refresh_from_db()
 
     def test_png_bundle_image_records_png_format(self):
         # image_format follows the validated content, not the extension —
@@ -565,6 +579,41 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
             kind=ResultFormImageKind.CLERK_SIGNATURE,
         )
         self.assertEqual(signature.image_format, "PNG")
+
+    def test_storage_failure_on_save_is_contained(self):
+        # A storage/DB error while saving one validated image must not
+        # escape the post-commit callback (which runs after the bundle
+        # committed): the failing image is skipped, the other is saved,
+        # and no exception propagates to crash the celery task.
+        zip_ref = self._zip_with_images({
+            "sig.jpg": self._image_bytes(),
+            "p1.jpg": self._image_bytes(),
+        })
+        real_save = FieldFile.save
+        calls = {"n": 0}
+
+        def save_failing_first(self, name, content, save=True):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise OSError("disk full")
+            return real_save(self, name, content, save=save)
+
+        try:
+            with mock.patch.object(
+                FieldFile, "save", autospec=True,
+                side_effect=save_failing_first,
+            ):
+                # Must not raise despite the storage error on the first save.
+                with self.captureOnCommitCallbacks(execute=True):
+                    import_submission(
+                        self._parsed_submission(),
+                        tally=self.tally, bundle=self.bundle,
+                        uploaded_by=self.user, zip_ref=zip_ref,
+                    )
+        finally:
+            zip_ref.close()
+        # One image failed to save (skipped); the other succeeded.
+        self.assertEqual(self.result_form.images.count(), 1)
 
     def test_no_image_files_on_disk_when_transaction_rolls_back(self):
         zip_ref = self._zip_with_images({

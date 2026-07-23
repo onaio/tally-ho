@@ -1,13 +1,18 @@
 import json
+import shutil
+import tempfile
 
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
-from django.test import RequestFactory
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import RequestFactory, override_settings
 from django.urls import reverse
 
 from tally_ho.apps.tally.models.center import Center
+from tally_ho.apps.tally.models.result_form_image import ResultFormImage
 from tally_ho.apps.tally.views.reports.candidate_results import (
-    CandidateResultsDataView, CandidateResultsView)
+    CandidateResultsDataView, CandidateResultsView,
+    get_candidate_results_queryset)
 from tally_ho.libs.models.enums.center_type import CenterType
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
@@ -92,6 +97,39 @@ class TestCandidateResultsViews(TestBase):
             user=self.user,
             tally=self.tally,
         )
+
+    def test_queryset_annotates_active_image_count(self):
+        # Drive get_candidate_results_queryset's ACTIVE_IMAGE_COUNT
+        # annotation with real images: 2 active + 1 inactive -> 2.
+        media_root = tempfile.mkdtemp(prefix="tally_test_media_")
+        try:
+            with override_settings(MEDIA_ROOT=media_root):
+                for name in ("a.jpg", "b.jpg"):
+                    ResultFormImage.objects.create(
+                        tally=self.tally, result_form=self.result_form,
+                        image=SimpleUploadedFile(
+                            name, b"x", content_type="image/jpeg",
+                        ),
+                    )
+                ResultFormImage.objects.create(
+                    tally=self.tally, result_form=self.result_form,
+                    image=SimpleUploadedFile(
+                        "inactive.jpg", b"x", content_type="image/jpeg",
+                    ),
+                    active=False,
+                )
+                rows = get_candidate_results_queryset(self.tally.id)
+                # Rows built from the annotated queryset carry the active
+                # image count (2 active; the inactive one excluded).
+                barcode_rows = [
+                    r for r in rows
+                    if r.get("barcode") == self.result_form.barcode
+                ]
+                self.assertTrue(barcode_rows)
+                for row in barcode_rows:
+                    self.assertEqual(row["number_of_images"], 2)
+        finally:
+            shutil.rmtree(media_root, ignore_errors=True)
 
     def test_candidate_results_view_renders(self):
         """

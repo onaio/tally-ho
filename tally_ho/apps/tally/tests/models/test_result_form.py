@@ -1506,6 +1506,10 @@ class TestResultForm(TestBase):
                 uploaded_image.refresh_from_db()
                 self.assertFalse(pvp_image.active)
                 self.assertTrue(uploaded_image.active)
+                # Soft delete, not hard delete: the row survives for audit.
+                self.assertTrue(
+                    ResultFormImage.objects.filter(id=pvp_image.id).exists(),
+                )
         finally:
             shutil.rmtree(media_root, ignore_errors=True)
 

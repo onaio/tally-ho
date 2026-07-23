@@ -278,6 +278,22 @@ def _build_parsed_bundle(csv_rows, media_filenames):
     )
 
 
+def read_capped(archive, member):
+    """Read a zip member with a hard byte bound.
+
+    Reads at most ``MAX_MEDIA_BYTES + 1`` bytes so the zlib decompressor's
+    transient allocation is bounded regardless of a spoofed
+    uncompressed-size header, then raises ``OSError`` if the member is
+    larger than the cap. ``archive.open(...).read(n)`` passes ``n`` to the
+    decompressor as its max length, so the full member is never inflated.
+    """
+    with archive.open(member) as handle:
+        data = handle.read(MAX_MEDIA_BYTES + 1)
+    if len(data) > MAX_MEDIA_BYTES:
+        raise OSError(f"media entry {member!r} exceeds size cap")
+    return data
+
+
 def _find_invalid_images(archive, submissions, media_filenames):
     """Return the sorted filenames that are present in the zip but are not
     a valid image (or exceed the size cap).
@@ -297,16 +313,29 @@ def _find_invalid_images(archive, submissions, media_filenames):
     invalid = set()
     for name in referenced & media_filenames:
         member = f"{MEDIA_DIR}/{name}"
+        # getinfo().file_size is the zip's *declared* uncompressed size —
+        # a cheap pre-check only. A crafted header can understate it, so
+        # the read below is hard-bounded independently.
         if archive.getinfo(member).file_size > MAX_MEDIA_BYTES:
             invalid.add(name)
             continue
         try:
-            validate_image_bytes(archive.read(member))
-        except (ValidationError, zipfile.BadZipFile, zlib.error, OSError):
-            # Not a valid image, or a corrupt/truncated member whose
-            # read fails — classify as invalid (surfaced on the
-            # confirmation screen) rather than escaping parse_bundle.
-            # Mirrors the except set in import_submission._attach_image.
+            data = read_capped(archive, member)
+        except (
+            ValidationError, zipfile.BadZipFile, zlib.error, OSError,
+            RuntimeError,
+        ):
+            # A corrupt/truncated/encrypted member or one using an
+            # unsupported compression method (RuntimeError /
+            # NotImplementedError), or one that exceeds the byte cap —
+            # classify as invalid (surfaced on the confirmation screen)
+            # rather than escaping parse_bundle. Mirrors the except set
+            # in import_submission._attach_image.
+            invalid.add(name)
+            continue
+        try:
+            validate_image_bytes(data)
+        except ValidationError:
             invalid.add(name)
     return sorted(invalid)
 

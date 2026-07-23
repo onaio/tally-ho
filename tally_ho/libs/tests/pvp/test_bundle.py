@@ -295,9 +295,16 @@ def test_valid_images_produce_no_invalid_entries(tmp_path):
     assert parsed.invalid_images == []
 
 
-def test_corrupt_member_read_error_classified_invalid_not_raised():
-    # A member whose read raises (corrupt deflate stream) is classified
-    # as invalid rather than escaping the parser, mirroring the import.
+@pytest.mark.parametrize("read_error", [
+    zipfile.BadZipFile("corrupt"),      # corrupt/truncated deflate stream
+    zlib.error("bad data"),             # zlib-level corruption
+    RuntimeError("File is encrypted"),  # encrypted member
+    NotImplementedError("compression"),  # unsupported compression method
+])
+def test_unreadable_member_classified_invalid_not_raised(read_error):
+    # A member whose read raises — including encrypted (RuntimeError) and
+    # unsupported-compression (NotImplementedError), neither an OSError —
+    # is classified invalid rather than escaping the parser.
     submission = ParsedSubmission(
         odk_instance_id="uuid:s1", odk_form_id="f", barcode="111",
         ballot_number="1", staff_user_name=None, candidates=(),
@@ -307,12 +314,22 @@ def test_corrupt_member_read_error_classified_invalid_not_raised():
     class _FakeInfo:
         file_size = 10  # under the cap, so it attempts a read
 
+    class _FakeHandle:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self, n):
+            raise read_error
+
     class _FakeArchive:
         def getinfo(self, member):
             return _FakeInfo()
 
-        def read(self, member):
-            raise zlib.error("corrupt deflate stream")
+        def open(self, member):
+            return _FakeHandle()
 
     invalid = _find_invalid_images(
         _FakeArchive(), [submission], {"bad.jpg"},
