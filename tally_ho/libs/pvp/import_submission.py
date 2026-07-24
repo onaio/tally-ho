@@ -38,7 +38,10 @@ from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
-from tally_ho.apps.tally.models.result_form_image import ResultFormImage
+from tally_ho.apps.tally.models.result_form_image import (
+    ResultFormImage,
+    build_result_form_image_path,
+)
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
@@ -377,7 +380,19 @@ def _attach_image(
             pvp_submission_id=submission_id,
             uploaded_by_id=uploaded_by_id,
         )
-        image.image.save(filename, ContentFile(data), save=True)
+        # Write the file (save=False) before the row insert so storage I/O
+        # never runs inside the INSERT and can't poison the surrounding
+        # transaction; a failure here is caught below and the image is
+        # skipped. The path is built the same way ResultFormImage.save
+        # would for a directly-assigned file.
+        image.image.save(
+            build_result_form_image_path(
+                tally_id, result_form_id, filename,
+            ),
+            ContentFile(data),
+            save=False,
+        )
+        image.save()
     except Exception:
         # This runs in a post-commit callback: the bundle's DB writes are
         # already committed. A storage/DB error saving one image must not

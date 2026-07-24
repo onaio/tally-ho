@@ -2,7 +2,6 @@
 
 import django.db.models.deletion
 import enumfields.fields
-import tally_ho.apps.tally.models.result_form_image
 import tally_ho.libs.models.enums.result_form_image_kind
 import tally_ho.libs.models.enums.result_form_image_source
 from django.db import migrations, models
@@ -33,7 +32,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_date', models.DateTimeField(auto_now_add=True)),
                 ('modified_date', models.DateTimeField(auto_now=True)),
-                ('image', models.ImageField(upload_to=tally_ho.apps.tally.models.result_form_image.result_form_image_upload_to)),
+                ('image', models.ImageField(upload_to='')),
                 ('image_format', models.CharField(blank=True, default='', max_length=8)),
                 ('source', enumfields.fields.EnumIntegerField(default=0, enum=tally_ho.libs.models.enums.result_form_image_source.ResultFormImageSource)),
                 ('kind', enumfields.fields.EnumIntegerField(default=0, enum=tally_ho.libs.models.enums.result_form_image_kind.ResultFormImageKind)),

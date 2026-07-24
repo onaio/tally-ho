@@ -51,7 +51,17 @@ class TestValidateImageBytes(TestCase):
             with self.assertRaises(ValidationError):
                 validate_image_bytes(data)
 
-    def test_restores_pillow_global_cap(self):
+    def test_does_not_mutate_pillow_global_cap(self):
+        # The dimension guard is enforced locally, so validation must never
+        # touch Pillow's process-global cap — mutating it is not thread-safe
+        # under a threaded worker. Assert it is untouched on both the
+        # accept path and the reject (oversized) path.
         before = Image.MAX_IMAGE_PIXELS
         validate_image_bytes(_image_bytes("PNG"))
+        self.assertEqual(Image.MAX_IMAGE_PIXELS, before)
+
+        data = _image_bytes("PNG", size=(100, 100))
+        with mock.patch.object(image_validation, "MAX_IMAGE_PIXELS", 16):
+            with self.assertRaises(ValidationError):
+                validate_image_bytes(data)
         self.assertEqual(Image.MAX_IMAGE_PIXELS, before)

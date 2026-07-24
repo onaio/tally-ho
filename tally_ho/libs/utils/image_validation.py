@@ -8,7 +8,6 @@ genuine JPEG, PNG, or WebP never reaches disk or a browser.
 """
 
 import io
-import warnings
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -17,8 +16,10 @@ from PIL import Image, UnidentifiedImageError
 # Cap declared image dimensions to guard against decompression-bomb DoS —
 # a tiny file can declare enormous dimensions. Set generously above any
 # single Android capture (the bundle's only image source; ~200 MB
-# worst-case decode) and applied locally per-call rather than mutating
-# Pillow's process-global default.
+# worst-case decode). Enforced against the header-declared dimensions we
+# read from Pillow, so this holds without touching Pillow's
+# process-global ``Image.MAX_IMAGE_PIXELS`` (which is not thread-safe to
+# mutate under a threaded worker).
 MAX_IMAGE_PIXELS = 50_000_000  # 50 megapixels
 
 # Allowed Pillow formats and the content type served for each.
@@ -36,21 +37,18 @@ def validate_image_bytes(data):
     Uses Pillow to confirm the bytes decode as a real image rather than
     trusting a filename or extension, and rejects decompression bombs.
 
-    Note: the decompression-bomb check runs inside ``Image.open()`` (it
-    validates the header-declared dimensions), which is why capping
-    ``MAX_IMAGE_PIXELS`` around ``open()`` is sufficient even though we
-    only call ``verify()`` and never ``load()``. A future Pillow that
-    deferred that check to ``load()`` would weaken this guard.
+    ``Image.open()`` reads the header (format + declared dimensions)
+    without decoding pixels; those dimensions are checked against
+    ``MAX_IMAGE_PIXELS`` here. Pillow's own ``DecompressionBombError``
+    (raised at ``open()`` for extreme dimensions, on its process-global
+    default) is also caught as a backstop. This keeps the guard
+    thread-safe — nothing mutates Pillow's global cap.
     """
-    previous_cap = Image.MAX_IMAGE_PIXELS
-    Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
     try:
-        with warnings.catch_warnings():
-            # Treat an oversized-image warning as a hard failure.
-            warnings.simplefilter("error", Image.DecompressionBombWarning)
-            with Image.open(io.BytesIO(data)) as img:
-                image_format = img.format
-                img.verify()
+        with Image.open(io.BytesIO(data)) as img:
+            image_format = img.format
+            width, height = img.size
+            img.verify()
     except (
         UnidentifiedImageError,
         Image.DecompressionBombError,
@@ -59,8 +57,9 @@ def validate_image_bytes(data):
         ValueError,
     ) as exc:
         raise ValidationError(_("File is not a valid image.")) from exc
-    finally:
-        Image.MAX_IMAGE_PIXELS = previous_cap
+
+    if width * height > MAX_IMAGE_PIXELS:
+        raise ValidationError(_("File is not a valid image."))
 
     if image_format not in IMAGE_CONTENT_TYPES:
         raise ValidationError(

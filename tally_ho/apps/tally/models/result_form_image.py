@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from enumfields import EnumIntegerField
 
@@ -13,16 +15,21 @@ from tally_ho.libs.models.enums.result_form_image_source import (
     ResultFormImageSource,
 )
 
+IMAGE_UPLOAD_DIR = "form_images"
 
-def result_form_image_upload_to(instance, filename):
-    """Path: form_images/<tally_id>/<result_form_id>/<filename>.
 
-    `instance.result_form_id` is required, so the result form must exist
-    before the image is attached.
+def build_result_form_image_path(tally_id, result_form_id, filename):
+    """Path: form_images/<tally_id>/<result_form_id>/<basename>.
+
+    A plain helper — deliberately not an ``upload_to`` callable — so it is
+    never referenced by (and pinned into) the migration graph. See
+    AGENTS.md.
     """
-    return (
-        f"form_images/{instance.tally_id}/"
-        f"{instance.result_form_id}/{filename}"
+    return os.path.join(
+        IMAGE_UPLOAD_DIR,
+        str(tally_id),
+        str(result_form_id),
+        os.path.basename(filename),
     )
 
 
@@ -51,7 +58,7 @@ class ResultFormImage(BaseModel):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = models.ImageField(upload_to=result_form_image_upload_to)
+    image = models.ImageField()
     # Pillow format ("JPEG"/"PNG") recorded when the bytes were verified
     # at ingest, so the serve view can declare a content type without
     # re-decoding or trusting the filename extension.
@@ -79,6 +86,21 @@ class ResultFormImage(BaseModel):
         on_delete=models.SET_NULL,
         related_name="applied_images",
     )
+
+    def save(self, *args, **kwargs):
+        # Route a directly-assigned file (e.g. ``.create(image=upload)``)
+        # under form_images/<tally_id>/<result_form_id>/ here rather than
+        # through an ``upload_to`` callable, so no project function is
+        # pinned into the migration graph (see AGENTS.md). Only an
+        # uncommitted file is repathed; re-saving an already-stored image
+        # leaves its path untouched. Callers that must keep storage I/O
+        # out of the INSERT (see import_submission._attach_image) write the
+        # file with this same path first, so it arrives already committed.
+        if self.image and not self.image._committed:
+            self.image.name = build_result_form_image_path(
+                self.tally_id, self.result_form_id, self.image.name,
+            )
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"ResultFormImage({self.id}, {self.result_form_id})"
