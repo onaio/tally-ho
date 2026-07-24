@@ -6,6 +6,7 @@ from tempfile import NamedTemporaryFile
 from django.conf import settings
 from django.core.files.base import File
 from django.core.files.storage import default_storage
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -15,6 +16,20 @@ from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
+
+# Annotation used by the row-per-form exports to avoid an N+1 count of a
+# form's active images. Apply it to the querysets that feed the builders;
+# `_active_image_count` falls back to a direct query when it is absent
+# (e.g. the builders' direct-call unit tests).
+ACTIVE_IMAGE_COUNT = Count("images", filter=Q(images__active=True))
+
+
+def _active_image_count(result_form):
+    annotated = getattr(result_form, "number_of_images", None)
+    if annotated is not None:
+        return annotated
+    return result_form.images.filter(active=True).count()
+
 
 OUTPUT_PATH = 'results/all_candidate_votes_%s.csv'
 ACTIVE_OUTPUT_PATH = 'results/active_candidate_votes_%s.csv'
@@ -97,6 +112,7 @@ def build_result_and_recon_output(result_form):
             result_form.pvp_submission.bundle.mode.name
             if result_form.from_pvp else ''
         ),
+        'number_of_images': _active_image_count(result_form),
     }
 
     recon = result_form.reconciliationform
@@ -140,6 +156,7 @@ def build_candidate_results_output(result_form):
             result_form.pvp_submission.bundle.mode.name
             if result_form.from_pvp else ''
         ),
+        'number_of_images': _active_image_count(result_form),
     }
 
     # Use prefetched final_reconciliations if available, else fall back to property
@@ -209,6 +226,7 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'candidate status',
             'from_pvp',
             'pvp_mode_applied',
+            'number_of_images',
         ]
 
         w = csv.DictWriter(f, header)
@@ -227,7 +245,11 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'ballot__candidates',  # For result_form.candidates property
             'reconciliationform_set',
             'center__stations'  # For result_form.station property
-        )
+        ).annotate(number_of_images=ACTIVE_IMAGE_COUNT)
+
+        # Materialize once — the queryset carries an aggregate annotation
+        # (number_of_images) and is iterated twice below.
+        result_forms = list(result_forms)
 
         # OPTIMIZATION: Batch fetch ALL results to avoid N+1 queries
         # Build a lookup: (result_form_id, candidate_id) -> votes

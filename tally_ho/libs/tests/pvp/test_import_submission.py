@@ -10,8 +10,11 @@ import os
 import shutil
 import tempfile
 import zipfile
+from unittest import mock
 
+from django.db.models.fields.files import FieldFile
 from django.test import TestCase, override_settings
+from PIL import Image
 from reversion.models import Version
 
 from tally_ho.apps.tally.models.candidate import Candidate
@@ -23,6 +26,12 @@ from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 from tally_ho.libs.models.enums.pvp_mode import PvpMode
+from tally_ho.libs.models.enums.result_form_image_kind import (
+    ResultFormImageKind,
+)
+from tally_ho.libs.models.enums.result_form_image_source import (
+    ResultFormImageSource,
+)
 from tally_ho.libs.pvp.bundle import CandidateResult, ParsedSubmission
 from tally_ho.libs.pvp.import_submission import import_bundle, import_submission
 from tally_ho.libs.tests.test_base import (
@@ -124,6 +133,14 @@ class ImportSubmissionTestBase(TestBase):
                 zf.writestr(f"media/{name}", data)
         buf.seek(0)
         return zipfile.ZipFile(buf)
+
+    @staticmethod
+    def _image_bytes(image_format="JPEG"):
+        """Real image bytes — the import validates every image before it
+        is stored, so fixtures must decode as genuine images."""
+        buf = io.BytesIO()
+        Image.new("RGB", (2, 2)).save(buf, format=image_format)
+        return buf.getvalue()
 
 
 class TestImportSubmissionDB(ImportSubmissionTestBase, TestCase):
@@ -244,6 +261,22 @@ class TestImportSubmissionDB(ImportSubmissionTestBase, TestCase):
         )
         self.result_form.refresh_from_db()
         self.assertEqual(self.result_form.form_state, FormState.UNSUBMITTED)
+
+    def test_unsupported_mode_raises(self):
+        # DISABLED never reaches import in practice (parse-time validation
+        # skips it), but the per-mode dispatch guards against it.
+        self.bundle.mode = PvpMode.DISABLED
+        self.bundle.save()
+        zip_ref = self._zip_with_images({})
+        try:
+            with self.assertRaises(ValueError):
+                import_submission(
+                    self._parsed_submission(),
+                    tally=self.tally, bundle=self.bundle,
+                    uploaded_by=self.user, zip_ref=zip_ref,
+                )
+        finally:
+            zip_ref.close()
 
 
 class TestImportSubmissionDE1AndDE2(ImportSubmissionTestBase, TestCase):
@@ -379,12 +412,17 @@ class TestImportSubmissionDE1AndDE2(ImportSubmissionTestBase, TestCase):
 
 
 class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
-    """Image-saving assertions: deferred to transaction.on_commit."""
+    """Image-applying assertions: deferred to transaction.on_commit.
 
-    def test_images_saved_after_commit_callback_runs(self):
+    Bundle images are applied to the form as ``ResultFormImage`` rows
+    (source=PVP_IMPORT) linked back to the submission, not stored on
+    ``PvpSubmission``.
+    """
+
+    def test_images_applied_after_commit_callback_runs(self):
         zip_ref = self._zip_with_images({
-            "sig.jpg": b"sig-bytes",
-            "p1.jpg": b"p1-bytes",
+            "sig.jpg": self._image_bytes(),
+            "p1.jpg": self._image_bytes(),
         })
         try:
             with self.captureOnCommitCallbacks(execute=True) as callbacks:
@@ -396,29 +434,186 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
             self.assertGreaterEqual(len(callbacks), 1)
         finally:
             zip_ref.close()
-        submission.refresh_from_db()
-        self.assertTrue(submission.clerk_signature.name.endswith("sig.jpg"))
-        self.assertTrue(
-            submission.forms_picture_1st_page.name.endswith("p1.jpg"),
-        )
-        # Page 2 was None in the parsed payload — stays unset.
-        self.assertFalse(submission.forms_picture_2nd_page)
+        images = self.result_form.images.order_by("kind")
+        # Page 2 was None in the parsed payload — no row for it.
+        self.assertEqual(images.count(), 2)
+        by_kind = {img.kind: img for img in images}
+        signature = by_kind[ResultFormImageKind.CLERK_SIGNATURE]
+        page1 = by_kind[ResultFormImageKind.FORM_PAGE_1]
+        self.assertTrue(signature.image.name.endswith("sig.jpg"))
+        self.assertTrue(page1.image.name.endswith("p1.jpg"))
+        for img in images:
+            self.assertEqual(img.source, ResultFormImageSource.PVP_IMPORT)
+            self.assertEqual(img.image_format, "JPEG")
+            self.assertEqual(img.pvp_submission_id, submission.id)
+            self.assertEqual(img.uploaded_by_id, self.user.id)
 
-    def test_image_missing_from_zip_leaves_field_null(self):
+    def test_image_missing_from_zip_creates_no_row(self):
         # Only sig.jpg is in the zip; p1.jpg referenced in parsed but absent.
-        zip_ref = self._zip_with_images({"sig.jpg": b"sig-bytes"})
+        zip_ref = self._zip_with_images({"sig.jpg": self._image_bytes()})
         try:
             with self.captureOnCommitCallbacks(execute=True):
-                submission = import_submission(
+                import_submission(
                     self._parsed_submission(),
                     tally=self.tally, bundle=self.bundle,
                     uploaded_by=self.user, zip_ref=zip_ref,
                 )
         finally:
             zip_ref.close()
-        submission.refresh_from_db()
-        self.assertTrue(submission.clerk_signature.name.endswith("sig.jpg"))
-        self.assertFalse(submission.forms_picture_1st_page)
+        images = self.result_form.images.all()
+        self.assertEqual(images.count(), 1)
+        self.assertEqual(
+            images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
+        )
+
+    def test_non_image_bundle_entry_is_skipped(self):
+        # sig.jpg is a real image; p1.jpg is a disguised non-image and
+        # must be rejected at ingest rather than stored.
+        zip_ref = self._zip_with_images({
+            "sig.jpg": self._image_bytes(),
+            "p1.jpg": b"<html><script>alert(1)</script></html>",
+        })
+        try:
+            with self.captureOnCommitCallbacks(execute=True):
+                import_submission(
+                    self._parsed_submission(),
+                    tally=self.tally, bundle=self.bundle,
+                    uploaded_by=self.user, zip_ref=zip_ref,
+                )
+        finally:
+            zip_ref.close()
+        images = self.result_form.images.all()
+        self.assertEqual(images.count(), 1)
+        self.assertEqual(
+            images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
+        )
+
+    def test_oversized_image_skipped_at_import(self):
+        # _attach_image independently size-caps at import (the import does
+        # not receive the parser's invalid_images list). A ~30 MiB entry
+        # is skipped; the good image still imports; no crash.
+        zip_ref = self._zip_with_images({
+            "sig.jpg": self._image_bytes(),
+            "p1.jpg": b"\x00" * (30 * 1024 * 1024),
+        })
+        try:
+            with self.captureOnCommitCallbacks(execute=True):
+                import_submission(
+                    self._parsed_submission(),
+                    tally=self.tally, bundle=self.bundle,
+                    uploaded_by=self.user, zip_ref=zip_ref,
+                )
+        finally:
+            zip_ref.close()
+        images = self.result_form.images.all()
+        self.assertEqual(images.count(), 1)
+        self.assertEqual(
+            images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
+        )
+
+    def test_unreadable_zip_member_skipped_at_import(self):
+        # A member whose read raises — corrupt (BadZipFile), encrypted
+        # (RuntimeError), or unsupported compression (NotImplementedError,
+        # neither an OSError) — must be skipped inside the post-commit
+        # callback, not escape it and crash the celery task.
+        for read_error in (
+            zipfile.BadZipFile("corrupt member"),
+            RuntimeError("File is encrypted"),
+            NotImplementedError("compression method"),
+        ):
+            self.result_form.images.all().delete()
+            zip_ref = self._zip_with_images({
+                "sig.jpg": self._image_bytes(),
+                "p1.jpg": self._image_bytes(),
+            })
+            real_open = zip_ref.open
+
+            def open_raising_on_p1(member, *args, _err=read_error, **kwargs):
+                if member.endswith("p1.jpg"):
+                    raise _err
+                return real_open(member, *args, **kwargs)
+
+            try:
+                with mock.patch.object(
+                    zip_ref, "open", side_effect=open_raising_on_p1,
+                ):
+                    with self.captureOnCommitCallbacks(execute=True):
+                        # Must not raise even though a member is unreadable.
+                        import_submission(
+                            self._parsed_submission(),
+                            tally=self.tally, bundle=self.bundle,
+                            uploaded_by=self.user, zip_ref=zip_ref,
+                        )
+            finally:
+                zip_ref.close()
+            # The intact signature imported; the unreadable p1 was skipped.
+            images = self.result_form.images.all()
+            self.assertEqual(
+                images.count(), 1, msg=f"for {type(read_error).__name__}",
+            )
+            self.assertEqual(
+                images.first().kind, ResultFormImageKind.CLERK_SIGNATURE,
+            )
+            # Re-linking would fail the unique instance-id constraint;
+            # reset for the next iteration.
+            PvpSubmission.objects.all().delete()
+            self.result_form.refresh_from_db()
+
+    def test_png_bundle_image_records_png_format(self):
+        # image_format follows the validated content, not the extension —
+        # a PNG under a .jpg name is stored as PNG and drives the served
+        # content type.
+        zip_ref = self._zip_with_images({
+            "sig.jpg": self._image_bytes("PNG"),
+        })
+        try:
+            with self.captureOnCommitCallbacks(execute=True):
+                import_submission(
+                    self._parsed_submission(),
+                    tally=self.tally, bundle=self.bundle,
+                    uploaded_by=self.user, zip_ref=zip_ref,
+                )
+        finally:
+            zip_ref.close()
+        signature = self.result_form.images.get(
+            kind=ResultFormImageKind.CLERK_SIGNATURE,
+        )
+        self.assertEqual(signature.image_format, "PNG")
+
+    def test_storage_failure_on_save_is_contained(self):
+        # A storage/DB error while saving one validated image must not
+        # escape the post-commit callback (which runs after the bundle
+        # committed): the failing image is skipped, the other is saved,
+        # and no exception propagates to crash the celery task.
+        zip_ref = self._zip_with_images({
+            "sig.jpg": self._image_bytes(),
+            "p1.jpg": self._image_bytes(),
+        })
+        real_save = FieldFile.save
+        calls = {"n": 0}
+
+        def save_failing_first(self, name, content, save=True):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise OSError("disk full")
+            return real_save(self, name, content, save=save)
+
+        try:
+            with mock.patch.object(
+                FieldFile, "save", autospec=True,
+                side_effect=save_failing_first,
+            ):
+                # Must not raise despite the storage error on the first save.
+                with self.captureOnCommitCallbacks(execute=True):
+                    import_submission(
+                        self._parsed_submission(),
+                        tally=self.tally, bundle=self.bundle,
+                        uploaded_by=self.user, zip_ref=zip_ref,
+                    )
+        finally:
+            zip_ref.close()
+        # One image failed to save (skipped); the other succeeded.
+        self.assertEqual(self.result_form.images.count(), 1)
 
     def test_no_image_files_on_disk_when_transaction_rolls_back(self):
         zip_ref = self._zip_with_images({

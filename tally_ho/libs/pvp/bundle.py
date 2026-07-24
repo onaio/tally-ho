@@ -5,24 +5,38 @@ A bundle is a zip with:
     candidate_results.csv     # one row per (submission, candidate)
     media/<image-filename>... # signature + form pictures referenced by the CSV
 
-This module is intentionally Django-free: callers (the upload view, the
+The parser has no database dependency — callers (the upload view, the
 celery import task) construct the parser inputs and consume its dataclass
-output. Parse-time validation lives at a higher layer (per-row checks
-against the database).
+output, and per-row validation against the database lives at a higher
+layer. It does depend on Pillow and ``django.core.exceptions`` to verify
+image bytes at parse time (see ``_find_invalid_images``); loading a file
+is the obvious attack surface, so images are checked here before anything
+downstream trusts them.
 """
 
 from __future__ import annotations
 
 import csv
+import dataclasses
 import io
 import zipfile
+import zlib
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+
+from tally_ho.libs.utils.image_validation import validate_image_bytes
 
 CSV_NAME = "candidate_results.csv"
 MEDIA_DIR = "media"
+
+# Cap the decompressed size of a single media entry before reading it, so
+# a maliciously crafted bundle (tiny compressed, huge inflated) cannot
+# exhaust memory before the image is validated. Generous for a phone
+# photo of a paper form.
+MAX_MEDIA_BYTES = 25 * 1024 * 1024  # 25 MiB
 
 # Recon fields we preserve verbatim into PvpSubmission.recon_raw.
 RECON_COLUMNS = (
@@ -114,7 +128,13 @@ class ParsedSubmission:
 @dataclass(frozen=True)
 class ParsedBundle:
     rows: tuple[ParsedSubmission, ...]
+    # Image filenames referenced by the CSV but absent from the zip.
     missing_images: list[str] = field(default_factory=list)
+    # Image filenames present in the zip but not a valid JPEG/PNG/WebP
+    # (or exceeding the size cap). Surfaced on the confirmation screen
+    # like missing images; the operator proceeds with informed consent
+    # and the affected slot produces no ResultFormImage row.
+    invalid_images: list[str] = field(default_factory=list)
 
     @property
     def total(self) -> int:
@@ -157,7 +177,12 @@ def parse_bundle(zip_path: str | Path) -> ParsedBundle:
             _check_required_columns(reader.fieldnames or [])
             csv_rows = list(reader)
 
-    return _build_parsed_bundle(csv_rows, media_filenames)
+        parsed = _build_parsed_bundle(csv_rows, media_filenames)
+        invalid_images = _find_invalid_images(
+            archive, parsed.rows, media_filenames,
+        )
+
+    return dataclasses.replace(parsed, invalid_images=invalid_images)
 
 
 def _check_required_columns(fieldnames):
@@ -251,6 +276,68 @@ def _build_parsed_bundle(csv_rows, media_filenames):
         rows=tuple(submissions),
         missing_images=missing_images,
     )
+
+
+def read_capped(archive, member):
+    """Read a zip member with a hard byte bound.
+
+    Reads at most ``MAX_MEDIA_BYTES + 1`` bytes so the zlib decompressor's
+    transient allocation is bounded regardless of a spoofed
+    uncompressed-size header, then raises ``OSError`` if the member is
+    larger than the cap. ``archive.open(...).read(n)`` passes ``n`` to the
+    decompressor as its max length, so the full member is never inflated.
+    """
+    with archive.open(member) as handle:
+        data = handle.read(MAX_MEDIA_BYTES + 1)
+    if len(data) > MAX_MEDIA_BYTES:
+        raise OSError(f"media entry {member!r} exceeds size cap")
+    return data
+
+
+def _find_invalid_images(archive, submissions, media_filenames):
+    """Return the sorted filenames that are present in the zip but are not
+    a valid image (or exceed the size cap).
+
+    Reads each present, referenced image once and runs it through Pillow
+    verification. Oversized entries are treated as invalid without being
+    read into memory. Missing images (referenced but absent from the zip)
+    are handled separately by ``missing_images`` and are not re-reported
+    here.
+    """
+    referenced = {
+        name
+        for submission in submissions
+        for name in submission.images.values()
+        if name
+    }
+    invalid = set()
+    for name in referenced & media_filenames:
+        member = f"{MEDIA_DIR}/{name}"
+        # getinfo().file_size is the zip's *declared* uncompressed size —
+        # a cheap pre-check only. A crafted header can understate it, so
+        # the read below is hard-bounded independently.
+        if archive.getinfo(member).file_size > MAX_MEDIA_BYTES:
+            invalid.add(name)
+            continue
+        try:
+            data = read_capped(archive, member)
+        except (
+            ValidationError, zipfile.BadZipFile, zlib.error, OSError,
+            RuntimeError,
+        ):
+            # A corrupt/truncated/encrypted member or one using an
+            # unsupported compression method (RuntimeError /
+            # NotImplementedError), or one that exceeds the byte cap —
+            # classify as invalid (surfaced on the confirmation screen)
+            # rather than escaping parse_bundle. Mirrors the except set
+            # in import_submission._attach_image.
+            invalid.add(name)
+            continue
+        try:
+            validate_image_bytes(data)
+        except ValidationError:
+            invalid.add(name)
+    return sorted(invalid)
 
 
 def _check_round_integrity(submissions):

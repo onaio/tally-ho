@@ -21,6 +21,7 @@ dependencies = [
     "redis==4.5.5",
     "python-memcached==1.59",
     "gunicorn>=23,<24",
+    "pillow>=12.2.0",
 ]
 
 [build-system]

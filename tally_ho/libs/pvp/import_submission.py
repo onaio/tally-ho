@@ -23,7 +23,12 @@ Caller responsibilities:
 
 from __future__ import annotations
 
+import logging
+import zipfile
+import zlib
+
 import reversion
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils import timezone
@@ -33,11 +38,32 @@ from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.reconciliation_form import ReconciliationForm
 from tally_ho.apps.tally.models.result import Result
 from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.result_form_image import (
+    ResultFormImage,
+    build_result_form_image_path,
+)
 from tally_ho.apps.tally.models.station import Station
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
 from tally_ho.libs.models.enums.pvp_mode import PvpMode
+from tally_ho.libs.models.enums.result_form_image_kind import (
+    ResultFormImageKind,
+)
+from tally_ho.libs.models.enums.result_form_image_source import (
+    ResultFormImageSource,
+)
+from tally_ho.libs.pvp.bundle import MAX_MEDIA_BYTES, read_capped
+from tally_ho.libs.utils.image_validation import validate_image_bytes
+
+logger = logging.getLogger(__name__)
+
+# Bundle image key -> the kind recorded on the applied ResultFormImage.
+_IMAGE_KIND_BY_KEY = {
+    "clerk_signature": ResultFormImageKind.CLERK_SIGNATURE,
+    "forms_picture_1st_page": ResultFormImageKind.FORM_PAGE_1,
+    "forms_picture_2nd_page": ResultFormImageKind.FORM_PAGE_2,
+}
 
 _RECON_FIELD_MAP_R2 = {
     "number_of_voter_cards_in_the_ballot_box":
@@ -228,7 +254,14 @@ def _apply_import(
     result_form.save()
 
     transaction.on_commit(
-        lambda: _save_images(submission.id, parsed_submission.images, zip_ref),
+        lambda: _save_images(
+            result_form_id=result_form.id,
+            tally_id=tally.id,
+            submission_id=submission.id,
+            uploaded_by_id=uploaded_by.id,
+            images=parsed_submission.images,
+            zip_ref=zip_ref,
+        ),
     )
 
     return submission
@@ -270,38 +303,104 @@ def import_bundle(*, bundle, submissions, tally, uploaded_by, zip_ref):
     return bundle
 
 
-def _save_images(submission_id, images, zip_ref):
-    """Save image FileFields after the import transaction commits.
+def _save_images(
+    *, result_form_id, tally_id, submission_id, uploaded_by_id, images,
+    zip_ref,
+):
+    """Create ResultFormImage rows after the import transaction commits.
 
-    Failures here leave the affected fields null; the submission row
-    itself is already committed. Rollbacks in the parent transaction
-    cancel this callback before it ever fires.
+    Each bundle image becomes one ``ResultFormImage`` with
+    ``source=PVP_IMPORT`` linked back to the ``PvpSubmission`` for
+    provenance. Failures here leave the form with fewer images; the
+    import's DB writes are already committed. Rollbacks in the parent
+    transaction cancel this callback before it ever fires.
     """
-    submission = PvpSubmission.objects.get(id=submission_id)
-    saved_any = (
-        _attach_image(submission.clerk_signature,
-                      images.get("clerk_signature"), zip_ref)
-        | _attach_image(submission.forms_picture_1st_page,
-                        images.get("forms_picture_1st_page"), zip_ref)
-        | _attach_image(submission.forms_picture_2nd_page,
-                        images.get("forms_picture_2nd_page"), zip_ref)
-    )
-    if saved_any:
-        submission.save()
+    for key, kind in _IMAGE_KIND_BY_KEY.items():
+        _attach_image(
+            result_form_id=result_form_id,
+            tally_id=tally_id,
+            submission_id=submission_id,
+            uploaded_by_id=uploaded_by_id,
+            kind=kind,
+            filename=images.get(key),
+            zip_ref=zip_ref,
+        )
 
 
-def _attach_image(field_file, filename, zip_ref):
-    """Read one media entry from the zip and attach to the FieldFile.
+def _attach_image(
+    *, result_form_id, tally_id, submission_id, uploaded_by_id, kind,
+    filename, zip_ref,
+):
+    """Read one media entry from the zip and create a ResultFormImage.
 
-    Returns True if a file was attached, False otherwise. Missing
-    filename (None / empty) and missing-from-zip are both treated as
-    no-op (the field stays null).
+    Returns True if a row was created, False otherwise. Any problem —
+    missing filename, member absent from the zip, oversized, corrupt
+    member, or bytes that don't validate as an image — is a no-op (no row
+    created). These conditions were already surfaced to the operator on
+    the confirmation screen (``ParsedBundle.missing_images`` /
+    ``invalid_images``) and consented to, so skipping here is expected,
+    not a silent data loss.
     """
     if not filename:
         return False
+    member = f"media/{filename}"
     try:
-        data = zip_ref.read(f"media/{filename}")
-    except KeyError:
+        # Cheap declared-size pre-check, then a hard-bounded read so a
+        # spoofed header can't inflate the full member into memory.
+        if zip_ref.getinfo(member).file_size > MAX_MEDIA_BYTES:
+            logger.warning(
+                "PVP bundle image %r exceeds size cap; skipping", filename,
+            )
+            return False
+        data = read_capped(zip_ref, member)
+    except (KeyError, zipfile.BadZipFile, OSError, zlib.error, RuntimeError):
+        # Missing member; corrupt/truncated deflate stream; encrypted or
+        # unsupported-compression member (RuntimeError /
+        # NotImplementedError); or over the byte cap. Skip rather than
+        # letting it escape this post-commit callback and crash the task.
+        logger.warning(
+            "PVP bundle image %r could not be read; skipping", filename,
+        )
         return False
-    field_file.save(filename, ContentFile(data), save=False)
+    try:
+        image_format = validate_image_bytes(data)
+    except ValidationError:
+        logger.warning(
+            "PVP bundle image %r failed image validation; skipping",
+            filename,
+        )
+        return False
+    try:
+        image = ResultFormImage(
+            tally_id=tally_id,
+            result_form_id=result_form_id,
+            source=ResultFormImageSource.PVP_IMPORT,
+            kind=kind,
+            image_format=image_format,
+            pvp_submission_id=submission_id,
+            uploaded_by_id=uploaded_by_id,
+        )
+        # Write the file (save=False) before the row insert so storage I/O
+        # never runs inside the INSERT and can't poison the surrounding
+        # transaction; a failure here is caught below and the image is
+        # skipped. The path is built the same way ResultFormImage.save
+        # would for a directly-assigned file.
+        image.image.save(
+            build_result_form_image_path(
+                tally_id, result_form_id, filename,
+            ),
+            ContentFile(data),
+            save=False,
+        )
+        image.save()
+    except Exception:
+        # This runs in a post-commit callback: the bundle's DB writes are
+        # already committed. A storage/DB error saving one image must not
+        # escape and abort the remaining images (or contradict the
+        # COMPLETED status) — degrade to a missing image, which is an
+        # already-consented outcome.
+        logger.exception(
+            "PVP bundle image %r could not be saved; skipping", filename,
+        )
+        return False
     return True

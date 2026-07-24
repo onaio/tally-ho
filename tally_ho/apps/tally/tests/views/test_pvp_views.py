@@ -18,6 +18,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
+from PIL import Image
 
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
@@ -83,7 +84,13 @@ def _csv_row(*, instance_id, barcode, candidate_id, order, r2):
     }
 
 
-def _zip_bytes(rows):
+def _real_jpeg():
+    buf = io.BytesIO()
+    Image.new("RGB", (4, 4)).save(buf, format="JPEG")
+    return buf.getvalue()
+
+
+def _zip_bytes(rows, *, sig_bytes=None, p1_bytes=None):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, mode="w") as zf:
         csv_buf = io.StringIO()
@@ -93,8 +100,8 @@ def _zip_bytes(rows):
         for r in rows:
             w.writerow(r)
         zf.writestr("candidate_results.csv", csv_buf.getvalue())
-        zf.writestr("media/sig.jpg", b"sig")
-        zf.writestr("media/p1.jpg", b"p1")
+        zf.writestr("media/sig.jpg", sig_bytes or _real_jpeg())
+        zf.writestr("media/p1.jpg", p1_bytes or _real_jpeg())
     return buf.getvalue()
 
 
@@ -293,6 +300,33 @@ class TestPvpConfirmView(_PvpViewTestBase, TestCase):
         self.assertIn("Will import (1)", body)
         self.assertIn("Will skip (1)", body)
         self.assertIn("barcode_not_found", body)
+
+    def test_get_surfaces_invalid_images(self):
+        # sig.jpg is present but corrupt; the confirm screen must warn
+        # about it (operator proceeds with informed consent).
+        zip_bytes = _zip_bytes(
+            [_csv_row(instance_id="uuid:1", barcode="111",
+                      candidate_id=131301, order=1, r2=12)],
+            sig_bytes=b"not-an-image",
+        )
+        bundle = PvpUploadBundle.objects.create(
+            tally=self.tally, uploaded_by=self.user, filename="bundle.zip",
+        )
+        bundle.zip_file = SimpleUploadedFile(
+            "bundle.zip", zip_bytes, content_type="application/zip",
+        )
+        bundle.save()
+
+        request = self.factory.get("/")
+        request.user = self.user
+        request.session = {}
+        response = PvpConfirmView.as_view()(
+            request, tally_id=self.tally.id, bundle_id=bundle.id,
+        )
+        response.render()
+        body = response.content.decode()
+        self.assertIn("Invalid images (1)", body)
+        self.assertIn("sig.jpg", body)
 
     @mock.patch(
         "tally_ho.apps.tally.views.pvp.async_pvp_import",

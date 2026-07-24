@@ -141,6 +141,7 @@ class PvpConfirmView(
             "will_import": will_import,
             "will_skip": will_skip,
             "missing_images": parsed.missing_images,
+            "invalid_images": parsed.invalid_images,
         })
         return context
 

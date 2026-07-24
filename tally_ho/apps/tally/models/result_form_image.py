@@ -1,0 +1,106 @@
+import os
+
+from django.db import models
+from enumfields import EnumIntegerField
+
+from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
+from tally_ho.apps.tally.models.result_form import ResultForm
+from tally_ho.apps.tally.models.tally import Tally
+from tally_ho.apps.tally.models.user_profile import UserProfile
+from tally_ho.libs.models.base_model import BaseModel
+from tally_ho.libs.models.enums.result_form_image_kind import (
+    ResultFormImageKind,
+)
+from tally_ho.libs.models.enums.result_form_image_source import (
+    ResultFormImageSource,
+)
+
+IMAGE_UPLOAD_DIR = "form_images"
+
+
+def build_result_form_image_path(tally_id, result_form_id, filename):
+    """Path: form_images/<tally_id>/<result_form_id>/<basename>.
+
+    A plain helper — deliberately not an ``upload_to`` callable — so it is
+    never referenced by (and pinned into) the migration graph. See
+    AGENTS.md.
+    """
+    return os.path.join(
+        IMAGE_UPLOAD_DIR,
+        str(tally_id),
+        str(result_form_id),
+        os.path.basename(filename),
+    )
+
+
+class ResultFormImage(BaseModel):
+    """An image attached to a result form, regardless of how it arrived.
+
+    A single home for every image applied to a form. `source` records how
+    the image got here (a manual upload or a PVP bundle import); when it
+    came from a bundle, `pvp_submission` links back to that submission for
+    provenance. The raw image source of truth remains the retained bundle
+    zip on `PvpUploadBundle.zip_file`.
+    """
+
+    class Meta:
+        app_label = "tally"
+        # Deterministic gallery + export order (no implicit DB ordering).
+        ordering = ["created_date", "id"]
+        indexes = [
+            # Backs the active-image display filter and export count.
+            models.Index(fields=["result_form", "active"]),
+        ]
+
+    tally = models.ForeignKey(Tally, on_delete=models.PROTECT)
+    result_form = models.ForeignKey(
+        ResultForm,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField()
+    # Pillow format ("JPEG"/"PNG") recorded when the bytes were verified
+    # at ingest, so the serve view can declare a content type without
+    # re-decoding or trusting the filename extension.
+    image_format = models.CharField(max_length=8, blank=True, default="")
+    source = EnumIntegerField(
+        ResultFormImageSource, default=ResultFormImageSource.UPLOAD,
+    )
+    kind = EnumIntegerField(
+        ResultFormImageKind, default=ResultFormImageKind.SUPPORTING,
+    )
+    caption = models.CharField(max_length=255, null=True, blank=True)
+    # Soft-delete flag. reset_to_unsubmitted deactivates PVP-sourced
+    # images rather than deleting them, mirroring how every other related
+    # record is handled on reset and preserving the audit trail. Display
+    # and export count only active images.
+    active = models.BooleanField(default=True)
+    uploaded_by = models.ForeignKey(
+        UserProfile, null=True, blank=True, on_delete=models.SET_NULL,
+    )
+    # Provenance link when source == PVP_IMPORT; null for manual uploads.
+    pvp_submission = models.ForeignKey(
+        PvpSubmission,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="applied_images",
+    )
+
+    def save(self, *args, **kwargs):
+        # Route a directly-assigned file (e.g. ``.create(image=upload)``)
+        # under form_images/<tally_id>/<result_form_id>/ here rather than
+        # through an ``upload_to`` callable, so no project function is
+        # pinned into the migration graph (see AGENTS.md). Only an
+        # uncommitted file is repathed; re-saving an already-stored image
+        # leaves its path untouched. Callers that must keep storage I/O
+        # out of the INSERT (see import_submission._attach_image) write the
+        # file with this same path first, so it arrives already committed.
+        if self.image and not self.image._committed:
+            self.image.name = build_result_form_image_path(
+                self.tally_id, self.result_form_id, self.image.name,
+            )
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"ResultFormImage({self.id}, {self.result_form_id})"

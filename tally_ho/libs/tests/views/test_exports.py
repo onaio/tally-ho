@@ -1,7 +1,12 @@
 import csv
 import os
+import shutil
+import tempfile
 
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 
+from tally_ho.apps.tally.models.result_form_image import ResultFormImage
 from tally_ho.libs.tests.test_base import (
     create_ballot,
     create_candidate,
@@ -543,6 +548,81 @@ class TestPvpExportColumns(TestBase):
         out = build_candidate_results_output(rf)
         self.assertTrue(out["from_pvp"])
         self.assertEqual(out["pvp_mode_applied"], "DE1_ONLY")
+
+    def test_number_of_images_column_counts_form_images(self):
+        rf = self._make_result_form("104")
+        media_root = tempfile.mkdtemp(prefix="tally_test_media_")
+        try:
+            with override_settings(MEDIA_ROOT=media_root):
+                self.assertEqual(
+                    build_result_and_recon_output(rf)["number_of_images"], 0,
+                )
+                for name in ("a.jpg", "b.jpg"):
+                    ResultFormImage.objects.create(
+                        tally=self.tally, result_form=rf,
+                        image=SimpleUploadedFile(
+                            name, b"x", content_type="image/jpeg",
+                        ),
+                    )
+                self.assertEqual(
+                    build_result_and_recon_output(rf)["number_of_images"], 2,
+                )
+                self.assertEqual(
+                    build_candidate_results_output(rf)["number_of_images"], 2,
+                )
+                # Soft-deleted (inactive) images are not counted.
+                ResultFormImage.objects.filter(
+                    result_form=rf,
+                ).update(active=False)
+                self.assertEqual(
+                    build_result_and_recon_output(rf)["number_of_images"], 0,
+                )
+        finally:
+            shutil.rmtree(media_root, ignore_errors=True)
+
+    def test_number_of_images_via_annotated_export_queryset(self):
+        # Drives the real ACTIVE_IMAGE_COUNT annotation end-to-end through
+        # save_barcode_results (not the direct-builder fallback), so a
+        # regression in the annotation's active filter or GROUP BY is
+        # caught in the produced CSV.
+        rf = self._make_result_form("annot-1")
+        create_candidate(
+            ballot=self.ballot, candidate_name="C1", tally=self.tally,
+        )
+        media_root = tempfile.mkdtemp(prefix="tally_test_media_")
+        try:
+            with override_settings(MEDIA_ROOT=media_root):
+                for name in ("a.jpg", "b.jpg"):
+                    ResultFormImage.objects.create(
+                        tally=self.tally, result_form=rf,
+                        image=SimpleUploadedFile(
+                            name, b"x", content_type="image/jpeg",
+                        ),
+                    )
+                ResultFormImage.objects.create(
+                    tally=self.tally, result_form=rf,
+                    image=SimpleUploadedFile(
+                        "inactive.jpg", b"x", content_type="image/jpeg",
+                    ),
+                    active=False,
+                )
+                csv_filename = save_barcode_results(
+                    complete_barcodes=[rf.barcode],
+                    output_duplicates=False,
+                    output_to_file=False,
+                    tally_id=self.tally.id,
+                )
+                try:
+                    with open(csv_filename) as f:
+                        rows = list(csv.DictReader(f))
+                    self.assertTrue(rows)
+                    # 2 active images; the inactive one is excluded.
+                    for row in rows:
+                        self.assertEqual(row["number_of_images"], "2")
+                finally:
+                    os.unlink(csv_filename)
+        finally:
+            shutil.rmtree(media_root, ignore_errors=True)
 
     def test_pvp_mode_applied_is_bundle_snapshot_not_tally_current(self):
         # Import happens under DE1_ONLY; tally later changes to DISABLED.

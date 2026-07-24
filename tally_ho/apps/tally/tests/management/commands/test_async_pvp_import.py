@@ -13,6 +13,7 @@ import zipfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TransactionTestCase, override_settings
+from PIL import Image
 
 from tally_ho.apps.tally.management.commands.async_pvp_import import (
     async_pvp_import,
@@ -20,6 +21,7 @@ from tally_ho.apps.tally.management.commands.async_pvp_import import (
 from tally_ho.apps.tally.models.candidate import Candidate
 from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
+from tally_ho.apps.tally.models.result_form_image import ResultFormImage
 from tally_ho.apps.tally.models.user_profile import UserProfile
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.pvp_bundle_status import PvpBundleStatus
@@ -79,7 +81,19 @@ def _csv_row(*, instance_id, barcode, candidate_id, order, r2):
     }
 
 
+def _real_jpeg():
+    buf = io.BytesIO()
+    Image.new("RGB", (4, 4)).save(buf, format="JPEG")
+    return buf.getvalue()
+
+
 def _build_zip_bytes(rows, image_filenames):
+    return _build_zip_bytes_with_content(
+        rows, {name: _real_jpeg() for name in image_filenames},
+    )
+
+
+def _build_zip_bytes_with_content(rows, image_content):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, mode="w") as zf:
         csv_buf = io.StringIO()
@@ -89,8 +103,8 @@ def _build_zip_bytes(rows, image_filenames):
         for row in rows:
             writer.writerow(row)
         zf.writestr("candidate_results.csv", csv_buf.getvalue())
-        for name in image_filenames:
-            zf.writestr(f"media/{name}", b"image-bytes")
+        for name, content in image_content.items():
+            zf.writestr(f"media/{name}", content)
     return buf.getvalue()
 
 
@@ -179,6 +193,55 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         self.assertTrue(self.result_form.from_pvp)
         self.assertEqual(
             self.result_form.form_state, FormState.DATA_ENTRY_2,
+        )
+        # Both bundle images were validated and attached to the form.
+        self.assertEqual(
+            ResultFormImage.objects.filter(
+                result_form=self.result_form,
+            ).count(),
+            2,
+        )
+
+    def test_async_import_with_one_invalid_image_still_completes(self):
+        # A bundle with one real and one invalid image imports the form
+        # and the valid image; the bad image is skipped (consented via the
+        # confirmation screen). The bundle must NOT end up FAILED, and the
+        # post-commit image callback must not crash the task.
+        zip_bytes = _build_zip_bytes_with_content(
+            rows=[
+                _csv_row(instance_id="uuid:1", barcode="111",
+                         candidate_id=131301, order=1, r2=12),
+                _csv_row(instance_id="uuid:1", barcode="111",
+                         candidate_id=131302, order=2, r2=9),
+            ],
+            image_content={
+                "sig.jpg": _real_jpeg(),
+                "p1.jpg": b"not-an-image",
+            },
+        )
+        bundle = PvpUploadBundle.objects.create(
+            tally=self.tally, uploaded_by=self.user,
+            filename="mixed.zip", mode=PvpMode.DE1_ONLY,
+        )
+        bundle.zip_file = SimpleUploadedFile(
+            "mixed.zip", zip_bytes, content_type="application/zip",
+        )
+        bundle.save()
+
+        async_pvp_import.apply(
+            kwargs={"bundle_id": bundle.id, "user_id": self.user.id},
+        )
+
+        bundle.refresh_from_db()
+        self.assertEqual(bundle.status, PvpBundleStatus.COMPLETED)
+        self.result_form.refresh_from_db()
+        self.assertTrue(self.result_form.from_pvp)
+        # Only the valid signature attached; the bad image was skipped.
+        self.assertEqual(
+            ResultFormImage.objects.filter(
+                result_form=self.result_form,
+            ).count(),
+            1,
         )
 
     def test_async_pvp_import_marks_failed_when_parse_raises(self):

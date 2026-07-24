@@ -11,7 +11,10 @@ from tally_ho.apps.tally.forms.password_change import PasswordChangeForm
 from tally_ho.apps.tally.views import (audit, clearance, corrections,
                                        data_entry, home, intake, profile,
                                        pvp as pvp_views,
-                                       quality_control, super_admin,
+                                       quality_control,
+                                       result_form_image as
+                                       result_form_image_views,
+                                       super_admin,
                                        tally_manager)
 from tally_ho.apps.tally.views.data import (ballot_list_view,
                                             candidate_list_view,
@@ -1549,6 +1552,11 @@ urlpatterns = [
         r"^tally/(?P<tally_id>\d+)/workflow/recall/view_details/(?P<result_form_pk>\d+)/$",
         ViewResultFormDetailsView.as_view(),
         name="view_result_form_details_recall",
+    ),
+    re_path(
+        r"^tally/(?P<tally_id>\d+)/form-image/(?P<image_id>\d+)/$",
+        result_form_image_views.ResultFormImageView.as_view(),
+        name="result-form-image",
     ),
     path(
         "operation-not-allowed", home.suspicious_error, name="suspicious-error"
