@@ -2,11 +2,14 @@ import shutil
 import tempfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
+from django.test import SimpleTestCase, override_settings
 
 from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
-from tally_ho.apps.tally.models.result_form_image import ResultFormImage
+from tally_ho.apps.tally.models.result_form_image import (
+    ResultFormImage,
+    build_result_form_image_path,
+)
 from tally_ho.libs.models.enums.result_form_image_kind import (
     ResultFormImageKind,
 )
@@ -18,6 +21,41 @@ from tally_ho.libs.tests.test_base import (
     create_result_form,
     create_tally,
 )
+
+
+class TestBuildResultFormImagePath(SimpleTestCase):
+    """The path helper on its own — no model, no storage."""
+
+    def test_builds_path_from_ids_and_basename(self):
+        self.assertEqual(
+            build_result_form_image_path(7, 42, "photo.jpg"),
+            "form_images/7/42/photo.jpg",
+        )
+
+    def test_strips_any_directory_prefix(self):
+        self.assertEqual(
+            build_result_form_image_path(7, 42, "a/b/c.jpg"),
+            "form_images/7/42/c.jpg",
+        )
+
+    def test_strips_windows_style_directory_prefix(self):
+        # Zip entries may legally carry backslash separators, and storage
+        # names are POSIX regardless of the host — the leaf must be taken
+        # from either separator so a prefix can never survive into the path.
+        self.assertEqual(
+            build_result_form_image_path(7, 42, r"..\..\evil.jpg"),
+            "form_images/7/42/evil.jpg",
+        )
+
+    def test_stringifies_non_string_ids(self):
+        self.assertEqual(
+            build_result_form_image_path("7", 42, "photo.jpg"),
+            "form_images/7/42/photo.jpg",
+        )
+
+    def test_uses_posix_separators(self):
+        path = build_result_form_image_path(7, 42, "photo.jpg")
+        self.assertNotIn("\\", path)
 
 
 class TestResultFormImage(TestBase):
@@ -69,6 +107,16 @@ class TestResultFormImage(TestBase):
             image.image.name.startswith(expected_prefix),
             msg=f"image path was {image.image.name}",
         )
+
+    def test_resaving_leaves_image_path_untouched(self):
+        # Only an uncommitted file is repathed. Re-saving a stored image
+        # must not prefix the path a second time.
+        image = self._create_image()
+        stored_name = image.image.name
+        image.caption = "edited"
+        image.save()
+        image.refresh_from_db()
+        self.assertEqual(image.image.name, stored_name)
 
     def test_pvp_import_row_links_submission(self):
         bundle = PvpUploadBundle.objects.create(

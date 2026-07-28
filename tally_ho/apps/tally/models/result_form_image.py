@@ -1,4 +1,4 @@
-import os
+import posixpath
 
 from django.db import models
 from enumfields import EnumIntegerField
@@ -24,12 +24,17 @@ def build_result_form_image_path(tally_id, result_form_id, filename):
     A plain helper — deliberately not an ``upload_to`` callable — so it is
     never referenced by (and pinned into) the migration graph. See
     AGENTS.md.
+
+    Built with ``posixpath`` because storage names are POSIX paths on every
+    host. ``filename`` is untrusted (it can come from a zip entry, which
+    may legally use backslash separators), so both separators are folded
+    before taking the leaf — a directory prefix must never survive.
     """
-    return os.path.join(
+    return posixpath.join(
         IMAGE_UPLOAD_DIR,
         str(tally_id),
         str(result_form_id),
-        os.path.basename(filename),
+        posixpath.basename(filename.replace("\\", "/")),
     )
 
 
@@ -96,6 +101,10 @@ class ResultFormImage(BaseModel):
         # leaves its path untouched. Callers that must keep storage I/O
         # out of the INSERT (see import_submission._attach_image) write the
         # file with this same path first, so it arrives already committed.
+        # ``_committed`` is private to Django's FieldFile, but it is the
+        # only signal for "not yet written to storage" and Django's own
+        # FileField.pre_save relies on it; the contract this depends on is
+        # pinned by test_resaving_leaves_image_path_untouched.
         if self.image and not self.image._committed:
             self.image.name = build_result_form_image_path(
                 self.tally_id, self.result_form_id, self.image.name,

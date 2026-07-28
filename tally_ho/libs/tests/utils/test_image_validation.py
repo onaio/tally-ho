@@ -42,14 +42,16 @@ class TestValidateImageBytes(TestCase):
         with self.assertRaises(ValidationError):
             validate_image_bytes(data[: len(data) // 2])
 
-    def test_rejects_decompression_bomb(self):
-        # A legitimately-decodable image whose pixel count exceeds the cap
-        # must be rejected. Patch the module cap low so a small test image
-        # trips it.
+    def _reject_oversize(self):
+        # A legitimately-decodable image whose pixel count exceeds the cap.
+        # Patch the module cap low so a small test image trips it.
         data = _image_bytes("PNG", size=(100, 100))  # 10_000 px
         with mock.patch.object(image_validation, "MAX_IMAGE_PIXELS", 16):
             with self.assertRaises(ValidationError):
                 validate_image_bytes(data)
+
+    def test_rejects_decompression_bomb(self):
+        self._reject_oversize()
 
     def test_does_not_mutate_pillow_global_cap(self):
         # The dimension guard is enforced locally, so validation must never
@@ -60,8 +62,5 @@ class TestValidateImageBytes(TestCase):
         validate_image_bytes(_image_bytes("PNG"))
         self.assertEqual(Image.MAX_IMAGE_PIXELS, before)
 
-        data = _image_bytes("PNG", size=(100, 100))
-        with mock.patch.object(image_validation, "MAX_IMAGE_PIXELS", 16):
-            with self.assertRaises(ValidationError):
-                validate_image_bytes(data)
+        self._reject_oversize()
         self.assertEqual(Image.MAX_IMAGE_PIXELS, before)

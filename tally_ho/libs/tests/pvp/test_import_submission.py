@@ -440,8 +440,14 @@ class TestImportSubmissionImages(ImportSubmissionTestBase, TestCase):
         by_kind = {img.kind: img for img in images}
         signature = by_kind[ResultFormImageKind.CLERK_SIGNATURE]
         page1 = by_kind[ResultFormImageKind.FORM_PAGE_1]
-        self.assertTrue(signature.image.name.endswith("sig.jpg"))
-        self.assertTrue(page1.image.name.endswith("p1.jpg"))
+        # The import path writes the file itself (save=False), so the row
+        # arrives already committed and ResultFormImage.save skips
+        # repathing — assert the full path, not just the leaf, or a
+        # dropped path build here would land every image flat in
+        # MEDIA_ROOT unnoticed.
+        prefix = f"form_images/{self.tally.id}/{self.result_form.id}/"
+        self.assertEqual(signature.image.name, f"{prefix}sig.jpg")
+        self.assertEqual(page1.image.name, f"{prefix}p1.jpg")
         for img in images:
             self.assertEqual(img.source, ResultFormImageSource.PVP_IMPORT)
             self.assertEqual(img.image_format, "JPEG")
