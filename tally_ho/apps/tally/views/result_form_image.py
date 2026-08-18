@@ -11,11 +11,13 @@ from tally_ho.libs.views.mixins import TallyAccessMixin
 class ResultFormImageView(LoginRequiredMixin, TallyAccessMixin, View):
     """Stream a result form image to users with access to its tally.
 
-    Guards the sensitive form photographs behind login + tally-access
-    checks rather than the open ``^media/`` route. The response declares
-    an explicit image content type and ``X-Content-Type-Options: nosniff``
-    so a browser can never be tricked into interpreting a stored file as
-    anything other than the image it was verified to be at ingest.
+    The only route to a stored image: ``MEDIA_ROOT`` is not served over
+    HTTP by either Django or the reverse proxy, so the sensitive form
+    photographs are reachable only behind these login and tally-access
+    checks. The response declares an explicit image content type and
+    ``X-Content-Type-Options: nosniff`` so a browser can never be tricked
+    into interpreting a stored file as anything other than the image it
+    was verified to be at ingest.
     """
 
     def get(self, request, tally_id, image_id, *args, **kwargs):

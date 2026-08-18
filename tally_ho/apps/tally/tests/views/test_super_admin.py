@@ -1,6 +1,9 @@
+import csv
+import io
 import json
 import os
 import shutil
+import tempfile
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -8,7 +11,7 @@ from django.contrib import messages
 from django.contrib.messages.storage import default_storage
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 from django.utils import timezone
 from reversion import revisions
 
@@ -245,6 +248,76 @@ class TestSuperAdmin(TestBase):
         request.session = {}
         response = view(request, tally_id=tally.pk)
         self.assertContains(response, "Downloads")
+
+    def _download_export(self, tally, report):
+        """Drive a real CSV export download and return the response.
+
+        The generated file lands under ``MEDIA_ROOT`` and is reached
+        through a symlink relative to the working directory, so both are
+        redirected at temporary locations for the duration of the call.
+        """
+        work_dir = tempfile.mkdtemp(prefix="tally_test_cwd_")
+        media_root = tempfile.mkdtemp(prefix="tally_test_media_")
+        previous_cwd = os.getcwd()
+        try:
+            os.chdir(work_dir)
+            with override_settings(MEDIA_ROOT=media_root):
+                request = self.factory.get("/")
+                request.user = self.user
+                request.session = {}
+                return views.ResultExportView.as_view()(
+                    request, tally_id=tally.pk, report=report,
+                )
+        finally:
+            os.chdir(previous_cwd)
+            shutil.rmtree(work_dir, ignore_errors=True)
+            shutil.rmtree(media_root, ignore_errors=True)
+
+    def test_result_export_download_streams_csv_through_the_view(self):
+        # The export is written under MEDIA_ROOT and read back by the
+        # view, which streams the bytes itself. No media URL is involved,
+        # so the download does not depend on media files being served
+        # over HTTP.
+        tally = create_tally()
+        tally.users.add(self.user)
+        electrol_race = create_electrol_race(tally, **electrol_races[0])
+        ballot = create_ballot(tally, electrol_race)
+        sub_con = create_sub_constituency(code=12345, tally=tally)
+        center = create_center(tally=tally, sub_constituency=sub_con)
+        station = create_station(center)
+        create_candidate(ballot, "Candidate A", tally=tally)
+        create_result_form(
+            ballot=ballot,
+            center=center,
+            station_number=station.station_number,
+            tally=tally,
+            barcode="123456789",
+            serial_number=0,
+            form_state=FormState.ARCHIVED,
+        )
+
+        response = self._download_export(tally, "all-candidates")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/csv; charset=utf-8")
+        self.assertIn("attachment;", response["Content-Disposition"])
+        self.assertIn(
+            "all_candidate_votes", response["Content-Disposition"],
+        )
+        rows = list(csv.DictReader(io.StringIO(
+            response.content.decode("utf-8"),
+        )))
+        self.assertEqual(
+            [row["ballot number"] for row in rows], [str(ballot.number)],
+        )
+
+    def test_result_export_download_of_unknown_report_is_not_found(self):
+        tally = create_tally()
+        tally.users.add(self.user)
+
+        response = self._download_export(tally, "no-such-report")
+
+        self.assertEqual(response.status_code, 404)
 
     def test_remove_center_get(self):
         tally = create_tally()

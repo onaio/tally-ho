@@ -36,6 +36,13 @@ MEDIA_DIR = "media"
 # a maliciously crafted bundle (tiny compressed, huge inflated) cannot
 # exhaust memory before the image is validated. Generous for a phone
 # photo of a paper form.
+#
+# A reverse proxy's request-body limit is not a substitute: it bounds the
+# compressed bundle, and deflate reaches ~1000:1, so a bundle small enough
+# to pass any such limit can still carry gigabytes of inflated member. Nor
+# is the parser only reachable over HTTP — the Celery worker and the
+# management commands read stored bundles directly. The bound belongs
+# here, where the inflating happens.
 MAX_MEDIA_BYTES = 25 * 1024 * 1024  # 25 MiB
 
 # Recon fields we preserve verbatim into PvpSubmission.recon_raw.
@@ -177,12 +184,21 @@ def parse_bundle(zip_path: str | Path) -> ParsedBundle:
             _check_required_columns(reader.fieldnames or [])
             csv_rows = list(reader)
 
-        parsed = _build_parsed_bundle(csv_rows, media_filenames)
+        parsed = _build_parsed_bundle(csv_rows)
+        # The image filenames the CSV points at, derived once and split
+        # in one place: absent from the zip is "missing", present but
+        # unverifiable is "invalid".
+        referenced = _referenced_images(parsed.rows)
+        missing_images = sorted(referenced - media_filenames)
         invalid_images = _find_invalid_images(
-            archive, parsed.rows, media_filenames,
+            archive, referenced & media_filenames,
         )
 
-    return dataclasses.replace(parsed, invalid_images=invalid_images)
+    return dataclasses.replace(
+        parsed,
+        missing_images=missing_images,
+        invalid_images=invalid_images,
+    )
 
 
 def _check_required_columns(fieldnames):
@@ -196,7 +212,17 @@ def _check_required_columns(fieldnames):
         )
 
 
-def _build_parsed_bundle(csv_rows, media_filenames):
+def _referenced_images(submissions):
+    """Every image filename the submissions point at, deduplicated."""
+    return {
+        name
+        for submission in submissions
+        for name in submission.images.values()
+        if name
+    }
+
+
+def _build_parsed_bundle(csv_rows):
     by_instance: dict[str, list[dict]] = {}
     for row in csv_rows:
         instance_id = row["meta-instanceID"]
@@ -264,18 +290,7 @@ def _build_parsed_bundle(csv_rows, media_filenames):
 
     _check_round_integrity(submissions)
 
-    referenced_images = {
-        name
-        for submission in submissions
-        for name in submission.images.values()
-        if name
-    }
-    missing_images = sorted(referenced_images - media_filenames)
-
-    return ParsedBundle(
-        rows=tuple(submissions),
-        missing_images=missing_images,
-    )
+    return ParsedBundle(rows=tuple(submissions))
 
 
 def read_capped(archive, member):
@@ -290,28 +305,25 @@ def read_capped(archive, member):
     with archive.open(member) as handle:
         data = handle.read(MAX_MEDIA_BYTES + 1)
     if len(data) > MAX_MEDIA_BYTES:
-        raise OSError(f"media entry {member!r} exceeds size cap")
+        raise OSError(
+            f"media entry {member!r} exceeds the "
+            f"{MAX_MEDIA_BYTES} byte size cap"
+        )
     return data
 
 
-def _find_invalid_images(archive, submissions, media_filenames):
-    """Return the sorted filenames that are present in the zip but are not
-    a valid image (or exceed the size cap).
+def _find_invalid_images(archive, names):
+    """Return the sorted subset of ``names`` that is not a valid image
+    (or exceeds the size cap).
 
-    Reads each present, referenced image once and runs it through Pillow
-    verification. Oversized entries are treated as invalid without being
-    read into memory. Missing images (referenced but absent from the zip)
-    are handled separately by ``missing_images`` and are not re-reported
-    here.
+    Reads each image once and runs it through Pillow verification.
+    Oversized entries are treated as invalid without being read into
+    memory. ``names`` holds only images present in the zip — the
+    referenced-but-absent ones are reported as ``missing_images`` by the
+    caller and are not re-reported here.
     """
-    referenced = {
-        name
-        for submission in submissions
-        for name in submission.images.values()
-        if name
-    }
     invalid = set()
-    for name in referenced & media_filenames:
+    for name in names:
         member = f"{MEDIA_DIR}/{name}"
         # getinfo().file_size is the zip's *declared* uncompressed size —
         # a cheap pre-check only. A crafted header can understate it, so

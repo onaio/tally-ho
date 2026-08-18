@@ -110,6 +110,21 @@ class TestResultFormImageView(TestBase, TestCase):
         with self.assertRaises(Http404):
             self._get(self.user)
 
+    def test_stored_file_is_not_served_over_the_media_url(self):
+        # The file lives under MEDIA_ROOT. If media files were served
+        # over HTTP, anyone who knew or guessed the path would get the
+        # bytes without the login and tally-access checks this view
+        # exists to enforce, and a soft-deleted image would stay
+        # fetchable. The only route to an image is this view.
+        #
+        # Asserted on content rather than status: the project's
+        # handler404 renders its template with a 200, so the status code
+        # cannot distinguish a served file from a missing route.
+        response = self.client.get(f"/media/{self.image.image.name}")
+
+        self.assertTemplateUsed(response, "errors/404.html")
+        self.assertNotIn(b"the-bytes", response.content)
+
     def test_cross_tally_image_not_reachable_via_this_tally_scope(self):
         # self.user is a TALLY_MANAGER (access to every tally). The URL
         # scope (tally_id) must still gate which image is served: an image

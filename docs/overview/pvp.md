@@ -136,12 +136,19 @@ surfaced on the confirmation screen (see *Confirm* above) rather than
 stored.
 
 The images are served through an authenticated, tally-scoped view
-(`result-form-image`) rather than the open `/media/` route, and the
-response declares an explicit image `Content-Type` plus
-`X-Content-Type-Options: nosniff`. So the sensitive signed-form
-photographs are only reachable by users with access to that tally, and a
-browser can never be tricked into interpreting a stored file as anything
-but the image it was verified to be.
+(`result-form-image`), and the response declares an explicit image
+`Content-Type` plus `X-Content-Type-Options: nosniff`. So the sensitive
+signed-form photographs are only reachable by users with access to that
+tally, and a browser can never be tricked into interpreting a stored file
+as anything but the image it was verified to be.
+
+`MEDIA_ROOT` is not served over HTTP — neither Django nor the reverse
+proxy exposes a `/media/` route — because it also holds the retained
+bundle zips (every image plus the full results CSV) and the generated
+result exports. Files reach users only through views that check login
+and tally access; anything added there inherits that, and nothing is
+reachable by guessing a path. The result-export downloads read from disk
+and stream the bytes through their own view, so they are unaffected.
 
 ## Provenance after a reset
 
