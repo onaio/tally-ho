@@ -68,7 +68,6 @@ services:
     volumes:
       - ./config/nginx/conf.d:/etc/nginx/conf.d
       - static_volume:/code/tally_ho/static
-      - media_volume:/code/tally_ho/media
     depends_on:
       - web
     networks:

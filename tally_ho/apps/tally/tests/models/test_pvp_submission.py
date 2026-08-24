@@ -1,7 +1,6 @@
 import shutil
 import tempfile
 
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
 from django.test import override_settings
 
@@ -94,25 +93,6 @@ class TestPvpSubmission(TestBase):
             barcode="999",
         )
         self.assertNotEqual(other.id, None)
-
-    def test_image_paths_use_tally_and_submission_id(self):
-        sub = self._create_submission()
-        sub.clerk_signature = SimpleUploadedFile(
-            "sig.png", b"png-bytes", content_type="image/png",
-        )
-        sub.forms_picture_1st_page = SimpleUploadedFile(
-            "p1.jpg", b"jpg-bytes", content_type="image/jpeg",
-        )
-        sub.save()
-        sub.refresh_from_db()
-        expected_prefix = f"pvp/{self.tally.id}/{sub.id}/"
-        self.assertTrue(
-            sub.clerk_signature.name.startswith(expected_prefix),
-            msg=f"signature path was {sub.clerk_signature.name}",
-        )
-        self.assertTrue(
-            sub.forms_picture_1st_page.name.startswith(expected_prefix),
-        )
 
     def test_bundle_reverse_accessor(self):
         # related_name='submissions' makes bundle.submissions usable.

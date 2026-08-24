@@ -5,24 +5,32 @@ A bundle is a zip with:
     candidate_results.csv     # one row per (submission, candidate)
     media/<image-filename>... # signature + form pictures referenced by the CSV
 
-This module is intentionally Django-free: callers (the upload view, the
+The parser has no database dependency — callers (the upload view, the
 celery import task) construct the parser inputs and consume its dataclass
-output. Parse-time validation lives at a higher layer (per-row checks
-against the database).
+output, and per-row validation against the database lives at a higher
+layer. Image bytes are verified here, before anything downstream trusts
+them.
 """
 
 from __future__ import annotations
 
 import csv
+import dataclasses
 import io
 import zipfile
+import zlib
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+
+from tally_ho.libs.utils.image_validation import validate_image_bytes
 
 CSV_NAME = "candidate_results.csv"
 MEDIA_DIR = "media"
+
+MAX_MEDIA_BYTES = 25 * 1024 * 1024  # 25 MiB
 
 # Recon fields we preserve verbatim into PvpSubmission.recon_raw.
 RECON_COLUMNS = (
@@ -115,6 +123,7 @@ class ParsedSubmission:
 class ParsedBundle:
     rows: tuple[ParsedSubmission, ...]
     missing_images: list[str] = field(default_factory=list)
+    invalid_images: list[str] = field(default_factory=list)
 
     @property
     def total(self) -> int:
@@ -157,7 +166,18 @@ def parse_bundle(zip_path: str | Path) -> ParsedBundle:
             _check_required_columns(reader.fieldnames or [])
             csv_rows = list(reader)
 
-    return _build_parsed_bundle(csv_rows, media_filenames)
+        parsed = _build_parsed_bundle(csv_rows)
+        referenced = _referenced_images(parsed.rows)
+        missing_images = sorted(referenced - media_filenames)
+        invalid_images = _find_invalid_images(
+            archive, referenced & media_filenames,
+        )
+
+    return dataclasses.replace(
+        parsed,
+        missing_images=missing_images,
+        invalid_images=invalid_images,
+    )
 
 
 def _check_required_columns(fieldnames):
@@ -171,7 +191,17 @@ def _check_required_columns(fieldnames):
         )
 
 
-def _build_parsed_bundle(csv_rows, media_filenames):
+def _referenced_images(submissions):
+    """Every image filename the submissions point at, deduplicated."""
+    return {
+        name
+        for submission in submissions
+        for name in submission.images.values()
+        if name
+    }
+
+
+def _build_parsed_bundle(csv_rows):
     by_instance: dict[str, list[dict]] = {}
     for row in csv_rows:
         instance_id = row["meta-instanceID"]
@@ -239,18 +269,51 @@ def _build_parsed_bundle(csv_rows, media_filenames):
 
     _check_round_integrity(submissions)
 
-    referenced_images = {
-        name
-        for submission in submissions
-        for name in submission.images.values()
-        if name
-    }
-    missing_images = sorted(referenced_images - media_filenames)
+    return ParsedBundle(rows=tuple(submissions))
 
-    return ParsedBundle(
-        rows=tuple(submissions),
-        missing_images=missing_images,
-    )
+
+def read_capped(archive, member):
+    """Read a zip member, raising ``OSError`` if it exceeds the cap.
+
+    Bounds the decompressor's allocation regardless of a spoofed
+    uncompressed-size header, so the full member is never inflated.
+    """
+    with archive.open(member) as handle:
+        data = handle.read(MAX_MEDIA_BYTES + 1)
+    if len(data) > MAX_MEDIA_BYTES:
+        raise OSError(
+            f"media entry {member!r} exceeds the "
+            f"{MAX_MEDIA_BYTES} byte size cap"
+        )
+    return data
+
+
+def _find_invalid_images(archive, names):
+    """Return the sorted subset of ``names`` that is not a valid image.
+
+    ``names`` holds only images present in the zip. The declared size is
+    a pre-check; a crafted header can understate it, so the read is
+    hard-bounded independently.
+    """
+    invalid = set()
+    for name in names:
+        member = f"{MEDIA_DIR}/{name}"
+        if archive.getinfo(member).file_size > MAX_MEDIA_BYTES:
+            invalid.add(name)
+            continue
+        try:
+            data = read_capped(archive, member)
+        except (
+            ValidationError, zipfile.BadZipFile, zlib.error, OSError,
+            RuntimeError,
+        ):
+            invalid.add(name)
+            continue
+        try:
+            validate_image_bytes(data)
+        except ValidationError:
+            invalid.add(name)
+    return sorted(invalid)
 
 
 def _check_round_integrity(submissions):

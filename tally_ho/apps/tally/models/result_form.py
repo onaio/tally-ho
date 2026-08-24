@@ -17,6 +17,9 @@ from tally_ho.libs.models.base_model import BaseModel
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.gender import Gender
+from tally_ho.libs.models.enums.result_form_image_source import (
+    ResultFormImageSource,
+)
 from tally_ho.libs.utils.templates import get_result_form_edit_delete_links
 from tally_ho.apps.tally.models.result_form_reset import ResultFormReset
 
@@ -514,6 +517,10 @@ class ResultForm(BaseModel):
         # Clear the PVP source pointer so the form is eligible for re-upload
         self.pvp_submission = None
         self.save()
+
+        self.images.filter(
+            source=ResultFormImageSource.PVP_IMPORT, active=True,
+        ).update(active=False, modified_date=modified_date)
 
         # Create a ResultFormReset record
         ResultFormReset.objects.create(

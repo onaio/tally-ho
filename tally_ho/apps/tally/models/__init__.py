@@ -24,3 +24,4 @@ from tally_ho.apps.tally.models.workflow_request import WorkflowRequest
 from tally_ho.apps.tally.models.result_form_reset import ResultFormReset
 from tally_ho.apps.tally.models.pvp_upload_bundle import PvpUploadBundle
 from tally_ho.apps.tally.models.pvp_submission import PvpSubmission
+from tally_ho.apps.tally.models.result_form_image import ResultFormImage

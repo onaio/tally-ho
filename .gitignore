@@ -26,3 +26,5 @@ local_settings.py
 .worktrees
 odk-central-sync/.pyodk_config.toml
 odk-central-sync/results-output/
+# roborev snapshots
+/.roborev/

@@ -17,7 +17,10 @@ from tally_ho.apps.tally.views.reports.administrative_areas_reports import \
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 from tally_ho.libs.permissions import groups
-from tally_ho.libs.views.exports import build_candidate_results_output
+from tally_ho.libs.views.exports import (
+    ACTIVE_IMAGE_COUNT,
+    build_candidate_results_output,
+)
 from tally_ho.libs.views.mixins import (AjaxLoginRequiredMixin, DataTablesMixin,
                                         GroupRequiredMixin, TallyAccessMixin)
 
@@ -62,6 +65,8 @@ def get_candidate_results_queryset(tally_id, data=None):
             ),
             to_attr="final_reconciliations",
         ),
+    ).annotate(
+        number_of_images=ACTIVE_IMAGE_COUNT,
     ).filter(
         tally__id=tally_id,
         form_state=FormState.ARCHIVED,

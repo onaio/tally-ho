@@ -7,17 +7,29 @@ The parser is intentionally Django-free; these tests run without a DB.
 import csv
 import io
 import zipfile
+import zlib
 
 import pytest
+from PIL import Image
 
 from tally_ho.libs.pvp.bundle import (
+    MAX_MEDIA_BYTES,
     DuplicateBarcodeError,
     InvalidBundleError,
     ParsedBundle,
     RoundIntegrityError,
     UnsafeImageFilenameError,
+    _find_invalid_images,
     parse_bundle,
+    read_capped,
 )
+
+
+def _real_jpeg(size=(4, 4)):
+    """Genuine JPEG bytes, since the parser validates every image."""
+    buf = io.BytesIO()
+    Image.new("RGB", size).save(buf, format="JPEG")
+    return buf.getvalue()
 
 
 # Headers that the post-Task-1 odk-central-sync emits in the bundle CSV.
@@ -101,12 +113,20 @@ def _candidate_row(
 
 
 def _make_bundle(rows, *, image_filenames=None, headers=None,
-                 include_csv=True, csv_name="candidate_results.csv"):
-    """Build a zip in-memory and return a Path-like to it (BytesIO)."""
+                 include_csv=True, csv_name="candidate_results.csv",
+                 bad_images=None, image_content=None,
+                 compression=zipfile.ZIP_STORED):
+    """Build a zip in-memory and return a Path-like to it (BytesIO).
+
+    ``bad_images`` names entries to write as non-image bytes;
+    ``image_content`` maps a filename to explicit bytes.
+    """
     headers = headers if headers is not None else HEADERS
     image_filenames = image_filenames or set()
+    bad_images = bad_images or set()
+    image_content = image_content or {}
     buf = io.BytesIO()
-    with zipfile.ZipFile(buf, mode="w") as zf:
+    with zipfile.ZipFile(buf, mode="w", compression=compression) as zf:
         if include_csv:
             csv_buf = io.StringIO()
             writer = csv.DictWriter(csv_buf, fieldnames=headers,
@@ -116,7 +136,13 @@ def _make_bundle(rows, *, image_filenames=None, headers=None,
                 writer.writerow(row)
             zf.writestr(csv_name, csv_buf.getvalue())
         for name in image_filenames:
-            zf.writestr(f"media/{name}", b"image-bytes")
+            if name in image_content:
+                content = image_content[name]
+            elif name in bad_images:
+                content = b"not-an-image"
+            else:
+                content = _real_jpeg()
+            zf.writestr(f"media/{name}", content)
     buf.seek(0)
     return buf
 
@@ -226,6 +252,129 @@ def test_missing_images_collected_not_raised(tmp_path):
     assert sorted(parsed.missing_images) == [
         "also_missing.jpg", "missing.jpg",
     ]
+    assert parsed.invalid_images == []
+
+
+
+
+def test_invalid_images_collected_not_raised(tmp_path):
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=1, round2=1,
+                       clerk_signature="good.jpg",
+                       page1="corrupt.jpg",
+                       page2="missing.jpg"),
+    ]
+    path = _bundle_path(
+        tmp_path, rows,
+        image_filenames={"good.jpg", "corrupt.jpg"},
+        bad_images={"corrupt.jpg"},
+    )
+
+    parsed = parse_bundle(path)
+
+    assert parsed.total == 1  # bundle still parses; not raised
+    assert parsed.invalid_images == ["corrupt.jpg"]
+    assert parsed.missing_images == ["missing.jpg"]
+
+
+def test_valid_images_produce_no_invalid_entries(tmp_path):
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=1, round2=1,
+                       clerk_signature="good.jpg"),
+    ]
+    path = _bundle_path(tmp_path, rows, image_filenames={"good.jpg"})
+
+    parsed = parse_bundle(path)
+
+    assert parsed.invalid_images == []
+
+
+@pytest.mark.parametrize("read_error", [
+    zipfile.BadZipFile("corrupt"),      # corrupt/truncated deflate stream
+    zlib.error("bad data"),             # zlib-level corruption
+    RuntimeError("File is encrypted"),  # encrypted member
+    NotImplementedError("compression"),  # unsupported compression method
+])
+def test_unreadable_member_classified_invalid_not_raised(read_error):
+    class _FakeInfo:
+        file_size = 10
+
+    class _FakeHandle:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self, n):
+            raise read_error
+
+    class _FakeArchive:
+        def getinfo(self, member):
+            return _FakeInfo()
+
+        def open(self, member):
+            return _FakeHandle()
+
+    invalid = _find_invalid_images(_FakeArchive(), {"bad.jpg"})
+    assert invalid == ["bad.jpg"]
+
+
+def test_oversized_image_is_invalid_without_reading(tmp_path):
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=1, round2=1,
+                       clerk_signature="huge.jpg"),
+    ]
+    path = _bundle_path(
+        tmp_path, rows,
+        image_filenames={"huge.jpg"},
+        image_content={"huge.jpg": b"\x00" * (30 * 1024 * 1024)},
+    )
+
+    parsed = parse_bundle(path)
+
+    assert parsed.invalid_images == ["huge.jpg"]
+
+
+def test_compressed_bomb_is_invalid_though_the_zip_is_small(tmp_path):
+    rows = [
+        _candidate_row(instance_id="uuid:s1", barcode="111",
+                       candidate_id="c1", candidate_order=1,
+                       round1=1, round2=1,
+                       clerk_signature="bomb.jpg"),
+    ]
+    path = _bundle_path(
+        tmp_path, rows,
+        image_filenames={"bomb.jpg"},
+        image_content={"bomb.jpg": b"\x00" * (30 * 1024 * 1024)},
+        compression=zipfile.ZIP_DEFLATED,
+    )
+
+    assert path.stat().st_size < 1024 * 1024
+
+    parsed = parse_bundle(path)
+
+    assert parsed.invalid_images == ["bomb.jpg"]
+
+
+def test_read_capped_names_the_cap_in_its_error(tmp_path):
+    path = tmp_path / "over.zip"
+    with zipfile.ZipFile(path, mode="w",
+                         compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("media/over.jpg", b"\x00" * (MAX_MEDIA_BYTES + 1))
+
+    with zipfile.ZipFile(path) as archive:
+        with pytest.raises(OSError) as excinfo:
+            read_capped(archive, "media/over.jpg")
+
+    assert str(MAX_MEDIA_BYTES) in str(excinfo.value)
+    assert "over.jpg" in str(excinfo.value)
 
 
 # ---- error: duplicate barcode within bundle ------------------------------
