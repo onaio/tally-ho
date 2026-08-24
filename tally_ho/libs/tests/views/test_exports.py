@@ -570,7 +570,6 @@ class TestPvpExportColumns(TestBase):
                 self.assertEqual(
                     build_candidate_results_output(rf)["number_of_images"], 2,
                 )
-                # Soft-deleted (inactive) images are not counted.
                 ResultFormImage.objects.filter(
                     result_form=rf,
                 ).update(active=False)
@@ -581,10 +580,6 @@ class TestPvpExportColumns(TestBase):
             shutil.rmtree(media_root, ignore_errors=True)
 
     def test_number_of_images_via_annotated_export_queryset(self):
-        # Drives the real ACTIVE_IMAGE_COUNT annotation end-to-end through
-        # save_barcode_results (not the direct-builder fallback), so a
-        # regression in the annotation's active filter or GROUP BY is
-        # caught in the produced CSV.
         rf = self._make_result_form("annot-1")
         create_candidate(
             ballot=self.ballot, candidate_name="C1", tally=self.tally,
@@ -616,7 +611,6 @@ class TestPvpExportColumns(TestBase):
                     with open(csv_filename) as f:
                         rows = list(csv.DictReader(f))
                     self.assertTrue(rows)
-                    # 2 active images; the inactive one is excluded.
                     for row in rows:
                         self.assertEqual(row["number_of_images"], "2")
                 finally:

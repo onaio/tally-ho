@@ -302,8 +302,6 @@ class TestPvpConfirmView(_PvpViewTestBase, TestCase):
         self.assertIn("barcode_not_found", body)
 
     def test_get_surfaces_invalid_images(self):
-        # sig.jpg is present but corrupt; the confirm screen must warn
-        # about it (operator proceeds with informed consent).
         zip_bytes = _zip_bytes(
             [_csv_row(instance_id="uuid:1", barcode="111",
                       candidate_id=131301, order=1, r2=12)],

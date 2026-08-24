@@ -194,7 +194,6 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         self.assertEqual(
             self.result_form.form_state, FormState.DATA_ENTRY_2,
         )
-        # Both bundle images were validated and attached to the form.
         self.assertEqual(
             ResultFormImage.objects.filter(
                 result_form=self.result_form,
@@ -203,10 +202,6 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         )
 
     def test_async_import_with_one_invalid_image_still_completes(self):
-        # A bundle with one real and one invalid image imports the form
-        # and the valid image; the bad image is skipped (consented via the
-        # confirmation screen). The bundle must NOT end up FAILED, and the
-        # post-commit image callback must not crash the task.
         zip_bytes = _build_zip_bytes_with_content(
             rows=[
                 _csv_row(instance_id="uuid:1", barcode="111",
@@ -236,7 +231,6 @@ class AsyncPvpImportTestCase(TransactionTestCase):
         self.assertEqual(bundle.status, PvpBundleStatus.COMPLETED)
         self.result_form.refresh_from_db()
         self.assertTrue(self.result_form.from_pvp)
-        # Only the valid signature attached; the bad image was skipped.
         self.assertEqual(
             ResultFormImage.objects.filter(
                 result_form=self.result_form,

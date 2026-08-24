@@ -17,10 +17,6 @@ from tally_ho.apps.tally.models.result_form import ResultForm
 from tally_ho.libs.models.enums.entry_version import EntryVersion
 from tally_ho.libs.models.enums.form_state import FormState
 
-# Annotation used by the row-per-form exports to avoid an N+1 count of a
-# form's active images. Apply it to the querysets that feed the builders;
-# `_active_image_count` falls back to a direct query when it is absent
-# (e.g. the builders' direct-call unit tests).
 ACTIVE_IMAGE_COUNT = Count("images", filter=Q(images__active=True))
 
 
@@ -247,8 +243,6 @@ def save_barcode_results(complete_barcodes, output_duplicates=False,
             'center__stations'  # For result_form.station property
         ).annotate(number_of_images=ACTIVE_IMAGE_COUNT)
 
-        # Materialize once — the queryset carries an aggregate annotation
-        # (number_of_images) and is iterated twice below.
         result_forms = list(result_forms)
 
         # OPTIMIZATION: Batch fetch ALL results to avoid N+1 queries

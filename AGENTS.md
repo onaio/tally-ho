@@ -4,6 +4,21 @@ Conventions for automated agents working in this repository. Keep entries
 evergreen — describe the rule and its rationale, not the change that
 introduced it.
 
+## Comments
+
+- **Never write a `#` comment in a code file.** Code is self-documenting;
+  a comment explaining it is a signal to rename something or split a
+  function, not to annotate it. This covers every non-Markdown file.
+
+- **Keep docstrings short.** A docstring earns its place only by carrying
+  what the code cannot. Remove anything determinable by reading the code,
+  anything not evergreen, and any reference to how the code used to
+  behave or why it changed.
+
+- Rationale that is genuinely worth recording — a security boundary, a
+  cross-system constraint, a decision and its alternatives — belongs in
+  `docs/`, where it can be read whole instead of in fragments.
+
 ## Migrations
 
 - **Never write a migration that makes application code required to stay

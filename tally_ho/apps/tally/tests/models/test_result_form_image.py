@@ -39,9 +39,6 @@ class TestBuildResultFormImagePath(SimpleTestCase):
         )
 
     def test_strips_windows_style_directory_prefix(self):
-        # Zip entries may legally carry backslash separators, and storage
-        # names are POSIX regardless of the host — the leaf must be taken
-        # from either separator so a prefix can never survive into the path.
         self.assertEqual(
             build_result_form_image_path(7, 42, r"..\..\evil.jpg"),
             "form_images/7/42/evil.jpg",
@@ -90,7 +87,6 @@ class TestResultFormImage(TestBase):
         self.assertIsNone(image.caption)
         self.assertIsNone(image.uploaded_by_id)
         self.assertIsNone(image.pvp_submission_id)
-        # Live by default (soft-delete flag); format blank until verified.
         self.assertTrue(image.active)
         self.assertEqual(image.image_format, "")
 
@@ -109,8 +105,6 @@ class TestResultFormImage(TestBase):
         )
 
     def test_resaving_leaves_image_path_untouched(self):
-        # Only an uncommitted file is repathed. Re-saving a stored image
-        # must not prefix the path a second time.
         image = self._create_image()
         stored_name = image.image.name
         image.caption = "edited"
@@ -140,7 +134,6 @@ class TestResultFormImage(TestBase):
         self.assertEqual(image.source, ResultFormImageSource.PVP_IMPORT)
         self.assertEqual(image.kind, ResultFormImageKind.CLERK_SIGNATURE)
         self.assertEqual(image.pvp_submission_id, submission.id)
-        # Reverse accessor from the submission.
         self.assertEqual(submission.applied_images.count(), 1)
 
     def test_uploaded_by_round_trip(self):

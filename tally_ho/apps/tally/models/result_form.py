@@ -518,11 +518,6 @@ class ResultForm(BaseModel):
         self.pvp_submission = None
         self.save()
 
-        # Deactivate PVP-sourced images so a reset form stops showing a
-        # prior bundle's photos, mirroring the soft-deactivation of every
-        # other related record above (preserving the audit trail rather
-        # than hard-deleting). Manually uploaded images are left intact;
-        # the raw image bytes also remain in the retained bundle zip.
         self.images.filter(
             source=ResultFormImageSource.PVP_IMPORT, active=True,
         ).update(active=False, modified_date=modified_date)

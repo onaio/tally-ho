@@ -99,8 +99,6 @@ class TestCandidateResultsViews(TestBase):
         )
 
     def test_queryset_annotates_active_image_count(self):
-        # Drive get_candidate_results_queryset's ACTIVE_IMAGE_COUNT
-        # annotation with real images: 2 active + 1 inactive -> 2.
         media_root = tempfile.mkdtemp(prefix="tally_test_media_")
         try:
             with override_settings(MEDIA_ROOT=media_root):
@@ -119,8 +117,6 @@ class TestCandidateResultsViews(TestBase):
                     active=False,
                 )
                 rows = get_candidate_results_queryset(self.tally.id)
-                # Rows built from the annotated queryset carry the active
-                # image count (2 active; the inactive one excluded).
                 barcode_rows = [
                     r for r in rows
                     if r.get("barcode") == self.result_form.barcode

@@ -12,19 +12,10 @@ class ResultFormImageView(LoginRequiredMixin, TallyAccessMixin, View):
     """Stream a result form image to users with access to its tally.
 
     The only route to a stored image: ``MEDIA_ROOT`` is not served over
-    HTTP by either Django or the reverse proxy, so the sensitive form
-    photographs are reachable only behind these login and tally-access
-    checks. The response declares an explicit image content type and
-    ``X-Content-Type-Options: nosniff`` so a browser can never be tricked
-    into interpreting a stored file as anything other than the image it
-    was verified to be at ingest.
+    HTTP by either Django or the reverse proxy.
     """
 
     def get(self, request, tally_id, image_id, *args, **kwargs):
-        # Only serve active images, so a direct URL agrees with the
-        # gallery and exports (both filter active=True). A soft-deleted
-        # image — e.g. deactivated by a form reset — 404s rather than
-        # staying fetchable.
         image = get_object_or_404(
             ResultFormImage, id=image_id, tally_id=tally_id, active=True,
         )

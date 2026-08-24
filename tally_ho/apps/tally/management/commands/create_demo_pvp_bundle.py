@@ -31,8 +31,7 @@ STUB_IMAGES = ("demo_sig.jpg", "demo_p1.jpg", "demo_p2.jpg")
 
 
 def _stub_jpeg():
-    """A genuine (tiny) JPEG. The import verifies every image with Pillow
-    before storing it, so the stub must decode as a real image."""
+    """A genuine (tiny) JPEG, since the import validates every image."""
     buffer = io.BytesIO()
     Image.new("RGB", (8, 8), (204, 204, 204)).save(buffer, format="JPEG")
     return buffer.getvalue()

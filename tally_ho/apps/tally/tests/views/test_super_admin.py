@@ -252,9 +252,8 @@ class TestSuperAdmin(TestBase):
     def _download_export(self, tally, report):
         """Drive a real CSV export download and return the response.
 
-        The generated file lands under ``MEDIA_ROOT`` and is reached
-        through a symlink relative to the working directory, so both are
-        redirected at temporary locations for the duration of the call.
+        The export symlinks relative to the working directory, so both
+        that and ``MEDIA_ROOT`` are redirected at temporary locations.
         """
         work_dir = tempfile.mkdtemp(prefix="tally_test_cwd_")
         media_root = tempfile.mkdtemp(prefix="tally_test_media_")
@@ -274,10 +273,6 @@ class TestSuperAdmin(TestBase):
             shutil.rmtree(media_root, ignore_errors=True)
 
     def test_result_export_download_streams_csv_through_the_view(self):
-        # The export is written under MEDIA_ROOT and read back by the
-        # view, which streams the bytes itself. No media URL is involved,
-        # so the download does not depend on media files being served
-        # over HTTP.
         tally = create_tally()
         tally.users.add(self.user)
         electrol_race = create_electrol_race(tally, **electrol_races[0])

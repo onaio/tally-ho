@@ -26,9 +26,7 @@ from tally_ho.libs.pvp.bundle import (
 
 
 def _real_jpeg(size=(4, 4)):
-    """Genuine JPEG bytes — the parser now Pillow-validates every present
-    image, so fixtures must be real images unless testing the invalid path.
-    """
+    """Genuine JPEG bytes, since the parser validates every image."""
     buf = io.BytesIO()
     Image.new("RGB", size).save(buf, format="JPEG")
     return buf.getvalue()
@@ -120,11 +118,8 @@ def _make_bundle(rows, *, image_filenames=None, headers=None,
                  compression=zipfile.ZIP_STORED):
     """Build a zip in-memory and return a Path-like to it (BytesIO).
 
-    ``bad_images`` names media entries to write as non-image bytes (to
-    exercise the invalid-image path). ``image_content`` optionally maps a
-    filename to explicit bytes (e.g. an oversized entry).
-    ``compression`` selects the zip method — ``ZIP_DEFLATED`` builds a
-    bundle whose on-the-wire size is far smaller than its contents.
+    ``bad_images`` names entries to write as non-image bytes;
+    ``image_content`` maps a filename to explicit bytes.
     """
     headers = headers if headers is not None else HEADERS
     image_filenames = image_filenames or set()
@@ -260,7 +255,6 @@ def test_missing_images_collected_not_raised(tmp_path):
     assert parsed.invalid_images == []
 
 
-# ---- warning: invalid images (does not raise) ----------------------------
 
 
 def test_invalid_images_collected_not_raised(tmp_path):
@@ -306,12 +300,8 @@ def test_valid_images_produce_no_invalid_entries(tmp_path):
     NotImplementedError("compression"),  # unsupported compression method
 ])
 def test_unreadable_member_classified_invalid_not_raised(read_error):
-    # A member whose read raises — including encrypted (RuntimeError) and
-    # unsupported-compression (NotImplementedError), neither an OSError —
-    # is classified invalid rather than escaping the parser.
-
     class _FakeInfo:
-        file_size = 10  # under the cap, so it attempts a read
+        file_size = 10
 
     class _FakeHandle:
         def __enter__(self):
@@ -335,8 +325,6 @@ def test_unreadable_member_classified_invalid_not_raised(read_error):
 
 
 def test_oversized_image_is_invalid_without_reading(tmp_path):
-    # An entry whose declared size exceeds the cap is invalid and must
-    # not be read into memory. A ~30 MiB entry trips the 25 MiB cap.
     rows = [
         _candidate_row(instance_id="uuid:s1", barcode="111",
                        candidate_id="c1", candidate_order=1,
@@ -355,11 +343,6 @@ def test_oversized_image_is_invalid_without_reading(tmp_path):
 
 
 def test_compressed_bomb_is_invalid_though_the_zip_is_small(tmp_path):
-    # The reverse proxy's request-body limit bounds the *compressed*
-    # bundle; it says nothing about what a member inflates to. 30 MiB of
-    # zeros deflates to a few KB, so this bundle would pass any sane body
-    # limit while carrying a member well over MAX_MEDIA_BYTES. The byte
-    # cap is the only thing standing between that member and memory.
     rows = [
         _candidate_row(instance_id="uuid:s1", barcode="111",
                        candidate_id="c1", candidate_order=1,
@@ -373,7 +356,6 @@ def test_compressed_bomb_is_invalid_though_the_zip_is_small(tmp_path):
         compression=zipfile.ZIP_DEFLATED,
     )
 
-    # The premise: on the wire this bundle is tiny.
     assert path.stat().st_size < 1024 * 1024
 
     parsed = parse_bundle(path)
@@ -382,8 +364,6 @@ def test_compressed_bomb_is_invalid_though_the_zip_is_small(tmp_path):
 
 
 def test_read_capped_names_the_cap_in_its_error(tmp_path):
-    # The operator sees only a filename on the confirmation screen, so
-    # the cap has to be legible to whoever reads the logs.
     path = tmp_path / "over.zip"
     with zipfile.ZipFile(path, mode="w",
                          compression=zipfile.ZIP_DEFLATED) as zf:

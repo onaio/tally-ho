@@ -75,7 +75,6 @@ class TestResultFormImageView(TestBase, TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_missing_file_raises_404(self):
-        # Row exists but the underlying file is gone from storage.
         os.remove(self.image.image.path)
         with self.assertRaises(Http404):
             self._get(self.user)
@@ -84,7 +83,7 @@ class TestResultFormImageView(TestBase, TestCase):
         cases = {
             "PNG": "image/png",
             "WEBP": "image/webp",
-            "": "application/octet-stream",  # unknown/blank fallback
+            "": "application/octet-stream",
         }
         for image_format, expected in cases.items():
             image = ResultFormImage.objects.create(
@@ -103,32 +102,21 @@ class TestResultFormImageView(TestBase, TestCase):
             self.assertEqual(response["X-Content-Type-Options"], "nosniff")
 
     def test_soft_deleted_image_returns_404(self):
-        # A deactivated image (e.g. after a form reset) is hidden from the
-        # gallery and exports; the direct serve URL must agree and 404.
         self.image.active = False
         self.image.save(update_fields=["active"])
         with self.assertRaises(Http404):
             self._get(self.user)
 
     def test_stored_file_is_not_served_over_the_media_url(self):
-        # The file lives under MEDIA_ROOT. If media files were served
-        # over HTTP, anyone who knew or guessed the path would get the
-        # bytes without the login and tally-access checks this view
-        # exists to enforce, and a soft-deleted image would stay
-        # fetchable. The only route to an image is this view.
-        #
-        # Asserted on content rather than status: the project's
-        # handler404 renders its template with a 200, so the status code
-        # cannot distinguish a served file from a missing route.
+        """Asserts on content, not status: handler404 renders with a 200,
+        so the status cannot tell a served file from a missing route.
+        """
         response = self.client.get(f"/media/{self.image.image.name}")
 
         self.assertTemplateUsed(response, "errors/404.html")
         self.assertNotIn(b"the-bytes", response.content)
 
     def test_cross_tally_image_not_reachable_via_this_tally_scope(self):
-        # self.user is a TALLY_MANAGER (access to every tally). The URL
-        # scope (tally_id) must still gate which image is served: an image
-        # belonging to tally B cannot be fetched by pinning tally A's id.
         other_tally = create_tally(name="tallyB")
         other_form = create_result_form(tally=other_tally, barcode="b-1")
         other_image = ResultFormImage.objects.create(
@@ -139,6 +127,5 @@ class TestResultFormImageView(TestBase, TestCase):
             ),
             image_format="JPEG",
         )
-        # tally_id from the URL is self.tally (A); image belongs to B.
         with self.assertRaises(Http404):
             self._get(self.user, image_id=other_image.id)

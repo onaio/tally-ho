@@ -58,7 +58,6 @@ from tally_ho.libs.utils.image_validation import validate_image_bytes
 
 logger = logging.getLogger(__name__)
 
-# Bundle image key -> the kind recorded on the applied ResultFormImage.
 _IMAGE_KIND_BY_KEY = {
     "clerk_signature": ResultFormImageKind.CLERK_SIGNATURE,
     "forms_picture_1st_page": ResultFormImageKind.FORM_PAGE_1,
@@ -309,11 +308,9 @@ def _save_images(
 ):
     """Create ResultFormImage rows after the import transaction commits.
 
-    Each bundle image becomes one ``ResultFormImage`` with
-    ``source=PVP_IMPORT`` linked back to the ``PvpSubmission`` for
-    provenance. Failures here leave the form with fewer images; the
-    import's DB writes are already committed. Rollbacks in the parent
-    transaction cancel this callback before it ever fires.
+    Failures here leave the form with fewer images; the import's DB
+    writes are already committed. A rollback in the parent transaction
+    cancels this callback before it fires.
     """
     for key, kind in _IMAGE_KIND_BY_KEY.items():
         _attach_image(
@@ -333,20 +330,14 @@ def _attach_image(
 ):
     """Read one media entry from the zip and create a ResultFormImage.
 
-    Returns True if a row was created, False otherwise. Any problem —
-    missing filename, member absent from the zip, oversized, corrupt
-    member, or bytes that don't validate as an image — is a no-op (no row
-    created). These conditions were already surfaced to the operator on
-    the confirmation screen (``ParsedBundle.missing_images`` /
-    ``invalid_images``) and consented to, so skipping here is expected,
-    not a silent data loss.
+    Returns True if a row was created. An unreadable or invalid image is
+    a no-op: the operator already consented to it on the confirmation
+    screen, so skipping is expected rather than silent data loss.
     """
     if not filename:
         return False
     member = f"media/{filename}"
     try:
-        # Cheap declared-size pre-check, then a hard-bounded read so a
-        # spoofed header can't inflate the full member into memory.
         if zip_ref.getinfo(member).file_size > MAX_MEDIA_BYTES:
             logger.warning(
                 "PVP bundle image %r exceeds size cap; skipping", filename,
@@ -354,10 +345,6 @@ def _attach_image(
             return False
         data = read_capped(zip_ref, member)
     except (KeyError, zipfile.BadZipFile, OSError, zlib.error, RuntimeError):
-        # Missing member; corrupt/truncated deflate stream; encrypted or
-        # unsupported-compression member (RuntimeError /
-        # NotImplementedError); or over the byte cap. Skip rather than
-        # letting it escape this post-commit callback and crash the task.
         logger.warning(
             "PVP bundle image %r could not be read; skipping", filename,
         )
@@ -380,11 +367,6 @@ def _attach_image(
             pvp_submission_id=submission_id,
             uploaded_by_id=uploaded_by_id,
         )
-        # Write the file (save=False) before the row insert so storage I/O
-        # never runs inside the INSERT and can't poison the surrounding
-        # transaction; a failure here is caught below and the image is
-        # skipped. The path is built the same way ResultFormImage.save
-        # would for a directly-assigned file.
         image.image.save(
             build_result_form_image_path(
                 tally_id, result_form_id, filename,
@@ -394,11 +376,6 @@ def _attach_image(
         )
         image.save()
     except Exception:
-        # This runs in a post-commit callback: the bundle's DB writes are
-        # already committed. A storage/DB error saving one image must not
-        # escape and abort the remaining images (or contradict the
-        # COMPLETED status) — degrade to a missing image, which is an
-        # already-consented outcome.
         logger.exception(
             "PVP bundle image %r could not be saved; skipping", filename,
         )

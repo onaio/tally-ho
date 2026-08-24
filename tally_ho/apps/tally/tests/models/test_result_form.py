@@ -1500,13 +1500,10 @@ class TestResultForm(TestBase):
                     user=self.user, reason="redo",
                 )
 
-                # PVP-sourced image is soft-deleted (row kept for audit,
-                # active flipped); the manual upload stays active.
                 pvp_image.refresh_from_db()
                 uploaded_image.refresh_from_db()
                 self.assertFalse(pvp_image.active)
                 self.assertTrue(uploaded_image.active)
-                # Soft delete, not hard delete: the row survives for audit.
                 self.assertTrue(
                     ResultFormImage.objects.filter(id=pvp_image.id).exists(),
                 )

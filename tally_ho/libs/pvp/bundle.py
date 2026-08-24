@@ -8,10 +8,8 @@ A bundle is a zip with:
 The parser has no database dependency — callers (the upload view, the
 celery import task) construct the parser inputs and consume its dataclass
 output, and per-row validation against the database lives at a higher
-layer. It does depend on Pillow and ``django.core.exceptions`` to verify
-image bytes at parse time (see ``_find_invalid_images``); loading a file
-is the obvious attack surface, so images are checked here before anything
-downstream trusts them.
+layer. Image bytes are verified here, before anything downstream trusts
+them.
 """
 
 from __future__ import annotations
@@ -32,17 +30,6 @@ from tally_ho.libs.utils.image_validation import validate_image_bytes
 CSV_NAME = "candidate_results.csv"
 MEDIA_DIR = "media"
 
-# Cap the decompressed size of a single media entry before reading it, so
-# a maliciously crafted bundle (tiny compressed, huge inflated) cannot
-# exhaust memory before the image is validated. Generous for a phone
-# photo of a paper form.
-#
-# A reverse proxy's request-body limit is not a substitute: it bounds the
-# compressed bundle, and deflate reaches ~1000:1, so a bundle small enough
-# to pass any such limit can still carry gigabytes of inflated member. Nor
-# is the parser only reachable over HTTP — the Celery worker and the
-# management commands read stored bundles directly. The bound belongs
-# here, where the inflating happens.
 MAX_MEDIA_BYTES = 25 * 1024 * 1024  # 25 MiB
 
 # Recon fields we preserve verbatim into PvpSubmission.recon_raw.
@@ -135,12 +122,7 @@ class ParsedSubmission:
 @dataclass(frozen=True)
 class ParsedBundle:
     rows: tuple[ParsedSubmission, ...]
-    # Image filenames referenced by the CSV but absent from the zip.
     missing_images: list[str] = field(default_factory=list)
-    # Image filenames present in the zip but not a valid JPEG/PNG/WebP
-    # (or exceeding the size cap). Surfaced on the confirmation screen
-    # like missing images; the operator proceeds with informed consent
-    # and the affected slot produces no ResultFormImage row.
     invalid_images: list[str] = field(default_factory=list)
 
     @property
@@ -185,9 +167,6 @@ def parse_bundle(zip_path: str | Path) -> ParsedBundle:
             csv_rows = list(reader)
 
         parsed = _build_parsed_bundle(csv_rows)
-        # The image filenames the CSV points at, derived once and split
-        # in one place: absent from the zip is "missing", present but
-        # unverifiable is "invalid".
         referenced = _referenced_images(parsed.rows)
         missing_images = sorted(referenced - media_filenames)
         invalid_images = _find_invalid_images(
@@ -294,13 +273,10 @@ def _build_parsed_bundle(csv_rows):
 
 
 def read_capped(archive, member):
-    """Read a zip member with a hard byte bound.
+    """Read a zip member, raising ``OSError`` if it exceeds the cap.
 
-    Reads at most ``MAX_MEDIA_BYTES + 1`` bytes so the zlib decompressor's
-    transient allocation is bounded regardless of a spoofed
-    uncompressed-size header, then raises ``OSError`` if the member is
-    larger than the cap. ``archive.open(...).read(n)`` passes ``n`` to the
-    decompressor as its max length, so the full member is never inflated.
+    Bounds the decompressor's allocation regardless of a spoofed
+    uncompressed-size header, so the full member is never inflated.
     """
     with archive.open(member) as handle:
         data = handle.read(MAX_MEDIA_BYTES + 1)
@@ -313,21 +289,15 @@ def read_capped(archive, member):
 
 
 def _find_invalid_images(archive, names):
-    """Return the sorted subset of ``names`` that is not a valid image
-    (or exceeds the size cap).
+    """Return the sorted subset of ``names`` that is not a valid image.
 
-    Reads each image once and runs it through Pillow verification.
-    Oversized entries are treated as invalid without being read into
-    memory. ``names`` holds only images present in the zip — the
-    referenced-but-absent ones are reported as ``missing_images`` by the
-    caller and are not re-reported here.
+    ``names`` holds only images present in the zip. The declared size is
+    a pre-check; a crafted header can understate it, so the read is
+    hard-bounded independently.
     """
     invalid = set()
     for name in names:
         member = f"{MEDIA_DIR}/{name}"
-        # getinfo().file_size is the zip's *declared* uncompressed size —
-        # a cheap pre-check only. A crafted header can understate it, so
-        # the read below is hard-bounded independently.
         if archive.getinfo(member).file_size > MAX_MEDIA_BYTES:
             invalid.add(name)
             continue
@@ -337,12 +307,6 @@ def _find_invalid_images(archive, names):
             ValidationError, zipfile.BadZipFile, zlib.error, OSError,
             RuntimeError,
         ):
-            # A corrupt/truncated/encrypted member or one using an
-            # unsupported compression method (RuntimeError /
-            # NotImplementedError), or one that exceeds the byte cap —
-            # classify as invalid (surfaced on the confirmation screen)
-            # rather than escaping parse_bundle. Mirrors the except set
-            # in import_submission._attach_image.
             invalid.add(name)
             continue
         try:

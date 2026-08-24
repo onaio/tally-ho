@@ -18,13 +18,7 @@ _SOURCE_LABELS = {
 
 @register.inclusion_tag("includes/_result_form_images.html")
 def result_form_images(result_form):
-    """Render the gallery of images attached to a result form.
-
-    Renders nothing when the form has no images. Each image is
-    normalized to a view dict so the template does not reach into the
-    model — the image URL is built in one place here, which is also
-    where the authenticated media route is wired in.
-    """
+    """Render the gallery of images attached to a result form."""
     images = [
         {
             "url": reverse(

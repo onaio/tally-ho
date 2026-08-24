@@ -37,7 +37,6 @@ class PvpSubmission(BaseModel):
     staff_user_name = models.CharField(max_length=255, null=True, blank=True)
     submission_date = models.DateTimeField(null=True, blank=True)
 
-    # Raw payloads preserved for provenance and dupe/round handling.
     round1_raw = models.JSONField(default=dict, blank=True)
     round2_raw = models.JSONField(default=dict, blank=True)
     recon_raw = models.JSONField(default=dict, blank=True)

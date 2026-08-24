@@ -96,7 +96,6 @@ class TestResultFormImagesTag(TestBase):
         )
         self.assertIn(f'href="{expected}"', body)
         self.assertIn(f'src="{expected}"', body)
-        # Never the raw, unauthenticated media path.
         self.assertNotIn("/media/", body)
 
     def test_only_active_images_render(self):
